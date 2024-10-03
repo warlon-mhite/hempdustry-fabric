@@ -15,5 +15,10 @@
   "item.hempdustry.hemp_beannie": "Hemp Beannie",
   "item.hempdustry.hemp_shirt": "Hemp Shirt",
   "item.hempdustry.hemp_harem_pants": "Hemp Harem Pants",
-  "item.hempdustry.flip_flops": "Flip Flops"
+  "item.hempdustry.flip_flops": "Flip Flops",
+
+  "block.hempdustry.hemp_bricks_block": "Block of Hemp Bricks",
+  "block.hempdustry.hemp_planks": "Block of Hemp Planks",
+  "block.hempdustry.hempcrete_powder_block": "Block of Hempcrete Powder",
+  "block.hempdustry.hempcrete_block": "Block of Hempcrete"
 }
