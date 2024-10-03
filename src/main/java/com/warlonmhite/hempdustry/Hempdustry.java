@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry;
 
+import com.warlonmhite.hempdustry.item.ModItems;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -11,6 +12,6 @@ public class Hempdustry implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-
+		ModItems.registerModItems();
 	}
 }
