@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "hempdustry",
+	"version": "1.0.0",
+	"name": "Hempdustry",
+	"description": "Minecraft for stoner and hemprepreneurs",
+	"authors": [
+		"Warlon Mhite"
+	],
+	"contact": {
+		"homepage": "https://github.com/warlon-mhite/hempdustry-fabric",
+		"sources": "https://github.com/warlon-mhite/hempdustry-fabric"
+	},
+	"license": "aGPLv3",
+	"icon": "assets/hempdustry/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.warlonmhite.hempdustry.Hempdustry"
+		],
+		"fabric-datagen": [
+			"com.warlonmhite.hempdustry.HempdustryDataGenerator"
+		],
+		"client": [
+			"com.warlonmhite.hempdustry.HempdustryClient"
+		]
+	},
+	"mixins": [
+		"hempdustry.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.5",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
