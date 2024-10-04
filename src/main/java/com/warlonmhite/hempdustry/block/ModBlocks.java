@@ -13,13 +13,13 @@ import net.minecraft.util.Identifier;
 public class ModBlocks {
 
     public static final Block HEMP_BRICKS_BLOCK = registerBlock("hemp_bricks_block",
-            new Block(AbstractBlock.Settings.create().strength(4f).sounds(BlockSoundGroup.WOOD)));
+            new Block(AbstractBlock.Settings.create().strength(2.0F, 10.0F).sounds(BlockSoundGroup.WOOD)));
     public static final Block HEMP_PLANKS = registerBlock("hemp_planks",
-            new Block(AbstractBlock.Settings.create().strength(4f).sounds(BlockSoundGroup.WOOD)));
+            new Block(AbstractBlock.Settings.create().strength(2.0F, 3.0F).sounds(BlockSoundGroup.WOOD)));
     public static final Block HEMPCRETE_POWDER_BLOCK = registerBlock("hempcrete_powder_block",
-            new Block(AbstractBlock.Settings.create().strength(4f).sounds(BlockSoundGroup.SAND)));
+            new Block(AbstractBlock.Settings.create().strength(0.5f).sounds(BlockSoundGroup.SAND)));
     public static final Block HEMPCRETE_BLOCK = registerBlock("hempcrete_block",
-            new Block(AbstractBlock.Settings.create().strength(4f).sounds(BlockSoundGroup.STONE)));
+            new Block(AbstractBlock.Settings.create().strength(1.8F).sounds(BlockSoundGroup.STONE)));
 
     private static Block registerBlock(String name, Block block){
         registerBlockItem(name, block);

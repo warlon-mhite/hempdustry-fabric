@@ -11,7 +11,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "hempdustry:hemp_bricks"
+          "name": "hempdustry:hemp_bricks_block"
         }
       ],
       "rolls": 1.0
