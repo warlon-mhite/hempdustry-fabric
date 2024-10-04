@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "minecraft:white_dye"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "minecraft:white_concrete_powder"
+  }
+}

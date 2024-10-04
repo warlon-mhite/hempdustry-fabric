@@ -1,0 +1,37 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "minecraft:purple_dye"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "minecraft:purple_concrete_powder"
+  }
+}
