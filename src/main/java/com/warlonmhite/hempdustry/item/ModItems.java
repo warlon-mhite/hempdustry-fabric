@@ -1,9 +1,7 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -31,25 +29,5 @@ public class ModItems {
     }
     public static void registerModItems(){
         Hempdustry.LOGGER.info("Registering Mod Items for " + Hempdustry.MOD_ID);
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(entries -> {
-            entries.add(INDICA_SEEDS);
-            entries.add(INDICA_BUDS);
-            entries.add(SATIVA_BUDS);
-            entries.add(HEMP_STEM);
-
-            entries.add(HEMP_FIBER);
-            entries.add(HEMPCRETE);
-            entries.add(HEMP_BRICK);
-            entries.add(CANNABUTTER);
-
-            entries.add(PIPE);
-            entries.add(PACKED_PIPE);
-
-            entries.add(HEMP_BEANNIE);
-            entries.add(HEMP_SHIRT);
-            entries.add(HEMP_HAREM_PANTS);
-            entries.add(FLIP_FLOPS);
-        });
     }
 }
