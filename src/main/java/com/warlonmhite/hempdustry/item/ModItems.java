@@ -12,10 +12,12 @@ public class ModItems {
     public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Settings()));
     public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
 
+    public static final Item HEMP_FLOUR = registerItem("hemp_flour", new Item(new Item.Settings()));
     public static final Item HEMP_FIBER = registerItem("hemp_fiber", new Item(new Item.Settings()));
     public static final Item HEMPCRETE = registerItem("hempcrete", new Item(new Item.Settings()));
     public static final Item HEMP_BRICK = registerItem("hemp_brick", new Item(new Item.Settings()));
     public static final Item CANNABUTTER = registerItem("cannabutter", new Item(new Item.Settings()));
+
 
     public static final Item PIPE = registerItem("pipe", new Item(new Item.Settings()));
     public static final Item PACKED_PIPE = registerItem("packed_pipe", new Item(new Item.Settings()));
