@@ -41,6 +41,7 @@ public class Hempdustry implements ModInitializer {
 		FuelRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 400);
 		FuelRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 200);
 		FuelRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
+		FuelRegistry.INSTANCE.add(ModBlocks.HEMP_BALE, 450);
 
     }
 }

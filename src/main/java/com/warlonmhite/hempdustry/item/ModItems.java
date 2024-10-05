@@ -23,7 +23,6 @@ public class ModItems {
 
     public static final Item INDICA_SPLIFF = registerItem("indica_spliff", new IndicaSpliffItem(new Item.Settings().rarity(Rarity.COMMON)));
     public static final Item PIPE = registerItem("pipe", new Item(new Item.Settings().rarity(Rarity.COMMON)));
-    public static final Item PACKED_PIPE = registerItem("packed_pipe", new Item(new Item.Settings()));
 
     public static final Item HEMP_BEANNIE = registerItem("hemp_beannie", new Item(new Item.Settings()));
     public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new Item(new Item.Settings()));

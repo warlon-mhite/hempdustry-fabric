@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "hempdustry:hemp_stem"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "hempdustry:hemp_fiber"
+  }
+}
