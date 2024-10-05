@@ -11,6 +11,7 @@
   "item.hempdustry.hemp_brick": "Hemp Brick",
   "item.hempdustry.cannabutter": "Cannabutter",
 
+  "item.hempdustry.indica_spliff": "Purple Kush Spliff",
   "item.hempdustry.pipe": "Pipe",
   "item.hempdustry.packed_pipe": "Packed Pipe",
 
@@ -22,5 +23,8 @@
   "block.hempdustry.hemp_bricks_block": "Block of Hemp Bricks",
   "block.hempdustry.hemp_planks": "Block of Hemp Planks",
   "block.hempdustry.hempcrete_powder_block": "Block of Hempcrete Powder",
-  "block.hempdustry.hempcrete_block": "Block of Hempcrete"
+  "block.hempdustry.hempcrete_block": "Block of Hempcrete",
+
+  "subtitles.hempdustry.smoking": "Inhale smoke and exhale it",
+  "subtitles.hempdustry.coughing": "Coughs"
 }

@@ -1,0 +1,16 @@
+{
+  "smoking": {
+    "subtitle": "subtitles.hempdustry.smoking",
+    "sounds": [
+      "hempdustry:smoking"
+    ]
+  },
+
+  "coughing": {
+    "subtitle": "subtitles.hempdustry.coughing",
+    "sounds": [
+      "hempdustry:coughing"
+    ]
+  }
+}
+

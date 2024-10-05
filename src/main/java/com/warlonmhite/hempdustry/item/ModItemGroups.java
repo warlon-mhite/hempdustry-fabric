@@ -27,6 +27,7 @@ public class ModItemGroups {
                         entries.add(ModItems.HEMP_BRICK);
                         entries.add(ModItems.CANNABUTTER);
 
+                        entries.add(ModItems.INDICA_SPLIFF);
                         entries.add(ModItems.PIPE);
                         entries.add(ModItems.PACKED_PIPE);
 
