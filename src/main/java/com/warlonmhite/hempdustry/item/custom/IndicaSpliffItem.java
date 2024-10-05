@@ -23,10 +23,11 @@ public class IndicaSpliffItem extends Item {
         ItemStack itemStack = player.getStackInHand(hand);
         if (!player.getItemCooldownManager().isCoolingDown(this)) {
             if (!world.isClient) {
+                if(!player.getAbilities().creativeMode) {
                 itemStack.decrement(1);
                 if (itemStack.isEmpty()) {
                     player.setStackInHand(hand, ItemStack.EMPTY);
-                }
+                }}
 
                 world.playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.SMOKING, SoundCategory.PLAYERS, 1f, 1f);
                 if (ThreadLocalRandom.current().nextInt(6) == 0) {
