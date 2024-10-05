@@ -1,10 +1,12 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.item.custom.IndicaSpliffItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 
 public class ModItems {
     public static final Item INDICA_SEEDS = registerItem("indica_seeds", new Item(new Item.Settings()));
@@ -19,7 +21,8 @@ public class ModItems {
     public static final Item CANNABUTTER = registerItem("cannabutter", new Item(new Item.Settings()));
 
 
-    public static final Item PIPE = registerItem("pipe", new Item(new Item.Settings()));
+    public static final Item INDICA_SPLIFF = registerItem("indica_spliff", new IndicaSpliffItem(new Item.Settings().rarity(Rarity.COMMON)));
+    public static final Item PIPE = registerItem("pipe", new Item(new Item.Settings().rarity(Rarity.COMMON)));
     public static final Item PACKED_PIPE = registerItem("packed_pipe", new Item(new Item.Settings()));
 
     public static final Item HEMP_BEANNIE = registerItem("hemp_beannie", new Item(new Item.Settings()));
