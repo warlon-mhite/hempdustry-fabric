@@ -29,7 +29,6 @@ public class ModItemGroups {
 
                         entries.add(ModItems.INDICA_SPLIFF);
                         entries.add(ModItems.PIPE);
-                        entries.add(ModItems.PACKED_PIPE);
 
                         entries.add(ModItems.HEMP_BEANNIE);
                         entries.add(ModItems.HEMP_SHIRT);
@@ -54,6 +53,7 @@ public class ModItemGroups {
 
                         entries.add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
                         entries.add(ModBlocks.HEMPCRETE_BLOCK);
+                        entries.add(ModBlocks.HEMP_BALE);
                     }).build());
 
     public static void registerItemGroups(){

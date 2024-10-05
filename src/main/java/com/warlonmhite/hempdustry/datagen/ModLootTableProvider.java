@@ -28,5 +28,6 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
         addDrop(ModBlocks.HEMPCRETE_BLOCK);
         addDrop(ModBlocks.HEMPCRETE_POWDER_BLOCK);
+        addDrop(ModBlocks.HEMP_BALE);
     }
 }
