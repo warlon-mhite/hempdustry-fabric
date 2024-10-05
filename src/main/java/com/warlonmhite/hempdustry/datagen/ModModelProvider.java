@@ -14,10 +14,24 @@ public class ModModelProvider extends FabricModelProvider {
 
     @Override
     public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
-        blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.HEMP_BRICKS_BLOCK);
-        blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.HEMP_PLANKS);
+        BlockStateModelGenerator.BlockTexturePool hempBricksPool = blockStateModelGenerator.registerCubeAllModelTexturePool(ModBlocks.HEMP_BRICKS_BLOCK);
+        BlockStateModelGenerator.BlockTexturePool hempPlanksPool = blockStateModelGenerator.registerCubeAllModelTexturePool(ModBlocks.HEMP_PLANKS);
         blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.HEMPCRETE_BLOCK);
         blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.HEMPCRETE_POWDER_BLOCK);
+
+        hempBricksPool.stairs(ModBlocks.HEMP_BRICKS_STAIRS);
+        hempBricksPool.slab(ModBlocks.HEMP_BRICKS_SLAB);
+        hempBricksPool.wall(ModBlocks.HEMP_BRICKS_WALL);
+
+        hempPlanksPool.stairs(ModBlocks.HEMP_PLANKS_STAIRS);
+        hempPlanksPool.slab(ModBlocks.HEMP_PLANKS_SLAB);
+        hempPlanksPool.button(ModBlocks.HEMP_PLANKS_BUTTON);
+        hempPlanksPool.pressurePlate(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
+        hempPlanksPool.fence(ModBlocks.HEMP_PLANKS_FENCE);
+        hempPlanksPool.fenceGate(ModBlocks.HEMP_PLANKS_FENCE_GATE);
+
+        blockStateModelGenerator.registerDoor(ModBlocks.HEMP_PLANKS_DOOR);
+        blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
     }
 
     @Override
