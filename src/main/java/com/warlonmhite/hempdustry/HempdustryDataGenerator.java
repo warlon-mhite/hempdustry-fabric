@@ -1,10 +1,7 @@
 package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
-import com.warlonmhite.hempdustry.datagen.ModBlockTagProvider;
-import com.warlonmhite.hempdustry.datagen.ModItemTagProvider;
-import com.warlonmhite.hempdustry.datagen.ModLootTableProvider;
-import com.warlonmhite.hempdustry.datagen.ModModelProvider;
+import com.warlonmhite.hempdustry.datagen.*;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 

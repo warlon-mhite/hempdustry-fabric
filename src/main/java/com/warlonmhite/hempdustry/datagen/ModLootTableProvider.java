@@ -15,14 +15,14 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
     @Override
     public void generate() {
         addDrop(ModBlocks.HEMP_BRICKS_BLOCK);
-        addDrop(ModBlocks.HEMP_BRICKS_SLAB);
+        addDrop(ModBlocks.HEMP_BRICKS_SLAB,slabDrops(ModBlocks.HEMP_BRICKS_SLAB));
         addDrop(ModBlocks.HEMP_BRICKS_STAIRS);
         addDrop(ModBlocks.HEMP_BRICKS_WALL);
         addDrop(ModBlocks.HEMP_PLANKS);
-        addDrop(ModBlocks.HEMP_PLANKS_SLAB);
+        addDrop(ModBlocks.HEMP_PLANKS_SLAB, slabDrops(ModBlocks.HEMP_PLANKS_SLAB));
         addDrop(ModBlocks.HEMP_PLANKS_STAIRS);
         addDrop(ModBlocks.HEMP_PLANKS_BUTTON);
-        addDrop(ModBlocks.HEMP_PLANKS_DOOR);
+        addDrop(ModBlocks.HEMP_PLANKS_DOOR, doorDrops((ModBlocks.HEMP_PLANKS_DOOR)));
         addDrop(ModBlocks.HEMP_PLANKS_FENCE);
         addDrop(ModBlocks.HEMP_PLANKS_FENCE_GATE);
         addDrop(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);

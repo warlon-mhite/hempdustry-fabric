@@ -35,5 +35,9 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.HEMP_PLANKS_FENCE_GATE)
                 .add(ModBlocks.HEMP_PLANKS_DOOR)
                 .add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+
+        getOrCreateTagBuilder(BlockTags.FENCES).add(ModBlocks.HEMP_PLANKS_FENCE);
+        getOrCreateTagBuilder(BlockTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
+        getOrCreateTagBuilder(BlockTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL);
     }
 }
