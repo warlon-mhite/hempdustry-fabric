@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
+import net.fabricmc.fabric.api.registry.FuelRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,14 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
+
+		FuelRegistry.INSTANCE.add(ModItems.HEMP_STEM, 50);
+		FuelRegistry.INSTANCE.add(ModItems.HEMPCRETE, 200);
+		FuelRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 350);
+		FuelRegistry.INSTANCE.add(ModItems.HEMP_BEANNIE, 250);
+		FuelRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 400);
+		FuelRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 200);
+		FuelRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
 
     }
 }
