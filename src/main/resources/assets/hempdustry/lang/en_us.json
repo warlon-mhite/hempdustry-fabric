@@ -21,7 +21,20 @@
   "item.hempdustry.flip_flops": "Flip Flops",
 
   "block.hempdustry.hemp_bricks_block": "Block of Hemp Bricks",
+  "block.hempdustry.hemp_bricks_slab": "Hemp Bricks Slab",
+  "block.hempdustry.hemp_bricks_stairs": "Hemp Bricks Stairs",
+  "block.hempdustry.hemp_bricks_wall": "Hemp Bricks Wall",
+
   "block.hempdustry.hemp_planks": "Block of Hemp Planks",
+  "block.hempdustry.hemp_planks_slab": "Hemp Planks Slab",
+  "block.hempdustry.hemp_planks_stairs": "Hemp Planks Stairs",
+  "block.hempdustry.hemp_planks_button": "Hemp Button",
+  "block.hempdustry.hemp_planks_presure_plate": "Hemp Pressure Plate",
+  "block.hempdustry.hemp_planks_fence": "Hemp Fence",
+  "block.hempdustry.hemp_planks_fence_gate": "Hemp Fence Gate",
+  "block.hempdustry.hemp_planks_door": "Hemp Door",
+  "block.hempdustry.hemp_planks_trapdoor": "Hemp Trapdoor",
+
   "block.hempdustry.hempcrete_powder_block": "Block of Hempcrete Powder",
   "block.hempdustry.hempcrete_block": "Block of Hempcrete",
 
