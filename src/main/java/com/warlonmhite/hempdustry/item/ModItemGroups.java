@@ -38,7 +38,20 @@ public class ModItemGroups {
 
 
                         entries.add(ModBlocks.HEMP_BRICKS_BLOCK);
+                        entries.add(ModBlocks.HEMP_BRICKS_SLAB);
+                        entries.add(ModBlocks.HEMP_BRICKS_STAIRS);
+                        entries.add(ModBlocks.HEMP_BRICKS_WALL);
+
                         entries.add(ModBlocks.HEMP_PLANKS);
+                        entries.add(ModBlocks.HEMP_PLANKS_SLAB);
+                        entries.add(ModBlocks.HEMP_PLANKS_STAIRS);
+                        entries.add(ModBlocks.HEMP_PLANKS_BUTTON);
+                        entries.add(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
+                        entries.add(ModBlocks.HEMP_PLANKS_FENCE);
+                        entries.add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
+                        entries.add(ModBlocks.HEMP_PLANKS_DOOR);
+                        entries.add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+
                         entries.add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
                         entries.add(ModBlocks.HEMPCRETE_BLOCK);
                     }).build());
