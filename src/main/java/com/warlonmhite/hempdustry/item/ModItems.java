@@ -29,6 +29,7 @@ public class ModItems {
     public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new Item(new Item.Settings()));
     public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new Item(new Item.Settings()));
     public static final Item FLIP_FLOPS = registerItem("flip_flops", new Item(new Item.Settings()));
+
     private static Item registerItem(String name, Item item){
         return Registry.register(Registries.ITEM, Identifier.of(Hempdustry.MOD_ID, name), item);
     }

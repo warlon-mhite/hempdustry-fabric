@@ -5,6 +5,7 @@ import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,5 +19,19 @@ public class Hempdustry implements ModInitializer {
 		ModItems.registerModItems();
 		ModBlocks.registerModBlocks();
 		ModSounds.registerSounds();
-	}
+
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BRICK, 0.05f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_SEEDS, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_FIBER, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMPCRETE, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_STEM, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_BUDS, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_BUDS, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BEANNIE, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
+
+    }
 }
