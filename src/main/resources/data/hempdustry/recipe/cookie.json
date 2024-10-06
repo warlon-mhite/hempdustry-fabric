@@ -1,6 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "category": "food",
   "key": {
     "#": {
       "item": "hempdustry:hemp_flour"

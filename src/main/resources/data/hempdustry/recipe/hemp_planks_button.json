@@ -1,13 +1,13 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "food",
+  "category": "redstone",
   "ingredients": [
     {
-      "tag": "hempdustry:hemp_seeds"
+      "item": "hempdustry:hemp_planks"
     }
   ],
   "result": {
     "count": 1,
-    "id": "hempdustry:hemp_flour"
+    "id": "hempdustry:hemp_planks_button"
   }
 }
