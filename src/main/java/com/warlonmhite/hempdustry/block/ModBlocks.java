@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.block;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.*;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -9,6 +8,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
+
 
 public class ModBlocks {
 
@@ -50,16 +50,17 @@ public class ModBlocks {
     public static final Block HEMP_PLANKS_TRAPDOOR = registerBlock("hemp_planks_trapdoor",
             new TrapdoorBlock(BlockSetType.OAK, AbstractBlock.Settings.create().strength(2f).nonOpaque()));
 
-    public static final Block HEMPCRETE_POWDER_BLOCK = registerBlock("hempcrete_powder_block",
-            new Block(AbstractBlock.Settings.create().strength(0.5f).sounds(BlockSoundGroup.SAND)));
     public static final Block HEMPCRETE_BLOCK = registerBlock("hempcrete_block",
             new Block(AbstractBlock.Settings.create().strength(1.8F).sounds(BlockSoundGroup.STONE)));
+    public static final FallingBlock HEMPCRETE_POWDER_BLOCK = (FallingBlock) registerBlock("hempcrete_powder_block",
+            new CustomConcreteBlock(AbstractBlock.Settings.create().strength(0.5f).sounds(BlockSoundGroup.SAND)));
+
 
     public static final Block HEMP_BALE = registerBlock("hemp_bale",
             new PillarBlock(AbstractBlock.Settings.copy(Blocks.HAY_BLOCK).strength(0.5f).sounds(BlockSoundGroup.GRASS)));
 
 
-    private static Block registerBlock(String name, Block block){
+    public static Block registerBlock(String name, Block block){
         registerBlockItem(name, block);
         return Registry.register(Registries.BLOCK, Identifier.of(Hempdustry.MOD_ID, name), block);
     }
