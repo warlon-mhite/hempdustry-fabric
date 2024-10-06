@@ -29,6 +29,7 @@ public class ModItemGroups {
 
                         entries.add(ModItems.INDICA_SPLIFF);
                         entries.add(ModItems.PIPE);
+                        entries.add(ModItems.GLASS_BONG);
 
                         entries.add(ModItems.HEMP_BEANNIE);
                         entries.add(ModItems.HEMP_SHIRT);

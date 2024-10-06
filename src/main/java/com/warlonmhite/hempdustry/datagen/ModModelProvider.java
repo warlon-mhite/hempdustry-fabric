@@ -53,6 +53,7 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.INDICA_SEEDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_SPLIFF, Models.GENERATED);
         itemModelGenerator.register(ModItems.PIPE, Models.GENERATED);
+        itemModelGenerator.register(ModItems.GLASS_BONG, Models.GENERATED);
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
     }
 }
