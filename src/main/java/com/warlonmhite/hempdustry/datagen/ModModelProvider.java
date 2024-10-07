@@ -37,7 +37,7 @@ public class ModModelProvider extends FabricModelProvider {
         blockStateModelGenerator.registerLog(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
 
 
-        blockStateModelGenerator.registerCrop(ModBlocks.INDICA_CROP, IndicaCropBlock.AGE, 0, 1, 2, 3, 4, 5, 6, 7, 8);
+        blockStateModelGenerator.registerCrop(ModBlocks.INDICA_CROP, IndicaCropBlock.AGE, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 
     }
 
