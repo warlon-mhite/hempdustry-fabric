@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.block;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
+import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import net.minecraft.block.*;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -58,6 +60,10 @@ public class ModBlocks {
 
     public static final Block HEMP_BALE = registerBlock("hemp_bale",
             new PillarBlock(AbstractBlock.Settings.copy(Blocks.HAY_BLOCK).strength(0.5f).sounds(BlockSoundGroup.GRASS)));
+
+
+    public static final Block INDICA_CROP = registerBlock("indica_crop",
+            new IndicaCropBlock(AbstractBlock.Settings.copy(Blocks.WHEAT)));
 
 
     public static Block registerBlock(String name, Block block){

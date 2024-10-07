@@ -4,9 +4,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
-import net.minecraft.block.Block;
 import net.minecraft.data.client.*;
-import net.minecraft.util.Identifier;
 
 public class ModModelProvider extends FabricModelProvider {
     public ModModelProvider(FabricDataOutput output) {
@@ -35,6 +33,8 @@ public class ModModelProvider extends FabricModelProvider {
         blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
 
         blockStateModelGenerator.registerLog(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
+
+
     }
 
     @Override
@@ -49,8 +49,8 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.HEMP_SHIRT, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_STEM, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMPCRETE, Models.GENERATED);
-        itemModelGenerator.register(ModItems.INDICA_BUDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_SEEDS, Models.GENERATED);
+        itemModelGenerator.register(ModItems.INDICA_BUDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_SPLIFF, Models.GENERATED);
         itemModelGenerator.register(ModItems.PIPE, Models.GENERATED);
         itemModelGenerator.register(ModItems.GLASS_BONG, Models.GENERATED);
