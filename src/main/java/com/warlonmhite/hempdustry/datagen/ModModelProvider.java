@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.data.client.*;
+import net.minecraft.item.ArmorItem;
 
 public class ModModelProvider extends FabricModelProvider {
     public ModModelProvider(FabricDataOutput output) {
@@ -43,13 +44,9 @@ public class ModModelProvider extends FabricModelProvider {
     @Override
     public void generateItemModels(ItemModelGenerator itemModelGenerator) {
         itemModelGenerator.register(ModItems.CANNABUTTER, Models.GENERATED);
-        itemModelGenerator.register(ModItems.FLIP_FLOPS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_BEANNIE, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_BRICK, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_FIBER, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_FLOUR, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_HAREM_PANTS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_SHIRT, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_STEM, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMPCRETE, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_BUDS, Models.GENERATED);
@@ -57,5 +54,10 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.PIPE, Models.GENERATED);
         itemModelGenerator.register(ModItems.GLASS_BONG, Models.GENERATED);
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
+
+        itemModelGenerator.registerArmor(((ArmorItem) ModItems.FLIP_FLOPS));
+        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_BEANNIE));
+        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_HAREM_PANTS));
+        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_SHIRT));
     }
 }
