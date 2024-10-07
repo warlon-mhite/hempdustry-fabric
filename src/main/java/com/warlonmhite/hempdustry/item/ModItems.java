@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.custom.IndicaSpliffItem;
 import net.minecraft.item.AliasedBlockItem;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -27,10 +28,14 @@ public class ModItems {
     public static final Item PIPE = registerItem("pipe", new Item(new Item.Settings().rarity(Rarity.COMMON).maxCount(1)));
     public static final Item GLASS_BONG = registerItem("glass_bong", new Item(new Item.Settings().rarity(Rarity.COMMON).maxCount(1)));
 
-    public static final Item HEMP_BEANNIE = registerItem("hemp_beannie", new Item(new Item.Settings()));
-    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new Item(new Item.Settings()));
-    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new Item(new Item.Settings()));
-    public static final Item FLIP_FLOPS = registerItem("flip_flops", new Item(new Item.Settings()));
+    public static final Item HEMP_BEANNIE = registerItem("hemp_beannie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Settings()
+            .maxDamage(ArmorItem.Type.HELMET.getMaxDamage(3))));
+    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Settings()
+            .maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(3))));
+    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Settings()
+            .maxDamage(ArmorItem.Type.LEGGINGS.getMaxDamage(3))));
+    public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Settings()
+            .maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(3))));
 
     private static Item registerItem(String name, Item item){
         return Registry.register(Registries.ITEM, Identifier.of(Hempdustry.MOD_ID, name), item);
