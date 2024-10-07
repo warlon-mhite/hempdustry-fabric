@@ -1,8 +1,12 @@
 package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.item.ModItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+import net.minecraft.loot.condition.BlockStatePropertyLootCondition;
+import net.minecraft.predicate.StatePredicate;
 import net.minecraft.registry.RegistryWrapper;
 
 import java.util.concurrent.CompletableFuture;
@@ -29,5 +33,11 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMPCRETE_BLOCK);
         addDrop(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         addDrop(ModBlocks.HEMP_BALE);
+
+        BlockStatePropertyLootCondition.Builder builder2 = BlockStatePropertyLootCondition.builder(ModBlocks.INDICA_CROP)
+                .properties(StatePredicate.Builder.create().exactMatch(IndicaCropBlock.AGE, 8));
+        this.addDrop(ModBlocks.INDICA_CROP, this.cropDrops(ModBlocks.INDICA_CROP, ModItems.INDICA_BUDS, ModItems.INDICA_SEEDS, builder2));
     }
+
+
 }
