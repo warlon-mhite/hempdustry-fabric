@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "age=0": {
+      "model": "hempdustry:block/indica_crop_stage0"
+    },
+    "age=1": {
+      "model": "hempdustry:block/indica_crop_stage1"
+    },
+    "age=10": {
+      "model": "hempdustry:block/indica_crop_stage10"
+    },
+    "age=11": {
+      "model": "hempdustry:block/indica_crop_stage11"
+    },
+    "age=2": {
+      "model": "hempdustry:block/indica_crop_stage2"
+    },
+    "age=3": {
+      "model": "hempdustry:block/indica_crop_stage3"
+    },
+    "age=4": {
+      "model": "hempdustry:block/indica_crop_stage4"
+    },
+    "age=5": {
+      "model": "hempdustry:block/indica_crop_stage5"
+    },
+    "age=6": {
+      "model": "hempdustry:block/indica_crop_stage6"
+    },
+    "age=7": {
+      "model": "hempdustry:block/indica_crop_stage7"
+    },
+    "age=8": {
+      "model": "hempdustry:block/indica_crop_stage8"
+    },
+    "age=9": {
+      "model": "hempdustry:block/indica_crop_stage9"
+    }
+  }
+}

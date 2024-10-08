@@ -35,7 +35,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMP_BALE);
 
         BlockStatePropertyLootCondition.Builder builder2 = BlockStatePropertyLootCondition.builder(ModBlocks.INDICA_CROP)
-                .properties(StatePredicate.Builder.create().exactMatch(IndicaCropBlock.AGE, 8));
+                .properties(StatePredicate.Builder.create().exactMatch(IndicaCropBlock.AGE, 11));
         this.addDrop(ModBlocks.INDICA_CROP, this.cropDrops(ModBlocks.INDICA_CROP, ModItems.INDICA_BUDS, ModItems.INDICA_SEEDS, builder2));
     }
 
