@@ -55,6 +55,8 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
                         entries.add(ModBlocks.HEMPCRETE_BLOCK);
                         entries.add(ModBlocks.HEMP_BALE);
+
+                        entries.add(ModBlocks.INDICA_FLOWER);
                     }).build());
 
     public static void registerItemGroups(){

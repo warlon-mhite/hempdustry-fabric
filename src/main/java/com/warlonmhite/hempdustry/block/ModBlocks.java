@@ -3,7 +3,9 @@ package com.warlonmhite.hempdustry.block;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
 import net.minecraft.block.*;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -64,6 +66,11 @@ public class ModBlocks {
 
     public static final Block INDICA_CROP = registerBlock("indica_crop",
             new IndicaCropBlock(AbstractBlock.Settings.copy(Blocks.WHEAT)));
+
+    public static final Block INDICA_FLOWER = registerBlock("indica_flower",
+            new IndicaFlower(StatusEffects.MINING_FATIGUE, 1, AbstractBlock.Settings.copy(Blocks.ALLIUM)));
+    public static final Block POTTED_INDICA_FLOWER = registerBlock("potted_indica_flower",
+            new FlowerPotBlock(INDICA_FLOWER, AbstractBlock.Settings.copy(Blocks.POTTED_ALLIUM)));
 
 
     public static Block registerBlock(String name, Block block){
