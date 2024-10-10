@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.block.*;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
@@ -65,6 +66,9 @@ public class IndicaCropBlock extends CropBlock {
                         world.setBlockState(pos, this.withAge(currentAge + 1), 2);
                         world.setBlockState(pos.up(1), this.withAge(FIRST_STAGE_MAX_AGE + secondBlockAge), 2);
                     }
+                    else if (currentAge >= GROW_UP_STAGE &&  !world.getBlockState(pos.up(1)).isAir() && !world.getBlockState(pos.up(1)).isOf(this)){
+                        world.setBlockState(pos, this.withAge(currentAge),2);
+                    }
                     else {
                         world.setBlockState(pos, this.withAge(currentAge + 1), 2);
                     }
@@ -91,6 +95,16 @@ public class IndicaCropBlock extends CropBlock {
         else {
             world.setBlockState(pos, this.withAge(nextAge - SECOND_STAGE_MAX_AGE), 2);
         }
+    }
+
+    @Override
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        int currentAge = this.getAge(state);
+        if (!world.isClient() && (currentAge > FIRST_STAGE_MAX_AGE)) {
+            world.breakBlock(pos.down(1), false);
+        }
+        super.onBreak(world, pos, state, player);
+        return state;
     }
 
     @Override
