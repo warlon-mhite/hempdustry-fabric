@@ -47,14 +47,14 @@ public class IndicaCropBlock extends CropBlock {
     @Override
     public boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
         return super.canPlaceAt(state, world, pos) || (world.getBlockState(pos.down(1)).isOf(this) &&
-                world.getBlockState(pos.down(1)).get(AGE) > GROW_UP_STAGE && world.getBlockState(pos.down(1)).get(AGE) <= FIRST_STAGE_MAX_AGE);
+                world.getBlockState(pos.down(1)).get(AGE) >= GROW_UP_STAGE && world.getBlockState(pos.down(1)).get(AGE) <= FIRST_STAGE_MAX_AGE);
     }
 
     @Override
     public void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         if (world.getBaseLightLevel(pos, 0) >= 9) {
             int currentAge = this.getAge(state);
-            int secondBlockAge = currentAge - GROW_UP_STAGE;
+
             if (currentAge < FIRST_STAGE_MAX_AGE) {
                 float growthChance = getAvailableMoisture(this, world, pos);
                 if (random.nextInt((int) (25.0F / growthChance) + 1) == 0) {
@@ -63,8 +63,10 @@ public class IndicaCropBlock extends CropBlock {
                         world.setBlockState(pos.up(1), this.withAge(FIRST_STAGE_MAX_AGE + 1), 2);
                     }
                     else if (currentAge > GROW_UP_STAGE && world.getBlockState(pos.up(1)).isOf(this)) {
+                        BlockState blockStateAbove = world.getBlockState(pos.up(1));
+                        int blockAboveAge = blockStateAbove.get(AGE);
                         world.setBlockState(pos, this.withAge(currentAge + 1), 2);
-                        world.setBlockState(pos.up(1), this.withAge(FIRST_STAGE_MAX_AGE + secondBlockAge), 2);
+                        world.setBlockState(pos.up(1), this.withAge(blockAboveAge + 1), 2);
                     }
                     else if (currentAge >= GROW_UP_STAGE &&  !world.getBlockState(pos.up(1)).isAir() && !world.getBlockState(pos.up(1)).isOf(this)){
                         world.setBlockState(pos, this.withAge(currentAge),2);
@@ -84,13 +86,14 @@ public class IndicaCropBlock extends CropBlock {
             nextAge = maxAge;
         }
         int currentAge = this.getAge(state);
-        int secondBlockAge = currentAge - GROW_UP_STAGE;
 
         if(this.getAge(state) == GROW_UP_STAGE && world.getBlockState(pos.up(1)).isOf(Blocks.AIR)) {
             world.setBlockState(pos.up(1), this.withAge(FIRST_STAGE_MAX_AGE + 1), 2);
         }
         if(this.getAge(state) > GROW_UP_STAGE && world.getBlockState(pos.up(1)).isOf(this)) {
-            world.setBlockState(pos.up(1), this.withAge(FIRST_STAGE_MAX_AGE + secondBlockAge), 2);
+            BlockState blockStateAbove = world.getBlockState(pos.up(1));
+            int blockAboveAge = blockStateAbove.get(AGE);
+            world.setBlockState(pos.up(1), this.withAge(blockAboveAge + 1), 2);
         }
         else {
             world.setBlockState(pos, this.withAge(nextAge - SECOND_STAGE_MAX_AGE), 2);
