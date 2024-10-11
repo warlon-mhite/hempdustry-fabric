@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.world.gen.ModWorldGeneration;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
+import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,5 +46,12 @@ public class Hempdustry implements ModInitializer {
 		FuelRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
 		FuelRegistry.INSTANCE.add(ModBlocks.HEMP_BALE, 450);
 
+		registerFlammables();
 	}
+
+	private static void registerFlammables() {
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDICA_CROP, 10, 25);
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDICA_FLOWER, 20, 40);
+	}
+
 }
