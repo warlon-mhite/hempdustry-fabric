@@ -25,7 +25,7 @@ public class IndicaCropBlock extends CropBlock {
                     Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D),
                     Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D),
                     Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
-                    Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 21.0D, 16.0D),
+                    Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 22.0D, 16.0D),
                     Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 24.0D, 16.0D),
                     Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 26.0D, 16.0D),
                     Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 29.0D, 16.0D),
@@ -99,6 +99,7 @@ public class IndicaCropBlock extends CropBlock {
         int currentAge = this.getAge(state);
 
         if(this.getAge(state) == GROW_UP_STAGE && world.getBlockState(pos.up(1)).isOf(Blocks.AIR)) {
+            world.setBlockState(pos, this.withAge(currentAge + growthAmount), 2);
             world.setBlockState(pos.up(1), this.withAge(FIRST_STAGE_MAX_AGE + growthAmount), 2);
         }
         else if(this.getAge(state) > GROW_UP_STAGE  && world.getBlockState(pos.up(1)).isOf(this)) {
@@ -107,6 +108,7 @@ public class IndicaCropBlock extends CropBlock {
             if (nextAgeTop > getMaxAge()) {
                 nextAgeTop = SECOND_STAGE_MAX_AGE;
             }
+            world.setBlockState(pos, this.withAge(nextAge), 2);
             world.setBlockState(pos.up(1), this.withAge(nextAgeTop), 2);
         }
         else if(this.getAge(state) >= FIRST_STAGE_MAX_AGE) {
