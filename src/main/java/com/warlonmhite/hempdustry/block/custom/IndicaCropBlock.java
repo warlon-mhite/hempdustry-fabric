@@ -151,4 +151,5 @@ public class IndicaCropBlock extends CropBlock {
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(AGE);
     }
+
 }

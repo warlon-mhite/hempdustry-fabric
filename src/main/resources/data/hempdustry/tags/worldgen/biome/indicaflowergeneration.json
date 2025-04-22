@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:plains",
+    "minecraft:jungle",
+    "minecraft:mangrove_swamp",
+    "minecraft:lush_caves",
+    "biomesoplenty:fungal_jungle",
+    "biomesoplenty:rainforest",
+    "biomesoplenty:floodplain",
+    "biomesoplenty:mystic_grove",
+    "biomesoplenty:lush_desert",
+    "biomesoplenty:bayou",
+    "biomesoplenty:bog"
+  ]
+}
