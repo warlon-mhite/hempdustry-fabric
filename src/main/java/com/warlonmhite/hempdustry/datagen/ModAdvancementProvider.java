@@ -30,7 +30,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         AdvancementEntry rootAdvancement = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_STEM),
                         Text.literal("Hemprepreneurs"), Text.literal("Harvest your first hemp stem and discover what the plant is really capable of."),
-                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/hempcrete_powder_block")), AdvancementFrame.TASK,
+                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_stem", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_STEM))
                 .build(consumer, Hempdustry.MOD_ID + ":hempdustry");
@@ -38,7 +38,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         AdvancementEntry hempBuilder = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_BRICK),
                         Text.literal("Hemp Builder"), Text.literal("Craft your first hemp brick and explore the building potential of hemp."),
-                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/hempcrete_powder_block")), AdvancementFrame.TASK,
+                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_brick", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_BRICK))
                 .parent(rootAdvancement)
@@ -47,7 +47,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         AdvancementEntry greenThreads = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_FIBER),
                         Text.literal("Green Threads"), Text.literal("Turn hemp into fiber—your gateway to new stuff"),
-                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/hempcrete_powder_block")), AdvancementFrame.TASK,
+                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_fiber", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_FIBER))
                 .parent(rootAdvancement)
@@ -56,7 +56,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         AdvancementEntry chillSet = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_BEANNIE),
                         Text.literal("The Chill Set"), Text.literal("You’re geared up in 100% plant-based protection... fashion."),
-                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/hempcrete_powder_block")), AdvancementFrame.TASK,
+                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("full_hemp_armor", InventoryChangedCriterion.Conditions.items(
                         ModItems.HEMP_BEANNIE,
