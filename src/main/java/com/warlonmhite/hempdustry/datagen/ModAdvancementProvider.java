@@ -28,12 +28,33 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
     public void generateAdvancement(RegistryWrapper.WrapperLookup registryLookup, Consumer<AdvancementEntry> consumer) {
 
         AdvancementEntry rootAdvancement = Advancement.Builder.create()
+                .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_SEEDS),
+                        Text.literal("High Hopes"), Text.literal("Plant a different kind of seed and see where it grows."),
+                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
+                        true,true,false))
+                .criterion("has_hemp_stem", InventoryChangedCriterion.Conditions.items(ModItems.INDICA_SEEDS))
+                .build(consumer, Hempdustry.MOD_ID + ":hempdustry");
+
+
+        AdvancementEntry indicaStrain = Advancement.Builder.create()
+                .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_BUDS),
+                        Text.literal("Purple Kush"), Text.literal("Not all buds are built for speed. Indica brings the chill."),
+                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
+                        true,true,false))
+                .criterion("has_indica_buds", InventoryChangedCriterion.Conditions.items(ModItems.INDICA_BUDS))
+                .parent(rootAdvancement)
+                .build(consumer, Hempdustry.MOD_ID + ":indica_strain");
+
+
+
+        AdvancementEntry hemprepreneurs = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_STEM),
                         Text.literal("Hemprepreneurs"), Text.literal("Harvest your first hemp stem and discover what the plant is really capable of."),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_stem", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_STEM))
-                .build(consumer, Hempdustry.MOD_ID + ":hempdustry");
+                .parent(rootAdvancement)
+                .build(consumer, Hempdustry.MOD_ID + ":hemprepreneurs");
 
         AdvancementEntry hempBuilder = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_BRICK),
@@ -41,7 +62,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_brick", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_BRICK))
-                .parent(rootAdvancement)
+                .parent(hemprepreneurs)
                 .build(consumer, Hempdustry.MOD_ID + ":hemp_builder");
 
         AdvancementEntry greenThreads = Advancement.Builder.create()
@@ -50,7 +71,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_fiber", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_FIBER))
-                .parent(rootAdvancement)
+                .parent(hemprepreneurs)
                 .build(consumer, Hempdustry.MOD_ID + ":green_threads");
 
         AdvancementEntry chillSet = Advancement.Builder.create()
