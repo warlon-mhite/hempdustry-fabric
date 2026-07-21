@@ -1,0 +1,30 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "has_hemp_stem": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:hemp_stem"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": "Harvest your first hemp stem and discover what the plant is really capable of.",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:hemp_stem"
+    },
+    "title": "Hemprepreneurs"
+  },
+  "requirements": [
+    [
+      "has_hemp_stem"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

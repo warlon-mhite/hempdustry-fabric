@@ -1,0 +1,29 @@
+{
+  "criteria": {
+    "has_hemp_stem": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:indica_seeds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": "Plant a different kind of seed and see where it grows.",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:indica_seeds"
+    },
+    "title": "High Hopes"
+  },
+  "requirements": [
+    [
+      "has_hemp_stem"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

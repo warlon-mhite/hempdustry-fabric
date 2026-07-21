@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "hempdustry:block/hemp_bricks_block",
+    "side": "hempdustry:block/hemp_bricks_block",
+    "top": "hempdustry:block/hemp_bricks_block"
+  }
+}

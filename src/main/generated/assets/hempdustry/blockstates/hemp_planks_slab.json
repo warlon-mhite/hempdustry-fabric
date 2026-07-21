@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "hempdustry:block/hemp_planks_slab"
+    },
+    "type=double": {
+      "model": "hempdustry:block/hemp_planks"
+    },
+    "type=top": {
+      "model": "hempdustry:block/hemp_planks_slab_top"
+    }
+  }
+}

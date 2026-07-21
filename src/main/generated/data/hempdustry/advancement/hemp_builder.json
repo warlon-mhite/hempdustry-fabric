@@ -1,0 +1,30 @@
+{
+  "parent": "hempdustry:hemprepreneurs",
+  "criteria": {
+    "has_hemp_brick": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:hemp_brick"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": "Craft your first hemp brick and explore the building potential of hemp.",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:hemp_brick"
+    },
+    "title": "Hemp Builder"
+  },
+  "requirements": [
+    [
+      "has_hemp_brick"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

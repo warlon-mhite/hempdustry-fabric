@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/wall_inventory",
+  "textures": {
+    "wall": "hempdustry:block/hemp_bricks_block"
+  }
+}

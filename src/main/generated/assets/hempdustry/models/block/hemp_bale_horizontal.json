@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column_horizontal",
+  "textures": {
+    "end": "hempdustry:block/hemp_bale_top",
+    "side": "hempdustry:block/hemp_bale"
+  }
+}

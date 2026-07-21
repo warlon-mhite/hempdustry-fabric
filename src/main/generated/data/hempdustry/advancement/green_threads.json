@@ -1,0 +1,30 @@
+{
+  "parent": "hempdustry:hemprepreneurs",
+  "criteria": {
+    "has_hemp_fiber": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:hemp_fiber"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": "Turn hemp into fiber—your gateway to new stuff",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:hemp_fiber"
+    },
+    "title": "Green Threads"
+  },
+  "requirements": [
+    [
+      "has_hemp_fiber"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

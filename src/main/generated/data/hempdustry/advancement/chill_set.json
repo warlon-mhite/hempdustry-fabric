@@ -1,0 +1,39 @@
+{
+  "parent": "hempdustry:green_threads",
+  "criteria": {
+    "full_hemp_armor": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:hemp_beannie"
+          },
+          {
+            "items": "hempdustry:hemp_shirt"
+          },
+          {
+            "items": "hempdustry:hemp_harem_pants"
+          },
+          {
+            "items": "hempdustry:flip_flops"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": "You’re geared up in 100% plant-based protection... fashion.",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:hemp_beannie"
+    },
+    "title": "The Chill Set"
+  },
+  "requirements": [
+    [
+      "full_hemp_armor"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

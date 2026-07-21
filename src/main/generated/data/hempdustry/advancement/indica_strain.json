@@ -1,0 +1,30 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "has_indica_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:indica_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": "Not all buds are built for speed. Indica brings the chill.",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:indica_buds"
+    },
+    "title": "Purple Kush"
+  },
+  "requirements": [
+    [
+      "has_indica_buds"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
