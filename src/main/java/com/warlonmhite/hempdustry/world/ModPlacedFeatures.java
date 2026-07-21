@@ -1,4 +1,4 @@
-package com.warlonmhite.world;
+package com.warlonmhite.hempdustry.world;
 
 
 import com.warlonmhite.hempdustry.Hempdustry;
@@ -21,11 +21,16 @@ public class ModPlacedFeatures {
     }
 
     public static void bootstrap(Registerable<PlacedFeature> context) {
-        var configuredFeatureRegistryEntryLookup = context.getRegistryLookup(RegistryKeys.CONFIGURED_FEATURE);
+        var configured = context.getRegistryLookup(RegistryKeys.CONFIGURED_FEATURE);
 
-        register(context, INDICA_PLACED_KEY, configuredFeatureRegistryEntryLookup.getOrThrow(ModConfiguredFeatures.INDICA_KEY),
-                CountPlacementModifier.of(10),RarityFilterPlacementModifier.of(1), SquarePlacementModifier.of(), PlacedFeatures.MOTION_BLOCKING_HEIGHTMAP, BiomePlacementModifier.of());
+        register(context, INDICA_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.INDICA_KEY),
+                CountPlacementModifier.of(10),
+                SquarePlacementModifier.of(),
+                PlacedFeatures.MOTION_BLOCKING_HEIGHTMAP,
+                BiomePlacementModifier.of());
     }
+
 
 
     private static void register(Registerable<PlacedFeature> context, RegistryKey<PlacedFeature> key, RegistryEntry<ConfiguredFeature<?, ?>> configuration,

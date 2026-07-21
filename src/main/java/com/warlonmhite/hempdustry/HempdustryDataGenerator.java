@@ -1,8 +1,8 @@
 package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.datagen.*;
-import com.warlonmhite.world.ModConfiguredFeatures;
-import com.warlonmhite.world.ModPlacedFeatures;
+import com.warlonmhite.hempdustry.world.ModConfiguredFeatures;
+import com.warlonmhite.hempdustry.world.ModPlacedFeatures;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.registry.RegistryBuilder;

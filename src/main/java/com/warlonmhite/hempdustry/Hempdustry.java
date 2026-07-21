@@ -4,7 +4,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.sound.ModSounds;
-import com.warlonmhite.world.gen.ModWorldGeneration;
+import com.warlonmhite.hempdustry.world.gen.ModWorldGeneration;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;

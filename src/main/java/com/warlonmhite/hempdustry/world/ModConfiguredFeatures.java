@@ -1,4 +1,4 @@
-package com.warlonmhite.world;
+package com.warlonmhite.hempdustry.world;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -13,14 +13,14 @@ public class ModConfiguredFeatures {
 
     public static final RegistryKey<ConfiguredFeature<?, ?>> INDICA_KEY = registerKey("indica");
 
+    public static RegistryKey<ConfiguredFeature<?, ?>> registerKey(String name) {
+        return RegistryKey.of(RegistryKeys.CONFIGURED_FEATURE, Identifier.of(Hempdustry.MOD_ID, name));
+    }
+
     public static void bootstrap(Registerable<ConfiguredFeature<?, ?>> context) {
         register(context, INDICA_KEY, Feature.FLOWER, new RandomPatchFeatureConfig(32, 6, 2, PlacedFeatures.createEntry(Feature.SIMPLE_BLOCK,
                 new SimpleBlockFeatureConfig(BlockStateProvider.of(ModBlocks.INDICA_FLOWER)))));
 
-    }
-
-    public static RegistryKey<ConfiguredFeature<?, ?>> registerKey(String name) {
-        return RegistryKey.of(RegistryKeys.CONFIGURED_FEATURE, Identifier.of(Hempdustry.MOD_ID, name));
     }
 
     private static <FC extends FeatureConfig, F extends Feature<FC>> void register(Registerable<ConfiguredFeature<?, ?>> context,

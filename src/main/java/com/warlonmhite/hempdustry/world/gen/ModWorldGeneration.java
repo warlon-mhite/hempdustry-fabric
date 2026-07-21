@@ -1,4 +1,4 @@
-package com.warlonmhite.world.gen;
+package com.warlonmhite.hempdustry.world.gen;
 
 public class ModWorldGeneration {
     public static void generateModWorldGeneration(){
