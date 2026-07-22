@@ -12,6 +12,7 @@ public class ModTags {
     public static class Biomes {
 
         public static final TagKey<Biome> INDICA_FLOWER_GEN = createTag("indica_flower_gen");
+        public static final TagKey<Biome> INDICA_FLOWER_GEN_CAVE = createTag("indica_flower_gen_cave");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.of(RegistryKeys.BIOME, Identifier.of(Hempdustry.MOD_ID, name));
         }
