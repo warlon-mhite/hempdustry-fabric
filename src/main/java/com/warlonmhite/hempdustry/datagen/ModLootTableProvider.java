@@ -14,9 +14,12 @@ import net.minecraft.loot.condition.BlockStatePropertyLootCondition;
 import net.minecraft.loot.condition.LootCondition;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.function.ApplyBonusLootFunction;
+import net.minecraft.loot.function.SetCountLootFunction;
+import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
 import net.minecraft.predicate.StatePredicate;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.entry.RegistryEntry;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -44,17 +47,40 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMP_BALE);
 
         addDrop(ModBlocks.INDICA_CROP, indicaCropDrops());
+        addDrop(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
+    }
+
+    /**
+     * Wild indica flower drops seeds with the same Fortune scaling as the crop's
+     * seeds (base 1 + binomial(fortuneLevel + 3, 0.40)).
+     */
+    private LootTable.Builder indicaFlowerDrops() {
+        RegistryEntry<Enchantment> fortune = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        return this.applyExplosionDecay(ModBlocks.INDICA_FLOWER,
+                LootTable.builder()
+                        .pool(LootPool.builder()
+                                .with(ItemEntry.builder(ModItems.INDICA_SEEDS)
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3)))));
     }
 
     /**
      * Loot for the two-tall indica crop. Only the LOWER half yields anything (so a
      * plant is harvested exactly once regardless of which half is broken — see
-     * IndicaCropBlock#onBreak). A mature lower half (age 7) drops buds plus
-     * fortune-scaled seeds; an immature lower half drops a single seed; the UPPER
-     * half drops nothing.
+     * IndicaCropBlock#onBreak). The UPPER half drops nothing; an immature lower half
+     * drops a single seed back.
+     *
+     * A mature lower half (age 7) drops, each with a guaranteed base plus a
+     * fortune-scaling bonus (base + binomial(fortuneLevel + extra, probability),
+     * the same mechanism vanilla uses for seeds):
+     * <ul>
+     *   <li>Indica buds — base 2, bonus 3 (chance) / 4 (very rare)</li>
+     *   <li>Indica seeds — base 3, bonus 4 (likely) / 5 / 6 (very rare)</li>
+     *   <li>Hemp stem — base 2, bonus 3 (likely) / 4 (uncommon) / 5 (very rare)</li>
+     * </ul>
      */
     private LootTable.Builder indicaCropDrops() {
         RegistryWrapper.Impl<Enchantment> enchantments = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT);
+        RegistryEntry<Enchantment> fortune = enchantments.getOrThrow(Enchantments.FORTUNE);
 
         LootCondition.Builder isLower = BlockStatePropertyLootCondition.builder(ModBlocks.INDICA_CROP)
                 .properties(StatePredicate.Builder.create()
@@ -66,15 +92,25 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
 
         return this.applyExplosionDecay(ModBlocks.INDICA_CROP,
                 LootTable.builder()
+                        // Buds when mature, otherwise a single seed returned.
                         .pool(LootPool.builder()
                                 .conditionally(isLower)
                                 .with(ItemEntry.builder(ModItems.INDICA_BUDS)
                                         .conditionally(isMatureLower)
+                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(2.0F)))
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.15F, 2))
                                         .alternatively(ItemEntry.builder(ModItems.INDICA_SEEDS))))
+                        // Seeds when mature.
                         .pool(LootPool.builder()
                                 .conditionally(isMatureLower)
                                 .with(ItemEntry.builder(ModItems.INDICA_SEEDS)
-                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(
-                                                enchantments.getOrThrow(Enchantments.FORTUNE), 0.5714286F, 3)))));
+                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(3.0F)))
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))
+                        // Hemp stem when mature.
+                        .pool(LootPool.builder()
+                                .conditionally(isMatureLower)
+                                .with(ItemEntry.builder(ModItems.HEMP_STEM)
+                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(2.0F)))
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3)))));
     }
 }
