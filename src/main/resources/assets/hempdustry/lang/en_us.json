@@ -38,6 +38,10 @@
   "item.hempdustry.hemp_planks_sign": "Hemp Sign",
   "block.hempdustry.hemp_planks_hanging_sign": "Hemp Hanging Sign",
   "item.hempdustry.hemp_planks_hanging_sign": "Hemp Hanging Sign",
+  "item.hempdustry.hemp_boat": "Hemp Boat",
+  "item.hempdustry.hemp_chest_boat": "Hemp Boat with Chest",
+  "entity.hempdustry.hemp_boat": "Hemp Boat",
+  "entity.hempdustry.hemp_chest_boat": "Hemp Boat with Chest",
 
   "block.hempdustry.hempcrete_powder_block": "Block of Hempcrete Powder",
   "block.hempdustry.hempcrete_block": "Block of Hempcrete",

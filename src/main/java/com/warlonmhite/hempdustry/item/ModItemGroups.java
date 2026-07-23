@@ -53,6 +53,8 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
                         entries.add(ModItems.HEMP_PLANKS_SIGN);
                         entries.add(ModItems.HEMP_PLANKS_HANGING_SIGN);
+                        entries.add(ModItems.HEMP_BOAT);
+                        entries.add(ModItems.HEMP_CHEST_BOAT);
 
                         entries.add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
                         entries.add(ModBlocks.HEMPCRETE_BLOCK);
