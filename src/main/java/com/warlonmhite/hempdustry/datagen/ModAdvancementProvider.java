@@ -67,7 +67,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         AdvancementEntry greenThreads = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_FIBER),
-                        Text.literal("Green Threads"), Text.literal("Turn hemp into fiber—your gateway to new stuff"),
+                        Text.literal("Green Threads"), Text.literal("Turn hemp into fiber that's your gateway to new stuff"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_fiber", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_FIBER))

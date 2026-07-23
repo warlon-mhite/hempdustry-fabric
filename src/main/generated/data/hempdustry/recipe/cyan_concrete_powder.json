@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "hempdustry_concrete_powder",
+  "ingredients": [
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "hempdustry:hempcrete"
+    },
+    {
+      "item": "minecraft:cyan_dye"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "minecraft:cyan_concrete_powder"
+  }
+}
