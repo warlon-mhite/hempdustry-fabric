@@ -6,9 +6,11 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.world.gen.ModWorldGeneration;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.minecraft.block.entity.BlockEntityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +49,11 @@ public class Hempdustry implements ModInitializer {
 		FuelRegistry.INSTANCE.add(ModBlocks.HEMP_BALE, 450);
 
 		registerFlammables();
+
+		((FabricBlockEntityType) BlockEntityType.SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_SIGN);
+		((FabricBlockEntityType) BlockEntityType.SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_WALL_SIGN);
+		((FabricBlockEntityType) BlockEntityType.HANGING_SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
+		((FabricBlockEntityType) BlockEntityType.HANGING_SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
 	}
 
 	private static void registerFlammables() {

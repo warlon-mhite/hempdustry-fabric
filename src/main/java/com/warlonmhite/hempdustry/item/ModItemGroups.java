@@ -51,6 +51,8 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
                         entries.add(ModBlocks.HEMP_PLANKS_DOOR);
                         entries.add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+                        entries.add(ModItems.HEMP_PLANKS_SIGN);
+                        entries.add(ModItems.HEMP_PLANKS_HANGING_SIGN);
 
                         entries.add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
                         entries.add(ModBlocks.HEMPCRETE_BLOCK);

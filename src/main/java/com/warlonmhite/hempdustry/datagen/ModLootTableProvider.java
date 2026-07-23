@@ -46,6 +46,11 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         addDrop(ModBlocks.HEMP_BALE);
 
+        // Wall sign / wall hanging sign share the standing block's loot table (see ModBlocks#dropsLike),
+        // so they must not get their own addDrop call here.
+        addDrop(ModBlocks.HEMP_PLANKS_SIGN);
+        addDrop(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
+
         addDrop(ModBlocks.INDICA_CROP, indicaCropDrops());
         addDrop(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
     }

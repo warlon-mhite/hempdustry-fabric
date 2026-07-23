@@ -24,6 +24,9 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
             .add(ModItems.HEMP_SHIRT)
             .add(ModItems.HEMP_HAREM_PANTS)
             .add(ModItems.FLIP_FLOPS);
+
+        getOrCreateTagBuilder(ItemTags.SIGNS).add(ModItems.HEMP_PLANKS_SIGN);
+        getOrCreateTagBuilder(ItemTags.HANGING_SIGNS).add(ModItems.HEMP_PLANKS_HANGING_SIGN);
         }
     }
 

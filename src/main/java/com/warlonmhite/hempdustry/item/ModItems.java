@@ -5,7 +5,9 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.custom.IndicaSpliffItem;
 import net.minecraft.item.AliasedBlockItem;
 import net.minecraft.item.ArmorItem;
+import net.minecraft.item.HangingSignItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.SignItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -16,6 +18,11 @@ public class ModItems {
     public static final Item INDICA_BUDS = registerItem("indica_buds", new Item(new Item.Settings()));
     public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Settings()));
     public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
+
+    public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign",
+            new SignItem(new Item.Settings().maxCount(16), ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN));
+    public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign",
+            new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, new Item.Settings().maxCount(16)));
 
     public static final Item HEMP_FLOUR = registerItem("hemp_flour", new Item(new Item.Settings()));
     public static final Item HEMP_FIBER = registerItem("hemp_fiber", new Item(new Item.Settings()));

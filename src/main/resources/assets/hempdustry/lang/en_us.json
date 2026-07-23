@@ -34,6 +34,11 @@
   "block.hempdustry.hemp_planks_fence_gate": "Hemp Fence Gate",
   "block.hempdustry.hemp_planks_door": "Hemp Door",
   "block.hempdustry.hemp_planks_trapdoor": "Hemp Trapdoor",
+  "block.hempdustry.hemp_planks_sign": "Hemp Sign",
+  "item.hempdustry.hemp_planks_sign": "Hemp Sign",
+  "block.hempdustry.hemp_planks_hanging_sign": "Hemp Hanging Sign",
+  "item.hempdustry.hemp_planks_hanging_sign": "Hemp Hanging Sign",
+
   "block.hempdustry.hempcrete_powder_block": "Block of Hempcrete Powder",
   "block.hempdustry.hempcrete_block": "Block of Hempcrete",
   "block.hempdustry.hemp_bale": "Hemp Bale",

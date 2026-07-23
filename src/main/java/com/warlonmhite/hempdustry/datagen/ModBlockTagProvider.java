@@ -34,10 +34,25 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.HEMP_PLANKS_FENCE)
                 .add(ModBlocks.HEMP_PLANKS_FENCE_GATE)
                 .add(ModBlocks.HEMP_PLANKS_DOOR)
-                .add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+                .add(ModBlocks.HEMP_PLANKS_TRAPDOOR)
+                .add(ModBlocks.HEMP_PLANKS_SIGN)
+                .add(ModBlocks.HEMP_PLANKS_WALL_SIGN)
+                .add(ModBlocks.HEMP_PLANKS_HANGING_SIGN)
+                .add(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
 
         getOrCreateTagBuilder(BlockTags.FENCES).add(ModBlocks.HEMP_PLANKS_FENCE);
         getOrCreateTagBuilder(BlockTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
         getOrCreateTagBuilder(BlockTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL);
+
+        getOrCreateTagBuilder(BlockTags.STANDING_SIGNS).add(ModBlocks.HEMP_PLANKS_SIGN);
+        getOrCreateTagBuilder(BlockTags.WALL_SIGNS).add(ModBlocks.HEMP_PLANKS_WALL_SIGN);
+        getOrCreateTagBuilder(BlockTags.SIGNS).add(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN);
+        getOrCreateTagBuilder(BlockTags.CEILING_HANGING_SIGNS).add(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
+        getOrCreateTagBuilder(BlockTags.WALL_HANGING_SIGNS).add(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
+        getOrCreateTagBuilder(BlockTags.ALL_HANGING_SIGNS)
+                .add(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
+        getOrCreateTagBuilder(BlockTags.ALL_SIGNS)
+                .add(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN,
+                        ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
     }
 }
