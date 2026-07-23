@@ -1,11 +1,16 @@
 package com.warlonmhite.hempdustry.datagen;
 
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.item.custom.DeviceType;
+import com.warlonmhite.hempdustry.item.custom.PackedSmokingDeviceItem;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.data.client.*;
 import net.minecraft.item.ArmorItem;
+import net.minecraft.item.Item;
+import net.minecraft.util.Identifier;
 
 public class ModModelProvider extends FabricModelProvider {
     public ModModelProvider(FabricDataOutput output) {
@@ -49,8 +54,16 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.INDICA_SEEDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_BUDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_SPLIFF, Models.GENERATED);
-        itemModelGenerator.register(ModItems.PIPE, Models.GENERATED);
-        itemModelGenerator.register(ModItems.GLASS_BONG, Models.GENERATED);
+        itemModelGenerator.register(ModItems.WOODEN_PIPE, Models.GENERATED);
+        itemModelGenerator.register(ModItems.BONG, Models.GENERATED);
+
+        // All packed variants of a device share one "packed" texture (item/packed_pipe, item/packed_bong).
+        // Give a strain its own texture later by keying this off the strain too.
+        for (Item packed : ModItems.packedDevices()) {
+            DeviceType device = ((PackedSmokingDeviceItem) packed).device();
+            Identifier texture = Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedTexture());
+            Models.GENERATED.upload(ModelIds.getItemModelId(packed), TextureMap.layer0(texture), itemModelGenerator.writer);
+        }
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_PLANKS_SIGN, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_PLANKS_HANGING_SIGN, Models.GENERATED);

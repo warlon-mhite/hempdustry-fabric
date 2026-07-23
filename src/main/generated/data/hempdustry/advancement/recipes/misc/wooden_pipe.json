@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:pipe"
+        "recipe": "hempdustry:wooden_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "hempdustry:pipe"
+      "hempdustry:wooden_pipe"
     ]
   }
 }

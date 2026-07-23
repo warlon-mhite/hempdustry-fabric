@@ -3,10 +3,12 @@ package com.warlonmhite.hempdustry.datagen;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.block.Blocks;
+import net.minecraft.data.server.recipe.ComplexRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.CookingRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.RecipeExporter;
 import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
@@ -165,15 +167,15 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.INDICA_BUDS), conditionsFromItem(ModItems.INDICA_BUDS))
                 .offerTo(exporter, id("indica_spliff"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.PIPE)
+        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.WOODEN_PIPE)
                 .pattern("P  ")
                 .pattern("SSS")
                 .input('P', ItemTags.PLANKS)
                 .input('S', Items.STICK)
                 .criterion(hasItem(Items.STICK), conditionsFromItem(Items.STICK))
-                .offerTo(exporter, id("pipe"));
+                .offerTo(exporter, id("wooden_pipe"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.GLASS_BONG)
+        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.BONG)
                 .pattern(" PI")
                 .pattern("GWG")
                 .pattern(" G ")
@@ -182,7 +184,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .input('G', Blocks.GLASS)
                 .input('W', Items.WATER_BUCKET)
                 .criterion(hasItem(Blocks.GLASS), conditionsFromItem(Blocks.GLASS))
-                .offerTo(exporter, id("glass_bong"));
+                .offerTo(exporter, id("bong"));
+
+        // Pack an empty pipe/bong with a strain's buds in the crafting grid. Special recipe so the
+        // device's durability + enchantments carry over onto the packed result (see PackingRecipe).
+        ComplexRecipeJsonBuilder.create(PackingRecipe::new).offerTo(exporter, id("packing"));
 
         // ---------------------------------------------------------------------
         // Hemp fiber armor set

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:glass_bong"
+        "recipe": "hempdustry:bong"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "hempdustry:glass_bong"
+      "hempdustry:bong"
     ]
   }
 }

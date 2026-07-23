@@ -14,7 +14,7 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "Turn hemp into fiber—your gateway to new stuff",
+    "description": "Turn hemp into fiber that's your gateway to new stuff",
     "icon": {
       "count": 1,
       "id": "hempdustry:hemp_fiber"

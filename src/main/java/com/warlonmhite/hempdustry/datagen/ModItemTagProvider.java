@@ -27,6 +27,12 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
         getOrCreateTagBuilder(ItemTags.SIGNS).add(ModItems.HEMP_PLANKS_SIGN);
         getOrCreateTagBuilder(ItemTags.HANGING_SIGNS).add(ModItems.HEMP_PLANKS_HANGING_SIGN);
+
+        // Empty pipe/bong accept Unbreaking/Mending (and enchant at the table). Packed variants
+        // inherit any enchantment through the component copy, so they don't need listing here.
+        getOrCreateTagBuilder(ItemTags.DURABILITY_ENCHANTABLE)
+                .add(ModItems.WOODEN_PIPE)
+                .add(ModItems.BONG);
         }
     }
 

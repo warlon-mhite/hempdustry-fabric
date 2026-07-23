@@ -28,8 +28,9 @@ public class ModItemGroups {
                         entries.add(ModItems.CANNABUTTER);
 
                         entries.add(ModItems.INDICA_SPLIFF);
-                        entries.add(ModItems.PIPE);
-                        entries.add(ModItems.GLASS_BONG);
+                        entries.add(ModItems.WOODEN_PIPE);
+                        entries.add(ModItems.BONG);
+                        ModItems.packedDevices().forEach(entries::add);
 
                         entries.add(ModItems.HEMP_BEANNIE);
                         entries.add(ModItems.HEMP_SHIRT);
