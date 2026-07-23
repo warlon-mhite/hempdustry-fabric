@@ -34,11 +34,19 @@
   "block.hempdustry.hemp_planks_fence_gate": "Hemp Fence Gate",
   "block.hempdustry.hemp_planks_door": "Hemp Door",
   "block.hempdustry.hemp_planks_trapdoor": "Hemp Trapdoor",
-
   "block.hempdustry.hempcrete_powder_block": "Block of Hempcrete Powder",
   "block.hempdustry.hempcrete_block": "Block of Hempcrete",
   "block.hempdustry.hemp_bale": "Hemp Bale",
 
   "subtitles.hempdustry.smoking": "Inhale smoke and exhale it",
-  "subtitles.hempdustry.coughing": "Coughs"
+  "subtitles.hempdustry.coughing": "Coughs",
+
+  "painting.hempdustry.b_rappaz.title": "Rappaz",
+  "painting.hempdustry.b_rappaz.author": "Warlon Mhite",
+  "painting.hempdustry.hendrix.title": "Hendrix",
+  "painting.hempdustry.hendrix.author": "Warlon Mhite",
+  "painting.hempdustry.pineapple_express.title": "Pineapple Express",
+  "painting.hempdustry.pineapple_express.author": "Warlon Mhite",
+  "painting.hempdustry.snoop.title": "Snoop",
+  "painting.hempdustry.snoop.author": "Warlon Mhite"
 }
