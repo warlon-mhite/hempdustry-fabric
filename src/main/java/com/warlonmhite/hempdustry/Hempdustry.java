@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.item.custom.SmokeScheduler;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.loot.ModLootTableModifiers;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.world.gen.ModWorldGeneration;
@@ -27,6 +28,7 @@ public class Hempdustry implements ModInitializer {
 		ModComponents.registerModComponents();
 		ModRecipes.registerRecipes();
 		SmokeScheduler.init();
+		ModLootTableModifiers.modifyLootTables();
 		ModItemGroups.registerItemGroups();
 		ModItems.registerModItems();
 		ModBlocks.registerModBlocks();

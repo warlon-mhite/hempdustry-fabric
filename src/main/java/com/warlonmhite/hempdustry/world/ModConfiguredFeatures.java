@@ -19,8 +19,9 @@ public class ModConfiguredFeatures {
     }
 
     public static void bootstrap(Registerable<ConfiguredFeature<?, ?>> context) {
-        // Surface: a small flower patch placed on the terrain heightmap.
-        register(context, INDICA_KEY, Feature.FLOWER, new RandomPatchFeatureConfig(32, 6, 2, PlacedFeatures.createEntry(Feature.SIMPLE_BLOCK,
+        // Surface: a small flower patch placed on the terrain heightmap. `tries` is the flower
+        // density within a patch (attempts to place a flower); lowered from 32 to thin out the batch.
+        register(context, INDICA_KEY, Feature.FLOWER, new RandomPatchFeatureConfig(16, 6, 2, PlacedFeatures.createEntry(Feature.SIMPLE_BLOCK,
                 new SimpleBlockFeatureConfig(BlockStateProvider.of(ModBlocks.INDICA_FLOWER)))));
 
         // Caves: a single flower; the cave placed feature scatters these across cave
