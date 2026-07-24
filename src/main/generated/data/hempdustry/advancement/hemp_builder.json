@@ -14,12 +14,16 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "Craft your first hemp brick and explore the building potential of hemp.",
+    "description": {
+      "translate": "advancements.hempdustry.hemp_builder.description"
+    },
     "icon": {
       "count": 1,
       "id": "hempdustry:hemp_brick"
     },
-    "title": "Hemp Builder"
+    "title": {
+      "translate": "advancements.hempdustry.hemp_builder.title"
+    }
   },
   "requirements": [
     [

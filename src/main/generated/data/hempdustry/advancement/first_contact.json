@@ -7,12 +7,16 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "Take your first hit and see the world through a new perspective.",
+    "description": {
+      "translate": "advancements.hempdustry.first_contact.description"
+    },
     "icon": {
       "count": 1,
       "id": "hempdustry:indica_spliff"
     },
-    "title": "First Contact"
+    "title": {
+      "translate": "advancements.hempdustry.first_contact.title"
+    }
   },
   "requirements": [
     [

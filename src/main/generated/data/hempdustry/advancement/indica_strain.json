@@ -14,12 +14,16 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "Not all buds are built for speed. Indica brings the chill.",
+    "description": {
+      "translate": "advancements.hempdustry.indica_strain.description"
+    },
     "icon": {
       "count": 1,
       "id": "hempdustry:indica_buds"
     },
-    "title": "Purple Kush"
+    "title": {
+      "translate": "advancements.hempdustry.indica_strain.title"
+    }
   },
   "requirements": [
     [

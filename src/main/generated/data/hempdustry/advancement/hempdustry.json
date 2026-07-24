@@ -13,12 +13,16 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "Plant a different kind of seed and see where it grows.",
+    "description": {
+      "translate": "advancements.hempdustry.hempdustry.description"
+    },
     "icon": {
       "count": 1,
       "id": "hempdustry:indica_seeds"
     },
-    "title": "High Hopes"
+    "title": {
+      "translate": "advancements.hempdustry.hempdustry.title"
+    }
   },
   "requirements": [
     [

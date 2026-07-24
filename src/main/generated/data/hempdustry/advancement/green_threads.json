@@ -14,12 +14,16 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "Turn hemp into fiber that's your gateway to new stuff",
+    "description": {
+      "translate": "advancements.hempdustry.green_threads.description"
+    },
     "icon": {
       "count": 1,
       "id": "hempdustry:hemp_fiber"
     },
-    "title": "Green Threads"
+    "title": {
+      "translate": "advancements.hempdustry.green_threads.title"
+    }
   },
   "requirements": [
     [

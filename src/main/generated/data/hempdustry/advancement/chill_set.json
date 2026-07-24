@@ -23,12 +23,16 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "You’re geared up in 100% plant-based protection... fashion.",
+    "description": {
+      "translate": "advancements.hempdustry.chill_set.description"
+    },
     "icon": {
       "count": 1,
       "id": "hempdustry:hemp_beannie"
     },
-    "title": "The Chill Set"
+    "title": {
+      "translate": "advancements.hempdustry.chill_set.title"
+    }
   },
   "requirements": [
     [

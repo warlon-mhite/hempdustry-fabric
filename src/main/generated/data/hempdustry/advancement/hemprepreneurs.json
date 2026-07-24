@@ -14,12 +14,16 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "Harvest your first hemp stem and discover what the plant is really capable of.",
+    "description": {
+      "translate": "advancements.hempdustry.hemprepreneurs.description"
+    },
     "icon": {
       "count": 1,
       "id": "hempdustry:hemp_stem"
     },
-    "title": "Hemprepreneurs"
+    "title": {
+      "translate": "advancements.hempdustry.hemprepreneurs.title"
+    }
   },
   "requirements": [
     [

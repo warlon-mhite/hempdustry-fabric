@@ -31,7 +31,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         AdvancementEntry rootAdvancement = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_SEEDS),
-                        Text.literal("High Hopes"), Text.literal("Plant a different kind of seed and see where it grows."),
+                        Text.translatable("advancements.hempdustry.hempdustry.title"), Text.translatable("advancements.hempdustry.hempdustry.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_stem", InventoryChangedCriterion.Conditions.items(ModItems.INDICA_SEEDS))
@@ -40,7 +40,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         AdvancementEntry indicaStrain = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_BUDS),
-                        Text.literal("Purple Kush"), Text.literal("Not all buds are built for speed. Indica brings the chill."),
+                        Text.translatable("advancements.hempdustry.indica_strain.title"), Text.translatable("advancements.hempdustry.indica_strain.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_indica_buds", InventoryChangedCriterion.Conditions.items(ModItems.INDICA_BUDS))
@@ -52,7 +52,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // SmokeCriterion fired from Smoking.takeHit rather than an inventory check.
         AdvancementEntry firstContact = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_SPLIFF),
-                        Text.literal("First Contact"), Text.literal("Take your first hit and see the world through a new perspective."),
+                        Text.translatable("advancements.hempdustry.first_contact.title"), Text.translatable("advancements.hempdustry.first_contact.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("took_a_hit", SmokeCriterion.Conditions.any())
@@ -65,7 +65,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // conditions; hidden = last display flag is true so it stays secret until earned.
         Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(Items.CLOCK),
-                        Text.literal("Blaze It!"), Text.literal("You're not the only one lighting up at 4:20 right now."),
+                        Text.translatable("advancements.hempdustry.blaze_it.title"), Text.translatable("advancements.hempdustry.blaze_it.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.CHALLENGE,
                         true,true,true))
                 .criterion("smoked_at_420", SmokeCriterion.Conditions.during(10123L, 10543L))
@@ -75,7 +75,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         AdvancementEntry hemprepreneurs = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_STEM),
-                        Text.literal("Hemprepreneurs"), Text.literal("Harvest your first hemp stem and discover what the plant is really capable of."),
+                        Text.translatable("advancements.hempdustry.hemprepreneurs.title"), Text.translatable("advancements.hempdustry.hemprepreneurs.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_stem", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_STEM))
@@ -84,7 +84,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         AdvancementEntry hempBuilder = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_BRICK),
-                        Text.literal("Hemp Builder"), Text.literal("Craft your first hemp brick and explore the building potential of hemp."),
+                        Text.translatable("advancements.hempdustry.hemp_builder.title"), Text.translatable("advancements.hempdustry.hemp_builder.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_brick", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_BRICK))
@@ -93,7 +93,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         AdvancementEntry greenThreads = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_FIBER),
-                        Text.literal("Green Threads"), Text.literal("Turn hemp into fiber that's your gateway to new stuff"),
+                        Text.translatable("advancements.hempdustry.green_threads.title"), Text.translatable("advancements.hempdustry.green_threads.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("has_hemp_fiber", InventoryChangedCriterion.Conditions.items(ModItems.HEMP_FIBER))
@@ -102,7 +102,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         AdvancementEntry chillSet = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.HEMP_BEANNIE),
-                        Text.literal("The Chill Set"), Text.literal("You’re geared up in 100% plant-based protection... fashion."),
+                        Text.translatable("advancements.hempdustry.chill_set.title"), Text.translatable("advancements.hempdustry.chill_set.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("full_hemp_armor", InventoryChangedCriterion.Conditions.items(

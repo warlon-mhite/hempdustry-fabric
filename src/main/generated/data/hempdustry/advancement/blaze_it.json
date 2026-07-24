@@ -13,14 +13,18 @@
   },
   "display": {
     "background": "hempdustry:textures/block/hempcrete_powder_block.png",
-    "description": "You're not the only one lighting up at 4:20 right now.",
+    "description": {
+      "translate": "advancements.hempdustry.blaze_it.description"
+    },
     "frame": "challenge",
     "hidden": true,
     "icon": {
       "count": 1,
       "id": "minecraft:clock"
     },
-    "title": "Blaze It!"
+    "title": {
+      "translate": "advancements.hempdustry.blaze_it.title"
+    }
   },
   "requirements": [
     [
