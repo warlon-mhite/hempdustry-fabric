@@ -1,10 +1,12 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.advancement.ModCriteria;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.Vec3d;
@@ -43,6 +45,13 @@ public final class Smoking {
 
         for (StatusEffectInstance effect : strain.effects(potency)) {
             player.addStatusEffect(effect);
+        }
+
+        // Smoke criterion: device- and strain-agnostic, fires on every hit. Backs "First Contact"
+        // (any time) and "Blaze It!" (only inside the 4:20 window); the time gate lives in the
+        // conditions, so we just hand it the current time of day (tick 0 = 6:00 AM).
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            ModCriteria.SMOKE.trigger(serverPlayer, world.getTimeOfDay() % 24000L);
         }
 
         if (world instanceof ServerWorld serverWorld) {

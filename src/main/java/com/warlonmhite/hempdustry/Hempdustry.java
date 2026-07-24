@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry;
 
+import com.warlonmhite.hempdustry.advancement.ModCriteria;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -26,6 +27,7 @@ public class Hempdustry implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModComponents.registerModComponents();
+		ModCriteria.registerCriteria();
 		ModRecipes.registerRecipes();
 		SmokeScheduler.init();
 		ModLootTableModifiers.modifyLootTables();

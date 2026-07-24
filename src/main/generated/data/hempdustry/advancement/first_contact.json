@@ -1,0 +1,23 @@
+{
+  "parent": "hempdustry:indica_strain",
+  "criteria": {
+    "took_a_hit": {
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": "Take your first hit and see the world through a new perspective.",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:indica_spliff"
+    },
+    "title": "First Contact"
+  },
+  "requirements": [
+    [
+      "took_a_hit"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

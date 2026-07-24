@@ -1,0 +1,31 @@
+{
+  "parent": "hempdustry:first_contact",
+  "criteria": {
+    "smoked_at_420": {
+      "conditions": {
+        "time": {
+          "max": 10543,
+          "min": 10123
+        }
+      },
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": "You're not the only one lighting up at 4:20 right now.",
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "minecraft:clock"
+    },
+    "title": "Blaze It!"
+  },
+  "requirements": [
+    [
+      "smoked_at_420"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
