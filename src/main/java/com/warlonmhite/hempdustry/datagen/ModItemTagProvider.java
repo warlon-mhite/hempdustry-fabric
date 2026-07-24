@@ -20,6 +20,11 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ModTags.Items.HEMP_SEEDS)
                 .add(ModItems.INDICA_SEEDS);
 
+        // Strain-agnostic: any hemp seed variant (future Lemon Haze included) feeds/tames parrots,
+        // same as vanilla's wheat/melon/pumpkin/beetroot seeds.
+        getOrCreateTagBuilder(ItemTags.PARROT_FOOD)
+                .addTag(ModTags.Items.HEMP_SEEDS);
+
         getOrCreateTagBuilder(ItemTags.TRIMMABLE_ARMOR)
             .add(ModItems.HEMP_BEANNIE)
             .add(ModItems.HEMP_SHIRT)
