@@ -56,16 +56,16 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
     }
 
     /**
-     * Wild indica flower drops seeds with the same Fortune scaling as the crop's
-     * seeds (base 1 + binomial(fortuneLevel + 3, 0.40)).
+     * Wild indica flower: shears or Silk Touch lift the flower itself intact (for potting/decor,
+     * same as leaves); any other tool breaks it down into seeds with the same Fortune scaling as
+     * the crop's seeds (base 1 + binomial(fortuneLevel + 3, 0.40)).
      */
     private LootTable.Builder indicaFlowerDrops() {
         RegistryEntry<Enchantment> fortune = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
-        return this.applyExplosionDecay(ModBlocks.INDICA_FLOWER,
-                LootTable.builder()
-                        .pool(LootPool.builder()
-                                .with(ItemEntry.builder(ModItems.INDICA_SEEDS)
-                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3)))));
+        return this.dropsWithSilkTouchOrShears(ModBlocks.INDICA_FLOWER,
+                this.applyExplosionDecay(ModBlocks.INDICA_FLOWER,
+                        ItemEntry.builder(ModItems.INDICA_SEEDS)
+                                .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))));
     }
 
     /**
