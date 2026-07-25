@@ -5,6 +5,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.ItemTags;
 
@@ -58,6 +59,17 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ItemTags.DURABILITY_ENCHANTABLE)
                 .add(ModItems.WOODEN_PIPE)
                 .add(ModItems.BONG);
+
+        // Puts the Ganja disc on exactly the same footing as vanilla's twelve common discs: the
+        // creeper loot table rolls this tag (expand:true, one entry each) when a skeleton lands
+        // the kill, so joining the tag *is* the drop — no loot-table surgery needed.
+        getOrCreateTagBuilder(ItemTags.CREEPER_DROP_MUSIC_DISCS)
+                .add(ModItems.MUSIC_DISC_GANJA);
+
+        // Cross-mod convention tag, so anything that reasons about discs (jukebox blocks, storage
+        // filters, JEI-style lookups) picks ours up too.
+        getOrCreateTagBuilder(ConventionalItemTags.MUSIC_DISCS)
+                .add(ModItems.MUSIC_DISC_GANJA);
         }
     }
 

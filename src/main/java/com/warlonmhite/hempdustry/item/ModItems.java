@@ -8,6 +8,7 @@ import com.warlonmhite.hempdustry.item.custom.PackedSmokingDeviceItem;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.item.custom.SpliffItem;
 import com.warlonmhite.hempdustry.item.custom.Strain;
+import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.item.AliasedBlockItem;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.HangingSignItem;
@@ -56,6 +57,11 @@ public class ModItems {
     // (one per Strain.ACTIVE) — adding a strain needs no new lines here.
     public static final Item WOODEN_PIPE = registerDevice(DeviceType.PIPE);
     public static final Item BONG = registerDevice(DeviceType.BONG);
+
+    // Same shape as a vanilla common disc (single-stack, uncommon, jukebox-playable). The song data
+    // — length, comparator output, "Now Playing" label — lives in the JUKEBOX_SONG entry it points at.
+    public static final Item MUSIC_DISC_GANJA = registerItem("music_disc_ganja",
+            new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.GANJA_SONG)));
 
     public static final Item HEMP_BEANNIE = registerItem("hemp_beannie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Settings()
             .maxDamage(ArmorItem.Type.HELMET.getMaxDamage(3))));

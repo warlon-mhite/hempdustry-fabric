@@ -11,6 +11,15 @@
     "sounds": [
       "hempdustry:coughing"
     ]
+  },
+
+  "music_disc.ganja": {
+    "sounds": [
+      {
+        "name": "hempdustry:records/ganja",
+        "stream": true
+      }
+    ]
   }
 }
 

@@ -56,6 +56,7 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.INDICA_SPLIFF, Models.GENERATED);
         itemModelGenerator.register(ModItems.WOODEN_PIPE, Models.GENERATED);
         itemModelGenerator.register(ModItems.BONG, Models.GENERATED);
+        itemModelGenerator.register(ModItems.MUSIC_DISC_GANJA, Models.GENERATED);
 
         // All packed variants of a device share one "packed" texture (item/packed_pipe, item/packed_bong).
         // Give a strain its own texture later by keying this off the strain too.

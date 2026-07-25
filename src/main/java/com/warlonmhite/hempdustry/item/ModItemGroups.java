@@ -62,6 +62,8 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HEMP_BALE);
 
                         entries.add(ModBlocks.INDICA_FLOWER);
+
+                        entries.add(ModItems.MUSIC_DISC_GANJA);
                     }).build());
 
     public static void registerItemGroups(){

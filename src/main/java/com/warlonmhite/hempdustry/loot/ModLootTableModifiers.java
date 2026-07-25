@@ -26,8 +26,9 @@ import net.minecraft.registry.entry.RegistryEntry;
 import java.util.Set;
 
 /**
- * Runtime tweaks to vanilla loot tables, adding a strain-agnostic hemp seed as a low-key on-ramp
- * into the mod:
+ * Runtime tweaks to vanilla loot tables.
+ *
+ * <p>A strain-agnostic hemp seed, as a low-key on-ramp into the mod:
  * <ul>
  *   <li>Tall grass &amp; large ferns drop one when broken, following the vanilla grass →
  *       wheat-seeds rule (not sheared, small chance, Fortune-boosted, explosion decay).</li>
@@ -36,6 +37,10 @@ import java.util.Set;
  * </ul>
  * Tall plants drop loot exactly once per break (see {@code TallPlantBlock#onBreak}), so the grass
  * pool isn't double-rolled.
+ *
+ * <p>And the Ganja disc in the two chests vanilla stocks its common discs in. Its creeper drop is
+ * <em>not</em> here — that comes free from joining {@code #minecraft:creeper_drop_music_discs}
+ * (see {@code ModItemTagProvider}), which the vanilla creeper table already rolls.
  */
 public class ModLootTableModifiers {
 
@@ -44,6 +49,13 @@ public class ModLootTableModifiers {
 
     /** Chance per applicable chest to contain a hemp-seed stash. */
     private static final float CHEST_SEED_CHANCE = 0.30f;
+
+    /**
+     * Chance per applicable chest to contain the Ganja disc. Vanilla's 13/cat sit at weight 15 in
+     * those chests' main pool (~20% a given chest holds one); we can't slot into an existing pool
+     * from a loot-table event, so this is a separate roll deliberately pitched a little rarer.
+     */
+    private static final float CHEST_DISC_CHANCE = 0.12f;
 
     /** Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass. */
     private static final LootCondition.Builder WITHOUT_SHEARS =
@@ -59,6 +71,11 @@ public class ModLootTableModifiers {
             LootTables.ABANDONED_MINESHAFT_CHEST,
             LootTables.WOODLAND_MANSION_CHEST,
             LootTables.PILLAGER_OUTPOST_CHEST);
+
+    /** The two chests vanilla stocks its common (creeper-droppable) discs in — 13 and cat. */
+    private static final Set<RegistryKey<LootTable>> DISC_CHEST_SOURCES = Set.of(
+            LootTables.SIMPLE_DUNGEON_CHEST,
+            LootTables.WOODLAND_MANSION_CHEST);
 
     public static void modifyLootTables() {
         LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> {
@@ -82,6 +99,14 @@ public class ModLootTableModifiers {
                         .conditionally(RandomChanceLootCondition.builder(CHEST_SEED_CHANCE))
                         .with(ItemEntry.builder(ModItems.INDICA_SEEDS)
                                 .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
+            }
+
+            // Independent of the seed branch above — the two disc chests are also seed chests.
+            if (DISC_CHEST_SOURCES.contains(key)) {
+                tableBuilder.pool(LootPool.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .conditionally(RandomChanceLootCondition.builder(CHEST_DISC_CHANCE))
+                        .with(ItemEntry.builder(ModItems.MUSIC_DISC_GANJA)));
             }
         });
     }
