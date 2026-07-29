@@ -40,6 +40,7 @@ public class Hempdustry implements ModInitializer {
 
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BRICK, 0.05f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_SEEDS, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_FIBER, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMPCRETE, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_STEM, 0.5f);
@@ -49,6 +50,9 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 0.5f);
+		// 0.65 is what vanilla gives every small flower; ours are plants too and had been missed.
+		CompostingChanceRegistry.INSTANCE.add(ModBlocks.INDICA_FLOWER, 0.65f);
+		CompostingChanceRegistry.INSTANCE.add(ModBlocks.SATIVA_FLOWER, 0.65f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
 
 		FuelRegistry.INSTANCE.add(ModItems.HEMP_STEM, 50);
@@ -71,6 +75,8 @@ public class Hempdustry implements ModInitializer {
 	private static void registerFlammables() {
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDICA_CROP, 10, 25);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDICA_FLOWER, 20, 40);
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_CROP, 10, 25);
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_FLOWER, 20, 40);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_BALE, 50, 10);
 	}
 

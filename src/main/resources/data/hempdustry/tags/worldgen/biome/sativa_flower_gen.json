@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:savanna",
+    "minecraft:savanna_plateau",
+    "minecraft:windswept_savanna",
+    "minecraft:sunflower_plains",
+    "#c:is_savanna",
+    { "id": "biomesoplenty:savanna", "required": false },
+    { "id": "biomesoplenty:lush_savanna", "required": false },
+    { "id": "biomesoplenty:prairie", "required": false },
+    { "id": "biomesoplenty:grassland", "required": false },
+    { "id": "biomesoplenty:mediterranean_forest", "required": false },
+    { "id": "regions_unexplored:prairie", "required": false },
+    { "id": "regions_unexplored:steppe", "required": false },
+    { "id": "regions_unexplored:baobab_savanna", "required": false },
+    { "id": "regions_unexplored:outback", "required": false },
+    { "id": "terralith:arid_highlands", "required": false },
+    { "id": "terralith:brushland", "required": false },
+    { "id": "terralith:shrubland", "required": false },
+    { "id": "terralith:savanna_slopes", "required": false }
+  ]
+}

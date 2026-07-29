@@ -18,6 +18,7 @@ public class ModItemGroups {
                     .entries((displayContext, entries) -> {
                         entries.add(ModItems.INDICA_SEEDS);
                         entries.add(ModItems.INDICA_BUDS);
+                        entries.add(ModItems.SATIVA_SEEDS);
                         entries.add(ModItems.SATIVA_BUDS);
                         entries.add(ModItems.HEMP_STEM);
 
@@ -28,6 +29,7 @@ public class ModItemGroups {
                         entries.add(ModItems.CANNABUTTER);
 
                         entries.add(ModItems.INDICA_SPLIFF);
+                        entries.add(ModItems.SATIVA_SPLIFF);
                         entries.add(ModItems.WOODEN_PIPE);
                         entries.add(ModItems.BONG);
                         ModItems.packedDevices().forEach(entries::add);
@@ -62,6 +64,7 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HEMP_BALE);
 
                         entries.add(ModBlocks.INDICA_FLOWER);
+                        entries.add(ModBlocks.SATIVA_FLOWER);
 
                         entries.add(ModItems.MUSIC_DISC_GANJA);
                     }).build());

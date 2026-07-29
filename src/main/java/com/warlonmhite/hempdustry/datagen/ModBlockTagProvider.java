@@ -15,6 +15,25 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
 
     @Override
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
+        // Without this, farmland that dries out (no water within 4 blocks, no rain) reverts to dirt
+        // *even though a crop is standing on it* — FarmlandBlock's "is there still a crop here?"
+        // check is this tag, not "is this a CropBlock" — and the unsupported plant then pops off.
+        // Vanilla lists every one of its crops here; ours have to opt in the same way.
+        getOrCreateTagBuilder(BlockTags.MAINTAINS_FARMLAND)
+                .add(ModBlocks.INDICA_CROP)
+                .add(ModBlocks.SATIVA_CROP);
+
+        // Nothing in 1.21.1's *code* reads #minecraft:crops (the only class referencing it is the
+        // vanilla tag provider that builds it) — its one effect is that #minecraft:bee_growables
+        // includes it, which is exactly what we're after: a bee carrying pollen that flies over a
+        // hemp plant fertilises it, same as it would wheat.
+        //
+        // Requires the crops' isMature() override to be in place, or bees decapitate tall plants —
+        // see IndicaCropBlock#isMature for why.
+        getOrCreateTagBuilder(BlockTags.CROPS)
+                .add(ModBlocks.INDICA_CROP)
+                .add(ModBlocks.SATIVA_CROP);
+
         getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_BLOCK);
 

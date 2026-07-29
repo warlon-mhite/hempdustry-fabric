@@ -2,6 +2,7 @@
   "itemgroup.hempdustry.sativa_buds": "Hempdustry",
   "item.hempdustry.indica_seeds": "Graines de Purple Kush",
   "item.hempdustry.indica_buds": "Fleurs de Purple Kush",
+  "item.hempdustry.sativa_seeds": "Graines de Lemon Haze",
   "item.hempdustry.sativa_buds": "Fleurs de Lemon Haze",
   "item.hempdustry.hemp_stem": "Tige de Chanvre",
 
@@ -12,10 +13,13 @@
   "item.hempdustry.cannabutter": "Beurre de Pot",
 
   "item.hempdustry.indica_spliff": "Joint de Purple Kush",
+  "item.hempdustry.sativa_spliff": "Joint de Lemon Haze",
   "item.hempdustry.wooden_pipe": "Pipe en Bois",
   "item.hempdustry.bong": "Bang",
   "item.hempdustry.wooden_pipe_indica": "Pipe de Purple Kush",
   "item.hempdustry.bong_indica": "Bang de Purple Kush",
+  "item.hempdustry.wooden_pipe_sativa": "Pipe de Lemon Haze",
+  "item.hempdustry.bong_sativa": "Bang de Lemon Haze",
 
   "item.hempdustry.hemp_beannie": "Tuque en Chanvre",
   "item.hempdustry.hemp_shirt": "Chemise en Chanvre",
@@ -50,6 +54,7 @@
   "block.hempdustry.hemp_bale": "Botte de Tiges de Chanvre",
 
   "block.hempdustry.indica_flower": "Purple Kush Sauvage",
+  "block.hempdustry.sativa_flower": "Lemon Haze Sauvage",
 
   "item.hempdustry.music_disc_ganja": "Disque de musique",
   "jukebox_song.hempdustry.ganja": "Lulu - Ganja",
@@ -74,6 +79,8 @@
   "advancements.hempdustry.hempdustry.description": "Plantez une graine pas comme les autres et voyez où ça vous mène.",
   "advancements.hempdustry.indica_strain.title": "Purple Kush",
   "advancements.hempdustry.indica_strain.description": "Toutes les fleurs ne sont pas faites pour la vitesse. L'Indica, c'est la détente.",
+  "advancements.hempdustry.sativa_strain.title": "Lemon Haze",
+  "advancements.hempdustry.sativa_strain.description": "Toutes les fleurs ne sont pas faites pour la détente. La Sativa, c'est le mouvement.",
   "advancements.hempdustry.first_contact.title": "Première puff",
   "advancements.hempdustry.first_contact.description": "Prenez votre première puff pis regardez le monde d'un autre œil.",
   "advancements.hempdustry.blaze_it.title": "Blaze it !",

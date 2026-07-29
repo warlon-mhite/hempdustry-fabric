@@ -99,7 +99,9 @@ public class IndicaCropBlock extends CropBlock {
     // Only the lower half is fertile and random-ticks; it drives the whole plant.
     @Override
     protected boolean hasRandomTicks(BlockState state) {
-        return isLower(state) && this.getAge(state) < this.getMaxAge();
+        // Deliberately not gated on `age < maxAge`: the tick is also what repairs a plant whose
+        // upper half is missing or stale (see randomTick), which can happen at max age too.
+        return isLower(state);
     }
 
     @Override
@@ -107,20 +109,47 @@ public class IndicaCropBlock extends CropBlock {
         return isLower(state) && !this.isMature(state);
     }
 
+    /**
+     * The plant's age as seen from this block. The canonical age lives on the lower half; the
+     * upper half reports {@link #getMaxAge()} — "nothing left to grow here", which is true, since
+     * the lower half drives the plant.
+     *
+     * <p>This is what makes the plant safe around <b>bees</b>. {@code BeeEntity.GrowCropsGoal}
+     * does {@code if (!isMature(state)) setBlockState(pos, withAge(getAge(state) + 1))} directly on
+     * any {@code CropBlock} in {@code #minecraft:bee_growables}, and {@link CropBlock#withAge}
+     * rebuilds the state from {@code getDefaultState()} — resetting {@link #HALF} to LOWER. A bee
+     * over a two-tall plant would turn its upper half into a lower half in mid-air, fail
+     * {@code canPlaceAt} and behead the plant. {@code CropBlock#isMature} is {@code final}, but it
+     * is defined as {@code getAge(state) >= getMaxAge()}, so overriding {@code getAge} is how the
+     * upper half is made to report itself mature and get skipped.
+     *
+     * <p>Safe because nothing reads the upper half's age: the outline shape, growth, fertilization
+     * and harvesting all run on the lower half or go through {@link #HALF}, and the loot table and
+     * blockstate read the {@link #AGE} property directly rather than this.
+     */
+    @Override
+    public int getAge(BlockState state) {
+        return isLower(state) ? super.getAge(state) : this.getMaxAge();
+    }
+
     @Override
     protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         if (!isLower(state)) {
             return;
         }
-        if (world.getBaseLightLevel(pos, 0) >= 9) {
-            int age = this.getAge(state);
-            if (age < this.getMaxAge()) {
-                float moisture = getAvailableMoisture(this, world, pos);
-                if (random.nextInt((int) (25.0F / moisture) + 1) == 0) {
-                    this.setAge(world, pos, age + 1);
-                }
+        int age = this.getAge(state);
+        if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
+            float moisture = getAvailableMoisture(this, world, pos);
+            if (random.nextInt((int) (25.0F / moisture) + 1) == 0) {
+                age++;
             }
         }
+        // Always reconcile, whether or not the plant just aged. setAge both syncs the upper half's
+        // age and sprouts it when missing, so this repairs a plant that was boxed in earlier and
+        // now has headroom, or one whose lower half a bee bumped with a raw setBlockState that
+        // never went through setAge. Writing a block its own current state is a no-op in
+        // World#setBlockState, so a correct plant costs nothing here.
+        this.setAge(world, pos, age);
     }
 
     // Bonemeal path: CropBlock.grow() calls applyGrowth() on the targeted block.

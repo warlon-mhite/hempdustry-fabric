@@ -22,5 +22,24 @@ public class ModFlowerGeneration {
                 GenerationStep.Feature.UNDERGROUND_DECORATION,
                 ModPlacedFeatures.INDICA_CAVE_PLACED_KEY
         );
+
+        // Wild Lemon Haze — surface only, no cave tier: sativa is a sun plant. Three tiers thinning
+        // out as the ground gets harsher. The biome tags behind them are deliberately disjoint, so
+        // a biome only ever matches one of these and can't be decorated twice.
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(ModTags.Biomes.SATIVA_FLOWER_GEN),
+                GenerationStep.Feature.VEGETAL_DECORATION,
+                ModPlacedFeatures.SATIVA_PLACED_KEY
+        );
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(ModTags.Biomes.SATIVA_FLOWER_GEN_SPARSE),
+                GenerationStep.Feature.VEGETAL_DECORATION,
+                ModPlacedFeatures.SATIVA_SPARSE_PLACED_KEY
+        );
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(ModTags.Biomes.SATIVA_FLOWER_GEN_RARE),
+                GenerationStep.Feature.VEGETAL_DECORATION,
+                ModPlacedFeatures.SATIVA_RARE_PLACED_KEY
+        );
     }
 }

@@ -1,5 +1,5 @@
 {
-  "parent": "hempdustry:indica_strain",
+  "parent": "hempdustry:hempdustry",
   "criteria": {
     "took_a_hit": {
       "trigger": "hempdustry:smoke"

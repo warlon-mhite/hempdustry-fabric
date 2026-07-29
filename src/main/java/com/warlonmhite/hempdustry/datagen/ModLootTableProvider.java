@@ -2,6 +2,8 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
@@ -53,6 +55,9 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
 
         addDrop(ModBlocks.INDICA_CROP, indicaCropDrops());
         addDrop(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
+
+        addDrop(ModBlocks.SATIVA_CROP, sativaCropDrops());
+        addDrop(ModBlocks.SATIVA_FLOWER, sativaFlowerDrops());
     }
 
     /**
@@ -116,6 +121,64 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                                 .conditionally(isMatureLower)
                                 .with(ItemEntry.builder(ModItems.HEMP_STEM)
                                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(2.0F)))
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3)))));
+    }
+
+    /**
+     * Wild Lemon Haze: the same deal as the wild Purple Kush above — shears or Silk Touch lift the
+     * flower itself for potting, anything else breaks it down into that strain's seeds.
+     */
+    private LootTable.Builder sativaFlowerDrops() {
+        RegistryEntry<Enchantment> fortune = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        return this.dropsWithSilkTouchOrShears(ModBlocks.SATIVA_FLOWER,
+                this.applyExplosionDecay(ModBlocks.SATIVA_FLOWER,
+                        ItemEntry.builder(ModItems.SATIVA_SEEDS)
+                                .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))));
+    }
+
+    /**
+     * Loot for the three-tall sativa crop. Same shape as {@link #indicaCropDrops()} — only the
+     * LOWER segment yields anything, so a plant is harvested exactly once no matter which of its
+     * three blocks is broken (see SativaCropBlock#onBreak), and an immature one returns one seed.
+     *
+     * <p>A mature LOWER (age 7) pays out a little better than indica on buds and stem: the plant is
+     * three blocks of biomass instead of two and takes noticeably longer to get there, so it has to
+     * be worth the extra space and time. Seeds are deliberately identical to indica's, to keep
+     * replanting either strain equally cheap.
+     */
+    private LootTable.Builder sativaCropDrops() {
+        RegistryWrapper.Impl<Enchantment> enchantments = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT);
+        RegistryEntry<Enchantment> fortune = enchantments.getOrThrow(Enchantments.FORTUNE);
+
+        LootCondition.Builder isLower = BlockStatePropertyLootCondition.builder(ModBlocks.SATIVA_CROP)
+                .properties(StatePredicate.Builder.create()
+                        .exactMatch(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER));
+        LootCondition.Builder isMatureLower = BlockStatePropertyLootCondition.builder(ModBlocks.SATIVA_CROP)
+                .properties(StatePredicate.Builder.create()
+                        .exactMatch(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER)
+                        .exactMatch(SativaCropBlock.AGE, SativaCropBlock.MAX_AGE));
+
+        return this.applyExplosionDecay(ModBlocks.SATIVA_CROP,
+                LootTable.builder()
+                        // Buds when mature, otherwise a single seed returned.
+                        .pool(LootPool.builder()
+                                .conditionally(isLower)
+                                .with(ItemEntry.builder(ModItems.SATIVA_BUDS)
+                                        .conditionally(isMatureLower)
+                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(3.0F)))
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.20F, 2))
+                                        .alternatively(ItemEntry.builder(ModItems.SATIVA_SEEDS))))
+                        // Seeds when mature.
+                        .pool(LootPool.builder()
+                                .conditionally(isMatureLower)
+                                .with(ItemEntry.builder(ModItems.SATIVA_SEEDS)
+                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(3.0F)))
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))
+                        // Hemp stem when mature.
+                        .pool(LootPool.builder()
+                                .conditionally(isMatureLower)
+                                .with(ItemEntry.builder(ModItems.HEMP_STEM)
+                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(3.0F)))
                                         .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3)))));
     }
 }

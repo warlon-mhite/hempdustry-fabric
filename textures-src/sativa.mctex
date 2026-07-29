@@ -1,0 +1,150 @@
+# PLACEHOLDER art for the Lemon Haze (sativa) strain.
+#
+# Re-render with:
+#   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+#     textures-src/sativa.mctex -o src/main/resources/assets/hempdustry/textures \
+#     --preview --preview-dir /tmp/tex-preview
+#
+# Not covered here: item/sativa_buds.png and the block/sativa_crop_stage*.png set
+# are hand-drawn art that already shipped, and item/sativa_seeds.png is a straight
+# copy of item/indica_seeds.png (hemp seed is hemp seed).
+#
+# The spliff reuses the *exact* matrix of item/indica_spliff.png (recovered with
+# `mctex extract`) with a lemon palette swapped in, so the two strains read as one
+# item family and only the colour tells them apart. The wild flower is drawn fresh,
+# in the same palette as the sativa_crop_stage*.png textures it stands next to.
+
+
+# ---------------------------------------------------------------------------
+# Spliff — same rolled diagonal as indica_spliff. The ember goes from orange-
+# brown to lemon gold and the paper picks up a cream tint, so the two are
+# distinguishable in the hotbar at a glance rather than only side by side.
+# ---------------------------------------------------------------------------
+
+@palette spliff_kush
+. = none
+1 = 060605
+2 = 170F06
+3 = 141414
+4 = 211A0F
+5 = 211E1E
+6 = 252222
+7 = 403421
+8 = 4A4545
+9 = 64412E
+a = 554940
+b = 7E4321
+c = 7B4C32
+d = 696363
+e = 936041
+f = 71717109
+g = AB6840
+h = 947362
+j = 8080800C
+k = 867F7F
+m = 898381
+n = 8F8786
+p = 9B8F84
+q = 999190
+r = 99999905
+s = A59C9A
+t = A59D9D
+u = A79E9D
+v = ABA2A1
+w = AFA6A5
+x = B4ABAA
+y = B9AFAE
+z = C1B7B5
+A = F4F4F418
+
+@palette spliff_lemon extends=spliff_kush
+1 = 060604
+2 = 141807
+3 = 151511
+4 = 22240E
+5 = 232319
+6 = 27271C
+7 = 3E4018
+8 = 4E4D3B
+9 = 5E5A22
+a = 4F5238
+b = 8A7A26
+c = 7E7430
+d = 716F56
+e = A8923A
+f = 79796109
+g = C9A63A
+h = A8A05C
+j = 88886B0C
+k = 8E8B6E
+m = 918F70
+n = 979374
+p = A39B72
+q = A19D7D
+r = A1A17D05
+s = ADA886
+t = ADA989
+u = AFAA89
+v = B3AE8D
+w = B7B291
+x = BCB795
+y = C1BC9A
+z = C9C4A2
+A = FCFCD418
+
+@matrix spliff_roll 16x16 palette=spliff_kush
+................
+................
+.Aghf...........
+.gbe3r..........
+.9c657..........
+..127px.........
+...4amux........
+....8dksw.......
+.....jmmqv......
+.......umnt.....
+........twn.....
+.........qut....
+...........my...
+............uz..
+.............m..
+................
+
+@texture item/sativa_spliff from=spliff_roll palette=spliff_lemon type=item
+
+
+# ---------------------------------------------------------------------------
+# Wild Lemon Haze — the cross-model flower block. Palette is lifted straight off
+# the sativa_crop_stage*.png set (bright lime greens + the gold of a flowering
+# top), which is what sets it apart from the muted grey-green Wild Purple Kush.
+# Lanky single stalk, leaflets in loose whorls, gold cola on top — sativa's
+# profile against indica's bush.
+# ---------------------------------------------------------------------------
+
+@palette flower_lemon
+. = none
+s = 435949
+d = 549154
+m = 6BB269
+l = 95BBA9
+b = BE6800
+g = D88520
+h = EE9829
+
+@texture block/sativa_flower 16x16 palette=flower_lemon type=plant
+................
+........h.......
+.......ghg......
+......bghgb.....
+.......ggb......
+...d...bgb..d...
+....dm.dmd.md...
+.....dmlmlmd....
+..d...dlmld..d..
+...dm..dmd..md..
+....dmldmldmd...
+..d....dmd....d.
+...dm.ldmdl.md..
+.....sllmlls....
+........m.......
+........s.......

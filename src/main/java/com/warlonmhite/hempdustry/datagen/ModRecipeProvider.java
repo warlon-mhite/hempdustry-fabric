@@ -167,6 +167,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.INDICA_BUDS), conditionsFromItem(ModItems.INDICA_BUDS))
                 .offerTo(exporter, id("indica_spliff"));
 
+        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.SATIVA_SPLIFF)
+                .pattern("BB")
+                .pattern("PP")
+                .input('B', ModItems.SATIVA_BUDS)
+                .input('P', Items.PAPER)
+                .criterion(hasItem(ModItems.SATIVA_BUDS), conditionsFromItem(ModItems.SATIVA_BUDS))
+                .offerTo(exporter, id("sativa_spliff"));
+
         ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.WOODEN_PIPE)
                 .pattern("P  ")
                 .pattern("SSS")

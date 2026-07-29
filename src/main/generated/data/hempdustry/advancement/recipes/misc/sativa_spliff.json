@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_sativa_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:sativa_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:sativa_spliff"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_sativa_buds"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:sativa_spliff"
+    ]
+  }
+}

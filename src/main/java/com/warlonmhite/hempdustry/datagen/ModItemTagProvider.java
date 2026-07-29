@@ -19,7 +19,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
     @Override
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
         getOrCreateTagBuilder(ModTags.Items.HEMP_SEEDS)
-                .add(ModItems.INDICA_SEEDS);
+                .add(ModItems.INDICA_SEEDS)
+                .add(ModItems.SATIVA_SEEDS);
 
         // Strain-agnostic: any hemp seed variant (future Lemon Haze included) feeds/tames parrots,
         // same as vanilla's wheat/melon/pumpkin/beetroot seeds.

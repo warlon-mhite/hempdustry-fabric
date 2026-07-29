@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.loot;
 
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.item.custom.Strain;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.Enchantment;
@@ -85,20 +86,28 @@ public class ModLootTableModifiers {
             if (GRASS_SOURCES.contains(key)) {
                 RegistryEntry<Enchantment> fortune =
                         registries.getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
-                tableBuilder.pool(LootPool.builder()
+                // One entry per active strain at equal weight inside a single roll: the *chance* of
+                // finding a hemp seed stays GRASS_SEED_CHANCE no matter how many strains exist, and
+                // which strain you get is a coin flip. (A pool picks exactly one of its entries.)
+                LootPool.Builder pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(WITHOUT_SHEARS)
-                        // Only strain with a seed item today; randomise across Strain.ACTIVE once more exist.
-                        .with(ItemEntry.builder(ModItems.INDICA_SEEDS)
-                                .conditionally(RandomChanceLootCondition.builder(GRASS_SEED_CHANCE))
-                                .apply(ApplyBonusLootFunction.uniformBonusCount(fortune, 2))
-                                .apply(ExplosionDecayLootFunction.builder())));
+                        .conditionally(RandomChanceLootCondition.builder(GRASS_SEED_CHANCE));
+                for (Strain strain : Strain.ACTIVE) {
+                    pool.with(ItemEntry.builder(strain.seeds())
+                            .apply(ApplyBonusLootFunction.uniformBonusCount(fortune, 2))
+                            .apply(ExplosionDecayLootFunction.builder()));
+                }
+                tableBuilder.pool(pool);
             } else if (CHEST_SOURCES.contains(key)) {
-                tableBuilder.pool(LootPool.builder()
+                LootPool.Builder pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(CHEST_SEED_CHANCE))
-                        .with(ItemEntry.builder(ModItems.INDICA_SEEDS)
-                                .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
+                        .conditionally(RandomChanceLootCondition.builder(CHEST_SEED_CHANCE));
+                for (Strain strain : Strain.ACTIVE) {
+                    pool.with(ItemEntry.builder(strain.seeds())
+                            .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))));
+                }
+                tableBuilder.pool(pool);
             }
 
             // Independent of the seed branch above — the two disc chests are also seed chests.

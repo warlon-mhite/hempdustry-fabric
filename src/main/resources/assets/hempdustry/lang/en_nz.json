@@ -2,6 +2,7 @@
   "itemgroup.hempdustry.sativa_buds": "Hempdustry",
   "item.hempdustry.indica_seeds": "Purple Kush Seeds",
   "item.hempdustry.indica_buds": "Purple Kush Buds",
+  "item.hempdustry.sativa_seeds": "Lemon Haze Seeds",
   "item.hempdustry.sativa_buds": "Lemon Haze Buds",
   "item.hempdustry.hemp_stem": "Hemp Stem",
 
@@ -12,10 +13,13 @@
   "item.hempdustry.cannabutter": "Cannabutter",
 
   "item.hempdustry.indica_spliff": "Purple Kush Spliff",
+  "item.hempdustry.sativa_spliff": "Lemon Haze Spliff",
   "item.hempdustry.wooden_pipe": "Wooden Pipe",
   "item.hempdustry.bong": "Bong",
   "item.hempdustry.wooden_pipe_indica": "Purple Kush Pipe",
   "item.hempdustry.bong_indica": "Purple Kush Bong",
+  "item.hempdustry.wooden_pipe_sativa": "Lemon Haze Pipe",
+  "item.hempdustry.bong_sativa": "Lemon Haze Bong",
 
   "item.hempdustry.hemp_beannie": "Hemp Beannie",
   "item.hempdustry.hemp_shirt": "Hemp Shirt",
@@ -50,6 +54,7 @@
   "block.hempdustry.hemp_bale": "Hemp Bale",
 
   "block.hempdustry.indica_flower": "Wild Purple Kush",
+  "block.hempdustry.sativa_flower": "Wild Lemon Haze",
 
   "item.hempdustry.music_disc_ganja": "Music Disc",
   "jukebox_song.hempdustry.ganja": "Lulu - Ganja",
@@ -74,6 +79,8 @@
   "advancements.hempdustry.hempdustry.description": "Plant a different kind of seed and see where it grows.",
   "advancements.hempdustry.indica_strain.title": "Purple Kush",
   "advancements.hempdustry.indica_strain.description": "Not all buds are built for speed. Indica brings the chill.",
+  "advancements.hempdustry.sativa_strain.title": "Lemon Haze",
+  "advancements.hempdustry.sativa_strain.description": "Not all buds are built for the couch. Sativa gets you moving.",
   "advancements.hempdustry.first_contact.title": "First Contact",
   "advancements.hempdustry.first_contact.description": "Take your first hit and see the world through a new perspective.",
   "advancements.hempdustry.blaze_it.title": "Blaze It!",

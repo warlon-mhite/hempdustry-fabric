@@ -32,6 +32,7 @@ public class ModItems {
 
     public static final Item INDICA_SEEDS = registerItem("indica_seeds", new AliasedBlockItem(ModBlocks.INDICA_CROP, new Item.Settings()));
     public static final Item INDICA_BUDS = registerItem("indica_buds", new Item(new Item.Settings()));
+    public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", new AliasedBlockItem(ModBlocks.SATIVA_CROP, new Item.Settings()));
     public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Settings()));
     public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
 
@@ -52,6 +53,8 @@ public class ModItems {
 
     public static final Item INDICA_SPLIFF = registerItem("indica_spliff",
             new SpliffItem(Strain.INDICA, new Item.Settings().rarity(Rarity.COMMON).maxCount(16)));
+    public static final Item SATIVA_SPLIFF = registerItem("sativa_spliff",
+            new SpliffItem(Strain.SATIVA, new Item.Settings().rarity(Rarity.COMMON).maxCount(16)));
 
     // Empty, packable devices. Each call also registers that device's per-strain packed variants
     // (one per Strain.ACTIVE) — adding a strain needs no new lines here.

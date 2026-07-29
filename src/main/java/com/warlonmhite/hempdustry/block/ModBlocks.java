@@ -4,6 +4,8 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
+import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
@@ -90,6 +92,18 @@ public class ModBlocks {
             new IndicaFlower(StatusEffects.MINING_FATIGUE, 1, AbstractBlock.Settings.copy(Blocks.ALLIUM)));
     public static final Block POTTED_INDICA_FLOWER = registerBlock("potted_indica_flower",
             new FlowerPotBlock(INDICA_FLOWER, AbstractBlock.Settings.copy(Blocks.POTTED_ALLIUM)));
+
+
+    public static final Block SATIVA_CROP = registerBlock("sativa_crop",
+            new SativaCropBlock(AbstractBlock.Settings.copy(Blocks.WHEAT)));
+
+    // Wild Lemon Haze. SativaFlower widens the ground it accepts to sand/terracotta so it can
+    // actually grow in badlands (see that class). Suspicious stew effect is Haste, matching what
+    // the strain does when smoked.
+    public static final Block SATIVA_FLOWER = registerBlock("sativa_flower",
+            new SativaFlower(StatusEffects.HASTE, 1, AbstractBlock.Settings.copy(Blocks.DANDELION)));
+    public static final Block POTTED_SATIVA_FLOWER = registerBlock("potted_sativa_flower",
+            new FlowerPotBlock(SATIVA_FLOWER, AbstractBlock.Settings.copy(Blocks.POTTED_DANDELION)));
 
 
     public static Block registerBlock(String name, Block block){

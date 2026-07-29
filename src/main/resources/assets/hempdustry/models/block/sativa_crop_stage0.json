@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "hempdustry:block/sativa_crop_stage0"
+  }
+}

@@ -41,6 +41,11 @@ public class ModModelProvider extends FabricModelProvider {
         blockStateModelGenerator.registerLog(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
 
         blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockStateModelGenerator.TintType.NOT_TINTED);
+        blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER, BlockStateModelGenerator.TintType.NOT_TINTED);
+
+        // The crops' blockstates and stage models are hand-written under resources/ — the model
+        // generator has no notion of a two- or three-tall crop, so INDICA_CROP and SATIVA_CROP
+        // are deliberately absent here.
     }
 
     @Override
@@ -66,6 +71,9 @@ public class ModModelProvider extends FabricModelProvider {
             Models.GENERATED.upload(ModelIds.getItemModelId(packed), TextureMap.layer0(texture), itemModelGenerator.writer);
         }
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
+        // item/sativa_seeds.png is currently a copy of the indica one — a hemp seed is a hemp seed.
+        itemModelGenerator.register(ModItems.SATIVA_SEEDS, Models.GENERATED);
+        itemModelGenerator.register(ModItems.SATIVA_SPLIFF, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_PLANKS_SIGN, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_PLANKS_HANGING_SIGN, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_BOAT, Models.GENERATED);

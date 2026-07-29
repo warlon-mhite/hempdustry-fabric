@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:wooded_badlands",
+    { "id": "biomesoplenty:dryland", "required": false },
+    { "id": "terralith:savanna_badlands", "required": false },
+    { "id": "terralith:red_oasis", "required": false },
+    { "id": "regions_unexplored:mesa_spires", "required": false }
+  ]
+}

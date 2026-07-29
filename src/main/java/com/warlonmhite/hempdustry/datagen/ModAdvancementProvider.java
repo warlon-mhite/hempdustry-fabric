@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.datagen;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.advancement.SmokeCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.minecraft.advancement.Advancement;
@@ -12,6 +13,7 @@ import net.minecraft.advancement.AdvancementFrame;
 import net.minecraft.advancement.criterion.InventoryChangedCriterion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.predicate.item.ItemPredicate;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -29,16 +31,22 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
     @Override
     public void generateAdvancement(RegistryWrapper.WrapperLookup registryLookup, Consumer<AdvancementEntry> consumer) {
 
+        // Entry point for the whole mod, so it must fire on *any* strain's seed, not just Purple
+        // Kush's — hence the #hempdustry:hemp_seeds tag rather than a list of items. (Note
+        // Conditions.items(ItemConvertible...) is an AND: one predicate per item, all required —
+        // which is what `chill_set` below wants, and the opposite of what this one does.)
+        // A future strain joins the tag in ModItemTagProvider and is picked up here for free.
         AdvancementEntry rootAdvancement = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_SEEDS),
                         Text.translatable("advancements.hempdustry.hempdustry.title"), Text.translatable("advancements.hempdustry.hempdustry.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
-                .criterion("has_hemp_stem", InventoryChangedCriterion.Conditions.items(ModItems.INDICA_SEEDS))
+                .criterion("has_hemp_seeds", InventoryChangedCriterion.Conditions.items(
+                        ItemPredicate.Builder.create().tag(ModTags.Items.HEMP_SEEDS)))
                 .build(consumer, Hempdustry.MOD_ID + ":hempdustry");
 
 
-        AdvancementEntry indicaStrain = Advancement.Builder.create()
+        Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_BUDS),
                         Text.translatable("advancements.hempdustry.indica_strain.title"), Text.translatable("advancements.hempdustry.indica_strain.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
@@ -47,16 +55,30 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .parent(rootAdvancement)
                 .build(consumer, Hempdustry.MOD_ID + ":indica_strain");
 
-        // Common child of every strain advancement (Purple Kush now, Lemon Haze etc. later): granted
-        // the first time the player takes a hit, regardless of device or strain. Uses the custom
-        // SmokeCriterion fired from Smoking.takeHit rather than an inventory check.
+        Advancement.Builder.create()
+                .display(new AdvancementDisplay(new ItemStack(ModItems.SATIVA_BUDS),
+                        Text.translatable("advancements.hempdustry.sativa_strain.title"), Text.translatable("advancements.hempdustry.sativa_strain.description"),
+                        Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
+                        true,true,false))
+                .criterion("has_sativa_buds", InventoryChangedCriterion.Conditions.items(ModItems.SATIVA_BUDS))
+                .parent(rootAdvancement)
+                .build(consumer, Hempdustry.MOD_ID + ":sativa_strain");
+
+        // Granted the first time the player takes a hit, regardless of device *or* strain — the
+        // SmokeCriterion is fired from Smoking.takeHit, which every smokeable funnels through,
+        // rather than being an inventory check.
+        //
+        // An advancement has exactly one parent, so "a common child of every strain" is not a thing
+        // the tree can express. It therefore hangs off the **root**, as a sibling of the strain
+        // nodes rather than a child of one of them: parenting it to Purple Kush read as "you must
+        // smoke Purple Kush", which is wrong and stays wrong for every strain added later.
         AdvancementEntry firstContact = Advancement.Builder.create()
                 .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_SPLIFF),
                         Text.translatable("advancements.hempdustry.first_contact.title"), Text.translatable("advancements.hempdustry.first_contact.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))
                 .criterion("took_a_hit", SmokeCriterion.Conditions.any())
-                .parent(indicaStrain)
+                .parent(rootAdvancement)
                 .build(consumer, Hempdustry.MOD_ID + ":first_contact");
 
         // Hidden easter-egg: take a hit while the in-game clock reads ~4:20 PM. Vanilla day = 24000

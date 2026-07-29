@@ -19,6 +19,9 @@ public class ModPlacedFeatures {
 
     public static final RegistryKey<PlacedFeature> INDICA_PLACED_KEY = registerKey("indica_placed");
     public static final RegistryKey<PlacedFeature> INDICA_CAVE_PLACED_KEY = registerKey("indica_cave_placed");
+    public static final RegistryKey<PlacedFeature> SATIVA_PLACED_KEY = registerKey("sativa_placed");
+    public static final RegistryKey<PlacedFeature> SATIVA_SPARSE_PLACED_KEY = registerKey("sativa_sparse_placed");
+    public static final RegistryKey<PlacedFeature> SATIVA_RARE_PLACED_KEY = registerKey("sativa_rare_placed");
 
     public static RegistryKey<PlacedFeature> registerKey(String name) {
         return RegistryKey.of(RegistryKeys.PLACED_FEATURE, Identifier.of(Hempdustry.MOD_ID, name));
@@ -49,6 +52,30 @@ public class ModPlacedFeatures {
                 EnvironmentScanPlacementModifier.of(Direction.DOWN, BlockPredicate.solid(), BlockPredicate.IS_AIR, 12),
                 RandomOffsetPlacementModifier.vertically(ConstantIntProvider.create(1)),
                 BiomePlacementModifier.of());
+
+        // Wild Lemon Haze, surface only, in three tiers that get rarer as the ground gets harsher
+        // (see ModConfiguredFeatures for the patch densities and the biome mapping). All three are
+        // rarer than indica's 1-in-9 to begin with: Lemon Haze is the better of the two strains, so
+        // finding it wild should take more walking.
+        //
+        //   home range     1 patch / 12 chunks, up to 12 flowers
+        //   arid scrub     1 patch / 24 chunks, up to  6 flowers
+        //   badlands       1 patch / 48 chunks, up to  3 flowers
+        register(context, SATIVA_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.SATIVA_KEY), surfacePatch(12));
+        register(context, SATIVA_SPARSE_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.SATIVA_SPARSE_KEY), surfacePatch(24));
+        register(context, SATIVA_RARE_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.SATIVA_RARE_KEY), surfacePatch(48));
+    }
+
+    /** Standard surface-vegetation placement: one attempt per {@code rarity} chunks, on the terrain top. */
+    private static PlacementModifier[] surfacePatch(int rarity) {
+        return new PlacementModifier[]{
+                RarityFilterPlacementModifier.of(rarity),
+                SquarePlacementModifier.of(),
+                PlacedFeatures.MOTION_BLOCKING_HEIGHTMAP,
+                BiomePlacementModifier.of()};
     }
 
 
