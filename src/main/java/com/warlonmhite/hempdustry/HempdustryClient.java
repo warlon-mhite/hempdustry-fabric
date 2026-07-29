@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.client.UpdateChecker;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import net.fabricmc.api.ClientModInitializer;
@@ -11,6 +12,8 @@ import net.minecraft.client.render.RenderLayer;
 public class HempdustryClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        UpdateChecker.init();
+
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.HEMP_PLANKS_DOOR, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.HEMP_PLANKS_TRAPDOOR, RenderLayer.getCutout());
 
