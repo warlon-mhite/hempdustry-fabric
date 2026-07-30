@@ -1,0 +1,10 @@
+{
+  "values": [
+    "#minecraft:campfires",
+    "minecraft:furnace",
+    "minecraft:smoker",
+    "minecraft:blast_furnace",
+    "minecraft:magma_block",
+    "hempdustry:decarboxylator"
+  ]
+}

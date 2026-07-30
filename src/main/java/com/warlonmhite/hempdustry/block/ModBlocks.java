@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaFlower;
@@ -118,6 +119,18 @@ public class ModBlocks {
                     .requiresTool()
                     .sounds(BlockSoundGroup.STONE)
                     .luminance(state -> state.get(DecarboxylatorBlock.LIT) ? 13 : 0)));
+
+
+    /**
+     * The Infuser. Same furnace-grade stone as the Decarboxylator, and deliberately <b>not</b>
+     * light-emitting: its glow has to come from whatever is heating it from below, or the
+     * heat-from-below mechanic would look self-powered.
+     */
+    public static final Block INFUSER = registerBlock("infuser",
+            new InfuserBlock(AbstractBlock.Settings.create()
+                    .strength(3.5F, 3.5F)
+                    .requiresTool()
+                    .sounds(BlockSoundGroup.STONE)));
 
 
     public static Block registerBlock(String name, Block block){

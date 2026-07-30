@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.item.custom.CannabutterItem;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
 import com.warlonmhite.hempdustry.item.custom.PackedSmokingDeviceItem;
@@ -55,7 +56,7 @@ public class ModItems {
     public static final Item HEMP_FIBER = registerItem("hemp_fiber", new Item(new Item.Settings()));
     public static final Item HEMPCRETE = registerItem("hempcrete", new Item(new Item.Settings()));
     public static final Item HEMP_BRICK = registerItem("hemp_brick", new Item(new Item.Settings()));
-    public static final Item CANNABUTTER = registerItem("cannabutter", new Item(new Item.Settings()));
+    public static final Item CANNABUTTER = registerItem("cannabutter", new CannabutterItem(new Item.Settings()));
 
 
     public static final Item INDICA_SPLIFF = registerItem("indica_spliff",

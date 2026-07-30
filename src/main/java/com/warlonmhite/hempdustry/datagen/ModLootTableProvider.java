@@ -66,6 +66,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         // The block entity's contents are scattered by DecarboxylatorBlock#onStateReplaced, so the
         // loot table only has to hand back the machine itself.
         addDrop(ModBlocks.DECARBOXYLATOR);
+        addDrop(ModBlocks.INFUSER);
 
         // Wall sign / wall hanging sign share the standing block's loot table (see ModBlocks#dropsLike),
         // so they must not get their own addDrop call here.

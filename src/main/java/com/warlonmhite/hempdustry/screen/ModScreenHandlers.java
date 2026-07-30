@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.screen;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
+import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -18,6 +19,11 @@ public class ModScreenHandlers {
             Registry.register(Registries.SCREEN_HANDLER,
                     Identifier.of(Hempdustry.MOD_ID, "decarboxylator"),
                     new ExtendedScreenHandlerType<>(DecarboxylatorScreenHandler::new, BlockPos.PACKET_CODEC));
+
+    public static final ScreenHandlerType<InfuserScreenHandler> INFUSER =
+            Registry.register(Registries.SCREEN_HANDLER,
+                    Identifier.of(Hempdustry.MOD_ID, "infuser"),
+                    new ExtendedScreenHandlerType<>(InfuserScreenHandler::new, BlockPos.PACKET_CODEC));
 
     public static void registerScreenHandlers() {
         Hempdustry.LOGGER.info("Registering Screen Handlers for " + Hempdustry.MOD_ID);

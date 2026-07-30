@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:cauldron"
+    },
+    "H": {
+      "item": "hempdustry:hempcrete_block"
+    }
+  },
+  "pattern": [
+    "HHH",
+    "HCH",
+    "HHH"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:infuser"
+  }
+}

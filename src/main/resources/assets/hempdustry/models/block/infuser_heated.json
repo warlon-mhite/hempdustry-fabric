@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "hempdustry:block/infuser_top_heated",
+    "bottom": "hempdustry:block/hempcrete_block",
+    "side": "hempdustry:block/infuser_side"
+  }
+}

@@ -1,5 +1,7 @@
 {
   "values": [
-    "hempdustry:hempcrete_block"
+    "hempdustry:hempcrete_block",
+    "hempdustry:decarboxylator",
+    "hempdustry:infuser"
   ]
 }

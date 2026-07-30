@@ -8,6 +8,11 @@
   "item.hempdustry.hemp_leaf": "Feuille de Chanvre",
   "item.hempdustry.decarboxylated_hemp": "Chanvre Décarboxylé",
   "item.hempdustry.washed_decarboxylated_hemp": "Chanvre Décarboxylé Rincé",
+  "item.hempdustry.cannabutter.strength": "Dose : %s",
+  "hempdustry.quality.rough": "Grossier",
+  "hempdustry.quality.standard": "Standard",
+  "hempdustry.quality.clean": "Pur",
+  "hempdustry.quality.perfect": "Parfait",
 
   "item.hempdustry.hemp_flour": "Farine de Chanvre",
   "item.hempdustry.hemp_fiber": "Fibre de Chanvre",
@@ -34,6 +39,7 @@
   "block.hempdustry.hemp_bricks_stairs": "Escalier en Briques de Chanvre",
   "block.hempdustry.hemp_bricks_wall": "Muret de Briques de Chanvre",
   "block.hempdustry.decarboxylator": "Décarboxylateur",
+  "block.hempdustry.infuser": "Infuseur",
 
   "block.hempdustry.hemp_planks": "Planches de Chanvre",
   "block.hempdustry.hemp_planks_slab": "Dalle de Planches de Chanvre",

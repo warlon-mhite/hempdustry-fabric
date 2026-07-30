@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
+import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -33,5 +34,6 @@ public class HempdustryClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
 
         HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
+        HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
     }
 }

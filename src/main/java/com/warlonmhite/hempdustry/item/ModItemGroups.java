@@ -25,6 +25,7 @@ public class ModItemGroups {
                         entries.add(ModItems.DECARBOXYLATED_HEMP);
                         entries.add(ModItems.WASHED_DECARBOXYLATED_HEMP);
                         entries.add(ModBlocks.DECARBOXYLATOR);
+                        entries.add(ModBlocks.INFUSER);
 
                         entries.add(ModItems.HEMP_FLOUR);
                         entries.add(ModItems.HEMP_FIBER);

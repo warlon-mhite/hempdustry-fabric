@@ -1,8 +1,10 @@
 package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.minecraft.block.Blocks;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.BlockTags;
 
@@ -34,8 +36,35 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP);
 
+        // What will heat an Infuser standing on top of it. Anything here that carries a LIT
+        // property must also be lit (see InfuserBlockEntity#isHeatedFrom), which is what makes the
+        // campfire the practical choice — it is permanently lit and cheap, where a furnace is only
+        // lit while it is itself busy smelting, and a magma block is a Nether trip. Listing all
+        // three gives the player a genuine early/mid/exotic ladder rather than one right answer.
+        //
+        // Note this is an explicit list, NOT "anything hot": there is no vanilla or Fabric
+        // convention tag for heat sources to inherit from (the nearest, c:player_workstations/
+        // furnaces, means "a villager works here", not "this is hot"). So a modded forge or
+        // crucible will NOT work unless that mod, or a datapack, adds itself to this tag.
+        //
+        // #minecraft:campfires rather than the two campfires by name is the one free win available:
+        // modded campfires join that vanilla tag on their own, so they work here without either
+        // side knowing about the other.
+        getOrCreateTagBuilder(ModTags.Blocks.HEAT_SOURCES)
+                .forceAddTag(BlockTags.CAMPFIRES)
+                .add(Blocks.FURNACE)
+                .add(Blocks.SMOKER)
+                .add(Blocks.BLAST_FURNACE)
+                .add(Blocks.MAGMA_BLOCK)
+                // Our own oven counts, which lets the two machines be stacked: the Decarboxylator's
+                // fire heats the Infuser sitting on it. Same LIT caveat as a furnace — it only
+                // radiates while it is actually cooking something.
+                .add(ModBlocks.DECARBOXYLATOR);
+
         getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
-                .add(ModBlocks.HEMPCRETE_BLOCK);
+                .add(ModBlocks.HEMPCRETE_BLOCK)
+                .add(ModBlocks.DECARBOXYLATOR)
+                .add(ModBlocks.INFUSER);
 
         getOrCreateTagBuilder(BlockTags.SHOVEL_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK);

@@ -1,0 +1,106 @@
+# PLACEHOLDER art for the Infuser. Warlon Mhite intends to redraw these.
+#
+# The digits 1-5 are sampled from the shipping hempcrete_block.png, so the Infuser sits in the
+# same palette as the material it is crafted from and the model can reuse hempcrete_block for its
+# bottom face. Hempcrete is a very low-contrast sandy noise, which is correct for a block —
+# vanilla blocks average about half the luminance range of items.
+
+@palette cold
+. = none
+1 = 9C8E58
+2 = 9D8F59
+3 = 9E9059
+4 = 9E905A
+5 = 9F915B
+# cauldron ironwork
+i = 43423A
+j = 5A584D
+# the brew, cold and dull: milk that hasn't been touched yet
+l = 8E8B7A
+k = 6E6B5C
+m = A8A492
+
+@palette hot
+. = none
+1 = 9C8E58
+2 = 9D8F59
+3 = 9E9059
+4 = 9E905A
+5 = 9F915B
+i = 43423A
+j = 5A584D
+# the brew simmering: butter and hemp gone golden
+l = B8963F
+k = 8C6E2B
+m = D8BC6A
+
+# ---- the top face ----
+# Hempcrete corners, a cauldron rim, and the liquid surface inside it. Drawn once and rendered
+# twice: the cold and hot tops are pixel-identical except for the three brew colours, which is the
+# whole point of sharing the matrix — the surface can't drift between the two states.
+@matrix infuser_surface 16x16 palette=cold
+4243342332423323
+2331454423422222
+42iiiiiiiiiiii44
+22illllllllllii4
+22ilmmlllllkli24
+34ilmllllllkli25
+33illllllllkli32
+53illlllllkkli22
+32illkllllklli34
+32ilklllllllli22
+24ikllllllklli24
+32illlllllllli41
+33illlllllllli22
+32iiiiiiiiiiii23
+3254533444422243
+4233513233345344
+
+@texture block/infuser_top from=infuser_surface palette=cold type=block
+@texture block/infuser_top_heated from=infuser_surface palette=hot type=block
+
+# ---- the side face ----
+# A band of cauldron ironwork over a hempcrete body, so the block reads as a tub rather than a
+# plain cube from any angle. Bottom face is plain hempcrete_block, reused by the model.
+@texture block/infuser_side 16x16 type=block palette=cold
+iiiiiiiiiiiiiiii
+ijjiijjiijjiijji
+iiiiiiiiiiiiiiii
+4222433221233244
+5422244333225124
+2225232425323434
+3444442144344325
+3334524221424332
+5325433353444422
+3223442243341234
+3242224314414222
+2421223422423324
+3252243224224441
+3345434252322222
+3242242352233323
+3254533444422243
+
+# ---- empty-slot hint for the milk slot ----
+# Same convention as the Decarboxylator's: one flat #555555 outline glyph, copied from vanilla's
+# empty_armor_slot_* sprites rather than guessed. A bucket.
+@palette hint
+. = none
+1 = 555555
+
+@texture item/empty_slot_milk 16x16 type=item palette=hint
+................
+................
+....1......1....
+....1......1....
+....11111111....
+....1......1....
+....1......1....
+....1......1....
+....1......1....
+.....1....1.....
+.....1....1.....
+.....1....1.....
+......1..1......
+......1..1......
+.......11.......
+................

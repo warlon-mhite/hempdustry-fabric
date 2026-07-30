@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
+import net.minecraft.item.Items;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.ItemTags;
 
@@ -21,6 +22,11 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ModTags.Items.HEMP_SEEDS)
                 .add(ModItems.INDICA_SEEDS)
                 .add(ModItems.SATIVA_SEEDS);
+
+        // A tag rather than a hard milk_bucket check in the Infuser, so another mod's milk works
+        // and a datapack can widen it without a code change.
+        getOrCreateTagBuilder(ModTags.Items.MILK_BUCKETS)
+                .add(Items.MILK_BUCKET);
 
         // Strain-agnostic: any hemp seed variant (future Lemon Haze included) feeds/tames parrots,
         // same as vanilla's wheat/melon/pumpkin/beetroot seeds.

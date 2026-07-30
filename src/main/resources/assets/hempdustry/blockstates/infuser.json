@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "heated=false": { "model": "hempdustry:block/infuser" },
+    "heated=true":  { "model": "hempdustry:block/infuser_heated" }
+  }
+}

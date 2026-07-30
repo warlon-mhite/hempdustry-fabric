@@ -137,6 +137,24 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModBlocks.HEMP_BRICKS_BLOCK), conditionsFromItem(ModBlocks.HEMP_BRICKS_BLOCK))
                 .offerTo(exporter, id("decarboxylator"));
 
+        // Hempcrete + a cauldron -> Infuser. Same grammar as the Decarboxylator (a vanilla utility
+        // block wrapped in a ring of hempdustry material) but built on a Cauldron instead of hemp
+        // bricks, which gives the second machine its own visual family and echoes the cauldron rim
+        // on its model.
+        //
+        // Deliberately much cheaper than the Decarboxylator — 36 hemp stem against 504. The gate for
+        // this whole pipeline is paid at the Decarboxylator; charging heavily twice for one chain
+        // would be punitive, and vanilla doesn't escalate every step either (a blast furnace costs
+        // far less than the gear you already had by the time you build one).
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.INFUSER)
+                .pattern("HHH")
+                .pattern("HCH")
+                .pattern("HHH")
+                .input('H', ModBlocks.HEMPCRETE_BLOCK)
+                .input('C', Items.CAULDRON)
+                .criterion(hasItem(ModBlocks.HEMPCRETE_BLOCK), conditionsFromItem(ModBlocks.HEMPCRETE_BLOCK))
+                .offerTo(exporter, id("infuser"));
+
         // Planks -> button (redstone)
         ShapelessRecipeJsonBuilder.create(RecipeCategory.REDSTONE, ModBlocks.HEMP_PLANKS_BUTTON)
                 .input(ModBlocks.HEMP_PLANKS)
