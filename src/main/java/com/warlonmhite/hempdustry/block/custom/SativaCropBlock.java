@@ -8,11 +8,15 @@ import net.minecraft.block.CropBlock;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemConvertible;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.Hand;
+import net.minecraft.util.ItemActionResult;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
@@ -223,7 +227,12 @@ public class SativaCropBlock extends CropBlock {
      */
     private void setAge(World world, BlockPos pos, int newAge) {
         newAge = Math.min(newAge, this.getMaxAge());
-        world.setBlockState(pos, this.stateFor(newAge, TriplePlantSegment.LOWER), Block.NOTIFY_LISTENERS);
+        // stateFor rebuilds from getDefaultState(), so the LOWER's trim flags have to be carried
+        // across explicitly or every growth step would quietly wipe them — and randomTick calls
+        // this on every tick, not only when the plant actually ages.
+        BlockState lower = Defoliation.carryOver(world.getBlockState(pos),
+                this.stateFor(newAge, TriplePlantSegment.LOWER));
+        world.setBlockState(pos, lower, Block.NOTIFY_LISTENERS);
 
         BlockPos midPos = pos.up();
         BlockPos topPos = pos.up(2);
@@ -243,6 +252,29 @@ public class SativaCropBlock extends CropBlock {
     private boolean canOccupy(World world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         return state.isAir() || (state.isOf(this) && !isLower(state));
+    }
+
+    // ----- defoliation -----
+
+    /**
+     * Shearing a growing plant takes a fan leaf and shifts its eventual harvest towards buds, the
+     * same as on {@link IndicaCropBlock}; the logic lives in {@link Defoliation}. Any of the three
+     * segments can be clicked — {@link #findLowerPos} resolves to the LOWER, which is where the age
+     * and the trim flags are kept.
+     */
+    @Override
+    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
+                                             PlayerEntity player, Hand hand, BlockHitResult hit) {
+        BlockPos lowerPos = this.findLowerPos(world, pos, state);
+        BlockState lower = world.getBlockState(lowerPos);
+        if (lower.isOf(this) && isLower(lower)) {
+            ItemActionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.get(AGE),
+                    stack, player, hand);
+            if (result != null) {
+                return result;
+            }
+        }
+        return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
     }
 
     // ----- harvesting -----
@@ -300,6 +332,6 @@ public class SativaCropBlock extends CropBlock {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(AGE, SEGMENT);
+        builder.add(AGE, SEGMENT, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE);
     }
 }

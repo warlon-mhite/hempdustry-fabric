@@ -35,6 +35,7 @@ public class ModItems {
     public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", new AliasedBlockItem(ModBlocks.SATIVA_CROP, new Item.Settings()));
     public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Settings()));
     public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
+    public static final Item HEMP_LEAF = registerItem("hemp_leaf", new Item(new Item.Settings()));
 
     public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign",
             new SignItem(new Item.Settings().maxCount(16), ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN));

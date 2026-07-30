@@ -43,6 +43,7 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_FIBER, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMPCRETE, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_LEAF, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_STEM, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_BUDS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_BUDS, 0.5f);

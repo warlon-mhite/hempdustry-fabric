@@ -21,6 +21,7 @@ public class ModItemGroups {
                         entries.add(ModItems.SATIVA_SEEDS);
                         entries.add(ModItems.SATIVA_BUDS);
                         entries.add(ModItems.HEMP_STEM);
+                        entries.add(ModItems.HEMP_LEAF);
 
                         entries.add(ModItems.HEMP_FLOUR);
                         entries.add(ModItems.HEMP_FIBER);

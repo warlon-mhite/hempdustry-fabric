@@ -9,11 +9,15 @@ import net.minecraft.block.ShapeContext;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemConvertible;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.Hand;
+import net.minecraft.util.ItemActionResult;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
@@ -196,7 +200,12 @@ public class IndicaCropBlock extends CropBlock {
      */
     private void setAge(World world, BlockPos pos, int newAge) {
         newAge = Math.min(newAge, this.getMaxAge());
-        world.setBlockState(pos, this.stateFor(newAge, DoubleBlockHalf.LOWER), Block.NOTIFY_LISTENERS);
+        // stateFor rebuilds from getDefaultState(), so the lower half's trim flags have to be
+        // carried across explicitly or every growth step would quietly wipe them — and randomTick
+        // calls this on every tick, not only when the plant actually ages.
+        BlockState lower = Defoliation.carryOver(world.getBlockState(pos),
+                this.stateFor(newAge, DoubleBlockHalf.LOWER));
+        world.setBlockState(pos, lower, Block.NOTIFY_LISTENERS);
 
         BlockPos upPos = pos.up();
         BlockState above = world.getBlockState(upPos);
@@ -206,6 +215,33 @@ public class IndicaCropBlock extends CropBlock {
         } else if (newAge >= DOUBLE_BLOCK_AGE && above.isAir()) {
             world.setBlockState(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER), Block.NOTIFY_LISTENERS);
         }
+    }
+
+    // ----- defoliation -----
+
+    /**
+     * Shearing a growing plant takes a fan leaf and shifts its eventual harvest towards buds. The
+     * work is shared with the sativa crop in {@link Defoliation}; all this override does is resolve
+     * whichever half the player clicked down to the lower one, where the age and the trim flags
+     * live.
+     *
+     * <p>This is {@code onUseWithItem} rather than {@code onUse} because the player is holding an
+     * item: 1.21 offers the held stack and hand directly here, which is also what makes shearing
+     * work from the off-hand.
+     */
+    @Override
+    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
+                                             PlayerEntity player, Hand hand, BlockHitResult hit) {
+        BlockPos lowerPos = isLower(state) ? pos : pos.down();
+        BlockState lower = world.getBlockState(lowerPos);
+        if (lower.isOf(this) && isLower(lower)) {
+            ItemActionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.get(AGE),
+                    stack, player, hand);
+            if (result != null) {
+                return result;
+            }
+        }
+        return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
     }
 
     // ----- harvesting -----
@@ -242,6 +278,6 @@ public class IndicaCropBlock extends CropBlock {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(AGE, HALF);
+        builder.add(AGE, HALF, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE);
     }
 }
