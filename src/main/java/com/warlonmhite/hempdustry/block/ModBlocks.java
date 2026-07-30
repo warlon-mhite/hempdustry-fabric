@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.block;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
+import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
@@ -104,6 +105,19 @@ public class ModBlocks {
             new SativaFlower(StatusEffects.HASTE, 1, AbstractBlock.Settings.copy(Blocks.DANDELION)));
     public static final Block POTTED_SATIVA_FLOWER = registerBlock("potted_sativa_flower",
             new FlowerPotBlock(SATIVA_FLOWER, AbstractBlock.Settings.copy(Blocks.POTTED_DANDELION)));
+
+
+    /**
+     * The Decarboxylator, the mod's first machine. Furnace-grade stone (3.5 hardness / 3.5 blast
+     * resistance, pickaxe-mined) and, like the hemp wood set, deliberately never registered as
+     * flammable — an oven that catches fire reads as a bug, not a feature.
+     */
+    public static final Block DECARBOXYLATOR = registerBlock("decarboxylator",
+            new DecarboxylatorBlock(AbstractBlock.Settings.create()
+                    .strength(3.5F, 3.5F)
+                    .requiresTool()
+                    .sounds(BlockSoundGroup.STONE)
+                    .luminance(state -> state.get(DecarboxylatorBlock.LIT) ? 13 : 0)));
 
 
     public static Block registerBlock(String name, Block block){

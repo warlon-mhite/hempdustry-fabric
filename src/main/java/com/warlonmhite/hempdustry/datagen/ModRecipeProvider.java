@@ -112,6 +112,31 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HEMP_BRICK), conditionsFromItem(ModItems.HEMP_BRICK))
                 .offerTo(exporter, id("hemp_bricks_block"));
 
+        // Blocks of hemp bricks + a copper ingot -> Decarboxylator.
+        //
+        // Deliberately the *block*, not the hemp_brick item: seven of them is 63 bricks, 252
+        // hempcrete, 504 hemp stem — hundreds of mature plants. That is the whole point. Edibles
+        // are meant to be a late goal, not something a player reaches off their first crop the way
+        // a spliff is, and the cost has to be paid in the crop itself rather than in some unrelated
+        // ore. See CLAUDE.md's Decarboxylator note for the full chain.
+        //
+        // The copper ingot sits top-centre, the same grid position as the copper flue on the
+        // finished block's model. Keeping a hempdustry-exclusive ingredient in the pattern is also
+        // what stops this ever ambiguously matching another mod's machine recipe in a
+        // kitchen-sink pack — no other mod can reference hemp bricks.
+        //
+        // The unlock criterion is the hemp bricks block alone, NOT the copper: copper is early-game
+        // and unlocking on it would show the recipe in the book long before the player could
+        // plausibly build it, which would undercut the gating this recipe exists to create.
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.DECARBOXYLATOR)
+                .pattern("BCB")
+                .pattern("B B")
+                .pattern("BBB")
+                .input('B', ModBlocks.HEMP_BRICKS_BLOCK)
+                .input('C', Items.COPPER_INGOT)
+                .criterion(hasItem(ModBlocks.HEMP_BRICKS_BLOCK), conditionsFromItem(ModBlocks.HEMP_BRICKS_BLOCK))
+                .offerTo(exporter, id("decarboxylator"));
+
         // Planks -> button (redstone)
         ShapelessRecipeJsonBuilder.create(RecipeCategory.REDSTONE, ModBlocks.HEMP_PLANKS_BUTTON)
                 .input(ModBlocks.HEMP_PLANKS)

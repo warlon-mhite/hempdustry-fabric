@@ -22,6 +22,9 @@ public class ModItemGroups {
                         entries.add(ModItems.SATIVA_BUDS);
                         entries.add(ModItems.HEMP_STEM);
                         entries.add(ModItems.HEMP_LEAF);
+                        entries.add(ModItems.DECARBOXYLATED_HEMP);
+                        entries.add(ModItems.WASHED_DECARBOXYLATED_HEMP);
+                        entries.add(ModBlocks.DECARBOXYLATOR);
 
                         entries.add(ModItems.HEMP_FLOUR);
                         entries.add(ModItems.HEMP_FIBER);

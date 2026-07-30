@@ -1,0 +1,188 @@
+# PLACEHOLDER art for the Decarboxylator and the two cannabutter-chain intermediates.
+# Warlon Mhite intends to redraw these; keep this spec in sync if one is tweaked, or delete
+# the entry once real art lands (CLAUDE.md §4).
+#
+# The brick digits 1-9 are sampled straight out of the shipping hemp_bricks_block.png, so the
+# oven's top and front sit in the same palette as the rest of the mod's hemp masonry and the
+# block model can reuse hemp_bricks_block for its sides and bottom.
+
+@palette brick
+. = none
+1 = 67663F
+2 = 6F6D45
+3 = 807B50
+4 = 887B6A
+5 = 8A8456
+6 = 9E9362
+7 = 9F9380
+8 = B0A06A
+9 = A79E8F
+# recessed grate, cold
+g = 241F14
+k = 3A3222
+# grate glowing, and the copper flue
+o = 8A3B10
+p = C25A18
+q = E8912E
+a = 7A4433
+b = A8624A
+c = C97F5C
+e = E09A72
+
+# ---- oven top: hemp brick with the copper flue nub in the middle ----
+# The flue is the block's one recurring motif: it is also the copper ingot's position in the
+# crafting pattern.
+@texture block/decarboxylator_top 16x16 type=block palette=brick
+6654888666578666
+5537235555372555
+2119113321171322
+4479744447797444
+8866565786665654
+255553bccb333327
+235222ceec233217
+744447ceec444479
+665788cbbc578866
+553735abba273555
+2217223322192333
+4779744444797444
+5666565486665657
+2555553735555527
+1222221912222219
+7444447977444799
+
+# ---- oven front, idle: brick surround, dark closed grate ----
+@texture block/decarboxylator_front 16x16 type=block palette=brick
+6654888666578666
+5537235555372555
+2119113321171322
+4479744447797444
+886gggggggggg654
+255gkkkkkkkkg327
+235gggggggggg217
+744gkkkkkkkkg479
+665gggggggggg866
+553gkkkkkkkkg555
+221gggggggggg333
+477gkkkkkkkkg444
+566gggggggggg657
+2555553735555527
+1222221912222219
+7444447977444799
+
+# ---- oven front, running: same grate, embers behind the bars ----
+@texture block/decarboxylator_front_on 16x16 type=block palette=brick
+6654888666578666
+5537235555372555
+2119113321171322
+4479744447797444
+886gggggggggg654
+255gqqqqqqqqg327
+235gppppppppg217
+744gqqqqqqqqg479
+665gppppppppg866
+553gqqqqqqqqg555
+221gppppppppg333
+477gqqqqqqqqg444
+566gggggggggg657
+2555553735555527
+1222221912222219
+7444447977444799
+
+# ---- the two intermediates ----
+# One heap, two palettes: washing changes the colour, not the shape, and sharing the matrix is
+# what guarantees the pair stay recognisably the same pile at two stages.
+
+@palette toasted
+. = none
+O = 3D2410
+d = 5A3618
+m = 8A5626
+h = B37C3A
+H = E8B863
+
+@palette washed
+. = none
+O = 3A4020
+d = 5E6A34
+m = 8C9A52
+h = B3C077
+H = DCE6A8
+
+# A loose pile, not a baked loaf: the top contour is deliberately lumpy (two humps with a
+# notch) and the interior is speckled between tones, so it reads as crumbled material rather
+# than one smooth solid. A clean dome here looked exactly like a bread roll.
+@matrix heap 16x16 palette=toasted
+................
+................
+................
+.....OO..OO.....
+....OhhOOhhO....
+...OhHhhhHhhO...
+..OhHhhmmhHhmO..
+..OhhhmmmhmmdO..
+..OhhmmdmmmddO..
+..OhmmmmdmdddO..
+.OhmmdmmmddmddO.
+.OmmdmdddmddddO.
+.OmdddddmdddddO.
+.OdddmddddddddO.
+.OOOOOOOOOOOOOO.
+................
+
+@texture item/decarboxylated_hemp from=heap palette=toasted type=item
+@texture item/washed_decarboxylated_hemp from=heap palette=washed type=item
+
+# ---- empty-slot hints ----
+# Served by Slot#getBackgroundSprite off the block atlas (which is why they live under item/,
+# exactly like vanilla's empty_armor_slot_* sprites) so the game hides them the moment the slot
+# holds something.
+#
+# Style is copied from vanilla rather than guessed: extracting
+# assets/minecraft/textures/item/empty_armor_slot_helmet.png gives a ONE-colour #555555 1px
+# outline drawing, not a filled shaded sprite. Running these two through the linter alongside
+# vanilla's own shows vanilla's tripping *more* findings than ours — flat, spindly, 28% fill and
+# 60% whiskers. That is the convention for this class of sprite: it is a hint, not an item, and
+# it must not compete with a real item for attention. The [fix] findings on both of these are
+# knowingly accepted for exactly that reason.
+@palette hint
+. = none
+1 = 555555
+
+# A flame: "anything that burns goes here" — coal, a lava bucket, hemp stem, a bale.
+@texture item/empty_slot_fuel 16x16 type=item palette=hint
+................
+................
+.......11.......
+......1..1......
+......1..1......
+.....1....1.....
+.....1....1.....
+....1......1....
+....1......1....
+...1........1...
+...1........1...
+...1........1...
+....1......1....
+.....1....1.....
+......1111......
+................
+
+# A leaf: "buds or hemp leaf go here". Deliberately a plain leaf rather than a cannabis fan,
+# since the slot stands for both, and both strains.
+@texture item/empty_slot_hemp 16x16 type=item palette=hint
+................
+.......11.......
+......1..1......
+.....1....1.....
+....1......1....
+...1........1...
+..1..........1..
+..1..........1..
+...1........1...
+....1......1....
+.....1....1.....
+......1..1......
+.......11.......
+.......1........
+.......1........
+................

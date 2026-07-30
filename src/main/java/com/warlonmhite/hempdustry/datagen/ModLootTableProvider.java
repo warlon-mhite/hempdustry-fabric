@@ -63,6 +63,9 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMPCRETE_BLOCK);
         addDrop(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         addDrop(ModBlocks.HEMP_BALE);
+        // The block entity's contents are scattered by DecarboxylatorBlock#onStateReplaced, so the
+        // loot table only has to hand back the machine itself.
+        addDrop(ModBlocks.DECARBOXYLATOR);
 
         // Wall sign / wall hanging sign share the standing block's loot table (see ModBlocks#dropsLike),
         // so they must not get their own addDrop call here.

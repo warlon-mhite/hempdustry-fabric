@@ -37,6 +37,12 @@ public class ModItems {
     public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
     public static final Item HEMP_LEAF = registerItem("hemp_leaf", new Item(new Item.Settings()));
 
+    // The cannabutter chain's two intermediates. Both are strain-agnostic: every strain's buds and
+    // the leaf all decarboxylate to the same thing, so the pipeline downstream stays a single line
+    // of items. Strain identity is carried by the smoking system, not by edibles.
+    public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", new Item(new Item.Settings()));
+    public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", new Item(new Item.Settings()));
+
     public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign",
             new SignItem(new Item.Settings().maxCount(16), ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN));
     public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign",

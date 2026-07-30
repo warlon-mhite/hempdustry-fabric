@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "hempdustry:hemp_bricks_block"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "pattern": [
+    "BCB",
+    "B B",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:decarboxylator"
+  }
+}

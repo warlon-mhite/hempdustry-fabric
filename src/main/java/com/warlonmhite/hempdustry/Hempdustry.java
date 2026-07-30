@@ -2,7 +2,10 @@ package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.advancement.ModCriteria;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
+import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.item.custom.SmokeScheduler;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
@@ -34,6 +37,9 @@ public class Hempdustry implements ModInitializer {
 		ModItemGroups.registerItemGroups();
 		ModItems.registerModItems();
 		ModBlocks.registerModBlocks();
+		ModBlockEntities.registerBlockEntities();
+		ModScreenHandlers.registerScreenHandlers();
+		ModCauldronBehaviors.registerCauldronBehaviors();
 		ModEntities.registerModEntities();
 		ModSounds.registerSounds();
 		ModWorldGeneration.generateModWorldGeneration();

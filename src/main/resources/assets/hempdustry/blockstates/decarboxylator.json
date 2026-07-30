@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "facing=north,lit=false": { "model": "hempdustry:block/decarboxylator" },
+    "facing=east,lit=false":  { "model": "hempdustry:block/decarboxylator", "y": 90 },
+    "facing=south,lit=false": { "model": "hempdustry:block/decarboxylator", "y": 180 },
+    "facing=west,lit=false":  { "model": "hempdustry:block/decarboxylator", "y": 270 },
+
+    "facing=north,lit=true": { "model": "hempdustry:block/decarboxylator_on" },
+    "facing=east,lit=true":  { "model": "hempdustry:block/decarboxylator_on", "y": 90 },
+    "facing=south,lit=true": { "model": "hempdustry:block/decarboxylator_on", "y": 180 },
+    "facing=west,lit=true":  { "model": "hempdustry:block/decarboxylator_on", "y": 270 }
+  }
+}
