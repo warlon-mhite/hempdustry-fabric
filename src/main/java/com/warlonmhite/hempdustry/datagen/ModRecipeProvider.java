@@ -341,6 +341,38 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
                 .offerTo(exporter, id("paper"));
 
+        // A painting *is* a canvas — the most literal use the item has. "Canvas" is a worn-down
+        // "cannabis", and the Renaissance move from wood panel to stretched canvas was onto exactly
+        // this material, hemp or flax.
+        //
+        // This needs its own recipe rather than a tag join: vanilla's painting is the only recipe in
+        // the game keyed on #minecraft:wool, so there is nothing for canvas to slot into.
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.PAINTING)
+                .pattern("###")
+                .pattern("#X#")
+                .pattern("###")
+                .input('#', Items.STICK)
+                .input('X', ModItems.HEMP_CANVAS)
+                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
+                .offerTo(exporter, id("painting"));
+
+        // Shapeless, matching vanilla's own book recipe. The leather in a book is the *cover*, and
+        // cloth-bound hardbacks are entirely ordinary — so canvas reads right there. Combined with
+        // the hemp paper above it makes the book hemp all the way through, which is a better joke
+        // than it is a stretch: the Gutenberg Bible was printed on hemp paper in 1456, hemp supplied
+        // over 70% of paper before 1883, and it is still what bible paper and cigarette paper are.
+        //
+        // This is the canvas recipe with real reach, and it was a deliberate call rather than a
+        // freebie — see CLAUDE.md. Books gate enchanting through bookshelves, so this takes cows off
+        // the critical path for an enchanting setup and cascades to lecterns and chiseled bookshelves.
+        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, Items.BOOK)
+                .input(Items.PAPER)
+                .input(Items.PAPER)
+                .input(Items.PAPER)
+                .input(ModItems.HEMP_CANVAS)
+                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
+                .offerTo(exporter, id("book"));
+
         ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.FLOWER_POT)
                 .pattern("# #")
                 .pattern(" # ")
