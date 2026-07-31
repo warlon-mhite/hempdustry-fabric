@@ -33,6 +33,14 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ItemTags.PARROT_FOOD)
                 .addTag(ModTags.Items.HEMP_SEEDS);
 
+        // Vanilla's chicken food is literally *every seed in the game* — wheat, melon, pumpkin,
+        // beetroot, torchflower and pitcher pod — so hemp seeds being absent read as an oversight
+        // rather than a decision, especially with parrots already fed above. Hemp seed is also the
+        // classic European bird feed: chènevis is what's in a caged-bird mix, and it is standard
+        // coarse-fishing bait for the same reason birds and fish both go for it.
+        getOrCreateTagBuilder(ItemTags.CHICKEN_FOOD)
+                .addTag(ModTags.Items.HEMP_SEEDS);
+
         // Goats browse. Vanilla's goat food is wheat and nothing else, and a fan leaf is exactly the
         // kind of thing a real goat would strip off a plant — they eat leaves and shrubs rather than
         // grazing grass, which is the one genuine difference between them and vanilla's sheep and
