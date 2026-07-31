@@ -48,6 +48,8 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_FIBER, 0.3f);
+		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_CANVAS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMPCRETE, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_LEAF, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_STEM, 0.5f);

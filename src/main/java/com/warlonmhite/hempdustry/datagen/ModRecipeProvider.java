@@ -60,6 +60,27 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
                 .offerTo(exporter, id("hemp_fiber"));
 
+        // Fibre -> canvas, woven the same 2x2 way vanilla weaves string into wool, and costing the
+        // same, because they are both just cloth. What canvas buys over wool is standing in for
+        // leather.
+        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_CANVAS)
+                .pattern("##")
+                .pattern("##")
+                .input('#', ModItems.HEMP_FIBER)
+                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
+                .offerTo(exporter, id("hemp_canvas"));
+
+        // Vanilla's item frame, with the leather swapped for canvas — same eight sticks, same
+        // pattern. A second route rather than a replacement: the cow one still works.
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.ITEM_FRAME)
+                .pattern("###")
+                .pattern("#X#")
+                .pattern("###")
+                .input('#', Items.STICK)
+                .input('X', ModItems.HEMP_CANVAS)
+                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
+                .offerTo(exporter, id("item_frame"));
+
         ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMPCRETE, 2)
                 .pattern("##")
                 .pattern("##")

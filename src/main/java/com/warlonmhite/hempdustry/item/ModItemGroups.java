@@ -29,6 +29,7 @@ public class ModItemGroups {
 
                         entries.add(ModItems.HEMP_FLOUR);
                         entries.add(ModItems.HEMP_FIBER);
+                        entries.add(ModItems.HEMP_CANVAS);
                         entries.add(ModItems.HEMPCRETE);
                         entries.add(ModItems.HEMP_BRICK);
                         entries.add(ModItems.CANNABUTTER);

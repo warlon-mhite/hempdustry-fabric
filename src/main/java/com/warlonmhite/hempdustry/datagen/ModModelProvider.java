@@ -53,6 +53,7 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.CANNABUTTER, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_BRICK, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_FIBER, Models.GENERATED);
+        itemModelGenerator.register(ModItems.HEMP_CANVAS, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_FLOUR, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_STEM, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_LEAF, Models.GENERATED);

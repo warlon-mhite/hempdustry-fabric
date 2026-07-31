@@ -1,0 +1,47 @@
+# PLACEHOLDER art for hemp_canvas. Warlon Mhite intends to redraw this.
+#
+# A folded bolt of cloth rather than a flat swatch: vanilla's cloth-ish items (leather, paper,
+# phantom membrane) all read as a *thing with edges*, and a flat square of noise at 16x16 reads as a
+# missing texture rather than as fabric. Both ends taper so the silhouette is not a rectangle —
+# the texture linter flags near-perfect rectangles as placeholder-looking, and it is right to.
+#
+# The weave is faked with a two-tone checker whose tones sit close together, so it reads as texture
+# rather than as stripes, with a bright lit fold at the top and a deep shadow pooling at the bottom
+# to carry the contrast vanilla items average.
+
+@palette canvas
+. = none
+# outline, a desaturated brown-green so it reads as undyed hemp and not as leather. Two tones,
+# because the linter checks the *outline itself* for lighting direction: O is the lit upper-left
+# edge, o the shaded lower-right one.
+O = 5A5638
+o = 262417
+# the two weave tones
+a = 9B9464
+b = 8D8659
+# lit top fold and the lit left edge — items are lit from the top left, so the highlight lives on
+# the top and left and the shadow on the bottom and right. Getting this backwards is the single
+# thing the texture linter catches most often, and it makes an item look inside-out at a glance.
+h = D6CB90
+# shadow where the bolt tapers away underneath
+s = 4A472F
+# the shaded right edge
+r = 5D5940
+
+@texture item/hemp_canvas 16x16 type=item palette=canvas
+................
+....OOOOOOOO....
+..OOhhhhhhhhoo..
+.Ohhhhhhhhhhhro.
+.Ohabababababro.
+.Ohbababababaro.
+.Ohabababababro.
+.Ohbababababaro.
+.Ohabababababro.
+.Ohbababababaro.
+.Ohabababababro.
+.Ohbababababaro.
+.Osssssssssssso.
+..osssssssssso..
+...oossssssoo...
+................

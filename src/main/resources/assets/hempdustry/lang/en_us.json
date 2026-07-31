@@ -13,13 +13,12 @@
   "hempdustry.quality.standard": "Standard",
   "hempdustry.quality.clean": "Clean",
   "hempdustry.quality.perfect": "Perfect",
-
   "item.hempdustry.hemp_flour": "Hemp Flour",
   "item.hempdustry.hemp_fiber": "Hemp Fiber",
+  "item.hempdustry.hemp_canvas": "Hemp Canvas",
   "item.hempdustry.hempcrete": "Hempcrete",
   "item.hempdustry.hemp_brick": "Hemp Brick",
   "item.hempdustry.cannabutter": "Cannabutter",
-
   "item.hempdustry.indica_spliff": "Purple Kush Spliff",
   "item.hempdustry.sativa_spliff": "Lemon Haze Spliff",
   "item.hempdustry.wooden_pipe": "Wooden Pipe",
@@ -28,19 +27,16 @@
   "item.hempdustry.bong_indica": "Purple Kush Bong",
   "item.hempdustry.wooden_pipe_sativa": "Lemon Haze Pipe",
   "item.hempdustry.bong_sativa": "Lemon Haze Bong",
-
   "item.hempdustry.hemp_beannie": "Hemp Beannie",
   "item.hempdustry.hemp_shirt": "Hemp Shirt",
   "item.hempdustry.hemp_harem_pants": "Hemp Harem Pants",
   "item.hempdustry.flip_flops": "Flip Flops",
-
   "block.hempdustry.hemp_bricks_block": "Block of Hemp Bricks",
   "block.hempdustry.hemp_bricks_slab": "Hemp Bricks Slab",
   "block.hempdustry.hemp_bricks_stairs": "Hemp Bricks Stairs",
   "block.hempdustry.hemp_bricks_wall": "Hemp Bricks Wall",
   "block.hempdustry.decarboxylator": "Decarboxylator",
   "block.hempdustry.infuser": "Infuser",
-
   "block.hempdustry.hemp_planks": "Block of Hemp Planks",
   "block.hempdustry.hemp_planks_slab": "Hemp Planks Slab",
   "block.hempdustry.hemp_planks_stairs": "Hemp Planks Stairs",
@@ -58,20 +54,15 @@
   "item.hempdustry.hemp_chest_boat": "Hemp Boat with Chest",
   "entity.hempdustry.hemp_boat": "Hemp Boat",
   "entity.hempdustry.hemp_chest_boat": "Hemp Boat with Chest",
-
   "block.hempdustry.hempcrete_powder_block": "Block of Hempcrete Powder",
   "block.hempdustry.hempcrete_block": "Block of Hempcrete",
   "block.hempdustry.hemp_bale": "Hemp Bale",
-
   "block.hempdustry.indica_flower": "Wild Purple Kush",
   "block.hempdustry.sativa_flower": "Wild Lemon Haze",
-
   "item.hempdustry.music_disc_ganja": "Music Disc",
   "jukebox_song.hempdustry.ganja": "Lulu - Ganja",
-
   "subtitles.hempdustry.smoking": "Inhale smoke and exhale it",
   "subtitles.hempdustry.coughing": "Coughs",
-
   "painting.hempdustry.b_rappaz.title": "Rappaz",
   "painting.hempdustry.b_rappaz.author": "Warlon Mhite",
   "painting.hempdustry.brownie_mary.title": "Brownie",
@@ -84,7 +75,6 @@
   "painting.hempdustry.rihanna.author": "Warlon Mhite",
   "painting.hempdustry.snoop.title": "Snoop",
   "painting.hempdustry.snoop.author": "Warlon Mhite",
-
   "advancements.hempdustry.hempdustry.title": "High Hopes",
   "advancements.hempdustry.hempdustry.description": "Plant a different kind of seed and see where it grows.",
   "advancements.hempdustry.indica_strain.title": "Purple Kush",
