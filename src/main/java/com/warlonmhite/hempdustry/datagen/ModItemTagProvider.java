@@ -53,6 +53,20 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ItemTags.GOAT_FOOD)
                 .add(ModItems.HEMP_LEAF);
 
+        // Cross-mod cordage. This was agreed as `#c:ropes` and is deliberately `#c:strings` instead:
+        // hemp fibre crafts 1:1 into vanilla string, which makes it string-tier, while `#c:ropes` by
+        // convention means an actual laid rope — the hangable, climbable kind Supplementaries and
+        // Farmer's Delight ship. Fibre is what rope is *made from*, not rope. Putting it in `#c:ropes`
+        // would hand every mod that expects a rope something four-to-a-stem cheap.
+        //
+        // `#c:ropes` is the right tag the day the mod has a real hemp_rope item, and it should have
+        // one — rope is the single most archetypal hemp product there is. See CLAUDE.md §5b.
+        //
+        // Nothing in vanilla reads `#c:strings`; the whole value here is other mods' recipes, which
+        // now take fibre directly and skip a 1:1 crafting step. No balance change, just less friction.
+        getOrCreateTagBuilder(ConventionalItemTags.STRINGS)
+                .add(ModItems.HEMP_FIBER);
+
         getOrCreateTagBuilder(ItemTags.TRIMMABLE_ARMOR)
             .add(ModItems.HEMP_BEANNIE)
             .add(ModItems.HEMP_SHIRT)
