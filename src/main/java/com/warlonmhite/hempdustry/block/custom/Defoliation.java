@@ -59,6 +59,22 @@ public final class Defoliation {
     }
 
     /**
+     * Stamps both trim flags to {@code false}. Every crop carrying them has to run its default
+     * state through this in its constructor.
+     *
+     * <p><b>This is not redundant.</b> A block's default state is {@code states.get(0)} — the first
+     * entry of the cartesian product of its properties, which takes each property's <i>first</i>
+     * value. {@code BooleanProperty}'s value set is built as {@code ImmutableSet.of(true, false)},
+     * so a boolean property left out of {@code setDefaultState} defaults to <b>true</b>, not false.
+     * Left unset, every hemp crop would be planted already fully trimmed: both windows spent, and
+     * the two-cut harvest payout handed over for free. This is why vanilla always spells out
+     * {@code .with(WATERLOGGED, false)} and friends rather than relying on the default.
+     */
+    public static BlockState untrimmed(BlockState state) {
+        return state.with(TRIMMED_EARLY, false).with(TRIMMED_LATE, false);
+    }
+
+    /**
      * Copies the trim flags from {@code from} onto {@code to}, when both states actually carry
      * them. States that don't (vanilla wheat, or one of our own upper segments) come back untouched,
      * which is what makes this safe to call from the bee mixin on any crop in the game.

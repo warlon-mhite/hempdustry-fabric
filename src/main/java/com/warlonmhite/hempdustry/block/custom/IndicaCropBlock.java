@@ -58,9 +58,11 @@ public class IndicaCropBlock extends CropBlock {
 
     public IndicaCropBlock(Settings settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState()
+        // Defoliation.untrimmed is load-bearing: a BooleanProperty left out of the default state
+        // resolves to *true*, which would plant every seed pre-trimmed. See its javadoc.
+        this.setDefaultState(Defoliation.untrimmed(this.stateManager.getDefaultState()
                 .with(this.getAgeProperty(), 0)
-                .with(HALF, DoubleBlockHalf.LOWER));
+                .with(HALF, DoubleBlockHalf.LOWER)));
     }
 
     private static boolean isLower(BlockState state) {
@@ -108,9 +110,36 @@ public class IndicaCropBlock extends CropBlock {
         return isLower(state);
     }
 
+    /**
+     * Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
+     * allows. Without the {@link #maxAgeFor} half of this test, bonemeal would happily push a plant
+     * that is boxed in all the way to maturity as a lone stalk: {@code applyGrowth} writes the
+     * lower half's age whether or not the upper half can be placed, and unlike the random tick it
+     * has no light check to incidentally stop it.
+     */
     @Override
     public boolean isFertilizable(WorldView world, BlockPos pos, BlockState state) {
-        return isLower(state) && !this.isMature(state);
+        return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+    }
+
+    /**
+     * The highest age this plant may grow to at {@code pos} given what is above it. A plant needs
+     * the block above free from {@link #DOUBLE_BLOCK_AGE} onwards, so one that is boxed in stops
+     * one stage short of that and waits.
+     *
+     * <p>Holding the <em>age</em> back is what keeps the plant honest, rather than letting the age
+     * run ahead and reconciling the shape afterwards: age is what the loot table and the models
+     * read, so an age-7 lone stalk would look and harvest like a finished plant that had never
+     * needed the second block at all.
+     */
+    private int maxAgeFor(WorldView world, BlockPos pos) {
+        return canOccupy(world, pos.up()) ? this.getMaxAge() : DOUBLE_BLOCK_AGE - 1;
+    }
+
+    /** Whether the plant may grow into {@code pos} — empty space, or a half it already owns. */
+    private boolean canOccupy(WorldView world, BlockPos pos) {
+        BlockState state = world.getBlockState(pos);
+        return state.isAir() || (state.isOf(this) && !isLower(state));
     }
 
     /**
@@ -193,18 +222,27 @@ public class IndicaCropBlock extends CropBlock {
     }
 
     /**
-     * Sets the lower half to {@code newAge} (clamped) and keeps the upper half in
-     * sync: it mirrors the age when present, and is sprouted once the plant reaches
-     * {@link #DOUBLE_BLOCK_AGE} and there is room above. If the space above is
-     * occupied the plant simply stays single until it grows again with room free.
+     * Sets the lower half to {@code newAge} and keeps the upper half in sync: it mirrors the age
+     * when present, and is sprouted once the plant reaches {@link #DOUBLE_BLOCK_AGE} and there is
+     * room above.
+     *
+     * <p>{@code newAge} is clamped to {@link #maxAgeFor}, so a plant with something sitting on its
+     * head stalls one stage short of needing that block rather than ageing on as a lone stalk. It
+     * resumes by itself once the space is cleared, because randomTick calls this on every tick.
+     *
+     * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
+     * player later builds over keeps its age and its harvest instead of silently reverting.
      */
     private void setAge(World world, BlockPos pos, int newAge) {
+        BlockState current = world.getBlockState(pos);
+        int currentAge = current.isOf(this) && isLower(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
+        newAge = Math.min(newAge, Math.max(currentAge, this.maxAgeFor(world, pos)));
+
         // stateFor rebuilds from getDefaultState(), so the lower half's trim flags have to be
         // carried across explicitly or every growth step would quietly wipe them — and randomTick
         // calls this on every tick, not only when the plant actually ages.
-        BlockState lower = Defoliation.carryOver(world.getBlockState(pos),
-                this.stateFor(newAge, DoubleBlockHalf.LOWER));
+        BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, DoubleBlockHalf.LOWER));
         world.setBlockState(pos, lower, Block.NOTIFY_LISTENERS);
 
         BlockPos upPos = pos.up();
