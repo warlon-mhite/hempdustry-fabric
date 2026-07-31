@@ -39,6 +39,9 @@ import java.util.Set;
  * Tall plants drop loot exactly once per break (see {@code TallPlantBlock#onBreak}), so the grass
  * pool isn't double-rolled.
  *
+ * <p>Hemp fibre in shipwreck supply chests, as cordage rather than as an on-ramp — see
+ * {@link #SHIPWRECK_FIBER_CHANCE}.
+ *
  * <p>And the Ganja disc in the two chests vanilla stocks its common discs in. Its creeper drop is
  * <em>not</em> here — that comes free from joining {@code #minecraft:creeper_drop_music_discs}
  * (see {@code ModItemTagProvider}), which the vanilla creeper table already rolls.
@@ -57,6 +60,15 @@ public class ModLootTableModifiers {
      * from a loot-table event, so this is a separate roll deliberately pitched a little rarer.
      */
     private static final float CHEST_DISC_CHANCE = 0.12f;
+
+    /**
+     * Chance a shipwreck's supply chest holds a coil of hemp fibre. Deliberately generous — this is
+     * ship's stores, not treasure. Hemp <em>is</em> the historical naval fibre: the Corderie Royale
+     * at Rochefort was built in 1666 under Louis XIV purely to make the navy's cordage, its rope-walk
+     * turning out 200 m lengths over 20 cm thick, and the word "canvas" comes from "cannabis". A
+     * wrecked ship with no rope aboard is the odd thing, not one with some.
+     */
+    private static final float SHIPWRECK_FIBER_CHANCE = 0.45f;
 
     /** Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass. */
     private static final LootCondition.Builder WITHOUT_SHEARS =
@@ -77,6 +89,13 @@ public class ModLootTableModifiers {
     private static final Set<RegistryKey<LootTable>> DISC_CHEST_SOURCES = Set.of(
             LootTables.SIMPLE_DUNGEON_CHEST,
             LootTables.WOODLAND_MANSION_CHEST);
+
+    /**
+     * Supply chests only — cordage is stores and rigging, not valuables, so it has no business in a
+     * shipwreck's treasure chest and nothing to do with the map chest.
+     */
+    private static final Set<RegistryKey<LootTable>> FIBER_CHEST_SOURCES = Set.of(
+            LootTables.SHIPWRECK_SUPPLY_CHEST);
 
     public static void modifyLootTables() {
         LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> {
@@ -108,6 +127,16 @@ public class ModLootTableModifiers {
                             .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))));
                 }
                 tableBuilder.pool(pool);
+            }
+
+            // Independent of the seed branch above — a shipwreck's supply chest is also a seed chest,
+            // and a wreck holding both rope and a few seeds is exactly what a wreck should hold.
+            if (FIBER_CHEST_SOURCES.contains(key)) {
+                tableBuilder.pool(LootPool.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .conditionally(RandomChanceLootCondition.builder(SHIPWRECK_FIBER_CHANCE))
+                        .with(ItemEntry.builder(ModItems.HEMP_FIBER)
+                                .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 4)))));
             }
 
             // Independent of the seed branch above — the two disc chests are also seed chests.
