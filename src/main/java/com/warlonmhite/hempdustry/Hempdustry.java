@@ -53,6 +53,13 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_STEM, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_BUDS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_BUDS, 0.5f);
+		// The two cannabutter-chain intermediates. Composting them is a ridiculous use of a fuelled
+		// oven, which is exactly why it should be allowed: everything else organic in the mod goes in
+		// the composter, and a lone pair of items that bounce off it reads as an oversight. They sit
+		// at the same 0.5 as the buds and leaf they are made from — dried plant matter, like vanilla's
+		// dried kelp block.
+		CompostingChanceRegistry.INSTANCE.add(ModItems.DECARBOXYLATED_HEMP, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.WASHED_DECARBOXYLATED_HEMP, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BEANNIE, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 0.5f);
