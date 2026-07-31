@@ -33,6 +33,18 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ItemTags.PARROT_FOOD)
                 .addTag(ModTags.Items.HEMP_SEEDS);
 
+        // Goats browse. Vanilla's goat food is wheat and nothing else, and a fan leaf is exactly the
+        // kind of thing a real goat would strip off a plant — they eat leaves and shrubs rather than
+        // grazing grass, which is the one genuine difference between them and vanilla's sheep and
+        // cows. Deliberately goats *only*: making hemp leaf feed every farm animal would just be a
+        // worse wheat, where one animal that eats it is a fact worth knowing.
+        //
+        // Joining the tag is the whole feature — GoatEntity#isBreedingItem reads it, and the tempt
+        // goal is built from that same check, so breeding, leading a goat around and speeding up a
+        // kid all come for free. These per-animal food tags are Mojang's own extension point.
+        getOrCreateTagBuilder(ItemTags.GOAT_FOOD)
+                .add(ModItems.HEMP_LEAF);
+
         getOrCreateTagBuilder(ItemTags.TRIMMABLE_ARMOR)
             .add(ModItems.HEMP_BEANNIE)
             .add(ModItems.HEMP_SHIRT)
