@@ -5,7 +5,12 @@
 # bottom face. Hempcrete is a very low-contrast sandy noise, which is correct for a block —
 # vanilla blocks average about half the luminance range of items.
 
-@palette cold
+# The three palettes below differ ONLY in the three brew colours l/k/m. That is deliberate: all
+# three tops render from the same matrix, so the cauldron and its rim can never drift between the
+# empty, filled and simmering states — only what is (or isn't) sitting in the tub changes.
+
+# Nothing in the tub: the bare inside of the cauldron.
+@palette empty
 . = none
 1 = 9C8E58
 2 = 9D8F59
@@ -15,12 +20,30 @@
 # cauldron ironwork
 i = 43423A
 j = 5A584D
+# bare interior, in the ironwork's own range so it reads as "you are looking at the pot itself"
+l = 3A3A34
+k = 2E2E29
+m = 46463E
+
+# Milk is in, nothing happening yet.
+@palette filled
+. = none
+1 = 9C8E58
+2 = 9D8F59
+3 = 9E9059
+4 = 9E905A
+5 = 9F915B
+i = 43423A
+j = 5A584D
 # the brew, cold and dull: milk that hasn't been touched yet
 l = 8E8B7A
 k = 6E6B5C
 m = A8A492
 
-@palette hot
+# A batch actually simmering. Rendered, but NOT wired into the blockstate today — the block has two
+# model states (empty / filled), per the design call that the texture tracks milk and not heat. Kept
+# here so promoting `infusing` to a third variant later is a one-line blockstate edit, not new art.
+@palette simmering
 . = none
 1 = 9C8E58
 2 = 9D8F59
@@ -35,10 +58,10 @@ k = 8C6E2B
 m = D8BC6A
 
 # ---- the top face ----
-# Hempcrete corners, a cauldron rim, and the liquid surface inside it. Drawn once and rendered
-# twice: the cold and hot tops are pixel-identical except for the three brew colours, which is the
-# whole point of sharing the matrix — the surface can't drift between the two states.
-@matrix infuser_surface 16x16 palette=cold
+# Hempcrete corners, a cauldron rim, and whatever is inside it. Drawn once and rendered three times
+# through the three palettes above — the tops are pixel-identical except for the three brew colours,
+# which is the whole point of sharing the matrix.
+@matrix infuser_surface 16x16 palette=empty
 4243342332423323
 2331454423422222
 42iiiiiiiiiiii44
@@ -56,13 +79,14 @@ m = D8BC6A
 3254533444422243
 4233513233345344
 
-@texture block/infuser_top from=infuser_surface palette=cold type=block
-@texture block/infuser_top_heated from=infuser_surface palette=hot type=block
+@texture block/infuser_top from=infuser_surface palette=empty type=block
+@texture block/infuser_top_filled from=infuser_surface palette=filled type=block
+@texture block/infuser_top_simmering from=infuser_surface palette=simmering type=block
 
 # ---- the side face ----
 # A band of cauldron ironwork over a hempcrete body, so the block reads as a tub rather than a
 # plain cube from any angle. Bottom face is plain hempcrete_block, reused by the model.
-@texture block/infuser_side 16x16 type=block palette=cold
+@texture block/infuser_side 16x16 type=block palette=empty
 iiiiiiiiiiiiiiii
 ijjiijjiijjiijji
 iiiiiiiiiiiiiiii
@@ -76,6 +100,49 @@ iiiiiiiiiiiiiiii
 3242224314414222
 2421223422423324
 3252243224224441
+3345434252322222
+3242242352233323
+3254533444422243
+
+# ---- the front face: the same tub, with a spout ----
+# The spout is not decoration. The Infuser cannot be drained by a hopper underneath -- that block is
+# where its heat comes from -- so it pushes a finished batch out of this face instead. Nothing else
+# in the game would tell a player that, so the block has to. It is deliberately the ONLY thing that
+# differs from infuser_side: same ironwork band, same hempcrete body, one obvious protrusion.
+#
+# Sits low on the face (rows 9-12) so it reads as draining the tub rather than pouring off the rim,
+# and it breaks the block's silhouette against the flat side faces from any angle.
+@palette spout
+. = none
+1 = 9C8E58
+2 = 9D8F59
+3 = 9E9059
+4 = 9E905A
+5 = 9F915B
+i = 43423A
+j = 5A584D
+# the spout itself: the ironwork's own metal, one step lighter on top and darker underneath so it
+# reads as a round pipe rather than a flat rectangle
+s = 6B6959
+t = 837F6C
+u = 32312B
+# a bead of butter at the lip, the one warm pixel on the whole block
+b = C8A64A
+
+@texture block/infuser_front 16x16 type=block palette=spout
+iiiiiiiiiiiiiiii
+ijjiijjiijjiijji
+iiiiiiiiiiiiiiii
+4222433221233244
+5422244333225124
+2225232425323434
+3444442144344325
+3334524221424332
+53254tttttt44422
+32234ssssss41234
+32422ssssss14222
+24212uuuuuu23324
+3252243bb4224441
 3345434252322222
 3242242352233323
 3254533444422243

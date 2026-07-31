@@ -12,9 +12,12 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.HopperBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -27,6 +30,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -41,29 +45,66 @@ import org.jetbrains.annotations.Nullable;
  * powered rails, note blocks, farmland hydration — so this is a familiar idiom, and it means the
  * machine has a real footprint in the world instead of being a box you feed coal into.
  *
- * <p><b>The output slot is a preview.</b> From {@link #MIN_TIME} it shows the cannabutter you would
- * get if you pulled right now; nothing is consumed until you actually take it. That is what lets the
- * doc's two promises hold at once — a batch can be rushed early for a worse grade, and hemp added
- * mid-simmer still counts, because the tally is read at the moment of collection rather than banked
- * when the timer starts. Take it early and you get {@link Quality#ROUGH}; wait for
- * {@link #FULL_TIME} and the preview upgrades itself in place.
+ * <p><b>Ingredients are consumed as they enter the batch, not when the result is collected.</b> The
+ * batch — {@link #haveMilk}, {@link #batchUnwashed}, {@link #batchWashed} — is bookkeeping on this
+ * block entity rather than items sitting in slots. Two different rhythms:
+ * <ul>
+ *   <li><b>Milk goes in on contact, and only ever one at a time.</b> A bucket put in the slot is
+ *       emptied into the tub that tick and its empty returned to {@link #BUCKET_SLOT} — but only if
+ *       the tub is empty. <b>One milk buys one cannabutter:</b> the tub stays full for the whole
+ *       batch and takes the next bucket only once the result has been collected. A second bucket
+ *       parked in the milk slot meanwhile just <em>waits</em>, visibly, and is drawn in on the tick
+ *       after collection. That is what the bucket-return slot is really for — without it the empty
+ *       would sit in the milk slot and there would be nowhere to park the next one.</li>
+ *   <li><b>Hemp dissolves gradually</b>, one item per {@link #ABSORB_INTERVAL}, and only until
+ *       {@link #MIN_TIME}. That is what locks a batch: past the loading window the absorber has had
+ *       all its turns, so nothing more goes in however much room is left.</li>
+ * </ul>
  *
- * <p>Hoppers deliberately cannot pull the preview before {@link #FULL_TIME}, so automation is always
- * the patient path and never quietly produces the worst grade behind your back.
+ * <p>Draining the hemp by {@code MIN_TIME} rather than over the whole simmer is load-bearing, not a
+ * detail. <b>Strength is the whole batch, so the whole batch has to be paid for by the time the
+ * result can first be taken.</b> Spread it over {@link #FULL_TIME} instead and an early pull leaves
+ * a third-consumed batch, which can only be resolved by refunding the rest (full Strength for a
+ * third of the hemp — an exploit), destroying it (the slots visibly empty for nothing), or scaling
+ * Strength down (which makes rushing strictly dominated, and deletes it as a real choice).
+ *
+ * <p>What survives intact is both of the original promises. <b>Topping up still works</b> — hemp
+ * added during the window is absorbed on the next interval — though late hemp genuinely cannot catch
+ * up, which is the point. And <b>rushing still works</b>, because what the timer gates is the grade,
+ * not the ingredients: from {@link #MIN_TIME} the output slot previews what this batch would yield
+ * right now — {@link Quality#ROUGH} for a poorly prepped batch, but already {@link Quality#STANDARD}
+ * if every item was washed — and it upgrades in place as the grading score climbs.
+ * Taking it ends the batch and starts the next.
+ *
+ * <p><b>Output automation is a spout, not a hopper below.</b> A hopper pulls from the inventory above
+ * it through that inventory's <em>down</em> face, which is the block this machine reads its heat
+ * from — so the two can never coexist and the tub pushes instead. See {@link #pushOutput}. A batch is
+ * pushed once it has earned the best grade it can ({@link #isAtBestQuality}), which is <em>not</em>
+ * the same as a full simmer: only an all-washed batch actually needs the full timer, because Perfect
+ * is the one grade gated on it. Automation is therefore always the patient path — it never hands
+ * over a grade worse than waiting would have produced — without wasting time it cannot spend.
+ *
+ * <p><b>The two hemp slots are interchangeable</b> — either accepts washed or unwashed. They are two
+ * slots so that a batch can <em>mix</em> the two, which is what makes {@link Quality#CLEAN} reachable
+ * at all; dedicating one slot per type would have meant a batch could never be half-and-half without
+ * the player micromanaging which slot held what.
  */
 public class InfuserBlockEntity extends BlockEntity
         implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
 
     public static final int MILK_SLOT = 0;
-    public static final int HEMP_SLOT = 1;
-    public static final int WASHED_SLOT = 2;
+    /** The two interchangeable hemp slots are contiguous from here. */
+    public static final int FIRST_HEMP_SLOT = 1;
+    public static final int HEMP_SLOT_COUNT = 2;
     public static final int OUTPUT_SLOT = 3;
-    public static final int SLOT_COUNT = 4;
+    /** Where emptied buckets are returned. Take-only; nothing may be inserted here. */
+    public static final int BUCKET_SLOT = 4;
+    public static final int SLOT_COUNT = 5;
 
     /**
-     * Earliest a batch can be taken at all, at {@link Quality#ROUGH}. Six in-game hours — the mod
-     * reuses Minecraft's own hour (1000 ticks) rather than inventing a ratio, so "cannabutter takes
-     * hours" translates literally.
+     * Earliest a batch can be taken at all, and the zero point of {@link Quality}'s time dial. Six
+     * in-game hours — the mod reuses Minecraft's own hour (1000 ticks) rather than inventing a
+     * ratio, so "cannabutter takes hours" translates literally.
      */
     public static final int MIN_TIME = 6000;
     /**
@@ -72,17 +113,50 @@ public class InfuserBlockEntity extends BlockEntity
      */
     public static final int FULL_TIME = 18000;
 
-    /** Hemp items one batch will draw on. Extra beyond this simply stays in the slots. */
+    /**
+     * Most hemp one batch can hold. <b>Derived, not chosen:</b> it is exactly how many
+     * {@link #ABSORB_INTERVAL}s fit in {@link #MIN_TIME}, so the cap is a consequence of the
+     * dissolve rate rather than an independent number that has to be justified on its own.
+     */
     public static final int BATCH_CAP = 24;
+
+    /**
+     * Ticks between one hemp dissolving into the batch and the next — {@code MIN_TIME / BATCH_CAP},
+     * about 12.5 real seconds. Absorption runs only while the batch is simmering and stops dead at
+     * {@link #MIN_TIME}, which is what makes the batch lock itself: after that the absorber has had
+     * all the turns it is going to get, so nothing more can go in whatever room is left.
+     *
+     * <p><b>Exactly one per interval, never catching up.</b> Backfilling from
+     * {@code progress / ABSORB_INTERVAL} would let hemp dropped in at tick 5999 be absorbed 23 at a
+     * time, which throws away the point: reaching a full-strength batch should require the hemp to
+     * have been <em>present</em> for the whole loading window. Load halfway through and you can only
+     * reach 12.
+     */
+    public static final int ABSORB_INTERVAL = MIN_TIME / BATCH_CAP;
+
+    /** Ticks between attempts to pour a finished batch out of the spout. A hopper's own cadence. */
+    public static final int PUSH_COOLDOWN = 8;
 
     public static final int PROPERTY_PROGRESS = 0;
     public static final int PROPERTY_HEATED = 1;
-    public static final int PROPERTY_COUNT = 2;
+    /** Washed share of the batch, 0–100, or -1 when there is no batch to grade. */
+    public static final int PROPERTY_WASHED_PERCENT = 2;
+    public static final int PROPERTY_COUNT = 3;
 
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(SLOT_COUNT, ItemStack.EMPTY);
 
     private int progress;
+    /** Whether something hot is underneath. Reported to the GUI's flame; not a blockstate on its own. */
     private boolean heated;
+    /**
+     * Whether there is milk in the tub. <b>One milk, one cannabutter</b> — this is a flag rather
+     * than a counter on purpose: the tub takes a bucket only when it is empty, and stays full until
+     * the batch is collected. Set by {@link #intakeMilk}, cleared by {@link #onPreviewTaken}.
+     */
+    private boolean haveMilk;
+    /** Hemp already drawn into the running batch, by type. Together capped at {@link #BATCH_CAP}. */
+    private int batchUnwashed;
+    private int batchWashed;
     /**
      * Last value a comparator would have read. Progress changes every tick but its 0–15 projection
      * only changes about fifteen times a batch, so comparators are only poked when the number they
@@ -90,6 +164,8 @@ public class InfuserBlockEntity extends BlockEntity
      * updates a second.
      */
     private int lastComparatorLevel;
+    /** Throttles {@link #pushOutput}. Not persisted — an 8-tick timer is not worth a save field. */
+    private int pushCooldown;
 
     private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
         @Override
@@ -97,6 +173,9 @@ public class InfuserBlockEntity extends BlockEntity
             return switch (index) {
                 case PROPERTY_PROGRESS -> progress;
                 case PROPERTY_HEATED -> heated ? 1 : 0;
+                // Synced so the screen can work out when this batch's grade will next improve,
+                // which under the score-based grading depends on the ratio and not just the clock.
+                case PROPERTY_WASHED_PERCENT -> washedPercent();
                 default -> 0;
             };
         }
@@ -135,6 +214,11 @@ public class InfuserBlockEntity extends BlockEntity
         return stack.isOf(ModItems.WASHED_DECARBOXYLATED_HEMP);
     }
 
+    /** Either kind of decarboxylated hemp — both hemp slots accept both. */
+    public static boolean isHemp(ItemStack stack) {
+        return isUnwashedHemp(stack) || isWashedHemp(stack);
+    }
+
     /**
      * Whether the block underneath is currently providing heat. Anything in
      * {@link ModTags.Blocks#HEAT_SOURCES} counts, and where that block carries a {@code LIT}
@@ -151,31 +235,43 @@ public class InfuserBlockEntity extends BlockEntity
     // ----- ticking -----
 
     public void tick(World world, BlockPos pos, BlockState state) {
-        boolean wasHeated = heated;
         heated = isHeatedFrom(world.getBlockState(pos.down()));
 
         boolean dirty = false;
 
-        if (heated && hasIngredients()) {
-            if (progress < FULL_TIME) {
-                progress++;
-                dirty = true;
-            }
-        } else if (!hasIngredients() && progress != 0) {
-            // Losing the milk or all the hemp abandons the batch outright; losing only the heat
-            // leaves progress where it was, so a campfire going out is a pause and not a disaster.
-            progress = 0;
+        // Milk is emptied into the tub the moment it is put in, heat or no heat, and its bucket is
+        // returned straight away — so the milk slot is free for the player to park the *next*
+        // bucket while this batch runs.
+        if (intakeMilk()) {
             dirty = true;
         }
 
-        // The preview is rebuilt every tick rather than only at the thresholds, so adding hemp
+        if (canSimmer()) {
+            // Losing the heat leaves progress where it is, so a campfire going out is a pause and
+            // not a disaster. A batch that has run out of hemp entirely pauses the same way, and
+            // resumes if more arrives before MIN_TIME.
+            progress++;
+            // Exactly one hemp per interval, and only during the loading window. See ABSORB_INTERVAL.
+            if (progress <= MIN_TIME && progress % ABSORB_INTERVAL == 0) {
+                absorbOne();
+            }
+            dirty = true;
+        }
+
+        // The preview is rebuilt every tick rather than only at the thresholds, so hemp absorbed
         // mid-simmer is reflected immediately and the player can see the batch getting stronger.
         if (refreshPreview()) {
             dirty = true;
         }
 
-        if (wasHeated != heated) {
-            state = state.with(InfuserBlock.HEATED, heated);
+        if (pushOutput(world, pos, state)) {
+            dirty = true;
+        }
+
+        BlockState wanted = state.with(InfuserBlock.FILLED, isFilled())
+                .with(InfuserBlock.INFUSING, isInfusing());
+        if (wanted != state) {
+            state = wanted;
             world.setBlockState(pos, state, Block.NOTIFY_ALL);
             dirty = true;
         }
@@ -192,59 +288,257 @@ public class InfuserBlockEntity extends BlockEntity
         }
     }
 
-    private boolean hasIngredients() {
-        return isMilk(getStack(MILK_SLOT)) && totalHemp() > 0;
+    /**
+     * Empties a milk bucket into the tub the instant it is put in the slot and returns the empty
+     * bucket to {@link #BUCKET_SLOT}. Deliberately independent of heat and of hemp: a bucket in the
+     * slot is milk in the tub, which is what makes {@link #isFilled()} honest.
+     *
+     * <p><b>Only ever one at a time.</b> {@link #haveMilk} gates this, so a tub that already has milk
+     * ignores further buckets entirely — one milk buys one cannabutter, and the machine cannot
+     * silently swallow a stack of them. A second bucket parked in the slot simply <em>waits</em>,
+     * visibly, and is taken up on the tick after the batch is collected. That is a better queue than
+     * an invisible counter: what is pending is a real item you can see and take back.
+     *
+     * <p>{@link #hasBucketRoom()} is a second guard, for the case where the return slot has filled
+     * with 16 empties — without somewhere to put the bucket, the milk would be taken and the bucket
+     * destroyed.
+     */
+    private boolean intakeMilk() {
+        ItemStack milk = getStack(MILK_SLOT);
+        if (haveMilk || !isMilk(milk) || !hasBucketRoom()) {
+            return false;
+        }
+        milk.decrement(1);
+        ItemStack buckets = getStack(BUCKET_SLOT);
+        if (buckets.isEmpty()) {
+            // Vanilla's recipe-remainder mechanism only fires for real crafting recipes, never for a
+            // block entity, so the bucket has to be handed back by hand.
+            setStack(BUCKET_SLOT, new ItemStack(Items.BUCKET));
+        } else {
+            buckets.increment(1);
+        }
+        haveMilk = true;
+        return true;
     }
 
-    /** Hemp the batch will actually draw on, both slots together, capped. */
-    private int totalHemp() {
-        return Math.min(BATCH_CAP, unwashedInBatch() + washedInBatch());
-    }
-
-    private int unwashedInBatch() {
-        ItemStack stack = getStack(HEMP_SLOT);
-        return isUnwashedHemp(stack) ? stack.getCount() : 0;
-    }
-
-    private int washedInBatch() {
-        ItemStack stack = getStack(WASHED_SLOT);
-        return isWashedHemp(stack) ? stack.getCount() : 0;
+    private boolean hasBucketRoom() {
+        ItemStack buckets = getStack(BUCKET_SLOT);
+        return buckets.isEmpty() || (buckets.isOf(Items.BUCKET) && buckets.getCount() < buckets.getMaxCount());
     }
 
     /**
-     * Splits the capped batch across the two hemp types, spending unwashed first so a mixed batch
-     * keeps as much of its washed hemp as possible in the tally — which is what decides whether the
-     * grade can reach {@link Quality#CLEAN} or {@link Quality#PERFECT}.
+     * Whether a batch can make progress this tick: hot, with milk in the tub, and with hemp to work
+     * on — either already dissolved in or still in the slots.
+     *
+     * <p>The hemp clause is why a batch that has run out of hemp <em>pauses</em> rather than
+     * finishing empty: without it a tub emptied at tick 100 would ride the clock to
+     * {@link #MIN_TIME} with nothing in it, and the milk would be stranded on a batch that can never
+     * produce a preview. Pausing also stops the absorption clock, so the window can't be run down
+     * while there is nothing to put in it.
+     *
+     * <p><b>The {@link #isAtBestQuality} clause stops the clock the moment further simmering would
+     * achieve nothing</b>, which keeps three things honest at once: the tub stops bubbling when the
+     * batch is done rather than churning away at a finished result, the progress bar lands exactly on
+     * full instead of overshooting a scale it has already left behind, and {@code progress} never
+     * records time that meant anything. Safe from oscillating because the washed ratio is frozen
+     * after {@link #MIN_TIME}, so once true this can never go back to false within a batch.
      */
-    private int[] batchSplit() {
-        int unwashed = unwashedInBatch();
-        int washed = washedInBatch();
-        int total = unwashed + washed;
-        if (total <= BATCH_CAP) {
-            return new int[]{unwashed, washed};
-        }
-        int takeUnwashed = Math.min(unwashed, BATCH_CAP);
-        return new int[]{takeUnwashed, BATCH_CAP - takeUnwashed};
+    private boolean canSimmer() {
+        return heated
+                && haveMilk
+                && (batchHemp() > 0 || availableHemp() > 0)
+                && progress < FULL_TIME
+                && !isAtBestQuality();
     }
 
+    /** Dissolves a single hemp out of the slots into the batch. Unwashed first, so a mixed batch
+     * keeps as much washed hemp in the tally as it can — that is what decides whether the grade can
+     * reach {@link Quality#CLEAN} or {@link Quality#PERFECT}. */
+    private void absorbOne() {
+        if (batchHemp() >= BATCH_CAP) {
+            return;
+        }
+        for (int pass = 0; pass < 2; pass++) {
+            boolean wantWashed = pass == 1;
+            for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
+                ItemStack stack = getStack(FIRST_HEMP_SLOT + i);
+                if (wantWashed ? isWashedHemp(stack) : isUnwashedHemp(stack)) {
+                    stack.decrement(1);
+                    if (wantWashed) {
+                        batchWashed++;
+                    } else {
+                        batchUnwashed++;
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    /** Hemp sitting in the slots that the batch could still draw on. */
+    private int availableHemp() {
+        int total = 0;
+        for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
+            ItemStack stack = getStack(FIRST_HEMP_SLOT + i);
+            if (isHemp(stack)) {
+                total += stack.getCount();
+            }
+        }
+        return total;
+    }
+
+    /** Hemp already committed to the running batch. */
+    private int batchHemp() {
+        return batchUnwashed + batchWashed;
+    }
+
+    /**
+     * The purity dial: what share of the batch's hemp was washed, 0–100, or {@code -1} when there is
+     * no batch to grade. Integer-floored on purpose — {@link Quality} treats 100 as "not one
+     * unwashed item went in", so a single unwashed among a thousand has to read as 99.
+     */
+    public int washedPercent() {
+        int total = batchHemp();
+        return total == 0 ? -1 : batchWashed * 100 / total;
+    }
+
+    /**
+     * The patience dial: how far through the <em>collectable</em> window the batch is, 0–100.
+     * Measured from {@link #MIN_TIME} rather than from zero, because nothing before that can be
+     * graded at all — that is where the scale has to start for the score to mean anything.
+     */
+    public int timePercent() {
+        int span = FULL_TIME - MIN_TIME;
+        return MathHelper.clamp((progress - MIN_TIME) * 100 / span, 0, 100);
+    }
+
+    private boolean hasBatch() {
+        return haveMilk && batchHemp() > 0;
+    }
+
+    /**
+     * Whether the tub holds liquid. This drives {@link InfuserBlock#FILLED} and therefore the
+     * block's texture, and is deliberately independent of heat: what makes the tub look full is milk
+     * being in it, not something burning underneath. Since milk is emptied in on contact, it is true
+     * from the tick the bucket lands in the slot and false again the moment the batch is collected —
+     * so the texture is a direct readout of {@link #haveMilk} with nothing else mixed in.
+     */
+    public boolean isFilled() {
+        return haveMilk;
+    }
+
+    /**
+     * Whether a batch is actually simmering right now. Drives {@link InfuserBlock#INFUSING} and so
+     * the bubbling and steam — which must not play for a heated but empty tub, and stop once the
+     * batch is finished, so the ambience means "something is happening in here" and nothing else.
+     */
+    public boolean isInfusing() {
+        return canSimmer();
+    }
+
+    /** Whether there is anything in the output slot to look at yet. */
     public boolean isReady() {
         return progress >= MIN_TIME;
     }
 
-    public boolean isFullySimmered() {
-        return progress >= FULL_TIME;
+    /**
+     * The best grade this batch will ever reach — what it would earn at a full simmer.
+     *
+     * <p>This is knowable mid-simmer only because <b>the washed ratio is frozen after
+     * {@link #MIN_TIME}</b>: absorption stops there, so nothing can change {@code washedPercent}
+     * afterwards and the only dial still moving is time. If hemp could still be absorbed later this
+     * would be a guess, and everything built on it below would be wrong.
+     */
+    public Quality bestQuality() {
+        return Quality.of(100, washedPercent());
+    }
+
+    /**
+     * Whether the batch has already earned the best grade it can, so that further simmering is
+     * <b>time spent for nothing</b>.
+     *
+     * <p>Only an all-washed batch actually needs the full timer, because Perfect is the one grade
+     * gated on it. Everything else peaks earlier — a half-washed batch tops out at Standard at 67% of
+     * the cook, and a batch with a single unwashed item in it reaches Clean at 74% and will never
+     * improve. This is the mod's single definition of "done", shared by the spout, the comparator and
+     * the hopper guard, so those three can never disagree about it.
+     */
+    public boolean isAtBestQuality() {
+        return isReady() && hasBatch() && Quality.of(timePercent(), washedPercent()) == bestQuality();
     }
 
     /** The cannabutter this batch would yield right now, or empty if it isn't ready. */
     private ItemStack previewStack() {
-        if (!isReady() || !hasIngredients()) {
+        if (!isReady() || !hasBatch()) {
             return ItemStack.EMPTY;
         }
-        int[] split = batchSplit();
         ItemStack butter = new ItemStack(ModItems.CANNABUTTER);
-        butter.set(ModComponents.STRENGTH, split[0] + split[1]);
-        butter.set(ModComponents.QUALITY, Quality.of(isFullySimmered(), split[1], split[0]));
+        butter.set(ModComponents.STRENGTH, batchHemp());
+        butter.set(ModComponents.QUALITY, Quality.of(timePercent(), washedPercent()));
         return butter;
+    }
+
+    /**
+     * Pours a finished batch out of the spout into whatever inventory is against that face.
+     * Returns whether anything moved.
+     *
+     * <p><b>This exists because heat-from-below claimed the extraction face.</b> A hopper pulls from
+     * the inventory above it through that inventory's <em>down</em> face — the same block this
+     * machine reads its heat from. Campfire below, no hopper; hopper below, no heat. So the tub
+     * pushes instead of being pulled from, which is not how any vanilla processing block behaves;
+     * the visible spout on {@link InfuserBlock#FACING} is what stops that from being a rule nobody
+     * could guess.
+     *
+     * <p><b>Pushed once the batch is at its best grade</b> ({@link #isAtBestQuality}), not once the
+     * timer runs out. Those differ for every batch that is not all-washed: a half-washed one tops out
+     * at Standard at 67% of the cook and a batch with a single unwashed item reaches Clean at 74%,
+     * and simmering either of them longer changes nothing at all. Waiting anyway would have been pure
+     * dead time. Automation is still always the patient path — it never hands over a grade worse than
+     * waiting would have produced — it just does not wait for nothing.
+     *
+     * <p>Taking a batch <em>early</em>, at a grade below its best, is deliberately still not
+     * automatable: that trade is only meaningful once cannabutter <em>does</em> something, and it
+     * would need a GUI toggle to express. See the deferred-toggle note in CLAUDE.md §3.
+     *
+     * <p>Only the cannabutter goes out here. Emptied buckets stay in their slot on purpose: at one
+     * milk per batch the return slot holds sixteen batches' worth, which is hours of unattended
+     * running, and splitting two item types across one spout would just hand the player a sorting
+     * problem for no gain.
+     *
+     * <p>Pushing routes through {@link #removeStack}, so it closes the batch out exactly as a player
+     * or a hopper taking it would — the one place that guarantee lives.
+     */
+    private boolean pushOutput(World world, BlockPos pos, BlockState state) {
+        if (!isAtBestQuality() || getStack(OUTPUT_SLOT).isEmpty() || !state.contains(InfuserBlock.FACING)) {
+            return false;
+        }
+        // A finished batch with nothing to pour into would otherwise re-scan every tick, and
+        // getInventoryAt runs an entity query for inventory minecarts. Vanilla hoppers throttle the
+        // same work to 8 ticks; so does this.
+        if (pushCooldown > 0) {
+            pushCooldown--;
+            return false;
+        }
+        pushCooldown = PUSH_COOLDOWN;
+
+        Direction facing = state.get(InfuserBlock.FACING);
+        Inventory target = HopperBlockEntity.getInventoryAt(world, pos.offset(facing));
+        if (target == null) {
+            return false;
+        }
+        // transfer() only ever touches the destination and the stack handed to it — it never removes
+        // from the source — so this passes a copy and does the removal itself.
+        ItemStack pending = getStack(OUTPUT_SLOT).copy();
+        int before = pending.getCount();
+        // The receiving side is the face of the target that we are pouring into.
+        ItemStack leftover = HopperBlockEntity.transfer(this, target, pending, facing.getOpposite());
+        if (leftover.getCount() >= before) {
+            return false;
+        }
+        // The preview is always a single item, so anything moving means all of it moved. The count
+        // check above rather than isEmpty() keeps that from becoming a silent dupe if it ever isn't.
+        removeStack(OUTPUT_SLOT);
+        return true;
     }
 
     /** Keeps the output slot showing the current preview. Returns whether anything changed. */
@@ -259,25 +553,83 @@ public class InfuserBlockEntity extends BlockEntity
     }
 
     /**
-     * Commits the batch: called when the player actually takes the preview out of the output slot.
-     * Spends the hemp, turns the milk bucket into an empty one and starts the timer over.
+     * Closes the batch out: called when the player actually takes the preview from the output slot.
+     * The ingredients were already spent as they were absorbed, so all this does is clear the batch
+     * and start the timer over.
+     *
+     * <p>Clearing {@link #haveMilk} here is what makes the tub take milk again — the emptying of the
+     * tub and the taking of the cannabutter are the same event, which is the whole "one milk, one
+     * cannabutter" rule. If a bucket was parked in the milk slot it is drawn in on the very next
+     * tick and the next batch begins by itself.
      */
     public void onPreviewTaken() {
-        int[] split = batchSplit();
-        getStack(HEMP_SLOT).decrement(split[0]);
-        getStack(WASHED_SLOT).decrement(split[1]);
-
-        ItemStack milk = getStack(MILK_SLOT);
-        milk.decrement(1);
-        if (milk.isEmpty()) {
-            // Hand the bucket back, the way a brewing stand leaves you the glass bottle. Vanilla's
-            // recipe-remainder mechanism only fires for real crafting recipes, never for a block
-            // entity, so this has to be done by hand.
-            setStack(MILK_SLOT, new ItemStack(Items.BUCKET));
-        }
-
+        haveMilk = false;
+        batchUnwashed = 0;
+        batchWashed = 0;
         progress = 0;
         markDirty();
+    }
+
+    /**
+     * Any route out of the output slot closes the batch out — <b>including a hopper</b>, which is the
+     * whole reason this is overridden here rather than left to the screen handler's
+     * {@code PreviewSlot#onTakeItem}. A hopper pulls through {@code Inventory#removeStack} and never
+     * touches a {@code Slot}, so without this it would take the cannabutter, leave the batch running,
+     * and have a fresh preview handed to it on the next tick — an unlimited supply from one batch.
+     */
+    @Override
+    public ItemStack removeStack(int slot, int count) {
+        ItemStack taken = ImplementedInventory.super.removeStack(slot, count);
+        if (slot == OUTPUT_SLOT && !taken.isEmpty()) {
+            onPreviewTaken();
+        }
+        return taken;
+    }
+
+    @Override
+    public ItemStack removeStack(int slot) {
+        ItemStack taken = ImplementedInventory.super.removeStack(slot);
+        if (slot == OUTPUT_SLOT && !taken.isEmpty()) {
+            onPreviewTaken();
+        }
+        return taken;
+    }
+
+    /**
+     * Throws away an uncollected preview. Called just before the block spills its contents, because
+     * the preview is not a real item yet: without this, breaking a tub at {@link #MIN_TIME} would
+     * drop the cannabutter <em>and</em> refund every hemp that went into it, which is free
+     * cannabutter on repeat. Spilling a batch returns the ingredients, never the product.
+     */
+    public void discardPreview() {
+        setStack(OUTPUT_SLOT, ItemStack.EMPTY);
+    }
+
+    /**
+     * The hemp currently committed to a batch, as items, so the block can spill it when broken.
+     * Without this, breaking a simmering Infuser would silently destroy up to {@link #BATCH_CAP}
+     * hemp — it has already left the slots that {@code ItemScatterer} walks.
+     *
+     * <p><b>The milk in the tub is deliberately not returned.</b> Its bucket came back the moment it
+     * was poured in, so handing a full milk bucket back as well would mint a bucket out of nothing —
+     * three iron a go. Breaking the tub spills the milk and you keep the empty, which is both
+     * dupe-free and the physically obvious outcome. At most one milk is ever at stake, since the tub
+     * holds one at a time; a bucket parked in the milk slot is a normal item and spills normally.
+     */
+    public DefaultedList<ItemStack> getBatchItems() {
+        DefaultedList<ItemStack> spill = DefaultedList.of();
+        addBatchStacks(spill, ModItems.DECARBOXYLATED_HEMP, batchUnwashed);
+        addBatchStacks(spill, ModItems.WASHED_DECARBOXYLATED_HEMP, batchWashed);
+        return spill;
+    }
+
+    private static void addBatchStacks(DefaultedList<ItemStack> out, Item item, int count) {
+        int max = item.getMaxCount();
+        while (count > 0) {
+            int take = Math.min(count, max);
+            out.add(new ItemStack(item, take));
+            count -= take;
+        }
     }
 
     public int getProgress() {
@@ -290,8 +642,13 @@ public class InfuserBlockEntity extends BlockEntity
 
     /**
      * What a comparator behind this block reads. <b>Batch progress, not how full the container is</b>
-     * — 0 idle, 1–14 climbing through the simmer, and <b>15 only once the batch is fully
-     * simmered</b>.
+     * — 0 idle, 1–14 climbing through the simmer, and <b>15 once the batch has reached the best
+     * grade it can</b>, which is the same moment the spout pours it and the same moment a hopper
+     * would be allowed to take it. One definition of "done" across all three, so a redstone signal
+     * can never disagree with what the machine actually does.
+     *
+     * <p>Note that for most batches 15 arrives <em>before</em> the bar fills: only an all-washed
+     * batch needs the full timer, because Perfect is the one grade gated on it.
      *
      * <p>Fill level would be useless here: the output slot holds one item whether the batch is a
      * rushed Rough or a finished Perfect, so a stock container comparator reads the same either way
@@ -299,15 +656,15 @@ public class InfuserBlockEntity extends BlockEntity
      * well-trodden vanilla ground — cauldrons report water level, composters their fill stage, cake
      * its bites, beehives their honey, respawn anchors their charge.
      *
-     * <p>What it buys: a lamp or note block that fires the moment a batch finishes, or redstone that
-     * gates something else on it. (Extraction itself needs no redstone — hoppers already refuse an
-     * unfinished batch, see {@link #canExtract}.)
+     * <p>What it buys: a lamp or note block that fires the moment a batch is worth collecting, or
+     * redstone that gates something else on it. (Extraction itself needs no redstone — the spout
+     * already waits, see {@link #pushOutput}.)
      */
     public int getComparatorOutput() {
         if (progress <= 0) {
             return 0;
         }
-        if (isFullySimmered()) {
+        if (isAtBestQuality()) {
             return 15;
         }
         return 1 + Math.min(13, progress * 13 / FULL_TIME);
@@ -320,22 +677,28 @@ public class InfuserBlockEntity extends BlockEntity
         return inventory;
     }
 
+    /**
+     * Both hemp slots take either type. There are two of them so a batch can <em>mix</em> washed and
+     * unwashed — which is the only way to reach {@link Quality#CLEAN} — not so each type has a
+     * dedicated home.
+     */
     @Override
     public boolean isValid(int slot, ItemStack stack) {
-        return switch (slot) {
-            case MILK_SLOT -> isMilk(stack);
-            case HEMP_SLOT -> isUnwashedHemp(stack);
-            case WASHED_SLOT -> isWashedHemp(stack);
-            default -> false;
-        };
+        if (slot == MILK_SLOT) {
+            return isMilk(stack);
+        }
+        if (slot >= FIRST_HEMP_SLOT && slot < FIRST_HEMP_SLOT + HEMP_SLOT_COUNT) {
+            return isHemp(stack);
+        }
+        // The output and the bucket return are both take-only: only the machine puts things there.
+        return false;
     }
 
     @Override
     public int[] getAvailableSlots(Direction side) {
         return switch (side) {
-            case UP -> new int[]{MILK_SLOT, HEMP_SLOT, WASHED_SLOT};
-            case DOWN -> new int[]{OUTPUT_SLOT, MILK_SLOT};
-            default -> new int[]{MILK_SLOT, HEMP_SLOT, WASHED_SLOT};
+            case DOWN -> new int[]{OUTPUT_SLOT, BUCKET_SLOT};
+            default -> new int[]{MILK_SLOT, FIRST_HEMP_SLOT, FIRST_HEMP_SLOT + 1};
         };
     }
 
@@ -347,13 +710,16 @@ public class InfuserBlockEntity extends BlockEntity
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction side) {
         if (slot == OUTPUT_SLOT) {
-            // Automation only ever gets a finished batch. Without this a hopper would snatch the
-            // Rough preview the instant it appeared, making an automated Infuser strictly worse
+            // Automation only ever gets a batch at its best grade. Without this a hopper would snatch
+            // the Rough preview the instant it appeared, making an automated Infuser strictly worse
             // than a hand-tended one — the opposite of what automation should buy you.
-            return isFullySimmered();
+            // Kept in step with the spout deliberately: two definitions of "done" would be a trap.
+            // (Unreachable in practice — see pushOutput for why no hopper can sit under this block.)
+            return isAtBestQuality();
         }
-        // The emptied bucket can be drawn off; a full one the player just inserted cannot.
-        return slot == MILK_SLOT && stack.isOf(Items.BUCKET);
+        // Emptied buckets are always drainable — and a hopper under the block is what keeps the
+        // return slot from filling up and stalling the milk queue.
+        return slot == BUCKET_SLOT;
     }
 
     @Override
@@ -388,6 +754,9 @@ public class InfuserBlockEntity extends BlockEntity
         super.writeNbt(nbt, registryLookup);
         Inventories.writeNbt(nbt, inventory, registryLookup);
         nbt.putInt("Progress", progress);
+        nbt.putBoolean("HaveMilk", haveMilk);
+        nbt.putInt("BatchUnwashed", batchUnwashed);
+        nbt.putInt("BatchWashed", batchWashed);
     }
 
     @Override
@@ -396,5 +765,8 @@ public class InfuserBlockEntity extends BlockEntity
         inventory.clear();
         Inventories.readNbt(nbt, inventory, registryLookup);
         progress = nbt.getInt("Progress");
+        haveMilk = nbt.getBoolean("HaveMilk");
+        batchUnwashed = nbt.getInt("BatchUnwashed");
+        batchWashed = nbt.getInt("BatchWashed");
     }
 }

@@ -1,6 +1,22 @@
 {
+  "_comment": [
+    "Keyed on `facing` (the spout, which is where a finished batch is pushed out) and `filled` (milk",
+    "in the tub). The block also carries `infusing`, which drives the bubbling and steam in",
+    "InfuserBlock#randomDisplayTick but deliberately has no model of its own: the texture tracks",
+    "whether there is milk in the tub, not whether something is burning underneath. These are partial",
+    "variant keys, so `infusing` is matched as a wildcard.",
+    "A `block/infuser_top_simmering` texture is already rendered from textures-src/infuser.mctex if a",
+    "third state is ever wanted here."
+  ],
   "variants": {
-    "heated=false": { "model": "hempdustry:block/infuser" },
-    "heated=true":  { "model": "hempdustry:block/infuser_heated" }
+    "facing=north,filled=false": { "model": "hempdustry:block/infuser" },
+    "facing=east,filled=false":  { "model": "hempdustry:block/infuser", "y": 90 },
+    "facing=south,filled=false": { "model": "hempdustry:block/infuser", "y": 180 },
+    "facing=west,filled=false":  { "model": "hempdustry:block/infuser", "y": 270 },
+
+    "facing=north,filled=true": { "model": "hempdustry:block/infuser_filled" },
+    "facing=east,filled=true":  { "model": "hempdustry:block/infuser_filled", "y": 90 },
+    "facing=south,filled=true": { "model": "hempdustry:block/infuser_filled", "y": 180 },
+    "facing=west,filled=true":  { "model": "hempdustry:block/infuser_filled", "y": 270 }
   }
 }

@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.screen.custom;
 import com.mojang.datafixers.util.Pair;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
+import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -33,8 +34,15 @@ public class InfuserScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final PropertyDelegate propertyDelegate;
 
-    /** Layout, shared with the screen and the GUI-texture generator. */
-    public static final int MILK_X = 26, MILK_Y = 35;
+    /**
+     * Layout, shared with the screen and the GUI-texture generator.
+     *
+     * <p>Milk, heat indicator and bucket return are stacked in the left column in exactly a furnace's
+     * arrangement — what goes in on top, the fire in the middle, what comes back out underneath — so
+     * the return slot needs no explaining.
+     */
+    public static final int MILK_X = 26, MILK_Y = 17;
+    public static final int BUCKET_X = 26, BUCKET_Y = 53;
     public static final int HEMP_X = 62, HEMP_Y = 17;
     public static final int WASHED_X = 62, WASHED_Y = 53;
     public static final int OUTPUT_X = 134, OUTPUT_Y = 35;
@@ -58,9 +66,15 @@ public class InfuserScreenHandler extends ScreenHandler {
         inventory.onOpen(playerInventory.player);
 
         this.addSlot(new HintSlot(inventory, InfuserBlockEntity.MILK_SLOT, MILK_X, MILK_Y, EMPTY_SLOT_MILK));
-        this.addSlot(new HintSlot(inventory, InfuserBlockEntity.HEMP_SLOT, HEMP_X, HEMP_Y, EMPTY_SLOT_HEMP));
-        this.addSlot(new HintSlot(inventory, InfuserBlockEntity.WASHED_SLOT, WASHED_X, WASHED_Y, EMPTY_SLOT_HEMP));
+        // Both hemp slots take either type; they exist so a batch can mix washed and unwashed, not
+        // so each type has a home. Hence the identical hint sprite on both.
+        this.addSlot(new HintSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT, HEMP_X, HEMP_Y, EMPTY_SLOT_HEMP));
+        this.addSlot(new HintSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT + 1, WASHED_X, WASHED_Y, EMPTY_SLOT_HEMP));
         this.addSlot(new PreviewSlot(inventory, InfuserBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
+        // Take-only, and it shows the same bucket hint as the milk slot: what lands here is exactly
+        // what you put in above, minus the milk.
+        this.addSlot(new TakeOnlySlot(inventory, InfuserBlockEntity.BUCKET_SLOT, BUCKET_X, BUCKET_Y,
+                EMPTY_SLOT_MILK));
 
         addPlayerSlots(playerInventory);
         this.addProperties(propertyDelegate);
@@ -104,7 +118,26 @@ public class InfuserScreenHandler extends ScreenHandler {
         }
     }
 
-    /** Take-only, and taking it is what actually spends the batch. */
+    /** A {@link HintSlot} the player may only take from — the bucket return. */
+    private static class TakeOnlySlot extends HintSlot {
+        TakeOnlySlot(Inventory inventory, int index, int x, int y, Identifier hint) {
+            super(inventory, index, x, y, hint);
+        }
+
+        @Override
+        public boolean canInsert(ItemStack stack) {
+            return false;
+        }
+    }
+
+    /**
+     * Take-only, and taking it is what closes the batch out.
+     *
+     * <p>The real guard lives on {@link InfuserBlockEntity#removeStack}, which catches every route
+     * out of the slot including hoppers; this hook stays because it also covers the shift-click path,
+     * where {@code quickMove} empties the slot with {@code setStack} rather than {@code removeStack}.
+     * Closing a batch out twice is harmless — it just clears already-cleared bookkeeping.
+     */
     private static class PreviewSlot extends Slot {
         PreviewSlot(Inventory inventory, int index, int x, int y) {
             super(inventory, index, x, y);
@@ -126,18 +159,86 @@ public class InfuserScreenHandler extends ScreenHandler {
 
     // ----- synced state, for the screen -----
 
-    /** Overall simmer progress, 0..1 of a full batch. */
+    /**
+     * The tick at which <em>this</em> batch is finished — when it reaches the best grade its washed
+     * ratio allows, which is what the spout waits for. Everything drawn on the bar is scaled against
+     * this rather than against {@link InfuserBlockEntity#FULL_TIME}.
+     *
+     * <p><b>The bar measures the job, not the clock.</b> Only an all-washed batch actually runs the
+     * full timer, because Perfect is the one grade gated on it; a half-washed batch is done at 67% of
+     * it. Scaling to the clock meant the bar simply never filled for most batches, which threw away
+     * the most learnable thing a progress bar has to offer — <b>full means done</b>.
+     *
+     * <p>Falls back to the full clock when there is no batch yet to measure.
+     */
+    private int finishProgress() {
+        int washed = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_WASHED_PERCENT);
+        if (washed < 0) {
+            return InfuserBlockEntity.FULL_TIME;
+        }
+        int needed = Quality.timeNeededFor(Quality.of(100, washed), washed);
+        if (needed < 0) {
+            return InfuserBlockEntity.FULL_TIME;
+        }
+        int span = InfuserBlockEntity.FULL_TIME - InfuserBlockEntity.MIN_TIME;
+        return InfuserBlockEntity.MIN_TIME + needed * span / 100;
+    }
+
+    /** How far through this batch's job the simmer is, 0..1. Reaches 1 exactly when it is done. */
     public float getProgress() {
         int progress = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_PROGRESS);
-        return MathHelper.clamp(progress / (float) InfuserBlockEntity.FULL_TIME, 0.0F, 1.0F);
+        return MathHelper.clamp(progress / (float) finishProgress(), 0.0F, 1.0F);
     }
 
     /**
-     * Where along the bar the "you may pull it now, but it will be Rough" mark sits. Constant, but
-     * it lives here so the screen doesn't have to know the two timings itself.
+     * Where along the bar the "you may pull it now" mark sits.
+     *
+     * <p><b>It moves</b>, because the bar is scaled to the job: the minimum is a third of an
+     * all-washed batch's run but half of a half-washed one's. That is fine — the player never needs
+     * to memorise where it sits, only to see whether the fill has passed it, which is a comparison
+     * and not a memory. And its position now says something real: how much of this particular job is
+     * the mandatory part.
      */
     public float getMinimumMark() {
-        return InfuserBlockEntity.MIN_TIME / (float) InfuserBlockEntity.FULL_TIME;
+        return MathHelper.clamp(InfuserBlockEntity.MIN_TIME / (float) finishProgress(), 0.0F, 1.0F);
+    }
+
+    /**
+     * Where along the bar this batch would earn its <b>next grade up</b>, as a fraction of a full
+     * simmer, or {@code -1} if there is no batch or no further grade within reach.
+     *
+     * <p>This mark has to exist. Under the old all-or-nothing grading the answer to "when does it get
+     * better?" was always "the full timer", so there was nothing to show; with score-based grading it
+     * moves with the washed ratio — a spotless batch earns Clean at 73% of the cook while a
+     * three-quarters-washed one waits until 87% — and a player has no way to work that out from the
+     * inside. The washed share is synced for exactly this.
+     */
+    public float getNextGradeMark() {
+        int washed = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_WASHED_PERCENT);
+        if (washed < 0) {
+            return -1.0F;
+        }
+        Quality next = Quality.of(timePercent(), washed).next();
+        while (next != null) {
+            int needed = Quality.timeNeededFor(next, washed);
+            if (needed >= 0) {
+                int span = InfuserBlockEntity.FULL_TIME - InfuserBlockEntity.MIN_TIME;
+                // Scaled against the job, like everything else on the bar — so the *last* upgrade's
+                // mark lands exactly on the bar's end, and the fill arriving there is the batch
+                // finishing. Intermediate upgrades still fall part-way along.
+                return MathHelper.clamp(
+                        (InfuserBlockEntity.MIN_TIME + needed / 100.0F * span) / finishProgress(),
+                        0.0F, 1.0F);
+            }
+            next = next.next();
+        }
+        return -1.0F;
+    }
+
+    private int timePercent() {
+        int progress = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_PROGRESS);
+        int span = InfuserBlockEntity.FULL_TIME - InfuserBlockEntity.MIN_TIME;
+        return MathHelper.clamp((progress - InfuserBlockEntity.MIN_TIME) * 100 / span, 0, 100);
     }
 
     public boolean isHeated() {
@@ -169,12 +270,11 @@ public class InfuserScreenHandler extends ScreenHandler {
             if (!this.insertItem(inSlot, InfuserBlockEntity.MILK_SLOT, InfuserBlockEntity.MILK_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (InfuserBlockEntity.isUnwashedHemp(inSlot)) {
-            if (!this.insertItem(inSlot, InfuserBlockEntity.HEMP_SLOT, InfuserBlockEntity.HEMP_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (InfuserBlockEntity.isWashedHemp(inSlot)) {
-            if (!this.insertItem(inSlot, InfuserBlockEntity.WASHED_SLOT, InfuserBlockEntity.WASHED_SLOT + 1, false)) {
+        } else if (InfuserBlockEntity.isHemp(inSlot)) {
+            // Either type into either hemp slot — insertItem walks the range and takes the first
+            // that will have it, which is what makes shift-clicking a mixed batch in work at all.
+            int firstHemp = InfuserBlockEntity.FIRST_HEMP_SLOT;
+            if (!this.insertItem(inSlot, firstHemp, firstHemp + InfuserBlockEntity.HEMP_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;
             }
         } else {

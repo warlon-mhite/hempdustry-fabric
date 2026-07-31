@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/orientable_with_bottom",
   "textures": {
-    "top": "hempdustry:block/infuser_top",
+    "top": "hempdustry:block/infuser_top_filled",
     "bottom": "hempdustry:block/hempcrete_block",
     "side": "hempdustry:block/infuser_side",
     "front": "hempdustry:block/infuser_front"

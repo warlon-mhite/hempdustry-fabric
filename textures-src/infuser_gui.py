@@ -10,9 +10,14 @@ Output: src/main/resources/assets/hempdustry/textures/gui/container/infuser.png
 
 Must stay in step with InfuserScreenHandler (slots) and InfuserScreen (sprite regions).
 
-    [milk]     [hemp]                       the two hemp types stack separately
-       *       [washed]   ====|===>  [out]  bar with a NOTCH at the early-pull minimum
-    (flame)                                 heat indicator: reports the block BELOW
+    [milk]     [hemp]                       either hemp slot takes either type
+    (flame)                       [out]     heat indicator: reports the block BELOW
+    [bucket]   [hemp]  ==|==!==>            dark NOTCH = collectable from here
+                                            bright MARK = next grade lands here (moves with ratio)
+
+The left column is a furnace's column: what goes in on top, the fire in the middle, what comes
+back out underneath. Milk is emptied into the tub on contact and its bucket returned below, which
+is what lets several batches be queued up in advance.
 
 The notch is the whole point of the bar. A plain fill would say "cooking"; the notch says
 "collectable from here, but not finished" -- which is the actual decision the player is making.
@@ -35,18 +40,20 @@ TRACK_BG = (139, 139, 139, 255)
 CLEAR = (0, 0, 0, 0)
 
 # Slots — must match InfuserScreenHandler.
-MILK = (26, 35)
+MILK = (26, 17)
+BUCKET = (26, 53)
 HEMP = (62, 17)
 WASHED = (62, 53)
 OUTPUT = (134, 35)
 
 # Live overlays — must match InfuserScreen.
 BAR_XY, BAR_WH = (84, 39), (44, 5)
-FLAME_XY = (26, 56)
+FLAME_XY = (28, 37)
 
 # Sprite regions in the sheet margin.
 BAR_AT = (176, 0)
 NOTCH_AT = (176, 5)
+MARK_AT = (178, 5)
 FLAME_AT = (180, 5)
 
 # 6000 / 18000 -- one third along.
@@ -82,7 +89,7 @@ rect(0, 0, 1, PANEL_H, EDGE_LIGHT)
 rect(0, PANEL_H - 1, PANEL_W, 1, EDGE_DARK)
 rect(PANEL_W - 1, 0, 1, PANEL_H, EDGE_DARK)
 
-for s in (MILK, HEMP, WASHED, OUTPUT):
+for s in (MILK, BUCKET, HEMP, WASHED, OUTPUT):
     slot(*s)
 
 for row in range(3):
@@ -97,10 +104,10 @@ bw, bh = BAR_WH
 rect(bx - 1, by - 1, bw + 2, bh + 2, TRACK_DARK)
 rect(bx, by, bw, bh, TRACK_BG)
 
-# The notch, drawn into the panel so it is visible even at zero progress -- the player should be
-# able to see there is a "good enough" point and a "finished" point BEFORE anything has cooked.
-notch_x = bx + round(NOTCH_FRACTION * bw)
-rect(notch_x - 1, by - 3, 2, bh + 6, (60, 60, 60, 255))
+# The notch is NOT baked into the panel any more. The bar is scaled to each batch's own job rather
+# than to the clock, so the minimum-time mark moves with the washed ratio -- a third of the way along
+# for an all-washed batch, half for a half-washed one. Both marks are drawn at runtime by
+# InfuserScreen instead. NOTCH_FRACTION is kept only as documentation of the old fixed position.
 
 # ---- unlit flame outline, so the lit sprite has something to replace ----
 FLAME_OFF = [
@@ -136,6 +143,12 @@ blit(bar_rows, {"a": (150, 118, 46, 255), "b": (200, 163, 70, 255)}, *BAR_AT)
 # The notch marker drawn over the fill, so it stays readable once the bar passes it.
 NOTCH = ["##"] * 7
 blit(NOTCH, {"#": (60, 60, 60, 255)}, *NOTCH_AT)
+
+# The moving "next grade lands here" mark. Near-white so it separates cleanly from the dark notch
+# AND stays readable over the gold fill -- the two marks answer different questions and must never
+# be mistaken for each other: dark = "can I take it", bright = "should I wait".
+MARK = ["##"] * 7
+blit(MARK, {"#": (245, 245, 235, 255)}, *MARK_AT)
 
 FLAME_ON = [
     "......##......",
