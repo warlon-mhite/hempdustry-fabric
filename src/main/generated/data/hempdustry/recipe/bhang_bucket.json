@@ -16,6 +16,10 @@
     }
   ],
   "result": {
+    "components": {
+      "hempdustry:potency": 1,
+      "hempdustry:quality": "rough"
+    },
     "count": 1,
     "id": "hempdustry:bhang_bucket"
   }

@@ -42,6 +42,14 @@ public class ModComponents {
     public static final ComponentType<SmokeContents> SMOKE_CONTENTS = register("smoke_contents",
             builder -> builder.codec(SmokeContents.CODEC).packetCodec(SmokeContents.PACKET_CODEC));
 
+    /**
+     * An edible's potency tier, 1–4. Distinct from {@link #STRENGTH}, which is cannabutter's raw
+     * 1–24 hemp count: the tier is what the butter's strength collapses to, plus the edible's own
+     * offset. Four values rather than twenty-four is what keeps edible stacks merging.
+     */
+    public static final ComponentType<Integer> POTENCY = register("potency",
+            builder -> builder.codec(Codec.INT).packetCodec(PacketCodecs.VAR_INT));
+
     public static final ComponentType<Integer> CHARGES = register("charges",
             builder -> builder.codec(Codec.INT).packetCodec(PacketCodecs.VAR_INT));
 

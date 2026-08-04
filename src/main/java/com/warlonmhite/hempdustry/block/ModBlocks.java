@@ -9,6 +9,7 @@ import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import com.warlonmhite.hempdustry.block.custom.SpaceCakeBlock;
+import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
@@ -20,6 +21,8 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
+
+import java.util.function.BiFunction;
 
 
 public class ModBlocks {
@@ -176,8 +179,9 @@ public class ModBlocks {
      * wholesale (0.5 hardness, wool sounds, no occlusion) so it behaves identically to the block
      * players already know; the {@code maxCount(1)} on its item is vanilla's cake too.
      */
-    public static final Block SPACE_CAKE = registerBlock("space_cake",
+    public static final Block SPACE_CAKE = registerBlockWithItem("space_cake",
             new SpaceCakeBlock(AbstractBlock.Settings.copy(Blocks.CAKE)),
+            (block, settings) -> new EdibleBlockItem(block, settings),
             new Item.Settings().maxCount(1));
 
 
@@ -186,12 +190,15 @@ public class ModBlocks {
     }
     /** Same, but with explicit item settings — for blocks whose item isn't a plain 64-stack. */
     public static Block registerBlock(String name, Block block, Item.Settings itemSettings){
-        registerBlockItem(name, block, itemSettings);
-        return Registry.register(Registries.BLOCK, Identifier.of(Hempdustry.MOD_ID, name), block);
+        return registerBlockWithItem(name, block, BlockItem::new, itemSettings);
     }
-    private static void registerBlockItem(String name, Block block, Item.Settings itemSettings) {
+    /** Same again, but with a custom BlockItem — the Space Cake needs one for its dose tooltip. */
+    public static Block registerBlockWithItem(String name, Block block,
+                                              BiFunction<Block, Item.Settings, BlockItem> itemFactory,
+                                              Item.Settings itemSettings) {
         Registry.register(Registries.ITEM, Identifier.of(Hempdustry.MOD_ID, name),
-                new BlockItem(block, itemSettings));
+                itemFactory.apply(block, itemSettings));
+        return Registry.register(Registries.BLOCK, Identifier.of(Hempdustry.MOD_ID, name), block);
     }
     private static Block registerBlockWithoutItem(String name, Block block) {
         return Registry.register(Registries.BLOCK, Identifier.of(Hempdustry.MOD_ID, name), block);

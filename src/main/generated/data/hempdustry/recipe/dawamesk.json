@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "hempdustry:infused_shapeless",
   "category": "misc",
   "ingredients": [
     {
@@ -15,6 +15,7 @@
       "item": "minecraft:sweet_berries"
     }
   ],
+  "offset": 1,
   "result": {
     "count": 1,
     "id": "hempdustry:dawamesk"

@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "hempdustry:infused_shaped",
   "category": "misc",
   "key": {
     "B": {
@@ -12,6 +12,7 @@
       "item": "hempdustry:hemp_flour"
     }
   },
+  "offset": -1,
   "pattern": [
     "FCF",
     " B "

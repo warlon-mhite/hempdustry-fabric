@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.Strain;
 import net.minecraft.advancement.AdvancementRequirements;
@@ -16,6 +17,8 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.recipe.ContainerCarriedRecipe;
+import com.warlonmhite.hempdustry.recipe.InfusedShapedRecipe;
+import com.warlonmhite.hempdustry.recipe.InfusedShapelessRecipe;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
@@ -323,7 +326,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // ContainerCarried, not shapeless: WATER_BUCKET carries recipeRemainder(BUCKET), so a plain
         // recipe would hand an empty bucket back *and* leave one inside the hemp milk. Same
         // duplication bhang had. The bucket carries through instead.
-        offerContainerCarried(exporter, id("hemp_milk_bucket"), ModItems.HEMP_MILK_BUCKET,
+        offerContainerCarried(exporter, id("hemp_milk_bucket"), new ItemStack(ModItems.HEMP_MILK_BUCKET),
                 ModItems.INDICA_SEEDS,
                 List.of(Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
                         Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
@@ -374,49 +377,36 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Three to a loaf is not free food: a loaf is 5 nutrition and 6.0 saturation, three slices
         // are 6 and 3.6. Nutrition up, saturation down, and what you actually bought was three
         // doses out of one butter instead of one.
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.CANNABUTTER_TOAST, 3)
-                .input(Items.BREAD)
-                .input(ModItems.CANNABUTTER)
-                .criterion(hasItem(ModItems.CANNABUTTER), conditionsFromItem(ModItems.CANNABUTTER))
-                .offerTo(exporter, id("cannabutter_toast"));
+        offerInfusedShapeless(exporter, id("cannabutter_toast"), ModItems.CANNABUTTER_TOAST, 3, -1,
+                List.of(Ingredient.ofItems(Items.BREAD), Ingredient.ofItems(ModItems.CANNABUTTER)));
 
         // Vanilla's cookie is wheat-cocoa-wheat for 8. Same row with hemp flour, plus the butter
         // underneath: the cheapest way into edibles and the most dilute.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.SPACE_COOKIE, 8)
-                .pattern("FCF")
-                .pattern(" B ")
-                .input('F', ModItems.HEMP_FLOUR)
-                .input('C', Items.COCOA_BEANS)
-                .input('B', ModItems.CANNABUTTER)
-                .criterion(hasItem(ModItems.CANNABUTTER), conditionsFromItem(ModItems.CANNABUTTER))
-                .offerTo(exporter, id("space_cookie"));
+        offerInfusedShaped(exporter, id("space_cookie"), ModItems.SPACE_COOKIE, 8, -1,
+                Map.of('F', Ingredient.ofItems(ModItems.HEMP_FLOUR),
+                       'C', Ingredient.ofItems(Items.COCOA_BEANS),
+                       'B', Ingredient.ofItems(ModItems.CANNABUTTER)),
+                "FCF", " B ");
 
         // A brownie is flour, cocoa, sugar and fat — cocoa-forward where the cookie is flour-
         // forward, which is what the pattern says. Four to a batch, so twice a cookie's dose.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.SPACE_BROWNIE, 4)
-                .pattern("CFC")
-                .pattern("SBS")
-                .input('C', Items.COCOA_BEANS)
-                .input('F', ModItems.HEMP_FLOUR)
-                .input('S', Items.SUGAR)
-                .input('B', ModItems.CANNABUTTER)
-                .criterion(hasItem(ModItems.CANNABUTTER), conditionsFromItem(ModItems.CANNABUTTER))
-                .offerTo(exporter, id("space_brownie"));
+        offerInfusedShaped(exporter, id("space_brownie"), ModItems.SPACE_BROWNIE, 4, 0,
+                Map.of('C', Ingredient.ofItems(Items.COCOA_BEANS),
+                       'F', Ingredient.ofItems(ModItems.HEMP_FLOUR),
+                       'S', Ingredient.ofItems(Items.SUGAR),
+                       'B', Ingredient.ofItems(ModItems.CANNABUTTER)),
+                "CFC", "SBS");
 
         // Vanilla's cake layout exactly — milk on top, sugar flanking, grain underneath — with the
         // egg swapped for cannabutter and the wheat for hemp flour. Butter and egg are both the
         // binder-and-fat slot in a real batter, so the swap is the honest one to make, and it is the
         // only one that fits: the grid has no ninth square to add an ingredient to.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.FOOD, ModBlocks.SPACE_CAKE)
-                .pattern("MMM")
-                .pattern("SBS")
-                .pattern("FFF")
-                .input('M', Items.MILK_BUCKET)
-                .input('S', Items.SUGAR)
-                .input('B', ModItems.CANNABUTTER)
-                .input('F', ModItems.HEMP_FLOUR)
-                .criterion(hasItem(ModItems.CANNABUTTER), conditionsFromItem(ModItems.CANNABUTTER))
-                .offerTo(exporter, id("space_cake"));
+        offerInfusedShaped(exporter, id("space_cake"), ModBlocks.SPACE_CAKE, 1, 0,
+                Map.of('M', Ingredient.ofItems(Items.MILK_BUCKET),
+                       'S', Ingredient.ofItems(Items.SUGAR),
+                       'B', Ingredient.ofItems(ModItems.CANNABUTTER),
+                       'F', Ingredient.ofItems(ModItems.HEMP_FLOUR)),
+                "MMM", "SBS", "FFF");
 
         // Bhang. The drink, and the only edible that skips cannabutter -- the plant goes straight
         // into the milk and the milk's own fat does the extraction, which is how bhang is actually
@@ -435,7 +425,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // that gives you back on drinking, that is one bucket in and two out. Free iron, repeatable.
         // ContainerCarriedRecipe suppresses the remainder so the bucket carries through: the one you
         // poured the milk from is the one the bhang is in, and it returns exactly once, when drunk.
-        offerContainerCarried(exporter, id("bhang_bucket"), ModItems.BHANG_BUCKET,
+        // Fixed at the floor of both axes rather than inherited: bhang never touches cannabutter, so
+        // there is nothing to transfer. Tier I, Rough -- the crudest preparation in the set.
+        offerContainerCarried(exporter, id("bhang_bucket"), dosed(ModItems.BHANG_BUCKET, 1, Quality.ROUGH),
                 ModItems.DECARBOXYLATED_HEMP,
                 List.of(Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
                         Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
@@ -448,13 +440,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // The real thing is a paste of sugar, orange, cinnamon, cloves, nutmeg, pistachio and
         // almond around the fat -- none of which vanilla has, so sweet berries stand in for the
         // fruit and honey for the spiced syrup. Shapeless, because it is stirred, not baked.
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.DAWAMESK)
-                .input(ModItems.CANNABUTTER)
-                .input(Items.SUGAR)
-                .input(Items.HONEY_BOTTLE)
-                .input(Items.SWEET_BERRIES)
-                .criterion(hasItem(ModItems.CANNABUTTER), conditionsFromItem(ModItems.CANNABUTTER))
-                .offerTo(exporter, id("dawamesk"));
+        offerInfusedShapeless(exporter, id("dawamesk"), ModItems.DAWAMESK, 1, +1,
+                List.of(Ingredient.ofItems(ModItems.CANNABUTTER), Ingredient.ofItems(Items.SUGAR),
+                        Ingredient.ofItems(Items.HONEY_BOTTLE), Ingredient.ofItems(Items.SWEET_BERRIES)));
 
         // ---------------------------------------------------------------------
         // Smoking gear
@@ -697,11 +685,19 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * only emit vanilla's serializer, and still emits the usual unlock advancement so the recipe
      * book discovers it normally.
      */
+    /** A result stack with a fixed dose baked in, for edibles that inherit nothing. */
+    private static ItemStack dosed(ItemConvertible item, int potency, Quality quality) {
+        ItemStack stack = new ItemStack(item);
+        stack.set(ModComponents.POTENCY, potency);
+        stack.set(ModComponents.QUALITY, quality);
+        return stack;
+    }
+
     private static void offerContainerCarried(RecipeExporter exporter, Identifier recipeId,
-                                              ItemConvertible output, ItemConvertible unlockedBy,
+                                              ItemStack output, ItemConvertible unlockedBy,
                                               List<Ingredient> inputs) {
         ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingRecipeCategory.MISC,
-                new ItemStack(output), inputs);
+                output, inputs);
         exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
                 .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
                 .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
@@ -728,6 +724,39 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         CookingRecipeJsonBuilder.createCampfireCooking(input, RecipeCategory.FOOD, output, experience, 600)
                 .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
                 .offerTo(exporter, id(name + "_from_campfire_cooking"));
+    }
+
+
+    /**
+     * Recipes that carry cannabutter's potency and quality onto the edible — see
+     * {@link com.warlonmhite.hempdustry.recipe.Infusion}. {@code offset} is the edible's step on the
+     * potency ladder: +1 concentrates, 0 is neutral, -1 spreads the butter thin.
+     *
+     * <p>Built by hand because the vanilla builders can only emit vanilla's serializers. The unlock
+     * advancement is assembled the same way {@code offerSpliff} does it, so the recipe book still
+     * discovers these on obtaining cannabutter.
+     */
+    private static void offerInfusedShaped(RecipeExporter exporter, Identifier recipeId,
+                                           ItemConvertible output, int count, int offset,
+                                           Map<Character, Ingredient> key, String... pattern) {
+        offerInfused(exporter, recipeId, new InfusedShapedRecipe("", CraftingRecipeCategory.MISC,
+                RawShapedRecipe.create(key, pattern), new ItemStack(output, count), offset));
+    }
+
+    private static void offerInfusedShapeless(RecipeExporter exporter, Identifier recipeId,
+                                              ItemConvertible output, int count, int offset,
+                                              List<Ingredient> inputs) {
+        offerInfused(exporter, recipeId, new InfusedShapelessRecipe("", CraftingRecipeCategory.MISC,
+                new ItemStack(output, count), inputs, offset));
+    }
+
+    private static void offerInfused(RecipeExporter exporter, Identifier recipeId, net.minecraft.recipe.Recipe<?> recipe) {
+        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
+                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
+                .criterion(hasItem(ModItems.CANNABUTTER), conditionsFromItem(ModItems.CANNABUTTER))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
+                .build(recipeId.withPrefixedPath("recipes/food/")));
     }
 
 }

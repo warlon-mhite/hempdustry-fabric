@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.UseAction;
 
@@ -49,7 +48,7 @@ import net.minecraft.util.UseAction;
  * strain bundles already make milk an all-or-nothing escape rather than a way to keep the good half.
  * It is a joke, not a bug.
  */
-public class BhangItem extends Item {
+public class BhangItem extends EdibleItem {
     /** Honey bottle's drink time. A drink should not be quicker to down than vanilla's. */
     private static final int MAX_USE_TIME = 40;
 

@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
+import com.warlonmhite.hempdustry.item.custom.EdibleScheduler;
 import com.warlonmhite.hempdustry.item.custom.SmokeScheduler;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -33,6 +34,7 @@ public class Hempdustry implements ModInitializer {
 		ModCriteria.registerCriteria();
 		ModRecipes.registerRecipes();
 		SmokeScheduler.init();
+		EdibleScheduler.init();
 		ModLootTableModifiers.modifyLootTables();
 		ModItemGroups.registerItemGroups();
 		ModItems.registerModItems();

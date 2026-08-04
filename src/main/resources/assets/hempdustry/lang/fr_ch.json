@@ -33,6 +33,8 @@
   "hempdustry.strain.indica": "Purple Kush",
   "hempdustry.strain.sativa": "Lemon Haze",
   "hempdustry.strain.blend": "Mélange",
+  "hempdustry.edible.potency": "Puissance : %s",
+  "hempdustry.edible.quality": "Qualité : %s",
   "item.hempdustry.wooden_pipe": "Pipe en Bois",
   "item.hempdustry.wooden_pipe.packed": "Pipe de %s",
   "item.hempdustry.bong": "Bang",

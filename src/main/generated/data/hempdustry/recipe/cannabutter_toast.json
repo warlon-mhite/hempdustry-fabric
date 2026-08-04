@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "hempdustry:infused_shapeless",
   "category": "misc",
   "ingredients": [
     {
@@ -9,6 +9,7 @@
       "item": "hempdustry:cannabutter"
     }
   ],
+  "offset": -1,
   "result": {
     "count": 3,
     "id": "hempdustry:cannabutter_toast"

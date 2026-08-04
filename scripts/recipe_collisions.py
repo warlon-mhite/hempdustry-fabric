@@ -36,8 +36,15 @@ import sys
 
 # Recipe types that match the grid like a vanilla shapeless recipe. hempdustry:container_carried
 # is an ordinary shapeless recipe that suppresses its ingredients' recipe remainders.
-SHAPELESS_TYPES = {"minecraft:crafting_shapeless", "hempdustry:container_carried"}
-SHAPED_TYPES = {"minecraft:crafting_shaped"}
+SHAPELESS_TYPES = {
+    "minecraft:crafting_shapeless",
+    "hempdustry:container_carried",   # shapeless; suppresses its ingredients' recipe remainders
+    "hempdustry:infused_shapeless",   # shapeless; copies cannabutter's potency/quality to the output
+}
+SHAPED_TYPES = {
+    "minecraft:crafting_shaped",
+    "hempdustry:infused_shaped",      # shaped; copies cannabutter's potency/quality to the output
+}
 
 
 def ingredient(v):

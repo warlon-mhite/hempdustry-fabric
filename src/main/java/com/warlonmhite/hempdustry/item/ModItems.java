@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.custom.BhangItem;
 import com.warlonmhite.hempdustry.item.custom.CannabutterItem;
+import com.warlonmhite.hempdustry.item.custom.EdibleItem;
 import com.warlonmhite.hempdustry.item.custom.HempMilkItem;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
@@ -123,17 +124,17 @@ public class ModItems {
      * speed: no hemp flour, no cocoa, no sugar.
      */
     public static final Item CANNABUTTER_TOAST = registerItem("cannabutter_toast",
-            new Item(new Item.Settings().food(new FoodComponent.Builder()
+            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
                     .nutrition(2).saturationModifier(0.3F).alwaysEdible().build())));
 
     /** Vanilla cookie parity (2 / 0.1), eight to a batch. The cheap, low-dose entry point. */
     public static final Item SPACE_COOKIE = registerItem("space_cookie",
-            new Item(new Item.Settings().food(new FoodComponent.Builder()
+            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
                     .nutrition(2).saturationModifier(0.1F).alwaysEdible().build())));
 
     /** Richer than a cookie, pitched at an apple (4 / 0.3). Four to a batch. */
     public static final Item SPACE_BROWNIE = registerItem("space_brownie",
-            new Item(new Item.Settings().food(new FoodComponent.Builder()
+            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
                     .nutrition(4).saturationModifier(0.3F).alwaysEdible().build())));
 
     /**
@@ -153,7 +154,7 @@ public class ModItems {
      * bread on saturation (6 / 0.6 = 7.2) while costing a whole cannabutter for a single item.
      */
     public static final Item DAWAMESK = registerItem("dawamesk",
-            new Item(new Item.Settings().maxCount(16).food(new FoodComponent.Builder()
+            new EdibleItem(new Item.Settings().maxCount(16).food(new FoodComponent.Builder()
                     .nutrition(6).saturationModifier(0.6F).alwaysEdible().build())));
 
 
