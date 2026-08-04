@@ -323,12 +323,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
                 .offerTo(exporter, id("green_dye"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, Items.GREEN_WOOL)
-                .pattern("##")
-                .pattern("##")
-                .input('#', ModItems.HEMP_FIBER)
-                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("green_wool"));
+        // No 4 fibre -> green wool recipe. It collided byte for byte with the canvas recipe above,
+        // and only one of two identical crafting recipes can ever fire. The 2x2 square of a fibre
+        // is canvas's, matching vanilla's 4 string -> wool; green wool is still reachable the way
+        // vanilla builds every dyed wool — fibre -> string -> white wool, dyed with the green dye
+        // this mod already smelts out of hemp stem.
 
         ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, Items.STRING)
                 .input(ModItems.HEMP_FIBER)
