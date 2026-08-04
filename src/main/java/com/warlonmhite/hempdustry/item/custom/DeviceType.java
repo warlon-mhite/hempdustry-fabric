@@ -10,30 +10,33 @@ package com.warlonmhite.hempdustry.item.custom;
  * mid-bowl. Tune freely.
  */
 public enum DeviceType {
-    //   registry base   packedTexture   maxDamage  bowlSize  enchantability  cooldown  cough(1-in-N)  potency        nausea(1-in-N)
-    PIPE("wooden_pipe",  "packed_pipe",  8,         2,        15,             60,       4,             Potency.LIGHT, 50),
-    BONG("bong",         "packed_bong",  24,        4,        10,             100,      3,             Potency.HEAVY, 5);
+    //   registry base   packedTexture   maxDamage  bowlSize  maxDose  duration  enchantability  cooldown  cough(1-in-N)  nausea(1-in-N)
+    PIPE("wooden_pipe",  "packed_pipe",  8,         2,        2,       700,      15,             60,       4,             50),
+    BONG("bong",         "packed_bong",  24,        4,        3,       1000,     10,             100,      3,             5);
 
     private final String baseName;
     private final String packedTexture;
     private final int maxDamage;
     private final int bowlSize;
+    private final int maxDose;
+    private final int durationTicks;
     private final int enchantability;
     private final int cooldownTicks;
     private final int coughChanceOneIn;
-    private final Potency potency;
     private final int nauseaChanceOneIn;
 
-    DeviceType(String baseName, String packedTexture, int maxDamage, int bowlSize, int enchantability,
-               int cooldownTicks, int coughChanceOneIn, Potency potency, int nauseaChanceOneIn) {
+    DeviceType(String baseName, String packedTexture, int maxDamage, int bowlSize, int maxDose,
+               int durationTicks, int enchantability, int cooldownTicks, int coughChanceOneIn,
+               int nauseaChanceOneIn) {
         this.baseName = baseName;
         this.packedTexture = packedTexture;
         this.maxDamage = maxDamage;
         this.bowlSize = bowlSize;
+        this.maxDose = maxDose;
+        this.durationTicks = durationTicks;
         this.enchantability = enchantability;
         this.cooldownTicks = cooldownTicks;
         this.coughChanceOneIn = coughChanceOneIn;
-        this.potency = potency;
         this.nauseaChanceOneIn = nauseaChanceOneIn;
     }
 
@@ -69,9 +72,23 @@ public enum DeviceType {
         return coughChanceOneIn;
     }
 
-    /** How hard this device hits, selecting effect amplifiers/durations. */
-    public Potency potency() {
-        return potency;
+    /**
+     * Most buds this device's bowl will take, i.e. the highest effect level it can reach.
+     *
+     * <p>This is what gives the bong its identity honestly — not "stronger", but <em>capable of a
+     * bigger hit</em>. A bong at dose 1 is exactly as strong as a pipe at dose 1.
+     */
+    public int maxDose() {
+        return maxDose;
+    }
+
+    /**
+     * How long this device's effects last. <b>Duration is purely the device and amplifier is purely
+     * the dose</b> — see {@link Strain#effects} for why the two must stay orthogonal here rather
+     * than trading off the way vanilla's glowstone does.
+     */
+    public int durationTicks() {
+        return durationTicks;
     }
 
     /** Odds of nausea per hit, as 1-in-N (pipe 1-in-50 = 2%, bong 1-in-5 = 20%). */

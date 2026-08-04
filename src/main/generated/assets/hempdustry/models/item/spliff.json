@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "hempdustry:item/spliff_indica",
+      "predicate": {
+        "hempdustry:strain": 1
+      }
+    },
+    {
+      "model": "hempdustry:item/spliff_sativa",
+      "predicate": {
+        "hempdustry:strain": 2
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "hempdustry:item/indica_spliff"
+  }
+}

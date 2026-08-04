@@ -1,6 +1,13 @@
 package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.item.custom.SmokeContents;
+import com.warlonmhite.hempdustry.item.custom.Strain;
+import net.minecraft.client.item.ClampedModelPredicateProvider;
+import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.minecraft.util.Identifier;
 import com.warlonmhite.hempdustry.client.UpdateChecker;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -35,5 +42,26 @@ public class HempdustryClient implements ClientModInitializer {
 
         HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
+
+        registerStrainPredicate();
+    }
+
+    /**
+     * The {@code hempdustry:strain} item property, which is how a single spliff/pipe/bong item shows
+     * a different texture per strain now that the strain lives in a data component rather than in the
+     * item id. Same mechanism vanilla uses for a bow's {@code pulling} or a crossbow's {@code charged}.
+     *
+     * <p>0 when nothing is loaded, otherwise the strain's index + 1. Model overrides match with
+     * {@code >=}, so the datagen'd models list them ascending — see {@code ModModelProvider}.
+     */
+    private static void registerStrainPredicate() {
+        Identifier id = Identifier.of(Hempdustry.MOD_ID, "strain");
+        ClampedModelPredicateProvider provider = (stack, world, entity, seed) -> {
+            Strain strain = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).primaryStrain();
+            return strain == null ? 0f : strain.ordinal() + 1;
+        };
+        ModelPredicateProviderRegistry.register(ModItems.SPLIFF, id, provider);
+        ModelPredicateProviderRegistry.register(ModItems.WOODEN_PIPE, id, provider);
+        ModelPredicateProviderRegistry.register(ModItems.BONG, id, provider);
     }
 }

@@ -3,14 +3,20 @@ package com.warlonmhite.hempdustry.datagen;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
-import com.warlonmhite.hempdustry.item.custom.PackedSmokingDeviceItem;
+import com.warlonmhite.hempdustry.item.custom.Strain;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.data.client.*;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ModModelProvider extends FabricModelProvider {
     public ModModelProvider(FabricDataOutput output) {
@@ -65,22 +71,38 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.HEMPCRETE, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_SEEDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_BUDS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.INDICA_SPLIFF, Models.GENERATED);
-        itemModelGenerator.register(ModItems.WOODEN_PIPE, Models.GENERATED);
-        itemModelGenerator.register(ModItems.BONG, Models.GENERATED);
         itemModelGenerator.register(ModItems.MUSIC_DISC_GANJA, Models.GENERATED);
 
-        // All packed variants of a device share one "packed" texture (item/packed_pipe, item/packed_bong).
-        // Give a strain its own texture later by keying this off the strain too.
-        for (Item packed : ModItems.packedDevices()) {
-            DeviceType device = ((PackedSmokingDeviceItem) packed).device();
-            Identifier texture = Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedTexture());
-            Models.GENERATED.upload(ModelIds.getItemModelId(packed), TextureMap.layer0(texture), itemModelGenerator.writer);
-        }
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
         // item/sativa_seeds.png is currently a copy of the indica one — a hemp seed is a hemp seed.
         itemModelGenerator.register(ModItems.SATIVA_SEEDS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.SATIVA_SPLIFF, Models.GENERATED);
+        // Smoking gear. One item per device now carries every strain in a component, so the visual
+        // per-strain split moved from separate items to *model overrides* on a shared item —
+        // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged". The predicate is
+        // hempdustry:strain, 0 when nothing is loaded and the strain's index + 1 otherwise (see
+        // HempdustryClient). Predicate matching is >=, so overrides must be listed ascending.
+        //
+        // The spliff keeps a texture per strain, which it always had. The devices all share one
+        // packed texture, which they always did — the override is at >= 1 ("packed at all"), so
+        // giving a strain its own packed art later is one more entry here plus the PNG.
+        for (Strain strain : Strain.ACTIVE) {
+            uploadGenerated(itemModelGenerator, spliffModel(strain), texture(strain.id() + "_spliff"));
+        }
+        List<ModelOverride> spliffOverrides = new ArrayList<>();
+        for (Strain strain : Strain.ACTIVE) {
+            spliffOverrides.add(new ModelOverride(strain.ordinal() + 1, spliffModel(strain)));
+        }
+        uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(ModItems.SPLIFF),
+                texture(Strain.ACTIVE.get(0).id() + "_spliff"), spliffOverrides);
+
+        for (DeviceType device : DeviceType.values()) {
+            Item item = device == DeviceType.PIPE ? ModItems.WOODEN_PIPE : ModItems.BONG;
+            Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedTexture());
+            uploadGenerated(itemModelGenerator, packedModel, texture(device.packedTexture()));
+            uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(item),
+                    texture(device.baseName()), List.of(new ModelOverride(1, packedModel)));
+        }
+
         itemModelGenerator.register(ModItems.HEMP_PLANKS_SIGN, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_PLANKS_HANGING_SIGN, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_BOAT, Models.GENERATED);
@@ -91,4 +113,51 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_HAREM_PANTS));
         itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_SHIRT));
     }
+
+    /** The {@code hempdustry:strain} item property both the models and the client predicate key on. */
+    public static final Identifier STRAIN_PREDICATE = Identifier.of(Hempdustry.MOD_ID, "strain");
+
+    private static Identifier texture(String name) {
+        return Identifier.of(Hempdustry.MOD_ID, "item/" + name);
+    }
+
+    private static Identifier spliffModel(Strain strain) {
+        return Identifier.of(Hempdustry.MOD_ID, "item/spliff_" + strain.id());
+    }
+
+    private static void uploadGenerated(ItemModelGenerator generator, Identifier modelId, Identifier texture) {
+        Models.GENERATED.upload(modelId, TextureMap.layer0(texture), generator.writer);
+    }
+
+    /**
+     * A {@code minecraft:item/generated} model with an {@code overrides} array, which the vanilla
+     * {@link Models} helpers can't express. Written straight to the generator's writer rather than
+     * through a {@link Model}, since the whole point is the extra key.
+     */
+    private static void uploadWithOverrides(ItemModelGenerator generator, Identifier modelId,
+                                            Identifier texture, List<ModelOverride> overrides) {
+        generator.writer.accept(modelId, () -> {
+            JsonObject json = new JsonObject();
+            json.addProperty("parent", "minecraft:item/generated");
+            JsonObject textures = new JsonObject();
+            textures.addProperty("layer0", texture.toString());
+            json.add("textures", textures);
+
+            JsonArray array = new JsonArray();
+            for (ModelOverride override : overrides) {
+                JsonObject predicate = new JsonObject();
+                predicate.addProperty(STRAIN_PREDICATE.toString(), override.threshold());
+                JsonObject entry = new JsonObject();
+                entry.add("predicate", predicate);
+                entry.addProperty("model", override.model().toString());
+                array.add(entry);
+            }
+            json.add("overrides", array);
+            return (JsonElement) json;
+        });
+    }
+
+    private record ModelOverride(int threshold, Identifier model) {
+    }
+
 }

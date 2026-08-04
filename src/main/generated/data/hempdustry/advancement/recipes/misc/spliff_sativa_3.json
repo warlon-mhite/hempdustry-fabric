@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_indica_buds": {
+    "has_sativa_buds": {
       "conditions": {
         "items": [
           {
-            "items": "hempdustry:indica_buds"
+            "items": "hempdustry:sativa_buds"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:indica_spliff"
+        "recipe": "hempdustry:spliff_sativa_3"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_indica_buds"
+      "has_sativa_buds"
     ]
   ],
   "rewards": {
     "recipes": [
-      "hempdustry:indica_spliff"
+      "hempdustry:spliff_sativa_3"
     ]
   }
 }

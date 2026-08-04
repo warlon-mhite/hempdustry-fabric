@@ -1,5 +1,13 @@
 {
   "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "hempdustry:item/packed_pipe",
+      "predicate": {
+        "hempdustry:strain": 1
+      }
+    }
+  ],
   "textures": {
     "layer0": "hempdustry:item/wooden_pipe"
   }

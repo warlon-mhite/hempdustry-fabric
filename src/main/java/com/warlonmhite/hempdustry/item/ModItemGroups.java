@@ -34,11 +34,13 @@ public class ModItemGroups {
                         entries.add(ModItems.HEMP_BRICK);
                         entries.add(ModItems.CANNABUTTER);
 
-                        entries.add(ModItems.INDICA_SPLIFF);
-                        entries.add(ModItems.SATIVA_SPLIFF);
+                        // The empty devices as items, then one *stack* per strain per dose for
+                        // everything loaded — the same way vanilla lists forty-odd potions off a
+                        // single registered item. JEI/EMI build their item lists from creative tabs,
+                        // so this is also what keeps every strain discoverable in a modpack.
                         entries.add(ModItems.WOODEN_PIPE);
                         entries.add(ModItems.BONG);
-                        ModItems.packedDevices().forEach(entries::add);
+                        ModItems.loadedSmokeables().forEach(entries::add);
 
                         entries.add(ModItems.HEMP_BEANNIE);
                         entries.add(ModItems.HEMP_SHIRT);

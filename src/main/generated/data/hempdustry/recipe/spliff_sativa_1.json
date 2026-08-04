@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "spliff",
+  "key": {
+    "B": {
+      "item": "hempdustry:sativa_buds"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "pattern": [
+    "B",
+    "P"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": [
+        {
+          "count": 1,
+          "strain": "sativa"
+        }
+      ]
+    },
+    "count": 1,
+    "id": "hempdustry:spliff"
+  }
+}

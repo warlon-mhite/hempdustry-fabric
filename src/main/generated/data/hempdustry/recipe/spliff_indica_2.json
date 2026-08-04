@@ -1,6 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
+  "group": "spliff",
   "key": {
     "B": {
       "item": "hempdustry:indica_buds"
@@ -14,7 +15,15 @@
     "PP"
   ],
   "result": {
+    "components": {
+      "hempdustry:smoke_contents": [
+        {
+          "count": 2,
+          "strain": "indica"
+        }
+      ]
+    },
     "count": 1,
-    "id": "hempdustry:indica_spliff"
+    "id": "hempdustry:spliff"
   }
 }

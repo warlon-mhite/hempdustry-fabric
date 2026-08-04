@@ -33,18 +33,50 @@ public final class Smoking {
      */
     private static final int NAUSEA_DURATION_TICKS = 140; // 7s
 
+    /** How long a green-out holds you down. Short on purpose — a setback, not a punishment. */
+    private static final int GREEN_OUT_DURATION_TICKS = 300; // 15s
+    /** The wobble outlasts the rest of it, so you feel it after you can move again. */
+    private static final int GREEN_OUT_NAUSEA_TICKS = 400;   // 20s
+
     /**
-     * The full server-side reaction to one hit: applies the strain's effects at this device's
-     * {@link Potency}, plays the smoking sound, schedules the exhale puff, and rolls the (separate)
-     * cough sound and nausea chances. Shared by the spliff, pipe and bong.
+     * Odds of greening out, as 1-in-N, indexed by dose. <b>Dose 1 can never green you out</b> — the
+     * cheap everyday hit carries no tail risk at all, which is what makes taking a big one a real
+     * decision rather than a free upgrade. A spliff halves these (see {@code greenOutChanceOneIn}):
+     * you pace a joint, you don't pace a bong rip.
      */
-    public static void takeHit(World world, PlayerEntity player, Strain strain, Potency potency,
-                               int coughChanceOneIn, int nauseaChanceOneIn) {
+    private static final int[] GREEN_OUT_ONE_IN = {0, 0, 12, 4};
+
+    /** Green-out odds for {@code dose}, doubled (i.e. halved risk) when {@code gentle}. */
+    public static int greenOutChanceOneIn(int dose, boolean gentle) {
+        int index = Math.min(Math.max(dose, 0), GREEN_OUT_ONE_IN.length - 1);
+        int base = GREEN_OUT_ONE_IN[index];
+        return base == 0 ? 0 : (gentle ? base * 2 : base);
+    }
+
+    /**
+     * The full server-side reaction to one hit: applies what is loaded at the dose that was packed,
+     * for as long as this device lasts, plays the smoking sound, schedules the exhale puff, and rolls
+     * the (separate) cough, nausea and green-out chances. Shared by the spliff, pipe and bong.
+     *
+     * <p>A green-out <b>replaces</b> the hit's effects rather than stacking on top of them. That is
+     * what makes it a real loss and instantly readable — you spent three buds and got none of the
+     * good part — instead of a debuff quietly layered under the buffs you were expecting.
+     */
+    public static void takeHit(World world, PlayerEntity player, SmokeContents contents,
+                               int durationTicks, int coughChanceOneIn, int nauseaChanceOneIn,
+                               int greenOutChanceOneIn) {
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 ModSounds.SMOKING, SoundCategory.PLAYERS, 1f, 1f);
 
-        for (StatusEffectInstance effect : strain.effects(potency)) {
-            player.addStatusEffect(effect);
+        boolean greenedOut = greenOutChanceOneIn > 0
+                && ThreadLocalRandom.current().nextInt(greenOutChanceOneIn) == 0;
+
+        if (greenedOut) {
+            greenOut(player);
+        } else {
+            for (StatusEffectInstance effect : contents.effects(durationTicks)) {
+                player.addStatusEffect(effect);
+            }
         }
 
         // Smoke criterion: device- and strain-agnostic, fires on every hit. Backs "First Contact"
@@ -63,9 +95,20 @@ public final class Smoking {
                     ModSounds.COUGHING, SoundCategory.PLAYERS, 1f, 1f);
         }
 
-        if (nauseaChanceOneIn > 0 && ThreadLocalRandom.current().nextInt(nauseaChanceOneIn) == 0) {
+        // Nausea is its own roll and stays per-device, dose-independent — it is the "harsh smoke"
+        // cost, not the "too much" cost. A green-out already brings its own, longer nausea.
+        if (!greenedOut && nauseaChanceOneIn > 0
+                && ThreadLocalRandom.current().nextInt(nauseaChanceOneIn) == 0) {
             player.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, NAUSEA_DURATION_TICKS, 0));
         }
+    }
+
+    /** Sit down for a minute. Sweaty, wobbly, useless — but brief, and it costs you nothing but the buds. */
+    private static void greenOut(PlayerEntity player) {
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, GREEN_OUT_NAUSEA_TICKS, 0));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, GREEN_OUT_DURATION_TICKS, 1));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, GREEN_OUT_DURATION_TICKS, 1));
+        player.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, GREEN_OUT_DURATION_TICKS, 1));
     }
 
     /** A small smoke puff at the player's mouth, drifting the way they're facing. */

@@ -5,7 +5,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.custom.CannabutterItem;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
-import com.warlonmhite.hempdustry.item.custom.PackedSmokingDeviceItem;
+import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.item.custom.SpliffItem;
 import com.warlonmhite.hempdustry.item.custom.Strain;
@@ -13,7 +13,9 @@ import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.item.AliasedBlockItem;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.HangingSignItem;
+import com.warlonmhite.hempdustry.component.ModComponents;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.SignItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -21,15 +23,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 
 public class ModItems {
-    // Smoking-device registries — populated by registerDevice() as the fields below initialise.
-    // Declared first so the WOODEN_PIPE/BONG initialisers can write into them.
-    private static final Map<DeviceType, Item> EMPTY_DEVICES = new EnumMap<>(DeviceType.class);
-    private static final Map<DeviceType, Map<Strain, Item>> PACKED_DEVICES = new EnumMap<>(DeviceType.class);
 
     public static final Item INDICA_SEEDS = registerItem("indica_seeds", new AliasedBlockItem(ModBlocks.INDICA_CROP, new Item.Settings()));
     public static final Item INDICA_BUDS = registerItem("indica_buds", new Item(new Item.Settings()));
@@ -67,13 +63,12 @@ public class ModItems {
     public static final Item CANNABUTTER = registerItem("cannabutter", new CannabutterItem(new Item.Settings()));
 
 
-    public static final Item INDICA_SPLIFF = registerItem("indica_spliff",
-            new SpliffItem(Strain.INDICA, new Item.Settings().rarity(Rarity.COMMON).maxCount(16)));
-    public static final Item SATIVA_SPLIFF = registerItem("sativa_spliff",
-            new SpliffItem(Strain.SATIVA, new Item.Settings().rarity(Rarity.COMMON).maxCount(16)));
+    // One item each, for every strain and every dose. What is rolled or packed into them lives in
+    // the smoke_contents component, the way a potion carries potion_contents — so a new strain adds
+    // no items, no models and no per-device lang keys. See CLAUDE.md §5b D10.
+    public static final Item SPLIFF = registerItem("spliff",
+            new SpliffItem(new Item.Settings().rarity(Rarity.COMMON).maxCount(16)));
 
-    // Empty, packable devices. Each call also registers that device's per-strain packed variants
-    // (one per Strain.ACTIVE) — adding a strain needs no new lines here.
     public static final Item WOODEN_PIPE = registerDevice(DeviceType.PIPE);
     public static final Item BONG = registerDevice(DeviceType.BONG);
 
@@ -91,42 +86,47 @@ public class ModItems {
     public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Settings()
             .maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(3))));
 
-    /**
-     * Registers an empty {@code device} plus one packed variant per active strain, and records both
-     * in the lookup maps. Returns the empty device so it can back a {@code public static final} field.
-     */
     private static Item registerDevice(DeviceType device) {
-        Item empty = registerItem(device.baseName(),
-                new SmokingDeviceItem(device, new Item.Settings().maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON)));
-        EMPTY_DEVICES.put(device, empty);
+        return registerItem(device.baseName(), new SmokingDeviceItem(device,
+                new Item.Settings().maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON)));
+    }
 
-        Map<Strain, Item> perStrain = new EnumMap<>(Strain.class);
+    /**
+     * Every loaded smokeable worth showing in the creative tab: one <em>stack</em> per device per
+     * dose per active strain, plus a spliff per dose per strain.
+     *
+     * <p>Stacks rather than items is how vanilla lists its forty-odd potions off one registered item,
+     * and it is also what keeps them all visible in JEI/EMI, which build their item lists from
+     * creative tabs.
+     */
+    public static List<ItemStack> loadedSmokeables() {
+        List<ItemStack> out = new ArrayList<>();
         for (Strain strain : Strain.ACTIVE) {
-            perStrain.put(strain, registerItem(device.baseName() + "_" + strain.id(),
-                    new PackedSmokingDeviceItem(device, strain,
-                            new Item.Settings().maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON))));
+            for (int dose = 1; dose <= SPLIFF_MAX_DOSE; dose++) {
+                out.add(loaded(SPLIFF, strain, dose, 0));
+            }
         }
-        PACKED_DEVICES.put(device, perStrain);
-        return empty;
-    }
-
-    /** The empty (unpacked) item for a device. */
-    public static Item emptyDevice(DeviceType device) {
-        return EMPTY_DEVICES.get(device);
-    }
-
-    /** The packed item for a device + strain. */
-    public static Item packedDevice(DeviceType device, Strain strain) {
-        return PACKED_DEVICES.get(device).get(strain);
-    }
-
-    /** Every registered packed variant, for the creative tab and datagen. */
-    public static List<Item> packedDevices() {
-        List<Item> out = new ArrayList<>();
-        for (Map<Strain, Item> byStrain : PACKED_DEVICES.values()) {
-            out.addAll(byStrain.values());
+        for (DeviceType device : DeviceType.values()) {
+            Item item = device == DeviceType.PIPE ? WOODEN_PIPE : BONG;
+            for (Strain strain : Strain.ACTIVE) {
+                for (int dose = 1; dose <= device.maxDose(); dose++) {
+                    out.add(loaded(item, strain, dose, device.bowlSize()));
+                }
+            }
         }
         return out;
+    }
+
+    /** Highest dose a spliff can be rolled at. Devices carry their own ceiling on {@link DeviceType}. */
+    public static final int SPLIFF_MAX_DOSE = 3;
+
+    private static ItemStack loaded(Item item, Strain strain, int dose, int charges) {
+        ItemStack stack = new ItemStack(item);
+        stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
+        if (charges > 0) {
+            stack.set(ModComponents.CHARGES, charges);
+        }
+        return stack;
     }
 
     private static Item registerItem(String name, Item item){

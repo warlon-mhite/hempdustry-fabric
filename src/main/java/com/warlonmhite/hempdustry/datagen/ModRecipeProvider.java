@@ -1,5 +1,16 @@
 package com.warlonmhite.hempdustry.datagen;
 
+import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.item.custom.SmokeContents;
+import com.warlonmhite.hempdustry.item.custom.Strain;
+import net.minecraft.advancement.AdvancementRequirements;
+import net.minecraft.advancement.AdvancementRewards;
+import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
+import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.RawShapedRecipe;
+import net.minecraft.recipe.ShapedRecipe;
+import net.minecraft.recipe.book.CraftingRecipeCategory;
+import java.util.Map;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -288,21 +299,19 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // ---------------------------------------------------------------------
         // Smoking gear
         // ---------------------------------------------------------------------
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.INDICA_SPLIFF)
-                .pattern("BB")
-                .pattern("PP")
-                .input('B', ModItems.INDICA_BUDS)
-                .input('P', Items.PAPER)
-                .criterion(hasItem(ModItems.INDICA_BUDS), conditionsFromItem(ModItems.INDICA_BUDS))
-                .offerTo(exporter, id("indica_spliff"));
-
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.SATIVA_SPLIFF)
-                .pattern("BB")
-                .pattern("PP")
-                .input('B', ModItems.SATIVA_BUDS)
-                .input('P', Items.PAPER)
-                .criterion(hasItem(ModItems.SATIVA_BUDS), conditionsFromItem(ModItems.SATIVA_BUDS))
-                .offerTo(exporter, id("sativa_spliff"));
+        // Rolling a spliff: N buds over N paper gives a level-N joint, one recipe per strain per
+        // dose. Unlike packing a device, these can be plain shaped recipes — a spliff has no
+        // durability or enchantments to carry across — so they stay recipe-book and JEI visible.
+        //
+        // They cannot collide with each other because the ingredient *counts* differ, which is the
+        // same disambiguation vanilla relies on and the rule that caught green wool vs. canvas.
+        // Paper scaling with dose is deliberate: it is the second resource that stops a level-III
+        // spliff undercutting a bong, which gets four hits out of the same three buds.
+        for (Strain strain : Strain.ACTIVE) {
+            for (int dose = 1; dose <= ModItems.SPLIFF_MAX_DOSE; dose++) {
+                offerSpliff(exporter, strain, dose);
+            }
+        }
 
         ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.WOODEN_PIPE)
                 .pattern("P  ")
@@ -491,4 +500,34 @@ public class ModRecipeProvider extends FabricRecipeProvider {
     private static Identifier id(String path) {
         return Identifier.of(Hempdustry.MOD_ID, path);
     }
+
+    /**
+     * One spliff recipe: {@code dose} buds stacked over {@code dose} paper, producing a spliff whose
+     * {@code smoke_contents} component carries the strain and the dose.
+     *
+     * <p>Built by hand rather than through {@link ShapedRecipeJsonBuilder} because that builder's
+     * result is a bare {@code new ItemStack(item, count)} with no way to attach components. Handing
+     * a fully-built {@link ShapedRecipe} to the exporter is the supported route, and it still emits
+     * the usual unlock advancement so the recipe book discovers it on picking up the buds.
+     */
+    private static void offerSpliff(RecipeExporter exporter, Strain strain, int dose) {
+        ItemStack result = new ItemStack(ModItems.SPLIFF);
+        result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
+
+        String buds = String.valueOf('B').repeat(dose);
+        String paper = String.valueOf('P').repeat(dose);
+        RawShapedRecipe raw = RawShapedRecipe.create(
+                Map.of('B', Ingredient.ofItems(strain.buds()), 'P', Ingredient.ofItems(Items.PAPER)),
+                buds, paper);
+
+        Identifier recipeId = id("spliff_" + strain.id() + "_" + dose);
+        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingRecipeCategory.MISC, raw, result);
+        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
+                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
+                .criterion(hasItem(strain.buds()), conditionsFromItem(strain.buds()))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
+                .build(recipeId.withPrefixedPath("recipes/misc/")));
+    }
+
 }

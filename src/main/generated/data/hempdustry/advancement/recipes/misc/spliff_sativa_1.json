@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:sativa_spliff"
+        "recipe": "hempdustry:spliff_sativa_1"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "hempdustry:sativa_spliff"
+      "hempdustry:spliff_sativa_1"
     ]
   }
 }

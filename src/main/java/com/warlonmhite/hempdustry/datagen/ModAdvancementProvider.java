@@ -73,7 +73,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // nodes rather than a child of one of them: parenting it to Purple Kush read as "you must
         // smoke Purple Kush", which is wrong and stays wrong for every strain added later.
         AdvancementEntry firstContact = Advancement.Builder.create()
-                .display(new AdvancementDisplay(new ItemStack(ModItems.INDICA_SPLIFF),
+                .display(new AdvancementDisplay(new ItemStack(ModItems.SPLIFF),
                         Text.translatable("advancements.hempdustry.first_contact.title"), Text.translatable("advancements.hempdustry.first_contact.description"),
                         Optional.of(Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png")), AdvancementFrame.TASK,
                         true,true,false))

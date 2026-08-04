@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_indica_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:indica_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:spliff_indica_2"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_indica_buds"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:spliff_indica_2"
+    ]
+  }
+}
