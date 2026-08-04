@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:painting"
+        "recipe": "hempdustry:white_bed"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "hempdustry:painting"
+      "hempdustry:white_bed"
     ]
   }
 }

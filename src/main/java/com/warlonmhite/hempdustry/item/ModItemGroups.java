@@ -68,6 +68,8 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
                         entries.add(ModBlocks.HEMPCRETE_BLOCK);
                         entries.add(ModBlocks.HEMP_BALE);
+                        entries.add(ModBlocks.HEMP_WOOL);
+                        entries.add(ModBlocks.HEMP_CARPET);
 
                         entries.add(ModBlocks.INDICA_FLOWER);
                         entries.add(ModBlocks.SATIVA_FLOWER);

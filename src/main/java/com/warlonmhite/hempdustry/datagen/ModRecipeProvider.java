@@ -70,8 +70,73 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
                 .offerTo(exporter, id("hemp_canvas"));
 
+        // Canvas -> hemp wool. The block is the *bale*, not a lighter fabric: four sheets of cloth
+        // stacked into a cubic metre of it, which is vanilla's 4-items-into-a-block grammar (clay
+        // balls, snowballs, quartz, prismarine shards). Two out rather than vanilla's strict one,
+        // matching this mod's own hempcrete recipe, so a building block lands at 8 fibre = 2 stems
+        // instead of 16 fibre = 4 — a cloth block nobody can afford to build with isn't a block.
+        ShapedRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_WOOL, 2)
+                .pattern("##")
+                .pattern("##")
+                .input('#', ModItems.HEMP_CANVAS)
+                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
+                .offerTo(exporter, id("hemp_wool"));
+
+        // Vanilla's carpet recipe with our wool in it — two wide, three out, exactly the ratio every
+        // vanilla carpet uses. Keyed on the hemp_wool item rather than a tag, so sheep wool can't
+        // produce hemp carpet.
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.HEMP_CARPET, 3)
+                .pattern("##")
+                .input('#', ModBlocks.HEMP_WOOL)
+                .criterion(hasItem(ModBlocks.HEMP_WOOL), conditionsFromItem(ModBlocks.HEMP_WOOL))
+                .offerTo(exporter, id("hemp_carpet"));
+
+        // The two reversals, each going back exactly one step to the thing it was made from —
+        // vanilla's only un-craft recipe, 1 wool -> 4 string, works the same way, and nothing in
+        // vanilla un-crafts *through* an intermediate. A wool -> 8 fibre shortcut was considered
+        // and rejected: it would make canvas harder to reach from wool than fibre is, which is
+        // backwards for the item sitting between them.
+        //
+        // Both are lossless. Un-weaving isn't a real process, but the recycling is: before wood
+        // pulp took over in the 1800s, European paper was made from recycled linen and hemp rags,
+        // and the rag trade existed precisely to feed worn cloth back into fibre stock.
+        //
+        // NOTE these are the only shapeless single-ingredient recipes hemp wool and canvas may ever
+        // have. A second one on either item collides with these and silently never fires.
+        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_CANVAS, 2)
+                .input(ModBlocks.HEMP_WOOL)
+                .criterion(hasItem(ModBlocks.HEMP_WOOL), conditionsFromItem(ModBlocks.HEMP_WOOL))
+                .offerTo(exporter, id("hemp_canvas_from_hemp_wool"));
+
+        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_FIBER, 4)
+                .input(ModItems.HEMP_CANVAS)
+                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
+                .offerTo(exporter, id("hemp_fiber_from_hemp_canvas"));
+
+        // Vanilla's painting is 8 sticks around #minecraft:wool, so hemp wool is what belongs in
+        // the middle — not canvas, which took vanilla's *leather* slot in the item frame below.
+        // Those two vanilla recipes are the same 3x3 ring and differ only by the centre item, so
+        // one hemp cloth item per slot is what keeps them from colliding (CLAUDE.md §5 #17).
+        //
+        // An explicit recipe rather than a tag join, since hemp wool deliberately stays out of
+        // #minecraft:wool — and note that putting it in that tag would make this recipe and
+        // vanilla's own painting recipe collide.
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.PAINTING)
+                .pattern("###")
+                .pattern("#X#")
+                .pattern("###")
+                .input('#', Items.STICK)
+                .input('X', ModBlocks.HEMP_WOOL)
+                .criterion(hasItem(ModBlocks.HEMP_WOOL), conditionsFromItem(ModBlocks.HEMP_WOOL))
+                .offerTo(exporter, id("painting"));
+
         // Vanilla's item frame, with the leather swapped for canvas — same eight sticks, same
         // pattern. A second route rather than a replacement: the cow one still works.
+        //
+        // Canvas takes the leather slot and only the leather slot. Vanilla's painting is the same
+        // 3x3 ring with wool in the middle instead, so canvas standing in for both would produce
+        // two identical recipes and only one of them could ever fire (it did, and it did — see
+        // CLAUDE.md §5 #17). The painting is hemp wool's, since wool is what vanilla puts there.
         ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.ITEM_FRAME)
                 .pattern("###")
                 .pattern("#X#")
@@ -340,20 +405,18 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
                 .offerTo(exporter, id("paper"));
 
-        // A painting *is* a canvas — the most literal use the item has. "Canvas" is a worn-down
-        // "cannabis", and the Renaissance move from wood panel to stretched canvas was onto exactly
-        // this material, hemp or flax.
-        //
-        // This needs its own recipe rather than a tag join: vanilla's painting is the only recipe in
-        // the game keyed on #minecraft:wool, so there is nothing for canvas to slot into.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.PAINTING)
+        // Vanilla's bed, with the sheep's wool swapped for hemp. A second route rather than a
+        // replacement — every coloured bed recipe is keyed on its own specific wool item, so this
+        // adds one and takes nothing away. White because white wool is vanilla's *undyed* wool and
+        // hemp cloth is undyed by definition; a true hemp-coloured bed would need its own block,
+        // and that is a much larger job than a recipe (CLAUDE.md §5b D9).
+        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.WHITE_BED)
                 .pattern("###")
-                .pattern("#X#")
-                .pattern("###")
-                .input('#', Items.STICK)
-                .input('X', ModItems.HEMP_CANVAS)
-                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
-                .offerTo(exporter, id("painting"));
+                .pattern("XXX")
+                .input('#', ModBlocks.HEMP_WOOL)
+                .input('X', ItemTags.PLANKS)
+                .criterion(hasItem(ModBlocks.HEMP_WOOL), conditionsFromItem(ModBlocks.HEMP_WOOL))
+                .offerTo(exporter, id("white_bed"));
 
         // Shapeless, matching vanilla's own book recipe. The leather in a book is the *cover*, and
         // cloth-bound hardbacks are entirely ordinary — so canvas reads right there. Combined with

@@ -11,6 +11,7 @@ import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
+import net.minecraft.block.enums.NoteBlockInstrument;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -85,6 +86,42 @@ public class ModBlocks {
 
     public static final Block HEMP_BALE = registerBlock("hemp_bale",
             new PillarBlock(AbstractBlock.Settings.copy(Blocks.HAY_BLOCK).strength(0.5f).sounds(BlockSoundGroup.GRASS)));
+
+
+    /**
+     * Hemp cloth in bulk — the bale, not a lighter fabric than canvas. Vanilla wool's settings
+     * exactly (0.8 hardness, wool sounds, guitar under a note block), because it <em>is</em> a wool
+     * block in everything but the dye colour.
+     * <p>
+     * Deliberately <b>not</b> in {@code #minecraft:wool}: that tag's only effects are the painting
+     * recipe (which belongs to this block explicitly, not by tag — see ModRecipeProvider), the
+     * vibration-damping tags, and a 100-tick fuel entry. The latter two are granted directly, so
+     * joining the tag would buy nothing and cost the recipe. See CLAUDE.md's <i>cloth chain</i> note.
+     * <p>
+     * It burns, at vanilla wool's 30/60 — a deliberate departure from the fireproof hemp plank set
+     * and hempcrete. Cloth burns.
+     */
+    public static final Block HEMP_WOOL = registerBlock("hemp_wool",
+            new Block(AbstractBlock.Settings.create()
+                    .mapColor(MapColor.TERRACOTTA_WHITE)
+                    .instrument(NoteBlockInstrument.GUITAR)
+                    .strength(0.8F)
+                    .sounds(BlockSoundGroup.WOOL)
+                    .burnable()));
+
+    /**
+     * Hemp carpet. A plain {@link CarpetBlock}, not vanilla's {@code DyedCarpetBlock} — the dyed
+     * subclass exists only to report a {@code DyeColor} to llama decoration, and ours has no dye
+     * colour to report (moss carpet is plain for the same reason).
+     * <p>
+     * It shares the wool block's texture, exactly as every vanilla carpet shares its wool's.
+     */
+    public static final Block HEMP_CARPET = registerBlock("hemp_carpet",
+            new CarpetBlock(AbstractBlock.Settings.create()
+                    .mapColor(MapColor.TERRACOTTA_WHITE)
+                    .strength(0.1F)
+                    .sounds(BlockSoundGroup.WOOL)
+                    .burnable()));
 
 
     public static final Block INDICA_CROP = registerBlock("indica_crop",

@@ -63,6 +63,8 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMPCRETE_BLOCK);
         addDrop(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         addDrop(ModBlocks.HEMP_BALE);
+        addDrop(ModBlocks.HEMP_WOOL);
+        addDrop(ModBlocks.HEMP_CARPET);
         // The block entity's contents are scattered by DecarboxylatorBlock#onStateReplaced, so the
         // loot table only has to hand back the machine itself.
         addDrop(ModBlocks.DECARBOXYLATOR);

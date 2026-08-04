@@ -111,6 +111,16 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // filters, JEI-style lookups) picks ours up too.
         getOrCreateTagBuilder(ConventionalItemTags.MUSIC_DISCS)
                 .add(ModItems.MUSIC_DISC_GANJA);
+
+        // The item half of the vibration damping granted in ModBlockTagProvider — vanilla keeps
+        // #minecraft:dampens_vibrations as both a block and an item tag, so hemp wool joins both.
+        getOrCreateTagBuilder(ItemTags.DAMPENS_VIBRATIONS)
+                .add(ModBlocks.HEMP_WOOL.asItem());
+
+        // The carpet's damping and its 67-tick fuel time both ride on this tag rather than being
+        // granted separately — see ModBlockTagProvider for why #wool_carpets is safe to join.
+        getOrCreateTagBuilder(ItemTags.WOOL_CARPETS)
+                .add(ModBlocks.HEMP_CARPET.asItem());
         }
     }
 

@@ -3,19 +3,18 @@
   "category": "misc",
   "key": {
     "#": {
-      "item": "minecraft:stick"
+      "item": "hempdustry:hemp_wool"
     },
     "X": {
-      "item": "hempdustry:hemp_wool"
+      "tag": "minecraft:planks"
     }
   },
   "pattern": [
     "###",
-    "#X#",
-    "###"
+    "XXX"
   ],
   "result": {
     "count": 1,
-    "id": "minecraft:painting"
+    "id": "minecraft:white_bed"
   }
 }

@@ -23,6 +23,9 @@ public class ModModelProvider extends FabricModelProvider {
         BlockStateModelGenerator.BlockTexturePool hempPlanksPool = blockStateModelGenerator.registerCubeAllModelTexturePool(ModBlocks.HEMP_PLANKS);
         blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.HEMPCRETE_BLOCK);
         blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.HEMPCRETE_POWDER_BLOCK);
+        // Vanilla's own wool+carpet helper — the carpet model reuses the wool texture, same as
+        // every vanilla carpet does, so hemp_carpet needs no art of its own.
+        blockStateModelGenerator.registerWoolAndCarpet(ModBlocks.HEMP_WOOL, ModBlocks.HEMP_CARPET);
 
         hempBricksPool.stairs(ModBlocks.HEMP_BRICKS_STAIRS);
         hempBricksPool.slab(ModBlocks.HEMP_BRICKS_SLAB);

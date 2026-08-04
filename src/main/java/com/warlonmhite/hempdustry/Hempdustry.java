@@ -79,6 +79,9 @@ public class Hempdustry implements ModInitializer {
 		FuelRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 200);
 		FuelRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
 		FuelRegistry.INSTANCE.add(ModBlocks.HEMP_BALE, 450);
+		// 100 ticks, vanilla's rate for #minecraft:wool. Granted directly because hemp wool
+		// deliberately stays out of that tag — see ModBlocks.HEMP_WOOL.
+		FuelRegistry.INSTANCE.add(ModBlocks.HEMP_WOOL, 100);
 
 		registerFlammables();
 
@@ -94,6 +97,23 @@ public class Hempdustry implements ModInitializer {
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_CROP, 10, 25);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_FLOWER, 20, 40);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_BALE, 50, 10);
+		// Hemp cloth burns *more* readily than the sheep wool it stands in for, not less. Sheep
+		// wool is the outlier among natural fibres — high nitrogen and moisture content, LOI ~25%,
+		// self-extinguishing, which is why it is what firefighter base layers and aircraft carpet
+		// are made of. Cellulosic fibres (hemp, flax, cotton) sit around LOI 18-19% and sustain a
+		// flame; commercial hemp insulation batts are dosed with fire retardants precisely because
+		// the raw fibre doesn't need help catching.
+		//
+		// So 60 burn chance rather than wool's 30 — the tier vanilla gives grass, hay, carpets and
+		// scaffolding — with wool's own 60 spread. That exact pair is vanilla's (scaffolding,
+		// bamboo), so nothing here is invented. Note hempcrete's real Euroclass B-s1,d0 rating does
+		// NOT transfer: that is hurds in a lime binder, a mineral composite, not a textile.
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_WOOL, 60, 60);
+		// Vanilla carpet parity (60/20), because vanilla already puts carpets at the top burn
+		// chance and there is no headroom left to say "more flammable still" — raising the spread
+		// to 60 would turn carpets into a fire highway, which is a gameplay change rather than a
+		// material one.
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_CARPET, 60, 20);
 	}
 
 }

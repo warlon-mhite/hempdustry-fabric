@@ -88,6 +88,27 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.HEMP_PLANKS_HANGING_SIGN)
                 .add(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
 
+        // What hemp wool gets *instead of* joining #minecraft:wool. That tag is referenced by
+        // exactly three things in 1.21.1 — the painting recipe, these two vibration tags, and a
+        // 100-tick fuel entry in AbstractFurnaceBlockEntity#createFuelTimeMap. Beds, banners and
+        // carpets are all keyed on the specific coloured wool *item*, not the tag, so joining it
+        // would buy nothing except handing the painting recipe back to vanilla's wool version and
+        // undercutting the explicit hemp_wool one. Grant the two useful halves directly instead.
+        //
+        // Well grounded independently: hemp fibre insulation and hemp acoustic panels are a real
+        // product category, and hempcrete measures ~0.8 absorption with 50-59 dB sound reduction.
+        getOrCreateTagBuilder(BlockTags.DAMPENS_VIBRATIONS).add(ModBlocks.HEMP_WOOL);
+        getOrCreateTagBuilder(BlockTags.OCCLUDES_VIBRATION_SIGNALS).add(ModBlocks.HEMP_WOOL);
+
+        // The carpet joins #minecraft:wool_carpets instead, and that tag is safe where
+        // #minecraft:wool is not: it gates only vibration damping, the step-sound blend, llama
+        // decoration and a 67-tick fuel entry — no recipe. Damping and fuel therefore come for free
+        // via the tag, which is why the carpet is absent from the two tags above.
+        //
+        // Deliberately NOT in OCCLUDES_VIBRATION_SIGNALS: vanilla's carpets dampen but do not
+        // occlude (a carpet is too thin to block a signal outright), and we mirror that exactly.
+        getOrCreateTagBuilder(BlockTags.WOOL_CARPETS).add(ModBlocks.HEMP_CARPET);
+
         getOrCreateTagBuilder(BlockTags.PLANKS).add(ModBlocks.HEMP_PLANKS);
         getOrCreateTagBuilder(BlockTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB);
 

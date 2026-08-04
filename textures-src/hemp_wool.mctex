@@ -1,0 +1,73 @@
+# Hemp Wool — vanilla white_wool's own weave, retoned to hemp fibre.
+#
+# The MATRIX below is vanilla `block/white_wool.png` extracted verbatim: 40 tones of
+# dithered noise that would be pointless to redraw and impossible to improve by hand.
+# Only the PALETTE is ours. Each vanilla tone was mapped by luminance onto the ramp
+# between hemp_fiber.png's two body colours — C4A985 (mid) and E0CBB3 (highlight) — so
+# the block's every pixel is a colour the fibre item already uses, and the relative
+# spacing of vanilla's shading is preserved exactly.
+#
+# To retone: change the two endpoint colours and re-derive the ramp linearly by
+# luminance. Do NOT hand-edit individual entries — they are a monotone ramp and will
+# band if they stop being one.
+
+@palette hemp_fibre
+. = none
+1 = C4A985
+2 = C5AA86
+3 = C5AB87
+4 = C6AB88
+5 = C7AC89
+6 = C7AD8A
+7 = C8AD8B
+8 = C8AE8C
+9 = C9AF8D
+a = CAB08E
+b = CAB18F
+c = CBB190
+d = CCB291
+e = CCB393
+f = CEB595
+g = CEB595
+h = CEB696
+j = CFB798
+k = D0B899
+m = D1B99B
+n = D1B99B
+p = D3BB9D
+q = D3BC9E
+r = D5BDA0
+s = D5BEA1
+t = D6BFA3
+u = D7C0A4
+v = D8C1A5
+w = D9C2A7
+x = D9C3A8
+y = DAC4AA
+z = DBC5AB
+A = DCC6AC
+B = DCC7AD
+C = DDC7AE
+D = DDC8AF
+E = DEC8AF
+F = DFC9B1
+G = DFCAB2
+H = E0CBB3
+
+@texture block/hemp_wool 16x16 type=block
+bf8apzcevx49rr96
+quHHBxkja6ej17fm
+BDjnGDsjxDwwGHxu
+qfyDjgpDckDDqfHC
+umcqzy42ere7zz94
+73dDc2bfc2fj5eah
+HHAyppmrBHvkHHxs
+ffHHxvDCaeyDvuEC
+xw7eCvcgeje5pk87
+ekhB24ktcuHHnwHH
+CExxHDxvEBjrup9q
+9cttfgzwaceu33hu
+gf24CG72pzrwHHu5
+wvGHCxrj2nwDmnDH
+GFqkDruyHBeeswga
+6cCsagDGmfvCacBD
