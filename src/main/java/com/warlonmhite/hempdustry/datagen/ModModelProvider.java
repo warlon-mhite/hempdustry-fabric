@@ -72,6 +72,10 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.DECARBOXYLATED_HEMP, Models.GENERATED);
         itemModelGenerator.register(ModItems.WASHED_DECARBOXYLATED_HEMP, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMPCRETE, Models.GENERATED);
+        itemModelGenerator.register(ModItems.TOASTED_HEMP_SEEDS, Models.GENERATED);
+        itemModelGenerator.register(ModItems.HEMP_FLAPJACK, Models.GENERATED);
+        itemModelGenerator.register(ModItems.HEMP_MILK_BUCKET, Models.GENERATED);
+        itemModelGenerator.register(ModItems.SIEMIENIOTKA, Models.GENERATED);
         itemModelGenerator.register(ModItems.CANNABUTTER_TOAST, Models.GENERATED);
         itemModelGenerator.register(ModItems.SPACE_COOKIE, Models.GENERATED);
         itemModelGenerator.register(ModItems.SPACE_BROWNIE, Models.GENERATED);

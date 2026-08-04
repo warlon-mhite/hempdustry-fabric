@@ -299,6 +299,66 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .offerTo(exporter, id("hemp_planks_hanging_sign"));
 
         // ---------------------------------------------------------------------
+        // Wholesome hemp-seed food. No THC in any of this — hemp seed is a food
+        // crop in its own right and the mod had nothing to say about it.
+        // ---------------------------------------------------------------------
+
+        // Cook the raw thing: vanilla's most-used food verb, and hemp seed had no cooked form.
+        // Keyed on the tag so every strain's seed works and a future one needs no new recipe.
+        offerFoodCooking(exporter, "toasted_hemp_seeds", Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
+                ModItems.TOASTED_HEMP_SEEDS, ModItems.INDICA_SEEDS, 0.1F);
+
+        // Seeds bound with honey. The bottle comes back on its own.
+        ShapelessRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.HEMP_FLAPJACK, 2)
+                .input(ModItems.TOASTED_HEMP_SEEDS)
+                .input(ModItems.TOASTED_HEMP_SEEDS)
+                .input(Items.HONEY_BOTTLE)
+                .criterion(hasItem(ModItems.TOASTED_HEMP_SEEDS), conditionsFromItem(ModItems.TOASTED_HEMP_SEEDS))
+                .offerTo(exporter, id("hemp_flapjack"));
+
+        // Hemp seed milk: boil the seed until the husks crack, press the white pulp through a sieve,
+        // throw the husks away. The boiling and straining are abstracted into the craft the way
+        // vanilla abstracts baking into a grid.
+        //
+        // ContainerCarried, not shapeless: WATER_BUCKET carries recipeRemainder(BUCKET), so a plain
+        // recipe would hand an empty bucket back *and* leave one inside the hemp milk. Same
+        // duplication bhang had. The bucket carries through instead.
+        offerContainerCarried(exporter, id("hemp_milk_bucket"), ModItems.HEMP_MILK_BUCKET,
+                ModItems.INDICA_SEEDS,
+                List.of(Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
+                        Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
+                        Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
+                        Ingredient.ofItems(Items.WATER_BUCKET)));
+
+        // Siemieniotka — the Silesian hemp-seed soup eaten at Wigilia, also called konopionka or
+        // siemieniec. Hemp milk thickened with flour and sweetened; it is a *sweet* soup, and the
+        // sweetener really is sugar (Polish Wikipedia and every Polish recipe source say cukier;
+        // English Wikipedia's "honey" is not corroborated anywhere else, so honey went to the
+        // flapjack instead). Groats are the traditional accompaniment rather than an ingredient,
+        // which is why there is no wheat in here.
+        //
+        // Simplified in two places, both deliberate: the real thing adds dairy milk on top of the
+        // hemp milk, and finishes with a butter roux. Two milk buckets in one recipe is fussy and
+        // would put a cow back in the way of a plant-based dish, and the mod's only butter is
+        // cannabutter, which would make a wholesome soup psychoactive.
+        //
+        // One bowl per craft, because every vanilla stew is maxCount 1 and a recipe cannot emit a
+        // stack bigger than its item allows. That makes it bowl + ingredients -> one stew, which is
+        // exactly vanilla's stew grammar anyway.
+        //
+        // A whole bucket of hemp milk per bowl looks extravagant until you notice the bucket comes
+        // straight back — HEMP_MILK_BUCKET carries recipeRemainder(BUCKET) — so the real cost is the
+        // three hemp seeds that went into it. Safe alongside the bucket it returns when drunk,
+        // because only one of those two things can ever happen to a given bucket.
+        ShapelessRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.SIEMIENIOTKA)
+                .input(Items.BOWL)
+                .input(ModItems.HEMP_MILK_BUCKET)
+                .input(ModItems.HEMP_FLOUR)
+                .input(Items.SUGAR)
+                .criterion(hasItem(ModItems.HEMP_MILK_BUCKET), conditionsFromItem(ModItems.HEMP_MILK_BUCKET))
+                .offerTo(exporter, id("siemieniotka"));
+
+        // ---------------------------------------------------------------------
         // Edibles — cannabutter's first real use.
         //
         // Every one of these is a *fat* recipe: cannabinoids are fat-soluble, which is the whole
@@ -377,8 +437,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // poured the milk from is the one the bhang is in, and it returns exactly once, when drunk.
         offerContainerCarried(exporter, id("bhang_bucket"), ModItems.BHANG_BUCKET,
                 ModItems.DECARBOXYLATED_HEMP,
-                List.of(ModItems.DECARBOXYLATED_HEMP, ModItems.DECARBOXYLATED_HEMP,
-                        Items.MILK_BUCKET, Items.SUGAR));
+                List.of(Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
+                        Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
+                        Ingredient.ofItems(Items.MILK_BUCKET),
+                        Ingredient.ofItems(Items.SUGAR)));
 
         // Dawamesk. The one edible here with a documented history rather than a folk name: the
         // Algerian confection the Club des Hashischins ate at the Hotel de Lauzun in the 1840s,
@@ -637,16 +699,35 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      */
     private static void offerContainerCarried(RecipeExporter exporter, Identifier recipeId,
                                               ItemConvertible output, ItemConvertible unlockedBy,
-                                              List<ItemConvertible> inputs) {
+                                              List<Ingredient> inputs) {
         ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingRecipeCategory.MISC,
-                new ItemStack(output),
-                inputs.stream().map(Ingredient::ofItems).toList());
+                new ItemStack(output), inputs);
         exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
                 .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
                 .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
                 .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
                 .build(recipeId.withPrefixedPath("recipes/food/")));
+    }
+
+
+    /**
+     * Furnace, smoker and campfire, the way every vanilla food is cookable in all three. Written out
+     * rather than using {@code offerFoodCookingRecipe} because that helper only takes a single item
+     * as input and this one is keyed on the hemp-seed tag, so every strain works and a future strain
+     * needs no new recipe.
+     */
+    private static void offerFoodCooking(RecipeExporter exporter, String name, Ingredient input,
+                                         ItemConvertible output, ItemConvertible unlockedBy, float experience) {
+        CookingRecipeJsonBuilder.createSmelting(input, RecipeCategory.FOOD, output, experience, 200)
+                .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
+                .offerTo(exporter, id(name));
+        CookingRecipeJsonBuilder.createSmoking(input, RecipeCategory.FOOD, output, experience, 100)
+                .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
+                .offerTo(exporter, id(name + "_from_smoking"));
+        CookingRecipeJsonBuilder.createCampfireCooking(input, RecipeCategory.FOOD, output, experience, 600)
+                .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
+                .offerTo(exporter, id(name + "_from_campfire_cooking"));
     }
 
 }

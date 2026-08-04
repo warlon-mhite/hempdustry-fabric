@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.custom.BhangItem;
 import com.warlonmhite.hempdustry.item.custom.CannabutterItem;
+import com.warlonmhite.hempdustry.item.custom.HempMilkItem;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
@@ -18,6 +19,7 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.item.SignItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -65,6 +67,45 @@ public class ModItems {
     public static final Item CANNABUTTER = registerItem("cannabutter", new CannabutterItem(new Item.Settings()));
 
     // ---------------------------------------------------------------------
+    // Wholesome hemp-seed food. No THC anywhere in this block — hemp seed is
+    // one of the most nutritionally complete foods there is (9% carbohydrate,
+    // 49% fat, 31% protein, all eight essential amino acids) and the mod had
+    // nothing to say about it. None of these are alwaysEdible: that flag is
+    // for the dosed edibles below, where being unable to eat when full means
+    // being unable to dose. Ordinary food should obey ordinary hunger.
+    // ---------------------------------------------------------------------
+
+    /**
+     * Roasted hemp seed — vanilla's core food verb (cook the raw thing) applied to the one raw thing
+     * the mod had no cooked form of. 2 / 0.6: low nutrition, high saturation modifier, which is what
+     * a small, very dense seed honestly is. Dried-kelp tier.
+     */
+    public static final Item TOASTED_HEMP_SEEDS = registerItem("toasted_hemp_seeds",
+            new Item(new Item.Settings().food(new FoodComponent.Builder()
+                    .nutrition(2).saturationModifier(0.6F).snack().build())));
+
+    /** Seeds bound with honey. Portable and saturation-heavy, the shape a flapjack actually is. */
+    public static final Item HEMP_FLAPJACK = registerItem("hemp_flapjack",
+            new Item(new Item.Settings().food(new FoodComponent.Builder()
+                    .nutrition(4).saturationModifier(0.6F).build())));
+
+    /**
+     * Hemp seed milk. Vanilla's milk bucket with a different source — clears effects, not food. See
+     * {@link HempMilkItem} for why both halves of that are deliberate. The recipe remainder is what
+     * lets it be poured into siemieniotka without losing the bucket.
+     */
+    public static final Item HEMP_MILK_BUCKET = registerItem("hemp_milk_bucket",
+            new HempMilkItem(new Item.Settings().maxCount(1).recipeRemainder(Items.BUCKET)));
+
+    /**
+     * Siemieniotka — the Silesian hemp-seed Christmas Eve soup. Vanilla stew parity (6 / 0.6) and
+     * vanilla's own bowl, returned on eating the way every vanilla stew returns its own.
+     */
+    public static final Item SIEMIENIOTKA = registerItem("siemieniotka",
+            new Item(new Item.Settings().maxCount(1).food(new FoodComponent.Builder()
+                    .nutrition(6).saturationModifier(0.6F).usingConvertsTo(Items.BOWL).build())));
+
+    // ---------------------------------------------------------------------
     // Edibles. Cannabutter's first real use — the payoff for the whole
     // crop -> Decarboxylator -> wash -> Infuser chain.
     //
@@ -103,7 +144,8 @@ public class ModItems {
      */
     public static final Item BHANG_BUCKET = registerItem("bhang_bucket",
             new BhangItem(new Item.Settings().maxCount(1).food(new FoodComponent.Builder()
-                    .nutrition(6).saturationModifier(0.3F).alwaysEdible().build())));
+                    .nutrition(6).saturationModifier(0.3F).alwaysEdible()
+                    .usingConvertsTo(Items.BUCKET).build())));
 
     /**
      * Dawamesk — the top of the ladder, and the only edible here with a real history rather than a

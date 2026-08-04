@@ -1,19 +1,17 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.util.UseAction;
-import net.minecraft.world.World;
 
 /**
  * Bhang — decarboxylated hemp worked into hot milk with sugar. The only <em>drink</em> in the
  * edibles set, and the only one that skips cannabutter entirely.
  *
  * <p>Kept and drunk from the bucket, exactly as vanilla milk is: {@code maxCount(1)}, and finishing
- * it hands the bucket back. That is a real drawback next to the stackable edibles — one serving per
+ * it hands the bucket back — via {@code FoodComponent.Builder.usingConvertsTo}, which is how 1.21.1's
+ * own stews return their bowls, rather than a hand-written {@code finishUsing}. That is a real drawback next to the stackable edibles — one serving per
  * inventory slot — and it is the right one for the crudest preparation in the set.
  *
  * <h2>Why it takes decarboxylated hemp rather than cannabutter</h2>
@@ -69,24 +67,4 @@ public class BhangItem extends Item {
         return MAX_USE_TIME;
     }
 
-    /**
-     * Hand the bucket back, the way vanilla's milk bucket and honey bottle return theirs. Modelled
-     * on {@code HoneyBottleItem}: let the food logic run first, then replace the emptied stack with
-     * the container — or, if anything survived (it cannot at {@code maxCount(1)}, but the pattern
-     * should not assume that), push the container into the inventory and drop it if there is no room.
-     */
-    @Override
-    public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
-        ItemStack remainder = super.finishUsing(stack, world, user);
-        if (user instanceof PlayerEntity player && player.getAbilities().creativeMode) {
-            return remainder;
-        }
-        if (remainder.isEmpty()) {
-            return new ItemStack(Items.BUCKET);
-        }
-        if (user instanceof PlayerEntity player && !player.getInventory().insertStack(new ItemStack(Items.BUCKET))) {
-            player.dropItem(new ItemStack(Items.BUCKET), false);
-        }
-        return remainder;
-    }
 }

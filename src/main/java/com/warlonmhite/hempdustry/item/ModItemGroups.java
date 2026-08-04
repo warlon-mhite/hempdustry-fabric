@@ -33,6 +33,11 @@ public class ModItemGroups {
                         entries.add(ModItems.HEMPCRETE);
                         entries.add(ModItems.HEMP_BRICK);
                         entries.add(ModItems.CANNABUTTER);
+                        entries.add(ModItems.TOASTED_HEMP_SEEDS);
+                        entries.add(ModItems.HEMP_FLAPJACK);
+                        entries.add(ModItems.HEMP_MILK_BUCKET);
+                        entries.add(ModItems.SIEMIENIOTKA);
+
                         entries.add(ModItems.CANNABUTTER_TOAST);
                         entries.add(ModItems.SPACE_COOKIE);
                         entries.add(ModItems.SPACE_BROWNIE);

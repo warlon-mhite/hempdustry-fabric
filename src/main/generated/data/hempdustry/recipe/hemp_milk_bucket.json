@@ -1,0 +1,22 @@
+{
+  "type": "hempdustry:container_carried",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "hempdustry:hemp_seeds"
+    },
+    {
+      "tag": "hempdustry:hemp_seeds"
+    },
+    {
+      "tag": "hempdustry:hemp_seeds"
+    },
+    {
+      "item": "minecraft:water_bucket"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:hemp_milk_bucket"
+  }
+}

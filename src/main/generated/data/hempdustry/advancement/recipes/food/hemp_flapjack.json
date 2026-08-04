@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:hemp_flapjack"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_toasted_hemp_seeds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:toasted_hemp_seeds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_toasted_hemp_seeds"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:hemp_flapjack"
+    ]
+  }
+}
