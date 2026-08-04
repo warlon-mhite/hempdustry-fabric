@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_cannabutter": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:cannabutter"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:space_cake"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_cannabutter"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:space_cake"
+    ]
+  }
+}

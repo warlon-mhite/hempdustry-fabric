@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "hempdustry:cannabutter"
+    },
+    "F": {
+      "item": "hempdustry:hemp_flour"
+    },
+    "M": {
+      "item": "minecraft:milk_bucket"
+    },
+    "S": {
+      "item": "minecraft:sugar"
+    }
+  },
+  "pattern": [
+    "MMM",
+    "SBS",
+    "FFF"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:space_cake"
+  }
+}

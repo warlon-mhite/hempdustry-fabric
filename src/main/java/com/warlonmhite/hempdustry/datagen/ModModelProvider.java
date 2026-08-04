@@ -7,6 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
+import net.minecraft.block.CakeBlock;
 import com.warlonmhite.hempdustry.item.custom.Strain;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
@@ -49,6 +50,8 @@ public class ModModelProvider extends FabricModelProvider {
 
         blockStateModelGenerator.registerLog(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
 
+        registerSpaceCake(blockStateModelGenerator);
+
         blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockStateModelGenerator.TintType.NOT_TINTED);
         blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER, BlockStateModelGenerator.TintType.NOT_TINTED);
 
@@ -69,6 +72,11 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.DECARBOXYLATED_HEMP, Models.GENERATED);
         itemModelGenerator.register(ModItems.WASHED_DECARBOXYLATED_HEMP, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMPCRETE, Models.GENERATED);
+        itemModelGenerator.register(ModItems.CANNABUTTER_TOAST, Models.GENERATED);
+        itemModelGenerator.register(ModItems.SPACE_COOKIE, Models.GENERATED);
+        itemModelGenerator.register(ModItems.SPACE_BROWNIE, Models.GENERATED);
+        itemModelGenerator.register(ModItems.BHANG_BUCKET, Models.GENERATED);
+        itemModelGenerator.register(ModItems.DAWAMESK, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_SEEDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_BUDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.MUSIC_DISC_GANJA, Models.GENERATED);
@@ -158,6 +166,54 @@ public class ModModelProvider extends FabricModelProvider {
     }
 
     private record ModelOverride(int threshold, Identifier model) {
+    }
+
+
+    /**
+     * Space Cake's blockstate and its seven models.
+     *
+     * <p>Each model is a one-line child of the matching vanilla cake model with only the texture map
+     * replaced — model inheritance carries the {@code elements} across, so the bite geometry, the
+     * cullfaces and the shrinking hitbox all come from Mojang and cannot drift out of step with them.
+     * The vanilla {@link Models} helpers can't express "parent plus textures", so these go straight
+     * to the generator's model collector, same as the smoking-gear overrides above.
+     */
+    private static void registerSpaceCake(BlockStateModelGenerator generator) {
+        BlockStateVariantMap.SingleProperty<Integer> variants = BlockStateVariantMap.create(CakeBlock.BITES);
+        for (int bites = 0; bites <= CakeBlock.MAX_BITES; bites++) {
+            String suffix = bites == 0 ? "" : "_slice" + bites;
+            Identifier model = Identifier.of(Hempdustry.MOD_ID, "block/space_cake" + suffix);
+            uploadRetextured(generator, model, Identifier.ofVanilla("block/cake" + suffix), bites > 0);
+            variants.register(bites, BlockStateVariant.create().put(VariantSettings.MODEL, model));
+        }
+        generator.blockStateCollector.accept(
+                VariantsBlockStateSupplier.create(ModBlocks.SPACE_CAKE).coordinate(variants));
+        // The item is the whole, uneaten cake, exactly as vanilla's cake item is.
+        Models.GENERATED.upload(ModelIds.getItemModelId(ModBlocks.SPACE_CAKE.asItem()),
+                TextureMap.layer0(Identifier.of(Hempdustry.MOD_ID, "item/space_cake")),
+                generator.modelCollector);
+    }
+
+    private static void uploadRetextured(BlockStateModelGenerator generator, Identifier modelId,
+                                         Identifier parent, boolean sliced) {
+        generator.modelCollector.accept(modelId, () -> {
+            JsonObject textures = new JsonObject();
+            textures.addProperty("particle", cakeTexture("side"));
+            textures.addProperty("bottom", cakeTexture("bottom"));
+            textures.addProperty("top", cakeTexture("top"));
+            textures.addProperty("side", cakeTexture("side"));
+            if (sliced) {
+                textures.addProperty("inside", cakeTexture("inner"));
+            }
+            JsonObject json = new JsonObject();
+            json.addProperty("parent", parent.toString());
+            json.add("textures", textures);
+            return (JsonElement) json;
+        });
+    }
+
+    private static String cakeTexture(String face) {
+        return Hempdustry.MOD_ID + ":block/space_cake_" + face;
     }
 
 }

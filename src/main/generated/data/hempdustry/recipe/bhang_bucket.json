@@ -1,0 +1,22 @@
+{
+  "type": "hempdustry:container_carried",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "hempdustry:decarboxylated_hemp"
+    },
+    {
+      "item": "hempdustry:decarboxylated_hemp"
+    },
+    {
+      "item": "minecraft:milk_bucket"
+    },
+    {
+      "item": "minecraft:sugar"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:bhang_bucket"
+  }
+}

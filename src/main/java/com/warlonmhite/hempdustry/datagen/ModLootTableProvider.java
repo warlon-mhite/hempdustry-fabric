@@ -65,6 +65,9 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMP_BALE);
         addDrop(ModBlocks.HEMP_WOOL);
         addDrop(ModBlocks.HEMP_CARPET);
+        // Empty, exactly like vanilla's cake: you cannot pick a cake back up once it is placed.
+        // Vanilla still ships a loot table file for it rather than omitting one, so we do too.
+        addDrop(ModBlocks.SPACE_CAKE, LootTable.builder());
         // The block entity's contents are scattered by DecarboxylatorBlock#onStateReplaced, so the
         // loot table only has to hand back the machine itself.
         addDrop(ModBlocks.DECARBOXYLATOR);

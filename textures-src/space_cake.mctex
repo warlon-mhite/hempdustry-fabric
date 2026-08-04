@@ -1,0 +1,166 @@
+# Space Cake — vanilla's cake with the strawberries swapped for hemp.
+#
+# Every MATRIX below is the matching vanilla cake texture extracted verbatim; only the PALETTE
+# is ours, and it moves in exactly two ways:
+#
+#   * the four strawberry reds map, in luminance order, onto a hemp-leaf green ramp. That is the
+#     whole visual idea — a cake iced with herb instead of fruit reads instantly and needs no new
+#     shape. Greens run slightly darker than the reds they replace, which is correct: herb is not
+#     as bright as a strawberry.
+#   * the sponge browns take a mild olive shift (R x0.92, G x1.10, B x0.90), so there is visibly
+#     something through the batter as well as on top. Creams and whites are untouched, because a
+#     space cake is still a cake.
+#
+# PLACEHOLDER: derived art, not drawn. Redraw or retone freely — to retone, change GREENS or the
+# olive factors in the generator and re-render.
+
+@palette space_cake_top
+. = none
+1 = 2F4D1D
+2 = 3E5F24
+3 = 486F2A
+4 = 6F9438
+5 = F6E8CB
+6 = FDF4D8
+7 = FFFDFE
+
+@texture block/space_cake_top 16x16 palette=space_cake_top type=block
+................
+.55667777776655.
+.56777777772765.
+.67743556677776.
+.67732677767776.
+.77567777771777.
+.77577622677677.
+.72677243277677.
+.77677232167577.
+.77767621676517.
+.77776556776577.
+.67427777775677.
+.67315677647776.
+.56777556777765.
+.55667777777665.
+................
+
+@palette space_cake_side
+. = none
+1 = 2F4D1D
+2 = 3E5F24
+3 = 486F2A
+4 = 6F9438
+5 = 6F9438
+6 = E0D3B8
+7 = F6E8CB
+8 = FDF4D8
+9 = FFFDFE
+
+@texture block/space_cake_side 16x16 palette=space_cake_side type=block
+................
+................
+................
+................
+................
+................
+................
+................
+.78999999999987.
+.78999999999987.
+.77899988999877.
+.67238733872376.
+.13443455441331.
+.12455555355421.
+.13425545554431.
+.11222222222211.
+
+@palette space_cake_bottom
+. = none
+1 = 2F4D1D
+2 = 3E5F24
+3 = 486F2A
+4 = 6F9438
+
+@texture block/space_cake_bottom 16x16 palette=space_cake_bottom type=block
+................
+.22334332333322.
+.23333333333432.
+.33322123332323.
+.34232222122233.
+.33221222222133.
+.32222232232234.
+.33212222221233.
+.34222212222333.
+.33322222232332.
+.23331222221233.
+.33222232122234.
+.33322222332333.
+.23233433333332.
+.22333332343322.
+................
+
+@palette space_cake_inner
+. = none
+1 = 2F4D1D
+2 = 3E5F24
+3 = 486F2A
+4 = 6F9438
+5 = 6F9438
+6 = 6F9438
+7 = E0D3B8
+8 = F6E8CB
+9 = FDF4D8
+a = FFFDFE
+
+@texture block/space_cake_inner 16x16 palette=space_cake_inner type=block
+................
+................
+................
+................
+................
+................
+................
+................
+.79aa8997988997.
+.95885222259559.
+.65493443434456.
+.64344444554346.
+.62112221122226.
+.65444354223456.
+.64434443444346.
+.61122112221116.
+
+@palette space_cake
+. = none
+1 = 38200A
+2 = 2F4D1D
+3 = 3E5F24
+4 = 486F2A
+5 = 6F9438
+6 = 6F9438
+7 = 6F9438
+8 = 6F9438
+9 = 6F9438
+a = 6F9438
+b = 6F9438
+c = 6F9438
+d = D5C8AC
+e = F5E6C6
+f = FFF8E2
+g = FFFDFE
+
+@texture item/space_cake 16x16 palette=space_cake type=item
+................
+....dddddddd....
+..ddeffffffedd..
+.degg3g55gggged.
+deg3gf5c85g3gged
+dfggfgd85dgfg8fd
+degg8feddffggfed
+deffgggggg8gfeed
+2effffffefeeeed2
+26efffffeeeeed21
+247efffeeefe7421
+26aa7e7a74e47721
+.26bababa997741.
+..22abbbab7411..
+....11111111....
+................

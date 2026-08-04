@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.item.custom.BhangItem;
 import com.warlonmhite.hempdustry.item.custom.CannabutterItem;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
@@ -14,6 +15,7 @@ import net.minecraft.item.AliasedBlockItem;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.HangingSignItem;
 import com.warlonmhite.hempdustry.component.ModComponents;
+import net.minecraft.component.type.FoodComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SignItem;
@@ -61,6 +63,56 @@ public class ModItems {
     public static final Item HEMPCRETE = registerItem("hempcrete", new Item(new Item.Settings()));
     public static final Item HEMP_BRICK = registerItem("hemp_brick", new Item(new Item.Settings()));
     public static final Item CANNABUTTER = registerItem("cannabutter", new CannabutterItem(new Item.Settings()));
+
+    // ---------------------------------------------------------------------
+    // Edibles. Cannabutter's first real use — the payoff for the whole
+    // crop -> Decarboxylator -> wash -> Infuser chain.
+    //
+    // Nutrition/saturation are pitched against the vanilla foods each one is
+    // modelled on; none of them do anything beyond feeding you yet, which is
+    // the effects pass (CLAUDE.md §5 #14). They are all alwaysEdible, because
+    // an edible you cannot eat when full is an edible you cannot dose with —
+    // vanilla marks the golden apple the same way for the same reason.
+    // ---------------------------------------------------------------------
+
+    /**
+     * The bottom rung, and the only one that isn't baked: butter spread on bread you already have.
+     * 2 / 0.3, three to a loaf — so a loaf's 5 nutrition and 6.0 saturation becomes 6 nutrition and
+     * 3.6 across three slices. Nutrition up, saturation down, nothing created. What it buys is
+     * speed: no hemp flour, no cocoa, no sugar.
+     */
+    public static final Item CANNABUTTER_TOAST = registerItem("cannabutter_toast",
+            new Item(new Item.Settings().food(new FoodComponent.Builder()
+                    .nutrition(2).saturationModifier(0.3F).alwaysEdible().build())));
+
+    /** Vanilla cookie parity (2 / 0.1), eight to a batch. The cheap, low-dose entry point. */
+    public static final Item SPACE_COOKIE = registerItem("space_cookie",
+            new Item(new Item.Settings().food(new FoodComponent.Builder()
+                    .nutrition(2).saturationModifier(0.1F).alwaysEdible().build())));
+
+    /** Richer than a cookie, pitched at an apple (4 / 0.3). Four to a batch. */
+    public static final Item SPACE_BROWNIE = registerItem("space_brownie",
+            new Item(new Item.Settings().food(new FoodComponent.Builder()
+                    .nutrition(4).saturationModifier(0.3F).alwaysEdible().build())));
+
+    /**
+     * Bhang — the drink, and the only edible that skips cannabutter. Kept and drunk from the bucket
+     * exactly as vanilla milk is, so it is {@code maxCount(1)} and hands the bucket back when you
+     * finish it. 6 / 0.3: filling, but below dawamesk on saturation, which is the right ordering for
+     * the cruder preparation. See {@link BhangItem} for the design.
+     */
+    public static final Item BHANG_BUCKET = registerItem("bhang_bucket",
+            new BhangItem(new Item.Settings().maxCount(1).food(new FoodComponent.Builder()
+                    .nutrition(6).saturationModifier(0.3F).alwaysEdible().build())));
+
+    /**
+     * Dawamesk — the top of the ladder, and the only edible here with a real history rather than a
+     * folk name. Sugar, honey and fruit around the fat make it calorie-dense, so it lands above
+     * bread on saturation (6 / 0.6 = 7.2) while costing a whole cannabutter for a single item.
+     */
+    public static final Item DAWAMESK = registerItem("dawamesk",
+            new Item(new Item.Settings().maxCount(16).food(new FoodComponent.Builder()
+                    .nutrition(6).saturationModifier(0.6F).alwaysEdible().build())));
 
 
     // One item each, for every strain and every dose. What is rolled or packed into them lives in

@@ -33,6 +33,12 @@ public class ModItemGroups {
                         entries.add(ModItems.HEMPCRETE);
                         entries.add(ModItems.HEMP_BRICK);
                         entries.add(ModItems.CANNABUTTER);
+                        entries.add(ModItems.CANNABUTTER_TOAST);
+                        entries.add(ModItems.SPACE_COOKIE);
+                        entries.add(ModItems.SPACE_BROWNIE);
+                        entries.add(ModItems.BHANG_BUCKET);
+                        entries.add(ModItems.DAWAMESK);
+                        entries.add(ModBlocks.SPACE_CAKE);
 
                         // The empty devices as items, then one *stack* per strain per dose for
                         // everything loaded — the same way vanilla lists forty-odd potions off a

@@ -14,6 +14,10 @@ which lets the scan catch mod-vs-vanilla collisions as well as mod-vs-mod:
 
     unzip -q ~/.gradle/caches/fabric-loom/1.21.1/minecraft-client.jar 'data/minecraft/*' -d /tmp/mcdata
 
+Custom crafting recipe types this mod adds are mapped onto the vanilla shape they behave like
+(see SHAPELESS_TYPES / SHAPED_TYPES) -- they still occupy the crafting grid and can still collide,
+so leaving them out would make the scan silently under-report.
+
 Matching rules mirror 1.21.1:
   - shaped vs shaped   -> collide when ingredients AND shape match (shape up to the
                           horizontal mirror ShapedRecipe.matches also tests)
@@ -28,6 +32,12 @@ import collections
 import json
 import os
 import sys
+
+
+# Recipe types that match the grid like a vanilla shapeless recipe. hempdustry:container_carried
+# is an ordinary shapeless recipe that suppresses its ingredients' recipe remainders.
+SHAPELESS_TYPES = {"minecraft:crafting_shapeless", "hempdustry:container_carried"}
+SHAPED_TYPES = {"minecraft:crafting_shaped"}
 
 
 def ingredient(v):
@@ -48,7 +58,7 @@ def load(root, namespace):
                 recipe = json.load(fh)
             rid = namespace + ":" + os.path.relpath(path, base)[:-len(".json")]
             kind = recipe.get("type", "")
-            if kind == "minecraft:crafting_shaped":
+            if kind in SHAPED_TYPES:
                 key = {k: ingredient(v) for k, v in recipe["key"].items()}
                 width = max(len(row) for row in recipe["pattern"])
                 pattern = [row.ljust(width) for row in recipe["pattern"]]
@@ -60,7 +70,7 @@ def load(root, namespace):
                 shape = tuple(tuple(key.get(c, "") for c in row) for row in pattern)
                 mirror = tuple(tuple(reversed(row)) for row in shape)
                 out.append((rid, "shaped", frozenset(counts.items()), min(shape, mirror)))
-            elif kind == "minecraft:crafting_shapeless":
+            elif kind in SHAPELESS_TYPES:
                 counts = collections.Counter(ingredient(v) for v in recipe["ingredients"])
                 out.append((rid, "shapeless", frozenset(counts.items()), None))
     return out

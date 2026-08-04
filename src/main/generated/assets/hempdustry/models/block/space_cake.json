@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cake",
+  "textures": {
+    "bottom": "hempdustry:block/space_cake_bottom",
+    "particle": "hempdustry:block/space_cake_side",
+    "side": "hempdustry:block/space_cake_side",
+    "top": "hempdustry:block/space_cake_top"
+  }
+}

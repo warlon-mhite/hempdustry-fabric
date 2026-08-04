@@ -1,0 +1,157 @@
+# PLACEHOLDER art for the three cannabutter edibles.
+#
+# Drawn rather than derived (unlike space_cake.mctex, which retones vanilla's cake). All three
+# share one idea so they read as a family: a warm baked base with hemp-green flecks through it,
+# the same green ramp the Space Cake uses for its icing.
+#
+# Redraw freely. If you only want to retone, the green flecks are `g`/`G` in every palette.
+
+@palette cookie
+. = none
+o = 2E1A08
+d = 7A4E22
+m = A9722F
+h = E8B978
+g = 486F2A
+G = 2F4D1D
+
+@texture item/space_cookie 16x16 palette=cookie type=item
+................
+.....oooooo.....
+...ooodmmdooo...
+..oodmGmmhmdoo..
+..odmmmmhmmgdo..
+.oodmmhmmmmmdoo.
+.odmgmmhmmGmmdo.
+.odmmmhmmgmmmdo.
+.odmmmmmmmhmmdo.
+.oodmGmmgmmmdoo.
+..odmmmhmmmmdo..
+..oodmmmmmhdoo..
+...ooodmmdooo...
+.....oooooo.....
+................
+................
+
+@palette brownie
+. = none
+o = 1A0D05
+d = 3B1F0E
+m = 55301A
+t = 7E4C29
+h = B0734A
+g = 486F2A
+G = 6F9438
+
+@texture item/space_brownie 16x16 palette=brownie type=item
+................
+................
+.....oooooo.....
+....ottttttoo...
+...ottGtthtttoo.
+..otthtttgtttto.
+..ohtttthttGtto.
+..ommmmmmmmmmdo.
+..ommgmmmhmmmdo.
+..odmmmhmmmGmdo.
+..odmmmmmmmmmdo.
+..odmGmmgmmmmdo.
+..oddmmmmmmmddo.
+...oodddddddoo..
+.....oooooo.....
+................
+
+@palette dawamesk
+. = none
+o = 1E1E0C
+d = 4A4A1E
+m = 6E6B2C
+h = 8F8C3C
+s = C9A96A
+w = F0E8C4
+
+@texture item/dawamesk 16x16 palette=dawamesk type=item
+................
+......oooo......
+....oodhhwdoo...
+...odhhwwhhsdo..
+..odhmhhhmhhdo..
+..odmmshmmhmsdo.
+.odmmmhmmsmmmdo.
+.odsmmmmhmmmmdo.
+.odmmhmmmmsmmdo.
+.odmmmsmmhmmmdo.
+..odmmmmsmmmdo..
+..oodmmmmmmdoo..
+...oodmmmmdoo...
+.....oooooo.....
+................
+................
+
+
+@palette toast
+. = none
+o = 2A1607
+c = 6B4118
+d = 8C5A24
+m = B07B33
+h = D9A45C
+b = E8D48A
+g = 486F2A
+G = 6F9438
+
+@texture item/cannabutter_toast 16x16 palette=toast type=item
+................
+.....oooooo.....
+...oobbbbbboo...
+..obbGbbgbbbbo..
+..obbbbbbbGbbo..
+.ocbbgbbbbbbbco.
+.ochhhhhhhhhhco.
+.ochmmmhmmmhmco.
+.ocmmmmmmmmmmco.
+.ocmmdmmmhmmmco.
+.ocmmmmdmmmmmco.
+.ocdmmmmmmmdmco.
+.occdddddddddco.
+..occcccccccco..
+...oooooooooo...
+................
+
+# Bhang is vanilla's milk_bucket with only the *milk* retoned -- the bucket metal is untouched, so
+# it reads as the same object holding something else. Note vanilla shares FFFFFF between the milk
+# surface and the specular highlight on the metal, so the milk's white needed its own character
+# (`A`) or the bucket would have gone green too. Greens keep the milk tones' luminance ordering and
+# sit slightly darker, which is right for a green drink.
+
+@palette bhang
+. = none
+1 = 353535
+2 = 727272
+3 = 787878
+4 = 969696
+5 = 989898
+6 = A8A8A8
+7 = 8FA95E
+8 = D8D8D8
+9 = B5CE83
+A = D6E6AE
+a = FFFFFF
+
+@texture item/bhang_bucket 16x16 palette=bhang type=item
+................
+.....111111.....
+...1133555511...
+..1379AAA99731..
+..17AAAAAAAA71..
+..111799AA7111..
+..186111111241..
+..188886642241..
+..188a86642261..
+..168a86642261..
+..128a86642241..
+...1888664241...
+...1688644241...
+....16864241....
+.....111111.....
+................
