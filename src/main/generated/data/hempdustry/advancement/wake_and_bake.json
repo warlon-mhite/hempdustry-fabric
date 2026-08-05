@@ -1,0 +1,35 @@
+{
+  "parent": "hempdustry:first_contact",
+  "criteria": {
+    "smoked_at_dawn": {
+      "conditions": {
+        "time": {
+          "max": 420,
+          "min": 0
+        }
+      },
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.wake_and_bake.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "minecraft:red_bed"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.wake_and_bake.title"
+    }
+  },
+  "requirements": [
+    [
+      "smoked_at_dawn"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

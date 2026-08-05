@@ -1,0 +1,38 @@
+{
+  "parent": "hempdustry:pipe_dream",
+  "criteria": {
+    "smoked_a_device_to_death": {
+      "conditions": {
+        "durability": {
+          "max": 0
+        },
+        "item": {
+          "items": [
+            "hempdustry:wooden_pipe",
+            "hempdustry:bong"
+          ]
+        }
+      },
+      "trigger": "minecraft:item_durability_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.burnout.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:anvil"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.burnout.title"
+    }
+  },
+  "requirements": [
+    [
+      "smoked_a_device_to_death"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

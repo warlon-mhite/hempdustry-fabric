@@ -1,0 +1,58 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "fed_a_parrot_hemp_seeds": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "minecraft:parrot"
+            }
+          }
+        ],
+        "item": {
+          "items": "#hempdustry:hemp_seeds"
+        }
+      },
+      "trigger": "minecraft:player_interacted_with_entity"
+    },
+    "tamed_a_parrot": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "minecraft:parrot"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.parrot_tamer.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:feather"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.parrot_tamer.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_a_parrot"
+    ],
+    [
+      "fed_a_parrot_hemp_seeds"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

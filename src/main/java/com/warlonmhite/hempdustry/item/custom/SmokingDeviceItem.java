@@ -80,7 +80,7 @@ public class SmokingDeviceItem extends Item {
             return TypedActionResult.pass(stack);
         }
         if (!world.isClient) {
-            Smoking.takeHit(world, player, contents, device.durationTicks(),
+            Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
                     device.coughChanceOneIn(), device.nauseaChanceOneIn(),
                     Smoking.greenOutChanceOneIn(contents.dose(), false));
             player.getItemCooldownManager().set(this, device.cooldownTicks());

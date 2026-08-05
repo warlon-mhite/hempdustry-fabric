@@ -5,6 +5,7 @@ import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -62,9 +63,9 @@ public final class Smoking {
      * what makes it a real loss and instantly readable — you spent three buds and got none of the
      * good part — instead of a debuff quietly layered under the buffs you were expecting.
      */
-    public static void takeHit(World world, PlayerEntity player, SmokeContents contents,
-                               int durationTicks, int coughChanceOneIn, int nauseaChanceOneIn,
-                               int greenOutChanceOneIn) {
+    public static void takeHit(World world, PlayerEntity player, ItemStack stack,
+                               SmokeContents contents, int durationTicks, int coughChanceOneIn,
+                               int nauseaChanceOneIn, int greenOutChanceOneIn) {
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 ModSounds.SMOKING, SoundCategory.PLAYERS, 1f, 1f);
 
@@ -79,11 +80,12 @@ public final class Smoking {
             }
         }
 
-        // Smoke criterion: device- and strain-agnostic, fires on every hit. Backs "First Contact"
-        // (any time) and "Blaze It!" (only inside the 4:20 window); the time gate lives in the
-        // conditions, so we just hand it the current time of day (tick 0 = 6:00 AM).
+        // Smoke criterion: fires on every hit, from every smokeable. What (if anything) narrows it
+        // lives in the advancement's conditions — a time window for "Blaze It!" and "Wake and Bake",
+        // an item predicate for "Pipe Dream" and "Bong Voyage" — so all this does is hand over the
+        // time of day (tick 0 = 6:00 AM) and the stack, still packed at this point.
         if (player instanceof ServerPlayerEntity serverPlayer) {
-            ModCriteria.SMOKE.trigger(serverPlayer, world.getTimeOfDay() % 24000L);
+            ModCriteria.SMOKE.trigger(serverPlayer, world.getTimeOfDay() % 24000L, stack);
         }
 
         if (world instanceof ServerWorld serverWorld) {

@@ -52,7 +52,7 @@ public class SpliffItem extends Item {
             return TypedActionResult.pass(stack);
         }
         if (!world.isClient) {
-            Smoking.takeHit(world, player, contents, DURATION_TICKS,
+            Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
                     COUGH_CHANCE_ONE_IN, NAUSEA_CHANCE_ONE_IN,
                     Smoking.greenOutChanceOneIn(contents.dose(), true));
             player.getItemCooldownManager().set(this, COOLDOWN_TICKS);

@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -325,6 +326,11 @@ public class SativaCropBlock extends CropBlock {
             BlockPos lowerPos = this.findLowerPos(world, pos, state);
             BlockState lower = world.getBlockState(lowerPos);
             if (lower.isOf(this) && isLower(lower)) {
+                // The trim flags and the canonical age both live on the LOWER, so the harvest
+                // criterion is fed from there whichever segment the player actually broke.
+                if (this.isMature(lower)) {
+                    HarvestHempCriterion.trigger(player, lower);
+                }
                 for (int offset = 2; offset >= 1; offset--) {
                     BlockPos segmentPos = lowerPos.up(offset);
                     BlockState segment = world.getBlockState(segmentPos);

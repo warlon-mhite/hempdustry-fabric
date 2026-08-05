@@ -1,0 +1,34 @@
+{
+  "parent": "hempdustry:activation_energy",
+  "criteria": {
+    "has_washed_hemp": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:washed_decarboxylated_hemp"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.rinse_cycle.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:washed_decarboxylated_hemp"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.rinse_cycle.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_washed_hemp"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

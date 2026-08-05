@@ -36,6 +36,13 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP);
 
+        // "A hemp plant you can defoliate", strain-agnostic. The "Trim Season" advancement matches
+        // shears-used-on-a-block-in-this-tag, which is exactly where Defoliation#tryCut succeeds
+        // and nowhere else — see ModAdvancementProvider.
+        getOrCreateTagBuilder(ModTags.Blocks.HEMP_CROPS)
+                .add(ModBlocks.INDICA_CROP)
+                .add(ModBlocks.SATIVA_CROP);
+
         // What will heat an Infuser standing on top of it. Anything here that carries a LIT
         // property must also be lit (see InfuserBlockEntity#isHeatedFrom), which is what makes the
         // campfire the practical choice — it is permanently lit and cheap, where a furnace is only

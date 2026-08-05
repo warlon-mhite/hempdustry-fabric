@@ -28,6 +28,15 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ModTags.Items.MILK_BUCKETS)
                 .add(Items.MILK_BUCKET);
 
+        // The dosed foods, as one group. Space Cake is absent on purpose: a slice is eaten by using
+        // the *block*, which never fires minecraft:consume_item — see ModTags.Items.EDIBLES.
+        getOrCreateTagBuilder(ModTags.Items.EDIBLES)
+                .add(ModItems.CANNABUTTER_TOAST)
+                .add(ModItems.SPACE_COOKIE)
+                .add(ModItems.SPACE_BROWNIE)
+                .add(ModItems.BHANG_BUCKET)
+                .add(ModItems.DAWAMESK);
+
         // Strain-agnostic: any hemp seed variant (future Lemon Haze included) feeds/tames parrots,
         // same as vanilla's wheat/melon/pumpkin/beetroot seeds.
         getOrCreateTagBuilder(ItemTags.PARROT_FOOD)

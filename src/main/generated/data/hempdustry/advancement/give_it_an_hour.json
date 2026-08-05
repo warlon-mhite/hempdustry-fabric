@@ -1,0 +1,32 @@
+{
+  "parent": "hempdustry:butter_late_than_never",
+  "criteria": {
+    "ate_an_edible": {
+      "conditions": {
+        "item": {
+          "items": "#hempdustry:edibles"
+        }
+      },
+      "trigger": "minecraft:consume_item"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.give_it_an_hour.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:space_cookie"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.give_it_an_hour.title"
+    }
+  },
+  "requirements": [
+    [
+      "ate_an_edible"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

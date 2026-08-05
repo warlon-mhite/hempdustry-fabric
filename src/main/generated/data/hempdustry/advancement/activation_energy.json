@@ -1,0 +1,35 @@
+{
+  "parent": "hempdustry:hemp_builder",
+  "criteria": {
+    "has_decarboxylator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:decarboxylator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.activation_energy.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:decarboxylator"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.activation_energy.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_decarboxylator"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

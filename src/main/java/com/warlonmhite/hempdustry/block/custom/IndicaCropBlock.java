@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -289,6 +290,15 @@ public class IndicaCropBlock extends CropBlock {
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (!world.isClient) {
+            // The trim flags and the canonical age both live on the LOWER half, so the harvest
+            // criterion is fed from there whichever half the player actually broke.
+            BlockPos canonicalPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
+            BlockState canonical = world.getBlockState(canonicalPos);
+            if (canonical.isOf(this) && canonical.get(HALF) == DoubleBlockHalf.LOWER
+                    && this.isMature(canonical)) {
+                HarvestHempCriterion.trigger(player, canonical);
+            }
+
             if (state.get(HALF) == DoubleBlockHalf.UPPER) {
                 BlockPos lowerPos = pos.down();
                 BlockState lower = world.getBlockState(lowerPos);

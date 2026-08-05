@@ -1,0 +1,39 @@
+{
+  "parent": "hempdustry:butter_late_than_never",
+  "criteria": {
+    "has_perfect_cannabutter": {
+      "conditions": {
+        "items": [
+          {
+            "components": {
+              "hempdustry:quality": "perfect"
+            },
+            "items": "hempdustry:cannabutter"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.perfect_batch.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:infuser"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.perfect_batch.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_perfect_cannabutter"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

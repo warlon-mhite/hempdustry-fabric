@@ -32,6 +32,16 @@ public class ModTags {
          * check so another mod's milk works, and so a datapack can widen it without touching code.
          */
         public static final TagKey<Item> MILK_BUCKETS = createTag("milk_buckets");
+        /**
+         * Everything dosed with cannabutter (or, for bhang, with decarboxylated hemp directly).
+         * Exists so "eat your first edible" is one advancement rather than one per food, and so a
+         * future edible joins it instead of needing the criterion edited.
+         *
+         * <p><b>Space Cake is deliberately not in here.</b> Eating a slice is a block interaction,
+         * not item consumption, so {@code minecraft:consume_item} never fires for it — listing it
+         * would be a lie the tag couldn't keep.
+         */
+        public static final TagKey<Item> EDIBLES = createTag("edibles");
         private static TagKey<Item> createTag(String name) {
             return TagKey.of(RegistryKeys.ITEM, Identifier.of(Hempdustry.MOD_ID, name));
         }
@@ -45,6 +55,16 @@ public class ModTags {
          * {@code InfuserBlockEntity#isHeatedFrom}.
          */
         public static final TagKey<Block> HEAT_SOURCES = createTag("heat_sources");
+        /**
+         * Every hemp crop, strain-agnostic — the block-side counterpart of
+         * {@link Items#HEMP_SEEDS}. Used by the "Trim Season" advancement to recognise a shearing
+         * as a defoliation without naming either strain, so a third one joins the tag and is
+         * covered for free.
+         *
+         * <p>Deliberately ours rather than {@code #minecraft:crops}: that tag holds wheat and
+         * friends too, and this needs to mean "a plant that can be trimmed".
+         */
+        public static final TagKey<Block> HEMP_CROPS = createTag("hemp_crops");
         private static TagKey<Block> createTag(String name) {
             return TagKey.of(RegistryKeys.BLOCK, Identifier.of(Hempdustry.MOD_ID, name));
         }

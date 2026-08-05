@@ -16,6 +16,11 @@ public class ModCriteria {
             Identifier.of(Hempdustry.MOD_ID, "smoke"),
             new SmokeCriterion());
 
+    public static final HarvestHempCriterion HARVEST_HEMP = Registry.register(
+            Registries.CRITERION,
+            Identifier.of(Hempdustry.MOD_ID, "harvest_hemp"),
+            new HarvestHempCriterion());
+
     public static void registerCriteria() {
         Hempdustry.LOGGER.info("Registering Advancement Criteria for " + Hempdustry.MOD_ID);
     }

@@ -1,0 +1,45 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "sheared_hemp_crop": {
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": "#hempdustry:hemp_crops"
+              }
+            }
+          },
+          {
+            "condition": "minecraft:match_tool",
+            "predicate": {
+              "items": "#c:tools/shears"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:item_used_on_block"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.trim_season.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:shears"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.trim_season.title"
+    }
+  },
+  "requirements": [
+    [
+      "sheared_hemp_crop"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

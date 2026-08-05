@@ -1,0 +1,30 @@
+{
+  "parent": "hempdustry:trim_season",
+  "criteria": {
+    "harvested_fully_trimmed": {
+      "conditions": {
+        "cuts": 2
+      },
+      "trigger": "hempdustry:harvest_hemp"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.perfect_cut.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:hemp_leaf"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.perfect_cut.title"
+    }
+  },
+  "requirements": [
+    [
+      "harvested_fully_trimmed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
