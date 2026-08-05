@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_indica_seeds": {
+    "has_hemp_seeds": {
       "conditions": {
         "items": [
           {
-            "items": "hempdustry:indica_seeds"
+            "items": "#hempdustry:hemp_seeds"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_indica_seeds"
+      "has_hemp_seeds"
     ]
   ],
   "rewards": {

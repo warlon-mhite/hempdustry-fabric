@@ -29,6 +29,7 @@ import net.minecraft.data.server.recipe.CookingRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.RecipeExporter;
 import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.ShapelessRecipeJsonBuilder;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.Ingredient;
@@ -36,6 +37,7 @@ import net.minecraft.recipe.book.RecipeCategory;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
 
 import java.util.concurrent.CompletableFuture;
@@ -307,9 +309,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // ---------------------------------------------------------------------
 
         // Cook the raw thing: vanilla's most-used food verb, and hemp seed had no cooked form.
-        // Keyed on the tag so every strain's seed works and a future one needs no new recipe.
+        // Keyed on the tag so every strain's seed works and a future one needs no new recipe --
+        // the unlock has to be tag-based too, or a Lemon Haze-only player never discovers this.
         offerFoodCooking(exporter, "toasted_hemp_seeds", Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
-                ModItems.TOASTED_HEMP_SEEDS, ModItems.INDICA_SEEDS, 0.1F);
+                ModItems.TOASTED_HEMP_SEEDS, ModTags.Items.HEMP_SEEDS, 0.1F);
 
         // Seeds bound with honey. The bottle comes back on its own.
         ShapelessRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.HEMP_FLAPJACK, 2)
@@ -327,7 +330,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // recipe would hand an empty bucket back *and* leave one inside the hemp milk. Same
         // duplication bhang had. The bucket carries through instead.
         offerContainerCarried(exporter, id("hemp_milk_bucket"), new ItemStack(ModItems.HEMP_MILK_BUCKET),
-                ModItems.INDICA_SEEDS,
+                ModTags.Items.HEMP_SEEDS,
                 List.of(Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
                         Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
                         Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
@@ -706,6 +709,24 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .build(recipeId.withPrefixedPath("recipes/food/")));
     }
 
+    /**
+     * Same as above, but unlocked by a tag rather than a single item -- for a recipe whose input
+     * is itself tag-based, so every strain's item discovers it rather than only whichever one got
+     * hardcoded as the unlock.
+     */
+    private static void offerContainerCarried(RecipeExporter exporter, Identifier recipeId,
+                                              ItemStack output, TagKey<Item> unlockedByTag,
+                                              List<Ingredient> inputs) {
+        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingRecipeCategory.MISC,
+                output, inputs);
+        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
+                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
+                .criterion("has_hemp_seeds", conditionsFromTag(unlockedByTag))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
+                .build(recipeId.withPrefixedPath("recipes/food/")));
+    }
+
 
     /**
      * Furnace, smoker and campfire, the way every vanilla food is cookable in all three. Written out
@@ -714,15 +735,15 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * needs no new recipe.
      */
     private static void offerFoodCooking(RecipeExporter exporter, String name, Ingredient input,
-                                         ItemConvertible output, ItemConvertible unlockedBy, float experience) {
+                                         ItemConvertible output, TagKey<Item> unlockedByTag, float experience) {
         CookingRecipeJsonBuilder.createSmelting(input, RecipeCategory.FOOD, output, experience, 200)
-                .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
+                .criterion("has_hemp_seeds", conditionsFromTag(unlockedByTag))
                 .offerTo(exporter, id(name));
         CookingRecipeJsonBuilder.createSmoking(input, RecipeCategory.FOOD, output, experience, 100)
-                .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
+                .criterion("has_hemp_seeds", conditionsFromTag(unlockedByTag))
                 .offerTo(exporter, id(name + "_from_smoking"));
         CookingRecipeJsonBuilder.createCampfireCooking(input, RecipeCategory.FOOD, output, experience, 600)
-                .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
+                .criterion("has_hemp_seeds", conditionsFromTag(unlockedByTag))
                 .offerTo(exporter, id(name + "_from_campfire_cooking"));
     }
 
