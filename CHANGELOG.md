@@ -95,9 +95,11 @@ almost everything else is new or works differently.
 
 - **Fabric API is required.**
 - The mod is required on **both client and server**.
-- **The music is licensed CC BY-NC-SA 4.0**, which is more restrictive than the mod's own AGPL —
-  free packs are fine, commercial ones need a word with Nefuß. See
-  [CREDITS.md](CREDITS.md), which also ships inside the jar.
+- **Listing the mod in a pack is fine, monetised or not** — the launcher downloads it from Modrinth,
+  so no licence is engaged at all. **Embedding, mirroring, modifying and forking are also permitted**,
+  non-commercially, with credit and share-alike on anything adapted; the art and music are
+  CC BY-NC-SA 4.0 and the code is AGPL-3.0-only, which does not restrict commercial use at all.
+  **Only a commercial use needs to ask.** Full table in [CREDITS.md](CREDITS.md), inside the jar.
 - Neither machine has a data-driven recipe type yet, so their conversions cannot be rebalanced with
   KubeJS or CraftTweaker. Recipes in the crafting grid are ordinary datagen JSON and can be.
 - There is no JEI/EMI/REI plugin yet, so **packing a smoking device does not appear in a recipe

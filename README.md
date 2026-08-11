@@ -9,7 +9,8 @@ actually been for over the last five thousand years.
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen)](https://www.minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-lightgrey)](https://fabricmc.net/)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/)
-[![License](https://img.shields.io/badge/License-AGPL--3.0-blue)](LICENSE)
+[![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
+[![Art & music](https://img.shields.io/badge/Art%20%26%20music-CC%20BY--NC--SA%204.0-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 **Download:** SOON
 
@@ -134,18 +135,30 @@ The two music discs are **[Nefuß](https://nefu1.bandcamp.com/)** — *Moonlight
 ([Bandcamp](https://nefu1.bandcamp.com/track/robadob-2) ·
 [SoundCloud](https://soundcloud.com/user-427551104/robadob)) — both written for this mod.
 
+Some of the textures were drawn by a commissioned pixel artist who asked not to be credited by name.
 Everything else is Warlon Mhite's.
 
 ## Licences
 
-The mod is not all under one licence, so there are two:
+The mod is not all under one licence:
 
-- **Code, data and art** — [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`).
-- **Music** — [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), by Nefuß.
+- **Code and data** — [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`).
+- **Art and music** — [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), the
+  music by Nefuß and the rest by Warlon Mhite.
+- **Not covered by either**: the people depicted in the paintings, a handful of textures derived
+  from Minecraft's own, and the name "Hempdustry". None of those are the author's to license.
 
-**Pack makers: the music is NonCommercial**, which is a stricter term than the rest of the mod
-carries. A freely distributed pack is fine; a pack that earns money is not covered and wants a word
-with Nefuß first. [CREDITS.md](CREDITS.md) has the details, and ships inside the jar.
+**Pack makers: the ordinary case is fine, including a pack that earns money.** If your pack lists
+Hempdustry and the launcher fetches it from Modrinth, you have not copied anything and no licence
+here asks anything of you. Running it on a server, monetised or not, is the same.
+
+**And copying it is fine too — you are allowed to redistribute, embed, mirror, modify and fork this
+mod.** The licences attach conditions rather than asking you to write in: credit, keep it
+non-commercial, share adaptations alike, publish source for code changes. **Permission is only
+needed for a commercial use.** The AGPL on the code does not restrict commercial use at all; it asks
+for source, not a share.
+
+[CREDITS.md](CREDITS.md) has the full table, and ships inside the jar.
 
 ## AI disclaimer
 
@@ -153,3 +166,8 @@ Large Language Models (LLM) chiefly Anthropic's **Claude Opus** and **Claude Son
 Claude Code, have been used in the making of this mod. Their role is assisting with more complex
 features, helping for cross-mod compatibility, helping debug, documenting the code, update locale with local slangs (fr_ca or en_uk for example) generating placeholder textures, balancing mechanics,
 and challenging and improving ideas.
+
+---
+
+**NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.**
+Minecraft is a trademark of Mojang Synergies AB.
