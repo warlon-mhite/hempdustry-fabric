@@ -111,9 +111,11 @@ public final class Defoliation {
     @Nullable
     public static ItemActionResult tryCut(World world, BlockPos lowerPos, BlockState lowerState,
                                           int age, ItemStack stack, PlayerEntity player, Hand hand) {
-        // The convention tag rather than Items.SHEARS, so a modded pair of shears works too —
-        // Fabric API already puts vanilla shears in it, and other mods join it themselves.
-        if (!stack.isIn(ConventionalItemTags.SHEARS_TOOLS)) {
+        // The convention tag rather than Items.SHEARS, so a modded pair of shears works too.
+        // SHEAR_TOOLS is #c:tools/shear, which is the widest of the three: Fabric puts vanilla
+        // shears in it AND pulls in the older #c:tools/shears and #c:shears as optional sub-tags,
+        // so a mod that joined any of the three matches. Nothing forwards into the older two.
+        if (!stack.isIn(ConventionalItemTags.SHEAR_TOOLS)) {
             return null;
         }
 

@@ -3,9 +3,7 @@ package com.warlonmhite.hempdustry.entity;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.entity.custom.HempBoatEntity;
 import com.warlonmhite.hempdustry.entity.custom.HempChestBoatEntity;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.registry.Registries;
@@ -16,16 +14,25 @@ public class ModEntities {
 
     // Boats can't reuse vanilla's BoatEntity.Type (a closed enum with a fixed 9 wood types), so hemp gets its
     // own EntityType entirely, with its own entity classes, item, and client renderer.
+    //
+    // Built with vanilla's own EntityType.Builder rather than FabricEntityTypeBuilder, which is deprecated.
+    // The no-argument build() is Fabric's — it is interface-injected onto the vanilla builder, and is the
+    // vanilla build(String) without the datafixer id a mod has no business inventing.
+    //
+    // Every value here matches vanilla's boat exactly (EntityType.BOAT, verified in the 1.21.1 jar), which
+    // is the point: a hemp boat should behave like a boat.
     public static final EntityType<HempBoatEntity> HEMP_BOAT = register("hemp_boat",
-            FabricEntityTypeBuilder.<HempBoatEntity>create(SpawnGroup.MISC, HempBoatEntity::new)
-                    .dimensions(EntityDimensions.changing(1.375F, 0.5625F).withEyeHeight(0.5625F))
-                    .trackRangeBlocks(10)
+            EntityType.Builder.<HempBoatEntity>create(HempBoatEntity::new, SpawnGroup.MISC)
+                    .dimensions(1.375F, 0.5625F)
+                    .eyeHeight(0.5625F)
+                    .maxTrackingRange(10)
                     .build());
 
     public static final EntityType<HempChestBoatEntity> HEMP_CHEST_BOAT = register("hemp_chest_boat",
-            FabricEntityTypeBuilder.<HempChestBoatEntity>create(SpawnGroup.MISC, HempChestBoatEntity::new)
-                    .dimensions(EntityDimensions.changing(1.375F, 0.5625F).withEyeHeight(0.5625F))
-                    .trackRangeBlocks(10)
+            EntityType.Builder.<HempChestBoatEntity>create(HempChestBoatEntity::new, SpawnGroup.MISC)
+                    .dimensions(1.375F, 0.5625F)
+                    .eyeHeight(0.5625F)
+                    .maxTrackingRange(10)
                     .build());
 
     private static <T extends Entity> EntityType<T> register(String name, EntityType<T> type) {

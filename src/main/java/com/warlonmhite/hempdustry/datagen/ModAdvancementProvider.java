@@ -119,7 +119,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .criterion("sheared_hemp_crop", ItemCriterion.Conditions.createItemUsedOnBlock(
                         LocationPredicate.Builder.create().block(
                                 BlockPredicate.Builder.create().tag(ModTags.Blocks.HEMP_CROPS)),
-                        ItemPredicate.Builder.create().tag(ConventionalItemTags.SHEARS_TOOLS)))
+                        ItemPredicate.Builder.create().tag(ConventionalItemTags.SHEAR_TOOLS)))
                 .parent(rootAdvancement)
                 .build(consumer, Hempdustry.MOD_ID + ":trim_season");
 
