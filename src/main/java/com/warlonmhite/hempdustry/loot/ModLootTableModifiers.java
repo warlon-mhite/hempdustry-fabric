@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.Enchantments;
+import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.loot.LootPool;
 import net.minecraft.loot.LootTable;
@@ -42,7 +43,7 @@ import java.util.Set;
  * <p>Hemp fibre in shipwreck supply chests, as cordage rather than as an on-ramp — see
  * {@link #SHIPWRECK_FIBER_CHANCE}.
  *
- * <p>And the Ganja disc in the two chests vanilla stocks its common discs in. Its creeper drop is
+ * <p>And the mod's music discs in the two chests vanilla stocks its common discs in. Their creeper drop is
  * <em>not</em> here — that comes free from joining {@code #minecraft:creeper_drop_music_discs}
  * (see {@code ModItemTagProvider}), which the vanilla creeper table already rolls.
  */
@@ -55,7 +56,7 @@ public class ModLootTableModifiers {
     private static final float CHEST_SEED_CHANCE = 0.30f;
 
     /**
-     * Chance per applicable chest to contain the Ganja disc. Vanilla's 13/cat sit at weight 15 in
+     * Chance per applicable chest to contain one of our discs. Vanilla's 13/cat sit at weight 15 in
      * those chests' main pool (~20% a given chest holds one); we can't slot into an existing pool
      * from a loot-table event, so this is a separate roll deliberately pitched a little rarer.
      */
@@ -140,11 +141,17 @@ public class ModLootTableModifiers {
             }
 
             // Independent of the seed branch above — the two disc chests are also seed chests.
+            // One entry per disc at equal weight inside a single roll, the same shape as the seed
+            // pool above: the *chance* of finding one of our discs stays CHEST_DISC_CHANCE however
+            // many we ship, and which one you get is a coin flip.
             if (DISC_CHEST_SOURCES.contains(key)) {
-                tableBuilder.pool(LootPool.builder()
+                LootPool.Builder pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(CHEST_DISC_CHANCE))
-                        .with(ItemEntry.builder(ModItems.MUSIC_DISC_GANJA)));
+                        .conditionally(RandomChanceLootCondition.builder(CHEST_DISC_CHANCE));
+                for (Item disc : ModItems.MUSIC_DISCS) {
+                    pool.with(ItemEntry.builder(disc));
+                }
+                tableBuilder.pool(pool);
             }
         });
     }

@@ -1,0 +1,8 @@
+{
+  "comparator_output": 4,
+  "description": {
+    "translate": "jukebox_song.hempdustry.moonlight"
+  },
+  "length_in_seconds": 170.0,
+  "sound_event": "hempdustry:music_disc.moonlight"
+}

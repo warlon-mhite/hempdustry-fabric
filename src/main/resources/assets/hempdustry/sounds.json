@@ -13,10 +13,19 @@
     ]
   },
 
-  "music_disc.ganja": {
+  "music_disc.moonlight": {
     "sounds": [
       {
-        "name": "hempdustry:records/ganja",
+        "name": "hempdustry:records/moonlight",
+        "stream": true
+      }
+    ]
+  },
+
+  "music_disc.robadob": {
+    "sounds": [
+      {
+        "name": "hempdustry:records/robadob",
         "stream": true
       }
     ]

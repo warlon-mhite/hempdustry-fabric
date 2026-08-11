@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
+import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.ItemTags;
@@ -110,16 +111,18 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.WOODEN_PIPE)
                 .add(ModItems.BONG);
 
-        // Puts the Ganja disc on exactly the same footing as vanilla's twelve common discs: the
+        // Puts our discs on exactly the same footing as vanilla's twelve common discs: the
         // creeper loot table rolls this tag (expand:true, one entry each) when a skeleton lands
-        // the kill, so joining the tag *is* the drop — no loot-table surgery needed.
-        getOrCreateTagBuilder(ItemTags.CREEPER_DROP_MUSIC_DISCS)
-                .add(ModItems.MUSIC_DISC_GANJA);
-
+        // the kill, so joining the tag *is* the drop — no loot-table surgery needed. Each disc
+        // added here is one more equal-weight entry, so it also dilutes the others slightly.
+        var creeperDiscs = getOrCreateTagBuilder(ItemTags.CREEPER_DROP_MUSIC_DISCS);
         // Cross-mod convention tag, so anything that reasons about discs (jukebox blocks, storage
         // filters, JEI-style lookups) picks ours up too.
-        getOrCreateTagBuilder(ConventionalItemTags.MUSIC_DISCS)
-                .add(ModItems.MUSIC_DISC_GANJA);
+        var conventionDiscs = getOrCreateTagBuilder(ConventionalItemTags.MUSIC_DISCS);
+        for (Item disc : ModItems.MUSIC_DISCS) {
+            creeperDiscs.add(disc);
+            conventionDiscs.add(disc);
+        }
 
         // The item half of the vibration damping granted in ModBlockTagProvider — vanilla keeps
         // #minecraft:dampens_vibrations as both a block and an item tag, so hemp wool joins both.

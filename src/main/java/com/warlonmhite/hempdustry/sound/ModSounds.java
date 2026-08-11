@@ -16,9 +16,12 @@ public class ModSounds {
 
     // Music discs, vanilla-style: the sound event is a normal registry entry, but the *song*
     // (length, comparator output, "Now Playing" label) is a datapack entry in the JUKEBOX_SONG
-    // dynamic registry — see resources/data/hempdustry/jukebox_song/ganja.json.
-    public static final SoundEvent MUSIC_DISC_GANJA = registerSoundEvent("music_disc.ganja");
-    public static final RegistryKey<JukeboxSong> GANJA_SONG = jukeboxSong("ganja");
+    // dynamic registry — see resources/data/hempdustry/jukebox_song/.
+    public static final SoundEvent MUSIC_DISC_MOONLIGHT = registerSoundEvent("music_disc.moonlight");
+    public static final RegistryKey<JukeboxSong> MOONLIGHT_SONG = jukeboxSong("moonlight");
+
+    public static final SoundEvent MUSIC_DISC_ROBADOB = registerSoundEvent("music_disc.robadob");
+    public static final RegistryKey<JukeboxSong> ROBADOB_SONG = jukeboxSong("robadob");
 
     private static SoundEvent registerSoundEvent(String id) {
         Identifier identifier = Identifier.of(Hempdustry.MOD_ID, id);

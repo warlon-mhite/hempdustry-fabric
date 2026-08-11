@@ -83,7 +83,9 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.DAWAMESK, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_SEEDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.INDICA_BUDS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.MUSIC_DISC_GANJA, Models.GENERATED);
+        for (Item disc : ModItems.MUSIC_DISCS) {
+            itemModelGenerator.register(disc, Models.GENERATED);
+        }
 
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
         // item/sativa_seeds.png is currently a copy of the indica one — a hemp seed is a hemp seed.

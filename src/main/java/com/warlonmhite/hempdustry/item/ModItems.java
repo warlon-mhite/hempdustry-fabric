@@ -169,8 +169,17 @@ public class ModItems {
 
     // Same shape as a vanilla common disc (single-stack, uncommon, jukebox-playable). The song data
     // — length, comparator output, "Now Playing" label — lives in the JUKEBOX_SONG entry it points at.
-    public static final Item MUSIC_DISC_GANJA = registerItem("music_disc_ganja",
-            new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.GANJA_SONG)));
+    public static final Item MUSIC_DISC_MOONLIGHT = registerItem("music_disc_moonlight",
+            new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.MOONLIGHT_SONG)));
+    public static final Item MUSIC_DISC_ROBADOB = registerItem("music_disc_robadob",
+            new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.ROBADOB_SONG)));
+
+    /**
+     * Every disc the mod ships, in one place — the creative tab, the two disc tags and the chest
+     * loot pool all read this, so a new disc is one entry here plus its item, song and sounds.json
+     * lines. Same "one list, no per-item plumbing" shape as {@link Strain#ACTIVE}.
+     */
+    public static final List<Item> MUSIC_DISCS = List.of(MUSIC_DISC_MOONLIGHT, MUSIC_DISC_ROBADOB);
 
     public static final Item HEMP_BEANNIE = registerItem("hemp_beannie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Settings()
             .maxDamage(ArmorItem.Type.HELMET.getMaxDamage(3))));

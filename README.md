@@ -101,7 +101,7 @@ Hemp is a fibre crop first, and the mod treats it that way.
 
 ### Odds and ends
 
-Six paintings, a music disc, twenty-one advancements, and full translations in eight locales
+Six paintings, two music discs, twenty-one advancements, and full translations in eight locales
 (five English variants and three French, with regional vocabulary rather than copy-paste — Quebec
 gets *gougounes* and its own slang).
 

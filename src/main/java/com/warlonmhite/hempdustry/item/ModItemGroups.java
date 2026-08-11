@@ -87,7 +87,7 @@ public class ModItemGroups {
                         entries.add(ModBlocks.INDICA_FLOWER);
                         entries.add(ModBlocks.SATIVA_FLOWER);
 
-                        entries.add(ModItems.MUSIC_DISC_GANJA);
+                        ModItems.MUSIC_DISCS.forEach(entries::add);
                     }).build());
 
     public static void registerItemGroups(){
