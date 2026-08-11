@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.client;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -8,13 +10,18 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -25,10 +32,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class UpdateChecker {
     private static final String MODRINTH_PROJECT = "hempdustry";
-    private static final String MODRINTH_PROJECT_URL = "https://modrinth.com/project/" + MODRINTH_PROJECT;
+    private static final String MODRINTH_PROJECT_URL = "https://modrinth.com/mod/" + MODRINTH_PROJECT;
     private static final String MODRINTH_VERSIONS_URL =
             "https://api.modrinth.com/v2/project/" + MODRINTH_PROJECT
                     + "/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D";
+
+    /**
+     * Which Modrinth release channels are worth interrupting a player for. Betas count as well as
+     * releases, deliberately: this mod ships its features to be play-tested, and a player who wants
+     * the newest one should hear about it. {@code alpha} is left out — that channel is for builds
+     * that are not expected to work. Drop back to {@code Set.of("release")} to stop announcing
+     * pre-releases.
+     */
+    private static final Set<String> NOTIFY_CHANNELS = Set.of("release", "beta");
 
     private static volatile String availableVersion;
     private static final AtomicBoolean NOTIFIED = new AtomicBoolean(false);
@@ -42,10 +58,25 @@ public final class UpdateChecker {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             String latest = availableVersion;
             if (latest != null && client.player != null && NOTIFIED.compareAndSet(false, true)) {
-                client.player.sendMessage(Text.literal("[Hempdustry] A new version is available: " + latest
-                        + " (you have " + currentVersion() + "). Get it at " + MODRINTH_PROJECT_URL), false);
+                client.player.sendMessage(updateMessage(latest), false);
             }
         });
+    }
+
+    /** "Hempdustry 2.1.0 is available. You have 2.0.0." followed by a clickable Modrinth link. */
+    private static MutableText updateMessage(String latest) {
+        MutableText link = Text.translatable("hempdustry.update.link")
+                .styled(style -> style
+                        .withColor(Formatting.GREEN)
+                        .withUnderline(true)
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, MODRINTH_PROJECT_URL))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                Text.translatable("hempdustry.update.tooltip"))));
+
+        return Text.translatable("hempdustry.update.available", latest, currentVersion())
+                .formatted(Formatting.GRAY)
+                .append(Text.literal(" "))
+                .append(link);
     }
 
     private static void fetchLatest() {
@@ -66,17 +97,41 @@ public final class UpdateChecker {
                 return;
             }
 
+            Version local = parseOrNull(currentVersion());
+            if (local == null) {
+                return; // can't compare against a version we can't parse; say nothing
+            }
+
+            // The endpoint's ordering isn't part of its contract, and a hotfix published for an
+            // older game version can land first — so compare every entry rather than trusting
+            // whichever one came back at index 0.
             JsonArray versions = JsonParser.parseString(response.body()).getAsJsonArray();
-            if (versions.isEmpty()) {
+            String bestNumber = null;
+            Version best = null;
+
+            for (JsonElement element : versions) {
+                JsonObject version = element.getAsJsonObject();
+                if (!isNotifiable(version)) {
+                    continue;
+                }
+                String number = version.get("version_number").getAsString();
+                Version parsed = parseOrNull(number);
+                if (parsed == null) {
+                    continue; // not semver, so there is nothing sensible to compare it against
+                }
+                if (best == null || parsed.compareTo(best) > 0) {
+                    best = parsed;
+                    bestNumber = number;
+                }
+            }
+
+            if (best == null || best.compareTo(local) <= 0) {
                 return;
             }
 
-            String latest = versions.get(0).getAsJsonObject().get("version_number").getAsString();
-            if (isNewer(latest, currentVersion())) {
-                availableVersion = latest;
-                Hempdustry.LOGGER.info("A new Hempdustry version is available: {} (you have {}). Get it at {}",
-                        latest, currentVersion(), MODRINTH_PROJECT_URL);
-            }
+            availableVersion = bestNumber;
+            Hempdustry.LOGGER.info("A new Hempdustry version is available: {} (you have {}). Get it at {}",
+                    bestNumber, currentVersion(), MODRINTH_PROJECT_URL);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
@@ -84,13 +139,20 @@ public final class UpdateChecker {
         }
     }
 
-    private static boolean isNewer(String remote, String local) {
+    private static boolean isNotifiable(JsonObject version) {
+        JsonElement type = version.get("version_type");
+        return type != null && !type.isJsonNull() && NOTIFY_CHANNELS.contains(type.getAsString());
+    }
+
+    /**
+     * Parsed as semver so that build metadata is ignored on comparison — {@code 2.0.0+1.21.1} and
+     * {@code 2.0.0} are the same release, which is what lets the jar carry its game version.
+     */
+    private static Version parseOrNull(String version) {
         try {
-            Version remoteVersion = SemanticVersion.parse(remote);
-            Version localVersion = SemanticVersion.parse(local);
-            return remoteVersion.compareTo(localVersion) > 0;
+            return SemanticVersion.parse(version);
         } catch (VersionParsingException e) {
-            return false;
+            return null;
         }
     }
 

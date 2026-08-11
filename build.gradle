@@ -3,7 +3,10 @@ plugins {
 	id 'maven-publish'
 }
 
-version = project.mod_version
+// The Minecraft version rides along as semver build metadata, so the jar in a mods folder says
+// which game it is for. Comparison ignores everything after '+', so the update checker still
+// reads 2.0.0+1.21.1 and 2.0.0 as the same release.
+version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
 base {
@@ -20,6 +23,17 @@ repositories {
 
 fabricApi {
 	configureDataGeneration()
+}
+
+// configureDataGeneration() adds src/main/generated to the `clean` task, and that is wrong here:
+// the datagen output is committed on purpose (it ships inside the jar, so a clean clone has to
+// build a working mod — see .gitignore). Left alone, `gradlew clean` deletes 446 tracked files and
+// the next `git add -A` quietly commits the deletion; the mod then loads with no models, loot
+// tables, recipes, advancements or worldgen, and the first symptom is a crash on world load rather
+// than anything that names the real problem. `clean` still deletes build/ as normal.
+tasks.named('clean', Delete) {
+	def datagenOutput = file('src/main/generated').absolutePath
+	delete = delete.findAll { it.toString() != datagenOutput }
 }
 
 dependencies {
@@ -43,6 +57,9 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
+	// Pinned rather than inherited: several source files carry non-ASCII characters, and the
+	// platform default differs on a Windows contributor's machine.
+	it.options.encoding = "UTF-8"
 }
 
 java {
@@ -58,6 +75,11 @@ java {
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}"}
+	}
+	// The music is Nefuß's, under CC BY-NC-SA 4.0 rather than the mod's AGPL, and that licence
+	// wants its attribution to travel with the files — so the credits ship inside the jar.
+	from("CREDITS.md") {
+		rename { "CREDITS_${project.base.archivesName.get()}.md"}
 	}
 }
 

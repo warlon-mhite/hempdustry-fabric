@@ -3,15 +3,19 @@
 	"id": "hempdustry",
 	"version": "${version}",
 	"name": "Hempdustry",
-	"description": "Minecraft for stoner and hemprepreneurs",
+	"description": "Minecraft for stoners and hemprepreneurs. Grow hemp, harvest it, smoke it, cook with it or build with it, because that is most of what hemp has actually been for over the last five thousand years.",
 	"authors": [
 		"Warlon Mhite"
 	],
+	"contributors": [
+		"Nefuß (music)"
+	],
 	"contact": {
 		"homepage": "https://github.com/warlon-mhite/hempdustry-fabric",
-		"sources": "https://github.com/warlon-mhite/hempdustry-fabric"
+		"sources": "https://github.com/warlon-mhite/hempdustry-fabric",
+		"issues": "https://github.com/warlon-mhite/hempdustry-fabric/issues"
 	},
-	"license": "aGPLv3",
+	"license": "AGPL-3.0-only",
 	"icon": "assets/hempdustry/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -30,8 +34,8 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.16.5",
-		"minecraft": "~1.21.1",
+		"minecraft": ">=1.21.1 <1.21.2",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": ">=0.105.0"
 	}
 }

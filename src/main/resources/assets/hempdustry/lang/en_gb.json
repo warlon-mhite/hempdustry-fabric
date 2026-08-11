@@ -33,6 +33,10 @@
   "hempdustry.strain.indica": "Purple Kush",
   "hempdustry.strain.sativa": "Lemon Haze",
   "hempdustry.strain.blend": "Mixed",
+
+  "hempdustry.update.available": "Hempdustry %1$s is available. You have %2$s.",
+  "hempdustry.update.link": "Get it on Modrinth",
+  "hempdustry.update.tooltip": "Open the Hempdustry page on Modrinth",
   "hempdustry.edible.potency": "Potency: %s",
   "hempdustry.edible.quality": "Quality: %s",
   "item.hempdustry.wooden_pipe": "Wooden Pipe",

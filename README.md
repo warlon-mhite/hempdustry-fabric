@@ -101,7 +101,8 @@ Hemp is a fibre crop first, and the mod treats it that way.
 
 ### Odds and ends
 
-Six paintings, two music discs, twenty-one advancements, and full translations in eight locales
+Six paintings, two music discs with original tracks by **Nefuß**, twenty-one advancements, and full
+translations in eight locales
 (five English variants and three French, with regional vocabulary rather than copy-paste — Quebec
 gets *gougounes* and its own slang).
 
@@ -125,9 +126,26 @@ a tag or an advancement, run `runDatagen` and commit what it produces.
 Issues and pull requests are welcome. If you are reporting a bug, the Minecraft version, the Fabric
 Loader version and anything else in your mods folder are the three things that will help most.
 
-## Licence
+## Credits
 
-[GNU Affero General Public License v3.0](LICENSE).
+The two music discs are **[Nefuß](https://nefu1.bandcamp.com/)** — *Moonlight*
+([Bandcamp](https://nefu1.bandcamp.com/track/moonlight) ·
+[SoundCloud](https://soundcloud.com/user-427551104/moonlight)) and *Robadob*
+([Bandcamp](https://nefu1.bandcamp.com/track/robadob-2) ·
+[SoundCloud](https://soundcloud.com/user-427551104/robadob)) — both written for this mod.
+
+Everything else is Warlon Mhite's.
+
+## Licences
+
+The mod is not all under one licence, so there are two:
+
+- **Code, data and art** — [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`).
+- **Music** — [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), by Nefuß.
+
+**Pack makers: the music is NonCommercial**, which is a stricter term than the rest of the mod
+carries. A freely distributed pack is fine; a pack that earns money is not covered and wants a word
+with Nefuß first. [CREDITS.md](CREDITS.md) has the details, and ships inside the jar.
 
 ## AI disclaimer
 
