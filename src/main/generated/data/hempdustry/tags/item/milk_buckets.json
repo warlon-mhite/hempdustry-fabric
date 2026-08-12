@@ -1,5 +1,10 @@
 {
   "values": [
-    "minecraft:milk_bucket"
+    "minecraft:milk_bucket",
+    "hempdustry:hemp_milk_bucket",
+    {
+      "id": "#c:buckets/milk",
+      "required": false
+    }
   ]
 }

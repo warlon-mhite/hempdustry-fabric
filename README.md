@@ -85,7 +85,8 @@ effects last longer. Eating a second one because the first "isn't working" is a 
 will let you make.
 
 Separately, and with nothing psychoactive in it at all: **toasted hemp seeds**, a **hemp seed bar**,
-a **bucket of hemp milk** (which clears effects, like cow's milk, and lets you skip the cow) and
+a **bucket of hemp milk** (which clears effects like cow's milk and works anywhere milk does — the
+Infuser, Space Cake, bhang, even a plain vanilla cake — so you can skip the cow entirely) and
 **siemieniotka**, the Silesian hemp-seed soup eaten at Christmas Eve.
 
 ### Materials and building

@@ -67,8 +67,10 @@ almost everything else is new or works differently.
   happens, the first thing you feel is your legs getting heavy, and the good part arrives after
   that. A better batch of butter narrows the wait and makes the effects last longer.
 - **Food with nothing psychoactive in it:** toasted hemp seeds, a hemp seed bar, a bucket of hemp
-  milk that clears effects the way cow's milk does, and siemieniotka, the Silesian hemp-seed soup
-  eaten at Christmas Eve.
+  milk, and siemieniotka, the Silesian hemp-seed soup eaten at Christmas Eve.
+- **Hemp milk works anywhere milk does.** It clears effects the way cow's milk does, and it is
+  accepted by the Infuser, by Space Cake and bhang, and by vanilla's cake — so the whole cannabutter
+  chain, and a cake, can be had without ever finding a cow.
 
 ### Added — materials and building
 

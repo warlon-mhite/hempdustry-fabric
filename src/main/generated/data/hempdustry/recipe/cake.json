@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": {
+      "item": "minecraft:wheat"
+    },
+    "E": {
+      "item": "minecraft:egg"
+    },
+    "M": {
+      "item": "hempdustry:hemp_milk_bucket"
+    },
+    "S": {
+      "item": "minecraft:sugar"
+    }
+  },
+  "pattern": [
+    "MMM",
+    "SES",
+    "###"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:cake"
+  }
+}

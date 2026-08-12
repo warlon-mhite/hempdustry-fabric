@@ -305,25 +305,51 @@ public class InfuserBlockEntity extends BlockEntity
      */
     private boolean intakeMilk() {
         ItemStack milk = getStack(MILK_SLOT);
-        if (haveMilk || !isMilk(milk) || !hasBucketRoom()) {
+        if (haveMilk || !isMilk(milk)) {
+            return false;
+        }
+        ItemStack empty = emptiedContainer(milk);
+        if (!hasRoomFor(empty)) {
             return false;
         }
         milk.decrement(1);
-        ItemStack buckets = getStack(BUCKET_SLOT);
-        if (buckets.isEmpty()) {
-            // Vanilla's recipe-remainder mechanism only fires for real crafting recipes, never for a
-            // block entity, so the bucket has to be handed back by hand.
-            setStack(BUCKET_SLOT, new ItemStack(Items.BUCKET));
+        ItemStack returned = getStack(BUCKET_SLOT);
+        if (returned.isEmpty()) {
+            setStack(BUCKET_SLOT, empty);
         } else {
-            buckets.increment(1);
+            returned.increment(1);
         }
         haveMilk = true;
         return true;
     }
 
-    private boolean hasBucketRoom() {
-        ItemStack buckets = getStack(BUCKET_SLOT);
-        return buckets.isEmpty() || (buckets.isOf(Items.BUCKET) && buckets.getCount() < buckets.getMaxCount());
+    /**
+     * What to hand back when a milk is poured in — <b>the item's own recipe remainder</b>, and a
+     * plain bucket only if it hasn't got one.
+     *
+     * <p>Vanilla's remainder mechanism fires for real crafting recipes and never for a block entity,
+     * so the empty has to be handed back by hand; the question is only what "the empty" is. Reading
+     * it off the item rather than assuming a bucket is what makes
+     * {@code #hempdustry:milk_buckets} safe to widen. The tag folds in {@code #c:buckets/milk}, so
+     * <b>the milk that arrives here may belong to a mod this one has never heard of</b> — and if it
+     * came in a bottle or a gourd, minting a bucket for it would be free iron, while a hardcoded
+     * bucket would also quietly destroy a container worth more than one. Both of vanilla's and this
+     * mod's milks answer {@code BUCKET} here, so nothing changes for either.
+     */
+    private static ItemStack emptiedContainer(ItemStack milk) {
+        Item remainder = milk.getItem().getRecipeRemainder();
+        return new ItemStack(remainder != null ? remainder : Items.BUCKET);
+    }
+
+    /**
+     * Whether the return slot can take {@code empty}. The guard exists so a full return slot stalls
+     * the milk queue instead of destroying the container — see {@link #intakeMilk()}.
+     */
+    private boolean hasRoomFor(ItemStack empty) {
+        ItemStack returned = getStack(BUCKET_SLOT);
+        return returned.isEmpty()
+                || (ItemStack.areItemsAndComponentsEqual(returned, empty)
+                    && returned.getCount() < returned.getMaxCount());
     }
 
     /**

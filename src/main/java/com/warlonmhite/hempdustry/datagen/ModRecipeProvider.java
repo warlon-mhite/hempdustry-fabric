@@ -434,7 +434,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 ModItems.DECARBOXYLATED_HEMP,
                 List.of(Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
                         Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
-                        Ingredient.ofItems(Items.MILK_BUCKET),
+                        Ingredient.fromTag(ModTags.Items.MILK_BUCKETS),
                         Ingredient.ofItems(Items.SUGAR)));
 
         // Dawamesk. The one edible here with a documented history rather than a folk name: the
@@ -542,6 +542,30 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .input('C', Items.COCOA_BEANS)
                 .criterion(hasItem(ModItems.HEMP_FLOUR), conditionsFromItem(ModItems.HEMP_FLOUR))
                 .offerTo(exporter, id("cookie"));
+
+        // Vanilla's cake, poured from hemp milk. Cake is the *only* vanilla recipe that uses a milk
+        // bucket at all, so this one recipe is what makes "hemp milk works wherever milk works" a
+        // true statement rather than a mod-internal courtesy. Same standing rule the cloth chain
+        // follows: hemp milk substitutes where vanilla uses milk. It still wants an egg, so this is
+        // not a cow-and-chicken-free cake — it is a cow-free one.
+        //
+        // The milk slot is hemp milk BY ITEM, never #hempdustry:milk_buckets, and that is not a
+        // style choice. The tag contains minecraft:milk_bucket, so a tagged version of this recipe
+        // would match a grid of three cow milk — exactly what vanilla's own cake recipe matches —
+        // and two recipes that can match the same grid means one of them silently never fires. It
+        // is also the one collision scripts/recipe_collisions.py cannot see, since it compares tags
+        // as opaque atoms. Mixing cow and hemp milk in one cake is the price, and it is the right
+        // price to pay.
+        ShapedRecipeJsonBuilder.create(RecipeCategory.FOOD, Items.CAKE)
+                .pattern("MMM")
+                .pattern("SES")
+                .pattern("###")
+                .input('M', ModItems.HEMP_MILK_BUCKET)
+                .input('S', Items.SUGAR)
+                .input('E', Items.EGG)
+                .input('#', Items.WHEAT)
+                .criterion(hasItem(ModItems.HEMP_MILK_BUCKET), conditionsFromItem(ModItems.HEMP_MILK_BUCKET))
+                .offerTo(exporter, id("cake"));
 
         CookingRecipeJsonBuilder.createSmelting(Ingredient.ofItems(ModItems.HEMP_STEM), RecipeCategory.MISC, Items.GREEN_DYE, 1.0F, 200)
                 .group("dye")

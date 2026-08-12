@@ -9,7 +9,7 @@
       "item": "hempdustry:decarboxylated_hemp"
     },
     {
-      "item": "minecraft:milk_bucket"
+      "tag": "hempdustry:milk_buckets"
     },
     {
       "item": "minecraft:sugar"

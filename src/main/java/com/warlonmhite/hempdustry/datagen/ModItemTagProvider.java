@@ -26,8 +26,30 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
         // A tag rather than a hard milk_bucket check in the Infuser, so another mod's milk works
         // and a datapack can widen it without a code change.
+        //
+        // The mod's own hemp seed milk belongs in here on the merits, not as a courtesy: what the
+        // Infuser is actually doing is dissolving cannabinoids into fat, and hemp seed milk is a
+        // pressed-seed emulsion carrying real hemp seed oil — the same solvent, from the same plant.
+        // It also closes the chain: crop -> Decarboxylator -> cauldron -> hemp milk -> cannabutter
+        // can now be walked without ever finding a cow, which is the version of this mod a player
+        // is probably imagining. Not an economy shortcut either way, since a cow is free and
+        // endlessly reusable where hemp milk costs three seeds a bucket.
+        //
+        // It also folds in the ecosystem's own #c:buckets/milk, which is the half of this that
+        // reaches other mods. A tag cannot retrofit somebody else's recipe -- a recipe accepts a tag
+        // only if its author asked for one -- so the only lever that works across mods is for both
+        // sides to name the same convention tag. Optional rather than a hard include: an absent tag
+        // in a required entry fails the whole tag load, and vanilla's milk is listed outright above
+        // precisely so this one can never take the Infuser's milk slot down with it.
         getOrCreateTagBuilder(ModTags.Items.MILK_BUCKETS)
-                .add(Items.MILK_BUCKET);
+                .add(Items.MILK_BUCKET)
+                .add(ModItems.HEMP_MILK_BUCKET)
+                .addOptionalTag(ConventionalItemTags.MILK_BUCKETS);
+
+        // The outbound half, and the same reasoning as #c:strings below: nothing in vanilla reads
+        // #c:buckets/milk, and the entire value is other mods' recipes taking hemp milk for free.
+        getOrCreateTagBuilder(ConventionalItemTags.MILK_BUCKETS)
+                .add(ModItems.HEMP_MILK_BUCKET);
 
         // The dosed foods, as one group. Space Cake is absent on purpose: a slice is eaten by using
         // the *block*, which never fires minecraft:consume_item — see ModTags.Items.EDIBLES.
