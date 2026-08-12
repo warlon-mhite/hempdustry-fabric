@@ -4,7 +4,9 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.custom.BhangItem;
 import com.warlonmhite.hempdustry.item.custom.CannabutterItem;
+import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.EdibleItem;
+import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.HempMilkItem;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
@@ -19,6 +21,7 @@ import net.minecraft.item.HangingSignItem;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SignItem;
@@ -157,6 +160,50 @@ public class ModItems {
             new EdibleItem(new Item.Settings().maxCount(16).food(new FoodComponent.Builder()
                     .nutrition(6).saturationModifier(0.6F).alwaysEdible().build())));
 
+    /**
+     * An edible that inherits its dose from cannabutter, and its step on the potency ladder: {@code +1}
+     * concentrates, {@code 0} is neutral, {@code -1} spreads the butter thin.
+     *
+     * @see com.warlonmhite.hempdustry.recipe.Infusion
+     */
+    public record InfusedEdible(ItemConvertible item, int potencyOffset) {
+        /** Lowest tier this edible can ever carry — {@link EdibleEffects#applyOffset} clamps at 1. */
+        public int minTier() {
+            return EdibleEffects.applyOffset(1, potencyOffset);
+        }
+
+        /** Highest tier this edible can ever carry, clamped at {@link EdibleEffects#MAX_TIER}. */
+        public int maxTier() {
+            return EdibleEffects.applyOffset(EdibleEffects.MAX_TIER, potencyOffset);
+        }
+    }
+
+    /**
+     * Every butter-derived edible with its offset. <b>This is the only place the offsets live</b> —
+     * {@code ModRecipeProvider} reads them when it writes the infused recipes, and the creative tab
+     * reads them to know which tiers an edible can actually reach. They were duplicated literals in
+     * the recipe provider until 2026-08-12; a drift between the two would have advertised tiers no
+     * recipe could produce.
+     *
+     * <p>{@link #BHANG_BUCKET} is deliberately absent: it never touches cannabutter and its recipe
+     * fixes it at tier I, Rough, so it has exactly one form.
+     */
+    public static final List<InfusedEdible> INFUSED_EDIBLES = List.of(
+            new InfusedEdible(CANNABUTTER_TOAST, -1),
+            new InfusedEdible(SPACE_COOKIE, -1),
+            new InfusedEdible(SPACE_BROWNIE, 0),
+            new InfusedEdible(ModBlocks.SPACE_CAKE, 0),
+            new InfusedEdible(DAWAMESK, +1));
+
+    /** The offset {@code item} was declared with. Throws rather than guessing — datagen reads this. */
+    public static int potencyOffsetOf(ItemConvertible item) {
+        for (InfusedEdible edible : INFUSED_EDIBLES) {
+            if (edible.item() == item) {
+                return edible.potencyOffset();
+            }
+        }
+        throw new IllegalArgumentException("Not an infused edible: " + item);
+    }
 
     // One item each, for every strain and every dose. What is rolled or packed into them lives in
     // the smoke_contents component, the way a potion carries potion_contents — so a new strain adds
@@ -196,14 +243,58 @@ public class ModItems {
     }
 
     /**
-     * Every loaded smokeable worth showing in the creative tab: one <em>stack</em> per device per
-     * dose per active strain, plus a spliff per dose per strain.
+     * The smokeables the creative <em>grid</em> shows: <b>one per strain at dose 1</b>, plus each
+     * device empty. Eight entries at two strains, growing by three per strain rather than eight.
      *
-     * <p>Stacks rather than items is how vanilla lists its forty-odd potions off one registered item,
-     * and it is also what keeps them all visible in JEI/EMI, which build their item lists from
-     * creative tabs.
+     * <h2>Why strain is listed and dose is not</h2>
+     *
+     * This copies the enchanted book: {@code ItemGroups} pairs
+     * {@code addMaxLevelEnchantedBooks(…, PARENT_TAB_ONLY)} with
+     * {@code addAllLevelEnchantedBooks(…, SEARCH_TAB_ONLY)}, so the Ingredients tab shows one book per
+     * enchantment while every level lives in the search tab.
+     *
+     * <p><b>Vanilla would arguably enumerate at our size.</b> It shows all 46 potions including the
+     * nine "strong" level-II ones, and it lists integer component levels outright — ominous bottle
+     * amplifier 0–4, firework flight 1–3. Its dividing line is scale, not levels, and 16 stacks is
+     * potion-scale rather than book-scale. <b>What decides it here is that vanilla's variant set is
+     * closed and this one is not</b>: every strain is +8 stacks, and mixing — the thing
+     * {@link SmokeContents} is list-shaped for — multiplies the matrix rather than adding to it.
+     * Collapsing now costs nothing and means the tab never needs reorganising as content lands.
+     *
+     * <p><b>Nothing is lost to a modpack by that.</b> Both recipe viewers read the search set, not
+     * the visible grid: JEI's {@code ItemStackListFactory} walks {@code getDisplayItems()} <em>and</em>
+     * {@code getSearchTabDisplayItems()}, and EMI's {@code EmiStackList} reads
+     * {@code getSearchTabStacks()} outright. A search-only stack is a fully listed stack to both.
+     *
+     * <p>The showcase carries <b>dose 1</b> where vanilla's book carries the max level. Deliberate,
+     * and the same reason vanilla writes "Potion of Strength" for the level-I one: dose 1 is the
+     * ordinary form of a smokeable — cheapest, and the only one that can never green you out.
+     *
+     * @see #allSmokeables()
      */
-    public static List<ItemStack> loadedSmokeables() {
+    public static List<ItemStack> showcaseSmokeables() {
+        List<ItemStack> out = new ArrayList<>();
+        for (Strain strain : Strain.ACTIVE) {
+            out.add(loaded(SPLIFF, strain, 1, 0));
+        }
+        for (DeviceType device : DeviceType.values()) {
+            Item item = device == DeviceType.PIPE ? WOODEN_PIPE : BONG;
+            out.add(new ItemStack(item));
+            for (Strain strain : Strain.ACTIVE) {
+                out.add(loaded(item, strain, 1, device.bowlSize()));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Every smokeable that exists: each device empty, and one stack per device per dose per active
+     * strain. This is the {@code SEARCH_TAB_ONLY} half of the pair — what the creative search field
+     * and the recipe viewers see. It is a superset of {@link #showcaseSmokeables()}, and re-adding
+     * those stacks is safe because the duplicate guard in {@code ItemGroup.EntriesImpl#add} exempts
+     * search-only entries. Vanilla's two enchanted-book passes overlap the same way.
+     */
+    public static List<ItemStack> allSmokeables() {
         List<ItemStack> out = new ArrayList<>();
         for (Strain strain : Strain.ACTIVE) {
             for (int dose = 1; dose <= SPLIFF_MAX_DOSE; dose++) {
@@ -212,6 +303,7 @@ public class ModItems {
         }
         for (DeviceType device : DeviceType.values()) {
             Item item = device == DeviceType.PIPE ? WOODEN_PIPE : BONG;
+            out.add(new ItemStack(item));
             for (Strain strain : Strain.ACTIVE) {
                 for (int dose = 1; dose <= device.maxDose(); dose++) {
                     out.add(loaded(item, strain, dose, device.bowlSize()));
@@ -224,6 +316,97 @@ public class ModItems {
     /** Highest dose a spliff can be rolled at. Devices carry their own ceiling on {@link DeviceType}. */
     public static final int SPLIFF_MAX_DOSE = 3;
 
+    // ---------------------------------------------------------------------
+    // Cannabutter and the edibles, for the creative tab
+    //
+    // Same split as the smokeables above: the grid shows one real form of
+    // each, the whole matrix goes in the search tab. What is different is
+    // that these have *two* level axes and no identity axis at all, so the
+    // search pass is a cross-product -- which is exactly what vanilla's
+    // addAllLevelEnchantedBooks does with enchantment x level.
+    //
+    // The grid entries carry components where they used to carry none.
+    // A potency-0 edible does nothing and no recipe can make one, so listing
+    // it was listing the mod's own uncraftable potion; vanilla lists neither
+    // that nor a blank enchanted book.
+    // ---------------------------------------------------------------------
+
+    /**
+     * One strength per potency tier: the <b>lowest</b> hemp count that reaches each — the same floor
+     * rule the grid entries follow, and it is what makes the grid's strength-1 butter a member of the
+     * search set rather than a stack that exists nowhere else.
+     */
+    private static final int[] TIER_STRENGTHS = {1, 7, 13, 19};
+
+    /**
+     * Cannabutter as the grid shows it, and the rule both this and {@link #showcaseEdibles()} follow:
+     * <b>the floor of both axes</b> — the lowest tier the item can reach, at Rough. The weakest real
+     * form, matching the smokeables showing dose 1, and honest about what an unimproved batch gives.
+     *
+     * <p>It sits with the processed hemp rather than with the edibles because it <em>is</em> one — the
+     * last thing the machines make. Vanilla splits the same way, wheat and sugar in Ingredients while
+     * the bread and the cake are in Food & Drinks.
+     */
+    public static ItemStack showcaseCannabutter() {
+        return butter(1, Quality.ROUGH);
+    }
+
+    /**
+     * The edibles as the grid shows them, in vanilla's food order: the baked run first (bread, cookie,
+     * cake is vanilla's own sequence), then the confection, then <b>the drink last</b> — Food & Drinks
+     * ends with the milk bucket and the honey bottle for the same reason.
+     */
+    public static List<ItemStack> showcaseEdibles() {
+        List<ItemStack> out = new ArrayList<>();
+        for (InfusedEdible edible : INFUSED_EDIBLES) {
+            out.add(dosed(edible.item(), edible.minTier(), Quality.ROUGH));
+        }
+        out.add(dosed(BHANG_BUCKET, 1, Quality.ROUGH));
+        return out;
+    }
+
+    /**
+     * Every dosed stack the mod can produce: cannabutter at each tier × each quality, and every
+     * edible across its own reachable tiers × each quality. The {@code SEARCH_TAB_ONLY} half.
+     *
+     * <p>Cannabutter's raw strength is 1–24, but <b>only its tier is ever read</b>
+     * ({@link EdibleEffects#tierFromStrength}), so listing 24 stacks per quality would be listing the
+     * same four things six times over. One strength per quartile stands in for the tier.
+     */
+    public static List<ItemStack> allDosed() {
+        List<ItemStack> out = new ArrayList<>();
+        for (int strength : TIER_STRENGTHS) {
+            for (Quality quality : Quality.values()) {
+                out.add(butter(strength, quality));
+            }
+        }
+        for (InfusedEdible edible : INFUSED_EDIBLES) {
+            for (int tier = edible.minTier(); tier <= edible.maxTier(); tier++) {
+                for (Quality quality : Quality.values()) {
+                    out.add(dosed(edible.item(), tier, quality));
+                }
+            }
+        }
+        // Bhang has one form and always will: no butter to inherit from, and its recipe pins it.
+        out.add(dosed(BHANG_BUCKET, 1, Quality.ROUGH));
+        return out;
+    }
+
+    private static ItemStack butter(int strength, Quality quality) {
+        ItemStack stack = new ItemStack(CANNABUTTER);
+        stack.set(ModComponents.STRENGTH, strength);
+        stack.set(ModComponents.QUALITY, quality);
+        return stack;
+    }
+
+    private static ItemStack dosed(ItemConvertible item, int potency, Quality quality) {
+        ItemStack stack = new ItemStack(item);
+        stack.set(ModComponents.POTENCY, potency);
+        stack.set(ModComponents.QUALITY, quality);
+        return stack;
+    }
+
+    /** A spliff or device holding {@code dose} buds of one strain, with a full bowl where it has one. */
     private static ItemStack loaded(Item item, Strain strain, int dose, int charges) {
         ItemStack stack = new ItemStack(item);
         stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));

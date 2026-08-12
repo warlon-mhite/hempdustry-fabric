@@ -1,11 +1,13 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.mojang.serialization.Codec;
+import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -48,7 +50,8 @@ import java.util.function.Supplier;
  */
 public enum Strain implements StringIdentifiable {
     // Purple Kush — the body high: hard to hurt, hard to get anything done.
-    INDICA("indica", () -> ModItems.INDICA_SEEDS, () -> ModItems.INDICA_BUDS, 0x8E6FB5,
+    INDICA("indica", () -> ModItems.INDICA_SEEDS, () -> ModItems.INDICA_BUDS,
+            () -> ModBlocks.INDICA_FLOWER, 0x8E6FB5,
             List.of(
                     new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                     new SmokeEffect(StatusEffects.HUNGER, 0, false),
@@ -56,7 +59,8 @@ public enum Strain implements StringIdentifiable {
     // Lemon Haze — the head high, and a deliberate mirror of Purple Kush: where indica buffs
     // defence and taxes mining, sativa buffs movement and mining and taxes melee damage. Hunger
     // is in both because the munchies don't care which strain you smoked.
-    SATIVA("sativa", () -> ModItems.SATIVA_SEEDS, () -> ModItems.SATIVA_BUDS, 0xC7D14A,
+    SATIVA("sativa", () -> ModItems.SATIVA_SEEDS, () -> ModItems.SATIVA_BUDS,
+            () -> ModBlocks.SATIVA_FLOWER, 0xC7D14A,
             List.of(
                     new SmokeEffect(StatusEffects.SPEED, 0, true),
                     new SmokeEffect(StatusEffects.HASTE, 0, true),
@@ -78,13 +82,16 @@ public enum Strain implements StringIdentifiable {
     private final String id;
     private final Supplier<Item> seeds;
     private final Supplier<Item> buds;
+    private final Supplier<Block> flower;
     private final int color;
     private final List<SmokeEffect> smokeEffects;
 
-    Strain(String id, Supplier<Item> seeds, Supplier<Item> buds, int color, List<SmokeEffect> smokeEffects) {
+    Strain(String id, Supplier<Item> seeds, Supplier<Item> buds, Supplier<Block> flower, int color,
+           List<SmokeEffect> smokeEffects) {
         this.id = id;
         this.seeds = seeds;
         this.buds = buds;
+        this.flower = flower;
         this.color = color;
         this.smokeEffects = smokeEffects;
     }
@@ -100,6 +107,15 @@ public enum Strain implements StringIdentifiable {
 
     public Item buds() {
         return buds.get();
+    }
+
+    /**
+     * The wild flower that drops this strain's seeds. Held here so the creative tab can emit one run
+     * per <em>kind</em> — every seed, then every bud, then every flower — the way vanilla groups all
+     * its seeds together rather than by plant. A third strain then costs no tab code at all.
+     */
+    public Block flower() {
+        return flower.get();
     }
 
     /** Packed-device / spliff tint, the way a potion tints its liquid layer. Blended for mixes. */

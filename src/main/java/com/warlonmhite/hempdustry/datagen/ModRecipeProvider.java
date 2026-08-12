@@ -380,12 +380,12 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Three to a loaf is not free food: a loaf is 5 nutrition and 6.0 saturation, three slices
         // are 6 and 3.6. Nutrition up, saturation down, and what you actually bought was three
         // doses out of one butter instead of one.
-        offerInfusedShapeless(exporter, id("cannabutter_toast"), ModItems.CANNABUTTER_TOAST, 3, -1,
+        offerInfusedShapeless(exporter, id("cannabutter_toast"), ModItems.CANNABUTTER_TOAST, 3,
                 List.of(Ingredient.ofItems(Items.BREAD), Ingredient.ofItems(ModItems.CANNABUTTER)));
 
         // Vanilla's cookie is wheat-cocoa-wheat for 8. Same row with hemp flour, plus the butter
         // underneath: the cheapest way into edibles and the most dilute.
-        offerInfusedShaped(exporter, id("space_cookie"), ModItems.SPACE_COOKIE, 8, -1,
+        offerInfusedShaped(exporter, id("space_cookie"), ModItems.SPACE_COOKIE, 8,
                 Map.of('F', Ingredient.ofItems(ModItems.HEMP_FLOUR),
                        'C', Ingredient.ofItems(Items.COCOA_BEANS),
                        'B', Ingredient.ofItems(ModItems.CANNABUTTER)),
@@ -393,7 +393,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
         // A brownie is flour, cocoa, sugar and fat — cocoa-forward where the cookie is flour-
         // forward, which is what the pattern says. Four to a batch, so twice a cookie's dose.
-        offerInfusedShaped(exporter, id("space_brownie"), ModItems.SPACE_BROWNIE, 4, 0,
+        offerInfusedShaped(exporter, id("space_brownie"), ModItems.SPACE_BROWNIE, 4,
                 Map.of('C', Ingredient.ofItems(Items.COCOA_BEANS),
                        'F', Ingredient.ofItems(ModItems.HEMP_FLOUR),
                        'S', Ingredient.ofItems(Items.SUGAR),
@@ -416,7 +416,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Net cost change: one milk out, one egg in. A chicken instead of a third cow-trip, which is
         // what vanilla's cake asks for anyway. Milk is the tag, so hemp milk works here as it does
         // in bhang.
-        offerInfusedShaped(exporter, id("space_cake"), ModBlocks.SPACE_CAKE, 1, 0,
+        offerInfusedShaped(exporter, id("space_cake"), ModBlocks.SPACE_CAKE, 1,
                 Map.of('M', Ingredient.fromTag(ModTags.Items.MILK_BUCKETS),
                        'S', Ingredient.ofItems(Items.SUGAR),
                        'E', Ingredient.ofItems(Items.EGG),
@@ -456,7 +456,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // The real thing is a paste of sugar, orange, cinnamon, cloves, nutmeg, pistachio and
         // almond around the fat -- none of which vanilla has, so sweet berries stand in for the
         // fruit and honey for the spiced syrup. Shapeless, because it is stirred, not baked.
-        offerInfusedShapeless(exporter, id("dawamesk"), ModItems.DAWAMESK, 1, +1,
+        offerInfusedShapeless(exporter, id("dawamesk"), ModItems.DAWAMESK, 1,
                 List.of(Ingredient.ofItems(ModItems.CANNABUTTER), Ingredient.ofItems(Items.SUGAR),
                         Ingredient.ofItems(Items.HONEY_BOTTLE), Ingredient.ofItems(Items.SWEET_BERRIES)));
 
@@ -787,25 +787,28 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
     /**
      * Recipes that carry cannabutter's potency and quality onto the edible — see
-     * {@link com.warlonmhite.hempdustry.recipe.Infusion}. {@code offset} is the edible's step on the
-     * potency ladder: +1 concentrates, 0 is neutral, -1 spreads the butter thin.
+     * {@link com.warlonmhite.hempdustry.recipe.Infusion}. The edible's step on the potency ladder
+     * (+1 concentrates, 0 is neutral, -1 spreads the butter thin) is <b>read from
+     * {@link ModItems#INFUSED_EDIBLES}</b> rather than passed in, so the creative tab and the recipe
+     * cannot disagree about which tiers an edible can reach.
      *
      * <p>Built by hand because the vanilla builders can only emit vanilla's serializers. The unlock
      * advancement is assembled the same way {@code offerSpliff} does it, so the recipe book still
      * discovers these on obtaining cannabutter.
      */
     private static void offerInfusedShaped(RecipeExporter exporter, Identifier recipeId,
-                                           ItemConvertible output, int count, int offset,
+                                           ItemConvertible output, int count,
                                            Map<Character, Ingredient> key, String... pattern) {
         offerInfused(exporter, recipeId, new InfusedShapedRecipe("", CraftingRecipeCategory.MISC,
-                RawShapedRecipe.create(key, pattern), new ItemStack(output, count), offset));
+                RawShapedRecipe.create(key, pattern), new ItemStack(output, count),
+                ModItems.potencyOffsetOf(output)));
     }
 
     private static void offerInfusedShapeless(RecipeExporter exporter, Identifier recipeId,
-                                              ItemConvertible output, int count, int offset,
+                                              ItemConvertible output, int count,
                                               List<Ingredient> inputs) {
         offerInfused(exporter, recipeId, new InfusedShapelessRecipe("", CraftingRecipeCategory.MISC,
-                new ItemStack(output, count), inputs, offset));
+                new ItemStack(output, count), inputs, ModItems.potencyOffsetOf(output)));
     }
 
     private static void offerInfused(RecipeExporter exporter, Identifier recipeId, net.minecraft.recipe.Recipe<?> recipe) {
