@@ -1,0 +1,23 @@
+{
+  "buds": "hempdustry:sativa_buds",
+  "color": 13095242,
+  "effects": [
+    {
+      "effect": "minecraft:speed"
+    },
+    {
+      "effect": "minecraft:haste"
+    },
+    {
+      "effect": "minecraft:hunger",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:weakness"
+    }
+  ],
+  "flower": "hempdustry:sativa_flower",
+  "model_index": 2,
+  "seeds": "hempdustry:sativa_seeds",
+  "translation_key": "hempdustry.strain.sativa"
+}

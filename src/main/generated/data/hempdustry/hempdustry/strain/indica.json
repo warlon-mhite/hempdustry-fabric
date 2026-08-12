@@ -1,0 +1,20 @@
+{
+  "buds": "hempdustry:indica_buds",
+  "color": 9334709,
+  "effects": [
+    {
+      "effect": "minecraft:resistance"
+    },
+    {
+      "effect": "minecraft:hunger",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:mining_fatigue"
+    }
+  ],
+  "flower": "hempdustry:indica_flower",
+  "model_index": 1,
+  "seeds": "hempdustry:indica_seeds",
+  "translation_key": "hempdustry.strain.indica"
+}

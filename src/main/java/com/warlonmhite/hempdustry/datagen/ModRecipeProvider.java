@@ -3,7 +3,8 @@ package com.warlonmhite.hempdustry.datagen;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
-import com.warlonmhite.hempdustry.item.custom.Strain;
+import com.warlonmhite.hempdustry.strain.ModStrains;
+import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.advancement.AdvancementRequirements;
 import net.minecraft.advancement.AdvancementRewards;
 import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
@@ -35,6 +36,9 @@ import net.minecraft.item.Items;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.book.RecipeCategory;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.data.DataWriter;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.registry.tag.TagKey;
@@ -43,8 +47,24 @@ import net.minecraft.util.Identifier;
 import java.util.concurrent.CompletableFuture;
 
 public class ModRecipeProvider extends FabricRecipeProvider {
+    /**
+     * The registries this run resolved, captured on the way past.
+     *
+     * <p>Needed because the spliff recipes bake a {@code smoke_contents} component into their result,
+     * and a strain reference is a {@link RegistryEntry} that only a lookup can produce —
+     * {@link Strain#ENTRY_CODEC} refuses inline entries. {@code generate} is not handed the lookup,
+     * so it is taken from {@code run}, which is called immediately before it.
+     */
+    private RegistryWrapper.WrapperLookup registries;
+
     public ModRecipeProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
         super(output, registriesFuture);
+    }
+
+    @Override
+    public CompletableFuture<?> run(DataWriter writer, RegistryWrapper.WrapperLookup lookup) {
+        this.registries = lookup;
+        return super.run(writer, lookup);
     }
 
     @Override
@@ -471,9 +491,12 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // same disambiguation vanilla relies on and the rule that caught green wool vs. canvas.
         // Paper scaling with dose is deliberate: it is the second resource that stops a level-III
         // spliff undercutting a bong, which gets four hits out of the same three buds.
-        for (Strain strain : Strain.ACTIVE) {
+        // Built-in strains only, the same boundary the art takes: a datapack can define a strain
+        // but it cannot ship a recipe file for it either.
+        RegistryWrapper.Impl<Strain> strains = Strain.registry(this.registries);
+        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             for (int dose = 1; dose <= ModItems.SPLIFF_MAX_DOSE; dose++) {
-                offerSpliff(exporter, strain, dose);
+                offerSpliff(exporter, strains.getOrThrow(key), dose);
             }
         }
 
@@ -698,21 +721,22 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * a fully-built {@link ShapedRecipe} to the exporter is the supported route, and it still emits
      * the usual unlock advancement so the recipe book discovers it on picking up the buds.
      */
-    private static void offerSpliff(RecipeExporter exporter, Strain strain, int dose) {
+    private static void offerSpliff(RecipeExporter exporter, RegistryEntry.Reference<Strain> strain, int dose) {
         ItemStack result = new ItemStack(ModItems.SPLIFF);
         result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
 
+        Item budItem = strain.value().buds();
         String buds = String.valueOf('B').repeat(dose);
         String paper = String.valueOf('P').repeat(dose);
         RawShapedRecipe raw = RawShapedRecipe.create(
-                Map.of('B', Ingredient.ofItems(strain.buds()), 'P', Ingredient.ofItems(Items.PAPER)),
+                Map.of('B', Ingredient.ofItems(budItem), 'P', Ingredient.ofItems(Items.PAPER)),
                 buds, paper);
 
-        Identifier recipeId = id("spliff_" + strain.id() + "_" + dose);
+        Identifier recipeId = id("spliff_" + ModStrains.id(strain.registryKey()) + "_" + dose);
         ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingRecipeCategory.MISC, raw, result);
         exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
                 .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
-                .criterion(hasItem(strain.buds()), conditionsFromItem(strain.buds()))
+                .criterion(hasItem(budItem), conditionsFromItem(budItem))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
                 .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
                 .build(recipeId.withPrefixedPath("recipes/misc/")));

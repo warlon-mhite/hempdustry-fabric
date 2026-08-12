@@ -4,7 +4,8 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
-import com.warlonmhite.hempdustry.item.custom.Strain;
+import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.client.item.ClampedModelPredicateProvider;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.util.Identifier;
@@ -51,14 +52,19 @@ public class HempdustryClient implements ClientModInitializer {
      * a different texture per strain now that the strain lives in a data component rather than in the
      * item id. Same mechanism vanilla uses for a bow's {@code pulling} or a crossbow's {@code charged}.
      *
-     * <p>0 when nothing is loaded, otherwise the strain's index + 1. Model overrides match with
-     * {@code >=}, so the datagen'd models list them ascending — see {@code ModModelProvider}.
+     * <p>0 when nothing is loaded, otherwise the strain's own {@code model_index} — a number carried
+     * in the strain's data rather than a registry position, because <b>registry order is not
+     * guaranteed stable</b> and an unstable index would put one strain's art on another's spliff. A
+     * datapack strain that declares no index (or one this client has no override for) falls back to
+     * the base model. Model overrides match with {@code >=}, so the datagen'd models list them
+     * ascending — see {@code ModModelProvider}.
      */
     private static void registerStrainPredicate() {
         Identifier id = Identifier.of(Hempdustry.MOD_ID, "strain");
         ClampedModelPredicateProvider provider = (stack, world, entity, seed) -> {
-            Strain strain = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).primaryStrain();
-            return strain == null ? 0f : strain.ordinal() + 1;
+            RegistryEntry<Strain> strain =
+                    stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).primaryStrain();
+            return strain == null ? 0f : strain.value().modelIndex();
         };
         ModelPredicateProviderRegistry.register(ModItems.SPLIFF, id, provider);
         ModelPredicateProviderRegistry.register(ModItems.WOODEN_PIPE, id, provider);

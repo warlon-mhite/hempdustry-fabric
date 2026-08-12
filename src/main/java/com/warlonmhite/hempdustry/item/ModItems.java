@@ -13,7 +13,7 @@ import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.item.custom.SpliffItem;
-import com.warlonmhite.hempdustry.item.custom.Strain;
+import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.item.AliasedBlockItem;
 import net.minecraft.item.ArmorItem;
@@ -26,6 +26,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SignItem;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
@@ -272,15 +274,16 @@ public class ModItems {
      *
      * @see #allSmokeables()
      */
-    public static List<ItemStack> showcaseSmokeables() {
+    public static List<ItemStack> showcaseSmokeables(RegistryWrapper.WrapperLookup registries) {
         List<ItemStack> out = new ArrayList<>();
-        for (Strain strain : Strain.ACTIVE) {
+        List<RegistryEntry.Reference<Strain>> strains = Strain.all(registries);
+        for (RegistryEntry<Strain> strain : strains) {
             out.add(loaded(SPLIFF, strain, 1, 0));
         }
         for (DeviceType device : DeviceType.values()) {
             Item item = device == DeviceType.PIPE ? WOODEN_PIPE : BONG;
             out.add(new ItemStack(item));
-            for (Strain strain : Strain.ACTIVE) {
+            for (RegistryEntry<Strain> strain : strains) {
                 out.add(loaded(item, strain, 1, device.bowlSize()));
             }
         }
@@ -294,9 +297,10 @@ public class ModItems {
      * those stacks is safe because the duplicate guard in {@code ItemGroup.EntriesImpl#add} exempts
      * search-only entries. Vanilla's two enchanted-book passes overlap the same way.
      */
-    public static List<ItemStack> allSmokeables() {
+    public static List<ItemStack> allSmokeables(RegistryWrapper.WrapperLookup registries) {
         List<ItemStack> out = new ArrayList<>();
-        for (Strain strain : Strain.ACTIVE) {
+        List<RegistryEntry.Reference<Strain>> strains = Strain.all(registries);
+        for (RegistryEntry<Strain> strain : strains) {
             for (int dose = 1; dose <= SPLIFF_MAX_DOSE; dose++) {
                 out.add(loaded(SPLIFF, strain, dose, 0));
             }
@@ -304,7 +308,7 @@ public class ModItems {
         for (DeviceType device : DeviceType.values()) {
             Item item = device == DeviceType.PIPE ? WOODEN_PIPE : BONG;
             out.add(new ItemStack(item));
-            for (Strain strain : Strain.ACTIVE) {
+            for (RegistryEntry<Strain> strain : strains) {
                 for (int dose = 1; dose <= device.maxDose(); dose++) {
                     out.add(loaded(item, strain, dose, device.bowlSize()));
                 }
@@ -407,7 +411,7 @@ public class ModItems {
     }
 
     /** A spliff or device holding {@code dose} buds of one strain, with a full bowl where it has one. */
-    private static ItemStack loaded(Item item, Strain strain, int dose, int charges) {
+    private static ItemStack loaded(Item item, RegistryEntry<Strain> strain, int dose, int charges) {
         ItemStack stack = new ItemStack(item);
         stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
         if (charges > 0) {

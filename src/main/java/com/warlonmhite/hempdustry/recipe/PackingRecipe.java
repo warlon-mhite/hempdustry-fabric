@@ -4,7 +4,8 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
-import com.warlonmhite.hempdustry.item.custom.Strain;
+import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.SpecialCraftingRecipe;
@@ -35,12 +36,12 @@ public class PackingRecipe extends SpecialCraftingRecipe {
 
     @Override
     public boolean matches(CraftingRecipeInput input, World world) {
-        return find(input) != null;
+        return find(input, world.getRegistryManager()) != null;
     }
 
     @Override
     public ItemStack craft(CraftingRecipeInput input, RegistryWrapper.WrapperLookup lookup) {
-        Match match = find(input);
+        Match match = find(input, lookup);
         if (match == null) {
             return ItemStack.EMPTY;
         }
@@ -70,9 +71,9 @@ public class PackingRecipe extends SpecialCraftingRecipe {
      * <p>An already-packed device is rejected deliberately: allowing it would silently discard the
      * bowl already in there along with whatever charges were left on it.
      */
-    private static Match find(CraftingRecipeInput input) {
+    private static Match find(CraftingRecipeInput input, RegistryWrapper.WrapperLookup registries) {
         ItemStack device = ItemStack.EMPTY;
-        Strain strain = null;
+        RegistryEntry<Strain> strain = null;
         int dose = 0;
         for (int i = 0; i < input.getSize(); i++) {
             ItemStack stack = input.getStackInSlot(i);
@@ -85,7 +86,10 @@ public class PackingRecipe extends SpecialCraftingRecipe {
                 }
                 device = stack;
             } else {
-                Strain budStrain = Strain.fromBuds(stack.getItem());
+                // Resolved against the world's strain registry rather than a fixed list, so a
+                // datapack-defined strain packs like any other.
+                RegistryEntry<Strain> budStrain =
+                        Strain.fromBuds(registries, stack.getItem()).orElse(null);
                 if (budStrain == null || (strain != null && strain != budStrain)) {
                     return null; // a foreign item, or a second strain (no mixing yet)
                 }
@@ -100,6 +104,6 @@ public class PackingRecipe extends SpecialCraftingRecipe {
         return dose >= 1 && dose <= type.maxDose() ? new Match(device, strain, dose) : null;
     }
 
-    private record Match(ItemStack device, Strain strain, int dose) {
+    private record Match(ItemStack device, RegistryEntry<Strain> strain, int dose) {
     }
 }

@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.datagen.*;
+import com.warlonmhite.hempdustry.strain.ModStrains;
+import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.world.ModConfiguredFeatures;
 import com.warlonmhite.hempdustry.world.ModPlacedFeatures;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -19,11 +21,13 @@ public class HempdustryDataGenerator implements DataGeneratorEntrypoint {
 		pack.addProvider(ModModelProvider::new);
 		pack.addProvider(ModRecipeProvider::new);
 		pack.addProvider(ModWorldGenerator::new);
+		pack.addProvider(ModStrainProvider::new);
 		pack.addProvider(ModAdvancementProvider::new);
 	}
 
 	@Override
 	public void buildRegistry(RegistryBuilder registryBuilder) {
+		registryBuilder.addRegistry(Strain.REGISTRY_KEY, ModStrains::bootstrap);
 		registryBuilder.addRegistry(RegistryKeys.CONFIGURED_FEATURE, ModConfiguredFeatures::bootstrap);
 		registryBuilder.addRegistry(RegistryKeys.PLACED_FEATURE, ModPlacedFeatures::bootstrap);
 	}

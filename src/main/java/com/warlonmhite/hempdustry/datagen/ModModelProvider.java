@@ -8,7 +8,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import net.minecraft.block.CakeBlock;
-import com.warlonmhite.hempdustry.item.custom.Strain;
+import com.warlonmhite.hempdustry.strain.ModStrains;
+import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.registry.RegistryKey;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.data.client.*;
@@ -93,21 +95,26 @@ public class ModModelProvider extends FabricModelProvider {
         // Smoking gear. One item per device now carries every strain in a component, so the visual
         // per-strain split moved from separate items to *model overrides* on a shared item —
         // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged". The predicate is
-        // hempdustry:strain, 0 when nothing is loaded and the strain's index + 1 otherwise (see
-        // HempdustryClient). Predicate matching is >=, so overrides must be listed ascending.
+        // hempdustry:strain, 0 when nothing is loaded and the strain's own model_index otherwise
+        // (see HempdustryClient). Predicate matching is >=, so overrides must be listed ascending.
+        //
+        // Driven off ModStrains.BUILT_IN rather than the loaded registry, and that is the honest
+        // boundary: a datapack can define a strain but it cannot ship a texture, so art exists only
+        // for the strains the mod itself carries. ModStrains.modelIndex is the single source for the
+        // number written into the data and matched here.
         //
         // The spliff keeps a texture per strain, which it always had. The devices all share one
         // packed texture, which they always did — the override is at >= 1 ("packed at all"), so
         // giving a strain its own packed art later is one more entry here plus the PNG.
-        for (Strain strain : Strain.ACTIVE) {
-            uploadGenerated(itemModelGenerator, spliffModel(strain), texture(strain.id() + "_spliff"));
+        for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
+            uploadGenerated(itemModelGenerator, spliffModel(strain), texture(ModStrains.id(strain) + "_spliff"));
         }
         List<ModelOverride> spliffOverrides = new ArrayList<>();
-        for (Strain strain : Strain.ACTIVE) {
-            spliffOverrides.add(new ModelOverride(strain.ordinal() + 1, spliffModel(strain)));
+        for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
+            spliffOverrides.add(new ModelOverride(ModStrains.modelIndex(strain), spliffModel(strain)));
         }
         uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(ModItems.SPLIFF),
-                texture(Strain.ACTIVE.get(0).id() + "_spliff"), spliffOverrides);
+                texture(ModStrains.id(ModStrains.BUILT_IN.get(0)) + "_spliff"), spliffOverrides);
 
         for (DeviceType device : DeviceType.values()) {
             Item item = device == DeviceType.PIPE ? ModItems.WOODEN_PIPE : ModItems.BONG;
@@ -135,8 +142,8 @@ public class ModModelProvider extends FabricModelProvider {
         return Identifier.of(Hempdustry.MOD_ID, "item/" + name);
     }
 
-    private static Identifier spliffModel(Strain strain) {
-        return Identifier.of(Hempdustry.MOD_ID, "item/spliff_" + strain.id());
+    private static Identifier spliffModel(RegistryKey<Strain> strain) {
+        return Identifier.of(Hempdustry.MOD_ID, "item/spliff_" + ModStrains.id(strain));
     }
 
     private static void uploadGenerated(ItemModelGenerator generator, Identifier modelId, Identifier texture) {

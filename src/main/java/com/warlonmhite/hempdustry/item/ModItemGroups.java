@@ -2,14 +2,17 @@ package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
-import com.warlonmhite.hempdustry.item.custom.Strain;
+import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+
+import java.util.List;
 
 /**
  * The mod's single creative tab.
@@ -48,7 +51,7 @@ import net.minecraft.util.Identifier;
  *
  * <ul>
  *   <li><b>A third strain</b> costs no code here at all — the plant runs and the smokeables are both
- *       driven off {@link Strain#ACTIVE}.</li>
+ *       driven off the strain registry.</li>
  *   <li><b>New work blocks</b> (press, drying rack, mixer, extractor, grow light) append to the
  *       machine run.</li>
  *   <li><b>New transformed hemp</b> (hashish, oil, rosin) appends to the processed run, which is
@@ -71,11 +74,14 @@ public class ModItemGroups {
                     .displayName(Text.translatable("itemgroup.hempdustry"))
                     .entries((displayContext, entries) -> {
                         // --- The plant -------------------------------------------------
-                        // One run per kind, each in Strain.ACTIVE order, so a new strain
-                        // slots into all three runs without touching this file.
-                        Strain.ACTIVE.forEach(strain -> entries.add(strain.seeds()));
-                        Strain.ACTIVE.forEach(strain -> entries.add(strain.buds()));
-                        Strain.ACTIVE.forEach(strain -> entries.add(strain.flower()));
+                        // One run per kind, in the strain registry's own stable order, so a strain
+                        // added or edited by a datapack slots into all three runs without touching
+                        // this file. The tab reads displayContext.lookup() for that, exactly as
+                        // vanilla's Food & Drinks reads the potion registry.
+                        List<RegistryEntry.Reference<Strain>> strains = Strain.all(displayContext.lookup());
+                        strains.forEach(strain -> entries.add(strain.value().seeds()));
+                        strains.forEach(strain -> entries.add(strain.value().buds()));
+                        strains.forEach(strain -> entries.add(strain.value().flower()));
                         entries.add(ModItems.HEMP_STEM);
                         entries.add(ModItems.HEMP_LEAF);
                         // The crop's storage block, where vanilla keeps the hay bale: Natural,
@@ -122,9 +128,9 @@ public class ModItemGroups {
                         // --- Smoking ---------------------------------------------------
                         // Gear-free first, then the devices in progression order; each device
                         // empty, then one per strain. Doses live in the search tab only.
-                        ModItems.showcaseSmokeables()
+                        ModItems.showcaseSmokeables(displayContext.lookup())
                                 .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.PARENT_TAB_ONLY));
-                        ModItems.allSmokeables()
+                        ModItems.allSmokeables(displayContext.lookup())
                                 .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.SEARCH_TAB_ONLY));
 
                         // --- Armour, head to foot --------------------------------------

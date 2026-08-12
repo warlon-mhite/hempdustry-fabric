@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.loot;
 
 import com.warlonmhite.hempdustry.item.ModItems;
-import com.warlonmhite.hempdustry.item.custom.Strain;
+import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.Enchantment;
@@ -113,8 +113,10 @@ public class ModLootTableModifiers {
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(WITHOUT_SHEARS)
                         .conditionally(RandomChanceLootCondition.builder(GRASS_SEED_CHANCE));
-                for (Strain strain : Strain.ACTIVE) {
-                    pool.with(ItemEntry.builder(strain.seeds())
+                // Driven off the loaded strain registry, so a datapack strain's seeds appear in
+                // grass without touching this file.
+                for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
+                    pool.with(ItemEntry.builder(strain.value().seeds())
                             .apply(ApplyBonusLootFunction.uniformBonusCount(fortune, 2))
                             .apply(ExplosionDecayLootFunction.builder()));
                 }
@@ -123,8 +125,8 @@ public class ModLootTableModifiers {
                 LootPool.Builder pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(RandomChanceLootCondition.builder(CHEST_SEED_CHANCE));
-                for (Strain strain : Strain.ACTIVE) {
-                    pool.with(ItemEntry.builder(strain.seeds())
+                for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
+                    pool.with(ItemEntry.builder(strain.value().seeds())
                             .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))));
                 }
                 tableBuilder.pool(pool);

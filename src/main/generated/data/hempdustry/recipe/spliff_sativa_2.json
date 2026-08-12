@@ -19,7 +19,7 @@
       "hempdustry:smoke_contents": [
         {
           "count": 2,
-          "strain": "sativa"
+          "strain": "hempdustry:sativa"
         }
       ]
     },

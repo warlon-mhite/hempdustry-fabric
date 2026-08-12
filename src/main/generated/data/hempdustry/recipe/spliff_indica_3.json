@@ -19,7 +19,7 @@
       "hempdustry:smoke_contents": [
         {
           "count": 3,
-          "strain": "indica"
+          "strain": "hempdustry:indica"
         }
       ]
     },

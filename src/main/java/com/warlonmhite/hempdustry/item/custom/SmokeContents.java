@@ -2,11 +2,12 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
+import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -43,24 +44,30 @@ public record SmokeContents(List<Entry> entries) {
 
     public static final PacketCodec<RegistryByteBuf, SmokeContents> PACKET_CODEC =
             Entry.PACKET_CODEC.collect(PacketCodecs.toList())
-                    .xmap(SmokeContents::new, SmokeContents::entries)
-                    .cast();
+                    .xmap(SmokeContents::new, SmokeContents::entries);
 
-    /** A single strain's share of the load. */
-    public record Entry(Strain strain, int count) {
+    /**
+     * A single strain's share of the load.
+     *
+     * <p>The strain is held as a {@link RegistryEntry} rather than by value: a stack stores the id
+     * and resolves it against the world's strain registry, so a datapack edit reaches every spliff
+     * already in a chest. {@link Strain#ENTRY_CODEC} refuses inline entries, which is what stops a
+     * stack from carrying a stale copy of a definition.
+     */
+    public record Entry(RegistryEntry<Strain> strain, int count) {
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Strain.CODEC.fieldOf("strain").forGetter(Entry::strain),
+                Strain.ENTRY_CODEC.fieldOf("strain").forGetter(Entry::strain),
                 Codec.INT.fieldOf("count").forGetter(Entry::count)
         ).apply(instance, Entry::new));
 
-        public static final PacketCodec<ByteBuf, Entry> PACKET_CODEC = PacketCodec.tuple(
-                Strain.PACKET_CODEC, Entry::strain,
+        public static final PacketCodec<RegistryByteBuf, Entry> PACKET_CODEC = PacketCodec.tuple(
+                Strain.ENTRY_PACKET_CODEC, Entry::strain,
                 PacketCodecs.VAR_INT, Entry::count,
                 Entry::new);
     }
 
     /** A single-strain load — the only shape anything produces today. */
-    public static SmokeContents of(Strain strain, int count) {
+    public static SmokeContents of(RegistryEntry<Strain> strain, int count) {
         return new SmokeContents(List.of(new Entry(strain, count)));
     }
 
@@ -78,7 +85,7 @@ public record SmokeContents(List<Entry> entries) {
     }
 
     /** The dominant strain, for naming and tinting. {@code null} only when empty. */
-    public Strain primaryStrain() {
+    public RegistryEntry<Strain> primaryStrain() {
         Entry best = null;
         for (Entry entry : entries) {
             if (best == null || entry.count() > best.count()) {
@@ -104,7 +111,7 @@ public record SmokeContents(List<Entry> entries) {
         }
         int r = 0, g = 0, b = 0, total = 0;
         for (Entry entry : entries) {
-            int color = entry.strain().color();
+            int color = entry.strain().value().color();
             int weight = Math.max(1, entry.count());
             r += ((color >> 16) & 0xFF) * weight;
             g += ((color >> 8) & 0xFF) * weight;
@@ -119,8 +126,8 @@ public record SmokeContents(List<Entry> entries) {
         if (isBlend()) {
             return Text.translatable("hempdustry.strain.blend");
         }
-        Strain strain = primaryStrain();
-        return strain == null ? Text.empty() : Text.translatable(strain.getTranslationKey());
+        RegistryEntry<Strain> strain = primaryStrain();
+        return strain == null ? Text.empty() : Text.translatable(strain.value().translationKey());
     }
 
     /**
@@ -145,7 +152,7 @@ public record SmokeContents(List<Entry> entries) {
     public List<StatusEffectInstance> effects(int durationTicks) {
         List<StatusEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
-            out.addAll(entry.strain().effects(entry.count(), durationTicks));
+            out.addAll(entry.strain().value().effects(entry.count(), durationTicks));
         }
         return out;
     }
