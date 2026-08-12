@@ -76,6 +76,16 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         getOrCreateTagBuilder(BlockTags.SHOVEL_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
 
+        // The bale is a copy of hay in every other respect and hay is hoe-mineable. It was in no
+        // mineable tag at all, so no tool sped it up.
+        //
+        // Hoe *only*. Hay is also in #minecraft:horse_food and #minecraft:llama_food; the hemp bale
+        // is deliberately not, and that was a decision rather than an oversight — the mod feeds
+        // goats hemp leaf and nothing else, and a bale that feeds horses would start it down the
+        // "hemp is a worse wheat for every farm animal" road that goat_food was scoped to avoid.
+        getOrCreateTagBuilder(BlockTags.HOE_MINEABLE)
+                .add(ModBlocks.HEMP_BALE);
+
         getOrCreateTagBuilder(BlockTags.AXE_MINEABLE)
                 .add(ModBlocks.HEMP_BRICKS_BLOCK)
                 .add(ModBlocks.HEMP_BRICKS_SLAB)
@@ -119,7 +129,24 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         getOrCreateTagBuilder(BlockTags.PLANKS).add(ModBlocks.HEMP_PLANKS);
         getOrCreateTagBuilder(BlockTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB);
 
-        getOrCreateTagBuilder(BlockTags.FENCES).add(ModBlocks.HEMP_PLANKS_FENCE);
+        // The *wooden* tags, not the umbrella ones — the umbrellas include them, so joining at this
+        // level gets #minecraft:fences, /doors and /trapdoors free, and the wooden level is the one
+        // the game actually reads:
+        //
+        //   FenceBlock#canConnectToFence requires *matching* WOODEN_FENCES membership on both sides.
+        //     The fence used to join #minecraft:fences directly, which made it read as a non-wooden
+        //     fence: it refused to connect to oak and connected to nether brick fence instead.
+        //   LandPathNodeMaker gives #minecraft:trapdoors its own PathNodeType, and FallLocation
+        //     reads the same tag for the fall death message.
+        //   MoveControl suppresses its jump-at-obstacle reflex for #minecraft:doors, so without it
+        //     a mob walking into a hemp door bounces off it instead of pathing.
+        //
+        // None of this costs the fire immunity. The only *other* thing reading these four in 1.21.1
+        // is AbstractFurnaceBlockEntity's fuel map, and its addFuel skips anything in
+        // #minecraft:non_flammable_wood — which every one of these already is.
+        getOrCreateTagBuilder(BlockTags.WOODEN_FENCES).add(ModBlocks.HEMP_PLANKS_FENCE);
+        getOrCreateTagBuilder(BlockTags.WOODEN_DOORS).add(ModBlocks.HEMP_PLANKS_DOOR);
+        getOrCreateTagBuilder(BlockTags.WOODEN_TRAPDOORS).add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
         getOrCreateTagBuilder(BlockTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
         getOrCreateTagBuilder(BlockTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL);
 

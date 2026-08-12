@@ -80,7 +80,8 @@ almost everything else is new or works differently.
 - **Hempcrete**, including a powder form that sets on contact with water like concrete.
 - **Hemp bricks** and a full **hemp plank set** — stairs, slabs, doors, trapdoors, fences, signs,
   hanging signs, boats — fireproof, the way Crimson and Warped are.
-- **A hemp armour set**: beannie, shirt, harem pants and flip-flops. It is not good armour.
+- **A hemp armour set**: beannie, shirt, harem pants and flip-flops. It is not good armour, but it
+  takes enchantments and armour trims like any other.
 
 ### Added — everything else
 

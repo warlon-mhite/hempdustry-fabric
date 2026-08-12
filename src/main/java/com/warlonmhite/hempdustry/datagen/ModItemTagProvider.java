@@ -105,6 +105,58 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
             .add(ModItems.HEMP_HAREM_PANTS)
             .add(ModItems.FLIP_FLOPS);
 
+        // The four base armour tags, and they are the whole enchantment story: every
+        // #minecraft:enchantable/* tag is built on top of these four, so a modded armour item that
+        // joins none of them can be enchanted with *nothing* — not Protection, not Unbreaking, not
+        // even a curse. The set shipped that way, which made `enchantability 20` on the material a
+        // dead letter and, because #minecraft:trimmable_armor *was* joined, made it look deliberate.
+        // Joining these grants enchantable/armor, /durability, /equippable, /vanishing and the
+        // per-slot tags transitively; nothing else needs adding.
+        //
+        // It stays bad armour (1/2/1/1) — this buys the *right* to enchant, not protection.
+        getOrCreateTagBuilder(ItemTags.HEAD_ARMOR).add(ModItems.HEMP_BEANNIE);
+        getOrCreateTagBuilder(ItemTags.CHEST_ARMOR).add(ModItems.HEMP_SHIRT);
+        getOrCreateTagBuilder(ItemTags.LEG_ARMOR).add(ModItems.HEMP_HAREM_PANTS);
+        getOrCreateTagBuilder(ItemTags.FOOT_ARMOR).add(ModItems.FLIP_FLOPS);
+
+        // Canvas is leather-tier by the mod's own standing rule — it substitutes wherever vanilla
+        // uses leather, and the cloth chain's balance anchors are set at leather parity — so the
+        // convention tag is that rule extended to the mods that asked for it. Nothing in vanilla
+        // reads #c:leathers; the whole effect is cross-mod.
+        getOrCreateTagBuilder(ConventionalItemTags.LEATHERS).add(ModItems.HEMP_CANVAS);
+
+        getOrCreateTagBuilder(ConventionalItemTags.ARMORS)
+                .add(ModItems.HEMP_BEANNIE)
+                .add(ModItems.HEMP_SHIRT)
+                .add(ModItems.HEMP_HAREM_PANTS)
+                .add(ModItems.FLIP_FLOPS);
+
+        // #c:foods. Each item goes in the most specific subtag that fits and nowhere else, because
+        // #c:foods already includes every subtag — listing an item twice would be noise.
+        //
+        // NOTE the singular names. Fabric ships plural aliases (foods/soups, foods/cookies, …) which
+        // carry @Deprecated and the note "this tag was typoed"; #c:foods lists only the singulars.
+        // A plural would still *work* — each singular includes its plural as an optional entry, so
+        // an item in foods/soups reaches #c:foods one hop later — but it is the deprecated spelling
+        // and the compatibility shim is not something to write new code against.
+        getOrCreateTagBuilder(ConventionalItemTags.SOUP_FOODS).add(ModItems.SIEMIENIOTKA);
+        getOrCreateTagBuilder(ConventionalItemTags.COOKIE_FOODS).add(ModItems.SPACE_COOKIE);
+        getOrCreateTagBuilder(ConventionalItemTags.EDIBLE_WHEN_PLACED_FOODS).add(ModBlocks.SPACE_CAKE.asItem());
+
+        // Everything with no subtag that fits. The dosed half is in here on purpose: a Space Brownie
+        // is food, and a pack's food-handling machinery should treat it as such — which does mean an
+        // auto-feeder could pick one. That is the honest answer and a funny one.
+        //
+        // hemp_milk_bucket is deliberately absent: it is not food, exactly as a cow's milk bucket is
+        // not food and is likewise not in this tag. See food.md.
+        getOrCreateTagBuilder(ConventionalItemTags.FOODS)
+                .add(ModItems.TOASTED_HEMP_SEEDS)
+                .add(ModItems.HEMP_FLAPJACK)
+                .add(ModItems.CANNABUTTER_TOAST)
+                .add(ModItems.SPACE_BROWNIE)
+                .add(ModItems.DAWAMESK)
+                .add(ModItems.BHANG_BUCKET);
+
         getOrCreateTagBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         getOrCreateTagBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
 
