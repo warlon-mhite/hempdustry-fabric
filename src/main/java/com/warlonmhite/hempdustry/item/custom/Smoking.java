@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.advancement.ModCriteria;
+import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -13,6 +14,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -69,13 +71,16 @@ public final class Smoking {
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 ModSounds.SMOKING, SoundCategory.PLAYERS, 1f, 1f);
 
-        boolean greenedOut = greenOutChanceOneIn > 0
-                && ThreadLocalRandom.current().nextInt(greenOutChanceOneIn) == 0;
+        // Every chance and every effect below goes through EffectPolicy, which is where the
+        // server's config knobs are applied — once, rather than at each site that hands one out.
+        int greenOutOdds = EffectPolicy.greenOutChanceOneIn(greenOutChanceOneIn);
+        boolean greenedOut = greenOutOdds > 0
+                && ThreadLocalRandom.current().nextInt(greenOutOdds) == 0;
 
         if (greenedOut) {
             greenOut(player);
         } else {
-            for (StatusEffectInstance effect : contents.effects(durationTicks)) {
+            for (StatusEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks))) {
                 player.addStatusEffect(effect);
             }
         }
@@ -99,18 +104,26 @@ public final class Smoking {
 
         // Nausea is its own roll and stays per-device, dose-independent — it is the "harsh smoke"
         // cost, not the "too much" cost. A green-out already brings its own, longer nausea.
-        if (!greenedOut && nauseaChanceOneIn > 0
-                && ThreadLocalRandom.current().nextInt(nauseaChanceOneIn) == 0) {
-            player.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, NAUSEA_DURATION_TICKS, 0));
+        int nauseaOdds = EffectPolicy.nauseaChanceOneIn(nauseaChanceOneIn);
+        if (!greenedOut && nauseaOdds > 0 && ThreadLocalRandom.current().nextInt(nauseaOdds) == 0) {
+            apply(player, new StatusEffectInstance(StatusEffects.NAUSEA, NAUSEA_DURATION_TICKS, 0));
         }
     }
 
     /** Sit down for a minute. Sweaty, wobbly, useless — but brief, and it costs you nothing but the buds. */
     private static void greenOut(PlayerEntity player) {
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, GREEN_OUT_NAUSEA_TICKS, 0));
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, GREEN_OUT_DURATION_TICKS, 1));
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, GREEN_OUT_DURATION_TICKS, 1));
-        player.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, GREEN_OUT_DURATION_TICKS, 1));
+        for (StatusEffectInstance effect : EffectPolicy.filter(List.of(
+                new StatusEffectInstance(StatusEffects.NAUSEA, GREEN_OUT_NAUSEA_TICKS, 0),
+                new StatusEffectInstance(StatusEffects.SLOWNESS, GREEN_OUT_DURATION_TICKS, 1),
+                new StatusEffectInstance(StatusEffects.WEAKNESS, GREEN_OUT_DURATION_TICKS, 1),
+                new StatusEffectInstance(StatusEffects.MINING_FATIGUE, GREEN_OUT_DURATION_TICKS, 1)))) {
+            player.addStatusEffect(effect);
+        }
+    }
+
+    /** One effect, through the same gate. */
+    private static void apply(PlayerEntity player, StatusEffectInstance effect) {
+        EffectPolicy.filter(List.of(effect)).forEach(player::addStatusEffect);
     }
 
     /** A small smoke puff at the player's mouth, drifting the way they're facing. */

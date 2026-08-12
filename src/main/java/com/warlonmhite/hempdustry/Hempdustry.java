@@ -5,6 +5,8 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.config.HempdustryConfig;
+import com.warlonmhite.hempdustry.config.ModCommands;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -31,6 +33,9 @@ public class Hempdustry implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		// The config first: everything below can read it, and a broken file must not stop the mod.
+		HempdustryConfig.load();
+		ModCommands.registerCommands();
 		ModComponents.registerModComponents();
 		ModStrains.registerStrains();
 		ModCriteria.registerCriteria();

@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.config.EffectPolicy;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -55,7 +56,7 @@ public class SpliffItem extends Item {
             Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
                     COUGH_CHANCE_ONE_IN, NAUSEA_CHANCE_ONE_IN,
                     Smoking.greenOutChanceOneIn(contents.dose(), true));
-            player.getItemCooldownManager().set(this, COOLDOWN_TICKS);
+            player.getItemCooldownManager().set(this, EffectPolicy.cooldown(COOLDOWN_TICKS));
             if (!player.getAbilities().creativeMode) {
                 stack.decrement(1);
             }

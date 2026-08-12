@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.config.EffectPolicy;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -118,7 +119,7 @@ public final class EdibleEffects {
 
     /** How long the persistent effects last, in ticks. */
     public static int durationTicks(Quality quality) {
-        return DURATION[quality.ordinal()];
+        return EffectPolicy.duration(DURATION[quality.ordinal()]);
     }
 
     /**
@@ -128,7 +129,9 @@ public final class EdibleEffects {
     public static int rollOnsetTicks(Quality quality) {
         int spread = ONSET_SPREAD[quality.ordinal()];
         int roll = ONSET_CENTRE + ThreadLocalRandom.current().nextInt(-spread, spread + 1);
-        return MathHelper.clamp(roll, ONSET_MIN, ONSET_MAX);
+        // Scaled by the server's onset multiplier, window and all: a server that wants a 15-second
+        // come-up gets a proportionally tighter spread rather than a squashed one.
+        return EffectPolicy.onset(MathHelper.clamp(roll, ONSET_MIN, ONSET_MAX), ONSET_MIN, ONSET_MAX);
     }
 
     /**
@@ -165,7 +168,14 @@ public final class EdibleEffects {
         if (duration <= 0) {
             return;
         }
-        EdibleScheduler.schedule(world, player, delay, new StatusEffectInstance(effect, duration, amplifier));
+        // Through the same gate as everything else: an edible obeys effects.enabled, the debuff and
+        // munchies switches and the level cap exactly as a bong hit does. Durations arrive already
+        // scaled from durationTicks, so the policy's own scaling is not applied twice here -- it is
+        // filter() that is wanted, and it returns nothing when the effect is switched off.
+        for (StatusEffectInstance allowed : EffectPolicy.filterKeepingDuration(
+                List.of(new StatusEffectInstance(effect, duration, amplifier)))) {
+            EdibleScheduler.schedule(world, player, delay, allowed);
+        }
     }
 
     /**

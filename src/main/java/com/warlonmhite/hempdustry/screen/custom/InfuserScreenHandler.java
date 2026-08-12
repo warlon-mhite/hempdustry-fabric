@@ -174,14 +174,14 @@ public class InfuserScreenHandler extends ScreenHandler {
     private int finishProgress() {
         int washed = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_WASHED_PERCENT);
         if (washed < 0) {
-            return InfuserBlockEntity.FULL_TIME;
+            return fullTime();
         }
         int needed = Quality.timeNeededFor(Quality.of(100, washed), washed);
         if (needed < 0) {
-            return InfuserBlockEntity.FULL_TIME;
+            return fullTime();
         }
-        int span = InfuserBlockEntity.FULL_TIME - InfuserBlockEntity.MIN_TIME;
-        return InfuserBlockEntity.MIN_TIME + needed * span / 100;
+        int span = fullTime() - minTime();
+        return minTime() + needed * span / 100;
     }
 
     /** How far through this batch's job the simmer is, 0..1. Reaches 1 exactly when it is done. */
@@ -200,7 +200,7 @@ public class InfuserScreenHandler extends ScreenHandler {
      * the mandatory part.
      */
     public float getMinimumMark() {
-        return MathHelper.clamp(InfuserBlockEntity.MIN_TIME / (float) finishProgress(), 0.0F, 1.0F);
+        return MathHelper.clamp(minTime() / (float) finishProgress(), 0.0F, 1.0F);
     }
 
     /**
@@ -222,12 +222,12 @@ public class InfuserScreenHandler extends ScreenHandler {
         while (next != null) {
             int needed = Quality.timeNeededFor(next, washed);
             if (needed >= 0) {
-                int span = InfuserBlockEntity.FULL_TIME - InfuserBlockEntity.MIN_TIME;
+                int span = fullTime() - minTime();
                 // Scaled against the job, like everything else on the bar — so the *last* upgrade's
                 // mark lands exactly on the bar's end, and the fill arriving there is the batch
                 // finishing. Intermediate upgrades still fall part-way along.
                 return MathHelper.clamp(
-                        (InfuserBlockEntity.MIN_TIME + needed / 100.0F * span) / finishProgress(),
+                        (minTime() + needed / 100.0F * span) / finishProgress(),
                         0.0F, 1.0F);
             }
             next = next.next();
@@ -235,10 +235,19 @@ public class InfuserScreenHandler extends ScreenHandler {
         return -1.0F;
     }
 
+    /** The simmer's clocks as this block is running them — synced, not read from the client's config. */
+    private int minTime() {
+        return this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_MIN_TIME);
+    }
+
+    private int fullTime() {
+        return Math.max(minTime() + 1, this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_FULL_TIME));
+    }
+
     private int timePercent() {
         int progress = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_PROGRESS);
-        int span = InfuserBlockEntity.FULL_TIME - InfuserBlockEntity.MIN_TIME;
-        return MathHelper.clamp((progress - InfuserBlockEntity.MIN_TIME) * 100 / span, 0, 100);
+        int span = fullTime() - minTime();
+        return MathHelper.clamp((progress - minTime()) * 100 / span, 0, 100);
     }
 
     public boolean isHeated() {

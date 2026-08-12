@@ -134,7 +134,10 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
     /** Cook progress of one tray as a 0..1 fraction. */
     public float getCookProgress(int tray) {
         int value = this.propertyDelegate.get(DecarboxylatorBlockEntity.PROPERTY_FIRST_PROGRESS + tray);
-        return MathHelper.clamp(value / (float) DecarboxylatorBlockEntity.COOK_TIME, 0.0F, 1.0F);
+        // The cook time comes off the delegate rather than the constant, so a server that has
+        // sped its ovens up still draws an arrow that fills exactly as the tray finishes.
+        int cookTime = Math.max(1, this.propertyDelegate.get(DecarboxylatorBlockEntity.PROPERTY_COOK_TIME));
+        return MathHelper.clamp(value / (float) cookTime, 0.0F, 1.0F);
     }
 
     /** Remaining fuel as a 0..1 fraction of what the current fuel item was worth. */

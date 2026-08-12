@@ -1,4 +1,5 @@
 {
+  "commands.hempdustry.reload": "Hempdustry config reloaded. Strains are a datapack — use /reload for those.",
   "itemgroup.hempdustry": "Hempdustry",
   "item.hempdustry.indica_seeds": "Purple Kush Seeds",
   "item.hempdustry.indica_buds": "Purple Kush Buds",

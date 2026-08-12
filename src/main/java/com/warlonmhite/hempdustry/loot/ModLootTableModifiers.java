@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.loot;
 
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.block.Blocks;
@@ -23,6 +24,7 @@ import net.minecraft.loot.provider.number.UniformLootNumberProvider;
 import net.minecraft.predicate.item.ItemPredicate;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.registry.entry.RegistryEntry;
 
 import java.util.Set;
@@ -98,10 +100,21 @@ public class ModLootTableModifiers {
     private static final Set<RegistryKey<LootTable>> FIBER_CHEST_SOURCES = Set.of(
             LootTables.SHIPWRECK_SUPPLY_CHEST);
 
+    /** A shipped chance after {@code loot.chanceMultiplier}, kept inside 0..1 whatever is configured. */
+    private static float chance(float base) {
+        return MathHelper.clamp((float) (base * HempdustryConfig.get().loot().chanceMultiplier()), 0.0F, 1.0F);
+    }
+
     public static void modifyLootTables() {
         LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> {
             if (!source.isBuiltin()) {
                 return; // don't touch datapack overrides, only vanilla/mod tables
+            }
+            // A pack curator can override a loot *table* with a datapack, but not an injection like
+            // this one -- which is exactly why the switch exists. Read per event rather than cached:
+            // loot tables are rebuilt on /reload, so the setting takes effect with everything else.
+            if (!HempdustryConfig.get().loot().enabled()) {
+                return;
             }
             if (GRASS_SOURCES.contains(key)) {
                 RegistryEntry<Enchantment> fortune =
@@ -112,7 +125,7 @@ public class ModLootTableModifiers {
                 LootPool.Builder pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(WITHOUT_SHEARS)
-                        .conditionally(RandomChanceLootCondition.builder(GRASS_SEED_CHANCE));
+                        .conditionally(RandomChanceLootCondition.builder(chance(GRASS_SEED_CHANCE)));
                 // Driven off the loaded strain registry, so a datapack strain's seeds appear in
                 // grass without touching this file.
                 for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
@@ -124,7 +137,7 @@ public class ModLootTableModifiers {
             } else if (CHEST_SOURCES.contains(key)) {
                 LootPool.Builder pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(CHEST_SEED_CHANCE));
+                        .conditionally(RandomChanceLootCondition.builder(chance(CHEST_SEED_CHANCE)));
                 for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
                     pool.with(ItemEntry.builder(strain.value().seeds())
                             .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))));
@@ -137,7 +150,7 @@ public class ModLootTableModifiers {
             if (FIBER_CHEST_SOURCES.contains(key)) {
                 tableBuilder.pool(LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(SHIPWRECK_FIBER_CHANCE))
+                        .conditionally(RandomChanceLootCondition.builder(chance(SHIPWRECK_FIBER_CHANCE)))
                         .with(ItemEntry.builder(ModItems.HEMP_FIBER)
                                 .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 4)))));
             }
@@ -149,7 +162,7 @@ public class ModLootTableModifiers {
             if (DISC_CHEST_SOURCES.contains(key)) {
                 LootPool.Builder pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(CHEST_DISC_CHANCE));
+                        .conditionally(RandomChanceLootCondition.builder(chance(CHEST_DISC_CHANCE)));
                 for (Item disc : ModItems.MUSIC_DISCS) {
                     pool.with(ItemEntry.builder(disc));
                 }

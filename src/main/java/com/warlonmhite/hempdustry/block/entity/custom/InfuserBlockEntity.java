@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
@@ -57,13 +58,13 @@ import org.jetbrains.annotations.Nullable;
  *       after collection. That is what the bucket-return slot is really for — without it the empty
  *       would sit in the milk slot and there would be nowhere to park the next one.</li>
  *   <li><b>Hemp dissolves gradually</b>, one item per {@link #ABSORB_INTERVAL}, and only until
- *       {@link #MIN_TIME}. That is what locks a batch: past the loading window the absorber has had
+ *       {@link #minTime()}. That is what locks a batch: past the loading window the absorber has had
  *       all its turns, so nothing more goes in however much room is left.</li>
  * </ul>
  *
- * <p>Draining the hemp by {@code MIN_TIME} rather than over the whole simmer is load-bearing, not a
+ * <p>Draining the hemp by {@code minTime()} rather than over the whole simmer is load-bearing, not a
  * detail. <b>Strength is the whole batch, so the whole batch has to be paid for by the time the
- * result can first be taken.</b> Spread it over {@link #FULL_TIME} instead and an early pull leaves
+ * result can first be taken.</b> Spread it over {@link #fullTime()} instead and an early pull leaves
  * a third-consumed batch, which can only be resolved by refunding the rest (full Strength for a
  * third of the hemp — an exploit), destroying it (the slots visibly empty for nothing), or scaling
  * Strength down (which makes rushing strictly dominated, and deletes it as a real choice).
@@ -71,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>What survives intact is both of the original promises. <b>Topping up still works</b> — hemp
  * added during the window is absorbed on the next interval — though late hemp genuinely cannot catch
  * up, which is the point. And <b>rushing still works</b>, because what the timer gates is the grade,
- * not the ingredients: from {@link #MIN_TIME} the output slot previews what this batch would yield
+ * not the ingredients: from {@link #minTime()} the output slot previews what this batch would yield
  * right now — {@link Quality#ROUGH} for a poorly prepped batch, but already {@link Quality#STANDARD}
  * if every item was washed — and it upgrades in place as the grading score climbs.
  * Taking it ends the batch and starts the next.
@@ -102,28 +103,48 @@ public class InfuserBlockEntity extends BlockEntity
     public static final int SLOT_COUNT = 5;
 
     /**
-     * Earliest a batch can be taken at all, and the zero point of {@link Quality}'s time dial. Six
-     * in-game hours — the mod reuses Minecraft's own hour (1000 ticks) rather than inventing a
-     * ratio, so "cannabutter takes hours" translates literally.
+     * <b>Default</b> earliest a batch can be taken at all, and the zero point of {@link Quality}'s
+     * time dial. Six in-game hours — the mod reuses Minecraft's own hour (1000 ticks) rather than
+     * inventing a ratio, so "cannabutter takes hours" translates literally.
+     *
+     * <p><b>Nothing in this class may branch on this constant.</b> It is the seed for
+     * {@code HempdustryConfig.Infuser.DEFAULT} and the number the prose below is written about;
+     * every runtime decision goes through {@link #minTime()}, because a server can move it. Mix the
+     * two and the machine only half-obeys its own config: the absorber runs on the configured window
+     * while the preview waits on the hardcoded one, so a server that lowered the minimum gets a
+     * batch that has spent its hemp and cannot be collected. (Being a compile-time constant, this is
+     * inlined at every use site, so reading it from the config record loads no class — which matters,
+     * because that record is built before anything else in {@code onInitialize}.)
      */
     public static final int MIN_TIME = 6000;
+
+    /** The configured earliest pull, or {@link #MIN_TIME} when nothing has overridden it. */
+    public static int minTime() {
+        return HempdustryConfig.get().infuser().minTimeTicks();
+    }
     /**
-     * A finished simmer: eighteen in-game hours, the midpoint of the real 12–24 hour range. There is
-     * no benefit to leaving it longer — it just waits, like a grown crop.
+     * <b>Default</b> finished simmer: eighteen in-game hours, the midpoint of the real 12–24 hour
+     * range. There is no benefit to leaving it longer — it just waits, like a grown crop. Same rule
+     * as {@link #MIN_TIME}: read {@link #fullTime()}, never this.
      */
     public static final int FULL_TIME = 18000;
 
+    /** The configured full simmer. Always greater than {@link #minTime()} — the config clamps it. */
+    public static int fullTime() {
+        return HempdustryConfig.get().infuser().fullTimeTicks();
+    }
+
     /**
      * Most hemp one batch can hold. <b>Derived, not chosen:</b> it is exactly how many
-     * {@link #ABSORB_INTERVAL}s fit in {@link #MIN_TIME}, so the cap is a consequence of the
+     * {@link #ABSORB_INTERVAL}s fit in {@link #minTime()}, so the cap is a consequence of the
      * dissolve rate rather than an independent number that has to be justified on its own.
      */
     public static final int BATCH_CAP = 24;
 
     /**
-     * Ticks between one hemp dissolving into the batch and the next — {@code MIN_TIME / BATCH_CAP},
+     * Ticks between one hemp dissolving into the batch and the next — {@code minTime() / BATCH_CAP},
      * about 12.5 real seconds. Absorption runs only while the batch is simmering and stops dead at
-     * {@link #MIN_TIME}, which is what makes the batch lock itself: after that the absorber has had
+     * {@link #minTime()}, which is what makes the batch lock itself: after that the absorber has had
      * all the turns it is going to get, so nothing more can go in whatever room is left.
      *
      * <p><b>Exactly one per interval, never catching up.</b> Backfilling from
@@ -132,7 +153,9 @@ public class InfuserBlockEntity extends BlockEntity
      * have been <em>present</em> for the whole loading window. Load halfway through and you can only
      * reach 12.
      */
-    public static final int ABSORB_INTERVAL = MIN_TIME / BATCH_CAP;
+    public static int absorbInterval() {
+        return Math.max(1, minTime() / BATCH_CAP);
+    }
 
     /** Ticks between attempts to pour a finished batch out of the spout. A hopper's own cadence. */
     public static final int PUSH_COOLDOWN = 8;
@@ -141,7 +164,18 @@ public class InfuserBlockEntity extends BlockEntity
     public static final int PROPERTY_HEATED = 1;
     /** Washed share of the batch, 0–100, or -1 when there is no batch to grade. */
     public static final int PROPERTY_WASHED_PERCENT = 2;
-    public static final int PROPERTY_COUNT = 3;
+    /**
+     * The two timings, synced.
+     *
+     * <p><b>This is what saves the config from needing a network packet.</b> The screen draws the
+     * bar, the minimum mark and the next-grade mark from these, so it reads the numbers <em>this
+     * block</em> is running on rather than whatever the client's own config file happens to say —
+     * true for a vanilla-config client on a tuned server, and true again the moment
+     * {@code /hempdustry reload} changes them mid-batch.
+     */
+    public static final int PROPERTY_MIN_TIME = 3;
+    public static final int PROPERTY_FULL_TIME = 4;
+    public static final int PROPERTY_COUNT = 5;
 
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(SLOT_COUNT, ItemStack.EMPTY);
 
@@ -176,6 +210,8 @@ public class InfuserBlockEntity extends BlockEntity
                 // Synced so the screen can work out when this batch's grade will next improve,
                 // which under the score-based grading depends on the ratio and not just the clock.
                 case PROPERTY_WASHED_PERCENT -> washedPercent();
+                case PROPERTY_MIN_TIME -> minTime();
+                case PROPERTY_FULL_TIME -> fullTime();
                 default -> 0;
             };
         }
@@ -249,10 +285,10 @@ public class InfuserBlockEntity extends BlockEntity
         if (canSimmer()) {
             // Losing the heat leaves progress where it is, so a campfire going out is a pause and
             // not a disaster. A batch that has run out of hemp entirely pauses the same way, and
-            // resumes if more arrives before MIN_TIME.
+            // resumes if more arrives before minTime().
             progress++;
             // Exactly one hemp per interval, and only during the loading window. See ABSORB_INTERVAL.
-            if (progress <= MIN_TIME && progress % ABSORB_INTERVAL == 0) {
+            if (progress <= minTime() && progress % absorbInterval() == 0) {
                 absorbOne();
             }
             dirty = true;
@@ -358,7 +394,7 @@ public class InfuserBlockEntity extends BlockEntity
      *
      * <p>The hemp clause is why a batch that has run out of hemp <em>pauses</em> rather than
      * finishing empty: without it a tub emptied at tick 100 would ride the clock to
-     * {@link #MIN_TIME} with nothing in it, and the milk would be stranded on a batch that can never
+     * {@link #minTime()} with nothing in it, and the milk would be stranded on a batch that can never
      * produce a preview. Pausing also stops the absorption clock, so the window can't be run down
      * while there is nothing to put in it.
      *
@@ -367,13 +403,13 @@ public class InfuserBlockEntity extends BlockEntity
      * batch is done rather than churning away at a finished result, the progress bar lands exactly on
      * full instead of overshooting a scale it has already left behind, and {@code progress} never
      * records time that meant anything. Safe from oscillating because the washed ratio is frozen
-     * after {@link #MIN_TIME}, so once true this can never go back to false within a batch.
+     * after {@link #minTime()}, so once true this can never go back to false within a batch.
      */
     private boolean canSimmer() {
         return heated
                 && haveMilk
                 && (batchHemp() > 0 || availableHemp() > 0)
-                && progress < FULL_TIME
+                && progress < fullTime()
                 && !isAtBestQuality();
     }
 
@@ -430,12 +466,17 @@ public class InfuserBlockEntity extends BlockEntity
 
     /**
      * The patience dial: how far through the <em>collectable</em> window the batch is, 0–100.
-     * Measured from {@link #MIN_TIME} rather than from zero, because nothing before that can be
+     * Measured from {@link #minTime()} rather than from zero, because nothing before that can be
      * graded at all — that is where the scale has to start for the score to mean anything.
+     *
+     * <p>Origin and span both come off the config. Taking the origin from the hardcoded default
+     * while dividing by the configured span puts the whole dial out of register on any server that
+     * moved the timings, and since this dial is half of {@link Quality#of}, that hands players the
+     * <em>wrong grade</em> rather than merely the wrong bar.
      */
     public int timePercent() {
-        int span = FULL_TIME - MIN_TIME;
-        return MathHelper.clamp((progress - MIN_TIME) * 100 / span, 0, 100);
+        int span = fullTime() - minTime();
+        return MathHelper.clamp((progress - minTime()) * 100 / span, 0, 100);
     }
 
     private boolean hasBatch() {
@@ -464,14 +505,14 @@ public class InfuserBlockEntity extends BlockEntity
 
     /** Whether there is anything in the output slot to look at yet. */
     public boolean isReady() {
-        return progress >= MIN_TIME;
+        return progress >= minTime();
     }
 
     /**
      * The best grade this batch will ever reach — what it would earn at a full simmer.
      *
      * <p>This is knowable mid-simmer only because <b>the washed ratio is frozen after
-     * {@link #MIN_TIME}</b>: absorption stops there, so nothing can change {@code washedPercent}
+     * {@link #minTime()}</b>: absorption stops there, so nothing can change {@code washedPercent}
      * afterwards and the only dial still moving is time. If hemp could still be absorbed later this
      * would be a guess, and everything built on it below would be wrong.
      */
@@ -623,7 +664,7 @@ public class InfuserBlockEntity extends BlockEntity
 
     /**
      * Throws away an uncollected preview. Called just before the block spills its contents, because
-     * the preview is not a real item yet: without this, breaking a tub at {@link #MIN_TIME} would
+     * the preview is not a real item yet: without this, breaking a tub at {@link #minTime()} would
      * drop the cannabutter <em>and</em> refund every hemp that went into it, which is free
      * cannabutter on repeat. Spilling a batch returns the ingredients, never the product.
      */
@@ -685,6 +726,12 @@ public class InfuserBlockEntity extends BlockEntity
      * <p>What it buys: a lamp or note block that fires the moment a batch is worth collecting, or
      * redstone that gates something else on it. (Extraction itself needs no redstone — the spout
      * already waits, see {@link #pushOutput}.)
+     *
+     * <p>The climb scales against {@link #fullTime()}, not the default: scaling it against the
+     * hardcoded 18000 while the screen scales its bar against the configured simmer would leave a
+     * tuned server's redstone and its GUI disagreeing about the same batch — which is precisely the
+     * "one definition of done across the spout, the comparator and the hopper" this method exists
+     * to uphold.
      */
     public int getComparatorOutput() {
         if (progress <= 0) {
@@ -693,7 +740,7 @@ public class InfuserBlockEntity extends BlockEntity
         if (isAtBestQuality()) {
             return 15;
         }
-        return 1 + Math.min(13, progress * 13 / FULL_TIME);
+        return 1 + Math.min(13, progress * 13 / fullTime());
     }
 
     // ----- inventory -----

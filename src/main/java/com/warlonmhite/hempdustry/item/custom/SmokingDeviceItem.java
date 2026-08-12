@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.config.EffectPolicy;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -83,7 +84,7 @@ public class SmokingDeviceItem extends Item {
             Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
                     device.coughChanceOneIn(), device.nauseaChanceOneIn(),
                     Smoking.greenOutChanceOneIn(contents.dose(), false));
-            player.getItemCooldownManager().set(this, device.cooldownTicks());
+            player.getItemCooldownManager().set(this, EffectPolicy.cooldown(device.cooldownTicks()));
 
             if (!player.getAbilities().creativeMode) {
                 int remaining = stack.getOrDefault(ModComponents.CHARGES, 0) - 1;

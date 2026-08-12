@@ -5,6 +5,7 @@ import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
+import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -67,17 +68,29 @@ public class DecarboxylatorBlockEntity extends BlockEntity
      */
     public static final int COOK_TIME = 500;
 
+    /**
+     * The cook time this oven is actually running, after {@code world.machineSpeedMultiplier}.
+     *
+     * <p>Synced through the property delegate below rather than read from the client's own config,
+     * so the progress arrows stay truthful on a server whose settings differ from the player's file.
+     */
+    public static int cookTime() {
+        double speed = HempdustryConfig.get().world().machineSpeedMultiplier();
+        return Math.max(1, (int) Math.round(COOK_TIME / speed));
+    }
+
     /** Decarboxylated hemp yielded per bud. Buds are the good stuff and pay out accordingly. */
     public static final int BUDS_OUTPUT = 4;
     /** Decarboxylated hemp yielded per fan leaf — bulk trim, worth a quarter of a bud. */
     public static final int LEAF_OUTPUT = 1;
 
-    // PropertyDelegate indices. COOK_TIME is a constant both sides know, so it isn't synced.
+    // PropertyDelegate indices. The cook time is synced because the config can change it.
     public static final int PROPERTY_BURN_TIME = 0;
     public static final int PROPERTY_FUEL_TIME = 1;
     /** Per-tray cook progress occupies indices 2..4. */
     public static final int PROPERTY_FIRST_PROGRESS = 2;
-    public static final int PROPERTY_COUNT = 5;
+    public static final int PROPERTY_COOK_TIME = 5;
+    public static final int PROPERTY_COUNT = 6;
 
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(SLOT_COUNT, ItemStack.EMPTY);
 
@@ -93,6 +106,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
             return switch (index) {
                 case PROPERTY_BURN_TIME -> burnTime;
                 case PROPERTY_FUEL_TIME -> fuelTime;
+                case PROPERTY_COOK_TIME -> cookTime();
                 default -> {
                     int tray = index - PROPERTY_FIRST_PROGRESS;
                     yield tray >= 0 && tray < TRAY_COUNT ? progress[tray] : 0;
@@ -203,7 +217,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
         for (int tray = 0; tray < TRAY_COUNT; tray++) {
             if (isBurning() && canCook(tray)) {
                 progress[tray]++;
-                if (progress[tray] >= COOK_TIME) {
+                if (progress[tray] >= cookTime()) {
                     progress[tray] = 0;
                     cook(tray);
                 }
