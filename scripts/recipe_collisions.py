@@ -89,7 +89,18 @@ def main(argv):
         return 2
     recipes = load(argv[1], "hempdustry")
     if len(argv) > 2:
-        recipes += load(argv[2], "minecraft")
+        vanilla = load(argv[2], "minecraft")
+        # A wrong path here is silent otherwise: the scan still runs, still says "0 collisions",
+        # and has simply not looked at vanilla at all. That is the same class of under-reporting
+        # as an unlisted custom recipe type, and it is easy to walk into, since the argument wants
+        # the directory *containing* `data/` and not the `data/` directory itself.
+        if not vanilla:
+            print(f"ERROR: no vanilla recipes found under {argv[2]!r}. Expected "
+                  f"{os.path.join(argv[2], 'data', 'minecraft', 'recipe')} to exist — pass the "
+                  f"directory that holds `data/`, not `data/` itself. Refusing to report a "
+                  f"mod-only scan as a clean one.")
+            return 2
+        recipes += vanilla
 
     by_ingredients = collections.defaultdict(list)
     for recipe in recipes:
