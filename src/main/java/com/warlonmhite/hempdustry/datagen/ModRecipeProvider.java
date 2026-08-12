@@ -400,16 +400,29 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                        'B', Ingredient.ofItems(ModItems.CANNABUTTER)),
                 "CFC", "SBS");
 
-        // Vanilla's cake layout exactly — milk on top, sugar flanking, grain underneath — with the
-        // egg swapped for cannabutter and the wheat for hemp flour. Butter and egg are both the
-        // binder-and-fat slot in a real batter, so the swap is the honest one to make, and it is the
-        // only one that fits: the grid has no ninth square to add an ingredient to.
+        // Vanilla's cake layout, with the butter taking the middle of the *milk* row:
+        //
+        //     M B M        vanilla:  A A A     A milk   B sugar
+        //     S E S                  B E B     C wheat  E egg
+        //     F F F                  C C C
+        //
+        // The egg stays where vanilla put it. An earlier version spent the egg on the butter, which
+        // made this the only cake in the game with no egg in it — and it was the wrong slot to take:
+        // egg is the *binder*, milk and butter are both the dairy-fat slot, so swapping butter for a
+        // measure of the milk is substituting like for like. It is also the truer recipe. A real
+        // cannabutter cake is an ordinary cake batter with the butter swapped, not one with the egg
+        // pulled out.
+        //
+        // Net cost change: one milk out, one egg in. A chicken instead of a third cow-trip, which is
+        // what vanilla's cake asks for anyway. Milk is the tag, so hemp milk works here as it does
+        // in bhang.
         offerInfusedShaped(exporter, id("space_cake"), ModBlocks.SPACE_CAKE, 1, 0,
-                Map.of('M', Ingredient.ofItems(Items.MILK_BUCKET),
+                Map.of('M', Ingredient.fromTag(ModTags.Items.MILK_BUCKETS),
                        'S', Ingredient.ofItems(Items.SUGAR),
+                       'E', Ingredient.ofItems(Items.EGG),
                        'B', Ingredient.ofItems(ModItems.CANNABUTTER),
                        'F', Ingredient.ofItems(ModItems.HEMP_FLOUR)),
-                "MMM", "SBS", "FFF");
+                "MBM", "SES", "FFF");
 
         // Bhang. The drink, and the only edible that skips cannabutter -- the plant goes straight
         // into the milk and the milk's own fat does the extraction, which is how bhang is actually

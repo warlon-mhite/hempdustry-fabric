@@ -5,19 +5,22 @@
     "B": {
       "item": "hempdustry:cannabutter"
     },
+    "E": {
+      "item": "minecraft:egg"
+    },
     "F": {
       "item": "hempdustry:hemp_flour"
     },
     "M": {
-      "item": "minecraft:milk_bucket"
+      "tag": "hempdustry:milk_buckets"
     },
     "S": {
       "item": "minecraft:sugar"
     }
   },
   "pattern": [
-    "MMM",
-    "SBS",
+    "MBM",
+    "SES",
     "FFF"
   ],
   "result": {
