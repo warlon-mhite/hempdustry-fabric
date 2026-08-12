@@ -1,22 +1,25 @@
 {
   "_comment": [
-    "Keyed on `facing` (the spout, which is where a finished batch is pushed out) and `filled` (milk",
-    "in the tub). The block also carries `infusing`, which drives the bubbling and steam in",
-    "InfuserBlock#randomDisplayTick but deliberately has no model of its own: the texture tracks",
-    "whether there is milk in the tub, not whether something is burning underneath. These are partial",
-    "variant keys, so `infusing` is matched as a wildcard.",
-    "A `block/infuser_top_simmering` texture is already rendered from textures-src/infuser.mctex if a",
-    "third state is ever wanted here."
+    "Multipart rather than variants, because the two things this blockstate has to say are",
+    "independent: which way the spout points, and whether there is milk in the tub. As variants that",
+    "is a full second copy of a twelve-element model differing by one quad; as multipart the tub is",
+    "one part keyed on `facing` and the brew is another keyed on `filled`, and neither model knows",
+    "about the other. block/infuser_milk needs no rotation of its own — it is a square surface.",
+    "",
+    "The block also carries `infusing`, which drives the bubbling and steam in",
+    "InfuserBlock#randomDisplayTick but deliberately has no model: the tub tracks whether there is",
+    "milk in it, not whether something is burning underneath. Multipart matches unlisted properties",
+    "as wildcards, so nothing here has to mention it.",
+    "",
+    "A block/infuser_butter texture is already rendered from textures-src/infuser.mctex if a second",
+    "brew colour for `infusing` is ever wanted — that is one more part in this list."
   ],
-  "variants": {
-    "facing=north,filled=false": { "model": "hempdustry:block/infuser" },
-    "facing=east,filled=false":  { "model": "hempdustry:block/infuser", "y": 90 },
-    "facing=south,filled=false": { "model": "hempdustry:block/infuser", "y": 180 },
-    "facing=west,filled=false":  { "model": "hempdustry:block/infuser", "y": 270 },
+  "multipart": [
+    { "when": { "facing": "north" }, "apply": { "model": "hempdustry:block/infuser" } },
+    { "when": { "facing": "east" },  "apply": { "model": "hempdustry:block/infuser", "y": 90 } },
+    { "when": { "facing": "south" }, "apply": { "model": "hempdustry:block/infuser", "y": 180 } },
+    { "when": { "facing": "west" },  "apply": { "model": "hempdustry:block/infuser", "y": 270 } },
 
-    "facing=north,filled=true": { "model": "hempdustry:block/infuser_filled" },
-    "facing=east,filled=true":  { "model": "hempdustry:block/infuser_filled", "y": 90 },
-    "facing=south,filled=true": { "model": "hempdustry:block/infuser_filled", "y": 180 },
-    "facing=west,filled=true":  { "model": "hempdustry:block/infuser_filled", "y": 270 }
-  }
+    { "when": { "filled": "true" },  "apply": { "model": "hempdustry:block/infuser_milk" } }
+  ]
 }

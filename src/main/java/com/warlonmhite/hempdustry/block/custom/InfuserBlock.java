@@ -49,8 +49,9 @@ import org.jetbrains.annotations.Nullable;
  * nothing in it looked and sounded like a working one.
  * <ul>
  *   <li>{@link #FILLED} — there is milk in the tub, either waiting in the slot or already committed
- *       to a batch. This is what the <b>texture</b> keys off, and it is deliberately independent of
- *       heat: what makes a tub look full is liquid being in it.</li>
+ *       to a batch. This is what the <b>model</b> keys off — the blockstate lays a milk surface into
+ *       the pot as a multipart part — and it is deliberately independent of heat: what makes a tub
+ *       look full is liquid being in it.</li>
  *   <li>{@link #INFUSING} — a batch is actually simmering. This is what the <b>bubbling and steam</b>
  *       key off, so the ambience only ever means "something is happening in here", and stops when
  *       the batch finishes.</li>
@@ -207,13 +208,15 @@ public class InfuserBlock extends BlockWithEntity {
             return;
         }
         double x = pos.getX() + 0.5D;
-        double y = pos.getY() + 0.9D;
+        // 15/16: the brew's surface in the model, so the bubbles break on it rather than under it.
+        double y = pos.getY() + 0.9375D;
         double z = pos.getZ() + 0.5D;
         if (random.nextDouble() < 0.05D) {
             world.playSound(x, y, z, SoundEvents.BLOCK_BREWING_STAND_BREW,
                     SoundCategory.BLOCKS, 0.35F, 0.8F + random.nextFloat() * 0.4F, false);
         }
         for (int i = 0; i < 2; i++) {
+            // Scattered across the pot's mouth, which is the middle 10 pixels of the block.
             world.addParticle(ParticleTypes.BUBBLE_POP,
                     x + (random.nextDouble() - 0.5D) * 0.5D, y,
                     z + (random.nextDouble() - 0.5D) * 0.5D, 0.0D, 0.0D, 0.0D);

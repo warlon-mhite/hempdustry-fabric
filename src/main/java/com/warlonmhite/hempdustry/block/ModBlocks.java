@@ -166,11 +166,18 @@ public class ModBlocks {
      * The Infuser. Same furnace-grade stone as the Decarboxylator, and deliberately <b>not</b>
      * light-emitting: its glow has to come from whatever is heating it from below, or the
      * heat-from-below mechanic would look self-powered.
+     *
+     * <p><b>{@code nonOpaque()} is load-bearing, not tidiness.</b> The model is a shaped tub whose
+     * waist is inset a pixel and whose top is an open pot. A block that reports itself opaque has
+     * its neighbours cull the faces they press against it — so an opaque Infuser would leave a 1px
+     * see-through band all the way round the waist and a hole where the pot is. It also lets light
+     * into the pot, which is what vanilla's cauldron does for the same reason.
      */
     public static final Block INFUSER = registerBlock("infuser",
             new InfuserBlock(AbstractBlock.Settings.create()
                     .strength(3.5F, 3.5F)
                     .requiresTool()
+                    .nonOpaque()
                     .sounds(BlockSoundGroup.STONE)));
 
 

@@ -1,0 +1,32 @@
+{
+  "_comment": [
+    "What is in the pot, and nothing else — one quad sunk into the tub, exactly the way vanilla draws",
+    "a cauldron's water level. It is a separate model rather than a second copy of block/infuser",
+    "because the blockstate applies it as a multipart part: the tub is drawn once for the facing, this",
+    "is drawn on top of it when FILLED, and neither file has to know about the other.",
+    "",
+    "The surface sits a pixel below the brim, which is where vanilla puts a full cauldron's water. It",
+    "is the readable choice as well as the consistent one: a tub filled to the brim can be read at a",
+    "glance from a standing player's angle, where a surface sunk into the pot only shows if you are",
+    "looking down into it. One bucket filling the whole tub is vanilla's arithmetic too.",
+    "",
+    "A second brew colour is already rendered as block/infuser_butter (see textures-src/infuser.mctex).",
+    "Wiring INFUSING up to it is a copy of this file with one texture changed, plus one line in the",
+    "blockstate — the block already carries the property."
+  ],
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "hempdustry:block/infuser_side",
+    "content": "hempdustry:block/infuser_milk"
+  },
+  "elements": [
+    {
+      "from": [3, 4, 3],
+      "to": [13, 15, 13],
+      "faces": {
+        "up": { "texture": "#content" }
+      }
+    }
+  ]
+}

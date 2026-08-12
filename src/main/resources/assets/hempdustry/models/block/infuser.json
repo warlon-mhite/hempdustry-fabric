@@ -1,9 +1,170 @@
 {
-  "parent": "minecraft:block/orientable_with_bottom",
+  "_comment": [
+    "The Infuser: a hempcrete tub built around a cauldron, which is what its recipe says it is (8",
+    "hempcrete round a vanilla Cauldron). So the block is hempcrete on the outside and cauldron on the",
+    "inside, and it is shaped rather than a cube with a picture of a tub painted on it:",
+    "",
+    "  y 0..3    plinth   full 16x16 -- it sits flat on whatever is heating it",
+    "  y 3..13   waist    inset 1px all round, two iron hoops, the spout bolted through the front",
+    "  y 13..16  rim      full 16x16 again, so it overhangs the waist and casts a shadow line",
+    "  x/z 3..13 the pot  an open iron well 12px deep; block/infuser_milk fills it when FILLED",
+    "",
+    "No face carries an explicit `uv` except the spout's. Every other texture here is drawn as a full",
+    "16x16 block face and Minecraft's default per-face UV cuts the right piece out of it at the right",
+    "coordinates -- the same trick vanilla's cauldron uses, and the reason textures-src/infuser.mctex",
+    "is banded by row. The spout is the exception because it pokes out past z=0, and a negative",
+    "coordinate has no sensible default UV; its faces index regions of block/infuser_spout that the",
+    "mctex spells out.",
+    "",
+    "ambientocclusion is off for the same reason vanilla's cauldron turns it off: AO on an open-topped",
+    "box smears a false shadow across the inner walls. The block must also be nonOpaque() in ModBlocks",
+    "or neighbours cull their faces against the inset waist and you can see through the gap."
+  ],
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
   "textures": {
+    "particle": "hempdustry:block/infuser_side",
+    "side": "hempdustry:block/infuser_side",
+    "front": "hempdustry:block/infuser_front",
     "top": "hempdustry:block/infuser_top",
     "bottom": "hempdustry:block/hempcrete_block",
-    "side": "hempdustry:block/infuser_side",
-    "front": "hempdustry:block/infuser_front"
-  }
+    "inner": "hempdustry:block/infuser_inner",
+    "spout": "hempdustry:block/infuser_spout"
+  },
+  "elements": [
+    {
+      "_comment": "plinth. Its up face is only ever seen as the 1px ledge the inset waist leaves.",
+      "from": [0, 0, 0],
+      "to": [16, 3, 16],
+      "faces": {
+        "north": { "texture": "#side", "cullface": "north" },
+        "south": { "texture": "#side", "cullface": "south" },
+        "west": { "texture": "#side", "cullface": "west" },
+        "east": { "texture": "#side", "cullface": "east" },
+        "up": { "texture": "#top" },
+        "down": { "texture": "#bottom", "cullface": "down" }
+      }
+    },
+
+    {
+      "_comment": "waist, north wall. Outside is the spout face; inside is the pot.",
+      "from": [1, 3, 1],
+      "to": [15, 13, 3],
+      "faces": {
+        "north": { "texture": "#front" },
+        "south": { "texture": "#inner" },
+        "west": { "texture": "#side" },
+        "east": { "texture": "#side" }
+      }
+    },
+    {
+      "from": [1, 3, 13],
+      "to": [15, 13, 15],
+      "faces": {
+        "south": { "texture": "#side" },
+        "north": { "texture": "#inner" },
+        "west": { "texture": "#side" },
+        "east": { "texture": "#side" }
+      }
+    },
+    {
+      "from": [1, 3, 3],
+      "to": [3, 13, 13],
+      "faces": {
+        "west": { "texture": "#side" },
+        "east": { "texture": "#inner" }
+      }
+    },
+    {
+      "from": [13, 3, 3],
+      "to": [15, 13, 13],
+      "faces": {
+        "east": { "texture": "#side" },
+        "west": { "texture": "#inner" }
+      }
+    },
+    {
+      "_comment": "the bottom of the pot, one quad. Sits a pixel above the plinth so the two never fight.",
+      "from": [3, 3, 3],
+      "to": [13, 4, 13],
+      "faces": {
+        "up": { "texture": "#inner" }
+      }
+    },
+
+    {
+      "_comment": "rim, four pieces. Full width, so it overhangs the waist by a pixel on every side.",
+      "from": [0, 13, 0],
+      "to": [16, 16, 3],
+      "faces": {
+        "north": { "texture": "#side", "cullface": "north" },
+        "south": { "texture": "#inner" },
+        "west": { "texture": "#side", "cullface": "west" },
+        "east": { "texture": "#side", "cullface": "east" },
+        "up": { "texture": "#top", "cullface": "up" },
+        "down": { "texture": "#top" }
+      }
+    },
+    {
+      "from": [0, 13, 13],
+      "to": [16, 16, 16],
+      "faces": {
+        "south": { "texture": "#side", "cullface": "south" },
+        "north": { "texture": "#inner" },
+        "west": { "texture": "#side", "cullface": "west" },
+        "east": { "texture": "#side", "cullface": "east" },
+        "up": { "texture": "#top", "cullface": "up" },
+        "down": { "texture": "#top" }
+      }
+    },
+    {
+      "from": [0, 13, 3],
+      "to": [3, 16, 13],
+      "faces": {
+        "west": { "texture": "#side", "cullface": "west" },
+        "east": { "texture": "#inner" },
+        "up": { "texture": "#top", "cullface": "up" },
+        "down": { "texture": "#top" }
+      }
+    },
+    {
+      "from": [13, 13, 3],
+      "to": [16, 16, 13],
+      "faces": {
+        "east": { "texture": "#side", "cullface": "east" },
+        "west": { "texture": "#inner" },
+        "up": { "texture": "#top", "cullface": "up" },
+        "down": { "texture": "#top" }
+      }
+    },
+
+    {
+      "_comment": [
+        "the spout's arm, plumbed through the front wall and out 2px past the block. It is geometry",
+        "and not paint because a player has to read 'a finished batch comes out here, into whatever",
+        "is against this face' off the block alone -- no vanilla processing block pushes its own",
+        "output, so nothing else in the game teaches that rule."
+      ],
+      "from": [6, 6, -2],
+      "to": [10, 9, 2],
+      "faces": {
+        "north": { "uv": [0, 0, 4, 3], "texture": "#spout" },
+        "up": { "uv": [0, 4, 4, 8], "texture": "#spout" },
+        "down": { "uv": [0, 8, 4, 12], "texture": "#spout" },
+        "west": { "uv": [4, 4, 8, 7], "texture": "#spout" },
+        "east": { "uv": [4, 4, 8, 7], "texture": "#spout" }
+      }
+    },
+    {
+      "_comment": "the nozzle it drips from. Runs back to z=1 so it lands flush on the waist wall.",
+      "from": [7, 4, -2],
+      "to": [9, 6, 1],
+      "faces": {
+        "north": { "uv": [8, 0, 10, 2], "texture": "#spout" },
+        "down": { "uv": [8, 2, 10, 5], "texture": "#spout" },
+        "west": { "uv": [10, 0, 13, 2], "texture": "#spout" },
+        "east": { "uv": [10, 0, 13, 2], "texture": "#spout" }
+      }
+    }
+  ]
 }
