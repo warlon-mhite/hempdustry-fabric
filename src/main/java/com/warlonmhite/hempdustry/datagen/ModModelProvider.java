@@ -126,10 +126,20 @@ public class ModModelProvider extends FabricModelProvider {
         // The devices share one packed texture, which they always did. The override is on "packed at
         // all", so giving a strain its own packed art later is one more entry here — keyed on
         // STRAIN_PREDICATE and listed after this one — plus the PNG.
+        // A packed device is the empty device plus a mask of what is in the bowl, and the mask is the
+        // layer the strain's colour tints. Two layers rather than a second full texture, because
+        // ItemModelGenerator hands layerN the tint index N and a provider can then colour layer1
+        // while leaving the wood and glass of layer0 alone — see ModItemProperties.LOAD_TINT_INDEX.
+        //
+        // This is the half of the strain system a datapack can actually reach. Bespoke art needs a
+        // texture and a datapack cannot ship one, so before this a datapack's strain packed a device
+        // that looked exactly like every other strain's.
         for (DeviceType device : DeviceType.values()) {
             Item item = device == DeviceType.PIPE ? ModItems.WOODEN_PIPE : ModItems.BONG;
-            Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedTexture());
-            uploadGenerated(itemModelGenerator, packedModel, texture(device.packedTexture()));
+            Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedModel());
+            Models.GENERATED_TWO_LAYERS.upload(packedModel,
+                    TextureMap.layered(texture(device.baseName()), texture(device.packedModel() + "_load")),
+                    itemModelGenerator.writer);
             uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(item),
                     texture(device.baseName()), List.of(new ModelOverride(PACKED_PREDICATE, 1, packedModel)));
         }

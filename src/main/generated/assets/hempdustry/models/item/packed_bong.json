@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "hempdustry:item/packed_bong"
+    "layer0": "hempdustry:item/bong",
+    "layer1": "hempdustry:item/packed_bong_load"
   }
 }

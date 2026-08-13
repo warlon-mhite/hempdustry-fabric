@@ -10,12 +10,12 @@ package com.warlonmhite.hempdustry.item.custom;
  * mid-bowl. Tune freely.
  */
 public enum DeviceType {
-    //   registry base   packedTexture   maxDamage  bowlSize  maxDose  duration  enchantability  cooldown  cough(1-in-N)  nausea(1-in-N)
+    //   registry base   packedModel   maxDamage  bowlSize  maxDose  duration  enchantability  cooldown  cough(1-in-N)  nausea(1-in-N)
     PIPE("wooden_pipe",  "packed_pipe",  8,         2,        2,       700,      15,             60,       4,             50),
     BONG("bong",         "packed_bong",  24,        4,        3,       1000,     10,             100,      3,             5);
 
     private final String baseName;
-    private final String packedTexture;
+    private final String packedModel;
     private final int maxDamage;
     private final int bowlSize;
     private final int maxDose;
@@ -25,11 +25,11 @@ public enum DeviceType {
     private final int coughChanceOneIn;
     private final int nauseaChanceOneIn;
 
-    DeviceType(String baseName, String packedTexture, int maxDamage, int bowlSize, int maxDose,
+    DeviceType(String baseName, String packedModel, int maxDamage, int bowlSize, int maxDose,
                int durationTicks, int enchantability, int cooldownTicks, int coughChanceOneIn,
                int nauseaChanceOneIn) {
         this.baseName = baseName;
-        this.packedTexture = packedTexture;
+        this.packedModel = packedModel;
         this.maxDamage = maxDamage;
         this.bowlSize = bowlSize;
         this.maxDose = maxDose;
@@ -45,9 +45,17 @@ public enum DeviceType {
         return baseName;
     }
 
-    /** Item-texture name (under {@code textures/item/}) shared by all packed variants of this device. */
-    public String packedTexture() {
-        return packedTexture;
+    /**
+     * Name of the packed <b>model</b> ({@code item/packed_pipe}) and the stem of its load-mask
+     * texture ({@code item/packed_pipe_load}), shared by every packed variant of this device.
+     *
+     * <p>No longer a texture in its own right: a packed device is now drawn as the empty device on
+     * {@code layer0} plus a greyscale mask of the load on {@code layer1}, which the strain's colour
+     * tints. That is what lets a strain a datapack invented look like itself — see
+     * {@link com.warlonmhite.hempdustry.item.ModItemProperties#LOAD_TINT_INDEX}.
+     */
+    public String packedModel() {
+        return packedModel;
     }
 
     /** Total hits before the device breaks (vanilla {@code max_damage}). */
