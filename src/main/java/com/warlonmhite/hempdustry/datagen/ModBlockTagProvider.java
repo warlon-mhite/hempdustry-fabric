@@ -43,6 +43,33 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP);
 
+        // The wild flowers were in no tag at all, so a sword took as long over one as a fist did and
+        // an enderman walked past them. Both of these are joined DIRECTLY rather than by way of
+        // #minecraft:small_flowers, and that is the whole point of the entry:
+        //
+        //   #minecraft:small_flowers is included by #minecraft:flowers, and #minecraft:flowers is
+        //   what BeeEntity reads to decide what counts as a flower (verified in the 1.21.1 jar --
+        //   findFlower and the pollination check both test it). Joining the umbrella would hand bees
+        //   the wild flower, and bees are meant to work on the CROP, which is already in
+        //   #minecraft:crops and therefore #minecraft:bee_growables. The wild flower is worldgen
+        //   dressing and a seed source, not an apiary feature.
+        //
+        // What the two tags below actually do, and nothing else:
+        //   #minecraft:sword_efficient    -- read only by SwordItem. A sword one-shots the flower,
+        //                                    as it does every other flower in the game.
+        //   #minecraft:enderman_holdable  -- an enderman may pick one up and set it down elsewhere.
+        //                                    Not quite inert, but it is vanilla enderman behaviour
+        //                                    applied to a vanilla-shaped small flower.
+        //
+        // Deliberately NOT joined: #minecraft:flowers, #minecraft:small_flowers (bees, above), and
+        // the *item* tag #minecraft:small_flowers (suspicious stew -- see ModBlocks).
+        getOrCreateTagBuilder(BlockTags.SWORD_EFFICIENT)
+                .add(ModBlocks.INDICA_FLOWER)
+                .add(ModBlocks.SATIVA_FLOWER);
+        getOrCreateTagBuilder(BlockTags.ENDERMAN_HOLDABLE)
+                .add(ModBlocks.INDICA_FLOWER)
+                .add(ModBlocks.SATIVA_FLOWER);
+
         // What will heat an Infuser standing on top of it. Anything here that carries a LIT
         // property must also be lit (see InfuserBlockEntity#isHeatedFrom), which is what makes the
         // campfire the practical choice — it is permanently lit and cheap, where a furnace is only
