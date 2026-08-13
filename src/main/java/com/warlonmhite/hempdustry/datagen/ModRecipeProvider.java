@@ -526,12 +526,12 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // ---------------------------------------------------------------------
         // Hemp fiber armor set
         // ---------------------------------------------------------------------
-        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.HEMP_BEANNIE)
+        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.HEMP_BEANIE)
                 .pattern("###")
                 .pattern("# #")
                 .input('#', ModItems.HEMP_FIBER)
                 .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("hemp_beannie"));
+                .offerTo(exporter, id("hemp_beanie"));
 
         ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.HEMP_SHIRT)
                 .pattern("# #")

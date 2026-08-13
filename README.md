@@ -99,7 +99,7 @@ Hemp is a fibre crop first, and the mod treats it that way.
 - **Hempcrete**, including a powder form that sets on contact with water like concrete does.
 - **Hemp bricks** and a full **hemp plank set** — stairs, slabs, doors, trapdoors, fences, signs,
   hanging signs, boats — which is fireproof, the way Crimson and Warped are.
-- A hemp **armour set**: beannie, shirt, harem pants and flip-flops. It is not good armour.
+- A hemp **armour set**: beanie, shirt, harem pants and flip-flops. It is not good armour.
 
 ### Odds and ends
 

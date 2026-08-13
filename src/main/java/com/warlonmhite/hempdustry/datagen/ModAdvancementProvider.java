@@ -297,9 +297,9 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .build(consumer, Hempdustry.MOD_ID + ":green_threads");
 
         Advancement.Builder.create()
-                .display(display(ModItems.HEMP_BEANNIE, "chill_set", AdvancementFrame.TASK))
+                .display(display(ModItems.HEMP_BEANIE, "chill_set", AdvancementFrame.TASK))
                 .criterion("full_hemp_armor", InventoryChangedCriterion.Conditions.items(
-                        ModItems.HEMP_BEANNIE,
+                        ModItems.HEMP_BEANIE,
                         ModItems.HEMP_SHIRT,
                         ModItems.HEMP_HAREM_PANTS,
                         ModItems.FLIP_FLOPS

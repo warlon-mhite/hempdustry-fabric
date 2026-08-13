@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": "hempdustry:hemp_beannie"
+            "items": "hempdustry:hemp_beanie"
           },
           {
             "items": "hempdustry:hemp_shirt"
@@ -28,7 +28,7 @@
     },
     "icon": {
       "count": 1,
-      "id": "hempdustry:hemp_beannie"
+      "id": "hempdustry:hemp_beanie"
     },
     "title": {
       "translate": "advancements.hempdustry.chill_set.title"

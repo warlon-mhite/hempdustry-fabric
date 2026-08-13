@@ -100,7 +100,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.HEMP_FIBER);
 
         getOrCreateTagBuilder(ItemTags.TRIMMABLE_ARMOR)
-            .add(ModItems.HEMP_BEANNIE)
+            .add(ModItems.HEMP_BEANIE)
             .add(ModItems.HEMP_SHIRT)
             .add(ModItems.HEMP_HAREM_PANTS)
             .add(ModItems.FLIP_FLOPS);
@@ -114,7 +114,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // per-slot tags transitively; nothing else needs adding.
         //
         // It stays bad armour (1/2/1/1) — this buys the *right* to enchant, not protection.
-        getOrCreateTagBuilder(ItemTags.HEAD_ARMOR).add(ModItems.HEMP_BEANNIE);
+        getOrCreateTagBuilder(ItemTags.HEAD_ARMOR).add(ModItems.HEMP_BEANIE);
         getOrCreateTagBuilder(ItemTags.CHEST_ARMOR).add(ModItems.HEMP_SHIRT);
         getOrCreateTagBuilder(ItemTags.LEG_ARMOR).add(ModItems.HEMP_HAREM_PANTS);
         getOrCreateTagBuilder(ItemTags.FOOT_ARMOR).add(ModItems.FLIP_FLOPS);
@@ -126,7 +126,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ConventionalItemTags.LEATHERS).add(ModItems.HEMP_CANVAS);
 
         getOrCreateTagBuilder(ConventionalItemTags.ARMORS)
-                .add(ModItems.HEMP_BEANNIE)
+                .add(ModItems.HEMP_BEANIE)
                 .add(ModItems.HEMP_SHIRT)
                 .add(ModItems.HEMP_HAREM_PANTS)
                 .add(ModItems.FLIP_FLOPS);

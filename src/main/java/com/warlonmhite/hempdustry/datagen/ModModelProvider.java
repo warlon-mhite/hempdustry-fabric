@@ -130,7 +130,7 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.HEMP_CHEST_BOAT, Models.GENERATED);
 
         itemModelGenerator.registerArmor(((ArmorItem) ModItems.FLIP_FLOPS));
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_BEANNIE));
+        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_BEANIE));
         itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_HAREM_PANTS));
         itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_SHIRT));
     }

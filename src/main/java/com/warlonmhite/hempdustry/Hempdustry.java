@@ -71,7 +71,7 @@ public class Hempdustry implements ModInitializer {
 		// dried kelp block.
 		CompostingChanceRegistry.INSTANCE.add(ModItems.DECARBOXYLATED_HEMP, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.WASHED_DECARBOXYLATED_HEMP, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BEANNIE, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BEANIE, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 0.5f);
@@ -83,7 +83,7 @@ public class Hempdustry implements ModInitializer {
 		FuelRegistry.INSTANCE.add(ModItems.HEMP_STEM, 50);
 		FuelRegistry.INSTANCE.add(ModItems.HEMPCRETE, 200);
 		FuelRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 350);
-		FuelRegistry.INSTANCE.add(ModItems.HEMP_BEANNIE, 250);
+		FuelRegistry.INSTANCE.add(ModItems.HEMP_BEANIE, 250);
 		FuelRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 400);
 		FuelRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 200);
 		FuelRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);

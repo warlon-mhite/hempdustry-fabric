@@ -134,7 +134,7 @@ public class ModItemGroups {
                                 .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.SEARCH_TAB_ONLY));
 
                         // --- Armour, head to foot --------------------------------------
-                        entries.add(ModItems.HEMP_BEANNIE);
+                        entries.add(ModItems.HEMP_BEANIE);
                         entries.add(ModItems.HEMP_SHIRT);
                         entries.add(ModItems.HEMP_HAREM_PANTS);
                         entries.add(ModItems.FLIP_FLOPS);

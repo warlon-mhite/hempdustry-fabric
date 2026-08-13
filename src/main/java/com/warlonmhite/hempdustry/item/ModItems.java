@@ -230,7 +230,7 @@ public class ModItems {
      */
     public static final List<Item> MUSIC_DISCS = List.of(MUSIC_DISC_MOONLIGHT, MUSIC_DISC_ROBADOB);
 
-    public static final Item HEMP_BEANNIE = registerItem("hemp_beannie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Settings()
+    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Settings()
             .maxDamage(ArmorItem.Type.HELMET.getMaxDamage(3))));
     public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Settings()
             .maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(3))));

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_beannie"
+        "recipe": "hempdustry:hemp_beanie"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "hempdustry:hemp_beannie"
+      "hempdustry:hemp_beanie"
     ]
   }
 }
