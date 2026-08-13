@@ -23,6 +23,7 @@ import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.render.RenderLayer;
@@ -51,6 +52,39 @@ public class HempdustryClient implements ClientModInitializer {
         HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
 
         registerItemProperties();
+        registerItemColors();
+    }
+
+    /**
+     * Paints the loaded strain's colour onto the smoking gear.
+     *
+     * <p>This is what makes a strain a <b>datapack</b> feature rather than a code one. Bespoke art
+     * needs a texture, and a datapack cannot ship a texture — so without a tint, every strain added
+     * by a datapack renders identically to the first one the mod happens to carry art for. With it,
+     * a strain is distinguishable from the colour in its own JSON and nothing else.
+     *
+     * <p>Only {@link ModItemProperties#LOAD_TINT_INDEX} is tinted; every other layer answers
+     * {@code -1} and keeps its own colours. See that constant for why the layer split is the whole
+     * mechanism, and note that <b>this is inert until a model actually declares that layer</b> — an
+     * item whose model has only {@code layer0} never asks about index 1.
+     *
+     * <p>Empty contents answer {@code -1} rather than {@link SmokeContents#color}'s white: white is
+     * the right neutral for averaging colours together, but as a tint it would be a no-op that still
+     * costs a lookup, and returning {@code -1} says "not tinted" outright.
+     *
+     * <p>The bud items are deliberately <em>not</em> registered here. Their colour cannot come from a
+     * component — a bud carries none — so it would have to be found by scanning the strain registry
+     * for whichever entry claims that item, which is a per-frame cost for something no model asks for
+     * yet. It belongs with the bud art if that lands, not before.
+     */
+    private static void registerItemColors() {
+        ColorProviderRegistry.ITEM.register((stack, tintIndex) -> {
+            if (tintIndex != ModItemProperties.LOAD_TINT_INDEX) {
+                return -1;
+            }
+            SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
+            return contents.isEmpty() ? -1 : contents.color();
+        }, ModItems.SPLIFF, ModItems.WOODEN_PIPE, ModItems.BONG);
     }
 
     /**

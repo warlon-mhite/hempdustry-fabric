@@ -39,6 +39,38 @@ public final class ModItemProperties {
     /** {@code hempdustry:strain} — the loaded strain's {@code model_index}; 0 for "no bespoke art". */
     public static final Identifier STRAIN = Identifier.of(Hempdustry.MOD_ID, "strain");
 
+    /**
+     * The tint index carrying the strain's colour, and therefore <b>which texture layer gets tinted</b>.
+     *
+     * <h2>How item tinting actually works, because it is not obvious</h2>
+     *
+     * An item model does not write {@code "tintindex"} anywhere. {@code ItemModelGenerator} builds one
+     * set of quads per {@code layerN} in the {@code textures} map and passes <b>the layer number as
+     * the tint index</b> — {@code layer0} is tint 0, {@code layer1} is tint 1, up to {@code layer4}.
+     * An {@code ItemColorProvider} then returns a colour per index, or {@code -1} for "leave this one
+     * alone".
+     *
+     * <p>So the contract for anything strain-tinted is:
+     *
+     * <ul>
+     *   <li><b>{@code layer0}</b> — the object itself, full colour, <b>never tinted</b>. The provider
+     *       returns {@code -1} for index 0.</li>
+     *   <li><b>{@code layer1}</b> — a mask covering only the part that should take the strain's
+     *       colour, painted near-white where the colour should read at full strength. Tinting is a
+     *       multiply, so a grey pixel yields a darker shade and <b>no pixel can come out lighter than
+     *       the tint colour</b> — which is why a strain's {@code color} is the brightest point of its
+     *       range rather than its midpoint.</li>
+     * </ul>
+     *
+     * This is exactly the shape vanilla gives wolf armour, whose provider reads
+     * {@code tintIndex != 1 ? -1 : dyeColour}.
+     *
+     * <p><b>This is a resource-pack contract.</b> A pack replacing the smoking gear's art has to keep
+     * the layer split, and a pack adding art for a new strain relies on it. Changing which layer is
+     * tinted would break every such pack silently.
+     */
+    public static final int LOAD_TINT_INDEX = 1;
+
     private ModItemProperties() {
     }
 }
