@@ -159,7 +159,8 @@ public record HempdustryConfig(Effects effects, World world, Infuser infuser, Lo
                     + "machineSpeed drives the Decarboxylator; the Infuser has its own section. "
                     + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here.");
             comment(root, "infuser", "Ticks. minTime is the earliest a batch can be pulled, fullTime a full simmer. "
-                    + "20 ticks = 1 second. Defaults are 5 and 15 minutes.");
+                    + "20 ticks = 1 second. Defaults are 5 and 15 minutes; the ceiling is 32000 "
+                    + "(about 26 minutes), which is as long a simmer as the screen can be told about.");
             comment(root, "loot", "The mod's additions to vanilla loot tables: hemp seeds in grass and chests, "
                     + "music discs, shipwreck fibre. enabled=false removes all of them.");
             Files.createDirectories(path.getParent());
@@ -304,11 +305,28 @@ public record HempdustryConfig(Effects effects, World world, Infuser infuser, Lo
                 Codec.INT.fieldOf("fullTimeTicks").forGetter(Infuser::fullTimeTicks)
         ).apply(instance, Infuser::new));
 
+        /**
+         * <b>The ceiling is what the screen can receive, not what the machine can count.</b>
+         *
+         * <p>Both numbers ride to the client on the block's {@code PropertyDelegate}, and
+         * {@code ScreenHandlerPropertyUpdateS2CPacket} writes every property with
+         * {@code writeShort} — so anything above {@link Short#MAX_VALUE} arrives as a negative
+         * number and the bar, the minimum notch and the next-grade mark all go wrong. The block
+         * itself would keep perfect time; the player would simply be shown nonsense, with nothing
+         * in any log to say why.
+         *
+         * <p>{@value #MAX_TIME} rather than 32767 exactly, to leave the reader in no doubt that it
+         * is a chosen bound. It is still a 26-minute simmer, over four times the default, and
+         * {@code progress} is bounded by {@code fullTime()} so it cannot overflow either.
+         */
         Infuser clamped() {
-            int min = clampInt("infuser.minTimeTicks", minTimeTicks, 20, 1_728_000);
-            int full = clampInt("infuser.fullTimeTicks", fullTimeTicks, min + 20, 1_728_000);
+            int min = clampInt("infuser.minTimeTicks", minTimeTicks, 20, MAX_TIME - 20);
+            int full = clampInt("infuser.fullTimeTicks", fullTimeTicks, min + 20, MAX_TIME);
             return new Infuser(min, full);
         }
+
+        /** Longest simmer the screen can be told about. See {@link #clamped()}. */
+        private static final int MAX_TIME = 32_000;
     }
 
     /**
