@@ -26,6 +26,13 @@ Matching rules mirror 1.21.1:
 
 Tags are compared as opaque atoms, so two *different* tags that happen to overlap are
 not reported. Exit status is 1 when a collision involving this mod is found.
+
+Two things this scan structurally cannot see, so a clean run does not rule them out:
+
+  - `hempdustry:packing` is a SpecialCraftingRecipe with no ingredient list in its JSON,
+    so it is invisible here. A future shapeless recipe taking a device plus buds would
+    collide with packing and this would still print zero.
+  - A tag that *overlaps* another tag or a plain item, since tags are atoms (above).
 """
 
 import collections
@@ -88,7 +95,18 @@ def main(argv):
         print(__doc__)
         return 2
     recipes = load(argv[1], "hempdustry")
-    if len(argv) > 2:
+    if len(argv) < 3:
+        # Refusing outright would break the one legitimate use -- a quick mod-vs-mod check --
+        # so this warns instead. But it warns *loudly*, because "0 collisions" from a scan that
+        # never opened vanilla reads exactly like "0 collisions" from one that did, and most of
+        # this mod's recipes compete with vanilla rather than with each other.
+        print("WARNING: no vanilla data directory given, so this scan has only compared this "
+              "mod's recipes against each other. A collision with a VANILLA recipe cannot be "
+              "found this way. Extract vanilla's data and pass the directory holding `data/`:\n"
+              "  unzip -q ~/.gradle/caches/fabric-loom/1.21.1/minecraft-client.jar "
+              "'data/minecraft/*' -d /tmp/mcdata\n"
+              "  python3 scripts/recipe_collisions.py src/main/generated /tmp/mcdata\n")
+    else:
         vanilla = load(argv[2], "minecraft")
         # A wrong path here is silent otherwise: the scan still runs, still says "0 collisions",
         # and has simply not looked at vanilla at all. That is the same class of under-reporting
