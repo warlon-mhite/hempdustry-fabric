@@ -27,7 +27,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * <p><b>These are strain-agnostic and always will be.</b> Decarboxylation is where strain identity
  * ends — both strains produce the same {@code decarboxylated_hemp} and cannabutter carries no strain.
- * Do not reach for {@link Strain} anywhere in here.
+ * Do not reach for {@code Strain} anywhere in here.
  *
  * <h2>The bundle is not Purple Kush's and not Lemon Haze's</h2>
  *
@@ -197,17 +197,5 @@ public final class EdibleEffects {
             tooltip.add(Text.translatable("hempdustry.edible.quality",
                     Text.translatable(quality.getTranslationKey())).formatted(Formatting.DARK_GRAY));
         }
-    }
-
-    /** Every effect an edible of this tier/quality will eventually apply, for the tooltip. */
-    public static List<StatusEffectInstance> preview(int tier, Quality quality) {
-        int index = MathHelper.clamp(tier, 1, MAX_TIER) - 1;
-        int duration = durationTicks(quality);
-        return List.of(
-                new StatusEffectInstance(StatusEffects.ABSORPTION, duration - RAMP_BODY, index),
-                new StatusEffectInstance(StatusEffects.RESISTANCE, duration - RAMP_BODY, RESIST_STEP[index]),
-                new StatusEffectInstance(StatusEffects.REGENERATION, REGEN_DURATION[index], 1),
-                new StatusEffectInstance(StatusEffects.SLOWNESS, duration, SLOW_STEP[index]),
-                new StatusEffectInstance(StatusEffects.HUNGER, HUNGER_DURATION, 0));
     }
 }

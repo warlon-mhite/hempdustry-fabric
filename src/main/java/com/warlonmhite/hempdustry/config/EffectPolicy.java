@@ -103,10 +103,19 @@ public final class EffectPolicy {
      *
      * <p>The multiplier raises the <em>chance</em>, so it divides N: 2.0 doubles the odds. Turning
      * green-outs off, or a multiplier of 0, gives never.
+     *
+     * <p><b>{@code debuffs = false} also gives never</b>, and that is not the same knob being read
+     * twice. A green-out <em>replaces</em> the hit's effects rather than layering on them, and every
+     * effect it hands out is {@link StatusEffectCategory#HARMFUL} — so with debuffs off,
+     * {@link #filter} would strip all four and the roll would resolve into <em>nothing at all</em>:
+     * the buffs skipped, no penalty applied, no sound, no explanation for the three buds. Deciding
+     * it here rather than at the roll site is what stops that, because this is the one place that
+     * knows a green-out is all debuff.
      */
     public static int greenOutChanceOneIn(int oneIn) {
         Effects config = HempdustryConfig.get().effects();
-        if (oneIn <= 0 || !config.greenOut() || config.greenOutChanceMultiplier() <= 0) {
+        if (oneIn <= 0 || !config.greenOut() || !config.debuffs()
+                || config.greenOutChanceMultiplier() <= 0) {
             return 0;
         }
         return Math.max(1, (int) Math.round(oneIn / config.greenOutChanceMultiplier()));
