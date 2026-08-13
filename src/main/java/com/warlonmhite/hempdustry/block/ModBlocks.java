@@ -131,6 +131,17 @@ public class ModBlocks {
     public static final Block INDICA_CROP = registerBlock("indica_crop",
             new IndicaCropBlock(AbstractBlock.Settings.copy(Blocks.WHEAT)));
 
+    // The two wild flowers take a suspicious-stew effect because FlowerBlock's constructor demands
+    // one, and NEITHER OF THEM CAN EVER APPLY IT. Both the crafting recipe (SuspiciousStewRecipe)
+    // and the brown mooshroom gate on the *item* tag #minecraft:small_flowers, which these
+    // deliberately do not join — a stew brewed from a raw flower would hand out a status effect
+    // with no heat anywhere in the chain, and "heat activates, raw plant does nothing" is the rule
+    // the whole Decarboxylator exists to enforce (CLAUDE.md §4).
+    //
+    // So the arguments below are structurally required and functionally dead. They are kept
+    // meaningful rather than arbitrary — Mining Fatigue and Haste are what each strain does when
+    // smoked — purely so that the day the rule is revisited, the answer is already written down.
+    // Note the *block* tags in ModBlockTagProvider are a separate question and are joined.
     public static final Block INDICA_FLOWER = registerBlock("indica_flower",
             new IndicaFlower(StatusEffects.MINING_FATIGUE, 1, AbstractBlock.Settings.copy(Blocks.ALLIUM)));
     public static final Block POTTED_INDICA_FLOWER = registerBlock("potted_indica_flower",
@@ -141,8 +152,8 @@ public class ModBlocks {
             new SativaCropBlock(AbstractBlock.Settings.copy(Blocks.WHEAT)));
 
     // Wild Lemon Haze. SativaFlower widens the ground it accepts to sand/terracotta so it can
-    // actually grow in badlands (see that class). Suspicious stew effect is Haste, matching what
-    // the strain does when smoked.
+    // actually grow in badlands (see that class). Its stew effect is dead for the reason given
+    // above INDICA_FLOWER.
     public static final Block SATIVA_FLOWER = registerBlock("sativa_flower",
             new SativaFlower(StatusEffects.HASTE, 1, AbstractBlock.Settings.copy(Blocks.DANDELION)));
     public static final Block POTTED_SATIVA_FLOWER = registerBlock("potted_sativa_flower",
