@@ -93,8 +93,8 @@ public final class Smoking {
             ModCriteria.SMOKE.trigger(serverPlayer, world.getTimeOfDay() % 24000L, stack);
         }
 
-        if (world instanceof ServerWorld serverWorld) {
-            SmokeScheduler.schedule(serverWorld, player, EXHALE_DELAY_TICKS);
+        if (!world.isClient) {
+            SmokeScheduler.schedule(player, EXHALE_DELAY_TICKS);
         }
 
         if (coughChanceOneIn > 0 && ThreadLocalRandom.current().nextInt(coughChanceOneIn) == 0) {

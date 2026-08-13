@@ -8,7 +8,6 @@ import net.minecraft.block.CakeBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
@@ -81,8 +80,8 @@ public class SpaceCakeBlock extends CakeBlock {
         int potency = state.get(POTENCY);
         Quality quality = state.get(QUALITY);
         ActionResult result = super.onUse(state, world, pos, player, hit);
-        if (result.isAccepted() && world instanceof ServerWorld serverWorld) {
-            EdibleEffects.consume(serverWorld, player, potency, quality);
+        if (result.isAccepted() && !world.isClient) {
+            EdibleEffects.consume(player, potency, quality);
         }
         return result;
     }

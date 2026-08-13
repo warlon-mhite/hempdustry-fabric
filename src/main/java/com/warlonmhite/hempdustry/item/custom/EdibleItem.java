@@ -5,7 +5,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 
@@ -36,8 +35,8 @@ public class EdibleItem extends Item {
         Quality quality = EdibleEffects.qualityOf(stack);
         // Read before super, which may empty the stack and take the components with it.
         ItemStack result = super.finishUsing(stack, world, user);
-        if (world instanceof ServerWorld serverWorld && user instanceof PlayerEntity player) {
-            EdibleEffects.consume(serverWorld, player, potency, quality);
+        if (!world.isClient && user instanceof PlayerEntity player) {
+            EdibleEffects.consume(player, potency, quality);
         }
         return result;
     }

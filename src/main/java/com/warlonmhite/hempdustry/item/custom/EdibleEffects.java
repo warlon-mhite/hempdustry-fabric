@@ -8,7 +8,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
@@ -140,7 +139,7 @@ public final class EdibleEffects {
      * <p>Nothing is applied now — the first effect lands after the onset delay, and the rest follow
      * it up the ramp.
      */
-    public static void consume(ServerWorld world, PlayerEntity player, int tier, Quality quality) {
+    public static void consume(PlayerEntity player, int tier, Quality quality) {
         if (tier <= 0) {
             return;
         }
@@ -149,21 +148,21 @@ public final class EdibleEffects {
         int index = MathHelper.clamp(tier, 1, MAX_TIER) - 1;
 
         // The body drop, alone and first. This is what tells the player it has started.
-        queue(world, player, onset, StatusEffects.SLOWNESS, SLOW_STEP[index], duration);
+        queue(player, onset, StatusEffects.SLOWNESS, SLOW_STEP[index], duration);
 
         // The padded, pain-dulled body. Ends with the slowness rather than outlasting it, so the
         // heaviness is what lingers -- which is the right way round.
-        queue(world, player, onset + RAMP_BODY, StatusEffects.ABSORPTION, index, duration - RAMP_BODY);
-        queue(world, player, onset + RAMP_BODY, StatusEffects.RESISTANCE, RESIST_STEP[index], duration - RAMP_BODY);
+        queue(player, onset + RAMP_BODY, StatusEffects.ABSORPTION, index, duration - RAMP_BODY);
+        queue(player, onset + RAMP_BODY, StatusEffects.RESISTANCE, RESIST_STEP[index], duration - RAMP_BODY);
 
         // Munchies, which genuinely arrive later than the rest.
-        queue(world, player, onset + RAMP_HUNGER, StatusEffects.HUNGER, 0, HUNGER_DURATION);
+        queue(player, onset + RAMP_HUNGER, StatusEffects.HUNGER, 0, HUNGER_DURATION);
 
         // The restorative peak, last.
-        queue(world, player, onset + RAMP_PEAK, StatusEffects.REGENERATION, 1, REGEN_DURATION[index]);
+        queue(player, onset + RAMP_PEAK, StatusEffects.REGENERATION, 1, REGEN_DURATION[index]);
     }
 
-    private static void queue(ServerWorld world, PlayerEntity player, int delay,
+    private static void queue(PlayerEntity player, int delay,
                               RegistryEntry<StatusEffect> effect, int amplifier, int duration) {
         if (duration <= 0) {
             return;
@@ -174,7 +173,7 @@ public final class EdibleEffects {
         // filter() that is wanted, and it returns nothing when the effect is switched off.
         for (StatusEffectInstance allowed : EffectPolicy.filterKeepingDuration(
                 List.of(new StatusEffectInstance(effect, duration, amplifier)))) {
-            EdibleScheduler.schedule(world, player, delay, allowed);
+            EdibleScheduler.schedule(player, delay, allowed);
         }
     }
 
