@@ -104,9 +104,39 @@ almost everything else is new or works differently.
   CC BY-NC-SA 4.0 and the code is AGPL-3.0-only, which does not restrict commercial use at all.
   **Only a commercial use needs to ask.** Full table in [CREDITS.md](CREDITS.md), inside the jar.
 - Neither machine has a data-driven recipe type yet, so their conversions cannot be rebalanced with
-  KubeJS or CraftTweaker. Recipes in the crafting grid are ordinary datagen JSON and can be.
+  KubeJS or CraftTweaker. Recipes in the crafting grid are ordinary datagen JSON and can be. A
+  consequence worth knowing: **another mod's buds cannot currently be decarboxylated.**
 - There is no JEI/EMI/REI plugin yet, so **packing a smoking device does not appear in a recipe
   viewer**. It is: an empty pipe or bong, plus one to three buds, in the crafting grid.
+- The update checker cannot yet be switched off. It runs client-side only and never on a server.
+
+#### Saves and updates
+
+**From 2.0.0 onward a world opens on every later version, with no migration script and nothing for
+the player to do.** Registry ids, item components, block entity data, blockstates, advancement ids and
+the datapack formats below are all treated as frozen after this release; anything that has to change
+ships a fallback that keeps reading the old form. If an update ever cannot honour that, it will be a
+major version and it will say so here.
+
+#### For datapack and resource-pack authors
+
+- **Strains are a datapack registry.** `data/<your_pack>/hempdustry/strain/<id>.json` — note the
+  `hempdustry` directory inside your namespace; a file without it is silently ignored. Fields:
+  `translation_key`, `color`, `seeds`, `buds`, `flower`, optional `model_index` and `effects`. Edit a
+  shipped strain by writing the same id, and `/reload` applies it.
+- **A strain you add gets its own look for free.** Leave `model_index` at `0` and the spliff tip and
+  device bowls are tinted with your `color`. Colours multiply, so pick the *brightest* point of the
+  range you want rather than the middle. `model_index` 1–99 is reserved for this mod; use 100+ only if
+  you are also shipping textures.
+- **Resource packs**: the smoking gear draws as base art on `layer0` plus a tinted mask on `layer1`.
+  Keep that split when replacing the art. Item properties are `hempdustry:packed` (0/1) and
+  `hempdustry:strain` (a `model_index`).
+- **Convention tags joined**, so recipes elsewhere find hemp without either side knowing about the
+  other: `c:crops/hemp`, `c:bricks/hemp`, `c:storage_blocks/hemp`, `c:concretes`,
+  `c:concrete_powders`, `c:strings`, `c:leathers`, `c:buckets/milk`, `c:armors`, `c:music_discs` and
+  the `c:foods` family.
+- **`#hempdustry:heat_sources`** — add a modded forge or crucible and it will heat an Infuser.
+  **`#hempdustry:milk_buckets`** — add another mod's milk and the Infuser will take it.
 
 [Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.0...HEAD
 [2.0.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.0
