@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.minecraft.block.Blocks;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.BlockTags;
@@ -94,6 +95,15 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 // fire heats the Infuser sitting on it. Same LIT caveat as a furnace — it only
                 // radiates while it is actually cooking something.
                 .add(ModBlocks.DECARBOXYLATOR);
+
+        // The block half of the convention tags granted in ModItemTagProvider. Only the two that
+        // exist block-side in convention tags v2 -- there is no c:concrete_powders block tag, and
+        // c:crops and c:bricks are item-only, since both describe a harvest or a crafting material
+        // rather than something placed.
+        getOrCreateTagBuilder(ModTags.Conventional.HEMP_STORAGE_BLOCKS_BLOCK).add(ModBlocks.HEMP_BALE);
+        getOrCreateTagBuilder(ConventionalBlockTags.STORAGE_BLOCKS)
+                .addOptionalTag(ModTags.Conventional.HEMP_STORAGE_BLOCKS_BLOCK);
+        getOrCreateTagBuilder(ConventionalBlockTags.CONCRETES).add(ModBlocks.HEMPCRETE_BLOCK);
 
         getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_BLOCK)

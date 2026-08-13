@@ -157,6 +157,43 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.DAWAMESK)
                 .add(ModItems.BHANG_BUCKET);
 
+        // ---------------------------------------------------------------------
+        // Convention tags, the outbound half. Nothing in vanilla reads any of these; the entire
+        // value is other mods' recipes and machinery finding this mod's materials without either
+        // side having heard of the other.
+        //
+        // c:crops, c:bricks and c:storage_blocks hold nothing but subtags, so each gets a
+        // c:<parent>/hemp folded into its parent rather than the item shoved in at the top level --
+        // see ModTags.Conventional. The parent references are optional, which costs nothing and
+        // means a stripped-down Fabric API that omits one cannot take the whole tag down with it
+        // (one unresolvable *required* entry drops every other entry in the file -- CLAUDE.md §5).
+        getOrCreateTagBuilder(ModTags.Conventional.HEMP_CROPS)
+                .add(ModItems.INDICA_BUDS)
+                .add(ModItems.SATIVA_BUDS)
+                .add(ModItems.HEMP_LEAF);
+        getOrCreateTagBuilder(ConventionalItemTags.CROPS)
+                .addOptionalTag(ModTags.Conventional.HEMP_CROPS);
+
+        getOrCreateTagBuilder(ModTags.Conventional.HEMP_BRICKS).add(ModItems.HEMP_BRICK);
+        getOrCreateTagBuilder(ConventionalItemTags.BRICKS)
+                .addOptionalTag(ModTags.Conventional.HEMP_BRICKS);
+
+        // The bale is the crop's 9:1 storage block, which is exactly where vanilla files the hay
+        // block (c:storage_blocks/wheat).
+        getOrCreateTagBuilder(ModTags.Conventional.HEMP_STORAGE_BLOCKS).add(ModBlocks.HEMP_BALE.asItem());
+        getOrCreateTagBuilder(ConventionalItemTags.STORAGE_BLOCKS)
+                .addOptionalTag(ModTags.Conventional.HEMP_STORAGE_BLOCKS);
+
+        // Hempcrete as concrete is a judgement, not an identity: the real material is hemp hurd in a
+        // lime binder, a bio-composite, where Minecraft's concrete stands in for the Portland kind.
+        // It joins anyway because these tags describe what a block *is for* in a modded world --
+        // a set building block whose powder cures on contact with water, which is precisely what
+        // hempcrete does and precisely what a mod reading #c:concretes wants to find. Both are flat
+        // item lists in the convention set, so these go in directly rather than as a subtag.
+        getOrCreateTagBuilder(ConventionalItemTags.CONCRETES).add(ModBlocks.HEMPCRETE_BLOCK.asItem());
+        getOrCreateTagBuilder(ConventionalItemTags.CONCRETE_POWDERS)
+                .add(ModBlocks.HEMPCRETE_POWDER_BLOCK.asItem());
+
         getOrCreateTagBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         getOrCreateTagBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
 

@@ -47,6 +47,41 @@ public class ModTags {
         }
     }
 
+    /**
+     * Tags in the <b>{@code c}</b> namespace that Fabric's convention set does not already declare.
+     *
+     * <h2>Why mint these at all</h2>
+     *
+     * {@code c:crops}, {@code c:bricks} and {@code c:storage_blocks} hold nothing but subtags —
+     * {@code c:crops/wheat}, {@code c:bricks/nether} and so on — so joining the parent directly would
+     * break the shape every other mod reads. The convention <em>is</em> that a new material adds its
+     * own subtag and folds it into the parent, which is what these do.
+     *
+     * <p>Minting a {@code c:} path is not a land grab: if another mod declares {@code c:crops/hemp}
+     * too, the two definitions merge, which is exactly the outcome wanted. The alternative — a
+     * {@code hempdustry:} tag — would be invisible to anyone who had not heard of this mod, and the
+     * whole value of a convention tag is that it works between strangers.
+     */
+    public static class Conventional {
+
+        /** Hemp's entry in {@code #c:crops}. The harvest, not the plant — buds and leaf. */
+        public static final TagKey<Item> HEMP_CROPS = itemTag("crops/hemp");
+        /** Hemp's entry in {@code #c:bricks}, alongside {@code c:bricks/normal} and {@code /nether}. */
+        public static final TagKey<Item> HEMP_BRICKS = itemTag("bricks/hemp");
+        /** The bale's entry in {@code #c:storage_blocks}, where hay sits as {@code /wheat}. */
+        public static final TagKey<Item> HEMP_STORAGE_BLOCKS = itemTag("storage_blocks/hemp");
+        /** Block-side counterpart of {@link #HEMP_STORAGE_BLOCKS}. */
+        public static final TagKey<Block> HEMP_STORAGE_BLOCKS_BLOCK = blockTag("storage_blocks/hemp");
+
+        private static TagKey<Item> itemTag(String path) {
+            return TagKey.of(RegistryKeys.ITEM, Identifier.of("c", path));
+        }
+
+        private static TagKey<Block> blockTag(String path) {
+            return TagKey.of(RegistryKeys.BLOCK, Identifier.of("c", path));
+        }
+    }
+
     public static class Blocks {
 
         /**
