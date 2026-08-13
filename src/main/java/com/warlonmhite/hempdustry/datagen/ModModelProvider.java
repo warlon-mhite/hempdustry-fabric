@@ -120,8 +120,22 @@ public class ModModelProvider extends FabricModelProvider {
         for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
             spliffOverrides.add(new ModelOverride(STRAIN_PREDICATE, ModStrains.modelIndex(strain), spliffModel(strain)));
         }
-        uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(ModItems.SPLIFF),
-                texture(ModStrains.id(ModStrains.BUILT_IN.get(0)) + "_spliff"), spliffOverrides);
+        // The spliff's BASE model is the one a strain with no bespoke art falls back to — which is
+        // every strain a datapack can add, since a datapack cannot ship a texture. It is therefore
+        // two layers: the shared roll, plus a mask of the lit tip that the strain's colour tints.
+        //
+        // layer0 is indica's art rather than a third drawing, and that is derivation not laziness:
+        // both shipped spliffs are the same matrix under two palettes (see textures-src/sativa.mctex),
+        // and of the 49 opaque pixels only 7 differ strongly between them -- the tip. The other 42
+        // are the roll, where indica's white paper is the neutral of the two. So the tip becomes the
+        // tinted layer and the roll stays as drawn.
+        //
+        // The per-strain overrides above still win for indica and sativa, which keep their own art
+        // untinted. Dropping those overrides would put every strain on this tinted base instead;
+        // that is a texture decision, not a code one, and it costs one line here when wanted.
+        uploadTintable(itemModelGenerator, ModelIds.getItemModelId(ModItems.SPLIFF),
+                texture(ModStrains.id(ModStrains.BUILT_IN.get(0)) + "_spliff"),
+                texture("spliff_load"), spliffOverrides);
 
         // The devices share one packed texture, which they always did. The override is on "packed at
         // all", so giving a strain its own packed art later is one more entry here — keyed on
@@ -180,11 +194,27 @@ public class ModModelProvider extends FabricModelProvider {
      */
     private static void uploadWithOverrides(ItemModelGenerator generator, Identifier modelId,
                                             Identifier texture, List<ModelOverride> overrides) {
+        uploadTintable(generator, modelId, texture, null, overrides);
+    }
+
+    /**
+     * As {@link #uploadWithOverrides}, plus an optional second layer.
+     *
+     * <p>{@code layer1} is the strain-tinted one: {@code ItemModelGenerator} gives each {@code layerN}
+     * the tint index {@code N}, and the colour provider paints index 1 and leaves index 0 alone. Pass
+     * {@code null} for a single-layer model.
+     */
+    private static void uploadTintable(ItemModelGenerator generator, Identifier modelId,
+                                       Identifier texture, Identifier tintedLayer,
+                                       List<ModelOverride> overrides) {
         generator.writer.accept(modelId, () -> {
             JsonObject json = new JsonObject();
             json.addProperty("parent", "minecraft:item/generated");
             JsonObject textures = new JsonObject();
             textures.addProperty("layer0", texture.toString());
+            if (tintedLayer != null) {
+                textures.addProperty("layer1", tintedLayer.toString());
+            }
             json.add("textures", textures);
 
             JsonArray array = new JsonArray();
