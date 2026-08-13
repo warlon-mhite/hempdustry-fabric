@@ -2,7 +2,7 @@
   "replace": false,
   "values": [
     "minecraft:lush_caves",
-    "#c:is_lush",
+    { "id": "#c:is_lush", "required": false },
     { "id": "terralith:underground_jungle", "required": false }
   ]
 }
