@@ -8,7 +8,7 @@ import net.minecraft.registry.RegistryWrapper;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Writes the mod's own strains out as {@code data/hempdustry/strain/<id>.json}.
+ * Writes the mod's own strains out as {@code data/hempdustry/hempdustry/strain/<id>.json}.
  *
  * <p>Kept apart from {@link ModWorldGenerator} — which does the same job for the worldgen registries —
  * because the two have nothing to do with each other, and a provider's name is what shows up in the

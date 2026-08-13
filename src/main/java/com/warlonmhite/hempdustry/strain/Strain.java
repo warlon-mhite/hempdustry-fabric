@@ -28,10 +28,20 @@ import java.util.Optional;
  *
  * <h2>This is a datapack registry, not an enum</h2>
  *
- * Strains live in {@code data/<namespace>/strain/<id>.json} and load into the synced dynamic registry
- * {@link #REGISTRY_KEY}. A server owner rebalances what a strain does by shipping a datapack and
- * running {@code /reload}; no config file, no restart, and <b>the definitions reach clients for
- * free</b> because the registry is registered with {@code DynamicRegistries.registerSynced}.
+ * Strains live in {@code data/<namespace>/hempdustry/strain/<id>.json} and load into the synced
+ * dynamic registry {@link #REGISTRY_KEY}. A server owner rebalances what a strain does by shipping a
+ * datapack and running {@code /reload}; no config file, no restart, and <b>the definitions reach
+ * clients for free</b> because the registry is registered with {@code DynamicRegistries.registerSynced}.
+ *
+ * <p><b>That path has {@code hempdustry} in it twice for the mod's own strains, and that is correct.</b>
+ * {@code RegistryLoader} builds a dynamic registry's directory from the registry id: a vanilla
+ * registry like {@code minecraft:worldgen/biome} gets {@code worldgen/biome}, but any registry
+ * outside the {@code minecraft} namespace gets {@code <namespace>/<path>}. So the folder is
+ * {@code hempdustry/strain}, and it sits under whichever pack namespace owns the file — giving
+ * {@code data/hempdustry/hempdustry/strain/indica.json} for ours and
+ * {@code data/yourpack/hempdustry/strain/whatever.json} for a third party's. A file at
+ * {@code data/<namespace>/strain/} is simply never read, and <b>nothing logs a complaint</b> — the
+ * strain just silently does not exist, which is a miserable thing to debug.
  *
  * <p>This is the shape vanilla moved enchantments to in 1.21, and the one this mod already used for
  * its paintings and jukebox songs. See {@code roadmap.md} D14 for the decision and its costs.
@@ -66,11 +76,33 @@ import java.util.Optional;
  * to be the enum's {@code ordinal() + 1}. <b>Registry iteration order is not guaranteed stable</b>,
  * so an ordinal-shaped index would eventually show one strain's texture on another's spliff — a
  * client-side failure that is visual rather than loud. The index therefore lives <em>in the data</em>
- * and is read straight off the entry. A strain with no index, or one the client has no override for,
- * falls back to the base model rather than borrowing someone else's art.
+ * and is read straight off the entry.
+ *
+ * <p><b>{@code 0} is the normal value and means "no art of my own"</b>: such a strain takes the
+ * shared look and is told apart by its {@link #color}. A non-zero index says "I ship bespoke art at
+ * this slot", which is the rarer case and the one {@link ModStrains} splits into reserved ranges.
+ * <em>Whether</em> a device is loaded at all is a separate property, {@code hempdustry:packed} —
+ * these were once the same number and that was a bug.
  *
  * <p>Display names live in the lang files under the {@code translation_key} each entry names; the
  * folk sativa/indica <em>effect</em> split is genre furniture, not botany — see CLAUDE.md.
+ *
+ * <h2>This codec is a public contract</h2>
+ *
+ * Every field below is read out of JSON that <b>someone else may have written</b> — a server owner's
+ * datapack, another mod's data, a pack shipped by a third party. Once 2.0.0 is out, that shape is
+ * frozen in the same way a registry id is:
+ *
+ * <ul>
+ *   <li><b>Any field added later must be {@code optionalFieldOf} with a default.</b> A new required
+ *       field silently invalidates every strain JSON already in the wild, and the failure surfaces as
+ *       a world that will not load rather than as anything naming the mod that changed.</li>
+ *   <li><b>No field may be removed or renamed</b>, and none may narrow what it accepts. Widening is
+ *       fine.</li>
+ *   <li>The same applies to {@link SmokeEffect}, which is nested inside this one.</li>
+ * </ul>
+ *
+ * See {@code .claude/docs/compat.md} for the whole frozen-surface list.
  *
  * @param translationKey lang key for the display name, e.g. {@code hempdustry.strain.indica}
  * @param color          packed device / spliff tint, the way a potion tints its liquid layer
@@ -83,7 +115,7 @@ import java.util.Optional;
 public record Strain(String translationKey, int color, int modelIndex,
                      Item seeds, Item buds, Block flower, List<SmokeEffect> smokeEffects) {
 
-    /** The dynamic registry itself. Entries load from {@code data/<namespace>/strain/<id>.json}. */
+    /** The dynamic registry itself. Entries load from {@code data/<namespace>/hempdustry/strain/<id>.json}. */
     public static final RegistryKey<Registry<Strain>> REGISTRY_KEY =
             RegistryKey.ofRegistry(Identifier.of(Hempdustry.MOD_ID, "strain"));
 

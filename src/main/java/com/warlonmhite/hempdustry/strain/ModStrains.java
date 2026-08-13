@@ -4,13 +4,18 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.strain.Strain.SmokeEffect;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.registry.Registerable;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The strains this mod ships, and the registration of the registry itself.
@@ -35,6 +40,23 @@ import java.util.List;
  * written into the entry the bootstrap builds. It is <b>not</b> a registry ordinal, which would not
  * be stable — see {@link Strain} for what that would break. Both the datagen'd model overrides and
  * the client's item property read this same number, so there is one source for it.
+ *
+ * <h2>Who may use which index</h2>
+ *
+ * {@code model_index} is a number in shared data with no namespace, so two addons picking the same
+ * one is a real possibility and its symptom is one strain wearing another's art — a silent, visual
+ * failure. The range is therefore split, and {@link #validateModelIndices} logs anything that
+ * breaks the split or collides outright, so it fails in the log instead of only on screen:
+ *
+ * <ul>
+ *   <li><b>0</b> — "no bespoke art of my own", and the <b>normal</b> value. Such a strain takes the
+ *       shared look and is told apart by its {@code color}. Anything a datapack adds should use
+ *       this, since a datapack cannot ship a texture.</li>
+ *   <li><b>{@value #RESERVED_MODEL_INDEX_MIN}–{@value #RESERVED_MODEL_INDEX_MAX}</b> — reserved for
+ *       Hempdustry's own strains, which is where {@link #BUILT_IN} sits.</li>
+ *   <li><b>{@value #THIRD_PARTY_MODEL_INDEX_MIN} and up</b> — for another mod shipping its own art
+ *       and its own resource-pack overrides.</li>
+ * </ul>
  */
 public class ModStrains {
 
@@ -43,6 +65,13 @@ public class ModStrains {
 
     /** The strains with a full chain — crop, flower, worldgen, loot, art, recipes. Order is stable. */
     public static final List<RegistryKey<Strain>> BUILT_IN = List.of(INDICA, SATIVA);
+
+    /** First {@code model_index} this mod claims for its own art. */
+    public static final int RESERVED_MODEL_INDEX_MIN = 1;
+    /** Last {@code model_index} this mod claims. Generous on purpose — it costs nothing to reserve. */
+    public static final int RESERVED_MODEL_INDEX_MAX = 99;
+    /** First {@code model_index} another mod may use for art of its own. */
+    public static final int THIRD_PARTY_MODEL_INDEX_MIN = 100;
 
     /**
      * Registers the registry itself. <b>Synced</b>, so a datapack's strain definitions reach every
@@ -53,13 +82,61 @@ public class ModStrains {
      */
     public static void registerStrains() {
         DynamicRegistries.registerSynced(Strain.REGISTRY_KEY, Strain.CODEC);
+        // Checked once at startup and again on every /reload, because a datapack is exactly where a
+        // clashing index comes from and a reload is when it would arrive.
+        ServerLifecycleEvents.SERVER_STARTED.register(server ->
+                validateModelIndices(server.getRegistryManager()));
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+            if (success) {
+                validateModelIndices(server.getRegistryManager());
+            }
+        });
         Hempdustry.LOGGER.info("Registering Strains for " + Hempdustry.MOD_ID);
+    }
+
+    /**
+     * Complains about {@code model_index} values that will misbehave, so a problem whose only other
+     * symptom is <em>the wrong picture on an item</em> also shows up somewhere greppable.
+     *
+     * <p>Two things are worth a warning. A <b>collision</b> is the serious one: model overrides match
+     * on {@code >=}, so two strains sharing an index means whichever override is listed last wins for
+     * both, and one strain silently wears the other's art. A <b>strain from another namespace sitting
+     * in this mod's reserved range</b> is the near miss — harmless until Hempdustry ships a strain
+     * with that index, at which point it becomes a collision in someone else's build.
+     *
+     * <p>Warnings only, never a hard failure: a wrong texture is not worth refusing to load a world
+     * over, and the server owner may not be the person who can fix the datapack.
+     */
+    private static void validateModelIndices(RegistryWrapper.WrapperLookup registries) {
+        Map<Integer, Identifier> claimed = new HashMap<>();
+        for (RegistryEntry.Reference<Strain> entry : Strain.all(registries)) {
+            int index = entry.value().modelIndex();
+            if (index == 0) {
+                continue; // "no art of my own" — shared by design, never a clash
+            }
+            Identifier id = entry.registryKey().getValue();
+            Identifier previous = claimed.putIfAbsent(index, id);
+            if (previous != null) {
+                Hempdustry.LOGGER.warn(
+                        "Strains {} and {} both declare model_index {} — one will wear the other's art. "
+                                + "Give one of them a different index, or 0 to take the shared look.",
+                        previous, id, index);
+            } else if (!Hempdustry.MOD_ID.equals(id.getNamespace())
+                    && index >= RESERVED_MODEL_INDEX_MIN && index <= RESERVED_MODEL_INDEX_MAX) {
+                Hempdustry.LOGGER.warn(
+                        "Strain {} declares model_index {}, which is inside Hempdustry's reserved range "
+                                + "{}-{}. Use {} or above for a strain with art of its own, or 0 to take "
+                                + "the shared look.",
+                        id, index, RESERVED_MODEL_INDEX_MIN, RESERVED_MODEL_INDEX_MAX,
+                        THIRD_PARTY_MODEL_INDEX_MIN);
+            }
+        }
     }
 
     /** The art index a built-in strain gets. Datagen and the bootstrap both read this. */
     public static int modelIndex(RegistryKey<Strain> key) {
         int index = BUILT_IN.indexOf(key);
-        return index < 0 ? 0 : index + 1;
+        return index < 0 ? 0 : index + RESERVED_MODEL_INDEX_MIN;
     }
 
     /** The registry id's path — {@code indica} — which is what texture and recipe names are built on. */

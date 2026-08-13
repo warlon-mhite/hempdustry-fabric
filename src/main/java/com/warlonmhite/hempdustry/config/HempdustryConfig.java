@@ -28,7 +28,7 @@ import java.nio.file.Path;
  * <ul>
  *   <li><b>Anything a datapack already does.</b> Recipes, tags, advancements, worldgen placement and
  *       loot <em>tables</em> are datapack territory, and a knob here would fight them. <b>Strain
- *       effects are a datapack registry</b> — {@code data/<ns>/strain/<id>.json} — not a config
+ *       effects are a datapack registry</b> — {@code data/<ns>/hempdustry/strain/<id>.json} — not a config
  *       section.</li>
  *   <li><b>Anything that would contradict the mod's own premise.</b> There is no switch that gives a
  *       raw bud an effect: <em>heat activates, raw plant does nothing</em>. Nor one that lets dose 1
