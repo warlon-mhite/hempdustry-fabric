@@ -125,9 +125,21 @@ public record Strain(String translationKey, int color, int modelIndex,
         return out;
     }
 
-    /** The strain whose buds are {@code item}, if any is loaded. */
+    /**
+     * The strain whose buds are {@code item}, if any is loaded.
+     *
+     * <p>Deliberately <b>not</b> routed through {@link #all}: a lookup by identity has no use for a
+     * defined order, and paying for one here is not free. This runs from
+     * {@code PackingRecipe.matches}, which the server calls on <em>every</em> crafting-grid change
+     * for every player, once per non-device stack in the grid — so going through {@code all} meant
+     * up to nine registry copies and nine sorts per click, all to answer a question that is a scan.
+     * Ordering matters where the result is <em>shown</em> (the creative tab, the seed loot pools);
+     * it never matters here.
+     */
     public static Optional<RegistryEntry.Reference<Strain>> fromBuds(RegistryWrapper.WrapperLookup registries, Item item) {
-        return all(registries).stream().filter(entry -> entry.value().buds() == item).findFirst();
+        return registry(registries).streamEntries()
+                .filter(entry -> entry.value().buds() == item)
+                .findFirst();
     }
 
     /**

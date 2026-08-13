@@ -160,6 +160,22 @@ public class InfuserBlockEntity extends BlockEntity
     /** Ticks between attempts to pour a finished batch out of the spout. A hopper's own cadence. */
     public static final int PUSH_COOLDOWN = 8;
 
+    /**
+     * Longer wait before re-scanning when the spout found <b>nothing to pour into</b>.
+     *
+     * <p>A finished batch nobody has collected is the state an un-automated Infuser sits in
+     * indefinitely, and every scan runs {@code HopperBlockEntity.getInventoryAt}, which falls back to
+     * an entity query for inventory minecarts when the block in front isn't a container. Retrying
+     * that two and a half times a second for ever, for a machine that is simply waiting to be
+     * emptied by hand, is work with no possible outcome.
+     *
+     * <p>A second, not longer: this is also how long an automation build waits after a chest is
+     * placed in front of an already-finished tub, and much past that reads as broken. The cadence for
+     * a spout that <em>is</em> feeding something stays {@link #PUSH_COOLDOWN}, so throughput is
+     * unchanged.
+     */
+    public static final int PUSH_IDLE_COOLDOWN = 20;
+
     public static final int PROPERTY_PROGRESS = 0;
     public static final int PROPERTY_HEATED = 1;
     /** Washed share of the batch, 0–100, or -1 when there is no batch to grade. */
@@ -192,13 +208,8 @@ public class InfuserBlockEntity extends BlockEntity
     private int batchUnwashed;
     private int batchWashed;
     /**
-     * Last value a comparator would have read. Progress changes every tick but its 0–15 projection
-     * only changes about fifteen times a batch, so comparators are only poked when the number they
-     * would report actually moves — updating them every tick would be twenty needless neighbour
-     * updates a second.
+     * Throttles {@link #pushOutput}. Not persisted — a few ticks of timer is not worth a save field.
      */
-    private int lastComparatorLevel;
-    /** Throttles {@link #pushOutput}. Not persisted — an 8-tick timer is not worth a save field. */
     private int pushCooldown;
 
     private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
@@ -312,13 +323,13 @@ public class InfuserBlockEntity extends BlockEntity
             dirty = true;
         }
 
-        int level = getComparatorOutput();
-        if (level != lastComparatorLevel) {
-            lastComparatorLevel = level;
-            world.updateComparators(pos, state.getBlock());
-            dirty = true;
-        }
-
+        // No explicit comparator update here, and no "only when the level changed" guard either.
+        // BlockEntity#markDirty(World, BlockPos, BlockState) already ends in
+        // world.updateComparators(pos, state.getBlock()) unconditionally (verified in the 1.21.1
+        // jar), so any tick that marks this block entity dirty has poked the comparators anyway. The
+        // guard that used to sit here therefore saved nothing and cost an extra updateComparators
+        // plus a getComparatorOutput -- which runs isAtBestQuality -- on every tick it did fire.
+        // Vanilla's furnace marks dirty every burning tick for exactly the same reason.
         if (dirty) {
             markDirty(world, pos, state);
         }
@@ -534,15 +545,20 @@ public class InfuserBlockEntity extends BlockEntity
         return isReady() && hasBatch() && Quality.of(timePercent(), washedPercent()) == bestQuality();
     }
 
-    /** The cannabutter this batch would yield right now, or empty if it isn't ready. */
-    private ItemStack previewStack() {
-        if (!isReady() || !hasBatch()) {
-            return ItemStack.EMPTY;
-        }
+    /** The cannabutter this batch would yield right now. Only called when one is actually wanted. */
+    private ItemStack previewStack(int strength, Quality quality) {
         ItemStack butter = new ItemStack(ModItems.CANNABUTTER);
-        butter.set(ModComponents.STRENGTH, batchHemp());
-        butter.set(ModComponents.QUALITY, Quality.of(timePercent(), washedPercent()));
+        butter.set(ModComponents.STRENGTH, strength);
+        butter.set(ModComponents.QUALITY, quality);
         return butter;
+    }
+
+    /** Whether {@code shown} is already the preview a batch of this strength and grade wants. */
+    private static boolean showsPreview(ItemStack shown, int strength, Quality quality) {
+        return shown.isOf(ModItems.CANNABUTTER)
+                && shown.getCount() == 1
+                && Integer.valueOf(strength).equals(shown.get(ModComponents.STRENGTH))
+                && shown.get(ModComponents.QUALITY) == quality;
     }
 
     /**
@@ -581,7 +597,8 @@ public class InfuserBlockEntity extends BlockEntity
         }
         // A finished batch with nothing to pour into would otherwise re-scan every tick, and
         // getInventoryAt runs an entity query for inventory minecarts. Vanilla hoppers throttle the
-        // same work to 8 ticks; so does this.
+        // same work to 8 ticks; so does this, and it backs off to PUSH_IDLE_COOLDOWN when the last
+        // scan found no target at all.
         if (pushCooldown > 0) {
             pushCooldown--;
             return false;
@@ -591,6 +608,7 @@ public class InfuserBlockEntity extends BlockEntity
         Direction facing = state.get(InfuserBlock.FACING);
         Inventory target = HopperBlockEntity.getInventoryAt(world, pos.offset(facing));
         if (target == null) {
+            pushCooldown = PUSH_IDLE_COOLDOWN;
             return false;
         }
         // transfer() only ever touches the destination and the stack handed to it — it never removes
@@ -608,14 +626,32 @@ public class InfuserBlockEntity extends BlockEntity
         return true;
     }
 
-    /** Keeps the output slot showing the current preview. Returns whether anything changed. */
+    /**
+     * Keeps the output slot showing the current preview. Returns whether anything changed.
+     *
+     * <p><b>The comparison is made on the two numbers, not on a freshly built stack.</b> This runs
+     * every tick for the whole life of a batch — and keeps running, for ever, for a finished batch
+     * nobody has collected, which is the state an un-automated Infuser spends most of its time in.
+     * Building a candidate {@link ItemStack} to compare against (two component writes, each copying
+     * the component map) meant twenty throwaway stacks a second per machine to answer a question
+     * that is two integer comparisons. Strength and grade between them move about fifteen times a
+     * batch; that is how often a stack is now allocated.
+     */
     private boolean refreshPreview() {
-        ItemStack wanted = previewStack();
         ItemStack shown = getStack(OUTPUT_SLOT);
-        if (ItemStack.areEqual(wanted, shown)) {
+        if (!isReady() || !hasBatch()) {
+            if (shown.isEmpty()) {
+                return false;
+            }
+            setStack(OUTPUT_SLOT, ItemStack.EMPTY);
+            return true;
+        }
+        int strength = batchHemp();
+        Quality quality = Quality.of(timePercent(), washedPercent());
+        if (showsPreview(shown, strength, quality)) {
             return false;
         }
-        setStack(OUTPUT_SLOT, wanted);
+        setStack(OUTPUT_SLOT, previewStack(strength, quality));
         return true;
     }
 

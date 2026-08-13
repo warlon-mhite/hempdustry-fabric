@@ -137,11 +137,11 @@ public class SativaCropBlock extends CropBlock {
     // Only the LOWER segment is fertile and random-ticks; it drives the whole plant.
     @Override
     protected boolean hasRandomTicks(BlockState state) {
-        // Deliberately *not* gated on `age < maxAge` the way vanilla's crops (and indica) are. A
-        // plant that hit age 7 while something was sitting two blocks above it is mature but a
-        // block short, and this tick is what lets it finish once the space is cleared instead of
-        // staying stunted forever. The extra ticks only ever cost two block-state reads (see the
-        // mature branch of randomTick below).
+        // Deliberately *not* gated on `age < maxAge` the way vanilla's crops are. A plant that hit
+        // age 7 while something was sitting two blocks above it is mature but a block short, and
+        // this tick is what lets it finish once the space is cleared instead of staying stunted
+        // forever. The extra ticks cost at most two block-state reads and no writes — see
+        // isShapeSettled, which randomTick checks before touching anything.
         return isLower(state);
     }
 
@@ -211,18 +211,58 @@ public class SativaCropBlock extends CropBlock {
             return;
         }
         int age = this.getAge(state);
+        int grown = age;
         if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
             float moisture = getAvailableMoisture(this, world, pos);
             if (random.nextInt(Math.max(1, (int) (GROWTH_RESISTANCE / moisture / HempdustryConfig.get().world().cropGrowthMultiplier())) + 1) == 0) {
-                age++;
+                grown++;
             }
         }
-        // Always reconcile, whether or not the plant just aged: this is the one place that repairs
-        // a plant whose height fell behind its age — because it was boxed in earlier and now has
-        // the headroom, or because a bee bumped the LOWER's age with a raw setBlockState that
-        // never went through setAge. Writing a block its own current state is a no-op in
-        // World#setBlockState, so a plant that is already correct costs nothing here.
-        this.setAge(world, pos, age);
+        // Reconcile whether or not the plant just aged: this is the one place that repairs a plant
+        // whose height fell behind its age — because it was boxed in earlier and now has the
+        // headroom, or because a bee bumped the LOWER's age with a raw setBlockState that never
+        // went through setAge.
+        //
+        // Guarded on there being something to write, though. hasRandomTicks is not gated on
+        // maturity, so a finished field — the normal end state of a hemp farm — kept calling setAge
+        // for ever: three World#setBlockState calls plus a maxAgeFor probe per tick per plant. The
+        // writes themselves did nothing (an identical state early-outs in WorldChunk#setBlockState)
+        // but each still paid a chunk lookup. isShapeSettled answers the same question in one or
+        // two block reads.
+        if (grown != age || !this.isShapeSettled(world, pos, age)) {
+            this.setAge(world, pos, grown);
+        }
+    }
+
+    /**
+     * Whether the plant at {@code pos} already carries the segments its age calls for, so a
+     * reconciling {@link #setAge} at the same age would write nothing above the LOWER.
+     *
+     * <p>Deliberately built from {@link #stateFor} and the same {@link #canOccupy} tests
+     * {@link #setAge} branches on, rather than restating the height rule: this has to mean
+     * <em>exactly</em> "setAge would be a no-op", and two separately-worded versions of that would
+     * drift the first time the height table changed. (The LOWER needs no check — setAge writes it
+     * back through {@link Defoliation#carryOver}, which at an unchanged age reproduces the state
+     * that is already there.)
+     */
+    private boolean isShapeSettled(WorldView world, BlockPos pos, int age) {
+        if (age < TWO_TALL_AGE) {
+            return true; // a single stalk: nothing above is ever written this young
+        }
+        BlockState mid = world.getBlockState(pos.up());
+        if (!canOccupy(mid)) {
+            return true; // boxed in at the second block, so setAge writes nothing above either
+        }
+        if (age >= THREE_TALL_AGE) {
+            BlockState top = world.getBlockState(pos.up(2));
+            if (canOccupy(top)) {
+                return mid == this.stateFor(age, TriplePlantSegment.MIDDLE)
+                        && top == this.stateFor(age, TriplePlantSegment.UPPER);
+            }
+        }
+        // Two tall — either because that is all the age calls for, or because the third block is
+        // blocked and setAge falls back to the two-tall branch.
+        return mid == this.stateFor(age, TriplePlantSegment.UPPER);
     }
 
     // Bonemeal path: CropBlock.grow() calls applyGrowth() on the targeted block. Only the LOWER
@@ -290,7 +330,11 @@ public class SativaCropBlock extends CropBlock {
 
     /** Whether the plant may grow into {@code pos} — empty space, or a segment it already owns. */
     private boolean canOccupy(WorldView world, BlockPos pos) {
-        BlockState state = world.getBlockState(pos);
+        return canOccupy(world.getBlockState(pos));
+    }
+
+    /** As above, for a state already in hand — {@link #isShapeSettled} reads each block once. */
+    private boolean canOccupy(BlockState state) {
         return state.isAir() || (state.isOf(this) && !isLower(state));
     }
 

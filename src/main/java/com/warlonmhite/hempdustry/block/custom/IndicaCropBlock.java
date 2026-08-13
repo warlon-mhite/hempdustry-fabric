@@ -108,7 +108,9 @@ public class IndicaCropBlock extends CropBlock {
     @Override
     protected boolean hasRandomTicks(BlockState state) {
         // Deliberately not gated on `age < maxAge`: the tick is also what repairs a plant whose
-        // upper half is missing or stale (see randomTick), which can happen at max age too.
+        // upper half is missing or stale (see randomTick), which can happen at max age too. Vanilla
+        // crops do stop here, so this is a cost vanilla does not pay — which is why randomTick
+        // checks isShapeSettled before writing anything, keeping a settled plant to one block read.
         return isLower(state);
     }
 
@@ -173,19 +175,50 @@ public class IndicaCropBlock extends CropBlock {
             return;
         }
         int age = this.getAge(state);
+        int grown = age;
         if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
             float moisture = getAvailableMoisture(this, world, pos);
             if (random.nextInt(Math.max(1, (int) (25.0F / moisture
                     / HempdustryConfig.get().world().cropGrowthMultiplier())) + 1) == 0) {
-                age++;
+                grown++;
             }
         }
-        // Always reconcile, whether or not the plant just aged. setAge both syncs the upper half's
-        // age and sprouts it when missing, so this repairs a plant that was boxed in earlier and
-        // now has headroom, or one whose lower half a bee bumped with a raw setBlockState that
-        // never went through setAge. Writing a block its own current state is a no-op in
-        // World#setBlockState, so a correct plant costs nothing here.
-        this.setAge(world, pos, age);
+        // Reconcile whether or not the plant just aged. setAge both syncs the upper half's age and
+        // sprouts it when missing, so this repairs a plant that was boxed in earlier and now has
+        // headroom, or one whose lower half a bee bumped with a raw setBlockState that never went
+        // through setAge.
+        //
+        // Guarded on there being something to do, though, because this block random-ticks for ever
+        // -- hasRandomTicks is not gated on maturity -- and a finished field is the normal end state
+        // of a hemp farm. Calling setAge unconditionally cost two World#setBlockState calls and a
+        // maxAgeFor probe on every tick of every mature plant; the writes did nothing (an identical
+        // state early-outs in WorldChunk#setBlockState) but each still paid a chunk lookup.
+        // isShapeSettled answers the same question in one block read.
+        if (grown != age || !this.isShapeSettled(world, pos, age)) {
+            this.setAge(world, pos, grown);
+        }
+    }
+
+    /**
+     * Whether the plant at {@code pos} already carries the upper half its age calls for, so a
+     * reconciling {@link #setAge} at the same age would write nothing above the lower half.
+     *
+     * <p>Deliberately built from {@link #stateFor} and the same {@code upperPresent}/{@code isAir}
+     * test {@link #setAge} branches on, rather than restating the rule: this has to mean <em>exactly
+     * </em> "setAge would be a no-op", and two separately-worded versions of that would drift.
+     * (The lower half needs no check — setAge writes it back through
+     * {@link Defoliation#carryOver}, which at an unchanged age reproduces the state that is already
+     * there.)
+     */
+    private boolean isShapeSettled(WorldView world, BlockPos pos, int age) {
+        BlockState above = world.getBlockState(pos.up());
+        if (above == this.stateFor(age, DoubleBlockHalf.UPPER)) {
+            return true;
+        }
+        // An upper half at a stale age needs syncing; a gap needs sprouting once the plant is tall
+        // enough for one. Anything else — a boxed-in plant, or one too young — is already settled.
+        boolean upperPresent = above.isOf(this) && above.get(HALF) == DoubleBlockHalf.UPPER;
+        return !upperPresent && !(age >= DOUBLE_BLOCK_AGE && above.isAir());
     }
 
     // Bonemeal path: CropBlock.grow() calls applyGrowth() on the targeted block.
