@@ -212,6 +212,19 @@ public class InfuserBlockEntity extends BlockEntity
      */
     private int pushCooldown;
 
+    /**
+     * Whether the output slot held a preview at the end of the previous tick. Drives
+     * {@link #collectIfPreviewTaken()}, which is how a batch closes when something took the
+     * cannabutter by a route this class never sees.
+     *
+     * <p><b>Persisted, and that is not fussiness.</b> Without it, a world saved in the window between
+     * an extraction and the next tick would reload believing no preview had ever been shown, skip the
+     * sweep, and hand out a second cannabutter for the same batch. One item, but a dupe is a dupe.
+     * A missing key reads as {@code false}, which is exactly the old behaviour, so the field is safe
+     * to have added.
+     */
+    private boolean previewShown;
+
     private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
         @Override
         public int get(int index) {
@@ -286,6 +299,12 @@ public class InfuserBlockEntity extends BlockEntity
 
         boolean dirty = false;
 
+        // Before anything else touches the output slot: did something take the cannabutter without
+        // going through removeStack? See collectIfPreviewTaken.
+        if (collectIfPreviewTaken()) {
+            dirty = true;
+        }
+
         // Milk is emptied into the tub the moment it is put in, heat or no heat, and its bucket is
         // returned straight away — so the milk slot is free for the player to park the *next*
         // bucket while this batch runs.
@@ -330,9 +349,53 @@ public class InfuserBlockEntity extends BlockEntity
         // guard that used to sit here therefore saved nothing and cost an extra updateComparators
         // plus a getComparatorOutput -- which runs isAtBestQuality -- on every tick it did fire.
         // Vanilla's furnace marks dirty every burning tick for exactly the same reason.
+        // Last, so it records what the slot looks like once this tick has finished with it.
+        previewShown = !getStack(OUTPUT_SLOT).isEmpty();
+
         if (dirty) {
             markDirty(world, pos, state);
         }
+    }
+
+    /**
+     * Closes the batch out when the preview left the slot by a route that never called
+     * {@link #removeStack}. Returns whether it fired.
+     *
+     * <h2>There are three ways out of this slot, not two</h2>
+     *
+     * A {@code Slot} take is one, and a hopper's {@code Inventory#removeStack} is the second — both
+     * are already handled. The third is the <b>Fabric Transfer API</b>, which every Fabric-side pipe,
+     * cable and storage mod uses, and which reaches this inventory through a fallback Fabric
+     * registers automatically for any {@code Inventory} block entity. Its
+     * {@code InventorySlotWrapper} extends {@code SingleStackStorage} and moves items with
+     * {@code getStack}/{@code setStack} — <b>it never calls {@code removeStack}</b>. So the batch was
+     * never closed, {@link #refreshPreview()} handed out a fresh cannabutter on the next tick, and a
+     * single batch produced them for ever.
+     *
+     * <h2>Why this is a tick-boundary sweep and not a setStack hook</h2>
+     *
+     * The obvious fix — notice the write in {@code setStack} — is wrong, and expensively so. Transfer
+     * API extraction is <b>transactional</b>: a pipe routinely opens a transaction, takes an item to
+     * see whether it fits somewhere, and <b>aborts</b>, which restores the stack. A {@code setStack}
+     * hook would close the batch on that speculative take and the abort would not undo it, quietly
+     * destroying live batches on any build that merely probes this machine.
+     *
+     * <p>Observing the slot at a tick boundary is immune to that, because a transaction is opened and
+     * resolved inside one call stack — by the time this runs, the take has either committed or been
+     * rolled back, and the slot tells the truth either way. It also covers every future extraction
+     * route without needing to know about it.
+     *
+     * <p>{@link #previewShown} rather than "is ready and has a batch but the slot is empty": the
+     * stateless version looks equivalent but breaks on {@code /hempdustry reload}, where lowering
+     * {@code minTimeTicks} can make a running batch newly {@link #isReady()} while the slot is still
+     * legitimately empty — and the sweep would then destroy it.
+     */
+    private boolean collectIfPreviewTaken() {
+        if (!previewShown || !getStack(OUTPUT_SLOT).isEmpty() || !hasBatch()) {
+            return false;
+        }
+        onPreviewTaken();
+        return true;
     }
 
     /**
@@ -866,6 +929,7 @@ public class InfuserBlockEntity extends BlockEntity
         nbt.putBoolean("HaveMilk", haveMilk);
         nbt.putInt("BatchUnwashed", batchUnwashed);
         nbt.putInt("BatchWashed", batchWashed);
+        nbt.putBoolean("PreviewShown", previewShown);
     }
 
     @Override
@@ -877,5 +941,7 @@ public class InfuserBlockEntity extends BlockEntity
         haveMilk = nbt.getBoolean("HaveMilk");
         batchUnwashed = nbt.getInt("BatchUnwashed");
         batchWashed = nbt.getInt("BatchWashed");
+        // Absent in worlds written before this field existed, and false is what those meant.
+        previewShown = nbt.getBoolean("PreviewShown");
     }
 }
