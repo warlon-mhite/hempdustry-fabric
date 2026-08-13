@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -94,34 +95,43 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.SATIVA_SEEDS, Models.GENERATED);
         // Smoking gear. One item per device now carries every strain in a component, so the visual
         // per-strain split moved from separate items to *model overrides* on a shared item —
-        // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged". The predicate is
-        // hempdustry:strain, 0 when nothing is loaded and the strain's own model_index otherwise
-        // (see HempdustryClient). Predicate matching is >=, so overrides must be listed ascending.
+        // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged". Predicate
+        // matching is >=, so overrides must be listed ascending.
+        //
+        // TWO predicates, because there are two questions (see HempdustryClient):
+        //
+        //   hempdustry:packed  0 or 1 — is anything loaded. This is what switches a device between
+        //                      its empty and packed models.
+        //   hempdustry:strain  the loaded strain's model_index — for a strain shipping *bespoke*
+        //                      art instead of the shared look.
+        //
+        // The devices used to do the first job with the second predicate (`strain >= 1`), which
+        // worked only because every strain carried a non-zero index. It is not a safe test once
+        // model_index 0 means "no bespoke art of my own", which is the normal case.
         //
         // Driven off ModStrains.BUILT_IN rather than the loaded registry, and that is the honest
-        // boundary: a datapack can define a strain but it cannot ship a texture, so art exists only
-        // for the strains the mod itself carries. ModStrains.modelIndex is the single source for the
-        // number written into the data and matched here.
-        //
-        // The spliff keeps a texture per strain, which it always had. The devices all share one
-        // packed texture, which they always did — the override is at >= 1 ("packed at all"), so
-        // giving a strain its own packed art later is one more entry here plus the PNG.
+        // boundary: bespoke art exists only for the strains the mod itself carries.
+        // ModStrains.modelIndex is the single source for the number written into the data and
+        // matched here.
         for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
             uploadGenerated(itemModelGenerator, spliffModel(strain), texture(ModStrains.id(strain) + "_spliff"));
         }
         List<ModelOverride> spliffOverrides = new ArrayList<>();
         for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
-            spliffOverrides.add(new ModelOverride(ModStrains.modelIndex(strain), spliffModel(strain)));
+            spliffOverrides.add(new ModelOverride(STRAIN_PREDICATE, ModStrains.modelIndex(strain), spliffModel(strain)));
         }
         uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(ModItems.SPLIFF),
                 texture(ModStrains.id(ModStrains.BUILT_IN.get(0)) + "_spliff"), spliffOverrides);
 
+        // The devices share one packed texture, which they always did. The override is on "packed at
+        // all", so giving a strain its own packed art later is one more entry here — keyed on
+        // STRAIN_PREDICATE and listed after this one — plus the PNG.
         for (DeviceType device : DeviceType.values()) {
             Item item = device == DeviceType.PIPE ? ModItems.WOODEN_PIPE : ModItems.BONG;
             Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedTexture());
             uploadGenerated(itemModelGenerator, packedModel, texture(device.packedTexture()));
             uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(item),
-                    texture(device.baseName()), List.of(new ModelOverride(1, packedModel)));
+                    texture(device.baseName()), List.of(new ModelOverride(PACKED_PREDICATE, 1, packedModel)));
         }
 
         itemModelGenerator.register(ModItems.HEMP_PLANKS_SIGN, Models.GENERATED);
@@ -135,8 +145,11 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_SHIRT));
     }
 
-    /** The {@code hempdustry:strain} item property both the models and the client predicate key on. */
-    public static final Identifier STRAIN_PREDICATE = Identifier.of(Hempdustry.MOD_ID, "strain");
+    /** @see ModItemProperties#STRAIN */
+    private static final Identifier STRAIN_PREDICATE = ModItemProperties.STRAIN;
+
+    /** @see ModItemProperties#PACKED */
+    private static final Identifier PACKED_PREDICATE = ModItemProperties.PACKED;
 
     private static Identifier texture(String name) {
         return Identifier.of(Hempdustry.MOD_ID, "item/" + name);
@@ -167,7 +180,7 @@ public class ModModelProvider extends FabricModelProvider {
             JsonArray array = new JsonArray();
             for (ModelOverride override : overrides) {
                 JsonObject predicate = new JsonObject();
-                predicate.addProperty(STRAIN_PREDICATE.toString(), override.threshold());
+                predicate.addProperty(override.predicate().toString(), override.threshold());
                 JsonObject entry = new JsonObject();
                 entry.add("predicate", predicate);
                 entry.addProperty("model", override.model().toString());
@@ -178,7 +191,8 @@ public class ModModelProvider extends FabricModelProvider {
         });
     }
 
-    private record ModelOverride(int threshold, Identifier model) {
+    /** One {@code overrides} entry: which property to test, the {@code >=} threshold, and the model. */
+    private record ModelOverride(Identifier predicate, int threshold, Identifier model) {
     }
 
 

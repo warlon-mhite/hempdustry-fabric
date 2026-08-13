@@ -4,7 +4,7 @@
     {
       "model": "hempdustry:item/packed_bong",
       "predicate": {
-        "hempdustry:strain": 1
+        "hempdustry:packed": 1
       }
     }
   ],

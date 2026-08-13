@@ -33,7 +33,11 @@
 		]
 	},
 	"mixins": [
-		"hempdustry.mixins.json"
+		"hempdustry.mixins.json",
+		{
+			"config": "hempdustry.client.mixins.json",
+			"environment": "client"
+		}
 	],
 	"depends": {
 		"fabricloader": ">=0.16.5",

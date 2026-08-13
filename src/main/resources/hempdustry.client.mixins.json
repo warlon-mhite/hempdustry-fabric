@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "com.warlonmhite.hempdustry.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"ModelPredicateProviderRegistryAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
