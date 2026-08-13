@@ -1,7 +1,10 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.network.RegistryByteBuf;
@@ -29,6 +32,11 @@ import java.util.List;
  * <b>changing a component's codec after release is a world migration</b>, and a list costs nothing
  * now. {@code minecraft:firework_explosion}'s star list is the same shape for the same reason.
  *
+ * <p>That argument only got the list half right, though: a bare top-level array is itself a shape
+ * that cannot grow, because there is nowhere to hang a field belonging to the load rather than to one
+ * strain within it. So the list now sits inside an object under {@code entries} — see
+ * {@link #CODEC}, which still reads the old bare-array form so nothing already written is lost.
+ *
  * <p>Until mixing is designed properly, a multi-entry blend resolves the obvious way: <b>each
  * strain applies its own effects at its own bud count</b>, so a 2+1 mix is one strain at level II
  * and another at level I. That falls out as a broader-but-weaker trade against a single strain at
@@ -39,8 +47,84 @@ public record SmokeContents(List<Entry> entries) {
 
     public static final SmokeContents EMPTY = new SmokeContents(List.of());
 
-    public static final Codec<SmokeContents> CODEC = Entry.CODEC.listOf()
-            .xmap(SmokeContents::new, SmokeContents::entries);
+    /**
+     * The entry list, <b>tolerant of an entry naming a strain this world no longer defines</b>.
+     *
+     * <h2>Why tolerance is not optional here</h2>
+     *
+     * {@link Strain#ENTRY_CODEC} is a {@code RegistryFixedCodec}, which fails when the id does not
+     * resolve. A component whose codec fails takes the <em>whole {@code ItemStack}</em> down with it:
+     * {@code ComponentChanges.CODEC} is a {@code dispatchedMap}, so one bad value errors the map,
+     * {@code ItemStack}'s codec errors in turn, and {@code Inventories.readNbt} quietly drops the
+     * slot. <b>The item is deleted.</b>
+     *
+     * <p>Which would mean that removing a strain from a datapack — or uninstalling an addon that
+     * added one — silently destroys every spliff, pipe and bong packed with it, anywhere in the
+     * world. For a mod whose headline extension point is "strains are datapack data", that is not an
+     * acceptable failure mode.
+     *
+     * <p>So an entry that will not resolve is <b>dropped</b> instead. Pairing the real codec with
+     * {@link Codec#PASSTHROUGH} — which accepts anything — means the element decode can never fail;
+     * the unresolved ones come back as {@code Right} and are filtered out. A device simply becomes
+     * unpacked and the player keeps it. The one wrinkle is the spliff, which has no meaningful empty
+     * state: it becomes an inert spliff rather than vanishing, which is still strictly better than
+     * losing the item, and it is at least visible and named plainly rather than silent.
+     *
+     * <p>This is also what finally makes {@link Strain#effects} honest — it documents a fallback for
+     * "a strain the world no longer defines", which until now was unreachable because the stack had
+     * already been deleted before anything could consult it.
+     */
+    private static final Codec<List<Entry>> ENTRIES_CODEC =
+            Codec.either(Entry.CODEC, Codec.PASSTHROUGH).listOf().xmap(
+                    SmokeContents::keepResolved,
+                    entries -> entries.stream().map(Either::<Entry, Dynamic<?>>left).toList());
+
+    /**
+     * The record form, and <b>the shape written from now on</b>.
+     *
+     * <p>A bare list leaves nowhere to put a field that belongs to the load as a whole rather than to
+     * one strain in it — resin, a burn timer, who rolled it. Adding one later would move the on-disk
+     * shape from array to object and every packed device already in a chest would fail to decode.
+     * Since a component's codec cannot be migrated without a world migration, the object form is
+     * adopted now, while it costs a few bytes and nothing else.
+     */
+    private static final Codec<SmokeContents> RECORD_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ENTRIES_CODEC.optionalFieldOf("entries", List.of()).forGetter(SmokeContents::entries)
+    ).apply(instance, SmokeContents::new));
+
+    /**
+     * Writes the record form; reads either it or the original bare list.
+     *
+     * <p>{@code Codec.withAlternative} encodes through the primary and, on decode, tries the primary
+     * and falls back to the alternative — so every stack written by a pre-2.0.0 development build
+     * still loads, for ever, and no migration step is needed. The alternative costs one line and can
+     * never be removed without breaking those stacks, which is the whole point of adding it before
+     * release rather than after.
+     */
+    public static final Codec<SmokeContents> CODEC = Codec.withAlternative(
+            RECORD_CODEC, ENTRIES_CODEC.xmap(SmokeContents::new, SmokeContents::entries));
+
+    /**
+     * Keeps the entries that resolved and complains once about any that did not.
+     *
+     * <p>Logged rather than silent because a strain vanishing from a world is a datapack problem
+     * somebody needs to hear about — and because a total loss here would otherwise be indistinguishable
+     * from decoding without a registry-aware {@code DynamicOps}, which drops everything for a quite
+     * different reason.
+     */
+    private static List<Entry> keepResolved(List<Either<Entry, Dynamic<?>>> decoded) {
+        List<Entry> kept = new ArrayList<>(decoded.size());
+        for (Either<Entry, Dynamic<?>> entry : decoded) {
+            entry.ifLeft(kept::add);
+        }
+        if (kept.size() < decoded.size()) {
+            Hempdustry.LOGGER.warn(
+                    "Dropped {} of {} smoke_contents entries naming a strain this world does not define. "
+                            + "The item survives as unpacked; the strain was probably removed from a datapack.",
+                    decoded.size() - kept.size(), decoded.size());
+        }
+        return kept;
+    }
 
     public static final PacketCodec<RegistryByteBuf, SmokeContents> PACKET_CODEC =
             Entry.PACKET_CODEC.collect(PacketCodecs.toList())

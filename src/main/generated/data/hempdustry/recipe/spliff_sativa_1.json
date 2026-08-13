@@ -16,12 +16,14 @@
   ],
   "result": {
     "components": {
-      "hempdustry:smoke_contents": [
-        {
-          "count": 1,
-          "strain": "hempdustry:sativa"
-        }
-      ]
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 1,
+            "strain": "hempdustry:sativa"
+          }
+        ]
+      }
     },
     "count": 1,
     "id": "hempdustry:spliff"

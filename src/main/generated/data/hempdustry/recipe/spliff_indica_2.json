@@ -16,12 +16,14 @@
   ],
   "result": {
     "components": {
-      "hempdustry:smoke_contents": [
-        {
-          "count": 2,
-          "strain": "hempdustry:indica"
-        }
-      ]
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 2,
+            "strain": "hempdustry:indica"
+          }
+        ]
+      }
     },
     "count": 1,
     "id": "hempdustry:spliff"

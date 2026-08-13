@@ -177,8 +177,11 @@ public record Strain(String translationKey, int color, int modelIndex,
     /**
      * Fresh status-effect instances for one hit of this strain at {@code dose}, lasting
      * {@code durationTicks}. A strain with no effects — including one a datapack has emptied
-     * deliberately — simply applies nothing, which is also the fallback for a strain the world no
-     * longer defines.
+     * deliberately — simply applies nothing.
+     *
+     * <p>A strain the world no longer defines never reaches this method at all: the reference is
+     * dropped while the {@code smoke_contents} component decodes, leaving the device unpacked. See
+     * {@code SmokeContents.ENTRIES_CODEC} for why that has to happen there rather than here.
      */
     public List<StatusEffectInstance> effects(int dose, int durationTicks) {
         List<StatusEffectInstance> out = new ArrayList<>(smokeEffects.size());
