@@ -13,6 +13,7 @@ import net.minecraft.client.item.ClampedModelPredicateProvider;
 import net.minecraft.client.item.ModelPredicateProvider;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 
 import java.util.HashMap;
 import com.warlonmhite.hempdustry.client.UpdateChecker;
@@ -83,7 +84,12 @@ public class HempdustryClient implements ClientModInitializer {
                 return -1;
             }
             SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-            return contents.isEmpty() ? -1 : contents.color();
+            // fullAlpha is load-bearing, not decoration. ItemRenderer feeds this value's ALPHA byte
+            // straight into the vertex alpha (ItemRenderer:197), and a strain's colour is 24-bit RGB
+            // out of its JSON — so returning it raw means alpha 0x00 and a layer that draws nothing
+            // at all. The symptom is a packed device looking exactly like an empty one, with no
+            // error anywhere. Every vanilla tint does the same wrap: potions, spawn eggs, maps.
+            return contents.isEmpty() ? -1 : ColorHelper.Argb.fullAlpha(contents.color());
         }, ModItems.SPLIFF, ModItems.WOODEN_PIPE, ModItems.BONG);
     }
 
