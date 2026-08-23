@@ -29,11 +29,23 @@ import org.jetbrains.annotations.Nullable;
  *
  * <table>
  *   <tr><th>age</th><th>window</th><th>flag</th></tr>
- *   <tr><td>0–3</td><td>too young — a single stalk with no canopy yet</td><td>—</td></tr>
- *   <tr><td>4–5</td><td>early / vegetative trim</td><td>{@link #TRIMMED_EARLY}</td></tr>
- *   <tr><td>6</td><td>late / pre-flower trim</td><td>{@link #TRIMMED_LATE}</td></tr>
- *   <tr><td>7</td><td>mature — harvest it by breaking, not by shearing</td><td>—</td></tr>
+ *   <tr><td>0–2</td><td>too young — a seedling with no canopy to take</td><td>—</td></tr>
+ *   <tr><td>3</td><td>late vegetative trim — the last age the plant is one block tall</td><td>{@link #TRIMMED_EARLY}</td></tr>
+ *   <tr><td>4–5</td><td>early flowering trim — after the stretch into two blocks</td><td>{@link #TRIMMED_LATE}</td></tr>
+ *   <tr><td>6–7</td><td>ripening — leave it alone; harvest by breaking, not by shearing</td><td>—</td></tr>
  * </table>
+ *
+ * <p><b>The two windows are split on the moment the plant becomes two blocks tall</b>
+ * ({@code DOUBLE_BLOCK_AGE} = 4), which is the only cue either crop gives without new models: trim it
+ * once while it is still short, once after it has shot up. That is also where real practice puts the
+ * two cuts — late veg, just before the flip, and early flower once the stretch is over — and cannabis
+ * really does roughly double in height in the first fortnight of flowering, which is exactly what the
+ * second block is. Growers stop defoliating well before harvest, so ages 6–7 are deliberately empty.
+ *
+ * <p><b>Windows moved 2026-08-22</b>, from 4–5 / 6. The old split had all of its cuts inside the
+ * two-block phase (so neither window had a visible boundary), made the late window half as wide as
+ * the early one (so a two-cut harvest was much rarer than the payout table implies), and put the last
+ * cut one single growth tick before maturity with no signal that it had lapsed.
  *
  * <p><b>Two booleans rather than one 0–2 counter.</b> The windows are sequential, but a plant sits
  * at one age for many random ticks and a player may well meet a plant that is already past the
@@ -49,11 +61,13 @@ public final class Defoliation {
     public static final BooleanProperty TRIMMED_LATE = BooleanProperty.of("trimmed_late");
 
     /** First age at which the early/vegetative trim is accepted. */
-    public static final int EARLY_MIN_AGE = 4;
+    public static final int EARLY_MIN_AGE = 3;
     /** Last age at which the early/vegetative trim is accepted. */
-    public static final int EARLY_MAX_AGE = 5;
-    /** The single age at which the late/pre-flower trim is accepted. */
-    public static final int LATE_AGE = 6;
+    public static final int EARLY_MAX_AGE = 3;
+    /** First age at which the late/flowering trim is accepted. */
+    public static final int LATE_MIN_AGE = 4;
+    /** Last age at which the late/flowering trim is accepted. */
+    public static final int LATE_MAX_AGE = 5;
 
     private Defoliation() {
     }
@@ -122,7 +136,7 @@ public final class Defoliation {
         BooleanProperty window;
         if (age >= EARLY_MIN_AGE && age <= EARLY_MAX_AGE) {
             window = TRIMMED_EARLY;
-        } else if (age == LATE_AGE) {
+        } else if (age >= LATE_MIN_AGE && age <= LATE_MAX_AGE) {
             window = TRIMMED_LATE;
         } else {
             return null;
