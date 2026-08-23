@@ -83,20 +83,56 @@ jar {
 	}
 }
 
-// configure the maven publication
+// Publishing, so an addon can compile against com.warlonmhite.hempdustry.api.
+//
+// There are two mavens and only one of them needs anything here. Modrinth serves every uploaded
+// file as a maven artifact for free, which is the one an addon author will actually use:
+//
+//   repositories { maven { url = "https://api.modrinth.com/maven" } }
+//   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0+1.21.1" }
+//
+// GitHub Packages is the second, for builds that are not on Modrinth yet. It is only wired up when
+// credentials are actually present, so a clean clone still builds and `publish` still works
+// offline by falling through to the local maven.
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
 			artifactId = project.archives_base_name
+			// components.java is loom's remapped jar plus the sources jar, which is what a
+			// consumer needs: the intermediary-mapped classes a running game actually has.
 			from components.java
+
+			pom {
+				name = "Hempdustry"
+				description = "Minecraft for stoners and hemprepreneurs."
+				url = "https://modrinth.com/mod/hempdustry"
+				licenses {
+					license {
+						// Code and data only. The art and music are CC-BY-NC-SA-4.0 and travel
+						// with CREDITS.md inside the jar — see the `jar` block above.
+						name = "AGPL-3.0-only"
+						url = "https://www.gnu.org/licenses/agpl-3.0.txt"
+					}
+				}
+			}
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+		def githubUser = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+		def githubKey = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+		if (githubUser && githubKey) {
+			maven {
+				name = "GitHubPackages"
+				url = "https://maven.pkg.github.com/warlon-mhite/hempdustry-fabric"
+				credentials {
+					username = githubUser
+					password = githubKey
+				}
+			}
+		}
+		// Always available, and what `publishToMavenLocal` targets: enough for an addon author to
+		// build against an unreleased jar.
+		mavenLocal()
 	}
 }

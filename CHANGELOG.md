@@ -144,5 +144,20 @@ major version and it will say so here.
 - **`#hempdustry:heat_sources`** — add a modded forge or crucible and it will heat an Infuser.
   **`#hempdustry:milk_buckets`** — add another mod's milk and the Infuser will take it.
 
+#### For mod authors
+
+- **There is an API package**, `com.warlonmhite.hempdustry.api`, with three Fabric events:
+  `ALLOW_SMOKE` (veto a hit — a sober zone, a jail plugin, an accessibility mod), `AFTER_SMOKE` (your
+  own effect, a tolerance system, a quest task) and `AFTER_INFUSE` (a batch of cannabutter collected,
+  with its strength and grade). All fire on the server thread.
+- **That package is frozen from this release**, along with the types its signatures name. New events
+  may be added; none will be removed or re-shaped. Everything outside it is internal.
+- Compile against it from Modrinth's maven:
+
+  ```gradle
+  repositories { maven { url = "https://api.modrinth.com/maven" } }
+  dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0+1.21.1" }
+  ```
+
 [Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.0...HEAD
 [2.0.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.0

@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
+import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
@@ -729,6 +730,15 @@ public class InfuserBlockEntity extends BlockEntity
      * tick and the next batch begins by itself.
      */
     public void onPreviewTaken() {
+        // Fired before the numbers are wiped, because this is the last moment they exist — and only
+        // when there was actually a batch to close, which is what stops a second listener call when
+        // both the slot hook and removeStack fire for one collection (the close-out itself is
+        // idempotent, an event is not).
+        int strength = batchHemp();
+        if (strength > 0 && world != null) {
+            HempdustryEvents.AFTER_INFUSE.invoker().onInfused(
+                    world, pos, strength, Quality.of(timePercent(), washedPercent()));
+        }
         haveMilk = false;
         batchUnwashed = 0;
         batchWashed = 0;

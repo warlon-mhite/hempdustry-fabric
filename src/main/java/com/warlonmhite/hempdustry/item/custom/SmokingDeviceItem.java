@@ -91,6 +91,12 @@ public class SmokingDeviceItem extends Item {
             return TypedActionResult.pass(stack);
         }
         if (!world.isClient) {
+            // A veto costs the player nothing: no effects, no charge spent, no cooldown. Checked
+            // here rather than beside the emptiness test because it is the expensive one of the
+            // three and the only one another mod can answer.
+            if (!Smoking.allowed(player, stack, contents)) {
+                return TypedActionResult.pass(stack);
+            }
             Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
                     device.coughChanceOneIn(), device.nauseaChanceOneIn(),
                     Smoking.greenOutChanceOneIn(contents.dose(), false));

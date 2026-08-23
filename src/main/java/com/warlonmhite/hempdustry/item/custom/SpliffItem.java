@@ -61,6 +61,10 @@ public class SpliffItem extends Item {
             return TypedActionResult.pass(stack);
         }
         if (!world.isClient) {
+            // See SmokingDeviceItem: a vetoed hit must not burn the spliff.
+            if (!Smoking.allowed(player, stack, contents)) {
+                return TypedActionResult.pass(stack);
+            }
             Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
                     COUGH_CHANCE_ONE_IN, NAUSEA_CHANCE_ONE_IN,
                     Smoking.greenOutChanceOneIn(contents.dose(), true));
