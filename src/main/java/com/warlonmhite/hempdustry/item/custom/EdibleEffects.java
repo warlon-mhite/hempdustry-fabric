@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import net.minecraft.entity.effect.StatusEffect;
@@ -138,9 +139,16 @@ public final class EdibleEffects {
      *
      * <p>Nothing is applied now — the first effect lands after the onset delay, and the rest follow
      * it up the ramp.
+     *
+     * <p><b>This is the one door every edible goes through</b> — {@link EdibleItem} for the ones you
+     * hold and {@code SpaceCakeBlock} for a slice you take off a block — which is why
+     * {@link HempdustryEvents#AFTER_EAT} is fired from here rather than from either call site. An
+     * edible added later joins by using the same door.
      */
     public static void consume(PlayerEntity player, int tier, Quality quality) {
         if (tier <= 0) {
+            // Undosed: nothing is queued, so nothing was consumed in the sense a listener cares
+            // about, and no event fires.
             return;
         }
         int onset = rollOnsetTicks(quality);
@@ -160,6 +168,10 @@ public final class EdibleEffects {
 
         // The restorative peak, last.
         queue(player, onset + RAMP_PEAK, StatusEffects.REGENERATION, 1, REGEN_DURATION[index]);
+
+        // Fired on the swallow, not on the onset: the effects above are queued behind a come-up and
+        // then ramp in stages, so there is no single later instant that means "this happened".
+        HempdustryEvents.AFTER_EAT.invoker().onEaten(player, tier, quality);
     }
 
     private static void queue(PlayerEntity player, int delay,

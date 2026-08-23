@@ -20,10 +20,13 @@ import net.minecraft.world.World;
  * {@code #hempdustry:heat_sources}, a machine recipe in {@code hempdustry:decarboxylating} or
  * {@code hempdustry:infusing}.
  *
- * <p>Outbound there was nothing at all, and the only way to hook a hit or a finished batch was a
- * mixin into {@code Smoking} or {@code InfuserBlockEntity} — which breaks the moment this mod
- * refactors its own internals, and turns into "we cannot change our own code without breaking mod
- * X". These events exist so that never has to happen.
+ * <p>Outbound there was nothing at all, and the only way to hook a hit, a meal or a finished batch
+ * was a mixin into {@code Smoking}, {@code EdibleEffects} or {@code InfuserBlockEntity} — which
+ * breaks the moment this mod refactors its own internals, and turns into "we cannot change our own
+ * code without breaking mod X". These events exist so that never has to happen.
+ *
+ * <p><b>Consumption has two doors</b>, and anything counting it needs both: {@link #AFTER_SMOKE} for
+ * a hit and {@link #AFTER_EAT} for an edible.
  *
  * <h2>What is promised</h2>
  *
@@ -87,6 +90,30 @@ public final class HempdustryEvents {
             });
 
     /**
+     * Fires when a player eats an edible — a brownie, a dawamesk, a flapjack, cannabutter toast,
+     * bhang, or a slice of Space Cake.
+     *
+     * <p><b>Smoking and eating are two separate doors into the same room, and an addon that watches
+     * only {@link #AFTER_SMOKE} sees half the traffic.</b> A tolerance or addiction system built on
+     * the hit alone would count every joint, miss every brownie, and read a player as sober while
+     * they are four tiers into a cake.
+     *
+     * <p>It fires at the <b>moment of eating</b>, not at onset. An edible's effects are queued
+     * behind a 30 s–3 min come-up and then ramp in stages, so there is no single later instant that
+     * means "this happened"; the swallow is the event. A listener wanting to act when the high
+     * actually lands should schedule its own delay.
+     *
+     * <p>{@code tier} is the potency, 1..4 — the same dial the tooltip shows, already resolved from
+     * the cannabutter that went in. Nothing fires for a tier-0 edible, which is one nobody dosed.
+     */
+    public static final Event<EdibleEaten> AFTER_EAT =
+            EventFactory.createArrayBacked(EdibleEaten.class, listeners -> (player, tier, quality) -> {
+                for (EdibleEaten listener : listeners) {
+                    listener.onEaten(player, tier, quality);
+                }
+            });
+
+    /**
      * Fires when a batch of cannabutter is collected from an Infuser, by any route — a player, a
      * hopper, a pipe or the tub's own spout. The batch is closed out by then, so this is the only
      * moment its {@code strength} and {@code quality} are still knowable.
@@ -107,6 +134,15 @@ public final class HempdustryEvents {
     @FunctionalInterface
     public interface AfterSmoke {
         void afterSmoke(PlayerEntity player, SmokeContents contents, ItemStack device);
+    }
+
+    @FunctionalInterface
+    public interface EdibleEaten {
+        /**
+         * @param tier    potency, 1..4
+         * @param quality the grade of the cannabutter it was baked with
+         */
+        void onEaten(PlayerEntity player, int tier, Quality quality);
     }
 
     @FunctionalInterface

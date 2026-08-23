@@ -153,10 +153,12 @@ major version and it will say so here.
 
 #### For mod authors
 
-- **There is an API package**, `com.warlonmhite.hempdustry.api`, with three Fabric events:
-  `ALLOW_SMOKE` (veto a hit — a sober zone, a jail plugin, an accessibility mod), `AFTER_SMOKE` (your
-  own effect, a tolerance system, a quest task) and `AFTER_INFUSE` (a batch of cannabutter collected,
-  with its strength and grade). All fire on the server thread.
+- **There is an API package**, `com.warlonmhite.hempdustry.api`, with four Fabric events:
+  `ALLOW_SMOKE` (veto a hit — a sober zone, a jail plugin, an accessibility mod), `AFTER_SMOKE` and
+  `AFTER_EAT` (your own effect, a tolerance system, a quest task) and `AFTER_INFUSE` (a batch of
+  cannabutter collected, with its strength and grade). All fire on the server thread.
+- **Counting consumption means listening to two events, not one.** A hit is `AFTER_SMOKE`, an edible
+  is `AFTER_EAT`; an addon watching only the first sees half the traffic.
 - **That package is frozen from this release**, along with the types its signatures name. New events
   may be added; none will be removed or re-shaped. Everything outside it is internal.
 - Compile against it from Modrinth's maven:
