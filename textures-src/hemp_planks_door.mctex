@@ -1,0 +1,96 @@
+# Hemp planks door -- the two block halves plus the item icon.
+#
+# Drawn as one 16x32 sheet so the stiles, the rails and the plank grain line up
+# across the block seam by construction; the base grain is hemp_planks.png tiled
+# twice, so a door reads as the same wood as the block it is crafted from.
+#
+# The depth comes from one rule, applied to every opening and to the lower
+# panel: the lip ABOVE a hole is the darkest tone and the lip BELOW it is the
+# lightest, with the left lip dark and the right lip light. That is what vanilla
+# does around a door's window panes, and it is the whole difference between a
+# window and a hole punched in a board.
+#
+# The window is a cutout cannabis leaf: five leaflets, the outer pair short, the
+# sinuses between them cut as diagonal teeth that converge on the petiole. Keep
+# the teeth attached to the frame -- a tooth that touches wood only diagonally
+# is a loose pixel floating in mid-air once the block is see-through.
+#
+# The [note] about a dark border is accepted knowingly: a door IS a framed
+# object, and the frame is the point.
+#
+#   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+#     textures-src/hemp_planks_door.mctex \
+#     -o src/main/resources/assets/hempdustry/textures --preview --preview-dir /tmp/tex
+
+@palette hemp
+. = none
+k = 3E3A26      outer edge, darkest
+o = 4E4830      groove, and the shadowed lip of every recess
+d = 5A5236      plank shadow
+e = 67603E      plank dark
+m = 82794E      plank mid
+b = 8A8155
+g = 948A5E
+h = A1976C
+w = A89D73      lit lip of every recess
+n = 4E525A      iron, shadow
+i = 6B6F7A      iron
+I = 8C939C      iron, lit
+
+@sheet door_sheet 16x32 palette=hemp
+oghwwwwwhwwwwwho
+ohggmbghhhgghhbo
+ohhhghgoobbgghho
+oeeomeo..wdeodeo
+Iwo.owo..wwo.wbo
+iho..oo..wo..who
+obow..o..o..wobo
+oo.oo......oo.wo
+oo............wo
+ogww........wwbo
+ohggw......wbbho
+odemmw....weeddo
+obhwwhw..wwbwhwo
+oghhbbo..whghggo
+obbghgbwwhgbIIio
+Ieeddemmmedeinno
+ighwwwwwhwwwwwho
+ohggmbghhhgghhbo
+ohooooooooooooho
+oeommeddeededweo
+owowwwwbwwwhgwbo
+ohogbgbmbgghhwho
+obohgggmhhhggwbo
+odoemeddddeeeweo
+owohggwwwwwwwwho
+ogohhhgbbbgbgwbo
+Ihogbbbbggggbwho
+idommedddemeewdo
+obowwhhbwwwbwwwo
+ogwwwwwwwwwwwwgo
+obbghgbmhhgbbbbo
+kkkkkkkkkkkkkkkk
+
+@slice block/hemp_planks_door_top    0  0 16 16 type=block
+@slice block/hemp_planks_door_bottom 0 16 16 16 type=block
+
+# The item icon is a schematic of the block, the way vanilla's door items are:
+# the leaf window becomes a plain round light, because five leaflets inside six
+# pixels is mush at hotbar size.
+@texture item/hemp_planks_door 16x16 type=item palette=hemp
+................
+................
+..owwwwwwwwwwo..
+..ommedooededo..
+..owwwo..owhgo..
+..ogbo....ohho..
+..ohe......hgo..
+..oee......heo..
+..ohgw....wwwo..
+..ohhhw..wgbgo..
+..ogbbbwwggIio..
+..omooooooooeo..
+..owohhbwwwwwo..
+..ohobgbbhhwho..
+..ogwwwwwwwwbo..
+..kkkkkkkkkkkk..

@@ -1,0 +1,50 @@
+# Hemp planks trapdoor.
+#
+# Deliberately mirror-symmetric on both axes: the trapdoor texture is drawn on
+# both faces of the block and flips with them, so anything with a reading
+# direction -- a glyph, a number, a signature -- comes out backwards half the
+# time. The previous version spelled 420 and did exactly that.
+#
+# Same depth rule as the door: dark lip above each opening, light lip below,
+# dark left, light right. The 4px-wide centre mullion grades bright-to-dark
+# across its width so it reads as a rounded bar rather than a flat strip, which
+# is what vanilla's trapdoors do.
+#
+# No motif: the leaf lives on the door, and every vanilla trapdoor is plain.
+#
+#   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+#     textures-src/hemp_planks_trapdoor.mctex \
+#     -o src/main/resources/assets/hempdustry/textures --preview --preview-dir /tmp/tex
+
+@palette hemp
+. = none
+k = 3E3A26      outer edge, darkest
+o = 4E4830      groove, and the shadowed lip of every recess
+d = 5A5236      plank shadow
+e = 67603E      plank dark
+m = 82794E      plank mid
+b = 8A8155
+g = 948A5E
+h = A1976C
+w = A89D73      lit lip of every recess
+n = 4E525A      iron, shadow
+i = 6B6F7A      iron
+I = 8C939C      iron, lit
+
+@texture block/hemp_planks_trapdoor 16x16 type=block palette=hemp
+kkkkkkkkkkkkkkkk
+ohggmbghhhgghhbo
+ohhooogbbbooohho
+oeo...wdeo...weo
+owo...wbwo...wbo
+oho...wmbo...who
+obo...wmho...wbo
+odewwwddddwwwmeo
+owwooowwwwooowho
+ogo...wbbo...wbo
+oho...wbgo...who
+odo...wddo...wdo
+obo...wbwo...wwo
+oghwwwgbbhwwwggo
+obbghgbmhhgbbbbo
+kkkkkkkkkkkkkkkk
