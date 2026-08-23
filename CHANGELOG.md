@@ -91,6 +91,8 @@ almost everything else is new or works differently.
 - **Six paintings.**
 - **Eight locales**, kept 1:1 — five English variants and three French, with regional vocabulary
   rather than copy-paste.
+- **The Infuser simmers audibly.** A looping simmer plays while and only while a batch is actually
+  cooking — milk in the tub and heat underneath. Subtitled in all eight locales.
 - **An update checker** that tells you once, on your first world join, if a newer release exists.
   Client-side only, silent on any failure, and switched off with `client.updateCheck: false` in
   `config/hempdustry.json` — which is what a pack with pinned versions generally wants.

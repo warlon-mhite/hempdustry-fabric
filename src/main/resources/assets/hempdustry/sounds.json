@@ -13,6 +13,13 @@
     ]
   },
 
+  "infuser_simmer": {
+    "subtitle": "subtitles.hempdustry.infuser_simmer",
+    "sounds": [
+      "hempdustry:butter"
+    ]
+  },
+
   "music_disc.moonlight": {
     "sounds": [
       {

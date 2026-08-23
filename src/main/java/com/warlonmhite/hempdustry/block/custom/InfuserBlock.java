@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block.custom;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
+import com.warlonmhite.hempdustry.client.sound.InfuserSoundInstance;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -15,8 +16,6 @@ import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
@@ -211,10 +210,12 @@ public class InfuserBlock extends BlockWithEntity {
         // 15/16: the brew's surface in the model, so the bubbles break on it rather than under it.
         double y = pos.getY() + 0.9375D;
         double z = pos.getZ() + 0.5D;
-        if (random.nextDouble() < 0.05D) {
-            world.playSound(x, y, z, SoundEvents.BLOCK_BREWING_STAND_BREW,
-                    SoundCategory.BLOCKS, 0.35F, 0.8F + random.nextFloat() * 0.4F, false);
-        }
+        // The simmer is a twenty-second loop, so it is started once and left to end itself rather
+        // than fired per roll — see InfuserSoundInstance for what that buys and why a one-shot at
+        // this length layers itself into a mess. This is the only client-only reference in this
+        // class, and it is safe: randomDisplayTick is called from ClientWorld and from nowhere else,
+        // so a dedicated server never resolves the class.
+        InfuserSoundInstance.startIfNeeded(pos);
         for (int i = 0; i < 2; i++) {
             // Scattered across the pot's mouth, which is the middle 10 pixels of the block.
             world.addParticle(ParticleTypes.BUBBLE_POP,
