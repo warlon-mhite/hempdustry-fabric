@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -30,7 +31,9 @@ import net.minecraft.world.World;
  *       carrying {@code charged_projectiles} is anvil-repairable too.</li>
  *   <li><b>The cooldown is shared across strains</b>, because {@code ItemCooldownManager} is keyed
  *       by {@code Item}. This closes an exploit — carrying one bong per strain used to give
- *       independent cooldowns and double the smoke rate.</li>
+ *       independent cooldowns and double the smoke rate. {@link Smoking#startCooldown} now widens
+ *       it further, to every smokeable at once, so a spliff in the other hand is no way round it
+ *       either.</li>
  * </ul>
  */
 public class SmokingDeviceItem extends Item {
@@ -39,6 +42,7 @@ public class SmokingDeviceItem extends Item {
     public SmokingDeviceItem(DeviceType device, Settings settings) {
         super(settings);
         this.device = device;
+        Smoking.registerSmokeable(this);
     }
 
     public DeviceType device() {
@@ -74,6 +78,12 @@ public class SmokingDeviceItem extends Item {
     }
 
     @Override
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        super.inventoryTick(stack, world, entity, slot, selected);
+        Smoking.expire(stack, world);
+    }
+
+    @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
         SmokeContents contents = contentsOf(stack);
@@ -84,7 +94,7 @@ public class SmokingDeviceItem extends Item {
             Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
                     device.coughChanceOneIn(), device.nauseaChanceOneIn(),
                     Smoking.greenOutChanceOneIn(contents.dose(), false));
-            player.getItemCooldownManager().set(this, EffectPolicy.cooldown(device.cooldownTicks()));
+            Smoking.startCooldown(player, stack, EffectPolicy.cooldown(device.cooldownTicks()));
 
             if (!player.getAbilities().creativeMode) {
                 int remaining = stack.getOrDefault(ModComponents.CHARGES, 0) - 1;

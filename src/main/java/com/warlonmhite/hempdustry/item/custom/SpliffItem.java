@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -35,6 +36,13 @@ public class SpliffItem extends Item {
 
     public SpliffItem(Settings settings) {
         super(settings);
+        Smoking.registerSmokeable(this);
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        super.inventoryTick(stack, world, entity, slot, selected);
+        Smoking.expire(stack, world);
     }
 
     @Override
@@ -56,7 +64,9 @@ public class SpliffItem extends Item {
             Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
                     COUGH_CHANCE_ONE_IN, NAUSEA_CHANCE_ONE_IN,
                     Smoking.greenOutChanceOneIn(contents.dose(), true));
-            player.getItemCooldownManager().set(this, EffectPolicy.cooldown(COOLDOWN_TICKS));
+            // Marks the stack before it shrinks: what is left of it is what the player smoked
+            // from, and that is what the cooldown swipe should sit on.
+            Smoking.startCooldown(player, stack, EffectPolicy.cooldown(COOLDOWN_TICKS));
             if (!player.getAbilities().creativeMode) {
                 stack.decrement(1);
             }

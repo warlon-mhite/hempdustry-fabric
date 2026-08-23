@@ -53,6 +53,23 @@ public class ModComponents {
     public static final ComponentType<Integer> CHARGES = register("charges",
             builder -> builder.codec(Codec.INT).packetCodec(PacketCodecs.VAR_INT));
 
+    /**
+     * World time at which this stack's smoking cooldown ends. Present only on the one stack the
+     * player actually took a hit from, and cleared again the moment it lapses (see
+     * {@link com.warlonmhite.hempdustry.item.custom.Smoking#expire}).
+     *
+     * <p>It is <b>not</b> what blocks the next hit — that is the vanilla {@link
+     * net.minecraft.entity.player.ItemCooldownManager}, which a hit arms for every smokeable at
+     * once. This exists purely so the cooldown <em>swipe</em> can be drawn on the stack that was
+     * used and on nothing else: the cooldown manager is keyed by {@code Item}, so without a mark
+     * living on the stack itself the overlay has no way to tell one packed pipe from the next.
+     *
+     * <p>Storing the end tick rather than the start is what keeps the client out of the config: it
+     * needs no knowledge of how long the cooldown was to know whether this mark is still live.
+     */
+    public static final ComponentType<Long> COOLDOWN_UNTIL = register("cooldown_until",
+            builder -> builder.codec(Codec.LONG).packetCodec(PacketCodecs.VAR_LONG));
+
     /** Total hemp items that went into the batch. Drives dose; see the Infuser. */
     public static final ComponentType<Integer> STRENGTH = register("strength",
             builder -> builder.codec(Codec.INT).packetCodec(PacketCodecs.VAR_INT));

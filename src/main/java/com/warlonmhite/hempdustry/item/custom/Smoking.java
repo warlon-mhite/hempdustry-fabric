@@ -1,11 +1,13 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.advancement.ModCriteria;
+import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -14,7 +16,10 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -24,6 +29,66 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class Smoking {
     private Smoking() {
+    }
+
+    /**
+     * Every item a hit can be taken from. Populated by the item classes themselves at construction,
+     * so a device added later joins it by existing rather than by being remembered here.
+     *
+     * <p>An identity set: items are singletons, and this is read once per rendered slot.
+     */
+    private static final Set<Item> SMOKEABLES = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    /** Called from a smokeable item's constructor. See {@link #SMOKEABLES}. */
+    public static void registerSmokeable(Item item) {
+        SMOKEABLES.add(item);
+    }
+
+    public static boolean isSmokeable(Item item) {
+        return SMOKEABLES.contains(item);
+    }
+
+    /**
+     * Starts the post-hit cooldown: {@code ticks} on <b>every</b> smokeable at once, and a mark on
+     * the one stack that was used.
+     *
+     * <p>The cooldown is deliberately global — you just smoked, so you have just smoked, whatever is
+     * in the other hand. Keying it per stack instead would hand a player carrying three packed pipes
+     * three back-to-back hits, which is the exploit the single-item-per-device design closed in the
+     * first place.
+     *
+     * <p>The mark is what keeps the <em>swipe</em> honest about which stack was used:
+     * {@link net.minecraft.entity.player.ItemCooldownManager} is keyed by {@code Item}, so the
+     * overlay would otherwise sweep across every pipe in the inventory — including the empty ones,
+     * which were never smoked and cannot be. See {@link ModComponents#COOLDOWN_UNTIL} and the
+     * client's {@code DrawContextMixin}.
+     */
+    public static void startCooldown(PlayerEntity player, ItemStack used, int ticks) {
+        if (ticks <= 0) {
+            // EffectPolicy.cooldown treats 0 as "no cooldown"; a zero-length entry would be a
+            // degenerate one (start == end) and a mark with nothing to mark.
+            return;
+        }
+        for (Item item : SMOKEABLES) {
+            player.getItemCooldownManager().set(item, ticks);
+        }
+        used.set(ModComponents.COOLDOWN_UNTIL, player.getWorld().getTime() + ticks);
+    }
+
+    /**
+     * Drops a lapsed cooldown mark. Call from a smokeable's {@code inventoryTick}: without it the
+     * component outlives the cooldown for ever, and a stack carrying one will not merge with an
+     * otherwise identical stack that does not — which for spliffs means the inventory quietly
+     * fragmenting a little more with every joint.
+     *
+     * <p>Server side only. The client is told about the removal like any other component change, and
+     * by then the swipe it gated has finished drawing anyway.
+     */
+    public static void expire(ItemStack stack, World world) {
+        if (!world.isClient && stack.contains(ModComponents.COOLDOWN_UNTIL)
+                && world.getTime() >= stack.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L)) {
+            stack.remove(ModComponents.COOLDOWN_UNTIL);
+        }
     }
 
     /** Ticks after the hit before the smoke puffs, to line up with the exhale in the sound (~1.5s). */
