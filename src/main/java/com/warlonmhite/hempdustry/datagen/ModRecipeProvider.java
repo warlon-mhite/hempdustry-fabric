@@ -48,6 +48,14 @@ import java.util.concurrent.CompletableFuture;
 
 public class ModRecipeProvider extends FabricRecipeProvider {
     /**
+     * Fibre from one <b>retted</b> stalk, against a dry one's 4. The gap is the whole point: doing it
+     * the real way — soak, then break and scutch — pays about 50% better, and the price is the extra
+     * step rather than a scarce resource, because the real cost of retting is hand work and time, not
+     * water. Tunable; see the note at the recipe.
+     */
+    public static final int FIBER_PER_RETTED_STEM = 6;
+
+    /**
      * The registries this run resolved, captured on the way past.
      *
      * <p>Needed because the spliff recipes bake a {@code smoke_contents} component into their result,
@@ -93,10 +101,25 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // ---------------------------------------------------------------------
 
         // Stem -> fiber, hempcrete, bale
+        //
+        // Two routes to fibre, and they are a sidegrade rather than a ladder. Shredding a DRY stalk
+        // and keeping what comes loose gives 4 — real, and exactly as wasteful as it sounds. Retting
+        // the stalk first (a cauldron, see ModCauldronBehaviors) and then breaking and scutching it
+        // gives 6. The extra step is what the extra 50% is paid with; before the retted stalk existed
+        // the cauldron handed back finished fibre and was strictly better for the price of one click.
+        // Vanilla's stonecutter is the same shape: better ratios, in exchange for needing a block.
+        //
+        // If the dry route ever looks pointless, lower FIBER_PER_RETTED_STEM rather than raising the
+        // water cost — water is free either way, so the water is not what is being balanced.
         ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_FIBER, 4)
                 .input(ModItems.HEMP_STEM)
                 .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
                 .offerTo(exporter, id("hemp_fiber"));
+
+        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_FIBER, FIBER_PER_RETTED_STEM)
+                .input(ModItems.RETTED_HEMP_STEM)
+                .criterion(hasItem(ModItems.RETTED_HEMP_STEM), conditionsFromItem(ModItems.RETTED_HEMP_STEM))
+                .offerTo(exporter, id("hemp_fiber_from_retted_hemp_stem"));
 
         // Fibre -> canvas, woven the same 2x2 way vanilla weaves string into wool, and costing the
         // same, because they are both just cloth. What canvas buys over wool is standing in for

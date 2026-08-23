@@ -18,12 +18,17 @@ import net.minecraft.world.event.GameEvent;
 /**
  * Everything the mod does with a plain water cauldron. Two jobs, no new block and no mixin.
  *
- * <p><b>Retting</b> — {@code hemp_stem} → {@code hemp_fiber}. This is the real first step of fibre
- * processing: stalks are soaked so microbes rot away the pectin gluing the long bast fibres to the
- * woody core, before breaking, scutching and hackling separate them out. It is the reason retting
- * yields <em>more</em> fibre here ({@value #FIBER_PER_RETTED_STEM}) than the crafting recipe's 4 —
- * the crafting route is shredding a dry stalk and taking what comes loose, which is exactly as
- * wasteful as it sounds. The knowledge is well enough regarded that France added
+ * <p><b>Retting</b> — {@code hemp_stem} → {@code retted_hemp_stem}, 1:1. Soaking is the first of the
+ * four traditional steps — <i>rouissage</i> (retting), <i>broyage</i> (breaking), <i>teillage</i>
+ * (scutching), <i>peignage</i> (hackling) — and it produces <b>no fibre by itself</b>: all it does is
+ * let microbes rot away the pectin gluing the long bast fibres to the woody core. The breaking and
+ * scutching are the crafting grid's job, and that is where the retted stalk's 6 fibre come from
+ * against a dry stalk's 4 (`ModRecipeProvider`).
+ *
+ * <p><b>That second step is what makes retting a sidegrade rather than a free upgrade.</b> While the
+ * cauldron handed back finished fibre, it was strictly better than the crafting recipe for the price
+ * of one click and some water, and water is free. Paying for the extra yield with an extra step is
+ * the shape vanilla uses for the stonecutter. The knowledge is well enough regarded that France added
  * <i>les savoir-faire du chanvre textile</i> to its intangible cultural heritage inventory in 2020.
  *
  * <p><b>Washing</b> — {@code decarboxylated_hemp} → {@code washed_decarboxylated_hemp}, the middle
@@ -35,9 +40,13 @@ import net.minecraft.world.event.GameEvent;
  * many items one level covers; a cauldron that can't afford the whole stack does what it can and
  * leaves the rest in the player's hand, rather than refusing or silently overcharging.
  *
+ * <p><b>Both behaviours are 1:1.</b> A cauldron changes what an item <em>is</em>; it never multiplies
+ * one. Anything that pays out more than it took in belongs on a recipe, where a recipe viewer can
+ * show it.
+ *
  * <p>Neither can be automated: cauldrons aren't {@code Inventory}-based, so no hopper can feed one.
  * That matches vanilla keeping its own finishing actions — banner washing, armour de-dyeing — manual
- * even in otherwise fully automated bases. It also keeps the crafting recipe worth having, since
+ * even in otherwise fully automated bases, and it is what keeps the dry crafting route worth having:
  * retting is strictly hand work.
  *
  * <p>Registered by mutating {@link CauldronBehavior#WATER_CAULDRON_BEHAVIOR}'s map, which is the
@@ -50,16 +59,6 @@ public final class ModCauldronBehaviors {
     /** Stems one level of water will ret. Fewer than a rinse — soaking a stalk takes more than a wash. */
     public static final int RET_PER_LEVEL = 16;
 
-    /**
-     * Fibre from one retted stem, against the crafting recipe's 4. The gap is the whole point: doing
-     * it properly pays about 50% better, and paying for it with a trip to a cauldron rather than a
-     * scarce resource is fair because the real cost here is hand work, not water. Vanilla has the
-     * same shape in the stonecutter, which beats the crafting grid's ratios for the price of needing
-     * a specific block. Tunable — if crafting ever looks pointless, lower this rather than raising
-     * the water cost, since water is effectively free either way.
-     */
-    public static final int FIBER_PER_RETTED_STEM = 6;
-
     private ModCauldronBehaviors() {
     }
 
@@ -67,19 +66,19 @@ public final class ModCauldronBehaviors {
         CauldronBehavior.WATER_CAULDRON_BEHAVIOR.map()
                 .put(ModItems.HEMP_STEM, (state, world, pos, player, hand, stack) ->
                         soak(state, world, pos, player, stack,
-                                ModItems.HEMP_FIBER, FIBER_PER_RETTED_STEM, RET_PER_LEVEL));
+                                ModItems.RETTED_HEMP_STEM, RET_PER_LEVEL));
         CauldronBehavior.WATER_CAULDRON_BEHAVIOR.map()
                 .put(ModItems.DECARBOXYLATED_HEMP, (state, world, pos, player, hand, stack) ->
                         soak(state, world, pos, player, stack,
-                                ModItems.WASHED_DECARBOXYLATED_HEMP, 1, WASH_PER_LEVEL));
+                                ModItems.WASHED_DECARBOXYLATED_HEMP, WASH_PER_LEVEL));
     }
 
     /**
-     * Consumes as much of {@code stack} as the cauldron's water can cover, hands back
-     * {@code outputPerItem} of {@code output} for each one, and spends the water levels used.
+     * Turns as much of {@code stack} into {@code output} as the cauldron's water can cover, one for
+     * one, and spends the water levels used.
      */
     private static ItemActionResult soak(BlockState state, World world, BlockPos pos, PlayerEntity player,
-                                         ItemStack stack, Item output, int outputPerItem, int itemsPerLevel) {
+                                         ItemStack stack, Item output, int itemsPerLevel) {
         int levelsAvailable = state.get(LeveledCauldronBlock.LEVEL);
         if (levelsAvailable <= 0) {
             return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
@@ -93,10 +92,20 @@ public final class ModCauldronBehaviors {
 
         if (!world.isClient) {
             Item input = stack.getItem();
-            if (!player.getAbilities().creativeMode) {
+            if (player.getAbilities().creativeMode) {
+                // Vanilla's creative rule for an exchange at a cauldron (ItemUsage#exchangeStack,
+                // creativeOverride): the input is never spent, so the output is only handed over
+                // when the player has none — otherwise every click mints another stack out of
+                // nothing. One item, not the batch: nothing was consumed to pay for a batch.
+                ItemStack one = new ItemStack(output);
+                if (!player.getInventory().contains(one)) {
+                    player.getInventory().insertStack(one);
+                }
+            } else {
                 stack.decrement(toProcess);
+                // toProcess is capped by the input stack, so this never exceeds one legal stack.
+                player.getInventory().offerOrDrop(new ItemStack(output, toProcess));
             }
-            give(player, output, toProcess * outputPerItem);
             player.incrementStat(Stats.USE_CAULDRON);
             player.incrementStat(Stats.USED.getOrCreateStat(input));
 
@@ -108,20 +117,6 @@ public final class ModCauldronBehaviors {
             world.emitGameEvent(null, GameEvent.FLUID_PICKUP, pos);
         }
         return ItemActionResult.success(world.isClient);
-    }
-
-    /**
-     * Hands over {@code count} items, split into legal stacks. Retting multiplies its input, so a
-     * full-cauldron batch can easily exceed one stack — and an {@code ItemStack} carrying more than
-     * its item's max count is malformed, not merely untidy.
-     */
-    private static void give(PlayerEntity player, Item item, int count) {
-        int max = item.getMaxCount();
-        while (count > 0) {
-            int batch = Math.min(count, max);
-            player.getInventory().offerOrDrop(new ItemStack(item, batch));
-            count -= batch;
-        }
     }
 
     private static int ceilDiv(int value, int divisor) {

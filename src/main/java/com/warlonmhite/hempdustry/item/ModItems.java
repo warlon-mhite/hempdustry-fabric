@@ -42,6 +42,13 @@ public class ModItems {
     public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", new AliasedBlockItem(ModBlocks.SATIVA_CROP, new Item.Settings()));
     public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Settings()));
     public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
+    /**
+     * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has
+     * rotted away — the first of the four traditional steps ({@code rouissage}, {@code broyage},
+     * {@code teillage}, {@code peignage}). It is not fibre yet, and that is the whole point: the
+     * cauldron rets, the crafting grid does the breaking and scutching. See {@code materials.md}.
+     */
+    public static final Item RETTED_HEMP_STEM = registerItem("retted_hemp_stem", new Item(new Item.Settings()));
     public static final Item HEMP_LEAF = registerItem("hemp_leaf", new Item(new Item.Settings()));
 
     // The cannabutter chain's two intermediates. Both are strain-agnostic: every strain's buds and

@@ -83,6 +83,7 @@ public class ModItemGroups {
                         strains.forEach(strain -> entries.add(strain.value().buds()));
                         strains.forEach(strain -> entries.add(strain.value().flower()));
                         entries.add(ModItems.HEMP_STEM);
+                        entries.add(ModItems.RETTED_HEMP_STEM);
                         entries.add(ModItems.HEMP_LEAF);
                         // The crop's storage block, where vanilla keeps the hay bale: Natural,
                         // with the plant, not with the building sets.
