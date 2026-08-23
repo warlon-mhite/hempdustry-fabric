@@ -1,13 +1,15 @@
 # PLACEHOLDER art for hemp_canvas. Warlon Mhite intends to redraw this.
 #
-# A folded bolt of cloth rather than a flat swatch: vanilla's cloth-ish items (leather, paper,
-# phantom membrane) all read as a *thing with edges*, and a flat square of noise at 16x16 reads as a
-# missing texture rather than as fabric. Both ends taper so the silhouette is not a rectangle —
-# the texture linter flags near-perfect rectangles as placeholder-looking, and it is right to.
+# A square of cloth pulled taut by its four corners, not a rectangle of weave. The old version
+# was a 14x14 slab with hard vertical sides, which at 16px reads as a missing texture rather
+# than as fabric. This one is 12x12 and squarish -- but the four corners are the only points
+# that reach the bounding box, every edge between them is drawn in one pixel or two, and no
+# edge runs straight for more than three pixels. That pinch is the whole trick: it is what says
+# the material is under tension instead of being a printed square.
 #
-# The weave is faked with a two-tone checker whose tones sit close together, so it reads as texture
-# rather than as stripes, with a bright lit fold at the top and a deep shadow pooling at the bottom
-# to carry the contrast vanilla items average.
+# The weave is still faked with a two-tone checker whose tones sit close together, so it reads
+# as texture rather than as stripes, with the lit edge along the top-left and the shadow
+# pooling under the lower-right.
 
 @palette canvas
 . = none
@@ -17,31 +19,29 @@
 O = 5A5638
 o = 262417
 # the two weave tones
-a = 9B9464
-b = 8D8659
-# lit top fold and the lit left edge — items are lit from the top left, so the highlight lives on
-# the top and left and the shadow on the bottom and right. Getting this backwards is the single
-# thing the texture linter catches most often, and it makes an item look inside-out at a glance.
+a = A39C6A
+b = 827B4E
+# lit fold along the top-left edge -- items are lit from the top left, so the highlight lives
+# there and the shadow opposite. Getting this backwards is the single thing the texture linter
+# catches most often, and it makes an item look inside-out at a glance.
 h = D6CB90
-# shadow where the bolt tapers away underneath
-s = 4A472F
-# the shaded right edge
-r = 5D5940
+# shadow where the cloth falls away under the lower-right edge
+s = 5F5A3B
 
 @texture item/hemp_canvas 16x16 type=item palette=canvas
 ................
-....OOOOOOOO....
-..OOhhhhhhhhoo..
-.Ohhhhhhhhhhhro.
-.Ohabababababro.
-.Ohbababababaro.
-.Ohabababababro.
-.Ohbababababaro.
-.Ohabababababro.
-.Ohbababababaro.
-.Ohabababababro.
-.Ohbababababaro.
-.Osssssssssssso.
-..osssssssssso..
-...oossssssoo...
+................
+..OO........Oo..
+..Ohhhhhhabaso..
+...Ohabababso...
+...Ohbababaso...
+....Ohababaso...
+....Oabababso...
+...Oabababaso...
+...Obababaso....
+...Oababasso....
+...obababssso...
+..oabsssssssso..
+..oo........oo..
+................
 ................

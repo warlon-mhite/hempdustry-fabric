@@ -93,40 +93,48 @@ e = E09A72
 # what guarantees the pair stay recognisably the same pile at two stages.
 
 @palette toasted
+# An hour in a hot oven, and nothing else. The brown is a *gradient*, not a wash: the shadows
+# keep the green of the plant that went in, and the tones warm over to a roasted brown as they
+# come up into the light, which is what toasting actually looks like. Uniformly brown would
+# read as tobacco and uniformly green as raw leaf; the point is that it is caught mid-way.
 . = none
-O = 3D2410
-d = 5A3618
-m = 8A5626
-h = B37C3A
-H = E8B863
+O = 171B0D
+d = 2C2E18
+m = 454022
+h = 645734
+H = 8D7841
 
 @palette washed
+# The wash pulls the toast out and leaves the chlorophyll behind. Still green, but this has
+# been boiled: a dull, desaturated olive, greener and darker than the toasted heap and never
+# the colour of a fresh leaf.
 . = none
-O = 3A4020
-d = 5E6A34
-m = 8C9A52
-h = B3C077
-H = DCE6A8
+O = 131A0E
+d = 24301A
+m = 364528
+h = 4B5C36
+H = 687A4C
 
-# A loose pile, not a baked loaf: the top contour is deliberately lumpy (two humps with a
-# notch) and the interior is speckled between tones, so it reads as crumbled material rather
-# than one smooth solid. A clean dome here looked exactly like a bread roll.
+# The heap is vanilla `item/brown_dye.png`'s matrix verbatim -- a loose, lumpy, nine-row pile
+# of powder with no outline ring, which is exactly the archetype a heap of ground plant wants
+# and which the previous twelve-row domed loaf was not. Only the palette is ours: brown_dye's
+# five tones map in luminance order onto the ramps above. See CREDITS.md.
 @matrix heap 16x16 palette=toasted
 ................
 ................
 ................
-.....OO..OO.....
-....OhhOOhhO....
-...OhHhhhHhhO...
-..OhHhhmmhHhmO..
-..OhhhmmmhmmdO..
-..OhhmmdmmmddO..
-..OhmmmmdmdddO..
-.OhmmdmmmddmddO.
-.OmmdmdddmddddO.
-.OmdddddmdddddO.
-.OdddmddddddddO.
-.OOOOOOOOOOOOOO.
+................
+......dmdm......
+.....dhHHhd.....
+....OhHHhmhd....
+..OOdmhhmHmmdd..
+...OmhmmmhmdmOO.
+..OmOHhmdmdOdO..
+.OOdmhdmmdOdO...
+...OOdmdOOdOOO..
+.....OOOOOO.....
+................
+................
 ................
 
 @texture item/decarboxylated_hemp from=heap palette=toasted type=item

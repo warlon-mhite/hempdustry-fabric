@@ -75,7 +75,8 @@ or contact the author through the repository.
 
 A few textures are vanilla Minecraft textures with their palettes changed — `hemp_wool` from
 `white_wool`, the Space Cake set from the cake, the hemp milk bucket and siemieniotka from the milk
-bucket and mushroom stew. **These are excluded from the licence above and are not the author's to
+bucket and mushroom stew, and the decarboxylated-hemp heap (both the toasted and the washed one)
+from `brown_dye`. **These are excluded from the licence above and are not the author's to
 licence.** Minecraft's Usage Guidelines are explicit that all rights in Mojang's assets *"and any
 derivatives"* remain Mojang's and Microsoft's.
 

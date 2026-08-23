@@ -1,18 +1,20 @@
-# Space Cake — vanilla's cake with the strawberries swapped for hemp.
+# Space Cake -- vanilla's cake with the strawberries swapped for hemp.
 #
 # Every MATRIX below is the matching vanilla cake texture extracted verbatim; only the PALETTE
 # is ours, and it moves in exactly two ways:
 #
 #   * the four strawberry reds map, in luminance order, onto a hemp-leaf green ramp. That is the
-#     whole visual idea — a cake iced with herb instead of fruit reads instantly and needs no new
+#     whole visual idea -- a cake iced with herb instead of fruit reads instantly and needs no new
 #     shape. Greens run slightly darker than the reds they replace, which is correct: herb is not
 #     as bright as a strawberry.
-#   * the sponge browns take a mild olive shift (R x0.92, G x1.10, B x0.90), so there is visibly
-#     something through the batter as well as on top. Creams and whites are untouched, because a
-#     space cake is still a cake.
+#   * the sponge browns take a mild olive shift (R x0.92, G x1.10, B x0.90), and exactly ONE
+#     tone per texture is pushed the rest of the way to hemp green so there are flecks through
+#     the batter as well as icing on top. The sponge stays sponge-coloured: a cake whose crumb
+#     is solid green is a cliche, and it also stops reading as cake. Creams and whites are
+#     untouched, because a space cake is still a cake.
 #
-# PLACEHOLDER: derived art, not drawn. Redraw or retone freely — to retone, change GREENS or the
-# olive factors in the generator and re-render.
+# PLACEHOLDER: derived art, not drawn. Redraw or retone freely -- to retone, change the greens
+# or the olive factors and re-render.
 
 @palette space_cake_top
 . = none
@@ -44,11 +46,11 @@
 
 @palette space_cake_side
 . = none
-1 = 2F4D1D
-2 = 3E5F24
-3 = 486F2A
-4 = 6F9438
-5 = 6F9438
+1 = 75401A
+2 = 824A20
+3 = 9A5220
+4 = 486F2A
+5 = B76B20
 6 = E0D3B8
 7 = F6E8CB
 8 = FDF4D8
@@ -74,10 +76,10 @@
 
 @palette space_cake_bottom
 . = none
-1 = 2F4D1D
-2 = 3E5F24
-3 = 486F2A
-4 = 6F9438
+1 = 62391D
+2 = 75401A
+3 = 824A20
+4 = 486F2A
 
 @texture block/space_cake_bottom 16x16 palette=space_cake_bottom type=block
 ................
@@ -99,12 +101,12 @@
 
 @palette space_cake_inner
 . = none
-1 = 2F4D1D
-2 = 3E5F24
+1 = 4B290E
+2 = 533017
 3 = 486F2A
-4 = 6F9438
-5 = 6F9438
-6 = 6F9438
+4 = 62391D
+5 = 75401A
+6 = 8B5017
 7 = E0D3B8
 8 = F6E8CB
 9 = FDF4D8
@@ -131,16 +133,16 @@ a = FFFDFE
 @palette space_cake
 . = none
 1 = 38200A
-2 = 2F4D1D
-3 = 3E5F24
-4 = 486F2A
-5 = 6F9438
-6 = 6F9438
-7 = 6F9438
-8 = 6F9438
-9 = 6F9438
-a = 6F9438
-b = 6F9438
+2 = 663716
+3 = 2F4D1D
+4 = 824A20
+5 = 3E5F24
+6 = 8B5017
+7 = 9A5B1D
+8 = 486F2A
+9 = A16120
+a = A96623
+b = B76B20
 c = 6F9438
 d = D5C8AC
 e = F5E6C6

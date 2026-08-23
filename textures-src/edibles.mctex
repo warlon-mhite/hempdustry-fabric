@@ -34,14 +34,19 @@ G = 2F4D1D
 ................
 
 @palette brownie
+# The one edible in the set with no green in it. A brownie is dark chocolate all the way
+# through, and hemp flecks through cocoa read as mould rather than as herb, so the flecks here
+# are crumb tones instead: `g` a dark pocket, `G` a lighter one. `h` is the pale crackly crust
+# that a real brownie top gets, and it is what keeps the sprite off the "grey smudge" end of
+# the contrast range without letting any of it go red.
 . = none
-o = 1A0D05
-d = 3B1F0E
-m = 55301A
-t = 7E4C29
-h = B0734A
-g = 486F2A
-G = 6F9438
+o = 100A05
+d = 2E1C0D
+m = 452A14
+g = 341F0E
+G = 5C3A1B
+t = 6B4522
+h = B37E45
 
 @texture item/space_brownie 16x16 palette=brownie type=item
 ................
@@ -52,8 +57,8 @@ G = 6F9438
 ..otthtttgtttto.
 ..ohtttthttGtto.
 ..ommmmmmmmmmdo.
-..ommgmmmhmmmdo.
-..odmmmhmmmGmdo.
+..ommgmmmGmmmdo.
+..odmmmGmmmGmdo.
 ..odmmmmmmmmmdo.
 ..odmGmmgmmmmdo.
 ..oddmmmmmmmddo.
