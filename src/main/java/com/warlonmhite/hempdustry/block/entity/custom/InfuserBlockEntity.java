@@ -11,6 +11,10 @@ import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -651,8 +655,22 @@ public class InfuserBlockEntity extends BlockEntity
     }
 
     /**
-     * Pours a finished batch out of the spout into whatever inventory is against that face.
-     * Returns whether anything moved.
+     * Pours a finished batch out of the spout into whatever is against that face. Returns whether
+     * anything moved.
+     *
+     * <p><b>Two ways in, tried in that order.</b> The Fabric Transfer API first — that is the only
+     * thing an AE2 interface, a Modern Industrialization pipe or any other storage-only neighbour
+     * answers to, and until 2026-08-23 the spout could not see any of them (roadmap D16). Fabric
+     * registers an automatic fallback for every {@code Inventory} block entity, so the same lookup
+     * covers chests, hoppers, barrels and droppers too; it is the general path rather than a special
+     * case. The old {@code Inventory} path stays behind it for the one thing a <em>block</em> lookup
+     * structurally cannot find: an <b>inventory minecart</b> parked against the spout, which is an
+     * entity.
+     *
+     * <p>One deliberate behaviour change came with it. {@code HopperBlockEntity.transfer} sets a
+     * receiving hopper's transfer cooldown to 8 ticks; inserting through a {@code Storage} does not,
+     * so a hopper against the spout now passes the cannabutter along up to eight ticks sooner. It is
+     * a timing difference and not a duplication — the spout's own cadence is unchanged.
      *
      * <p><b>This exists because heat-from-below claimed the extraction face.</b> A hopper pulls from
      * the inventory above it through that inventory's <em>down</em> face — the same block this
@@ -684,10 +702,11 @@ public class InfuserBlockEntity extends BlockEntity
         if (!isAtBestQuality() || getStack(OUTPUT_SLOT).isEmpty() || !state.contains(InfuserBlock.FACING)) {
             return false;
         }
-        // A finished batch with nothing to pour into would otherwise re-scan every tick, and
-        // getInventoryAt runs an entity query for inventory minecarts. Vanilla hoppers throttle the
-        // same work to 8 ticks; so does this, and it backs off to PUSH_IDLE_COOLDOWN when the last
-        // scan found no target at all.
+        // A finished batch with nothing to pour into would otherwise re-scan every tick, and the
+        // miss path is the expensive one: a BlockApiLookup miss followed by getInventoryAt, which
+        // runs an entity query for inventory minecarts. Vanilla hoppers throttle the same work to
+        // 8 ticks; so does this, and it backs off to PUSH_IDLE_COOLDOWN when the last scan found no
+        // target of either kind.
         if (pushCooldown > 0) {
             pushCooldown--;
             return false;
@@ -695,17 +714,38 @@ public class InfuserBlockEntity extends BlockEntity
         pushCooldown = PUSH_COOLDOWN;
 
         Direction facing = state.get(InfuserBlock.FACING);
-        Inventory target = HopperBlockEntity.getInventoryAt(world, pos.offset(facing));
+        BlockPos spoutPos = pos.offset(facing);
+        // The receiving side is the face of the target that we are pouring into.
+        Direction receivingSide = facing.getOpposite();
+        // transfer() and insert() both only ever touch the destination — neither removes from the
+        // source — so this passes a copy and does the removal itself.
+        ItemStack pending = getStack(OUTPUT_SLOT).copy();
+
+        // The Transfer API first, because that is the only thing an AE2 interface, a Modern
+        // Industrialization pipe or any other storage-only neighbour answers to. Fabric's automatic
+        // fallback means this also finds every ordinary Inventory, so it is the general path and not
+        // a special case.
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, spoutPos, receivingSide);
+        if (storage != null) {
+            if (!insertWhole(storage, pending)) {
+                // A real target that happens to be full. Keep the hopper cadence rather than backing
+                // off — it may have room again in eight ticks.
+                return false;
+            }
+            removeStack(OUTPUT_SLOT);
+            return true;
+        }
+
+        // Nothing exposes a Storage here, so this is the last thing left that can still be a
+        // container: an inventory minecart parked against the spout, which is an entity and so is
+        // invisible to a block lookup. getInventoryAt is the only thing that finds one.
+        Inventory target = HopperBlockEntity.getInventoryAt(world, spoutPos);
         if (target == null) {
             pushCooldown = PUSH_IDLE_COOLDOWN;
             return false;
         }
-        // transfer() only ever touches the destination and the stack handed to it — it never removes
-        // from the source — so this passes a copy and does the removal itself.
-        ItemStack pending = getStack(OUTPUT_SLOT).copy();
         int before = pending.getCount();
-        // The receiving side is the face of the target that we are pouring into.
-        ItemStack leftover = HopperBlockEntity.transfer(this, target, pending, facing.getOpposite());
+        ItemStack leftover = HopperBlockEntity.transfer(this, target, pending, receivingSide);
         if (leftover.getCount() >= before) {
             return false;
         }
@@ -713,6 +753,27 @@ public class InfuserBlockEntity extends BlockEntity
         // check above rather than isEmpty() keeps that from becoming a silent dupe if it ever isn't.
         removeStack(OUTPUT_SLOT);
         return true;
+    }
+
+    /**
+     * Inserts {@code stack} into {@code storage}, <b>all of it or none of it</b>. Returns whether it
+     * went.
+     *
+     * <p>The all-or-nothing rule is the same invariant the {@code Inventory} path's count check
+     * keeps, and it matters for the same reason: the batch is closed out by removing the whole
+     * preview, so a partial insert would hand a neighbour one item and destroy the rest. A
+     * transaction makes that free — a partial result is simply never committed, and closing without
+     * committing rolls it back.
+     */
+    private static boolean insertWhole(Storage<ItemVariant> storage, ItemStack stack) {
+        try (Transaction transaction = Transaction.openOuter()) {
+            long moved = storage.insert(ItemVariant.of(stack), stack.getCount(), transaction);
+            if (moved < stack.getCount()) {
+                return false;
+            }
+            transaction.commit();
+            return true;
+        }
     }
 
     /**

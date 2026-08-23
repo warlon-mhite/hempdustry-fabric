@@ -114,6 +114,9 @@ almost everything else is new or works differently.
   **Only a commercial use needs to ask.** Full table in [CREDITS.md](CREDITS.md), inside the jar.
 - There is no JEI/EMI/REI plugin yet, so **packing a smoking device does not appear in a recipe
   viewer**. It is: an empty pipe or bong, plus one to three buds, in the crafting grid.
+- Both directions of item automation work with Fabric storage mods: the machines can be extracted from
+  by any pipe, and **the Infuser's spout pours into anything that exposes a storage** — an AE2
+  interface, a Modern Industrialization pipe — as well as ordinary chests, hoppers and minecarts.
 
 #### Saves and updates
 
