@@ -1,7 +1,5 @@
 package com.warlonmhite.hempdustry.screen.custom;
 
-import com.mojang.datafixers.util.Pair;
-import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
@@ -12,11 +10,9 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.util.math.MathHelper;
@@ -51,12 +47,13 @@ public class InfuserScreenHandler extends ScreenHandler {
     public static final int BUCKET_X = 26, BUCKET_Y = 53;
     public static final int HEMP_X = 62, HEMP_Y = 17;
     public static final int WASHED_X = 62, WASHED_Y = 53;
-    public static final int OUTPUT_X = 134, OUTPUT_Y = 35;
-
-    private static final Identifier EMPTY_SLOT_MILK =
-            Identifier.of(Hempdustry.MOD_ID, "item/empty_slot_milk");
-    private static final Identifier EMPTY_SLOT_HEMP =
-            Identifier.of(Hempdustry.MOD_ID, "item/empty_slot_hemp");
+    /**
+     * The batch preview, drawn as a furnace's oversized result well — vanilla marks "this is what
+     * comes out" by making the slot bigger, and this one is doubly worth marking because taking
+     * from it is what commits the batch. Nudged right of its old x=134 so the well keeps a
+     * furnace-sized gap from the end of the bar rather than touching it.
+     */
+    public static final int OUTPUT_X = 138, OUTPUT_Y = 35;
 
     public InfuserScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
         this(syncId, playerInventory, resolveInventory(playerInventory, pos),
@@ -72,16 +69,14 @@ public class InfuserScreenHandler extends ScreenHandler {
         this.world = playerInventory.player.getWorld();
         inventory.onOpen(playerInventory.player);
 
-        this.addSlot(new HintSlot(inventory, InfuserBlockEntity.MILK_SLOT, MILK_X, MILK_Y, EMPTY_SLOT_MILK));
+        this.addSlot(new InputSlot(inventory, InfuserBlockEntity.MILK_SLOT, MILK_X, MILK_Y));
         // Both hemp slots take either type; they exist so a batch can mix washed and unwashed, not
-        // so each type has a home. Hence the identical hint sprite on both.
-        this.addSlot(new HintSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT, HEMP_X, HEMP_Y, EMPTY_SLOT_HEMP));
-        this.addSlot(new HintSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT + 1, WASHED_X, WASHED_Y, EMPTY_SLOT_HEMP));
+        // so each type has a home.
+        this.addSlot(new InputSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT, HEMP_X, HEMP_Y));
+        this.addSlot(new InputSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT + 1, WASHED_X, WASHED_Y));
         this.addSlot(new PreviewSlot(inventory, InfuserBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
-        // Take-only, and it shows the same bucket hint as the milk slot: what lands here is exactly
-        // what you put in above, minus the milk.
-        this.addSlot(new TakeOnlySlot(inventory, InfuserBlockEntity.BUCKET_SLOT, BUCKET_X, BUCKET_Y,
-                EMPTY_SLOT_MILK));
+        // Take-only: what lands here is exactly what you put in above, minus the milk.
+        this.addSlot(new TakeOnlySlot(inventory, InfuserBlockEntity.BUCKET_SLOT, BUCKET_X, BUCKET_Y));
 
         addPlayerSlots(playerInventory);
         this.addProperties(propertyDelegate);
@@ -105,30 +100,22 @@ public class InfuserScreenHandler extends ScreenHandler {
         }
     }
 
-    /** An input slot that shows a greyed hint while empty, the way vanilla's armour slots do. */
-    private static class HintSlot extends Slot {
-        private final Identifier hint;
-
-        HintSlot(Inventory inventory, int index, int x, int y, Identifier hint) {
+    /** An input slot that defers to the block entity for what it will accept. */
+    private static class InputSlot extends Slot {
+        InputSlot(Inventory inventory, int index, int x, int y) {
             super(inventory, index, x, y);
-            this.hint = hint;
         }
 
         @Override
         public boolean canInsert(ItemStack stack) {
             return this.inventory.isValid(this.getIndex(), stack);
         }
-
-        @Override
-        public Pair<Identifier, Identifier> getBackgroundSprite() {
-            return Pair.of(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, this.hint);
-        }
     }
 
-    /** A {@link HintSlot} the player may only take from — the bucket return. */
-    private static class TakeOnlySlot extends HintSlot {
-        TakeOnlySlot(Inventory inventory, int index, int x, int y, Identifier hint) {
-            super(inventory, index, x, y, hint);
+    /** An {@link InputSlot} the player may only take from — the bucket return. */
+    private static class TakeOnlySlot extends InputSlot {
+        TakeOnlySlot(Inventory inventory, int index, int x, int y) {
+            super(inventory, index, x, y);
         }
 
         @Override

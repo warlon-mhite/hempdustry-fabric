@@ -1,7 +1,5 @@
 package com.warlonmhite.hempdustry.screen.custom;
 
-import com.mojang.datafixers.util.Pair;
-import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import net.minecraft.block.entity.BlockEntity;
@@ -13,9 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ArrayPropertyDelegate;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -39,27 +35,25 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
     private final World world;
 
     /**
-     * Greyed-out hints drawn in an empty slot, the same mechanism vanilla uses for the armour and
-     * smithing-table slots. They live on the <b>block atlas</b> (hence the {@code item/} path) and
-     * the game hides them automatically as soon as the slot holds something.
-     */
-    private static final Identifier EMPTY_SLOT_FUEL =
-            Identifier.of(Hempdustry.MOD_ID, "item/empty_slot_fuel");
-    private static final Identifier EMPTY_SLOT_HEMP =
-            Identifier.of(Hempdustry.MOD_ID, "item/empty_slot_hemp");
-
-    /**
      * Slot layout, shared with the screen and the GUI-texture generator so the art and the hitboxes
      * can't drift apart.
      *
-     * <p>The three trays are centred on the panel (their span runs 61..115, midpoint 88, which is
-     * exactly half of the 176-wide background) and the collection slot sits centred directly under
-     * them, so the three arrows visibly funnel into it. Fuel is off to the left with its flame
-     * above, the way a furnace arranges the same two things.
+     * <p><b>Reads left to right, because that is the direction every vanilla machine reads in.</b>
+     * The trays were a row across the top with arrows pointing down into a collection slot beneath;
+     * that is a layout no vanilla container uses, and it looked like one. They are now a column,
+     * each tray with its own arrow pointing right at the shared result slot, which is the furnace's
+     * arrangement with the input stack made three deep. Fuel keeps its own column on the left with
+     * the flame above it, exactly as a furnace has it.
+     *
+     * <p>Three trays at an 18px pitch from y=17 end at y=69, which is the last row that clears the
+     * "Inventory" label at y=72.
      */
     public static final int TRAY_X = 62, TRAY_Y = 17, TRAY_SPACING = 18;
-    /** Centred under the middle tray — the three trays all feed this one slot. */
-    public static final int OUTPUT_X = 80, OUTPUT_Y = 54;
+    /**
+     * The result slot, centred on the column of trays (they span y=17..68, midpoint 42.5) and drawn
+     * as a furnace's oversized result well — see {@code gui_common.Sheet.big_slot}.
+     */
+    public static final int OUTPUT_X = 121, OUTPUT_Y = 35;
     public static final int FUEL_X = 26, FUEL_Y = 54;
 
     /** Client-side constructor: the block position arrives via the extended screen handler type. */
@@ -77,32 +71,22 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
         this.world = playerInventory.player.getWorld();
         inventory.onOpen(playerInventory.player);
 
-        // Fuel: only things that actually burn. The flame hint tells the player that without a
-        // tooltip — coal, a lava bucket, the mod's own hemp stem, anything in the fuel registry.
+        // Fuel: only things that actually burn — coal, a lava bucket, the mod's own hemp stem,
+        // anything in the fuel registry.
         this.addSlot(new Slot(inventory, DecarboxylatorBlockEntity.FUEL_SLOT, FUEL_X, FUEL_Y) {
             @Override
             public boolean canInsert(ItemStack stack) {
                 return DecarboxylatorBlockEntity.isFuel(stack);
             }
-
-            @Override
-            public Pair<Identifier, Identifier> getBackgroundSprite() {
-                return Pair.of(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, EMPTY_SLOT_FUEL);
-            }
         });
 
-        // The three trays, each with a leaf hint standing for "buds or hemp leaf".
+        // The three trays. What one accepts is a recipe lookup, so it is not a fixed set of items.
         for (int tray = 0; tray < DecarboxylatorBlockEntity.TRAY_COUNT; tray++) {
             this.addSlot(new Slot(inventory, DecarboxylatorBlockEntity.FIRST_TRAY_SLOT + tray,
-                    TRAY_X + tray * TRAY_SPACING, TRAY_Y) {
+                    TRAY_X, TRAY_Y + tray * TRAY_SPACING) {
                 @Override
                 public boolean canInsert(ItemStack stack) {
                     return DecarboxylatorBlockEntity.isTrayInput(playerInventory.player.getWorld(), stack);
-                }
-
-                @Override
-                public Pair<Identifier, Identifier> getBackgroundSprite() {
-                    return Pair.of(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, EMPTY_SLOT_HEMP);
                 }
             });
         }

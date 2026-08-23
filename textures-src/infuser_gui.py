@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PLACEHOLDER generator for the Infuser's container GUI texture.
+"""Generator for the Infuser's container GUI texture.
 
 Same role a .mctex plays for the 16x16 art: keeps a 256x256 sheet editable and diffable instead of
 being a binary nobody can change. Re-run after editing:
@@ -8,47 +8,44 @@ being a binary nobody can change. Re-run after editing:
 
 Output: src/main/resources/assets/hempdustry/textures/gui/container/infuser.png
 
+Chrome comes from `gui_common` — vanilla's panel, slot and flame art, measured out of the client
+jar and checked by `check_panel.py`.
+
 Must stay in step with InfuserScreenHandler (slots) and InfuserScreen (sprite regions).
 
-    [milk]     [hemp]                       either hemp slot takes either type
-    (flame)                       [out]     heat indicator: reports the block BELOW
-    [bucket]   [hemp]  ==|==!==>            dark NOTCH = collectable from here
-                                            bright MARK = next grade lands here (moves with ratio)
+    [milk]     [hemp]
+                       ==|==!==>  [ OUT ]  | dark NOTCH = collectable from here
+    [bucket]   [hemp]    (flame)            ! bright MARK = next grade (moves with the ratio)
 
-The left column is a furnace's column: what goes in on top, the fire in the middle, what comes
-back out underneath. Milk is emptied into the tub on contact and its bucket returned below, which
-is what lets several batches be queued up in advance.
+The left column is in on top, out underneath: milk is emptied into the tub on contact and its
+bucket returned below, which is what lets several batches be queued up in advance.
+
+The flame is centred under the bar rather than in that column. It is not a fuel gauge and neither
+bucket feeds it -- it reports whether the block BELOW the Infuser is hot -- so parking it between
+the two bucket slots implied a relationship that does not exist. Under the bar it governs, "no
+heat, no progress" reads without a tooltip.
 
 The notch is the whole point of the bar. A plain fill would say "cooking"; the notch says
 "collectable from here, but not finished" -- which is the actual decision the player is making.
+
+Slots are empty. **No hint icons** -- see the note in decarboxylator_gui.py. Both hemp slots take
+either type, so any icon drawn in them would have been a half-truth from the start.
 """
 
-import os
-import struct
-import zlib
-
-W = H = 256
-PANEL_W, PANEL_H = 176, 166
-
-BG = (198, 198, 198, 255)
-EDGE_LIGHT = (255, 255, 255, 255)
-EDGE_DARK = (85, 85, 85, 255)
-SLOT_BG = (139, 139, 139, 255)
-SLOT_DARK = (55, 55, 55, 255)
-TRACK_DARK = (85, 85, 85, 255)
-TRACK_BG = (139, 139, 139, 255)
-CLEAR = (0, 0, 0, 0)
+import gui_common as gui
 
 # Slots — must match InfuserScreenHandler.
 MILK = (26, 17)
 BUCKET = (26, 53)
 HEMP = (62, 17)
 WASHED = (62, 53)
-OUTPUT = (134, 35)
+OUTPUT = (138, 35)
 
 # Live overlays — must match InfuserScreen.
 BAR_XY, BAR_WH = (84, 39), (44, 5)
-FLAME_XY = (28, 37)
+# Centred on the bar (84 + 44/2 = 106, less half the flame's 14) and on the row of the bottom two
+# slots (53..68, less half of 14 about its centre).
+FLAME_XY = (99, 54)
 
 # Sprite regions in the sheet margin.
 BAR_AT = (176, 0)
@@ -56,146 +53,53 @@ NOTCH_AT = (176, 5)
 MARK_AT = (178, 5)
 FLAME_AT = (180, 5)
 
-# 6000 / 18000 -- one third along.
-NOTCH_FRACTION = 6000 / 18000
-
-px = [[CLEAR for _ in range(W)] for _ in range(H)]
-
-
-def rect(x, y, w, h, color):
-    for j in range(y, y + h):
-        for i in range(x, x + w):
-            if 0 <= i < W and 0 <= j < H:
-                px[j][i] = color
-
-
-def blit(rows, colors, ox, oy):
-    for j, line in enumerate(rows):
-        for i, ch in enumerate(line):
-            if ch != ".":
-                px[oy + j][ox + i] = colors[ch]
-
-
-def slot(x, y):
-    rect(x - 1, y - 1, 18, 18, SLOT_DARK)
-    rect(x, y, 17, 17, EDGE_LIGHT)
-    rect(x, y, 16, 16, SLOT_BG)
-
-
-# ---- panel ----
-rect(0, 0, PANEL_W, PANEL_H, BG)
-rect(0, 0, PANEL_W, 1, EDGE_LIGHT)
-rect(0, 0, 1, PANEL_H, EDGE_LIGHT)
-rect(0, PANEL_H - 1, PANEL_W, 1, EDGE_DARK)
-rect(PANEL_W - 1, 0, 1, PANEL_H, EDGE_DARK)
-
-for s in (MILK, BUCKET, HEMP, WASHED, OUTPUT):
-    slot(*s)
-
-for row in range(3):
-    for col in range(9):
-        slot(8 + col * 18, 84 + row * 18)
-for col in range(9):
-    slot(8 + col * 18, 142)
-
-# ---- empty bar track, sunk into the panel ----
-bx, by = BAR_XY
-bw, bh = BAR_WH
-rect(bx - 1, by - 1, bw + 2, bh + 2, TRACK_DARK)
-rect(bx, by, bw, bh, TRACK_BG)
-
-# The notch is NOT baked into the panel any more. The bar is scaled to each batch's own job rather
-# than to the clock, so the minimum-time mark moves with the washed ratio -- a third of the way along
-# for an all-washed batch, half for a half-washed one. Both marks are drawn at runtime by
-# InfuserScreen instead. NOTCH_FRACTION is kept only as documentation of the old fixed position.
-
-# ---- unlit flame outline, so the lit sprite has something to replace ----
-FLAME_OFF = [
-    "......##......",
-    ".....#..#.....",
-    "....#....#....",
-    "....#.....#...",
-    "...#.......#..",
-    "...#........#.",
-    "..#.........#.",
-    "..#.........#.",
-    "..#.........#.",
-    "..#.........#.",
-    "...#.......#..",
-    "....#.....#...",
-    ".....#...#....",
-    "......###.....",
+# The simmer bar is gold because vanilla's one horizontal container bar — the brewing stand's fuel
+# gauge — is gold, and this ramp is that sprite's own five tones. It also has to stay a colour: the
+# two marks that ride on it are vanilla's slot-dark and white, and a white fill would swallow one of
+# them. See InfuserScreen for what each mark answers.
+BAR_RAMP = [
+    (179, 107, 25, 255),   # B36B19
+    (255, 243, 45, 255),   # FFF32D
+    (255, 193, 0, 255),    # FFC100
+    (185, 147, 28, 255),   # B9931C
+    (191, 90, 0, 255),     # BF5A00
 ]
-blit(FLAME_OFF, {"#": (110, 110, 110, 255)}, *FLAME_XY)
+
+sheet = gui.Sheet()
+sheet.panel()
+
+for slot in (MILK, BUCKET, HEMP, WASHED):
+    sheet.slot(*slot)
+# Furnace-sized result well: vanilla marks what comes out by size.
+sheet.big_slot(*OUTPUT)
+
+sheet.player_inventory()
+
+# ---- empty bar track, sunk into the panel exactly as a slot is ----
+sheet.well(*BAR_XY, *BAR_WH)
+
+# The notch is NOT baked into the panel. The bar is scaled to each batch's own job rather than to
+# the clock, so the minimum-time mark moves with the washed ratio -- a third of the way along for an
+# all-washed batch, half for a half-washed one. Both marks are drawn at runtime by InfuserScreen.
+
+# ---- unlit heat indicator, so the lit sprite has something to replace ----
+sheet.blit(gui.FLAME_OFF, gui.FLAME_OFF_COLORS, *FLAME_XY)
 
 # ---- sprites in the margin ----
+bar_w, bar_h = BAR_WH
+for row, color in enumerate(BAR_RAMP[:bar_h]):
+    sheet.rect(BAR_AT[0], BAR_AT[1] + row, bar_w, 1, color)
 
-# Filled bar: a warm gradient so a nearly-done batch reads as richer, echoing the block's own
-# liquid tint deepening as it simmers.
-bar_rows = []
-for j in range(bh):
-    row = ""
-    for i in range(bw):
-        row += "a" if j in (0, bh - 1) else "b"
-    bar_rows.append(row)
-blit(bar_rows, {"a": (150, 118, 46, 255), "b": (200, 163, 70, 255)}, *BAR_AT)
+# The dark notch, drawn over the fill so it stays readable once the bar passes it. Vanilla's slot
+# shadow, which is legible against both the empty track and the gold.
+sheet.rect(*NOTCH_AT, 2, 7, gui.SLOT_DARK)
 
-# The notch marker drawn over the fill, so it stays readable once the bar passes it.
-NOTCH = ["##"] * 7
-blit(NOTCH, {"#": (60, 60, 60, 255)}, *NOTCH_AT)
+# The moving "next grade lands here" mark. White, so it separates cleanly from the dark notch AND
+# stays readable over the gold fill -- the two marks answer different questions and must never be
+# mistaken for each other: dark = "can I take it", bright = "should I wait".
+sheet.rect(*MARK_AT, 2, 7, gui.BEVEL_LIGHT)
 
-# The moving "next grade lands here" mark. Near-white so it separates cleanly from the dark notch
-# AND stays readable over the gold fill -- the two marks answer different questions and must never
-# be mistaken for each other: dark = "can I take it", bright = "should I wait".
-MARK = ["##"] * 7
-blit(MARK, {"#": (245, 245, 235, 255)}, *MARK_AT)
-
-FLAME_ON = [
-    "......##......",
-    ".....#oo#.....",
-    "....#ooyo#....",
-    "....#oyyyo#...",
-    "...#ooyYyo#...",
-    "...#oyYYyoo#..",
-    "..#ooyYYYyo#..",
-    "..#oyYYYYyo#..",
-    "..#oyYYYYyo#..",
-    "..#ooyYYyoo#..",
-    "...#ooyyoo#...",
-    "....#oooo#....",
-    ".....#oo#.....",
-    "......##......",
-]
-blit(FLAME_ON, {
-    "#": (90, 32, 6, 255),
-    "o": (200, 84, 18, 255),
-    "y": (240, 150, 40, 255),
-    "Y": (255, 216, 110, 255),
-}, *FLAME_AT)
-
-
-def write_png(path):
-    raw = bytearray()
-    for row in px:
-        raw.append(0)
-        for r, g, b, a in row:
-            raw += bytes((r, g, b, a))
-
-    def chunk(tag, data):
-        body = tag + data
-        return struct.pack(">I", len(data)) + body + struct.pack(">I", zlib.crc32(body) & 0xFFFFFFFF)
-
-    png = b"\x89PNG\r\n\x1a\n"
-    png += chunk(b"IHDR", struct.pack(">IIBBBBB", W, H, 8, 6, 0, 0, 0))
-    png += chunk(b"IDAT", zlib.compress(bytes(raw), 9))
-    png += chunk(b"IEND", b"")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as handle:
-        handle.write(png)
-    print("wrote", path, f"({W}x{H})")
-
+sheet.blit(gui.FLAME_ON, gui.FLAME_ON_COLORS, *FLAME_AT)
 
 if __name__ == "__main__":
-    here = os.path.dirname(os.path.abspath(__file__))
-    write_png(os.path.join(here, "..", "src", "main", "resources", "assets", "hempdustry",
-                           "textures", "gui", "container", "infuser.png"))
+    sheet.write(gui.resources("textures", "gui", "container", "infuser.png"))

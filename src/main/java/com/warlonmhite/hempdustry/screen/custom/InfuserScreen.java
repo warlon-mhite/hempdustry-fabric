@@ -43,11 +43,15 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
      */
     private static final int BAR_X = 84, BAR_Y = 39;
     /**
-     * Heat indicator, between the milk slot and the bucket return — a furnace's fire position, in a
-     * furnace's column. It still reports the block <em>below</em> the Infuser rather than a fuel
-     * level; borrowing the position borrows the reading "this is what makes it go".
+     * Heat indicator, centred under the bar and on the row of the bottom two slots.
+     *
+     * <p>It used to sit between the milk slot and the bucket return, borrowing a furnace's
+     * fire-in-the-middle-of-the-column arrangement. That read as a lie: this flame is not a fuel
+     * gauge and has nothing to do with either bucket — it reports whether the block <em>below</em>
+     * the Infuser is hot. Sitting it directly beneath the simmer bar puts it next to the one thing
+     * it actually governs, so "no heat, no progress" is legible without a tooltip.
      */
-    private static final int FLAME_X = 28, FLAME_Y = 37;
+    private static final int FLAME_X = 99, FLAME_Y = 54;
 
     public InfuserScreen(InfuserScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
