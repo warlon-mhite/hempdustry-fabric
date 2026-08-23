@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.SemanticVersion;
@@ -52,7 +53,24 @@ public final class UpdateChecker {
     private UpdateChecker() {
     }
 
+    /**
+     * Starts the check, unless {@code client.updateCheck} is off.
+     *
+     * <p><b>The switch is read here rather than at the call site</b> so there is exactly one place
+     * that decides, and so nothing about the mod's start-up order has to be remembered: the config
+     * is loaded by {@code Hempdustry.onInitialize}, and Fabric runs every {@code main} entrypoint
+     * before any {@code client} one. If that ever stopped being true the fallback is
+     * {@link HempdustryConfig#DEFAULT}, which checks — the safe way round for a switch whose only
+     * job is to stop a nag.
+     *
+     * <p>Turning it off is what a pack curator generally wants: in a 500-mod pack with pinned
+     * versions the announcement is noise <em>and</em> wrong, because the pack cannot take the
+     * update anyway.
+     */
     public static void init() {
+        if (!HempdustryConfig.get().client().updateCheck()) {
+            return;
+        }
         CompletableFuture.runAsync(UpdateChecker::fetchLatest);
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {

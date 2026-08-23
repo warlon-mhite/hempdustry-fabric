@@ -7,7 +7,7 @@ All notable changes to Hempdustry are recorded here. The format follows
 
 ## [Unreleased]
 
-Nothing yet.
+Nothing yet — everything below is still unreleased.
 
 ## [2.0.0] — unreleased
 
@@ -92,12 +92,19 @@ almost everything else is new or works differently.
 - **Eight locales**, kept 1:1 — five English variants and three French, with regional vocabulary
   rather than copy-paste.
 - **An update checker** that tells you once, on your first world join, if a newer release exists.
-  Client-side only, silent on any failure.
+  Client-side only, silent on any failure, and switched off with `client.updateCheck: false` in
+  `config/hempdustry.json` — which is what a pack with pinned versions generally wants.
 
 ### Notes for pack makers
 
 - **Fabric API is required.**
 - The mod is required on **both client and server**.
+- **`config/hempdustry.json` is written on first run**, commented, with every knob at its default —
+  effect duration and strength, the effect master switch (an "industrial hemp only" mode), green-out
+  and nausea toggles, cooldowns, crop and machine speed, the Infuser's two timings, the mod's
+  additions to vanilla loot tables, and `client.updateCheck`. Everything but that last one is applied
+  server-side, so a client needs no matching file. `/hempdustry reload` re-reads it. A knob added in a
+  later version appears in an existing file at its default; there is no migration step.
 - **Listing the mod in a pack is fine, monetised or not** — the launcher downloads it from Modrinth,
   so no licence is engaged at all. **Embedding, mirroring, modifying and forking are also permitted**,
   non-commercially, with credit and share-alike on anything adapted; the art and music are
@@ -108,7 +115,6 @@ almost everything else is new or works differently.
   consequence worth knowing: **another mod's buds cannot currently be decarboxylated.**
 - There is no JEI/EMI/REI plugin yet, so **packing a smoking device does not appear in a recipe
   viewer**. It is: an empty pipe or bong, plus one to three buds, in the crafting grid.
-- The update checker cannot yet be switched off. It runs client-side only and never on a server.
 
 #### Saves and updates
 

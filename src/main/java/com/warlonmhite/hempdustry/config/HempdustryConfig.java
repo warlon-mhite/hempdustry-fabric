@@ -55,12 +55,13 @@ import java.nio.file.Path;
  *
  * <p>{@code /hempdustry reload} re-reads it in place.
  */
-public record HempdustryConfig(Effects effects, World world, Infuser infuser, Loot loot) {
+public record HempdustryConfig(Client client, Effects effects, World world, Infuser infuser, Loot loot) {
 
     public static final HempdustryConfig DEFAULT = new HempdustryConfig(
-            Effects.DEFAULT, World.DEFAULT, Infuser.DEFAULT, Loot.DEFAULT);
+            Client.DEFAULT, Effects.DEFAULT, World.DEFAULT, Infuser.DEFAULT, Loot.DEFAULT);
 
     public static final Codec<HempdustryConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Client.CODEC.fieldOf("client").forGetter(HempdustryConfig::client),
             Effects.CODEC.fieldOf("effects").forGetter(HempdustryConfig::effects),
             World.CODEC.fieldOf("world").forGetter(HempdustryConfig::world),
             Infuser.CODEC.fieldOf("infuser").forGetter(HempdustryConfig::infuser),
@@ -138,7 +139,7 @@ public record HempdustryConfig(Effects effects, World world, Infuser infuser, Lo
 
     /** Every value pulled into its sane range, complaining about any it had to move. */
     private HempdustryConfig clamped() {
-        return new HempdustryConfig(effects.clamped(), world.clamped(), infuser.clamped(), loot.clamped());
+        return new HempdustryConfig(client, effects.clamped(), world.clamped(), infuser.clamped(), loot.clamped());
     }
 
     /**
@@ -152,6 +153,9 @@ public record HempdustryConfig(Effects effects, World world, Infuser infuser, Lo
         try {
             JsonElement encoded = CODEC.encodeStart(JsonOps.INSTANCE, config).getOrThrow();
             JsonObject root = encoded.getAsJsonObject();
+            comment(root, "client", "Read by a client, sent to nobody. updateCheck=false stops this client "
+                    + "asking Modrinth for a newer release on start-up; a dedicated server never asks. "
+                    + "Turn it off in a modpack, where the update it would announce cannot be taken anyway.");
             comment(root, "effects", "enabled=false is 'industrial hemp only': no drug effects anywhere. "
                     + "maxLevel caps every effect the mod applies. Multipliers are 0.05-10; "
                     + "greenOutChanceMultiplier 0 disables green-outs, as does greenOut=false.");
@@ -208,6 +212,25 @@ public record HempdustryConfig(Effects effects, World world, Infuser infuser, Lo
             Hempdustry.LOGGER.warn("Config {} was {}, clamped to {}", name, value, clamped);
         }
         return clamped;
+    }
+
+    /**
+     * The one section a <b>client</b> reads, and the only one in this file that a server never
+     * applies to anybody.
+     *
+     * <p>It disturbs nothing about the "server-side only, and that is not an accident" note above:
+     * this section is read by the client that owns the file and is sent nowhere, so it still needs
+     * no sync code. A dedicated server writes the section out and ignores it.
+     *
+     * @param updateCheck whether this client asks Modrinth for a newer release on start-up
+     */
+    public record Client(boolean updateCheck) {
+
+        public static final Client DEFAULT = new Client(true);
+
+        public static final Codec<Client> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.BOOL.fieldOf("updateCheck").forGetter(Client::updateCheck)
+        ).apply(instance, Client::new));
     }
 
     /**
