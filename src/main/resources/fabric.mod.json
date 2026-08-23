@@ -8,7 +8,7 @@
 		"Warlon Mhite"
 	],
 	"contributors": [
-		"Nefuß (music)"
+		"Nefu\u00df (music)"
 	],
 	"contact": {
 		"homepage": "https://github.com/warlon-mhite/hempdustry-fabric",
@@ -30,6 +30,12 @@
 		],
 		"client": [
 			"com.warlonmhite.hempdustry.HempdustryClient"
+		],
+		"emi": [
+			"com.warlonmhite.hempdustry.compat.emi.HempdustryEmiPlugin"
+		],
+		"jei_mod_plugin": [
+			"com.warlonmhite.hempdustry.compat.jei.HempdustryJeiPlugin"
 		]
 	},
 	"mixins": [

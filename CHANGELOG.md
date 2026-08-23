@@ -112,8 +112,9 @@ almost everything else is new or works differently.
   non-commercially, with credit and share-alike on anything adapted; the art and music are
   CC BY-NC-SA 4.0 and the code is AGPL-3.0-only, which does not restrict commercial use at all.
   **Only a commercial use needs to ask.** Full table in [CREDITS.md](CREDITS.md), inside the jar.
-- There is no JEI/EMI/REI plugin yet, so **packing a smoking device does not appear in a recipe
-  viewer**. It is: an empty pipe or bong, plus one to three buds, in the crafting grid.
+- **EMI and JEI plugins are included.** Both show the Decarboxylator, the Infuser and the two water-
+  cauldron soaks, and both list every way to pack a pipe or a bong in the ordinary crafting category,
+  where "move ingredients into the grid" works on them. REI is not supported.
 - Both directions of item automation work with Fabric storage mods: the machines can be extracted from
   by any pipe, and **the Infuser's spout pours into anything that exposes a storage** — an AE2
   interface, a Modern Industrialization pipe — as well as ordinary chests, hoppers and minecarts.

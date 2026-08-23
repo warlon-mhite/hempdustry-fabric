@@ -19,6 +19,16 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+
+	// The two recipe viewers. Both are compile-only -- see the dependencies block.
+	maven {
+		name = "TerraformersMC"          // EMI
+		url = "https://maven.terraformersmc.com/releases/"
+	}
+	maven {
+		name = "BlameJared"              // JEI
+		url = "https://maven.blamejared.com/"
+	}
 }
 
 fabricApi {
@@ -44,7 +54,39 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+
+	// Recipe viewers. Compiled against, never shipped: each plugin is loaded by its own viewer and
+	// by nothing else, so a player with neither installed never loads a line of that code.
+	modCompileOnly "dev.emi:emi-fabric:${project.emi_version}:api"
+
+	// jei-*-fabric-api pulls jei-*-common-api-INTERMEDIARY transitively, and that variant is the
+	// one that matters: the plain common-api jar is Mojang-mapped and its Minecraft references
+	// would not resolve in a yarn workspace. Verified with javap -- the intermediary jar's
+	// IRecipeCategory#getTitle returns class_2561, the Mojang-mapped one returns Component.
+	modCompileOnly "mezz.jei:jei-1.21.1-fabric-api:${project.jei_version}"
+
+	// ONE VIEWER AT A TIME IN DEV, and this is not a preference -- it is the only way to test JEI.
+	//
+	// With EMI also installed, JEI still starts, still finds this mod's plugin through the
+	// jei_mod_plugin entrypoint, still constructs it and still calls getPluginUid() on it about
+	// thirty times -- and then never calls a single registration phase. Nothing is logged, and the
+	// plugin looks dead while its code is fine. The cause is EMI: emi.mixins.json declares
+	// "jei.PluginCallerMixin", so EMI mixes into JEI's PluginCaller and suppresses it when both are
+	// present. Remove EMI and every phase fires immediately.
+	//
+	//   ./gradlew runClient                  # EMI (default)
+	//   ./gradlew runClient -Pviewer=jei     # JEI
+	//   ./gradlew runClient -Pviewer=none    # neither
+	//
+	// Players install one or the other, so this costs them nothing.
+	def viewer = project.findProperty("viewer") ?: "emi"
+	if (viewer == "emi") {
+		modLocalRuntime "dev.emi:emi-fabric:${project.emi_version}"
+	} else if (viewer == "jei") {
+		modLocalRuntime "mezz.jei:jei-1.21.1-fabric:${project.jei_version}"
+	} else if (viewer != "none") {
+		throw new GradleException("Unknown -Pviewer=${viewer}; use emi, jei or none")
+	}
 }
 
 processResources {
