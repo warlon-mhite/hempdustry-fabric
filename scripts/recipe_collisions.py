@@ -52,6 +52,18 @@ SHAPED_TYPES = {
     "minecraft:crafting_shaped",
     "hempdustry:infused_shaped",      # shaped; copies cannabutter's potency/quality to the output
 }
+# Recipe types that never touch the crafting grid, so they cannot collide in it. Listed rather than
+# left to fall through the `else`, because a silently ignored type is exactly how this scanner has
+# lost recipes twice -- an unlisted type and a deliberately excluded one look identical from the
+# outside. Anything not in one of these three sets is reported below.
+NON_CRAFTING_TYPES = {
+    "hempdustry:decarboxylating",     # one tray-load in the Decarboxylator
+    "hempdustry:infusing",            # the Infuser's whole conversion, in one recipe
+    # In the grid, but unscannable: a SpecialCraftingRecipe's JSON carries no ingredient list at
+    # all, so there is nothing here to compare. Its matcher requires a hempdustry device plus
+    # hempdustry buds, which nothing else in the game can produce. See the module docstring.
+    "hempdustry:packing",
+}
 
 
 def ingredient(v):
@@ -87,6 +99,13 @@ def load(root, namespace):
             elif kind in SHAPELESS_TYPES:
                 counts = collections.Counter(ingredient(v) for v in recipe["ingredients"])
                 out.append((rid, "shapeless", frozenset(counts.items()), None))
+            elif kind not in NON_CRAFTING_TYPES and not kind.startswith("minecraft:"):
+                # A hempdustry type nobody has classified. Saying so is the whole point: an
+                # unlisted crafting type is scanned as if it did not exist, and the run still
+                # prints "0 collisions".
+                print(f"UNSCANNED  {rid} has type {kind!r}, which is in none of SHAPED_TYPES, "
+                      f"SHAPELESS_TYPES or NON_CRAFTING_TYPES. Classify it in this script or it "
+                      f"is not being checked.")
     return out
 
 

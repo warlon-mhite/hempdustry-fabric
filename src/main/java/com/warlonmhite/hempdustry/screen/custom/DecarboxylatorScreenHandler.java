@@ -18,6 +18,7 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 
 /**
  * Menu for the {@link DecarboxylatorBlockEntity}: fuel on the left, the three trays across the top,
@@ -30,6 +31,12 @@ import net.minecraft.util.math.MathHelper;
 public class DecarboxylatorScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final PropertyDelegate propertyDelegate;
+    /**
+     * Kept because what a tray accepts is a recipe lookup now, not an item comparison, and a lookup
+     * needs a world. Held on both sides: recipes are synced, so the client's slot validation and
+     * shift-click routing agree with the server's without a round trip.
+     */
+    private final World world;
 
     /**
      * Greyed-out hints drawn in an empty slot, the same mechanism vanilla uses for the armour and
@@ -67,6 +74,7 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
         checkSize(inventory, DecarboxylatorBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
+        this.world = playerInventory.player.getWorld();
         inventory.onOpen(playerInventory.player);
 
         // Fuel: only things that actually burn. The flame hint tells the player that without a
@@ -89,7 +97,7 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
                     TRAY_X + tray * TRAY_SPACING, TRAY_Y) {
                 @Override
                 public boolean canInsert(ItemStack stack) {
-                    return DecarboxylatorBlockEntity.isTrayInput(stack);
+                    return DecarboxylatorBlockEntity.isTrayInput(playerInventory.player.getWorld(), stack);
                 }
 
                 @Override
@@ -178,7 +186,7 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
             }
         } else {
             // Player -> machine, routed by what the item actually is.
-            if (DecarboxylatorBlockEntity.isTrayInput(inSlot)) {
+            if (DecarboxylatorBlockEntity.isTrayInput(this.world, inSlot)) {
                 if (!this.insertItem(inSlot, DecarboxylatorBlockEntity.FIRST_TRAY_SLOT,
                         DecarboxylatorBlockEntity.FIRST_TRAY_SLOT + DecarboxylatorBlockEntity.TRAY_COUNT, false)) {
                     return ItemStack.EMPTY;

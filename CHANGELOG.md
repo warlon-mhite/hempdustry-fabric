@@ -110,9 +110,6 @@ almost everything else is new or works differently.
   non-commercially, with credit and share-alike on anything adapted; the art and music are
   CC BY-NC-SA 4.0 and the code is AGPL-3.0-only, which does not restrict commercial use at all.
   **Only a commercial use needs to ask.** Full table in [CREDITS.md](CREDITS.md), inside the jar.
-- Neither machine has a data-driven recipe type yet, so their conversions cannot be rebalanced with
-  KubeJS or CraftTweaker. Recipes in the crafting grid are ordinary datagen JSON and can be. A
-  consequence worth knowing: **another mod's buds cannot currently be decarboxylated.**
 - There is no JEI/EMI/REI plugin yet, so **packing a smoking device does not appear in a recipe
   viewer**. It is: an empty pipe or bong, plus one to three buds, in the crafting grid.
 
@@ -143,6 +140,11 @@ major version and it will say so here.
   the `c:foods` family.
 - **`#hempdustry:heat_sources`** — add a modded forge or crucible and it will heat an Infuser.
   **`#hempdustry:milk_buckets`** — add another mod's milk and the Infuser will take it.
+- **Both machines run on datapack recipes.** `hempdustry:decarboxylating` takes `ingredient` and
+  `result`, one file per input — that is how another mod's buds get into the oven, and how a pack
+  changes a yield. `hempdustry:infusing` is a single file describing the whole tub: `container`,
+  `hemp`, `washed_hemp`, `result`. Strength and Quality are measured by the machine and are not part
+  of the recipe. Both are rebalanceable with KubeJS and CraftTweaker.
 
 #### For mod authors
 

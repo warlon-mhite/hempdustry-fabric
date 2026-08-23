@@ -18,6 +18,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.util.math.MathHelper;
 
 /**
@@ -33,6 +34,11 @@ import net.minecraft.util.math.MathHelper;
 public class InfuserScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final PropertyDelegate propertyDelegate;
+    /**
+     * What the tub accepts is a recipe lookup now, not an item comparison, and a lookup needs a
+     * world. Recipes are synced, so shift-click routing agrees on both sides without a round trip.
+     */
+    private final World world;
 
     /**
      * Layout, shared with the screen and the GUI-texture generator.
@@ -63,6 +69,7 @@ public class InfuserScreenHandler extends ScreenHandler {
         checkSize(inventory, InfuserBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
+        this.world = playerInventory.player.getWorld();
         inventory.onOpen(playerInventory.player);
 
         this.addSlot(new HintSlot(inventory, InfuserBlockEntity.MILK_SLOT, MILK_X, MILK_Y, EMPTY_SLOT_MILK));
@@ -275,11 +282,11 @@ public class InfuserScreenHandler extends ScreenHandler {
             if (!this.insertItem(inSlot, playerStart, playerEnd, true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (InfuserBlockEntity.isMilk(inSlot)) {
+        } else if (InfuserBlockEntity.isMilk(this.world, inSlot)) {
             if (!this.insertItem(inSlot, InfuserBlockEntity.MILK_SLOT, InfuserBlockEntity.MILK_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (InfuserBlockEntity.isHemp(inSlot)) {
+        } else if (InfuserBlockEntity.isHemp(this.world, inSlot)) {
             // Either type into either hemp slot — insertItem walks the range and takes the first
             // that will have it, which is what makes shift-clicking a mixed batch in work at all.
             int firstHemp = InfuserBlockEntity.FIRST_HEMP_SLOT;

@@ -3,7 +3,7 @@ package com.warlonmhite.hempdustry.block.entity.custom;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
-import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -17,6 +17,7 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
@@ -79,7 +80,14 @@ public class DecarboxylatorBlockEntity extends BlockEntity
         return Math.max(1, (int) Math.round(COOK_TIME / speed));
     }
 
-    /** Decarboxylated hemp yielded per bud. Buds are the good stuff and pay out accordingly. */
+    /**
+     * Decarboxylated hemp yielded per bud. Buds are the good stuff and pay out accordingly.
+     *
+     * <p><b>These two are the shipped recipes' numbers, not the machine's.</b> Since the conversion
+     * became {@code hempdustry:decarboxylating} they are read by {@code ModRecipeProvider} and by
+     * nothing at runtime — a datapack decides what any given tray-load is worth. Kept as constants
+     * so the balance is still written down in one place.
+     */
     public static final int BUDS_OUTPUT = 4;
     /** Decarboxylated hemp yielded per fan leaf — bulk trim, worth a quarter of a bud. */
     public static final int LEAF_OUTPUT = 1;
@@ -141,23 +149,30 @@ public class DecarboxylatorBlockEntity extends BlockEntity
     // ----- what the trays accept -----
 
     /**
-     * How much decarboxylated hemp one of {@code stack}'s items is worth, or 0 if the Decarboxylator
-     * won't take it. Both strains' buds count — writing this indica-only is exactly the kind of
-     * accidental strain-specificity CLAUDE.md keeps a list of.
+     * What one of {@code stack}'s items cooks into, or {@link ItemStack#EMPTY} if the Decarboxylator
+     * won't take it.
+     *
+     * <p><b>This used to compare item identity against three fields</b>, which is exactly where a
+     * third-party strain's buds hit a wall: everything upstream — the strain registry, the tags, the
+     * smoking gear — would take them, and the oven would not. It is now a lookup in
+     * {@code hempdustry:decarboxylating}, so another mod adds a recipe and is done.
+     *
+     * <p>A {@code null} world (a block entity that has not been placed into one yet) answers empty
+     * rather than throwing: there are no recipes to consult, so there is no input either.
      */
-    public static int outputPerItem(ItemStack stack) {
-        Item item = stack.getItem();
-        if (item == ModItems.INDICA_BUDS || item == ModItems.SATIVA_BUDS) {
-            return BUDS_OUTPUT;
+    public static ItemStack resultFor(@Nullable World world, ItemStack stack) {
+        if (world == null || stack.isEmpty()) {
+            return ItemStack.EMPTY;
         }
-        if (item == ModItems.HEMP_LEAF) {
-            return LEAF_OUTPUT;
-        }
-        return 0;
+        SingleStackRecipeInput input = new SingleStackRecipeInput(stack);
+        return world.getRecipeManager()
+                .getFirstMatch(ModRecipes.DECARBOXYLATING_TYPE, input, world)
+                .map(entry -> entry.value().craft(input, world.getRegistryManager()))
+                .orElse(ItemStack.EMPTY);
     }
 
-    public static boolean isTrayInput(ItemStack stack) {
-        return outputPerItem(stack) > 0;
+    public static boolean isTrayInput(@Nullable World world, ItemStack stack) {
+        return !resultFor(world, stack).isEmpty();
     }
 
     public static boolean isFuel(ItemStack stack) {
@@ -188,7 +203,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
 
         boolean anyTrayReady = false;
         for (int tray = 0; tray < TRAY_COUNT; tray++) {
-            if (canCook(tray)) {
+            if (canCook(world, tray)) {
                 anyTrayReady = true;
                 break;
             }
@@ -215,11 +230,11 @@ public class DecarboxylatorBlockEntity extends BlockEntity
         }
 
         for (int tray = 0; tray < TRAY_COUNT; tray++) {
-            if (isBurning() && canCook(tray)) {
+            if (isBurning() && canCook(world, tray)) {
                 progress[tray]++;
                 if (progress[tray] >= cookTime()) {
                     progress[tray] = 0;
-                    cook(tray);
+                    cook(world, tray);
                 }
                 dirty = true;
             } else if (progress[tray] > 0) {
@@ -240,32 +255,37 @@ public class DecarboxylatorBlockEntity extends BlockEntity
         }
     }
 
-    /** Whether this tray has valid input and somewhere for its output to go. */
-    private boolean canCook(int tray) {
-        ItemStack input = getStack(FIRST_TRAY_SLOT + tray);
-        int per = outputPerItem(input);
-        if (per == 0) {
+    /**
+     * Whether this tray has valid input and somewhere for its output to go.
+     *
+     * <p>The collection slot is shared, so a tray whose recipe yields something the slot is not
+     * already holding simply waits — which is the same stall a furnace has when its output slot holds
+     * the wrong item, and the reason the components have to match and not just the item.
+     */
+    private boolean canCook(World world, int tray) {
+        ItemStack result = resultFor(world, getStack(FIRST_TRAY_SLOT + tray));
+        if (result.isEmpty()) {
             return false;
         }
         ItemStack output = getStack(OUTPUT_SLOT);
         if (output.isEmpty()) {
-            return per <= ModItems.DECARBOXYLATED_HEMP.getMaxCount();
+            return result.getCount() <= result.getMaxCount();
         }
-        return output.isOf(ModItems.DECARBOXYLATED_HEMP)
-                && output.getCount() + per <= output.getMaxCount();
+        return ItemStack.areItemsAndComponentsEqual(output, result)
+                && output.getCount() + result.getCount() <= output.getMaxCount();
     }
 
-    private void cook(int tray) {
+    private void cook(World world, int tray) {
         ItemStack input = getStack(FIRST_TRAY_SLOT + tray);
-        int per = outputPerItem(input);
-        if (per == 0) {
+        ItemStack result = resultFor(world, input);
+        if (result.isEmpty()) {
             return;
         }
         ItemStack output = getStack(OUTPUT_SLOT);
         if (output.isEmpty()) {
-            setStack(OUTPUT_SLOT, new ItemStack(ModItems.DECARBOXYLATED_HEMP, per));
+            setStack(OUTPUT_SLOT, result);
         } else {
-            output.increment(per);
+            output.increment(result.getCount());
         }
         input.decrement(1);
     }
@@ -286,7 +306,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
         return switch (slot) {
             case FUEL_SLOT -> isFuel(stack);
             case OUTPUT_SLOT -> false;
-            default -> isTrayInput(stack);
+            default -> isTrayInput(this.world, stack);
         };
     }
 

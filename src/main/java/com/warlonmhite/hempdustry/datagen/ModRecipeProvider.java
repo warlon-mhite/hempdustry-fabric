@@ -17,7 +17,10 @@ import java.util.Map;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.recipe.ContainerCarriedRecipe;
+import com.warlonmhite.hempdustry.recipe.DecarboxylatingRecipe;
+import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusedShapedRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusedShapelessRecipe;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
@@ -504,6 +507,37 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.ofItems(Items.HONEY_BOTTLE), Ingredient.ofItems(Items.SWEET_BERRIES)));
 
         // ---------------------------------------------------------------------
+        // The two machines' own conversions
+        // ---------------------------------------------------------------------
+        RegistryWrapper.Impl<Strain> strains = Strain.registry(this.registries);
+        // These are recipes rather than Java because that is what lets a third-party strain reach
+        // the oven, a pack rebalance the chain with KubeJS, and a recipe viewer show either machine
+        // at all. Neither goes in the recipe book — it only knows the crafting types — so neither
+        // carries an unlock advancement: there would be nothing for it to unlock.
+        //
+        // Buds come from the built-in strains rather than being named, exactly as the spliff recipes
+        // do, so strain #3 is decarboxylatable the moment it exists.
+        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
+            Strain strain = strains.getOrThrow(key).value();
+            offerDecarboxylating(exporter, Ingredient.ofItems(strain.buds()),
+                    new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.BUDS_OUTPUT),
+                    Registries.ITEM.getId(strain.buds()).getPath());
+        }
+        // Fan leaf: bulk trim, worth a quarter of a bud, and strain-agnostic like everything else
+        // downstream of the oven.
+        offerDecarboxylating(exporter, Ingredient.ofItems(ModItems.HEMP_LEAF),
+                new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.LEAF_OUTPUT),
+                "hemp_leaf");
+
+        // One recipe describing the whole tub. Strength and Quality stay in the block entity — they
+        // are measurements of the simmer, not of a recipe — but which items play each part is data.
+        exporter.accept(id("infusing"), new InfusingRecipe(
+                Ingredient.fromTag(ModTags.Items.MILK_BUCKETS),
+                Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
+                Ingredient.ofItems(ModItems.WASHED_DECARBOXYLATED_HEMP),
+                new ItemStack(ModItems.CANNABUTTER)), null);
+
+        // ---------------------------------------------------------------------
         // Smoking gear
         // ---------------------------------------------------------------------
         // Rolling a spliff: N buds over N paper gives a level-N joint, one recipe per strain per
@@ -516,7 +550,6 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // spliff undercutting a bong, which gets four hits out of the same three buds.
         // Built-in strains only, the same boundary the art takes: a datapack can define a strain
         // but it cannot ship a recipe file for it either.
-        RegistryWrapper.Impl<Strain> strains = Strain.registry(this.registries);
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             for (int dose = 1; dose <= ModItems.SPLIFF_MAX_DOSE; dose++) {
                 offerSpliff(exporter, strains.getOrThrow(key), dose);
@@ -729,6 +762,19 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .group("hempdustry_concrete_powder")
                 .criterion(hasItem(ModItems.HEMPCRETE), conditionsFromItem(ModItems.HEMPCRETE))
                 .offerTo(exporter, id(Registries.ITEM.getId(result.asItem()).getPath()));
+    }
+
+    /**
+     * One tray-load in the Decarboxylator. Named {@code decarboxylating/<input>} so the folder reads
+     * as the machine's whole recipe list, and so a datapack overriding one of ours knows where to
+     * put the file.
+     *
+     * <p>No unlock advancement: machine recipes are not in the recipe book, so there is nothing an
+     * advancement could reveal. See {@code DecarboxylatingRecipe}.
+     */
+    private static void offerDecarboxylating(RecipeExporter exporter, Ingredient input,
+                                             ItemStack result, String name) {
+        exporter.accept(id("decarboxylating/" + name), new DecarboxylatingRecipe(input, result), null);
     }
 
     private static Identifier id(String path) {

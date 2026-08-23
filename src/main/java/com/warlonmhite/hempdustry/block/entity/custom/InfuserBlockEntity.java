@@ -6,8 +6,8 @@ import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
-import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.Quality;
+import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -263,21 +263,39 @@ public class InfuserBlockEntity extends BlockEntity
 
     // ----- what the slots accept -----
 
-    public static boolean isMilk(ItemStack stack) {
-        return stack.isIn(ModTags.Items.MILK_BUCKETS);
+    /**
+     * The conversion this world is running, or {@code null} if a pack has removed it. Everything
+     * below reads the items it accepts and the item it yields from here rather than naming them, so
+     * a pack can widen or rebalance the tub without a code change — see {@link InfusingRecipe}.
+     *
+     * <p><b>Cheap enough to call per tick:</b> it is a lookup in the recipe manager's by-type
+     * multimap and allocates nothing. The shipped recipe still points {@code container} at
+     * {@code #hempdustry:milk_buckets}, so widening what counts as milk stays a tag edit.
+     */
+    @Nullable
+    private static InfusingRecipe recipe(@Nullable World world) {
+        return world == null ? null : InfusingRecipe.of(world);
     }
 
-    public static boolean isUnwashedHemp(ItemStack stack) {
-        return stack.isOf(ModItems.DECARBOXYLATED_HEMP);
+    public static boolean isMilk(@Nullable World world, ItemStack stack) {
+        InfusingRecipe recipe = recipe(world);
+        return recipe != null && recipe.container().test(stack);
     }
 
-    public static boolean isWashedHemp(ItemStack stack) {
-        return stack.isOf(ModItems.WASHED_DECARBOXYLATED_HEMP);
+    public static boolean isUnwashedHemp(@Nullable World world, ItemStack stack) {
+        InfusingRecipe recipe = recipe(world);
+        return recipe != null && recipe.hemp().test(stack);
+    }
+
+    public static boolean isWashedHemp(@Nullable World world, ItemStack stack) {
+        InfusingRecipe recipe = recipe(world);
+        return recipe != null && recipe.washedHemp().test(stack);
     }
 
     /** Either kind of decarboxylated hemp — both hemp slots accept both. */
-    public static boolean isHemp(ItemStack stack) {
-        return isUnwashedHemp(stack) || isWashedHemp(stack);
+    public static boolean isHemp(@Nullable World world, ItemStack stack) {
+        InfusingRecipe recipe = recipe(world);
+        return recipe != null && (recipe.hemp().test(stack) || recipe.washedHemp().test(stack));
     }
 
     /**
@@ -416,7 +434,7 @@ public class InfuserBlockEntity extends BlockEntity
      */
     private boolean intakeMilk() {
         ItemStack milk = getStack(MILK_SLOT);
-        if (haveMilk || !isMilk(milk)) {
+        if (haveMilk || !isMilk(this.world, milk)) {
             return false;
         }
         ItemStack empty = emptiedContainer(milk);
@@ -499,7 +517,7 @@ public class InfuserBlockEntity extends BlockEntity
             boolean wantWashed = pass == 1;
             for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
                 ItemStack stack = getStack(FIRST_HEMP_SLOT + i);
-                if (wantWashed ? isWashedHemp(stack) : isUnwashedHemp(stack)) {
+                if (wantWashed ? isWashedHemp(this.world, stack) : isUnwashedHemp(this.world, stack)) {
                     stack.decrement(1);
                     if (wantWashed) {
                         batchWashed++;
@@ -517,7 +535,7 @@ public class InfuserBlockEntity extends BlockEntity
         int total = 0;
         for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
             ItemStack stack = getStack(FIRST_HEMP_SLOT + i);
-            if (isHemp(stack)) {
+            if (isHemp(this.world, stack)) {
                 total += stack.getCount();
             }
         }
@@ -609,18 +627,25 @@ public class InfuserBlockEntity extends BlockEntity
         return isReady() && hasBatch() && Quality.of(timePercent(), washedPercent()) == bestQuality();
     }
 
-    /** The cannabutter this batch would yield right now. Only called when one is actually wanted. */
-    private ItemStack previewStack(int strength, Quality quality) {
-        ItemStack butter = new ItemStack(ModItems.CANNABUTTER);
+    /**
+     * The cannabutter this batch would yield right now. Only called when one is actually wanted.
+     *
+     * <p>The item and its count come from the recipe; the two components do not. Strength and
+     * Quality are what <em>this machine</em> measured — how much hemp dissolved in, and the score
+     * over the simmer and the washed ratio — so they are stamped on whatever the recipe yields
+     * rather than being part of it.
+     */
+    private ItemStack previewStack(InfusingRecipe recipe, int strength, Quality quality) {
+        ItemStack butter = recipe.result().copy();
         butter.set(ModComponents.STRENGTH, strength);
         butter.set(ModComponents.QUALITY, quality);
         return butter;
     }
 
     /** Whether {@code shown} is already the preview a batch of this strength and grade wants. */
-    private static boolean showsPreview(ItemStack shown, int strength, Quality quality) {
-        return shown.isOf(ModItems.CANNABUTTER)
-                && shown.getCount() == 1
+    private static boolean showsPreview(ItemStack shown, InfusingRecipe recipe, int strength, Quality quality) {
+        return shown.isOf(recipe.result().getItem())
+                && shown.getCount() == recipe.result().getCount()
                 && Integer.valueOf(strength).equals(shown.get(ModComponents.STRENGTH))
                 && shown.get(ModComponents.QUALITY) == quality;
     }
@@ -703,7 +728,8 @@ public class InfuserBlockEntity extends BlockEntity
      */
     private boolean refreshPreview() {
         ItemStack shown = getStack(OUTPUT_SLOT);
-        if (!isReady() || !hasBatch()) {
+        InfusingRecipe recipe = recipe(this.world);
+        if (recipe == null || !isReady() || !hasBatch()) {
             if (shown.isEmpty()) {
                 return false;
             }
@@ -712,10 +738,10 @@ public class InfuserBlockEntity extends BlockEntity
         }
         int strength = batchHemp();
         Quality quality = Quality.of(timePercent(), washedPercent());
-        if (showsPreview(shown, strength, quality)) {
+        if (showsPreview(shown, recipe, strength, quality)) {
             return false;
         }
-        setStack(OUTPUT_SLOT, previewStack(strength, quality));
+        setStack(OUTPUT_SLOT, previewStack(recipe, strength, quality));
         return true;
     }
 
@@ -794,12 +820,23 @@ public class InfuserBlockEntity extends BlockEntity
      */
     public DefaultedList<ItemStack> getBatchItems() {
         DefaultedList<ItemStack> spill = DefaultedList.of();
-        addBatchStacks(spill, ModItems.DECARBOXYLATED_HEMP, batchUnwashed);
-        addBatchStacks(spill, ModItems.WASHED_DECARBOXYLATED_HEMP, batchWashed);
+        InfusingRecipe recipe = recipe(this.world);
+        if (recipe == null) {
+            // No conversion means nothing was ever absorbed under one; nothing to hand back.
+            return spill;
+        }
+        // The batch counts items, not stacks, so which of an ingredient's matches went in is not
+        // recorded anywhere. The first match is the only answer available, and the right one for
+        // every single-item ingredient — which both of the shipped ones are.
+        addBatchStacks(spill, InfusingRecipe.representative(recipe.hemp()).getItem(), batchUnwashed);
+        addBatchStacks(spill, InfusingRecipe.representative(recipe.washedHemp()).getItem(), batchWashed);
         return spill;
     }
 
     private static void addBatchStacks(DefaultedList<ItemStack> out, Item item, int count) {
+        if (item == Items.AIR) {
+            return; // an ingredient with no matching stacks: nothing sensible to hand back
+        }
         int max = item.getMaxCount();
         while (count > 0) {
             int take = Math.min(count, max);
@@ -867,10 +904,10 @@ public class InfuserBlockEntity extends BlockEntity
     @Override
     public boolean isValid(int slot, ItemStack stack) {
         if (slot == MILK_SLOT) {
-            return isMilk(stack);
+            return isMilk(this.world, stack);
         }
         if (slot >= FIRST_HEMP_SLOT && slot < FIRST_HEMP_SLOT + HEMP_SLOT_COUNT) {
-            return isHemp(stack);
+            return isHemp(this.world, stack);
         }
         // The output and the bucket return are both take-only: only the machine puts things there.
         return false;
