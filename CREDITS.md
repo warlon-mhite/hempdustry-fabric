@@ -10,6 +10,7 @@ two of the licences below ask for attribution and attribution should travel with
 | Original art | Warlon Mhite | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
 | Music — two tracks | **Nefuß** | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
 | Textures derived from Minecraft | Mojang | not ours to licence — see below |
+| The logo wordmark | several — see below | mixed; parts are not ours to licence |
 | People depicted in the paintings | themselves | not ours to licence — see below |
 
 ---
@@ -82,6 +83,34 @@ derivatives"* remain Mojang's and Microsoft's.
 
 They are present the way any resource pack's edits are present, and they are being replaced with
 original art over time.
+
+### The logo wordmark is assembled from other people's work
+
+The **Hempdustry 2** wordmark — *HEMPDUSTRY 2* over a *HEMPREPRENEUR EDITION* strip — was built with
+the [Minecraft Title Generator](https://ewanhowell.com/plugins/minecraft-title-generator/), a
+Blockbench plugin by **Ewan Howell**. It is a promotional asset and is **not in the jar**.
+
+| Part | Who |
+|---|---|
+| The plugin itself | Ewan Howell |
+| Title typeface — *Minecraft Ten* | the Minecraft logo typeface — **Mojang's letterforms** |
+| Subtitle typeface — *Minecraft Five Bold* | Ewan Howell |
+| Title texture — *Grass* | ShrimpSnail, DamienBrittan & blank3times |
+| Title texture — *Grass Side* variant | Magminer & Ewan Howell, after Minecraft's grass block |
+| Subtitle texture — *Flat* | Ewan Howell |
+| The composition — wording, colour, proportions, layout | Warlon Mhite |
+
+**Only the last row is the author's.** The letterforms are the Minecraft logo's own, and the grass
+texture is derived from Mojang's grass block, so the wordmark falls under the same heading as the
+derived textures above: **not ours to licence**, and excluded from the CC BY-NC-SA grant. The
+generator's fonts and textures are contributed to Ewan Howell's
+[repository](https://github.com/ewanhowell5195/MinecraftTitleGenerator/) by their named authors;
+check the terms there before reusing any of it away from this mod.
+
+Treat the wordmark the way the name itself is treated below — descriptive use is welcome, using it
+as the identity of something else is not.
+
+The editable source is kept outside the repository, next to the render.
 
 ## The name
 
