@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "hempdustry:block/sativa_flower"
+    "half=lower": {
+      "model": "hempdustry:block/sativa_flower_bottom"
+    },
+    "half=upper": {
+      "model": "hempdustry:block/sativa_flower_top"
     }
   }
 }

@@ -9,6 +9,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
 import net.minecraft.block.Block;
+import net.minecraft.block.TallPlantBlock;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.Enchantments;
@@ -211,13 +212,29 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
     /**
      * Wild Lemon Haze: the same deal as the wild Purple Kush above — shears or Silk Touch lift the
      * flower itself for potting, anything else breaks it down into that strain's seeds.
+     *
+     * <h2>The {@code half=lower} guard is the whole difference from indica's</h2>
+     *
+     * This flower is <b>two blocks tall</b>, and a two-block plant rolls its loot table <em>twice</em>
+     * per break: once for the half the player hit, once as the orphaned half pops off in the
+     * neighbour update. Without a guard the player gets two flowers, or two rolls of the seed
+     * bonus, from one plant — silently, and in the generous direction (`crops.md`, *the tall-plant
+     * loot double-roll*). Pinning the pool to the lower half means exactly one of the two rolls can
+     * ever pay out, whichever half was struck. It is the same fix vanilla's {@code rose_bush} table
+     * uses, and the same one {@code hempCropDrops} applies through {@code isLower}.
      */
     private LootTable.Builder sativaFlowerDrops() {
         RegistryEntry<Enchantment> fortune = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
-        return this.dropsWithSilkTouchOrShears(ModBlocks.SATIVA_FLOWER,
-                this.applyExplosionDecay(ModBlocks.SATIVA_FLOWER,
-                        ItemEntry.builder(ModItems.SATIVA_SEEDS)
-                                .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))));
+        LootCondition.Builder isLower = BlockStatePropertyLootCondition.builder(ModBlocks.SATIVA_FLOWER)
+                .properties(StatePredicate.Builder.create().exactMatch(TallPlantBlock.HALF, DoubleBlockHalf.LOWER));
+        return LootTable.builder().pool(LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1.0F))
+                .conditionally(isLower)
+                .with(ItemEntry.builder(ModBlocks.SATIVA_FLOWER)
+                        .conditionally(WITH_SHEARS.or(this.createSilkTouchCondition()))
+                        .alternatively(this.applyExplosionDecay(ModBlocks.SATIVA_FLOWER,
+                                ItemEntry.builder(ModItems.SATIVA_SEEDS)
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))));
     }
 
     /**

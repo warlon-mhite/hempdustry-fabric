@@ -8,6 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
+import net.minecraft.block.Block;
 import net.minecraft.block.CakeBlock;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -55,8 +56,12 @@ public class ModModelProvider extends FabricModelProvider {
 
         registerSpaceCake(blockStateModelGenerator);
 
-        blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockStateModelGenerator.TintType.NOT_TINTED);
-        blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER, BlockStateModelGenerator.TintType.NOT_TINTED);
+        // TINTED, not NOT_TINTED: both wild flowers take the biome tint that HempdustryClient
+        // registers, the same as the crops do. TintType only decides whether the generated models
+        // carry "tintindex": 0 — vanilla's own ferns are potted through the tinted pair, so a
+        // potted wild flower picking up the room's biome is what a player already expects.
+        blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockStateModelGenerator.TintType.TINTED);
+        registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
 
         // The crops' blockstates and stage models are hand-written under resources/ — the model
         // generator has no notion of a two- or three-tall crop, so INDICA_CROP and SATIVA_CROP
@@ -284,4 +289,33 @@ public class ModModelProvider extends FabricModelProvider {
         return Hempdustry.MOD_ID + ":block/space_cake_" + face;
     }
 
+
+    /**
+     * {@code registerFlowerPotPlant} for a plant that is two blocks tall, which vanilla has no
+     * helper for — nothing in vanilla is both a double plant and pottable.
+     *
+     * <p>Three of the four pieces are vanilla's own: {@code registerDoubleBlock} writes the
+     * {@code half=lower|upper} blockstate, and both halves upload as {@code TINTED_CROSS} so the
+     * biome tint in {@code HempdustryClient} has a {@code tintindex} to land on.
+     *
+     * <p><b>The item and the flower pot deliberately take the BOTTOM texture.</b> Vanilla's
+     * {@code registerDoubleBlock(block, TintType)} would hand both the {@code _top} one — right for
+     * a rose bush, whose flowers are up top, and wrong here. Lemon Haze is the lanky strain: its
+     * top half is a sparse scatter of leaflets up a bare stem, while the bottom is the dense,
+     * recognisable half. That is the better inventory icon, and a pot wants the base of a plant in
+     * it rather than its tip. That single difference is why this does not just call the vanilla
+     * overload.
+     */
+    private static void registerTallFlowerPotPlant(BlockStateModelGenerator generator, Block flower, Block potted) {
+        Identifier top = Models.TINTED_CROSS.upload(flower, "_top",
+                TextureMap.cross(TextureMap.getSubId(flower, "_top")), generator.modelCollector);
+        Identifier bottom = Models.TINTED_CROSS.upload(flower, "_bottom",
+                TextureMap.cross(TextureMap.getSubId(flower, "_bottom")), generator.modelCollector);
+        generator.registerDoubleBlock(flower, top, bottom);
+        generator.registerItemModel(flower, "_bottom");
+
+        Identifier pot = Models.TINTED_FLOWER_POT_CROSS.upload(potted,
+                TextureMap.plant(TextureMap.getSubId(flower, "_bottom")), generator.modelCollector);
+        generator.blockStateCollector.accept(BlockStateModelGenerator.createSingletonBlockState(potted, pot));
+    }
 }

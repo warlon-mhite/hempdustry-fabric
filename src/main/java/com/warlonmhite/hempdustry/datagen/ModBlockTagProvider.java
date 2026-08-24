@@ -67,9 +67,13 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         getOrCreateTagBuilder(BlockTags.SWORD_EFFICIENT)
                 .add(ModBlocks.INDICA_FLOWER)
                 .add(ModBlocks.SATIVA_FLOWER);
+        // SATIVA_FLOWER is deliberately absent: it is two blocks tall, and an enderman lifts ONE
+        // block. Taking either half orphans the other, which pops off and rolls the loot table --
+        // so the mob destroys the plant instead of relocating it, and the block it carries can only
+        // ever be put back down as a lone half that immediately breaks again. Vanilla has no double
+        // plant in this tag for the same reason.
         getOrCreateTagBuilder(BlockTags.ENDERMAN_HOLDABLE)
-                .add(ModBlocks.INDICA_FLOWER)
-                .add(ModBlocks.SATIVA_FLOWER);
+                .add(ModBlocks.INDICA_FLOWER);
 
         // What will heat an Infuser standing on top of it. Anything here that carries a LIT
         // property must also be lit (see InfuserBlockEntity#isHeatedFrom), which is what makes the

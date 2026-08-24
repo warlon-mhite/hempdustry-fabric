@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/tinted_cross",
   "textures": {
-    "cross": "hempdustry:block/sativa_crop_stage7_top"
+    "cross": "hempdustry:block/sativa_flower_top"
   }
 }

@@ -139,7 +139,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
 
     /** Every value pulled into its sane range, complaining about any it had to move. */
     private HempdustryConfig clamped() {
-        return new HempdustryConfig(client, effects.clamped(), world.clamped(), infuser.clamped(), loot.clamped());
+        return new HempdustryConfig(client.clamped(), effects.clamped(), world.clamped(), infuser.clamped(), loot.clamped());
     }
 
     /**
@@ -155,7 +155,10 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
             JsonObject root = encoded.getAsJsonObject();
             comment(root, "client", "Read by a client, sent to nobody. updateCheck=false stops this client "
                     + "asking Modrinth for a newer release on start-up; a dedicated server never asks. "
-                    + "Turn it off in a modpack, where the update it would announce cannot be taken anyway.");
+                    + "Turn it off in a modpack, where the update it would announce cannot be taken anyway. "
+                    + "biomeTintStrength is 0-1: how far hemp growing in the world is pulled towards the "
+                    + "local grass colour, so a plant does not clash with the biome around it. "
+                    + "0 paints the crops exactly as drawn, 1 is the full tint vanilla gives grass.");
             comment(root, "effects", "enabled=false is 'industrial hemp only': no drug effects anywhere. "
                     + "maxLevel caps every effect the mod applies. Multipliers are 0.05-10; "
                     + "greenOutChanceMultiplier 0 disables green-outs, as does greenOut=false.");
@@ -222,15 +225,30 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * this section is read by the client that owns the file and is sent nowhere, so it still needs
      * no sync code. A dedicated server writes the section out and ignores it.
      *
-     * @param updateCheck whether this client asks Modrinth for a newer release on start-up
+     * @param updateCheck       whether this client asks Modrinth for a newer release on start-up
+     * @param biomeTintStrength  how far the crops and wild flowers are pulled towards the local
+     *                           grass colour, {@code 0} (paint as drawn) to {@code 1} (full vanilla
+     *                           grass tint). See {@code HempdustryClient#biomeTint}
      */
-    public record Client(boolean updateCheck) {
+    public record Client(boolean updateCheck, double biomeTintStrength) {
 
-        public static final Client DEFAULT = new Client(true);
+        /**
+         * 0.35 is the whole point of the knob's existence: enough of the biome to stop a bright
+         * lime sativa shouting over a taiga, little enough that the two strains still read as
+         * different plants and the gold pistils stay gold. A full 1.0 is vanilla's grass behaviour
+         * and collapses both strains onto the same green.
+         */
+        public static final Client DEFAULT = new Client(true, 0.35);
 
         public static final Codec<Client> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codec.BOOL.fieldOf("updateCheck").forGetter(Client::updateCheck)
+                Codec.BOOL.fieldOf("updateCheck").forGetter(Client::updateCheck),
+                Codec.DOUBLE.fieldOf("biomeTintStrength").forGetter(Client::biomeTintStrength)
         ).apply(instance, Client::new));
+
+        Client clamped() {
+            return new Client(updateCheck,
+                    clampDouble("client.biomeTintStrength", biomeTintStrength, 0.0, 1.0));
+        }
     }
 
     /**

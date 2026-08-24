@@ -14,6 +14,8 @@ import net.minecraft.client.item.ModelPredicateProvider;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
+import net.minecraft.client.color.world.BiomeColors;
+import com.warlonmhite.hempdustry.config.HempdustryConfig;
 
 import java.util.HashMap;
 import com.warlonmhite.hempdustry.client.UpdateChecker;
@@ -54,6 +56,66 @@ public class HempdustryClient implements ClientModInitializer {
 
         registerItemProperties();
         registerItemColors();
+        registerBlockColors();
+    }
+
+    /** Neutral white: multiplied into a texel it changes nothing, which is what "no tint" means. */
+    private static final int NO_TINT = 0xFFFFFF;
+
+    /**
+     * Pulls the living plants part-way towards the grass colour of the biome they stand in, so a
+     * field of hemp stops fighting the ground it grows out of.
+     *
+     * <h2>Why part-way, and not vanilla's tint</h2>
+     *
+     * Grass, ferns and sugar cane hand vanilla's grass colour straight through, but they are drawn
+     * as near-greyscale art <em>meant</em> to be coloured by the biome. Ours are not: the two
+     * strains are told apart by their greens — Purple Kush's muted grey-green
+     * ({@code #435949}, {@code #4F7460}) against Lemon Haze's bright lime ({@code #549154},
+     * {@code #6BB269}) — and a full tint multiplies both down onto the same biome colour, erasing
+     * the difference. Blending the tint towards white instead keeps each strain's own hue and only
+     * nudges it: at the default 0.35, a sativa leaf reads {@code #478340} in plains and
+     * {@code #40863D} in a jungle, and the gold pistils stay gold ({@code #C9891F} / {@code #B68C1D})
+     * rather than turning olive.
+     *
+     * <p>The tint is applied by the <em>model</em>, not here: only faces carrying
+     * {@code "tintindex": 0} ask, which is why the crop stage models parent
+     * {@code minecraft:block/tinted_cross} and the flowers are datagen'd {@code TintType.TINTED}.
+     * The bud, seed and flower <b>items</b> are untouched — their models declare no tint index, so
+     * an item in a hand or a slot looks exactly as drawn, with no biome to ask about anyway.
+     *
+     * <p>Break and step particles need no work: {@code BlockDustParticle} multiplies itself by
+     * {@code BlockColors.getColor(state, world, pos, 0)}, so they follow this automatically.
+     *
+     * <p>Returning ARGB is deliberate but, unlike the item tint above, the alpha byte is
+     * <em>ignored</em> here — {@code BlockModelRenderer} reads only the three colour bytes off a
+     * block tint. {@link ColorHelper.Argb#lerp} is used for the blend all the same, so the value
+     * that leaves this method is a well-formed colour rather than one that only works by luck.
+     */
+    private static void registerBlockColors() {
+        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> {
+            // view/pos are null when a block is coloured outside a world — an inventory render. No
+            // biome exists there, so the honest answer is the art as drawn.
+            if (tintIndex != 0 || view == null || pos == null) {
+                return NO_TINT;
+            }
+            return biomeTint(BiomeColors.getGrassColor(view, pos));
+        }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP,
+                ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
+                ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
+    }
+
+    /**
+     * {@code grassColor} blended towards white by {@code 1 - client.biomeTintStrength}.
+     *
+     * <p>Strength {@code 0} therefore returns pure white — a multiply by 1.0, so the config's "off"
+     * costs a lerp and nothing else, and no branch is needed to honour it.
+     */
+    private static int biomeTint(int grassColor) {
+        return ColorHelper.Argb.lerp(
+                (float) HempdustryConfig.get().client().biomeTintStrength(),
+                NO_TINT,
+                grassColor);
     }
 
     /**
