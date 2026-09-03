@@ -3,13 +3,20 @@
 All notable changes to Hempdustry are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/). Jars are versioned `MAJOR.MINOR.PATCH+MCVERSION`, so
-`2.0.0+1.21.1` is release 2.0.0 built for Minecraft 1.21.1.
+`2.0.0+1.21.1` is release 2.0.0 built for Minecraft 1.21.1. A pre-release carries its tag in the
+same place: `2.0.0-beta+1.21.1` sorts *before* `2.0.0+1.21.1`, which is what lets a player on the
+beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below is still unreleased.
+Nothing yet — everything below shipped in the beta.
 
-## [2.0.0] — unreleased
+## [2.0.0-beta] — 2026-09-03
+
+The first public build of the rewrite, and a beta because most of it has never been played. The
+feature list below is what 2.0.0 will be; what the beta is asking for is whether it holds up with a
+player in it. Saves made with it open on 2.0.0 — the no-breaking-changes promise starts here, not
+at the final release.
 
 **Hempdustry 2 — the Fabric rewrite.** The mod was originally a Forge 1.16 mod built with MCreator;
 this is a hand-written rewrite for Fabric 1.21.1 and the first release on that line. The version
@@ -166,8 +173,8 @@ major version and it will say so here.
 
   ```gradle
   repositories { maven { url = "https://api.modrinth.com/maven" } }
-  dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0+1.21.1" }
+  dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.0
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.0-beta...HEAD
+[2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.0-beta

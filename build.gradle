@@ -131,7 +131,7 @@ jar {
 // file as a maven artifact for free, which is the one an addon author will actually use:
 //
 //   repositories { maven { url = "https://api.modrinth.com/maven" } }
-//   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0+1.21.1" }
+//   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
 //
 // GitHub Packages is the second, for builds that are not on Modrinth yet. It is only wired up when
 // credentials are actually present, so a clean clone still builds and `publish` still works

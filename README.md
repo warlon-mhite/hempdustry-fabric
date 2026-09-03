@@ -14,10 +14,14 @@ actually been for over the last five thousand years.
 
 **Download:** SOON
 
-> **Status: version 2.0.0**
+> **Status: version 2.0.0-beta**
 > This is a rewrite for Fabric 1.21.1 of an older Forge 1.16 mod (GanjaCraft) that was built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
+>
+> It is a **beta** because most of the mod has never been played, not because it is known to be
+> broken: it builds, it loads on a dedicated server without a warning, and its data all validates.
+> What has not happened is somebody playing through it. Bug reports are the point.
 
 ---
 
