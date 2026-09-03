@@ -15,8 +15,14 @@ Nothing yet — everything below shipped in the beta.
 
 The first public build of the rewrite, and a beta because most of it has never been played. The
 feature list below is what 2.0.0 will be; what the beta is asking for is whether it holds up with a
-player in it. Saves made with it open on 2.0.0 — the no-breaking-changes promise starts here, not
-at the final release.
+player in it.
+
+**What "beta" means for your world.** The intent is that a beta world opens on 2.0.0, and the mod
+already ships compatibility shims it did not strictly owe anyone. But the promise that a world always
+survives an update starts at **2.0.0 stable**, not here — if play-testing turns up something that
+should have been built differently, the beta is when it is still cheap to fix. Any build that does
+break something will say so under an explicit **Breaking** heading, naming what you lose. Keep a
+backup of a world you care about, as with any beta.
 
 **Hempdustry 2 — the Fabric rewrite.** The mod was originally a Forge 1.16 mod built with MCreator;
 this is a hand-written rewrite for Fabric 1.21.1 and the first release on that line. The version
