@@ -18,6 +18,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.recipe.ShapelessRecipe;
 import net.minecraft.recipe.book.CraftingRecipeCategory;
 import net.minecraft.registry.RegistryWrapper;
@@ -97,10 +99,9 @@ public class HempdustryJeiPlugin implements IModPlugin {
             // rebuilds on world join, which is when this becomes answerable.
             return;
         }
-        var recipes = client.world.getRecipeManager();
 
-        registration.addRecipes(decarboxylating.getRecipeType(), ViewerRecipes.decarboxylating(recipes));
-        registration.addRecipes(infusing.getRecipeType(), ViewerRecipes.infusing(recipes));
+        registration.addRecipes(decarboxylating.getRecipeType(), ViewerRecipes.decarboxylating(client.world));
+        registration.addRecipes(infusing.getRecipeType(), ViewerRecipes.infusing(client.world));
         registration.addRecipes(cauldron.getRecipeType(), ViewerRecipes.cauldron());
 
         // Packing goes into JEI's own crafting category rather than one of ours, which is what makes
@@ -121,12 +122,11 @@ public class HempdustryJeiPlugin implements IModPlugin {
     private static List<RecipeEntry<CraftingRecipe>> packingAsCrafting(RegistryWrapper.WrapperLookup registries) {
         List<RecipeEntry<CraftingRecipe>> out = new ArrayList<>();
         for (ViewerRecipes.Packing packing : ViewerRecipes.packing(registries)) {
-            DefaultedList<Ingredient> ingredients = DefaultedList.ofSize(packing.inputs().size(), Ingredient.EMPTY);
-            for (int i = 0; i < packing.inputs().size(); i++) {
-                ingredients.set(i, packing.inputs().get(i));
-            }
-            out.add(new RecipeEntry<>(packing.id(),
-                    new ShapelessRecipe("", CraftingRecipeCategory.MISC, packing.output(), ingredients)));
+            // A RecipeEntry is keyed by a RegistryKey<Recipe<?>> since 1.21.4, and a shapeless
+            // recipe takes a plain List rather than a DefaultedList.
+            out.add(new RecipeEntry<>(RegistryKey.of(RegistryKeys.RECIPE, packing.id()),
+                    new ShapelessRecipe("", CraftingRecipeCategory.MISC, packing.output(),
+                            List.copyOf(packing.inputs()))));
         }
         return out;
     }

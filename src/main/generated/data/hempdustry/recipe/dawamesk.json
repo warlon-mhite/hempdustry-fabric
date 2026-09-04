@@ -2,18 +2,10 @@
   "type": "hempdustry:infused_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "hempdustry:cannabutter"
-    },
-    {
-      "item": "minecraft:sugar"
-    },
-    {
-      "item": "minecraft:honey_bottle"
-    },
-    {
-      "item": "minecraft:sweet_berries"
-    }
+    "hempdustry:cannabutter",
+    "minecraft:sugar",
+    "minecraft:honey_bottle",
+    "minecraft:sweet_berries"
   ],
   "offset": 1,
   "result": {

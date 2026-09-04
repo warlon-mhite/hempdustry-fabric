@@ -1,11 +1,11 @@
 plugins {
-	id 'fabric-loom' version '1.7-SNAPSHOT'
+	id 'fabric-loom' version '1.14-SNAPSHOT'
 	id 'maven-publish'
 }
 
 // The Minecraft version rides along as semver build metadata, so the jar in a mods folder says
 // which game it is for. Comparison ignores everything after '+', so the update checker still
-// reads 2.0.0+1.21.1 and 2.0.0 as the same release.
+// reads 2.0.0+1.21.11 and 2.0.0 as the same release.
 version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
@@ -20,11 +20,7 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 
-	// The two recipe viewers. Both are compile-only -- see the dependencies block.
-	maven {
-		name = "TerraformersMC"          // EMI
-		url = "https://maven.terraformersmc.com/releases/"
-	}
+	// JEI, the one recipe viewer on this line. Compile-only -- see the dependencies block.
 	maven {
 		name = "BlameJared"              // JEI
 		url = "https://maven.blamejared.com/"
@@ -32,7 +28,12 @@ repositories {
 }
 
 fabricApi {
-	configureDataGeneration()
+	// client = true: the model provider is a *client* data provider since 1.21.4 (client items and
+	// equipment assets are client-side resources), so datagen has to run with the client on the
+	// classpath.
+	configureDataGeneration {
+		client = true
+	}
 }
 
 // configureDataGeneration() adds src/main/generated to the `clean` task, and that is wrong here:
@@ -55,37 +56,23 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	// Recipe viewers. Compiled against, never shipped: each plugin is loaded by its own viewer and
-	// by nothing else, so a player with neither installed never loads a line of that code.
-	modCompileOnly "dev.emi:emi-fabric:${project.emi_version}:api"
-
+	// JEI, compiled against and never shipped: the plugin is loaded by JEI's own entrypoint and by
+	// nothing else, so a player without JEI never loads a line of that code.
+	//
+	// EMI is absent on purpose -- see the note in gradle.properties. It has no 1.21.11 build.
+	//
 	// jei-*-fabric-api pulls jei-*-common-api-INTERMEDIARY transitively, and that variant is the
 	// one that matters: the plain common-api jar is Mojang-mapped and its Minecraft references
-	// would not resolve in a yarn workspace. Verified with javap -- the intermediary jar's
-	// IRecipeCategory#getTitle returns class_2561, the Mojang-mapped one returns Component.
-	modCompileOnly "mezz.jei:jei-1.21.1-fabric-api:${project.jei_version}"
+	// would not resolve in a yarn workspace.
+	modCompileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
 
-	// ONE VIEWER AT A TIME IN DEV, and this is not a preference -- it is the only way to test JEI.
-	//
-	// With EMI also installed, JEI still starts, still finds this mod's plugin through the
-	// jei_mod_plugin entrypoint, still constructs it and still calls getPluginUid() on it about
-	// thirty times -- and then never calls a single registration phase. Nothing is logged, and the
-	// plugin looks dead while its code is fine. The cause is EMI: emi.mixins.json declares
-	// "jei.PluginCallerMixin", so EMI mixes into JEI's PluginCaller and suppresses it when both are
-	// present. Remove EMI and every phase fires immediately.
-	//
-	//   ./gradlew runClient                  # EMI (default)
-	//   ./gradlew runClient -Pviewer=jei     # JEI
-	//   ./gradlew runClient -Pviewer=none    # neither
-	//
-	// Players install one or the other, so this costs them nothing.
-	def viewer = project.findProperty("viewer") ?: "emi"
-	if (viewer == "emi") {
-		modLocalRuntime "dev.emi:emi-fabric:${project.emi_version}"
-	} else if (viewer == "jei") {
-		modLocalRuntime "mezz.jei:jei-1.21.1-fabric:${project.jei_version}"
+	//   ./gradlew runClient                  # JEI on the runtime (default)
+	//   ./gradlew runClient -Pviewer=none    # no viewer
+	def viewer = project.findProperty("viewer") ?: "jei"
+	if (viewer == "jei") {
+		modLocalRuntime "mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}"
 	} else if (viewer != "none") {
-		throw new GradleException("Unknown -Pviewer=${viewer}; use emi, jei or none")
+		throw new GradleException("Unknown -Pviewer=${viewer}; use jei or none")
 	}
 }
 
@@ -131,7 +118,7 @@ jar {
 // file as a maven artifact for free, which is the one an addon author will actually use:
 //
 //   repositories { maven { url = "https://api.modrinth.com/maven" } }
-//   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
+//   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.11" }
 //
 // GitHub Packages is the second, for builds that are not on Modrinth yet. It is only wired up when
 // credentials are actually present, so a clean clone still builds and `publish` still works

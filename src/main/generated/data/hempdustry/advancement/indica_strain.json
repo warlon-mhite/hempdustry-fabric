@@ -13,7 +13,7 @@
     }
   },
   "display": {
-    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.indica_strain.description"
     },

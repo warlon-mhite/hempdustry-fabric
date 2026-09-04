@@ -15,9 +15,11 @@ import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.item.custom.SpliffItem;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.sound.ModSounds;
-import net.minecraft.item.AliasedBlockItem;
-import net.minecraft.item.ArmorItem;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ConsumableComponents;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.HangingSignItem;
+import net.minecraft.item.equipment.EquipmentType;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import net.minecraft.component.type.FoodComponent;
 import net.minecraft.item.Item;
@@ -26,6 +28,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SignItem;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.Registry;
@@ -34,39 +39,38 @@ import net.minecraft.util.Rarity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class ModItems {
 
-    public static final Item INDICA_SEEDS = registerItem("indica_seeds", new AliasedBlockItem(ModBlocks.INDICA_CROP, new Item.Settings()));
-    public static final Item INDICA_BUDS = registerItem("indica_buds", new Item(new Item.Settings()));
-    public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", new AliasedBlockItem(ModBlocks.SATIVA_CROP, new Item.Settings()));
-    public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Settings()));
-    public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
+    public static final Item INDICA_SEEDS = registerItem("indica_seeds", settings -> new BlockItem(ModBlocks.INDICA_CROP, settings));
+    public static final Item INDICA_BUDS = registerItem("indica_buds", settings -> new Item(settings));
+    public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", settings -> new BlockItem(ModBlocks.SATIVA_CROP, settings));
+    public static final Item SATIVA_BUDS = registerItem("sativa_buds", settings -> new Item(settings));
+    public static final Item HEMP_STEM = registerItem("hemp_stem", settings -> new Item(settings));
     /**
      * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has
      * rotted away — the first of the four traditional steps ({@code rouissage}, {@code broyage},
      * {@code teillage}, {@code peignage}). It is not fibre yet, and that is the whole point: the
      * cauldron rets, the crafting grid does the breaking and scutching. See {@code materials.md}.
      */
-    public static final Item RETTED_HEMP_STEM = registerItem("retted_hemp_stem", new Item(new Item.Settings()));
-    public static final Item HEMP_LEAF = registerItem("hemp_leaf", new Item(new Item.Settings()));
+    public static final Item RETTED_HEMP_STEM = registerItem("retted_hemp_stem", settings -> new Item(settings));
+    public static final Item HEMP_LEAF = registerItem("hemp_leaf", settings -> new Item(settings));
 
     // The cannabutter chain's two intermediates. Both are strain-agnostic: every strain's buds and
     // the leaf all decarboxylate to the same thing, so the pipeline downstream stays a single line
     // of items. Strain identity is carried by the smoking system, not by edibles.
-    public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", new Item(new Item.Settings()));
-    public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", new Item(new Item.Settings()));
+    public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", settings -> new Item(settings));
+    public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", settings -> new Item(settings));
 
-    public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign",
-            new SignItem(new Item.Settings().maxCount(16), ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN));
-    public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign",
-            new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, new Item.Settings().maxCount(16)));
+    public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign", settings -> new SignItem(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN, settings.maxCount(16)));
+    public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign", settings -> new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, settings.maxCount(16)));
 
-    public static final Item HEMP_BOAT = registerItem("hemp_boat", new HempBoatItem(false, new Item.Settings().maxCount(1)));
-    public static final Item HEMP_CHEST_BOAT = registerItem("hemp_chest_boat", new HempBoatItem(true, new Item.Settings().maxCount(1)));
+    public static final Item HEMP_BOAT = registerItem("hemp_boat", settings -> new HempBoatItem(false, settings.maxCount(1)));
+    public static final Item HEMP_CHEST_BOAT = registerItem("hemp_chest_boat", settings -> new HempBoatItem(true, settings.maxCount(1)));
 
-    public static final Item HEMP_FLOUR = registerItem("hemp_flour", new Item(new Item.Settings()));
-    public static final Item HEMP_FIBER = registerItem("hemp_fiber", new Item(new Item.Settings()));
+    public static final Item HEMP_FLOUR = registerItem("hemp_flour", settings -> new Item(settings));
+    public static final Item HEMP_FIBER = registerItem("hemp_fiber", settings -> new Item(settings));
     /**
      * Woven hemp cloth, and the mod's stand-in for leather. Hemp canvas is the oldest use the plant
      * has — the word "canvas" is itself a corruption of "cannabis" — and sailcloth and rope were
@@ -74,10 +78,10 @@ public class ModItems {
      * the item frame recipe only; see CLAUDE.md for the open question of which other leather recipes
      * it should reach.
      */
-    public static final Item HEMP_CANVAS = registerItem("hemp_canvas", new Item(new Item.Settings()));
-    public static final Item HEMPCRETE = registerItem("hempcrete", new Item(new Item.Settings()));
-    public static final Item HEMP_BRICK = registerItem("hemp_brick", new Item(new Item.Settings()));
-    public static final Item CANNABUTTER = registerItem("cannabutter", new CannabutterItem(new Item.Settings()));
+    public static final Item HEMP_CANVAS = registerItem("hemp_canvas", settings -> new Item(settings));
+    public static final Item HEMPCRETE = registerItem("hempcrete", settings -> new Item(settings));
+    public static final Item HEMP_BRICK = registerItem("hemp_brick", settings -> new Item(settings));
+    public static final Item CANNABUTTER = registerItem("cannabutter", settings -> new CannabutterItem(settings));
 
     // ---------------------------------------------------------------------
     // Wholesome hemp-seed food. No THC anywhere in this block — hemp seed is
@@ -93,13 +97,12 @@ public class ModItems {
      * the mod had no cooked form of. 2 / 0.6: low nutrition, high saturation modifier, which is what
      * a small, very dense seed honestly is. Dried-kelp tier.
      */
-    public static final Item TOASTED_HEMP_SEEDS = registerItem("toasted_hemp_seeds",
-            new Item(new Item.Settings().food(new FoodComponent.Builder()
-                    .nutrition(2).saturationModifier(0.6F).snack().build())));
+    public static final Item TOASTED_HEMP_SEEDS = registerItem("toasted_hemp_seeds", settings -> new Item(settings.food(new FoodComponent.Builder()
+                    .nutrition(2).saturationModifier(0.6F).build(),
+                    ConsumableComponents.food().consumeSeconds(0.8F).build())));
 
     /** Seeds bound with honey. Portable and saturation-heavy, the shape a flapjack actually is. */
-    public static final Item HEMP_FLAPJACK = registerItem("hemp_flapjack",
-            new Item(new Item.Settings().food(new FoodComponent.Builder()
+    public static final Item HEMP_FLAPJACK = registerItem("hemp_flapjack", settings -> new Item(settings.food(new FoodComponent.Builder()
                     .nutrition(4).saturationModifier(0.6F).build())));
 
     /**
@@ -108,15 +111,19 @@ public class ModItems {
      * lets it be poured into siemieniotka without losing the bucket.
      */
     public static final Item HEMP_MILK_BUCKET = registerItem("hemp_milk_bucket",
-            new HempMilkItem(new Item.Settings().maxCount(1).recipeRemainder(Items.BUCKET)));
+            settings -> new HempMilkItem(settings.maxCount(1).recipeRemainder(Items.BUCKET)
+                    // Drinking is a component since 1.21.2, not a pair of Item overrides: this is
+                    // what makes it play the drink sound, use the drinking animation and take
+                    // vanilla milk's 1.6 seconds. ConsumableComponents.DRINK is exactly that and
+                    // nothing else; the effect-clearing stays in HempMilkItem#finishUsing.
+                    .component(DataComponentTypes.CONSUMABLE, ConsumableComponents.DRINK)));
 
     /**
      * Siemieniotka — the Silesian hemp-seed Christmas Eve soup. Vanilla stew parity (6 / 0.6) and
      * vanilla's own bowl, returned on eating the way every vanilla stew returns its own.
      */
-    public static final Item SIEMIENIOTKA = registerItem("siemieniotka",
-            new Item(new Item.Settings().maxCount(1).food(new FoodComponent.Builder()
-                    .nutrition(6).saturationModifier(0.6F).usingConvertsTo(Items.BOWL).build())));
+    public static final Item SIEMIENIOTKA = registerItem("siemieniotka", settings -> new Item(settings.maxCount(1).useRemainder(Items.BOWL).food(new FoodComponent.Builder()
+                    .nutrition(6).saturationModifier(0.6F).build())));
 
     // ---------------------------------------------------------------------
     // Edibles. Cannabutter's first real use — the payoff for the whole
@@ -135,18 +142,15 @@ public class ModItems {
      * 3.6 across three slices. Nutrition up, saturation down, nothing created. What it buys is
      * speed: no hemp flour, no cocoa, no sugar.
      */
-    public static final Item CANNABUTTER_TOAST = registerItem("cannabutter_toast",
-            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
+    public static final Item CANNABUTTER_TOAST = registerItem("cannabutter_toast", settings -> new EdibleItem(settings.food(new FoodComponent.Builder()
                     .nutrition(2).saturationModifier(0.3F).alwaysEdible().build())));
 
     /** Vanilla cookie parity (2 / 0.1), eight to a batch. The cheap, low-dose entry point. */
-    public static final Item SPACE_COOKIE = registerItem("space_cookie",
-            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
+    public static final Item SPACE_COOKIE = registerItem("space_cookie", settings -> new EdibleItem(settings.food(new FoodComponent.Builder()
                     .nutrition(2).saturationModifier(0.1F).alwaysEdible().build())));
 
     /** Richer than a cookie, pitched at an apple (4 / 0.3). Four to a batch. */
-    public static final Item SPACE_BROWNIE = registerItem("space_brownie",
-            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
+    public static final Item SPACE_BROWNIE = registerItem("space_brownie", settings -> new EdibleItem(settings.food(new FoodComponent.Builder()
                     .nutrition(4).saturationModifier(0.3F).alwaysEdible().build())));
 
     /**
@@ -155,18 +159,20 @@ public class ModItems {
      * finish it. 6 / 0.3: filling, but below dawamesk on saturation, which is the right ordering for
      * the cruder preparation. See {@link BhangItem} for the design.
      */
-    public static final Item BHANG_BUCKET = registerItem("bhang_bucket",
-            new BhangItem(new Item.Settings().maxCount(1).food(new FoodComponent.Builder()
-                    .nutrition(6).saturationModifier(0.3F).alwaysEdible()
-                    .usingConvertsTo(Items.BUCKET).build())));
+    public static final Item BHANG_BUCKET = registerItem("bhang_bucket", settings -> new BhangItem(settings.maxCount(1).useRemainder(Items.BUCKET).food(new FoodComponent.Builder()
+                    .nutrition(6).saturationModifier(0.3F).alwaysEdible().build(),
+                    // Food, but a DRINK: the single-argument food() attaches
+                    // ConsumableComponents.FOOD, which is where the eating sound and animation come
+                    // from since 1.21.2. Two seconds is honey bottle's, so a drink is never quicker
+                    // to down than vanilla's.
+                    ConsumableComponents.drink().consumeSeconds(2.0F).build())));
 
     /**
      * Dawamesk — the top of the ladder, and the only edible here with a real history rather than a
      * folk name. Sugar, honey and fruit around the fat make it calorie-dense, so it lands above
      * bread on saturation (6 / 0.6 = 7.2) while costing a whole cannabutter for a single item.
      */
-    public static final Item DAWAMESK = registerItem("dawamesk",
-            new EdibleItem(new Item.Settings().maxCount(16).food(new FoodComponent.Builder()
+    public static final Item DAWAMESK = registerItem("dawamesk", settings -> new EdibleItem(settings.maxCount(16).food(new FoodComponent.Builder()
                     .nutrition(6).saturationModifier(0.6F).alwaysEdible().build())));
 
     /**
@@ -217,18 +223,15 @@ public class ModItems {
     // One item each, for every strain and every dose. What is rolled or packed into them lives in
     // the smoke_contents component, the way a potion carries potion_contents — so a new strain adds
     // no items, no models and no per-device lang keys. See CLAUDE.md §5b D10.
-    public static final Item SPLIFF = registerItem("spliff",
-            new SpliffItem(new Item.Settings().rarity(Rarity.COMMON).maxCount(16)));
+    public static final Item SPLIFF = registerItem("spliff", settings -> new SpliffItem(settings.rarity(Rarity.COMMON).maxCount(16)));
 
     public static final Item WOODEN_PIPE = registerDevice(DeviceType.PIPE);
     public static final Item BONG = registerDevice(DeviceType.BONG);
 
     // Same shape as a vanilla common disc (single-stack, uncommon, jukebox-playable). The song data
     // — length, comparator output, "Now Playing" label — lives in the JUKEBOX_SONG entry it points at.
-    public static final Item MUSIC_DISC_MOONLIGHT = registerItem("music_disc_moonlight",
-            new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.MOONLIGHT_SONG)));
-    public static final Item MUSIC_DISC_ROBADOB = registerItem("music_disc_robadob",
-            new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.ROBADOB_SONG)));
+    public static final Item MUSIC_DISC_MOONLIGHT = registerItem("music_disc_moonlight", settings -> new Item(settings.maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.MOONLIGHT_SONG)));
+    public static final Item MUSIC_DISC_ROBADOB = registerItem("music_disc_robadob", settings -> new Item(settings.maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.ROBADOB_SONG)));
 
     /**
      * Every disc the mod ships, in one place — the creative tab, the two disc tags and the chest
@@ -237,18 +240,27 @@ public class ModItems {
      */
     public static final List<Item> MUSIC_DISCS = List.of(MUSIC_DISC_MOONLIGHT, MUSIC_DISC_ROBADOB);
 
-    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Settings()
-            .maxDamage(ArmorItem.Type.HELMET.getMaxDamage(3))));
-    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Settings()
-            .maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(3))));
-    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Settings()
-            .maxDamage(ArmorItem.Type.LEGGINGS.getMaxDamage(3))));
-    public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Settings()
-            .maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(3))));
+    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", settings -> new Item(settings
+            .armor(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentType.HELMET)));
+    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", settings -> new Item(settings
+            .armor(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentType.CHESTPLATE)));
+    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", settings -> new Item(settings
+            .armor(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentType.LEGGINGS)));
+    public static final Item FLIP_FLOPS = registerItem("flip_flops", settings -> new Item(settings
+            .armor(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentType.BOOTS)));
 
     private static Item registerDevice(DeviceType device) {
-        return registerItem(device.baseName(), new SmokingDeviceItem(device,
-                new Item.Settings().maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON)));
+        return registerItem(device.baseName(), settings -> {
+            settings.maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON)
+                    // Enchantability and repair material are components since 1.21.5, not Item
+                    // overrides: pipe repairs with its build material (planks), bong with glass.
+                    .enchantable(device.enchantability());
+            switch (device) {
+                case PIPE -> settings.repairable(ItemTags.PLANKS);
+                case BONG -> settings.repairable(Items.GLASS);
+            }
+            return new SmokingDeviceItem(device, settings);
+        });
     }
 
     /**
@@ -427,8 +439,11 @@ public class ModItems {
         return stack;
     }
 
-    private static Item registerItem(String name, Item item){
-        return Registry.register(Registries.ITEM, Identifier.of(Hempdustry.MOD_ID, name), item);
+    // Since 1.21.3 an item is built from settings that already carry its own RegistryKey, so the
+    // caller hands over a factory rather than a finished Item.
+    private static Item registerItem(String name, Function<Item.Settings, Item> factory) {
+        RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Hempdustry.MOD_ID, name));
+        return Registry.register(Registries.ITEM, key, factory.apply(new Item.Settings().registryKey(key)));
     }
     public static void registerModItems(){
         Hempdustry.LOGGER.info("Registering Mod Items for " + Hempdustry.MOD_ID);

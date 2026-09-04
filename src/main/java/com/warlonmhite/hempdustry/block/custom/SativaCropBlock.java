@@ -17,7 +17,7 @@ import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
@@ -347,12 +347,12 @@ public class SativaCropBlock extends CropBlock {
      * and the trim flags are kept.
      */
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
+    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
                                              PlayerEntity player, Hand hand, BlockHitResult hit) {
         BlockPos lowerPos = this.findLowerPos(world, pos, state);
         BlockState lower = world.getBlockState(lowerPos);
         if (lower.isOf(this) && isLower(lower)) {
-            ItemActionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.get(AGE),
+            ActionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.get(AGE),
                     stack, player, hand);
             if (result != null) {
                 return result;
@@ -367,7 +367,7 @@ public class SativaCropBlock extends CropBlock {
     // of the others, and clear the rest of the stack top-down with drops suppressed.
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient) {
+        if (!world.isClient()) {
             BlockPos lowerPos = this.findLowerPos(world, pos, state);
             BlockState lower = world.getBlockState(lowerPos);
             if (lower.isOf(this) && isLower(lower)) {

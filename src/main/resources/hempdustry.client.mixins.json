@@ -3,8 +3,7 @@
 	"package": "com.warlonmhite.hempdustry.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"DrawContextMixin",
-		"ModelPredicateProviderRegistryAccessor"
+		"DrawContextMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

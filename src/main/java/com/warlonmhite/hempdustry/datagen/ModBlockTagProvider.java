@@ -22,7 +22,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // *even though a crop is standing on it* — FarmlandBlock's "is there still a crop here?"
         // check is this tag, not "is this a CropBlock" — and the unsupported plant then pops off.
         // Vanilla lists every one of its crops here; ours have to opt in the same way.
-        getOrCreateTagBuilder(BlockTags.MAINTAINS_FARMLAND)
+        valueLookupBuilder(BlockTags.MAINTAINS_FARMLAND)
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP);
 
@@ -33,14 +33,14 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         //
         // Requires the crops' isMature() override to be in place, or bees decapitate tall plants —
         // see IndicaCropBlock#isMature for why.
-        getOrCreateTagBuilder(BlockTags.CROPS)
+        valueLookupBuilder(BlockTags.CROPS)
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP);
 
         // "A hemp plant you can defoliate", strain-agnostic. The "Trim Season" advancement matches
         // shears-used-on-a-block-in-this-tag, which is exactly where Defoliation#tryCut succeeds
         // and nowhere else — see ModAdvancementProvider.
-        getOrCreateTagBuilder(ModTags.Blocks.HEMP_CROPS)
+        valueLookupBuilder(ModTags.Blocks.HEMP_CROPS)
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP);
 
@@ -64,7 +64,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         //
         // Deliberately NOT joined: #minecraft:flowers, #minecraft:small_flowers (bees, above), and
         // the *item* tag #minecraft:small_flowers (suspicious stew -- see ModBlocks).
-        getOrCreateTagBuilder(BlockTags.SWORD_EFFICIENT)
+        valueLookupBuilder(BlockTags.SWORD_EFFICIENT)
                 .add(ModBlocks.INDICA_FLOWER)
                 .add(ModBlocks.SATIVA_FLOWER);
         // SATIVA_FLOWER is deliberately absent: it is two blocks tall, and an enderman lifts ONE
@@ -72,7 +72,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // so the mob destroys the plant instead of relocating it, and the block it carries can only
         // ever be put back down as a lone half that immediately breaks again. Vanilla has no double
         // plant in this tag for the same reason.
-        getOrCreateTagBuilder(BlockTags.ENDERMAN_HOLDABLE)
+        valueLookupBuilder(BlockTags.ENDERMAN_HOLDABLE)
                 .add(ModBlocks.INDICA_FLOWER);
 
         // What will heat an Infuser standing on top of it. Anything here that carries a LIT
@@ -89,7 +89,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // #minecraft:campfires rather than the two campfires by name is the one free win available:
         // modded campfires join that vanilla tag on their own, so they work here without either
         // side knowing about the other.
-        getOrCreateTagBuilder(ModTags.Blocks.HEAT_SOURCES)
+        valueLookupBuilder(ModTags.Blocks.HEAT_SOURCES)
                 .forceAddTag(BlockTags.CAMPFIRES)
                 .add(Blocks.FURNACE)
                 .add(Blocks.SMOKER)
@@ -104,17 +104,17 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // exist block-side in convention tags v2 -- there is no c:concrete_powders block tag, and
         // c:crops and c:bricks are item-only, since both describe a harvest or a crafting material
         // rather than something placed.
-        getOrCreateTagBuilder(ModTags.Conventional.HEMP_STORAGE_BLOCKS_BLOCK).add(ModBlocks.HEMP_BALE);
-        getOrCreateTagBuilder(ConventionalBlockTags.STORAGE_BLOCKS)
+        valueLookupBuilder(ModTags.Conventional.HEMP_STORAGE_BLOCKS_BLOCK).add(ModBlocks.HEMP_BALE);
+        valueLookupBuilder(ConventionalBlockTags.STORAGE_BLOCKS)
                 .addOptionalTag(ModTags.Conventional.HEMP_STORAGE_BLOCKS_BLOCK);
-        getOrCreateTagBuilder(ConventionalBlockTags.CONCRETES).add(ModBlocks.HEMPCRETE_BLOCK);
+        valueLookupBuilder(ConventionalBlockTags.CONCRETES).add(ModBlocks.HEMPCRETE_BLOCK);
 
-        getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
+        valueLookupBuilder(BlockTags.PICKAXE_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_BLOCK)
                 .add(ModBlocks.DECARBOXYLATOR)
                 .add(ModBlocks.INFUSER);
 
-        getOrCreateTagBuilder(BlockTags.SHOVEL_MINEABLE)
+        valueLookupBuilder(BlockTags.SHOVEL_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
 
         // The bale is a copy of hay in every other respect and hay is hoe-mineable. It was in no
@@ -124,10 +124,10 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // is deliberately not, and that was a decision rather than an oversight — the mod feeds
         // goats hemp leaf and nothing else, and a bale that feeds horses would start it down the
         // "hemp is a worse wheat for every farm animal" road that goat_food was scoped to avoid.
-        getOrCreateTagBuilder(BlockTags.HOE_MINEABLE)
+        valueLookupBuilder(BlockTags.HOE_MINEABLE)
                 .add(ModBlocks.HEMP_BALE);
 
-        getOrCreateTagBuilder(BlockTags.AXE_MINEABLE)
+        valueLookupBuilder(BlockTags.AXE_MINEABLE)
                 .add(ModBlocks.HEMP_BRICKS_BLOCK)
                 .add(ModBlocks.HEMP_BRICKS_SLAB)
                 .add(ModBlocks.HEMP_BRICKS_STAIRS)
@@ -155,8 +155,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         //
         // Well grounded independently: hemp fibre insulation and hemp acoustic panels are a real
         // product category, and hempcrete measures ~0.8 absorption with 50-59 dB sound reduction.
-        getOrCreateTagBuilder(BlockTags.DAMPENS_VIBRATIONS).add(ModBlocks.HEMP_WOOL);
-        getOrCreateTagBuilder(BlockTags.OCCLUDES_VIBRATION_SIGNALS).add(ModBlocks.HEMP_WOOL);
+        valueLookupBuilder(BlockTags.DAMPENS_VIBRATIONS).add(ModBlocks.HEMP_WOOL);
+        valueLookupBuilder(BlockTags.OCCLUDES_VIBRATION_SIGNALS).add(ModBlocks.HEMP_WOOL);
 
         // The carpet joins #minecraft:wool_carpets instead, and that tag is safe where
         // #minecraft:wool is not: it gates only vibration damping, the step-sound blend, llama
@@ -165,10 +165,10 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         //
         // Deliberately NOT in OCCLUDES_VIBRATION_SIGNALS: vanilla's carpets dampen but do not
         // occlude (a carpet is too thin to block a signal outright), and we mirror that exactly.
-        getOrCreateTagBuilder(BlockTags.WOOL_CARPETS).add(ModBlocks.HEMP_CARPET);
+        valueLookupBuilder(BlockTags.WOOL_CARPETS).add(ModBlocks.HEMP_CARPET);
 
-        getOrCreateTagBuilder(BlockTags.PLANKS).add(ModBlocks.HEMP_PLANKS);
-        getOrCreateTagBuilder(BlockTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB);
+        valueLookupBuilder(BlockTags.PLANKS).add(ModBlocks.HEMP_PLANKS);
+        valueLookupBuilder(BlockTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB);
 
         // The *wooden* tags, not the umbrella ones — the umbrellas include them, so joining at this
         // level gets #minecraft:fences, /doors and /trapdoors free, and the wooden level is the one
@@ -185,20 +185,20 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // None of this costs the fire immunity. The only *other* thing reading these four in 1.21.1
         // is AbstractFurnaceBlockEntity's fuel map, and its addFuel skips anything in
         // #minecraft:non_flammable_wood — which every one of these already is.
-        getOrCreateTagBuilder(BlockTags.WOODEN_FENCES).add(ModBlocks.HEMP_PLANKS_FENCE);
-        getOrCreateTagBuilder(BlockTags.WOODEN_DOORS).add(ModBlocks.HEMP_PLANKS_DOOR);
-        getOrCreateTagBuilder(BlockTags.WOODEN_TRAPDOORS).add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
-        getOrCreateTagBuilder(BlockTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
-        getOrCreateTagBuilder(BlockTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL);
+        valueLookupBuilder(BlockTags.WOODEN_FENCES).add(ModBlocks.HEMP_PLANKS_FENCE);
+        valueLookupBuilder(BlockTags.WOODEN_DOORS).add(ModBlocks.HEMP_PLANKS_DOOR);
+        valueLookupBuilder(BlockTags.WOODEN_TRAPDOORS).add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+        valueLookupBuilder(BlockTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
+        valueLookupBuilder(BlockTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL);
 
-        getOrCreateTagBuilder(BlockTags.STANDING_SIGNS).add(ModBlocks.HEMP_PLANKS_SIGN);
-        getOrCreateTagBuilder(BlockTags.WALL_SIGNS).add(ModBlocks.HEMP_PLANKS_WALL_SIGN);
-        getOrCreateTagBuilder(BlockTags.SIGNS).add(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN);
-        getOrCreateTagBuilder(BlockTags.CEILING_HANGING_SIGNS).add(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
-        getOrCreateTagBuilder(BlockTags.WALL_HANGING_SIGNS).add(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
-        getOrCreateTagBuilder(BlockTags.ALL_HANGING_SIGNS)
+        valueLookupBuilder(BlockTags.STANDING_SIGNS).add(ModBlocks.HEMP_PLANKS_SIGN);
+        valueLookupBuilder(BlockTags.WALL_SIGNS).add(ModBlocks.HEMP_PLANKS_WALL_SIGN);
+        valueLookupBuilder(BlockTags.SIGNS).add(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN);
+        valueLookupBuilder(BlockTags.CEILING_HANGING_SIGNS).add(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
+        valueLookupBuilder(BlockTags.WALL_HANGING_SIGNS).add(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
+        valueLookupBuilder(BlockTags.ALL_HANGING_SIGNS)
                 .add(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
-        getOrCreateTagBuilder(BlockTags.ALL_SIGNS)
+        valueLookupBuilder(BlockTags.ALL_SIGNS)
                 .add(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN,
                         ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
     }

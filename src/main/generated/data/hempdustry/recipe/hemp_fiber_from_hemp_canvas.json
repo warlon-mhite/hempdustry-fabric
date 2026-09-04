@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "hempdustry:hemp_canvas"
-    }
+    "hempdustry:hemp_canvas"
   ],
   "result": {
     "count": 4,

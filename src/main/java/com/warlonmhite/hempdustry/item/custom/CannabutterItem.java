@@ -3,11 +3,12 @@ package com.warlonmhite.hempdustry.item.custom;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Cannabutter. Inert for now — what it actually <em>does</em> belongs to the effects pass — but it
@@ -32,17 +33,19 @@ public class CannabutterItem extends Item {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context,
+                              TooltipDisplayComponent displayComponent, Consumer<Text> tooltip,
+                              TooltipType type) {
         Quality quality = stack.get(ModComponents.QUALITY);
         if (quality != null) {
-            tooltip.add(Text.translatable(quality.getTranslationKey()).formatted(colourOf(quality)));
+            tooltip.accept(Text.translatable(quality.getTranslationKey()).formatted(colourOf(quality)));
         }
         Integer strength = stack.get(ModComponents.STRENGTH);
         if (strength != null) {
-            tooltip.add(Text.translatable("item.hempdustry.cannabutter.strength", strength)
+            tooltip.accept(Text.translatable("item.hempdustry.cannabutter.strength", strength)
                     .formatted(Formatting.GRAY));
         }
-        super.appendTooltip(stack, context, tooltip, type);
+        super.appendTooltip(stack, context, displayComponent, tooltip, type);
     }
 
     /** Climbs the same way vanilla's rarity colours do, so the ladder reads without being labelled. */

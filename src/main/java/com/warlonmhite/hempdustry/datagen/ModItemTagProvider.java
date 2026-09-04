@@ -20,7 +20,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
     @Override
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
-        getOrCreateTagBuilder(ModTags.Items.HEMP_SEEDS)
+        valueLookupBuilder(ModTags.Items.HEMP_SEEDS)
                 .add(ModItems.INDICA_SEEDS)
                 .add(ModItems.SATIVA_SEEDS);
 
@@ -41,19 +41,19 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // sides to name the same convention tag. Optional rather than a hard include: an absent tag
         // in a required entry fails the whole tag load, and vanilla's milk is listed outright above
         // precisely so this one can never take the Infuser's milk slot down with it.
-        getOrCreateTagBuilder(ModTags.Items.MILK_BUCKETS)
+        valueLookupBuilder(ModTags.Items.MILK_BUCKETS)
                 .add(Items.MILK_BUCKET)
                 .add(ModItems.HEMP_MILK_BUCKET)
                 .addOptionalTag(ConventionalItemTags.MILK_BUCKETS);
 
         // The outbound half, and the same reasoning as #c:strings below: nothing in vanilla reads
         // #c:buckets/milk, and the entire value is other mods' recipes taking hemp milk for free.
-        getOrCreateTagBuilder(ConventionalItemTags.MILK_BUCKETS)
+        valueLookupBuilder(ConventionalItemTags.MILK_BUCKETS)
                 .add(ModItems.HEMP_MILK_BUCKET);
 
         // The dosed foods, as one group. Space Cake is absent on purpose: a slice is eaten by using
         // the *block*, which never fires minecraft:consume_item — see ModTags.Items.EDIBLES.
-        getOrCreateTagBuilder(ModTags.Items.EDIBLES)
+        valueLookupBuilder(ModTags.Items.EDIBLES)
                 .add(ModItems.CANNABUTTER_TOAST)
                 .add(ModItems.SPACE_COOKIE)
                 .add(ModItems.SPACE_BROWNIE)
@@ -62,7 +62,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
         // Strain-agnostic: any hemp seed variant (future Lemon Haze included) feeds/tames parrots,
         // same as vanilla's wheat/melon/pumpkin/beetroot seeds.
-        getOrCreateTagBuilder(ItemTags.PARROT_FOOD)
+        valueLookupBuilder(ItemTags.PARROT_FOOD)
                 .addTag(ModTags.Items.HEMP_SEEDS);
 
         // Vanilla's chicken food is literally *every seed in the game* — wheat, melon, pumpkin,
@@ -70,7 +70,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // rather than a decision, especially with parrots already fed above. Hemp seed is also the
         // classic European bird feed: chènevis is what's in a caged-bird mix, and it is standard
         // coarse-fishing bait for the same reason birds and fish both go for it.
-        getOrCreateTagBuilder(ItemTags.CHICKEN_FOOD)
+        valueLookupBuilder(ItemTags.CHICKEN_FOOD)
                 .addTag(ModTags.Items.HEMP_SEEDS);
 
         // Goats browse. Vanilla's goat food is wheat and nothing else, and a fan leaf is exactly the
@@ -82,7 +82,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // Joining the tag is the whole feature — GoatEntity#isBreedingItem reads it, and the tempt
         // goal is built from that same check, so breeding, leading a goat around and speeding up a
         // kid all come for free. These per-animal food tags are Mojang's own extension point.
-        getOrCreateTagBuilder(ItemTags.GOAT_FOOD)
+        valueLookupBuilder(ItemTags.GOAT_FOOD)
                 .add(ModItems.HEMP_LEAF);
 
         // Cross-mod cordage. This was agreed as `#c:ropes` and is deliberately `#c:strings` instead:
@@ -96,10 +96,10 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         //
         // Nothing in vanilla reads `#c:strings`; the whole value here is other mods' recipes, which
         // now take fibre directly and skip a 1:1 crafting step. No balance change, just less friction.
-        getOrCreateTagBuilder(ConventionalItemTags.STRINGS)
+        valueLookupBuilder(ConventionalItemTags.STRINGS)
                 .add(ModItems.HEMP_FIBER);
 
-        getOrCreateTagBuilder(ItemTags.TRIMMABLE_ARMOR)
+        valueLookupBuilder(ItemTags.TRIMMABLE_ARMOR)
             .add(ModItems.HEMP_BEANIE)
             .add(ModItems.HEMP_SHIRT)
             .add(ModItems.HEMP_HAREM_PANTS)
@@ -114,18 +114,18 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // per-slot tags transitively; nothing else needs adding.
         //
         // It stays bad armour (1/2/1/1) — this buys the *right* to enchant, not protection.
-        getOrCreateTagBuilder(ItemTags.HEAD_ARMOR).add(ModItems.HEMP_BEANIE);
-        getOrCreateTagBuilder(ItemTags.CHEST_ARMOR).add(ModItems.HEMP_SHIRT);
-        getOrCreateTagBuilder(ItemTags.LEG_ARMOR).add(ModItems.HEMP_HAREM_PANTS);
-        getOrCreateTagBuilder(ItemTags.FOOT_ARMOR).add(ModItems.FLIP_FLOPS);
+        valueLookupBuilder(ItemTags.HEAD_ARMOR).add(ModItems.HEMP_BEANIE);
+        valueLookupBuilder(ItemTags.CHEST_ARMOR).add(ModItems.HEMP_SHIRT);
+        valueLookupBuilder(ItemTags.LEG_ARMOR).add(ModItems.HEMP_HAREM_PANTS);
+        valueLookupBuilder(ItemTags.FOOT_ARMOR).add(ModItems.FLIP_FLOPS);
 
         // Canvas is leather-tier by the mod's own standing rule — it substitutes wherever vanilla
         // uses leather, and the cloth chain's balance anchors are set at leather parity — so the
         // convention tag is that rule extended to the mods that asked for it. Nothing in vanilla
         // reads #c:leathers; the whole effect is cross-mod.
-        getOrCreateTagBuilder(ConventionalItemTags.LEATHERS).add(ModItems.HEMP_CANVAS);
+        valueLookupBuilder(ConventionalItemTags.LEATHERS).add(ModItems.HEMP_CANVAS);
 
-        getOrCreateTagBuilder(ConventionalItemTags.ARMORS)
+        valueLookupBuilder(ConventionalItemTags.ARMORS)
                 .add(ModItems.HEMP_BEANIE)
                 .add(ModItems.HEMP_SHIRT)
                 .add(ModItems.HEMP_HAREM_PANTS)
@@ -139,9 +139,9 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // A plural would still *work* — each singular includes its plural as an optional entry, so
         // an item in foods/soups reaches #c:foods one hop later — but it is the deprecated spelling
         // and the compatibility shim is not something to write new code against.
-        getOrCreateTagBuilder(ConventionalItemTags.SOUP_FOODS).add(ModItems.SIEMIENIOTKA);
-        getOrCreateTagBuilder(ConventionalItemTags.COOKIE_FOODS).add(ModItems.SPACE_COOKIE);
-        getOrCreateTagBuilder(ConventionalItemTags.EDIBLE_WHEN_PLACED_FOODS).add(ModBlocks.SPACE_CAKE.asItem());
+        valueLookupBuilder(ConventionalItemTags.SOUP_FOODS).add(ModItems.SIEMIENIOTKA);
+        valueLookupBuilder(ConventionalItemTags.COOKIE_FOODS).add(ModItems.SPACE_COOKIE);
+        valueLookupBuilder(ConventionalItemTags.EDIBLE_WHEN_PLACED_FOODS).add(ModBlocks.SPACE_CAKE.asItem());
 
         // Everything with no subtag that fits. The dosed half is in here on purpose: a Space Brownie
         // is food, and a pack's food-handling machinery should treat it as such — which does mean an
@@ -149,7 +149,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         //
         // hemp_milk_bucket is deliberately absent: it is not food, exactly as a cow's milk bucket is
         // not food and is likewise not in this tag. See food.md.
-        getOrCreateTagBuilder(ConventionalItemTags.FOODS)
+        valueLookupBuilder(ConventionalItemTags.FOODS)
                 .add(ModItems.TOASTED_HEMP_SEEDS)
                 .add(ModItems.HEMP_FLAPJACK)
                 .add(ModItems.CANNABUTTER_TOAST)
@@ -167,21 +167,21 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // see ModTags.Conventional. The parent references are optional, which costs nothing and
         // means a stripped-down Fabric API that omits one cannot take the whole tag down with it
         // (one unresolvable *required* entry drops every other entry in the file -- CLAUDE.md §5).
-        getOrCreateTagBuilder(ModTags.Conventional.HEMP_CROPS)
+        valueLookupBuilder(ModTags.Conventional.HEMP_CROPS)
                 .add(ModItems.INDICA_BUDS)
                 .add(ModItems.SATIVA_BUDS)
                 .add(ModItems.HEMP_LEAF);
-        getOrCreateTagBuilder(ConventionalItemTags.CROPS)
+        valueLookupBuilder(ConventionalItemTags.CROPS)
                 .addOptionalTag(ModTags.Conventional.HEMP_CROPS);
 
-        getOrCreateTagBuilder(ModTags.Conventional.HEMP_BRICKS).add(ModItems.HEMP_BRICK);
-        getOrCreateTagBuilder(ConventionalItemTags.BRICKS)
+        valueLookupBuilder(ModTags.Conventional.HEMP_BRICKS).add(ModItems.HEMP_BRICK);
+        valueLookupBuilder(ConventionalItemTags.BRICKS)
                 .addOptionalTag(ModTags.Conventional.HEMP_BRICKS);
 
         // The bale is the crop's 9:1 storage block, which is exactly where vanilla files the hay
         // block (c:storage_blocks/wheat).
-        getOrCreateTagBuilder(ModTags.Conventional.HEMP_STORAGE_BLOCKS).add(ModBlocks.HEMP_BALE.asItem());
-        getOrCreateTagBuilder(ConventionalItemTags.STORAGE_BLOCKS)
+        valueLookupBuilder(ModTags.Conventional.HEMP_STORAGE_BLOCKS).add(ModBlocks.HEMP_BALE.asItem());
+        valueLookupBuilder(ConventionalItemTags.STORAGE_BLOCKS)
                 .addOptionalTag(ModTags.Conventional.HEMP_STORAGE_BLOCKS);
 
         // Hempcrete as concrete is a judgement, not an identity: the real material is hemp hurd in a
@@ -190,20 +190,20 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // a set building block whose powder cures on contact with water, which is precisely what
         // hempcrete does and precisely what a mod reading #c:concretes wants to find. Both are flat
         // item lists in the convention set, so these go in directly rather than as a subtag.
-        getOrCreateTagBuilder(ConventionalItemTags.CONCRETES).add(ModBlocks.HEMPCRETE_BLOCK.asItem());
-        getOrCreateTagBuilder(ConventionalItemTags.CONCRETE_POWDERS)
+        valueLookupBuilder(ConventionalItemTags.CONCRETES).add(ModBlocks.HEMPCRETE_BLOCK.asItem());
+        valueLookupBuilder(ConventionalItemTags.CONCRETE_POWDERS)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK.asItem());
 
-        getOrCreateTagBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
-        getOrCreateTagBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
+        valueLookupBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
+        valueLookupBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
 
-        getOrCreateTagBuilder(ItemTags.SIGNS).add(ModItems.HEMP_PLANKS_SIGN);
-        getOrCreateTagBuilder(ItemTags.HANGING_SIGNS).add(ModItems.HEMP_PLANKS_HANGING_SIGN);
+        valueLookupBuilder(ItemTags.SIGNS).add(ModItems.HEMP_PLANKS_SIGN);
+        valueLookupBuilder(ItemTags.HANGING_SIGNS).add(ModItems.HEMP_PLANKS_HANGING_SIGN);
 
         // Hemp lumber is intentionally fire-immune (like Crimson/Warped nether wood): this is
         // the item-side "can't be used as furnace fuel" half; the block-side "fire won't spread
         // to it" half is simply never registering these blocks in FlammableBlockRegistry.
-        getOrCreateTagBuilder(ItemTags.NON_FLAMMABLE_WOOD)
+        valueLookupBuilder(ItemTags.NON_FLAMMABLE_WOOD)
                 .add(ModBlocks.HEMP_PLANKS.asItem())
                 .add(ModBlocks.HEMP_PLANKS_STAIRS.asItem())
                 .add(ModBlocks.HEMP_PLANKS_SLAB.asItem())
@@ -218,7 +218,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
         // Empty pipe/bong accept Unbreaking/Mending (and enchant at the table). Packed variants
         // inherit any enchantment through the component copy, so they don't need listing here.
-        getOrCreateTagBuilder(ItemTags.DURABILITY_ENCHANTABLE)
+        valueLookupBuilder(ItemTags.DURABILITY_ENCHANTABLE)
                 .add(ModItems.WOODEN_PIPE)
                 .add(ModItems.BONG);
 
@@ -226,10 +226,10 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // creeper loot table rolls this tag (expand:true, one entry each) when a skeleton lands
         // the kill, so joining the tag *is* the drop — no loot-table surgery needed. Each disc
         // added here is one more equal-weight entry, so it also dilutes the others slightly.
-        var creeperDiscs = getOrCreateTagBuilder(ItemTags.CREEPER_DROP_MUSIC_DISCS);
+        var creeperDiscs = valueLookupBuilder(ItemTags.CREEPER_DROP_MUSIC_DISCS);
         // Cross-mod convention tag, so anything that reasons about discs (jukebox blocks, storage
         // filters, JEI-style lookups) picks ours up too.
-        var conventionDiscs = getOrCreateTagBuilder(ConventionalItemTags.MUSIC_DISCS);
+        var conventionDiscs = valueLookupBuilder(ConventionalItemTags.MUSIC_DISCS);
         for (Item disc : ModItems.MUSIC_DISCS) {
             creeperDiscs.add(disc);
             conventionDiscs.add(disc);
@@ -237,12 +237,12 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
         // The item half of the vibration damping granted in ModBlockTagProvider — vanilla keeps
         // #minecraft:dampens_vibrations as both a block and an item tag, so hemp wool joins both.
-        getOrCreateTagBuilder(ItemTags.DAMPENS_VIBRATIONS)
+        valueLookupBuilder(ItemTags.DAMPENS_VIBRATIONS)
                 .add(ModBlocks.HEMP_WOOL.asItem());
 
         // The carpet's damping and its 67-tick fuel time both ride on this tag rather than being
         // granted separately — see ModBlockTagProvider for why #wool_carpets is safe to join.
-        getOrCreateTagBuilder(ItemTags.WOOL_CARPETS)
+        valueLookupBuilder(ItemTags.WOOL_CARPETS)
                 .add(ModBlocks.HEMP_CARPET.asItem());
         }
     }

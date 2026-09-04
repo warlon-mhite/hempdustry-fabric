@@ -66,7 +66,7 @@ public class InfuserScreenHandler extends ScreenHandler {
         checkSize(inventory, InfuserBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
-        this.world = playerInventory.player.getWorld();
+        this.world = playerInventory.player.getEntityWorld();
         inventory.onOpen(playerInventory.player);
 
         this.addSlot(new InputSlot(inventory, InfuserBlockEntity.MILK_SLOT, MILK_X, MILK_Y));
@@ -83,7 +83,7 @@ public class InfuserScreenHandler extends ScreenHandler {
     }
 
     private static Inventory resolveInventory(PlayerInventory playerInventory, BlockPos pos) {
-        BlockEntity blockEntity = playerInventory.player.getWorld().getBlockEntity(pos);
+        BlockEntity blockEntity = playerInventory.player.getEntityWorld().getBlockEntity(pos);
         return blockEntity instanceof Inventory found
                 ? found
                 : new SimpleInventory(InfuserBlockEntity.SLOT_COUNT);

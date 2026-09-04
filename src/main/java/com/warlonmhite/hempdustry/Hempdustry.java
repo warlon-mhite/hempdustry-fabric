@@ -22,7 +22,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
 import net.minecraft.block.entity.BlockEntityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,18 +81,21 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.SATIVA_FLOWER, 0.65f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
 
-		FuelRegistry.INSTANCE.add(ModItems.HEMP_STEM, 50);
-		FuelRegistry.INSTANCE.add(ModItems.RETTED_HEMP_STEM, 50);
-		FuelRegistry.INSTANCE.add(ModItems.HEMPCRETE, 200);
-		FuelRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 350);
-		FuelRegistry.INSTANCE.add(ModItems.HEMP_BEANIE, 250);
-		FuelRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 400);
-		FuelRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 200);
-		FuelRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
-		FuelRegistry.INSTANCE.add(ModBlocks.HEMP_BALE, 450);
-		// 100 ticks, vanilla's rate for #minecraft:wool. Granted directly because hemp wool
-		// deliberately stays out of that tag — see ModBlocks.HEMP_WOOL.
-		FuelRegistry.INSTANCE.add(ModBlocks.HEMP_WOOL, 100);
+		// Fuel is a build-time event since 1.21.2 rather than a registry you push entries into.
+		FuelRegistryEvents.BUILD.register((builder, context) -> {
+			builder.add(ModItems.HEMP_STEM, 50);
+			builder.add(ModItems.RETTED_HEMP_STEM, 50);
+			builder.add(ModItems.HEMPCRETE, 200);
+			builder.add(ModItems.HEMP_HAREM_PANTS, 350);
+			builder.add(ModItems.HEMP_BEANIE, 250);
+			builder.add(ModItems.HEMP_SHIRT, 400);
+			builder.add(ModItems.FLIP_FLOPS, 200);
+			builder.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
+			builder.add(ModBlocks.HEMP_BALE, 450);
+			// 100 ticks, vanilla's rate for #minecraft:wool. Granted directly because hemp wool
+			// deliberately stays out of that tag — see ModBlocks.HEMP_WOOL.
+			builder.add(ModBlocks.HEMP_WOOL, 100);
+		});
 
 		registerFlammables();
 

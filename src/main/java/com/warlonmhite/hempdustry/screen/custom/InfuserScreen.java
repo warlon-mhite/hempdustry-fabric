@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.screen.custom;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -68,12 +69,12 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
 
         // Simmer bar, filling left to right.
         int filled = Math.round(this.handler.getProgress() * BAR_W);
         if (filled > 0) {
-            context.drawTexture(TEXTURE, x + BAR_X, y + BAR_Y, BAR_U, BAR_V, filled, BAR_H);
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BAR_X, y + BAR_Y, BAR_U, BAR_V, filled, BAR_H, 256, 256);
         }
 
         // Both marks are drawn at runtime rather than baked into the panel, because the bar is scaled
@@ -94,7 +95,7 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
 
         // Heat indicator. Not a fuel gauge — it reports whether something hot is underneath.
         if (this.handler.isHeated()) {
-            context.drawTexture(TEXTURE, x + FLAME_X, y + FLAME_Y, FLAME_U, FLAME_V, FLAME_W, FLAME_H);
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + FLAME_X, y + FLAME_Y, FLAME_U, FLAME_V, FLAME_W, FLAME_H, 256, 256);
         }
     }
 
@@ -102,7 +103,7 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
     private void drawMark(DrawContext context, int x, int y, float fraction,
                           int u, int v, int width, int height) {
         int offset = MathHelper.clamp(Math.round(fraction * BAR_W) - (width / 2), 0, BAR_W - width);
-        context.drawTexture(TEXTURE, x + BAR_X + offset, y + BAR_Y - 1, u, v, width, height);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BAR_X + offset, y + BAR_Y - 1, u, v, width, height, 256, 256);
     }
 
     @Override

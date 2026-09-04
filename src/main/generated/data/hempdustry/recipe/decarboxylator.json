@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "hempdustry:hemp_bricks_block"
-    },
-    "C": {
-      "item": "minecraft:copper_ingot"
-    }
+    "B": "hempdustry:hemp_bricks_block",
+    "C": "minecraft:copper_ingot"
   },
   "pattern": [
     "BCB",

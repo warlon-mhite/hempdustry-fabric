@@ -65,7 +65,7 @@ public final class SmokeScheduler {
             }
             ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
             if (player != null && player.isAlive()) {
-                Smoking.spawnExhale(player.getServerWorld(), player);
+                Smoking.spawnExhale(player.getEntityWorld(), player);
             }
             return true;
         });

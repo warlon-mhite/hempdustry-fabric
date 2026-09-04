@@ -11,7 +11,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -123,7 +123,7 @@ public final class Defoliation {
      * Fortune still applies to the crop's own harvest, which is broken with a hoe.
      */
     @Nullable
-    public static ItemActionResult tryCut(World world, BlockPos lowerPos, BlockState lowerState,
+    public static ActionResult tryCut(World world, BlockPos lowerPos, BlockState lowerState,
                                           int age, ItemStack stack, PlayerEntity player, Hand hand) {
         // The convention tag rather than Items.SHEARS, so a modded pair of shears works too.
         // SHEAR_TOOLS is #c:tools/shear, which is the widest of the three: Fabric puts vanilla
@@ -145,7 +145,7 @@ public final class Defoliation {
             return null;
         }
 
-        if (!world.isClient) {
+        if (!world.isClient()) {
             world.setBlockState(lowerPos, lowerState.with(window, true), Block.NOTIFY_LISTENERS);
             Block.dropStack(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF));
             stack.damage(1, player,
@@ -155,6 +155,6 @@ public final class Defoliation {
         // of waiting for the server to echo it back — the vanilla pattern for a two-sided use sound.
         world.playSound(player, lowerPos, SoundEvents.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES,
                 SoundCategory.BLOCKS, 1.0F, 0.8F + world.getRandom().nextFloat() * 0.4F);
-        return ItemActionResult.success(world.isClient);
+        return ActionResult.SUCCESS;
     }
 }

@@ -3,12 +3,8 @@
   "category": "misc",
   "group": "wooden_sign",
   "key": {
-    "#": {
-      "item": "hempdustry:hemp_planks"
-    },
-    "X": {
-      "item": "minecraft:stick"
-    }
+    "#": "hempdustry:hemp_planks",
+    "X": "minecraft:stick"
   },
   "pattern": [
     "###",

@@ -17,13 +17,14 @@ import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.DirectionProperty;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
@@ -47,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 public class DecarboxylatorBlock extends BlockWithEntity {
     public static final MapCodec<DecarboxylatorBlock> CODEC = createCodec(DecarboxylatorBlock::new);
 
-    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = Properties.LIT;
 
     public DecarboxylatorBlock(Settings settings) {
@@ -126,14 +127,14 @@ public class DecarboxylatorBlock extends BlockWithEntity {
 
     /** Spills the trays, the fuel and the collected hemp when the oven is broken. */
     @Override
-    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.isOf(newState.getBlock())) {
-            if (world.getBlockEntity(pos) instanceof DecarboxylatorBlockEntity be) {
-                ItemScatterer.spawn(world, pos, be);
-                world.updateComparators(pos, this);
-            }
-            super.onStateReplaced(state, world, pos, newState, moved);
+    protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
+        // Since 1.21.5 this only fires when the block actually changed, so the old
+        // state.isOf(newState) guard is gone along with the newState parameter.
+        if (world.getBlockEntity(pos) instanceof DecarboxylatorBlockEntity be) {
+            ItemScatterer.spawn(world, pos, be);
+            world.updateComparators(pos, this);
         }
+        super.onStateReplaced(state, world, pos, moved);
     }
 
     // ----- comparator -----
@@ -144,7 +145,7 @@ public class DecarboxylatorBlock extends BlockWithEntity {
     }
 
     @Override
-    protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+    protected int getComparatorOutput(BlockState state, World world, BlockPos pos, Direction side) {
         return ScreenHandler.calculateComparatorOutput(world.getBlockEntity(pos));
     }
 
@@ -160,10 +161,10 @@ public class DecarboxylatorBlock extends BlockWithEntity {
         double y = pos.getY() + 1.0D;
         double z = pos.getZ() + 0.5D;
         if (random.nextDouble() < 0.1D) {
-            world.playSound(x, y, z, net.minecraft.sound.SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE,
+            world.playSoundClient(x, y, z, net.minecraft.sound.SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE,
                     net.minecraft.sound.SoundCategory.BLOCKS, 0.6F, 1.0F, false);
         }
-        world.addParticle(ParticleTypes.SMOKE,
+        world.addParticleClient(ParticleTypes.SMOKE,
                 x + (random.nextDouble() - 0.5D) * 0.15D, y + random.nextDouble() * 0.1D,
                 z + (random.nextDouble() - 0.5D) * 0.15D, 0.0D, 0.02D, 0.0D);
     }

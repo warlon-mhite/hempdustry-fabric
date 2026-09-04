@@ -55,12 +55,7 @@ public class PackingRecipe extends SpecialCraftingRecipe {
     }
 
     @Override
-    public boolean fits(int width, int height) {
-        return width * height >= 2;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends PackingRecipe> getSerializer() {
         return ModRecipes.PACKING;
     }
 
@@ -75,7 +70,7 @@ public class PackingRecipe extends SpecialCraftingRecipe {
         ItemStack device = ItemStack.EMPTY;
         RegistryEntry<Strain> strain = null;
         int dose = 0;
-        for (int i = 0; i < input.getSize(); i++) {
+        for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getStackInSlot(i);
             if (stack.isEmpty()) {
                 continue;

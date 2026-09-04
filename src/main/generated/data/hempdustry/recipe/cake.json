@@ -2,18 +2,10 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "item": "minecraft:wheat"
-    },
-    "E": {
-      "item": "minecraft:egg"
-    },
-    "M": {
-      "item": "hempdustry:hemp_milk_bucket"
-    },
-    "S": {
-      "item": "minecraft:sugar"
-    }
+    "#": "minecraft:wheat",
+    "E": "minecraft:egg",
+    "M": "hempdustry:hemp_milk_bucket",
+    "S": "minecraft:sugar"
   },
   "pattern": [
     "MMM",

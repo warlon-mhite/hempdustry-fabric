@@ -40,9 +40,11 @@ public class InfusedShapedRecipe extends ShapedRecipe {
         return Infusion.transfer(input, super.craft(input, lookup), offset);
     }
 
+    // As InfusedShapelessRecipe: ShapedRecipe's declaration is invariant, and the cast is sound.
+    @SuppressWarnings("unchecked")
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ModRecipes.INFUSED_SHAPED;
+    public RecipeSerializer<ShapedRecipe> getSerializer() {
+        return (RecipeSerializer<ShapedRecipe>) (RecipeSerializer<?>) ModRecipes.INFUSED_SHAPED;
     }
 
     public static class Serializer implements RecipeSerializer<InfusedShapedRecipe> {

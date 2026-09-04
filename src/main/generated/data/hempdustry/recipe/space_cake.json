@@ -2,21 +2,11 @@
   "type": "hempdustry:infused_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "hempdustry:cannabutter"
-    },
-    "E": {
-      "item": "minecraft:egg"
-    },
-    "F": {
-      "item": "hempdustry:hemp_flour"
-    },
-    "M": {
-      "tag": "hempdustry:milk_buckets"
-    },
-    "S": {
-      "item": "minecraft:sugar"
-    }
+    "B": "hempdustry:cannabutter",
+    "E": "minecraft:egg",
+    "F": "hempdustry:hemp_flour",
+    "M": "#hempdustry:milk_buckets",
+    "S": "minecraft:sugar"
   },
   "pattern": [
     "MBM",

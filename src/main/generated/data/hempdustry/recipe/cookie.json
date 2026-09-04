@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "item": "hempdustry:hemp_flour"
-    },
-    "C": {
-      "item": "minecraft:cocoa_beans"
-    }
+    "#": "hempdustry:hemp_flour",
+    "C": "minecraft:cocoa_beans"
   },
   "pattern": [
     "#C#"

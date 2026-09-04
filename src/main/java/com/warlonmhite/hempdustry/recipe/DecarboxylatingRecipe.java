@@ -2,17 +2,21 @@ package com.warlonmhite.hempdustry.recipe;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.warlonmhite.hempdustry.block.ModBlocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.recipe.IngredientPlacement;
+import net.minecraft.recipe.IngredientPlacement;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
+import net.minecraft.recipe.book.RecipeBookCategories;
+import net.minecraft.recipe.book.RecipeBookCategory;
+import net.minecraft.recipe.book.RecipeBookCategories;
+import net.minecraft.recipe.book.RecipeBookCategory;
 import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
 /**
@@ -46,22 +50,10 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
         return result.copy();
     }
 
-    /** No grid, so nothing to fit into. */
+    /** One slot, one ingredient — the shape a recipe viewer reads off this. */
     @Override
-    public boolean fits(int width, int height) {
-        return true;
-    }
-
-    @Override
-    public ItemStack getResult(RegistryWrapper.WrapperLookup lookup) {
-        return result;
-    }
-
-    @Override
-    public DefaultedList<Ingredient> getIngredients() {
-        DefaultedList<Ingredient> list = DefaultedList.ofSize(1, Ingredient.EMPTY);
-        list.set(0, ingredient);
-        return list;
+    public IngredientPlacement getIngredientPlacement() {
+        return IngredientPlacement.forSingleSlot(ingredient);
     }
 
     @Override
@@ -69,24 +61,28 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
         return true;
     }
 
+    /**
+     * Never shown, because {@link #isIgnoredInRecipeBook()} is true and {@code getDisplays()} is
+     * empty — but {@code Recipe} demands one, so this is the harmless answer.
+     */
     @Override
-    public ItemStack createIcon() {
-        return new ItemStack(ModBlocks.DECARBOXYLATOR);
+    public RecipeBookCategory getRecipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends DecarboxylatingRecipe> getSerializer() {
         return ModRecipes.DECARBOXYLATING;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<? extends DecarboxylatingRecipe> getType() {
         return ModRecipes.DECARBOXYLATING_TYPE;
     }
 
     public static class Serializer implements RecipeSerializer<DecarboxylatingRecipe> {
         private static final MapCodec<DecarboxylatingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.DISALLOW_EMPTY_CODEC.fieldOf("ingredient").forGetter(DecarboxylatingRecipe::ingredient),
+                Ingredient.CODEC.fieldOf("ingredient").forGetter(DecarboxylatingRecipe::ingredient),
                 ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(DecarboxylatingRecipe::result)
         ).apply(instance, DecarboxylatingRecipe::new));
 

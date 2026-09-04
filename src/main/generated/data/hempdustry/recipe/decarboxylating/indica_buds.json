@@ -1,8 +1,6 @@
 {
   "type": "hempdustry:decarboxylating",
-  "ingredient": {
-    "item": "hempdustry:indica_buds"
-  },
+  "ingredient": "hempdustry:indica_buds",
   "result": {
     "count": 4,
     "id": "hempdustry:decarboxylated_hemp"

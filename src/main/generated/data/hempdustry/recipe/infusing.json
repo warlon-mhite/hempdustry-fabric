@@ -1,16 +1,10 @@
 {
   "type": "hempdustry:infusing",
-  "container": {
-    "tag": "hempdustry:milk_buckets"
-  },
-  "hemp": {
-    "item": "hempdustry:decarboxylated_hemp"
-  },
+  "container": "#hempdustry:milk_buckets",
+  "hemp": "hempdustry:decarboxylated_hemp",
   "result": {
     "count": 1,
     "id": "hempdustry:cannabutter"
   },
-  "washed_hemp": {
-    "item": "hempdustry:washed_decarboxylated_hemp"
-  }
+  "washed_hemp": "hempdustry:washed_decarboxylated_hemp"
 }

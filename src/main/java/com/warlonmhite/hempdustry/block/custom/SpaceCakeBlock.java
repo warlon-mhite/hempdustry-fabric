@@ -13,7 +13,7 @@ import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -80,17 +80,17 @@ public class SpaceCakeBlock extends CakeBlock {
         int potency = state.get(POTENCY);
         Quality quality = state.get(QUALITY);
         ActionResult result = super.onUse(state, world, pos, player, hit);
-        if (result.isAccepted() && !world.isClient) {
+        if (result.isAccepted() && !world.isClient()) {
             EdibleEffects.consume(player, potency, quality);
         }
         return result;
     }
 
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
+    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
                                              PlayerEntity player, Hand hand, BlockHitResult hit) {
         // Deliberately never the candle branch. Falling through to onUse means a player holding any
         // item still gets to eat, which is what they meant by right-clicking a cake.
-        return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
     }
 }

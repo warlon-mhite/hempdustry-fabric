@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.screen.custom;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -45,16 +46,13 @@ public class DecarboxylatorScreen extends HandledScreen<DecarboxylatorScreenHand
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
 
         // Fire: revealed from the bottom up, the way a furnace's flame burns down.
         if (this.handler.isBurning()) {
             int lit = Math.round(this.handler.getBurnProgress() * FLAME_H);
             if (lit > 0) {
-                context.drawTexture(TEXTURE,
-                        x + FLAME_X, y + FLAME_Y + FLAME_H - lit,
-                        FLAME_U, FLAME_V + FLAME_H - lit,
-                        FLAME_W, lit);
+                context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + FLAME_X, y + FLAME_Y + FLAME_H - lit, FLAME_U, FLAME_V + FLAME_H - lit, FLAME_W, lit, 256, 256);
             }
         }
 
@@ -64,7 +62,7 @@ public class DecarboxylatorScreen extends HandledScreen<DecarboxylatorScreenHand
             if (filled > 0) {
                 int arrowY = y + DecarboxylatorScreenHandler.TRAY_Y
                         + tray * DecarboxylatorScreenHandler.TRAY_SPACING;
-                context.drawTexture(TEXTURE, x + ARROW_X, arrowY, ARROW_U, ARROW_V, filled, ARROW_H);
+                context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + ARROW_X, arrowY, ARROW_U, ARROW_V, filled, ARROW_H, 256, 256);
             }
         }
     }

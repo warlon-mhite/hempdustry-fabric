@@ -3,6 +3,9 @@ package com.warlonmhite.hempdustry.config;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.command.permission.Permission;
+import net.minecraft.command.permission.PermissionCheck;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -28,7 +31,9 @@ public class ModCommands {
 
     private static LiteralArgumentBuilder<ServerCommandSource> build() {
         return CommandManager.literal(Hempdustry.MOD_ID)
-                .requires(source -> source.hasPermissionLevel(2))
+                // Permission is a PermissionLevel check since 1.21.10 rather than a bare int.
+                .requires(CommandManager.requirePermissionLevel(
+                        new PermissionCheck.Require(new Permission.Level(PermissionLevel.GAMEMASTERS))))
                 .then(CommandManager.literal("reload").executes(context -> {
                     HempdustryConfig.load();
                     // Sent as a broadcast-to-ops message: a balance change is something the other

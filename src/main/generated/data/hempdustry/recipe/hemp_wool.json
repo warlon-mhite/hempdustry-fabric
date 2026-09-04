@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "#": {
-      "item": "hempdustry:hemp_canvas"
-    }
+    "#": "hempdustry:hemp_canvas"
   },
   "pattern": [
     "##",

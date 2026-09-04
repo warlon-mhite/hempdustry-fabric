@@ -5,14 +5,14 @@ import com.warlonmhite.hempdustry.entity.custom.HempChestBoatEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.stat.Stats;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -37,11 +37,11 @@ public class HempBoatItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         ItemStack itemStack = user.getStackInHand(hand);
         HitResult hitResult = raycast(world, user, RaycastContext.FluidHandling.ANY);
         if (hitResult.getType() == HitResult.Type.MISS) {
-            return TypedActionResult.pass(itemStack);
+            return ActionResult.PASS;
         }
 
         Vec3d rotationVec = user.getRotationVec(1.0F);
@@ -51,34 +51,35 @@ public class HempBoatItem extends Item {
             for (Entity entity : list) {
                 Box box = entity.getBoundingBox().expand((double) entity.getTargetingMargin());
                 if (box.contains(eyePos)) {
-                    return TypedActionResult.pass(itemStack);
+                    return ActionResult.PASS;
                 }
             }
         }
 
         if (hitResult.getType() != HitResult.Type.BLOCK) {
-            return TypedActionResult.pass(itemStack);
+            return ActionResult.PASS;
         }
 
-        BoatEntity boatEntity = this.createEntity(world, hitResult, itemStack, user);
+        AbstractBoatEntity boatEntity = this.createEntity(world, hitResult, itemStack, user);
         boatEntity.setYaw(user.getYaw());
         if (!world.isSpaceEmpty(boatEntity, boatEntity.getBoundingBox())) {
-            return TypedActionResult.fail(itemStack);
+            return ActionResult.FAIL;
         }
 
-        if (!world.isClient) {
+        if (!world.isClient()) {
             world.spawnEntity(boatEntity);
             world.emitGameEvent(user, GameEvent.ENTITY_PLACE, hitResult.getPos());
             itemStack.decrementUnlessCreative(1, user);
         }
 
         user.incrementStat(Stats.USED.getOrCreateStat(this));
-        return TypedActionResult.success(itemStack, world.isClient());
+        return ActionResult.SUCCESS;
     }
 
-    private BoatEntity createEntity(World world, HitResult hitResult, ItemStack stack, PlayerEntity player) {
+    private AbstractBoatEntity createEntity(World world, HitResult hitResult, ItemStack stack, PlayerEntity player) {
         Vec3d pos = hitResult.getPos();
-        BoatEntity boatEntity = this.chest
+        // AbstractBoatEntity since 1.21.2: a chest boat is no longer a BoatEntity subclass.
+        AbstractBoatEntity boatEntity = this.chest
                 ? new HempChestBoatEntity(world, pos.x, pos.y, pos.z)
                 : new HempBoatEntity(world, pos.x, pos.y, pos.z);
         if (world instanceof ServerWorld serverWorld) {

@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "redstone",
   "ingredients": [
-    {
-      "item": "hempdustry:hemp_planks"
-    }
+    "hempdustry:hemp_planks"
   ],
   "result": {
     "count": 1,

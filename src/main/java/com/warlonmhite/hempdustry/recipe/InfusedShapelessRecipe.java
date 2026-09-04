@@ -28,7 +28,7 @@ public class InfusedShapelessRecipe extends ShapelessRecipe {
 
     public InfusedShapelessRecipe(String group, CraftingRecipeCategory category, ItemStack result,
                                   List<Ingredient> ingredients, int offset) {
-        super(group, category, result, toDefaultedList(ingredients));
+        super(group, category, result, ingredients);
         this.result = result;
         this.ingredients = ingredients;
         this.offset = offset;
@@ -39,18 +39,14 @@ public class InfusedShapelessRecipe extends ShapelessRecipe {
         return Infusion.transfer(input, super.craft(input, lookup), offset);
     }
 
+    // ShapelessRecipe declares RecipeSerializer<ShapelessRecipe> — invariant, so an override cannot
+    // narrow it. The cast is sound: this serializer only ever builds a InfusedShapelessRecipe.
+    @SuppressWarnings("unchecked")
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ModRecipes.INFUSED_SHAPELESS;
+    public RecipeSerializer<ShapelessRecipe> getSerializer() {
+        return (RecipeSerializer<ShapelessRecipe>) (RecipeSerializer<?>) ModRecipes.INFUSED_SHAPELESS;
     }
 
-    private static DefaultedList<Ingredient> toDefaultedList(List<Ingredient> ingredients) {
-        DefaultedList<Ingredient> list = DefaultedList.ofSize(ingredients.size(), Ingredient.EMPTY);
-        for (int i = 0; i < ingredients.size(); i++) {
-            list.set(i, ingredients.get(i));
-        }
-        return list;
-    }
 
     public static class Serializer implements RecipeSerializer<InfusedShapelessRecipe> {
         private static final MapCodec<InfusedShapelessRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -58,7 +54,7 @@ public class InfusedShapelessRecipe extends ShapelessRecipe {
                 CraftingRecipeCategory.CODEC.fieldOf("category")
                         .orElse(CraftingRecipeCategory.MISC).forGetter(ShapelessRecipe::getCategory),
                 ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
-                Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients),
+                Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients),
                 Codec.INT.optionalFieldOf("offset", 0).forGetter(recipe -> recipe.offset)
         ).apply(instance, InfusedShapelessRecipe::new));
 

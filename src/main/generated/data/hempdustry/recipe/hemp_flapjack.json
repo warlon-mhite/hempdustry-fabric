@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "hempdustry:toasted_hemp_seeds"
-    },
-    {
-      "item": "hempdustry:toasted_hemp_seeds"
-    },
-    {
-      "item": "minecraft:honey_bottle"
-    }
+    "hempdustry:toasted_hemp_seeds",
+    "hempdustry:toasted_hemp_seeds",
+    "minecraft:honey_bottle"
   ],
   "result": {
     "count": 2,

@@ -4,12 +4,12 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.util.Identifier;
 
 /**
- * The item-model properties the smoking gear's models key on.
+ * The ids the smoking gear's <b>client item definitions</b> key on.
  *
  * <h2>Why these live in a holder of their own</h2>
  *
  * Each id has <b>two</b> readers that must agree exactly: the datagen model provider writes it into
- * the {@code overrides} array, and the client registers a provider under it. They used to be two
+ * {@code assets/hempdustry/items/*.json}, and the client registers the implementation under it. They used to be two
  * separate string literals, which is a silent-failure waiting to happen — a typo on either side
  * produces a model that simply never matches, with no error anywhere.
  *
@@ -19,42 +19,47 @@ import net.minecraft.util.Identifier;
  * <h2>The two properties answer different questions</h2>
  *
  * <ul>
- *   <li>{@link #PACKED} — 0 or 1, "is anything loaded in this device". Switches a pipe or bong
- *       between its empty and packed models.</li>
- *   <li>{@link #STRAIN} — the loaded strain's {@code model_index}, for a strain that ships bespoke
- *       art rather than taking the shared look. {@code 0} means "no art of my own".</li>
+ *   <li>{@link #STRAIN} — a numeric property carrying the loaded strain's {@code model_index}, for
+ *       a strain that ships bespoke art rather than taking the shared look. {@code 0} means "no art
+ *       of my own", which is every strain a datapack can add.</li>
+ *   <li>{@link #STRAIN_TINT} — the tint source that paints a strain's own colour onto the shared
+ *       art, and the half of the system a datapack can actually reach.</li>
  * </ul>
  *
- * Conflating the two is what broke the devices: they discriminated empty from packed with
- * {@code strain >= 1}, which held only while every strain carried a non-zero index.
+ * <p>There is no {@code hempdustry:packed} any more. "Is anything loaded" is
+ * {@code minecraft:has_component} on {@code hempdustry:smoke_contents} since 1.21.4 — vanilla ships
+ * the question, so the mod stopped answering it. (Conflating the two is what broke the devices
+ * once: they discriminated empty from packed with {@code strain >= 1}, which held only while every
+ * strain carried a non-zero index.)
  *
- * <p>Both are matched with {@code >=}, so overrides using them must be listed in ascending order —
- * in the datagen'd models and in any resource pack that extends them.
+ * <p>{@link #STRAIN} is dispatched on with {@code minecraft:range_dispatch}, whose thresholds match
+ * {@code >=} and must therefore be listed ascending — in the datagen'd definitions and in any
+ * resource pack that extends them.
  */
 public final class ModItemProperties {
 
-    /** {@code hempdustry:packed} — 0 when the device is empty, 1 when something is loaded. */
-    public static final Identifier PACKED = Identifier.of(Hempdustry.MOD_ID, "packed");
-
     /** {@code hempdustry:strain} — the loaded strain's {@code model_index}; 0 for "no bespoke art". */
     public static final Identifier STRAIN = Identifier.of(Hempdustry.MOD_ID, "strain");
+
+    /** {@code hempdustry:strain} as a tint source. Same path, a different registry. */
+    public static final Identifier STRAIN_TINT = Identifier.of(Hempdustry.MOD_ID, "strain");
 
     /**
      * The tint index carrying the strain's colour, and therefore <b>which texture layer gets tinted</b>.
      *
      * <h2>How item tinting actually works, because it is not obvious</h2>
      *
-     * An item model does not write {@code "tintindex"} anywhere. {@code ItemModelGenerator} builds one
-     * set of quads per {@code layerN} in the {@code textures} map and passes <b>the layer number as
-     * the tint index</b> — {@code layer0} is tint 0, {@code layer1} is tint 1, up to {@code layer4}.
-     * An {@code ItemColorProvider} then returns a colour per index, or {@code -1} for "leave this one
-     * alone".
+     * A model does not write {@code "tintindex"} anywhere for a flat item. The model builds one set of
+     * quads per {@code layerN} in the {@code textures} map and passes <b>the layer number as the tint
+     * index</b> — {@code layer0} is tint 0, {@code layer1} is tint 1, up to {@code layer4}. The
+     * client item definition's {@code tints} array then answers <b>by position</b>: entry 0 colours
+     * index 0, entry 1 colours index 1. So a layer that must stay as drawn takes a constant white.
      *
      * <p>So the contract for anything strain-tinted is:
      *
      * <ul>
-     *   <li><b>{@code layer0}</b> — the object itself, full colour, <b>never tinted</b>. The provider
-     *       returns {@code -1} for index 0.</li>
+     *   <li><b>{@code layer0}</b> — the object itself, full colour, <b>never tinted</b>. Its entry in
+     *       {@code tints} is a constant white, which multiplies to no change.</li>
      *   <li><b>{@code layer1}</b> — a mask covering only the part that should take the strain's
      *       colour, painted near-white where the colour should read at full strength. Tinting is a
      *       multiply, so a grey pixel yields a darker shade and <b>no pixel can come out lighter than
@@ -62,8 +67,8 @@ public final class ModItemProperties {
      *       range rather than its midpoint.</li>
      * </ul>
      *
-     * This is exactly the shape vanilla gives wolf armour, whose provider reads
-     * {@code tintIndex != 1 ? -1 : dyeColour}.
+     * This is exactly the shape vanilla gives wolf armour: a constant white first, its dye tint
+     * second.
      *
      * <p><b>This is a resource-pack contract.</b> A pack replacing the smoking gear's art has to keep
      * the layer split, and a pack adding art for a new strain relies on it. Changing which layer is

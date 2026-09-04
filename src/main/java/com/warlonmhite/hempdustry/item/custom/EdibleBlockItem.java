@@ -3,10 +3,11 @@ package com.warlonmhite.hempdustry.item.custom;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * The item form of a dosed block — the Space Cake. Exists only to show the same potency and quality
@@ -19,7 +20,9 @@ public class EdibleBlockItem extends BlockItem {
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context,
+                              TooltipDisplayComponent displayComponent, Consumer<Text> tooltip,
+                              TooltipType type) {
         EdibleEffects.appendTooltip(stack, tooltip);
     }
 }

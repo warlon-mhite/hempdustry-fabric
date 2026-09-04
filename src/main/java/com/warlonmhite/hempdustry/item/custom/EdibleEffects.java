@@ -10,6 +10,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
+
+import java.util.function.Consumer;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
 
@@ -197,16 +199,16 @@ public final class EdibleEffects {
      * stack in your inventory has no in-world surface, and vanilla answers exactly that case with a
      * tooltip line on potions, enchanted books and suspicious stew.
      */
-    public static void appendTooltip(ItemStack stack, List<Text> tooltip) {
+    public static void appendTooltip(ItemStack stack, Consumer<Text> tooltip) {
         int potency = potencyOf(stack);
         if (potency <= 0) {
             return;
         }
-        tooltip.add(Text.translatable("hempdustry.edible.potency",
+        tooltip.accept(Text.translatable("hempdustry.edible.potency",
                 Text.translatable("enchantment.level." + potency)).formatted(Formatting.GRAY));
         Quality quality = stack.get(ModComponents.QUALITY);
         if (quality != null) {
-            tooltip.add(Text.translatable("hempdustry.edible.quality",
+            tooltip.accept(Text.translatable("hempdustry.edible.quality",
                     Text.translatable(quality.getTranslationKey())).formatted(Formatting.DARK_GRAY));
         }
     }

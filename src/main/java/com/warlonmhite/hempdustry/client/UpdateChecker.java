@@ -11,6 +11,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.minecraft.SharedConstants;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
@@ -18,6 +19,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -29,14 +32,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Polls the mod's Modrinth project for a newer release than the one currently running.
  * Client-only: a dedicated server has no player to notify and shouldn't phone home.
- * Update the {@code game_versions} filter below when porting to a new Minecraft version.
  */
 public final class UpdateChecker {
     private static final String MODRINTH_PROJECT = "hempdustry";
     private static final String MODRINTH_PROJECT_URL = "https://modrinth.com/mod/" + MODRINTH_PROJECT;
+    /**
+     * Filtered to the game this client is actually running, <b>read from the game rather than
+     * written down</b>. It used to be a {@code "1.21.1"} literal with a comment above it saying to
+     * update it when porting — and the 1.21.11 port duly moved every other coordinate and left this
+     * one behind, which would have had the checker asking Modrinth for 1.21.1 builds for ever and
+     * failing silently, since a check that finds nothing is indistinguishable from one that is
+     * up to date. A constant nobody can forget is better than a comment asking them not to.
+     */
     private static final String MODRINTH_VERSIONS_URL =
             "https://api.modrinth.com/v2/project/" + MODRINTH_PROJECT
-                    + "/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.1%22%5D";
+                    + "/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%22"
+                    + URLEncoder.encode(SharedConstants.getGameVersion().name(), StandardCharsets.UTF_8)
+                    + "%22%5D";
 
     /**
      * Which Modrinth release channels are worth interrupting a player for. Betas count as well as
@@ -87,8 +99,8 @@ public final class UpdateChecker {
                 .styled(style -> style
                         .withColor(Formatting.GREEN)
                         .withUnderline(true)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, MODRINTH_PROJECT_URL))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                        .withClickEvent(new ClickEvent.OpenUrl(URI.create(MODRINTH_PROJECT_URL)))
+                        .withHoverEvent(new HoverEvent.ShowText(
                                 Text.translatable("hempdustry.update.tooltip"))));
 
         return Text.translatable("hempdustry.update.available", latest, currentVersion())

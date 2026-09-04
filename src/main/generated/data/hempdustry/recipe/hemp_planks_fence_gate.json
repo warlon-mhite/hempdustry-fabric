@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "#": {
-      "item": "minecraft:stick"
-    },
-    "W": {
-      "item": "hempdustry:hemp_planks"
-    }
+    "#": "minecraft:stick",
+    "W": "hempdustry:hemp_planks"
   },
   "pattern": [
     "#W#",

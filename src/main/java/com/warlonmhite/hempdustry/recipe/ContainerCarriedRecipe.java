@@ -56,28 +56,23 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
 
     public ContainerCarriedRecipe(String group, CraftingRecipeCategory category, ItemStack result,
                                   List<Ingredient> ingredients) {
-        super(group, category, result, toDefaultedList(ingredients));
+        super(group, category, result, ingredients);
         this.result = result;
         this.ingredients = ingredients;
     }
 
     /** No remainders: every ingredient's container is considered part of the product. */
     @Override
-    public DefaultedList<ItemStack> getRemainder(CraftingRecipeInput input) {
-        return DefaultedList.ofSize(input.getSize(), ItemStack.EMPTY);
+    public DefaultedList<ItemStack> getRecipeRemainders(CraftingRecipeInput input) {
+        return DefaultedList.ofSize(input.size(), ItemStack.EMPTY);
     }
 
+    // ShapelessRecipe declares RecipeSerializer<ShapelessRecipe> — invariant, so an override cannot
+    // narrow it. The cast is sound: this serializer only ever builds a ContainerCarriedRecipe.
+    @SuppressWarnings("unchecked")
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ModRecipes.CONTAINER_CARRIED;
-    }
-
-    private static DefaultedList<Ingredient> toDefaultedList(List<Ingredient> ingredients) {
-        DefaultedList<Ingredient> list = DefaultedList.ofSize(ingredients.size(), Ingredient.EMPTY);
-        for (int i = 0; i < ingredients.size(); i++) {
-            list.set(i, ingredients.get(i));
-        }
-        return list;
+    public RecipeSerializer<ShapelessRecipe> getSerializer() {
+        return (RecipeSerializer<ShapelessRecipe>) (RecipeSerializer<?>) ModRecipes.CONTAINER_CARRIED;
     }
 
     public static class Serializer implements RecipeSerializer<ContainerCarriedRecipe> {
@@ -86,7 +81,7 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
                 CraftingRecipeCategory.CODEC.fieldOf("category")
                         .orElse(CraftingRecipeCategory.MISC).forGetter(ShapelessRecipe::getCategory),
                 ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
-                Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
+                Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
         ).apply(instance, ContainerCarriedRecipe::new));
 
         private static final PacketCodec<RegistryByteBuf, ContainerCarriedRecipe> PACKET_CODEC = PacketCodec.tuple(

@@ -2,11 +2,11 @@
 
 *Minecraft for stoners and hemprepreneurs.*
 
-A hemp and cannabis mod for **Minecraft 1.21.1** on **Fabric**. Grow it, harvest it, smoke it, cook with
+A hemp and cannabis mod for **Minecraft 1.21.11** on **Fabric**. Grow it, harvest it, smoke it, cook with
 it or use it as a building material, because that is most of what hemp has
 actually been for over the last five thousand years.
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen)](https://www.minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-brightgreen)](https://www.minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-lightgrey)](https://fabricmc.net/)
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/)
 [![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
@@ -15,7 +15,7 @@ actually been for over the last five thousand years.
 **Download:** SOON
 
 > **Status: version 2.0.0-beta**
-> This is a rewrite for Fabric 1.21.1 of an older Forge 1.16 mod (GanjaCraft) that was built with
+> This is a rewrite for Fabric 1.21.11 of an older Forge 1.16 mod (GanjaCraft) that was built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
 >

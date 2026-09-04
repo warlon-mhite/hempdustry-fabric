@@ -2,16 +2,16 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.UseAction;
 
 /**
  * Bhang — decarboxylated hemp worked into hot milk with sugar. The only <em>drink</em> in the
  * edibles set, and the only one that skips cannabutter entirely.
  *
  * <p>Kept and drunk from the bucket, exactly as vanilla milk is: {@code maxCount(1)}, and finishing
- * it hands the bucket back — via {@code FoodComponent.Builder.usingConvertsTo}, which is how 1.21.1's
- * own stews return their bowls, rather than a hand-written {@code finishUsing}. That is a real drawback next to the stackable edibles — one serving per
- * inventory slot — and it is the right one for the crudest preparation in the set.
+ * it hands the bucket back — via {@code Item.Settings.useRemainder}, which is how vanilla's own stews
+ * return their bowls, rather than a hand-written {@code finishUsing}. That is a real drawback next to
+ * the stackable edibles — one serving per inventory slot — and it is the right one for the crudest
+ * preparation in the set.
  *
  * <h2>Why it takes decarboxylated hemp rather than cannabutter</h2>
  *
@@ -49,21 +49,11 @@ import net.minecraft.util.UseAction;
  * It is a joke, not a bug.
  */
 public class BhangItem extends EdibleItem {
-    /** Honey bottle's drink time. A drink should not be quicker to down than vanilla's. */
-    private static final int MAX_USE_TIME = 40;
-
+    // Nothing left to override. That it is drunk rather than eaten -- the animation, the sound, and
+    // honey bottle's two seconds -- is the `consumable` component ModItems passes alongside the food
+    // component; since 1.21.2 Item#getUseAction and Item#getMaxUseTime read that and an override of
+    // either is dead code. This class exists for the dosed-edible behaviour it inherits.
     public BhangItem(Settings settings) {
         super(settings);
     }
-
-    @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.DRINK;
-    }
-
-    @Override
-    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
-        return MAX_USE_TIME;
-    }
-
 }

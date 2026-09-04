@@ -14,6 +14,8 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -165,7 +167,9 @@ public class DecarboxylatorBlockEntity extends BlockEntity
             return ItemStack.EMPTY;
         }
         SingleStackRecipeInput input = new SingleStackRecipeInput(stack);
-        return world.getRecipeManager()
+        // Through the synchronized view, so this answers on a client too — the screen's tray slots
+        // ask the same question. See ModRecipes#allOfType.
+        return world.getRecipeManager().getSynchronizedRecipes()
                 .getFirstMatch(ModRecipes.DECARBOXYLATING_TYPE, input, world)
                 .map(entry -> entry.value().craft(input, world.getRegistryManager()))
                 .orElse(ItemStack.EMPTY);
@@ -175,20 +179,19 @@ public class DecarboxylatorBlockEntity extends BlockEntity
         return !resultFor(world, stack).isEmpty();
     }
 
-    public static boolean isFuel(ItemStack stack) {
-        return AbstractFurnaceBlockEntity.canUseAsFuel(stack);
+    public static boolean isFuel(@Nullable World world, ItemStack stack) {
+        return world != null && world.getFuelRegistry().isFuel(stack);
     }
 
     /**
      * Burn time of a fuel item, via the same map vanilla furnaces use — so the mod's own
      * {@code FuelRegistry} entries (hemp stem, bales, the armour set) work here for free.
      */
-    private static int burnTimeOf(ItemStack stack) {
-        if (stack.isEmpty()) {
+    private static int burnTimeOf(@Nullable World world, ItemStack stack) {
+        if (world == null || stack.isEmpty()) {
             return 0;
         }
-        Map<Item, Integer> fuelTimes = AbstractFurnaceBlockEntity.createFuelTimeMap();
-        return fuelTimes.getOrDefault(stack.getItem(), 0);
+        return world.getFuelRegistry().getFuelTicks(stack);
     }
 
     // ----- ticking -----
@@ -213,7 +216,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
         // an idle machine (same contract as a furnace).
         if (!isBurning() && anyTrayReady) {
             ItemStack fuel = getStack(FUEL_SLOT);
-            int time = burnTimeOf(fuel);
+            int time = burnTimeOf(world, fuel);
             if (time > 0) {
                 burnTime = time;
                 fuelTime = time;
@@ -221,9 +224,8 @@ public class DecarboxylatorBlockEntity extends BlockEntity
                 fuel.decrement(1);
                 if (fuel.isEmpty()) {
                     // Buckets and the like leave their empty container behind, as in a furnace.
-                    setStack(FUEL_SLOT, before.getRecipeRemainder() == null
-                            ? ItemStack.EMPTY
-                            : new ItemStack(before.getRecipeRemainder()));
+                    // getRecipeRemainder returns an ItemStack since 1.21.2, empty rather than null.
+                    setStack(FUEL_SLOT, before.getRecipeRemainder().copy());
                 }
                 dirty = true;
             }
@@ -304,7 +306,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
     @Override
     public boolean isValid(int slot, ItemStack stack) {
         return switch (slot) {
-            case FUEL_SLOT -> isFuel(stack);
+            case FUEL_SLOT -> isFuel(this.world, stack);
             case OUTPUT_SLOT -> false;
             default -> isTrayInput(this.world, stack);
         };
@@ -332,7 +334,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
         if (slot == OUTPUT_SLOT) {
             return true;
         }
-        return slot == FUEL_SLOT && !isFuel(stack);
+        return slot == FUEL_SLOT && !isFuel(this.world, stack);
     }
 
     @Override
@@ -362,23 +364,25 @@ public class DecarboxylatorBlockEntity extends BlockEntity
 
     // ----- persistence -----
 
+    // Since 1.21.9 a block entity is read and written through ReadView/WriteView rather than a raw
+    // NbtCompound. The keys are unchanged, so a world written by 2.0.0-beta on 1.21.1 still loads.
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        super.writeNbt(nbt, registryLookup);
-        Inventories.writeNbt(nbt, inventory, registryLookup);
-        nbt.putInt("BurnTime", burnTime);
-        nbt.putInt("FuelTime", fuelTime);
-        nbt.putIntArray("Progress", progress.clone());
+    protected void writeData(WriteView view) {
+        super.writeData(view);
+        Inventories.writeData(view, inventory);
+        view.putInt("BurnTime", burnTime);
+        view.putInt("FuelTime", fuelTime);
+        view.putIntArray("Progress", progress.clone());
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        super.readNbt(nbt, registryLookup);
+    protected void readData(ReadView view) {
+        super.readData(view);
         inventory.clear();
-        Inventories.readNbt(nbt, inventory, registryLookup);
-        burnTime = nbt.getInt("BurnTime");
-        fuelTime = nbt.getInt("FuelTime");
-        int[] saved = nbt.getIntArray("Progress");
+        Inventories.readData(view, inventory);
+        burnTime = view.getInt("BurnTime", 0);
+        fuelTime = view.getInt("FuelTime", 0);
+        int[] saved = view.getOptionalIntArray("Progress").orElse(new int[0]);
         for (int tray = 0; tray < TRAY_COUNT; tray++) {
             progress[tray] = tray < saved.length ? saved[tray] : 0;
         }

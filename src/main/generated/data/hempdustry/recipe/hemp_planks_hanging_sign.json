@@ -3,12 +3,8 @@
   "category": "misc",
   "group": "hanging_sign",
   "key": {
-    "#": {
-      "item": "hempdustry:hemp_planks"
-    },
-    "X": {
-      "item": "minecraft:chain"
-    }
+    "#": "hempdustry:hemp_planks",
+    "X": "minecraft:iron_chain"
   },
   "pattern": [
     "X X",

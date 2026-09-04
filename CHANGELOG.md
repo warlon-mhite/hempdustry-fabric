@@ -3,13 +3,42 @@
 All notable changes to Hempdustry are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/). Jars are versioned `MAJOR.MINOR.PATCH+MCVERSION`, so
-`2.0.0+1.21.1` is release 2.0.0 built for Minecraft 1.21.1. A pre-release carries its tag in the
-same place: `2.0.0-beta+1.21.1` sorts *before* `2.0.0+1.21.1`, which is what lets a player on the
+`2.0.0+1.21.11` is release 2.0.0 built for Minecraft 1.21.11. A pre-release carries its tag in the
+same place: `2.0.0-beta+1.21.11` sorts *before* `2.0.0+1.21.11`, which is what lets a player on the
 beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in the beta.
+### Changed
+
+- **Hempdustry now runs on Minecraft 1.21.11**, ten patch versions on from the 1.21.1 the beta was
+  built for. **Your world comes with you**: every item, block, recipe, tag, advancement and saved
+  machine keeps the id and the save key it had, so a world made with `2.0.0-beta+1.21.1` opens on
+  this build as itself.
+  - **Still on 1.21.1?** That build is not going anywhere. The last version of that line is kept on
+    its own `1.21.1` branch and can still be built and played; it simply will not get new features.
+  - Requires **Fabric Loader 0.18.2** and **Fabric API 0.139.4** or newer.
+
+### Removed
+
+- **The EMI recipe pages are gone on 1.21.11**, and not by choice: EMI has never been released for
+  any Minecraft version past 1.21.1, so there is nothing for the plugin to attach to. **JEI is
+  unaffected** and shows the same Decarboxylator, Infuser and cauldron pages it always did. The EMI
+  plugin is kept intact on the `1.21.1` branch and comes straight back the day EMI ships for a
+  version this mod targets.
+
+### Fixed
+
+- Hemp milk drank in complete silence, and bhang made an eating noise rather than a drinking one.
+  Both now sound and animate like the drinks they are.
+- The advancement tab drew its background as missing-texture magenta.
+- Every block from the mod showed a raw id like `item.hempdustry.decarboxylator` in hand and in the
+  creative tab instead of its name.
+- The in-game update checker was asking Modrinth for builds for the wrong Minecraft version, so it
+  would have quietly never found one. It now asks about the version you are actually running.
+
+*(All four were introduced by the port and fixed before it shipped; none of them ever reached a
+release build.)*
 
 ## [2.0.0-beta] — 2026-09-03
 
@@ -25,7 +54,8 @@ break something will say so under an explicit **Breaking** heading, naming what 
 backup of a world you care about, as with any beta.
 
 **Hempdustry 2 — the Fabric rewrite.** The mod was originally a Forge 1.16 mod built with MCreator;
-this is a hand-written rewrite for Fabric 1.21.1 and the first release on that line. The version
+this is a hand-written rewrite for Fabric, and this was the first release on that line
+(Minecraft 1.21.1; see *Unreleased* above for the move to 1.21.11). The version
 number marks the rewrite rather than feature parity: some of the original's content has been
 reimagined, and some has not been ported yet.
 

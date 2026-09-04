@@ -92,7 +92,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * the crop's seeds (base 1 + binomial(fortuneLevel + 3, 0.40)).
      */
     private LootTable.Builder indicaFlowerDrops() {
-        RegistryEntry<Enchantment> fortune = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        RegistryEntry<Enchantment> fortune = this.registries.getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
         return this.dropsWithSilkTouchOrShears(ModBlocks.INDICA_FLOWER,
                 this.applyExplosionDecay(ModBlocks.INDICA_FLOWER,
                         ItemEntry.builder(ModItems.INDICA_SEEDS)
@@ -142,7 +142,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                                             IntProperty ageProperty, int maxAge,
                                             Item buds, Item seeds,
                                             int leavesAtZeroCuts, int stemCount) {
-        RegistryWrapper.Impl<Enchantment> enchantments = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT);
+        RegistryWrapper.Impl<Enchantment> enchantments = this.registries.getOrThrow(RegistryKeys.ENCHANTMENT);
         RegistryEntry<Enchantment> fortune = enchantments.getOrThrow(Enchantments.FORTUNE);
 
         LootCondition.Builder isLower = BlockStatePropertyLootCondition.builder(crop)
@@ -224,14 +224,14 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * uses, and the same one {@code hempCropDrops} applies through {@code isLower}.
      */
     private LootTable.Builder sativaFlowerDrops() {
-        RegistryEntry<Enchantment> fortune = this.registryLookup.getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        RegistryEntry<Enchantment> fortune = this.registries.getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
         LootCondition.Builder isLower = BlockStatePropertyLootCondition.builder(ModBlocks.SATIVA_FLOWER)
                 .properties(StatePredicate.Builder.create().exactMatch(TallPlantBlock.HALF, DoubleBlockHalf.LOWER));
         return LootTable.builder().pool(LootPool.builder()
                 .rolls(ConstantLootNumberProvider.create(1.0F))
                 .conditionally(isLower)
                 .with(ItemEntry.builder(ModBlocks.SATIVA_FLOWER)
-                        .conditionally(WITH_SHEARS.or(this.createSilkTouchCondition()))
+                        .conditionally(this.createWithShearsCondition().or(this.createSilkTouchCondition()))
                         .alternatively(this.applyExplosionDecay(ModBlocks.SATIVA_FLOWER,
                                 ItemEntry.builder(ModItems.SATIVA_SEEDS)
                                         .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))));

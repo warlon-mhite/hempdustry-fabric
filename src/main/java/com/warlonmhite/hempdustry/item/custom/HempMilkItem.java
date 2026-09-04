@@ -9,9 +9,6 @@ import net.minecraft.item.ItemUsage;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stats;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.UseAction;
 import net.minecraft.world.World;
 
 /**
@@ -38,8 +35,9 @@ import net.minecraft.world.World;
  * cure your own high with hemp.
  */
 public class HempMilkItem extends Item {
-    /** Vanilla's milk bucket drink time. */
-    private static final int MAX_USE_TIME = 32;
+    // How it is drunk -- the animation, the sound and vanilla milk's 1.6 seconds -- is the
+    // `consumable` component set in ModItems, not an override here: since 1.21.2 Item#getUseAction
+    // and Item#getMaxUseTime read that component and an override of either is dead code.
 
     public HempMilkItem(Settings settings) {
         super(settings);
@@ -51,7 +49,7 @@ public class HempMilkItem extends Item {
             Criteria.CONSUME_ITEM.trigger(player, stack);
             player.incrementStat(Stats.USED.getOrCreateStat(this));
         }
-        if (!world.isClient) {
+        if (!world.isClient()) {
             user.clearStatusEffects();
         }
         // exchangeStack wants a PlayerEntity; anything else that somehow drinks this just loses it.
@@ -61,18 +59,4 @@ public class HempMilkItem extends Item {
         return ItemUsage.exchangeStack(stack, player, new ItemStack(Items.BUCKET));
     }
 
-    @Override
-    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
-        return MAX_USE_TIME;
-    }
-
-    @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.DRINK;
-    }
-
-    @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        return ItemUsage.consumeHeldItem(world, user, hand);
-    }
 }

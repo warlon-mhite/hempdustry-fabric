@@ -9,6 +9,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -71,9 +72,11 @@ public final class Smoking {
             return;
         }
         for (Item item : SMOKEABLES) {
-            player.getItemCooldownManager().set(item, ticks);
+            // Cooldowns are keyed by a group Identifier since 1.21.2, defaulting to the item's own
+            // id when it carries no use_cooldown component — which is what every smokeable here is.
+            player.getItemCooldownManager().set(Registries.ITEM.getId(item), ticks);
         }
-        used.set(ModComponents.COOLDOWN_UNTIL, player.getWorld().getTime() + ticks);
+        used.set(ModComponents.COOLDOWN_UNTIL, player.getEntityWorld().getTime() + ticks);
     }
 
     /**
@@ -86,7 +89,7 @@ public final class Smoking {
      * by then the swipe it gated has finished drawing anyway.
      */
     public static void expire(ItemStack stack, World world) {
-        if (!world.isClient && stack.contains(ModComponents.COOLDOWN_UNTIL)
+        if (!world.isClient() && stack.contains(ModComponents.COOLDOWN_UNTIL)
                 && world.getTime() >= stack.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L)) {
             stack.remove(ModComponents.COOLDOWN_UNTIL);
         }
@@ -171,7 +174,7 @@ public final class Smoking {
             ModCriteria.SMOKE.trigger(serverPlayer, world.getTimeOfDay() % 24000L, stack);
         }
 
-        if (!world.isClient) {
+        if (!world.isClient()) {
             SmokeScheduler.schedule(player, EXHALE_DELAY_TICKS);
         }
 

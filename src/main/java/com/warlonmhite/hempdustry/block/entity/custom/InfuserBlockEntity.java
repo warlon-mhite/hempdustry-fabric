@@ -22,6 +22,8 @@ import net.minecraft.block.entity.HopperBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -470,8 +472,9 @@ public class InfuserBlockEntity extends BlockEntity
      * mod's milks answer {@code BUCKET} here, so nothing changes for either.
      */
     private static ItemStack emptiedContainer(ItemStack milk) {
-        Item remainder = milk.getItem().getRecipeRemainder();
-        return new ItemStack(remainder != null ? remainder : Items.BUCKET);
+        // getRecipeRemainder is an ItemStack since 1.21.2 — empty, not null, when there is none.
+        ItemStack remainder = milk.getItem().getRecipeRemainder();
+        return remainder.isEmpty() ? new ItemStack(Items.BUCKET) : remainder.copy();
     }
 
     /**
@@ -1029,27 +1032,28 @@ public class InfuserBlockEntity extends BlockEntity
 
     // ----- persistence -----
 
+    // ReadView/WriteView since 1.21.9; the keys are unchanged, so older worlds still load.
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        super.writeNbt(nbt, registryLookup);
-        Inventories.writeNbt(nbt, inventory, registryLookup);
-        nbt.putInt("Progress", progress);
-        nbt.putBoolean("HaveMilk", haveMilk);
-        nbt.putInt("BatchUnwashed", batchUnwashed);
-        nbt.putInt("BatchWashed", batchWashed);
-        nbt.putBoolean("PreviewShown", previewShown);
+    protected void writeData(WriteView view) {
+        super.writeData(view);
+        Inventories.writeData(view, inventory);
+        view.putInt("Progress", progress);
+        view.putBoolean("HaveMilk", haveMilk);
+        view.putInt("BatchUnwashed", batchUnwashed);
+        view.putInt("BatchWashed", batchWashed);
+        view.putBoolean("PreviewShown", previewShown);
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        super.readNbt(nbt, registryLookup);
+    protected void readData(ReadView view) {
+        super.readData(view);
         inventory.clear();
-        Inventories.readNbt(nbt, inventory, registryLookup);
-        progress = nbt.getInt("Progress");
-        haveMilk = nbt.getBoolean("HaveMilk");
-        batchUnwashed = nbt.getInt("BatchUnwashed");
-        batchWashed = nbt.getInt("BatchWashed");
+        Inventories.readData(view, inventory);
+        progress = view.getInt("Progress", 0);
+        haveMilk = view.getBoolean("HaveMilk", false);
+        batchUnwashed = view.getInt("BatchUnwashed", 0);
+        batchWashed = view.getInt("BatchWashed", 0);
         // Absent in worlds written before this field existed, and false is what those meant.
-        previewShown = nbt.getBoolean("PreviewShown");
+        previewShown = view.getBoolean("PreviewShown", false);
     }
 }

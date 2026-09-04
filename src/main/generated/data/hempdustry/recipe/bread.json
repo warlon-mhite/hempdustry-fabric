@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "item": "hempdustry:hemp_flour"
-    },
-    "W": {
-      "item": "minecraft:water_bucket"
-    }
+    "#": "hempdustry:hemp_flour",
+    "W": "minecraft:water_bucket"
   },
   "pattern": [
     " W ",

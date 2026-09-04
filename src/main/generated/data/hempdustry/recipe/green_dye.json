@@ -4,9 +4,7 @@
   "cookingtime": 200,
   "experience": 1.0,
   "group": "dye",
-  "ingredient": {
-    "item": "hempdustry:hemp_stem"
-  },
+  "ingredient": "hempdustry:hemp_stem",
   "result": {
     "id": "minecraft:green_dye"
   }

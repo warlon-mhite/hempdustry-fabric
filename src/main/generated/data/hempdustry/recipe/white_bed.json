@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "item": "hempdustry:hemp_wool"
-    },
-    "X": {
-      "tag": "minecraft:planks"
-    }
+    "#": "hempdustry:hemp_wool",
+    "X": "#minecraft:planks"
   },
   "pattern": [
     "###",

@@ -68,7 +68,7 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
         checkSize(inventory, DecarboxylatorBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
-        this.world = playerInventory.player.getWorld();
+        this.world = playerInventory.player.getEntityWorld();
         inventory.onOpen(playerInventory.player);
 
         // Fuel: only things that actually burn — coal, a lava bucket, the mod's own hemp stem,
@@ -76,7 +76,7 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
         this.addSlot(new Slot(inventory, DecarboxylatorBlockEntity.FUEL_SLOT, FUEL_X, FUEL_Y) {
             @Override
             public boolean canInsert(ItemStack stack) {
-                return DecarboxylatorBlockEntity.isFuel(stack);
+                return DecarboxylatorBlockEntity.isFuel(playerInventory.player.getEntityWorld(), stack);
             }
         });
 
@@ -86,7 +86,7 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
                     TRAY_X, TRAY_Y + tray * TRAY_SPACING) {
                 @Override
                 public boolean canInsert(ItemStack stack) {
-                    return DecarboxylatorBlockEntity.isTrayInput(playerInventory.player.getWorld(), stack);
+                    return DecarboxylatorBlockEntity.isTrayInput(playerInventory.player.getEntityWorld(), stack);
                 }
             });
         }
@@ -104,7 +104,7 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
     }
 
     private static Inventory resolveInventory(PlayerInventory playerInventory, BlockPos pos) {
-        BlockEntity blockEntity = playerInventory.player.getWorld().getBlockEntity(pos);
+        BlockEntity blockEntity = playerInventory.player.getEntityWorld().getBlockEntity(pos);
         return blockEntity instanceof Inventory found
                 ? found
                 : new SimpleInventory(DecarboxylatorBlockEntity.SLOT_COUNT);
@@ -175,7 +175,7 @@ public class DecarboxylatorScreenHandler extends ScreenHandler {
                         DecarboxylatorBlockEntity.FIRST_TRAY_SLOT + DecarboxylatorBlockEntity.TRAY_COUNT, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (DecarboxylatorBlockEntity.isFuel(inSlot)) {
+            } else if (DecarboxylatorBlockEntity.isFuel(this.world, inSlot)) {
                 if (!this.insertItem(inSlot, DecarboxylatorBlockEntity.FUEL_SLOT,
                         DecarboxylatorBlockEntity.FUEL_SLOT + 1, false)) {
                     return ItemStack.EMPTY;

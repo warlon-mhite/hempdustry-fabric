@@ -23,20 +23,26 @@ import net.minecraft.advancement.criterion.PlayerInteractedWithEntityCriterion;
 import net.minecraft.advancement.criterion.TameAnimalCriterion;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.EntityType;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.predicate.BlockPredicate;
-import net.minecraft.predicate.ComponentPredicate;
+import net.minecraft.predicate.component.ComponentMapPredicate;
+import net.minecraft.predicate.component.ComponentsPredicate;
 import net.minecraft.predicate.NumberRange;
 import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.predicate.entity.LocationPredicate;
 import net.minecraft.predicate.item.ItemPredicate;
+import net.minecraft.registry.RegistryEntryLookup;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
+import net.minecraft.util.AssetInfo;
 import net.minecraft.util.Identifier;
 
 import java.util.Optional;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -46,9 +52,16 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
      * Background for every advancement in the tree. A placeholder — it is a plain block texture
      * rather than a tiled advancement background, which is why the tab tiles oddly (CLAUDE.md §5
      * #3). Kept in one constant so the real art is a one-line change.
+     *
+     * <p><b>This is an asset id, not a file path.</b> Since 1.21.9 the field is a
+     * {@link AssetInfo.TextureAssetInfo}, which expands what it is given to
+     * {@code textures/<path>.png} — so it wants {@code hempdustry:block/hempcrete_powder_block},
+     * and the full path the old {@code Identifier} carried would resolve to
+     * {@code textures/textures/block/….png.png}. That misses, and a missing advancement background
+     * is drawn as the magenta-and-black missing texture rather than logged.
      */
-    private static final Identifier BACKGROUND =
-            Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png");
+    private static final AssetInfo.TextureAssetInfo BACKGROUND = new AssetInfo.TextureAssetInfo(
+            Identifier.of(Hempdustry.MOD_ID, "block/hempcrete_powder_block"));
 
     public ModAdvancementProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
         super(output, registryLookup);
@@ -62,6 +75,11 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
      * <p>The three trailing flags are vanilla's {@code showToast} / {@code announceToChat} /
      * {@code hidden}; only the last varies here.
      */
+    /** Item predicates name their items through a lookup since 1.21.5; this is that lookup. */
+    private static RegistryEntryLookup<Item> items(RegistryWrapper.WrapperLookup registries) {
+        return registries.getOrThrow(RegistryKeys.ITEM);
+    }
+
     private static AdvancementDisplay display(ItemConvertible icon, String id, AdvancementFrame frame,
                                               boolean hidden) {
         return new AdvancementDisplay(new ItemStack(icon),
@@ -85,7 +103,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         AdvancementEntry rootAdvancement = Advancement.Builder.create()
                 .display(display(ModItems.INDICA_SEEDS, "hempdustry", AdvancementFrame.TASK))
                 .criterion("has_hemp_seeds", InventoryChangedCriterion.Conditions.items(
-                        ItemPredicate.Builder.create().tag(ModTags.Items.HEMP_SEEDS)))
+                        ItemPredicate.Builder.create().tag(items(registryLookup), ModTags.Items.HEMP_SEEDS)))
                 .build(consumer, Hempdustry.MOD_ID + ":hempdustry");
 
 
@@ -118,8 +136,8 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(Items.SHEARS, "trim_season", AdvancementFrame.TASK))
                 .criterion("sheared_hemp_crop", ItemCriterion.Conditions.createItemUsedOnBlock(
                         LocationPredicate.Builder.create().block(
-                                BlockPredicate.Builder.create().tag(ModTags.Blocks.HEMP_CROPS)),
-                        ItemPredicate.Builder.create().tag(ConventionalItemTags.SHEAR_TOOLS)))
+                                BlockPredicate.Builder.create().tag(registryLookup.getOrThrow(RegistryKeys.BLOCK), ModTags.Blocks.HEMP_CROPS)),
+                        ItemPredicate.Builder.create().tag(items(registryLookup), ConventionalItemTags.SHEAR_TOOLS)))
                 .parent(rootAdvancement)
                 .build(consumer, Hempdustry.MOD_ID + ":trim_season");
 
@@ -142,11 +160,11 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         Advancement.Builder.create()
                 .display(display(Items.FEATHER, "parrot_tamer", AdvancementFrame.TASK))
                 .criterion("tamed_a_parrot", TameAnimalCriterion.Conditions.create(
-                        EntityPredicate.Builder.create().type(EntityType.PARROT)))
+                        EntityPredicate.Builder.create().type(registryLookup.getOrThrow(RegistryKeys.ENTITY_TYPE), EntityType.PARROT)))
                 .criterion("fed_a_parrot_hemp_seeds", PlayerInteractedWithEntityCriterion.Conditions.create(
-                        ItemPredicate.Builder.create().tag(ModTags.Items.HEMP_SEEDS),
+                        ItemPredicate.Builder.create().tag(items(registryLookup), ModTags.Items.HEMP_SEEDS),
                         Optional.of(EntityPredicate.contextPredicateFromEntityPredicate(
-                                EntityPredicate.Builder.create().type(EntityType.PARROT)))))
+                                EntityPredicate.Builder.create().type(registryLookup.getOrThrow(RegistryKeys.ENTITY_TYPE), EntityType.PARROT)))))
                 .parent(rootAdvancement)
                 .build(consumer, Hempdustry.MOD_ID + ":parrot_tamer");
 
@@ -194,13 +212,13 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // the cost order (planks vs. glass), the same way story/iron_tools gates upgrade_tools.
         AdvancementEntry pipeDream = Advancement.Builder.create()
                 .display(display(ModItems.WOODEN_PIPE, "pipe_dream", AdvancementFrame.TASK))
-                .criterion("smoked_a_pipe", SmokeCriterion.Conditions.with(ModItems.WOODEN_PIPE))
+                .criterion("smoked_a_pipe", SmokeCriterion.Conditions.with(registryLookup, ModItems.WOODEN_PIPE))
                 .parent(firstContact)
                 .build(consumer, Hempdustry.MOD_ID + ":pipe_dream");
 
         Advancement.Builder.create()
                 .display(display(ModItems.BONG, "bong_voyage", AdvancementFrame.TASK))
-                .criterion("smoked_a_bong", SmokeCriterion.Conditions.with(ModItems.BONG))
+                .criterion("smoked_a_bong", SmokeCriterion.Conditions.with(registryLookup, ModItems.BONG))
                 .parent(pipeDream)
                 .build(consumer, Hempdustry.MOD_ID + ":bong_voyage");
 
@@ -216,7 +234,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(Items.ANVIL, "burnout", AdvancementFrame.TASK))
                 .criterion("smoked_a_device_to_death", ItemDurabilityChangedCriterion.Conditions.create(
                         Optional.of(ItemPredicate.Builder.create()
-                                .items(ModItems.WOODEN_PIPE, ModItems.BONG).build()),
+                                .items(items(registryLookup), ModItems.WOODEN_PIPE, ModItems.BONG).build()),
                         NumberRange.IntRange.atMost(0)))
                 .parent(pipeDream)
                 .build(consumer, Hempdustry.MOD_ID + ":burnout");
@@ -267,7 +285,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         Advancement.Builder.create()
                 .display(display(ModItems.SPACE_COOKIE, "give_it_an_hour", AdvancementFrame.TASK))
                 .criterion("ate_an_edible", ConsumeItemCriterion.Conditions.predicate(
-                        ItemPredicate.Builder.create().tag(ModTags.Items.EDIBLES)))
+                        ItemPredicate.Builder.create().tag(items(registryLookup), ModTags.Items.EDIBLES)))
                 .parent(cannabutter)
                 .build(consumer, Hempdustry.MOD_ID + ":give_it_an_hour");
 
@@ -279,10 +297,10 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModBlocks.INFUSER, "perfect_batch", AdvancementFrame.CHALLENGE, true))
                 .criterion("has_perfect_cannabutter", InventoryChangedCriterion.Conditions.items(
                         ItemPredicate.Builder.create()
-                                .items(ModItems.CANNABUTTER)
-                                .component(ComponentPredicate.of(ComponentMap.builder()
-                                        .add(ModComponents.QUALITY, Quality.PERFECT)
-                                        .build()))))
+                                .items(items(registryLookup), ModItems.CANNABUTTER)
+                                .components(new ComponentsPredicate(
+                                        ComponentMapPredicate.of(ModComponents.QUALITY, Quality.PERFECT),
+                                        Map.of()))))
                 .parent(cannabutter)
                 .build(consumer, Hempdustry.MOD_ID + ":perfect_batch");
 

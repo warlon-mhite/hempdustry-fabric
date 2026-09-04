@@ -1,19 +1,26 @@
 package com.warlonmhite.hempdustry.recipe;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.SpecialRecipeSerializer;
+import net.minecraft.recipe.SpecialCraftingRecipe;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.recipe.input.RecipeInput;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
+
+import java.util.Collection;
 
 public class ModRecipes {
 
     public static final RecipeSerializer<PackingRecipe> PACKING = Registry.register(
             Registries.RECIPE_SERIALIZER,
             Identifier.of(Hempdustry.MOD_ID, "packing"),
-            new SpecialRecipeSerializer<>(PackingRecipe::new));
+            new SpecialCraftingRecipe.SpecialRecipeSerializer<>(PackingRecipe::new));
 
     /**
      * Shapeless, but the ingredients' containers travel into the result rather than being handed
@@ -91,7 +98,25 @@ public class ModRecipes {
         };
     }
 
+    /**
+     * Every recipe of {@code type} this world knows about.
+     *
+     * <p>Since 1.21.4 the client is not handed the recipe list wholesale, so the two machine types
+     * have to opt in to being synced (below) and everything reads them back through Fabric's
+     * {@code SynchronizedRecipes} view — which the dedicated server, the integrated server and the
+     * client all have. {@code ServerRecipeManager#getAllOfType} would work on a server and quietly
+     * not exist on a client, which is exactly the split a recipe viewer lands on.
+     */
+    public static <I extends RecipeInput, T extends Recipe<I>> Collection<RecipeEntry<T>> allOfType(
+            World world, RecipeType<T> type) {
+        return world.getRecipeManager().getSynchronizedRecipes().getAllOfType(type);
+    }
+
     public static void registerRecipes() {
         Hempdustry.LOGGER.info("Registering Recipe Serializers for " + Hempdustry.MOD_ID);
+        // Without this a recipe viewer on a client sees neither machine: only serializers that ask
+        // are sent over the wire.
+        RecipeSynchronization.synchronizeRecipeSerializer(DECARBOXYLATING);
+        RecipeSynchronization.synchronizeRecipeSerializer(INFUSING);
     }
 }

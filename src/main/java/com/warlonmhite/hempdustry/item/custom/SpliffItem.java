@@ -3,12 +3,14 @@ package com.warlonmhite.hempdustry.item.custom;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.world.World;
 
 /**
@@ -40,8 +42,8 @@ public class SpliffItem extends Item {
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        super.inventoryTick(stack, world, entity, slot, selected);
+    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, EquipmentSlot slot) {
+        super.inventoryTick(stack, world, entity, slot);
         Smoking.expire(stack, world);
     }
 
@@ -54,16 +56,16 @@ public class SpliffItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+    public ActionResult use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
         SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-        if (contents.isEmpty() || player.getItemCooldownManager().isCoolingDown(this)) {
-            return TypedActionResult.pass(stack);
+        if (contents.isEmpty() || player.getItemCooldownManager().isCoolingDown(stack)) {
+            return ActionResult.PASS;
         }
-        if (!world.isClient) {
+        if (!world.isClient()) {
             // See SmokingDeviceItem: a vetoed hit must not burn the spliff.
             if (!Smoking.allowed(player, stack, contents)) {
-                return TypedActionResult.pass(stack);
+                return ActionResult.PASS;
             }
             Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
                     COUGH_CHANCE_ONE_IN, NAUSEA_CHANCE_ONE_IN,
@@ -75,6 +77,6 @@ public class SpliffItem extends Item {
                 stack.decrement(1);
             }
         }
-        return TypedActionResult.success(stack, world.isClient());
+        return ActionResult.SUCCESS;
     }
 }

@@ -18,7 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeManager;
+import net.minecraft.world.World;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
@@ -84,11 +84,11 @@ public final class ViewerRecipes {
     }
 
     /** Every tray-load the oven will accept, read from {@code hempdustry:decarboxylating}. */
-    public static List<Entry> decarboxylating(RecipeManager recipes) {
+    public static List<Entry> decarboxylating(World world) {
         List<Entry> out = new ArrayList<>();
-        for (RecipeEntry<DecarboxylatingRecipe> entry : recipes.listAllOfType(ModRecipes.DECARBOXYLATING_TYPE)) {
+        for (RecipeEntry<DecarboxylatingRecipe> entry : ModRecipes.allOfType(world, ModRecipes.DECARBOXYLATING_TYPE)) {
             DecarboxylatingRecipe recipe = entry.value();
-            out.add(new Entry(entry.id(), List.of(recipe.ingredient()), recipe.result(),
+            out.add(new Entry(entry.id().getValue(), List.of(recipe.ingredient()), recipe.result(),
                     List.of(Text.translatable("hempdustry.category.decarboxylating.info",
                             seconds(DecarboxylatorBlockEntity.cookTime()))),
                     false));
@@ -105,11 +105,11 @@ public final class ViewerRecipes {
      * carries no strength or quality component because those are measured per batch, not per recipe
      * — the note says so rather than the page implying a fixed result.
      */
-    public static List<Entry> infusing(RecipeManager recipes) {
+    public static List<Entry> infusing(World world) {
         List<Entry> out = new ArrayList<>();
-        for (RecipeEntry<InfusingRecipe> entry : recipes.listAllOfType(ModRecipes.INFUSING_TYPE)) {
+        for (RecipeEntry<InfusingRecipe> entry : ModRecipes.allOfType(world, ModRecipes.INFUSING_TYPE)) {
             InfusingRecipe recipe = entry.value();
-            out.add(new Entry(entry.id(),
+            out.add(new Entry(entry.id().getValue(),
                     List.of(recipe.container(), recipe.hemp(), recipe.washedHemp()),
                     recipe.result(),
                     List.of(Text.translatable("hempdustry.category.infusing.heat"),

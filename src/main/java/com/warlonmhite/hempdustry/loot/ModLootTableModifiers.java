@@ -34,6 +34,7 @@ import net.minecraft.predicate.entity.LocationPredicate;
 import net.minecraft.predicate.item.ItemPredicate;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -86,17 +87,24 @@ public class ModLootTableModifiers {
      */
     private static final float SHIPWRECK_FIBER_CHANCE = 0.45f;
 
-    /** Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass. */
-    private static final LootCondition.Builder WITHOUT_SHEARS =
-            MatchToolLootCondition.builder(ItemPredicate.Builder.create().items(Items.SHEARS)).invert();
+    /**
+     * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
+     *
+     * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
+     * {@code RegistryEntryLookup}, which only exists once the registries are loaded.
+     */
+    private static LootCondition.Builder withoutShears(RegistryWrapper.WrapperLookup registries) {
+        return MatchToolLootCondition.builder(ItemPredicate.Builder.create()
+                .items(registries.getOrThrow(RegistryKeys.ITEM), Items.SHEARS)).invert();
+    }
 
     /**
      * The two-block plants that carry a hemp seed, mapped to the block itself — the block is needed
      * to build {@link #onlyTheHalfThatWasBroken}, which has to name it.
      */
     private static final Map<RegistryKey<LootTable>, Block> GRASS_SOURCES = Map.of(
-            Blocks.TALL_GRASS.getLootTableKey(), Blocks.TALL_GRASS,
-            Blocks.LARGE_FERN.getLootTableKey(), Blocks.LARGE_FERN);
+            Blocks.TALL_GRASS.getLootTableKey().orElseThrow(), Blocks.TALL_GRASS,
+            Blocks.LARGE_FERN.getLootTableKey().orElseThrow(), Blocks.LARGE_FERN);
 
     private static final Set<RegistryKey<LootTable>> CHEST_SOURCES = Set.of(
             LootTables.SHIPWRECK_SUPPLY_CHEST,
@@ -132,12 +140,13 @@ public class ModLootTableModifiers {
      * Both halves are covered rather than only the lower, so it makes no difference which end of the
      * plant the player swings at, exactly as vanilla's own two pools arrange.
      */
-    private static LootCondition.Builder onlyTheHalfThatWasBroken(Block plant) {
+    private static LootCondition.Builder onlyTheHalfThatWasBroken(RegistryWrapper.WrapperLookup registries,
+                                                                  Block plant) {
         return AnyOfLootCondition.builder(
                 AllOfLootCondition.builder(half(plant, DoubleBlockHalf.LOWER),
-                        partnerAt(plant, DoubleBlockHalf.UPPER, 1)),
+                        partnerAt(registries, plant, DoubleBlockHalf.UPPER, 1)),
                 AllOfLootCondition.builder(half(plant, DoubleBlockHalf.UPPER),
-                        partnerAt(plant, DoubleBlockHalf.LOWER, -1)));
+                        partnerAt(registries, plant, DoubleBlockHalf.LOWER, -1)));
     }
 
     /** "The block being broken is {@code plant}, on this half." */
@@ -147,10 +156,11 @@ public class ModLootTableModifiers {
     }
 
     /** "{@code offsetY} away there is still a {@code plant} on the other half." */
-    private static LootCondition.Builder partnerAt(Block plant, DoubleBlockHalf which, int offsetY) {
+    private static LootCondition.Builder partnerAt(RegistryWrapper.WrapperLookup registries, Block plant,
+                                                   DoubleBlockHalf which, int offsetY) {
         return LocationCheckLootCondition.builder(
                 LocationPredicate.Builder.create().block(BlockPredicate.Builder.create()
-                        .blocks(plant)
+                        .blocks(registries.getOrThrow(RegistryKeys.BLOCK), plant)
                         .state(StatePredicate.Builder.create().exactMatch(TallPlantBlock.HALF, which))),
                 new BlockPos(0, offsetY, 0));
     }
@@ -173,14 +183,14 @@ public class ModLootTableModifiers {
             }
             if (GRASS_SOURCES.containsKey(key)) {
                 RegistryEntry<Enchantment> fortune =
-                        registries.getWrapperOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+                        registries.getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
                 // One entry per active strain at equal weight inside a single roll: the *chance* of
                 // finding a hemp seed stays GRASS_SEED_CHANCE no matter how many strains exist, and
                 // which strain you get is a coin flip. (A pool picks exactly one of its entries.)
                 LootPool.Builder pool = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(onlyTheHalfThatWasBroken(GRASS_SOURCES.get(key)))
-                        .conditionally(WITHOUT_SHEARS)
+                        .conditionally(onlyTheHalfThatWasBroken(registries, GRASS_SOURCES.get(key)))
+                        .conditionally(withoutShears(registries))
                         .conditionally(RandomChanceLootCondition.builder(chance(GRASS_SEED_CHANCE)));
                 // Driven off the loaded strain registry, so a datapack strain's seeds appear in
                 // grass without touching this file.

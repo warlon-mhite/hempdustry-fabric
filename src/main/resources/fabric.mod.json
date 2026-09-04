@@ -31,9 +31,6 @@
 		"client": [
 			"com.warlonmhite.hempdustry.HempdustryClient"
 		],
-		"emi": [
-			"com.warlonmhite.hempdustry.compat.emi.HempdustryEmiPlugin"
-		],
 		"jei_mod_plugin": [
 			"com.warlonmhite.hempdustry.compat.jei.HempdustryJeiPlugin"
 		]
@@ -46,9 +43,9 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.16.5",
-		"minecraft": ">=1.21.1 <1.21.2",
+		"fabricloader": ">=0.18.2",
+		"minecraft": ">=1.21.11 <1.21.12",
 		"java": ">=21",
-		"fabric-api": ">=0.105.0"
+		"fabric-api": ">=0.139.4"
 	}
 }

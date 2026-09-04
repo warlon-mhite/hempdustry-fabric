@@ -9,6 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.predicate.entity.LootContextPredicate;
 import net.minecraft.predicate.item.ItemPredicate;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Optional;
@@ -68,9 +70,14 @@ public class SmokeCriterion extends AbstractCriterion<SmokeCriterion.Conditions>
          * still the packed one, a later advancement could filter on dose or enchantments through
          * the same field without the criterion changing at all.
          */
-        public static AdvancementCriterion<Conditions> with(ItemConvertible... items) {
+        public static AdvancementCriterion<Conditions> with(RegistryWrapper.WrapperLookup registries,
+                                                            ItemConvertible... items) {
+            // Since 1.21.5 an item predicate names items through a RegistryEntryLookup rather than
+            // by instance, so the caller has to hand one over.
             return ModCriteria.SMOKE.create(new Conditions(Optional.empty(),
-                    Optional.of(ItemPredicate.Builder.create().items(items).build()), Optional.empty()));
+                    Optional.of(ItemPredicate.Builder.create()
+                            .items(registries.getOrThrow(RegistryKeys.ITEM), items).build()),
+                    Optional.empty()));
         }
 
         /** Only counts a hit taken while the time of day is within {@code [minTicks, maxTicks]} (inclusive). */

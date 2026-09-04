@@ -142,7 +142,7 @@ public record Strain(String translationKey, int color, int modelIndex,
 
     /** The strain registry as loaded for this world. */
     public static RegistryWrapper.Impl<Strain> registry(RegistryWrapper.WrapperLookup registries) {
-        return registries.getWrapperOrThrow(REGISTRY_KEY);
+        return registries.getOrThrow(REGISTRY_KEY);
     }
 
     /**

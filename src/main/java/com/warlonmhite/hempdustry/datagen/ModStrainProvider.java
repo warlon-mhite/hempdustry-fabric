@@ -25,7 +25,7 @@ public class ModStrainProvider extends FabricDynamicRegistryProvider {
 
     @Override
     protected void configure(RegistryWrapper.WrapperLookup registries, Entries entries) {
-        entries.addAll(registries.getWrapperOrThrow(Strain.REGISTRY_KEY));
+        entries.addAll(registries.getOrThrow(Strain.REGISTRY_KEY));
     }
 
     @Override

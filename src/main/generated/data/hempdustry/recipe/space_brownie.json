@@ -2,18 +2,10 @@
   "type": "hempdustry:infused_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "hempdustry:cannabutter"
-    },
-    "C": {
-      "item": "minecraft:cocoa_beans"
-    },
-    "F": {
-      "item": "hempdustry:hemp_flour"
-    },
-    "S": {
-      "item": "minecraft:sugar"
-    }
+    "B": "hempdustry:cannabutter",
+    "C": "minecraft:cocoa_beans",
+    "F": "hempdustry:hemp_flour",
+    "S": "minecraft:sugar"
   },
   "pattern": [
     "CFC",

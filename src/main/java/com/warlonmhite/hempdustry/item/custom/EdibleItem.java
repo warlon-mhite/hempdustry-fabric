@@ -4,11 +4,12 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Any edible carrying a dose — the toast, cookie, brownie, dawamesk and bhang. Eating one queues the
@@ -35,14 +36,16 @@ public class EdibleItem extends Item {
         Quality quality = EdibleEffects.qualityOf(stack);
         // Read before super, which may empty the stack and take the components with it.
         ItemStack result = super.finishUsing(stack, world, user);
-        if (!world.isClient && user instanceof PlayerEntity player) {
+        if (!world.isClient() && user instanceof PlayerEntity player) {
             EdibleEffects.consume(player, potency, quality);
         }
         return result;
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context,
+                              TooltipDisplayComponent displayComponent, Consumer<Text> tooltip,
+                              TooltipType type) {
         EdibleEffects.appendTooltip(stack, tooltip);
     }
 }

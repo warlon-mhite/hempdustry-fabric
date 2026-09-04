@@ -42,6 +42,11 @@ public class ModTags {
          * would be a lie the tag couldn't keep.
          */
         public static final TagKey<Item> EDIBLES = createTag("edibles");
+        /**
+         * What repairs the hemp armour set on an anvil. Since 1.21.4 an {@code ArmorMaterial}
+         * names a tag rather than an {@code Ingredient}, so this exists to hold one item.
+         */
+        public static final TagKey<Item> HEMP_ARMOR_REPAIR = createTag("hemp_armor_repair");
         private static TagKey<Item> createTag(String name) {
             return TagKey.of(RegistryKeys.ITEM, Identifier.of(Hempdustry.MOD_ID, name));
         }

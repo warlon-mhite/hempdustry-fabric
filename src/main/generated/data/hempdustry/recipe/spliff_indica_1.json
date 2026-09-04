@@ -3,12 +3,8 @@
   "category": "misc",
   "group": "spliff",
   "key": {
-    "B": {
-      "item": "hempdustry:indica_buds"
-    },
-    "P": {
-      "item": "minecraft:paper"
-    }
+    "B": "hempdustry:indica_buds",
+    "P": "minecraft:paper"
   },
   "pattern": [
     "B",

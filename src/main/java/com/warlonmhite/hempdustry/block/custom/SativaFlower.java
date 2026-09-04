@@ -49,6 +49,6 @@ public class SativaFlower extends TallPlantBlock {
 
     @Override
     protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
-        return floor.isIn(BlockTags.DEAD_BUSH_MAY_PLACE_ON) || super.canPlantOnTop(floor, world, pos);
+        return floor.isIn(BlockTags.DRY_VEGETATION_MAY_PLACE_ON) || super.canPlantOnTop(floor, world, pos);
     }
 }

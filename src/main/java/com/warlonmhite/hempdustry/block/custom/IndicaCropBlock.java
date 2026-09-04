@@ -18,7 +18,7 @@ import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
@@ -304,12 +304,12 @@ public class IndicaCropBlock extends CropBlock {
      * work from the off-hand.
      */
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
+    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
                                              PlayerEntity player, Hand hand, BlockHitResult hit) {
         BlockPos lowerPos = isLower(state) ? pos : pos.down();
         BlockState lower = world.getBlockState(lowerPos);
         if (lower.isOf(this) && isLower(lower)) {
-            ItemActionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.get(AGE),
+            ActionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.get(AGE),
                     stack, player, hand);
             if (result != null) {
                 return result;
@@ -324,7 +324,7 @@ public class IndicaCropBlock extends CropBlock {
     // half is broken directly) and remove the partner without letting it drop.
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient) {
+        if (!world.isClient()) {
             // The trim flags and the canonical age both live on the LOWER half, so the harvest
             // criterion is fed from there whichever half the player actually broke.
             BlockPos canonicalPos = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;

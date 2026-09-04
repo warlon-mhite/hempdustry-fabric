@@ -18,13 +18,14 @@ import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.DirectionProperty;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
@@ -71,7 +72,7 @@ public class InfuserBlock extends BlockWithEntity {
      * face. A hidden "pushes to some adjacent container" rule would be unguessable; a spout you can
      * see is not. See {@link InfuserBlockEntity#pushOutput}.
      */
-    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
     /** Milk is in the tub. Drives the model. Set by the block entity, never by the player. */
     public static final BooleanProperty FILLED = BooleanProperty.of("filled");
     /** A batch is simmering right now. Drives the particles. Set by the block entity. */
@@ -154,21 +155,21 @@ public class InfuserBlock extends BlockWithEntity {
     }
 
     @Override
-    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.isOf(newState.getBlock())) {
-            if (world.getBlockEntity(pos) instanceof InfuserBlockEntity be) {
-                // Order matters. The preview is not a real item, so it goes in the bin first —
-                // otherwise breaking a ready tub would drop the cannabutter *and* refund the hemp
-                // below. What a spilled batch gives back is its ingredients.
-                be.discardPreview();
-                ItemScatterer.spawn(world, pos, be);
-                // Hemp already drawn into a running batch has left the slots, so it has to be
-                // spilled separately or breaking a simmering tub would destroy it.
-                ItemScatterer.spawn(world, pos, be.getBatchItems());
-                world.updateComparators(pos, this);
-            }
-            super.onStateReplaced(state, world, pos, newState, moved);
+    protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
+        // Since 1.21.5 this only fires when the block actually changed, so the old
+        // state.isOf(newState) guard is gone along with the newState parameter.
+        if (world.getBlockEntity(pos) instanceof InfuserBlockEntity be) {
+            // Order matters. The preview is not a real item, so it goes in the bin first —
+            // otherwise breaking a ready tub would drop the cannabutter *and* refund the hemp
+            // below. What a spilled batch gives back is its ingredients.
+            be.discardPreview();
+            ItemScatterer.spawn(world, pos, be);
+            // Hemp already drawn into a running batch has left the slots, so it has to be
+            // spilled separately or breaking a simmering tub would destroy it.
+            ItemScatterer.spawn(world, pos, be.getBatchItems());
+            world.updateComparators(pos, this);
         }
+        super.onStateReplaced(state, world, pos, moved);
     }
 
     // ----- comparator -----
@@ -184,7 +185,7 @@ public class InfuserBlock extends BlockWithEntity {
      * nothing useful here.
      */
     @Override
-    protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+    protected int getComparatorOutput(BlockState state, World world, BlockPos pos, Direction side) {
         return world.getBlockEntity(pos) instanceof InfuserBlockEntity infuser
                 ? infuser.getComparatorOutput()
                 : 0;
@@ -218,11 +219,11 @@ public class InfuserBlock extends BlockWithEntity {
         InfuserSoundInstance.startIfNeeded(pos);
         for (int i = 0; i < 2; i++) {
             // Scattered across the pot's mouth, which is the middle 10 pixels of the block.
-            world.addParticle(ParticleTypes.BUBBLE_POP,
+            world.addParticleClient(ParticleTypes.BUBBLE_POP,
                     x + (random.nextDouble() - 0.5D) * 0.5D, y,
                     z + (random.nextDouble() - 0.5D) * 0.5D, 0.0D, 0.0D, 0.0D);
         }
-        world.addParticle(ParticleTypes.CLOUD,
+        world.addParticleClient(ParticleTypes.CLOUD,
                 x + (random.nextDouble() - 0.5D) * 0.3D, y + 0.15D,
                 z + (random.nextDouble() - 0.5D) * 0.3D, 0.0D, 0.03D, 0.0D);
     }

@@ -7,11 +7,10 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.world.World;
 
 /**
@@ -54,20 +53,9 @@ public class SmokingDeviceItem extends Item {
         return stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
     }
 
-    @Override
-    public int getEnchantability() {
-        return device.enchantability();
-    }
-
-    @Override
-    public boolean canRepair(ItemStack stack, ItemStack ingredient) {
-        // Vanilla-style material repair: pipe = its build material (planks), bong = glass. Allowed
-        // packed or empty — durability is the same component either way.
-        return switch (device) {
-            case PIPE -> ingredient.isIn(ItemTags.PLANKS);
-            case BONG -> ingredient.isOf(Items.GLASS);
-        };
-    }
+    // Enchantability and material repair are data components since 1.21.5, not overrides — both
+    // are set on the settings in ModItems#registerDevice. Repair stays allowed packed or empty,
+    // because durability is the same component either way.
 
     @Override
     public Text getName(ItemStack stack) {
@@ -78,24 +66,24 @@ public class SmokingDeviceItem extends Item {
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        super.inventoryTick(stack, world, entity, slot, selected);
+    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, EquipmentSlot slot) {
+        super.inventoryTick(stack, world, entity, slot);
         Smoking.expire(stack, world);
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+    public ActionResult use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
         SmokeContents contents = contentsOf(stack);
-        if (contents.isEmpty() || player.getItemCooldownManager().isCoolingDown(this)) {
-            return TypedActionResult.pass(stack);
+        if (contents.isEmpty() || player.getItemCooldownManager().isCoolingDown(stack)) {
+            return ActionResult.PASS;
         }
-        if (!world.isClient) {
+        if (!world.isClient()) {
             // A veto costs the player nothing: no effects, no charge spent, no cooldown. Checked
             // here rather than beside the emptiness test because it is the expensive one of the
             // three and the only one another mod can answer.
             if (!Smoking.allowed(player, stack, contents)) {
-                return TypedActionResult.pass(stack);
+                return ActionResult.PASS;
             }
             Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
                     device.coughChanceOneIn(), device.nauseaChanceOneIn(),
@@ -118,6 +106,6 @@ public class SmokingDeviceItem extends Item {
                 }
             }
         }
-        return TypedActionResult.success(stack, world.isClient());
+        return ActionResult.SUCCESS;
     }
 }

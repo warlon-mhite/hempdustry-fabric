@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "hempdustry:hemp_fiber"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "hempdustry:hemp_fiber"
+      }
+    ]
+  }
+}

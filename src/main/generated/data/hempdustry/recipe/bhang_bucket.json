@@ -2,18 +2,10 @@
   "type": "hempdustry:container_carried",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "hempdustry:decarboxylated_hemp"
-    },
-    {
-      "item": "hempdustry:decarboxylated_hemp"
-    },
-    {
-      "tag": "hempdustry:milk_buckets"
-    },
-    {
-      "item": "minecraft:sugar"
-    }
+    "hempdustry:decarboxylated_hemp",
+    "hempdustry:decarboxylated_hemp",
+    "#hempdustry:milk_buckets",
+    "minecraft:sugar"
   ],
   "result": {
     "components": {

@@ -12,13 +12,13 @@ Usage:
 The optional second argument is a directory holding an extracted vanilla `data/` tree,
 which lets the scan catch mod-vs-vanilla collisions as well as mod-vs-mod:
 
-    unzip -q ~/.gradle/caches/fabric-loom/1.21.1/minecraft-client.jar 'data/minecraft/*' -d /tmp/mcdata
+    unzip -q ~/.gradle/caches/fabric-loom/<mcver>/minecraft-client.jar 'data/minecraft/*' -d /tmp/mcdata
 
 Custom crafting recipe types this mod adds are mapped onto the vanilla shape they behave like
 (see SHAPELESS_TYPES / SHAPED_TYPES) -- they still occupy the crafting grid and can still collide,
 so leaving them out would make the scan silently under-report.
 
-Matching rules mirror 1.21.1:
+Matching rules mirror vanilla:
   - shaped vs shaped   -> collide when ingredients AND shape match (shape up to the
                           horizontal mirror ShapedRecipe.matches also tests)
   - anything shapeless -> collides on the ingredient multiset alone, since a shapeless
@@ -67,8 +67,13 @@ NON_CRAFTING_TYPES = {
 
 
 def ingredient(v):
+    # Since 1.21.5 an ingredient is a bare string -- "minecraft:paper", or "#c:strings" for a tag --
+    # rather than {"item": ...} / {"tag": ...}. Both shapes are accepted so the script still reads a
+    # older (pre-1.21.5) data dump.
     if isinstance(v, list):
         return "|".join(sorted(ingredient(x) for x in v))
+    if isinstance(v, str):
+        return v
     return "#" + v["tag"] if "tag" in v else v["item"]
 
 
@@ -122,7 +127,7 @@ def main(argv):
         print("WARNING: no vanilla data directory given, so this scan has only compared this "
               "mod's recipes against each other. A collision with a VANILLA recipe cannot be "
               "found this way. Extract vanilla's data and pass the directory holding `data/`:\n"
-              "  unzip -q ~/.gradle/caches/fabric-loom/1.21.1/minecraft-client.jar "
+              "  unzip -q ~/.gradle/caches/fabric-loom/<mcver>/minecraft-client.jar "
               "'data/minecraft/*' -d /tmp/mcdata\n"
               "  python3 scripts/recipe_collisions.py src/main/generated /tmp/mcdata\n")
     else:

@@ -13,10 +13,16 @@ import net.minecraft.block.CakeBlock;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.registry.RegistryKey;
+import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
-import net.minecraft.data.client.*;
-import net.minecraft.item.ArmorItem;
+import net.minecraft.client.data.*;
+import net.minecraft.client.render.item.model.ItemModel;
+import net.minecraft.client.render.item.model.RangeDispatchItemModel;
+import net.minecraft.client.render.model.json.WeightedVariant;
+import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
+import com.warlonmhite.hempdustry.client.item.StrainTintSource;
+import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.item.ModArmorMaterials;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 
@@ -52,7 +58,7 @@ public class ModModelProvider extends FabricModelProvider {
         blockStateModelGenerator.registerDoor(ModBlocks.HEMP_PLANKS_DOOR);
         blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
 
-        blockStateModelGenerator.registerLog(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
+        blockStateModelGenerator.createLogTexturePool(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
 
         registerSpaceCake(blockStateModelGenerator);
 
@@ -60,7 +66,7 @@ public class ModModelProvider extends FabricModelProvider {
         // registers, the same as the crops do. TintType only decides whether the generated models
         // carry "tintindex": 0 — vanilla's own ferns are potted through the tinted pair, so a
         // potted wild flower picking up the room's biome is what a player already expects.
-        blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockStateModelGenerator.TintType.TINTED);
+        blockStateModelGenerator.registerFlowerPotPlantAndItem(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockStateModelGenerator.CrossType.TINTED);
         registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
 
         // The crops' blockstates and stage models are hand-written under resources/ — the model
@@ -99,36 +105,30 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
         // item/sativa_seeds.png is currently a copy of the indica one — a hemp seed is a hemp seed.
         itemModelGenerator.register(ModItems.SATIVA_SEEDS, Models.GENERATED);
-        // Smoking gear. One item per device now carries every strain in a component, so the visual
-        // per-strain split moved from separate items to *model overrides* on a shared item —
-        // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged". Predicate
-        // matching is >=, so overrides must be listed ascending.
+        // Smoking gear. One item per device carries every strain in a component, so the visual
+        // per-strain split lives in the *client item definition* rather than in separate items —
+        // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged".
         //
-        // TWO predicates, because there are two questions (see HempdustryClient):
+        // TWO questions, answered by two different mechanisms (see ModItemProperties):
         //
-        //   hempdustry:packed  0 or 1 — is anything loaded. This is what switches a device between
-        //                      its empty and packed models.
-        //   hempdustry:strain  the loaded strain's model_index — for a strain shipping *bespoke*
-        //                      art instead of the shared look.
-        //
-        // The devices used to do the first job with the second predicate (`strain >= 1`), which
-        // worked only because every strain carried a non-zero index. It is not a safe test once
-        // model_index 0 means "no bespoke art of my own", which is the normal case.
+        //   is anything loaded?   minecraft:has_component on hempdustry:smoke_contents. Vanilla's,
+        //                         since 1.21.4 — the mod's old hempdustry:packed property is gone.
+        //   whose art?            hempdustry:strain, a numeric property carrying the strain's
+        //                         model_index, dispatched on with >= thresholds listed ascending.
         //
         // Driven off ModStrains.BUILT_IN rather than the loaded registry, and that is the honest
         // boundary: bespoke art exists only for the strains the mod itself carries.
-        // ModStrains.modelIndex is the single source for the number written into the data and
-        // matched here.
         for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
             uploadGenerated(itemModelGenerator, spliffModel(strain), texture(ModStrains.id(strain) + "_spliff"));
         }
-        List<ModelOverride> spliffOverrides = new ArrayList<>();
+        List<RangeDispatchItemModel.Entry> spliffArt = new ArrayList<>();
         for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
-            spliffOverrides.add(new ModelOverride(STRAIN_PREDICATE, ModStrains.modelIndex(strain), spliffModel(strain)));
+            spliffArt.add(ItemModels.rangeDispatchEntry(
+                    ItemModels.basic(spliffModel(strain)), ModStrains.modelIndex(strain)));
         }
-        // The spliff's BASE model is the one a strain with no bespoke art falls back to — which is
-        // every strain a datapack can add, since a datapack cannot ship a texture. It is therefore
-        // two layers: the shared roll, plus a mask of the lit tip that the strain's colour tints.
+        // The spliff's FALLBACK is what a strain with no bespoke art falls back to — which is every
+        // strain a datapack can add, since a datapack cannot ship a texture. It is therefore two
+        // layers: the shared roll, plus a mask of the lit tip that the strain's colour tints.
         //
         // layer0 is indica's art rather than a third drawing, and that is derivation not laziness:
         // both shipped spliffs are the same matrix under two palettes (see textures-src/sativa.mctex),
@@ -136,32 +136,40 @@ public class ModModelProvider extends FabricModelProvider {
         // are the roll, where indica's white paper is the neutral of the two. So the tip becomes the
         // tinted layer and the roll stays as drawn.
         //
-        // The per-strain overrides above still win for indica and sativa, which keep their own art
-        // untinted. Dropping those overrides would put every strain on this tinted base instead;
+        // The per-strain entries above still win for indica and sativa, which keep their own art
+        // untinted. Dropping those entries would put every strain on this tinted base instead;
         // that is a texture decision, not a code one, and it costs one line here when wanted.
-        uploadTintable(itemModelGenerator, ModelIds.getItemModelId(ModItems.SPLIFF),
-                texture(ModStrains.id(ModStrains.BUILT_IN.get(0)) + "_spliff"),
-                texture("spliff_load"), spliffOverrides);
+        Identifier spliffTinted = Models.GENERATED_TWO_LAYERS.upload(
+                Identifier.of(Hempdustry.MOD_ID, "item/spliff_tinted"),
+                TextureMap.layered(texture(ModStrains.id(ModStrains.BUILT_IN.get(0)) + "_spliff"),
+                        texture("spliff_load")),
+                itemModelGenerator.modelCollector);
+        itemModelGenerator.output.accept(ModItems.SPLIFF, ItemModels.rangeDispatch(
+                new StrainModelIndexProperty(), strainTinted(spliffTinted), spliffArt));
 
-        // The devices share one packed texture, which they always did. The override is on "packed at
-        // all", so giving a strain its own packed art later is one more entry here — keyed on
-        // STRAIN_PREDICATE and listed after this one — plus the PNG.
+        // The devices share one packed texture, which they always did. The switch is on "packed at
+        // all", so giving a strain its own packed art later is a range dispatch inside the packed
+        // branch — plus the PNG.
         // A packed device is the empty device plus a mask of what is in the bowl, and the mask is the
-        // layer the strain's colour tints. Two layers rather than a second full texture, because
-        // ItemModelGenerator hands layerN the tint index N and a provider can then colour layer1
-        // while leaving the wood and glass of layer0 alone — see ModItemProperties.LOAD_TINT_INDEX.
+        // layer the strain's colour tints. Two layers rather than a second full texture, because a
+        // flat item model hands layerN the tint index N, and the tints array can then colour index 1
+        // while leaving the wood and glass of index 0 alone — see ModItemProperties.LOAD_TINT_INDEX.
         //
         // This is the half of the strain system a datapack can actually reach. Bespoke art needs a
         // texture and a datapack cannot ship one, so before this a datapack's strain packed a device
         // that looked exactly like every other strain's.
         for (DeviceType device : DeviceType.values()) {
             Item item = device == DeviceType.PIPE ? ModItems.WOODEN_PIPE : ModItems.BONG;
-            Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedModel());
-            Models.GENERATED_TWO_LAYERS.upload(packedModel,
+            Identifier packedModel = Models.GENERATED_TWO_LAYERS.upload(
+                    Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedModel()),
                     TextureMap.layered(texture(device.baseName()), texture(device.packedModel() + "_load")),
-                    itemModelGenerator.writer);
-            uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(item),
-                    texture(device.baseName()), List.of(new ModelOverride(PACKED_PREDICATE, 1, packedModel)));
+                    itemModelGenerator.modelCollector);
+            Identifier emptyModel = Models.GENERATED.upload(
+                    ModelIds.getItemModelId(item), TextureMap.layer0(texture(device.baseName())),
+                    itemModelGenerator.modelCollector);
+            itemModelGenerator.output.accept(item, ItemModels.condition(
+                    ItemModels.hasComponentProperty(ModComponents.SMOKE_CONTENTS),
+                    strainTinted(packedModel), ItemModels.basic(emptyModel)));
         }
 
         itemModelGenerator.register(ModItems.HEMP_PLANKS_SIGN, Models.GENERATED);
@@ -169,17 +177,33 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.HEMP_BOAT, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_CHEST_BOAT, Models.GENERATED);
 
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.FLIP_FLOPS));
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_BEANIE));
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_HAREM_PANTS));
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_SHIRT));
+        // Armour models name the equipment asset now, and the trim prefix that goes with the slot.
+        // false = "no trim overlays", which is right: the mod ships no trimmed hemp textures.
+        itemModelGenerator.registerArmor(ModItems.HEMP_BEANIE, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
+                ItemModelGenerator.HELMET_TRIM_ID_PREFIX, false);
+        itemModelGenerator.registerArmor(ModItems.HEMP_SHIRT, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
+                ItemModelGenerator.CHESTPLATE_TRIM_ID_PREFIX, false);
+        itemModelGenerator.registerArmor(ModItems.HEMP_HAREM_PANTS, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
+                ItemModelGenerator.LEGGINGS_TRIM_ID_PREFIX, false);
+        itemModelGenerator.registerArmor(ModItems.FLIP_FLOPS, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
+                ItemModelGenerator.BOOTS_TRIM_ID_PREFIX, false);
     }
 
-    /** @see ModItemProperties#STRAIN */
-    private static final Identifier STRAIN_PREDICATE = ModItemProperties.STRAIN;
+    /**
+     * A two-layer model whose second layer takes the loaded strain's colour.
+     *
+     * <p>The tints array answers <b>by position</b>: entry 0 is tint index 0 ({@code layer0}, the
+     * object as drawn, so a constant white multiplies to no change) and entry 1 is tint index 1
+     * ({@code layer1}, the load mask). See {@link ModItemProperties#LOAD_TINT_INDEX}.
+     */
+    private static ItemModel.Unbaked strainTinted(Identifier model) {
+        return ItemModels.tinted(model,
+                ItemModels.constantTintSource(NO_TINT),
+                new StrainTintSource(NO_TINT));
+    }
 
-    /** @see ModItemProperties#PACKED */
-    private static final Identifier PACKED_PREDICATE = ModItemProperties.PACKED;
+    /** White: a tint is a multiply, so this leaves a layer exactly as it was drawn. */
+    private static final int NO_TINT = 0xFFFFFF;
 
     private static Identifier texture(String name) {
         return Identifier.of(Hempdustry.MOD_ID, "item/" + name);
@@ -190,57 +214,8 @@ public class ModModelProvider extends FabricModelProvider {
     }
 
     private static void uploadGenerated(ItemModelGenerator generator, Identifier modelId, Identifier texture) {
-        Models.GENERATED.upload(modelId, TextureMap.layer0(texture), generator.writer);
+        Models.GENERATED.upload(modelId, TextureMap.layer0(texture), generator.modelCollector);
     }
-
-    /**
-     * A {@code minecraft:item/generated} model with an {@code overrides} array, which the vanilla
-     * {@link Models} helpers can't express. Written straight to the generator's writer rather than
-     * through a {@link Model}, since the whole point is the extra key.
-     */
-    private static void uploadWithOverrides(ItemModelGenerator generator, Identifier modelId,
-                                            Identifier texture, List<ModelOverride> overrides) {
-        uploadTintable(generator, modelId, texture, null, overrides);
-    }
-
-    /**
-     * As {@link #uploadWithOverrides}, plus an optional second layer.
-     *
-     * <p>{@code layer1} is the strain-tinted one: {@code ItemModelGenerator} gives each {@code layerN}
-     * the tint index {@code N}, and the colour provider paints index 1 and leaves index 0 alone. Pass
-     * {@code null} for a single-layer model.
-     */
-    private static void uploadTintable(ItemModelGenerator generator, Identifier modelId,
-                                       Identifier texture, Identifier tintedLayer,
-                                       List<ModelOverride> overrides) {
-        generator.writer.accept(modelId, () -> {
-            JsonObject json = new JsonObject();
-            json.addProperty("parent", "minecraft:item/generated");
-            JsonObject textures = new JsonObject();
-            textures.addProperty("layer0", texture.toString());
-            if (tintedLayer != null) {
-                textures.addProperty("layer1", tintedLayer.toString());
-            }
-            json.add("textures", textures);
-
-            JsonArray array = new JsonArray();
-            for (ModelOverride override : overrides) {
-                JsonObject predicate = new JsonObject();
-                predicate.addProperty(override.predicate().toString(), override.threshold());
-                JsonObject entry = new JsonObject();
-                entry.add("predicate", predicate);
-                entry.addProperty("model", override.model().toString());
-                array.add(entry);
-            }
-            json.add("overrides", array);
-            return (JsonElement) json;
-        });
-    }
-
-    /** One {@code overrides} entry: which property to test, the {@code >=} threshold, and the model. */
-    private record ModelOverride(Identifier predicate, int threshold, Identifier model) {
-    }
-
 
     /**
      * Space Cake's blockstate and its seven models.
@@ -249,22 +224,24 @@ public class ModModelProvider extends FabricModelProvider {
      * replaced — model inheritance carries the {@code elements} across, so the bite geometry, the
      * cullfaces and the shrinking hitbox all come from Mojang and cannot drift out of step with them.
      * The vanilla {@link Models} helpers can't express "parent plus textures", so these go straight
-     * to the generator's model collector, same as the smoking-gear overrides above.
+     * to the generator's model collector.
      */
     private static void registerSpaceCake(BlockStateModelGenerator generator) {
-        BlockStateVariantMap.SingleProperty<Integer> variants = BlockStateVariantMap.create(CakeBlock.BITES);
+        BlockStateVariantMap.SingleProperty<WeightedVariant, Integer> variants =
+                BlockStateVariantMap.models(CakeBlock.BITES);
         for (int bites = 0; bites <= CakeBlock.MAX_BITES; bites++) {
             String suffix = bites == 0 ? "" : "_slice" + bites;
             Identifier model = Identifier.of(Hempdustry.MOD_ID, "block/space_cake" + suffix);
             uploadRetextured(generator, model, Identifier.ofVanilla("block/cake" + suffix), bites > 0);
-            variants.register(bites, BlockStateVariant.create().put(VariantSettings.MODEL, model));
+            variants.register(bites, BlockStateModelGenerator.createWeightedVariant(model));
         }
         generator.blockStateCollector.accept(
-                VariantsBlockStateSupplier.create(ModBlocks.SPACE_CAKE).coordinate(variants));
+                VariantsBlockModelDefinitionCreator.of(ModBlocks.SPACE_CAKE).with(variants));
         // The item is the whole, uneaten cake, exactly as vanilla's cake item is.
-        Models.GENERATED.upload(ModelIds.getItemModelId(ModBlocks.SPACE_CAKE.asItem()),
-                TextureMap.layer0(Identifier.of(Hempdustry.MOD_ID, "item/space_cake")),
-                generator.modelCollector);
+        generator.registerItemModel(ModBlocks.SPACE_CAKE.asItem(),
+                Models.GENERATED.upload(ModelIds.getItemModelId(ModBlocks.SPACE_CAKE.asItem()),
+                        TextureMap.layer0(Identifier.of(Hempdustry.MOD_ID, "item/space_cake")),
+                        generator.modelCollector));
     }
 
     private static void uploadRetextured(BlockStateModelGenerator generator, Identifier modelId,
@@ -307,15 +284,18 @@ public class ModModelProvider extends FabricModelProvider {
      * overload.
      */
     private static void registerTallFlowerPotPlant(BlockStateModelGenerator generator, Block flower, Block potted) {
-        Identifier top = Models.TINTED_CROSS.upload(flower, "_top",
-                TextureMap.cross(TextureMap.getSubId(flower, "_top")), generator.modelCollector);
-        Identifier bottom = Models.TINTED_CROSS.upload(flower, "_bottom",
-                TextureMap.cross(TextureMap.getSubId(flower, "_bottom")), generator.modelCollector);
+        WeightedVariant top = BlockStateModelGenerator.createWeightedVariant(
+                Models.TINTED_CROSS.upload(flower, "_top",
+                        TextureMap.cross(TextureMap.getSubId(flower, "_top")), generator.modelCollector));
+        WeightedVariant bottom = BlockStateModelGenerator.createWeightedVariant(
+                Models.TINTED_CROSS.upload(flower, "_bottom",
+                        TextureMap.cross(TextureMap.getSubId(flower, "_bottom")), generator.modelCollector));
         generator.registerDoubleBlock(flower, top, bottom);
         generator.registerItemModel(flower, "_bottom");
 
-        Identifier pot = Models.TINTED_FLOWER_POT_CROSS.upload(potted,
-                TextureMap.plant(TextureMap.getSubId(flower, "_bottom")), generator.modelCollector);
+        WeightedVariant pot = BlockStateModelGenerator.createWeightedVariant(
+                Models.TINTED_FLOWER_POT_CROSS.upload(potted,
+                        TextureMap.plant(TextureMap.getSubId(flower, "_bottom")), generator.modelCollector));
         generator.blockStateCollector.accept(BlockStateModelGenerator.createSingletonBlockState(potted, pot));
     }
 }

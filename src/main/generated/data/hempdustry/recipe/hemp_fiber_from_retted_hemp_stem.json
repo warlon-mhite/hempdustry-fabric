@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "hempdustry:retted_hemp_stem"
-    }
+    "hempdustry:retted_hemp_stem"
   ],
   "result": {
     "count": 6,

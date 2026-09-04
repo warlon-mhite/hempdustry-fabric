@@ -12,9 +12,10 @@ import org.spongepowered.asm.mixin.injection.At;
 /**
  * Draws the smoking cooldown swipe on the stack that was actually smoked, and on nothing else.
  *
- * <p>{@code ItemCooldownManager} is keyed by {@code Item}, and a hit deliberately arms it on every
+ * <p>{@code ItemCooldownManager} is keyed by a cooldown <em>group</em> — the item's own id unless a
+ * {@code use_cooldown} component says otherwise — and a hit deliberately arms it on every
  * smokeable at once (see {@link Smoking#startCooldown} for why the <em>block</em> has to be global).
- * The overlay in {@code DrawContext#drawItemInSlot} asks that manager one question per slot —
+ * The overlay in {@code DrawContext#drawCooldownProgress} asks that manager one question per slot —
  * "is this item cooling down?" — so straight off vanilla it sweeps a white bar down every pipe,
  * every bong and every spliff in the inventory, including the empty ones that were never smoked and
  * could not have been. That reads as a bug even though the cooldown underneath it is correct.
@@ -33,10 +34,10 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(DrawContext.class)
 public class DrawContextMixin {
     @ModifyExpressionValue(
-            method = "drawItemInSlot(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V",
+            method = "drawCooldownProgress(Lnet/minecraft/item/ItemStack;II)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/entity/player/ItemCooldownManager;getCooldownProgress(Lnet/minecraft/item/Item;F)F"
+                    target = "Lnet/minecraft/entity/player/ItemCooldownManager;getCooldownProgress(Lnet/minecraft/item/ItemStack;F)F"
             )
     )
     private float hempdustry$swipeOnlyTheStackThatWasSmoked(float progress,
