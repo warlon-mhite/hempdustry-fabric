@@ -129,7 +129,11 @@ public class ModBlocks {
                     .burnable());
 
 
-    public static final Block INDICA_CROP = registerBlock("indica_crop", IndicaCropBlock::new,
+    // NO BLOCK ITEM, on both crops, exactly as vanilla WHEAT has none: the seeds are the item, and
+    // ModItems.INDICA_SEEDS / SATIVA_SEEDS are the BlockItems that plant these. A BlockItem here
+    // would be a registry entry no player can obtain except with /give, with nothing to render it
+    // (CropBlock#getPickStack already hands back getSeedsItem, so middle-click is unaffected).
+    public static final Block INDICA_CROP = registerBlockWithoutItem("indica_crop", IndicaCropBlock::new,
             AbstractBlock.Settings.copy(Blocks.WHEAT));
 
     // Wild Purple Kush. One block, and it takes a suspicious-stew effect because FlowerBlock's
@@ -151,7 +155,8 @@ public class ModBlocks {
             AbstractBlock.Settings.copy(Blocks.POTTED_ALLIUM));
 
 
-    public static final Block SATIVA_CROP = registerBlock("sativa_crop", SativaCropBlock::new,
+    // No block item, for the reason on INDICA_CROP above.
+    public static final Block SATIVA_CROP = registerBlockWithoutItem("sativa_crop", SativaCropBlock::new,
             AbstractBlock.Settings.copy(Blocks.WHEAT));
 
     // Wild Lemon Haze — TWO BLOCKS TALL, unlike its Purple Kush counterpart. Both wild flowers wear
