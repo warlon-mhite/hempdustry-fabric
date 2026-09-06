@@ -33,6 +33,12 @@
 		],
 		"jei_mod_plugin": [
 			"com.warlonmhite.hempdustry.compat.jei.HempdustryJeiPlugin"
+		],
+		"rei_client": [
+			"com.warlonmhite.hempdustry.compat.rei.HempdustryReiPlugin"
+		],
+		"rei_common": [
+			"com.warlonmhite.hempdustry.compat.rei.HempdustryReiCommonPlugin"
 		]
 	},
 	"mixins": [

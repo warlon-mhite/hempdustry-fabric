@@ -9,6 +9,16 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
+### Added
+
+- **Recipe pages in [REI](https://modrinth.com/mod/rei)**, alongside the JEI ones the mod already
+  had. Both viewers show the same three pages — Decarboxylator, Infuser and the cauldron's retting
+  and washing — and the same packing rows in the crafting tab, because both read one description of
+  what the mod does rather than two. Install either, neither, or the other one; nothing in the mod
+  loads a line of viewer code unless the viewer is there.
+  - The cauldron page is the one worth having: retting and washing are not recipes, so the recipe
+    book cannot show them and no datapack can list them.
+
 ### Changed
 
 - **Hempdustry now runs on Minecraft 1.21.11**, ten patch versions on from the 1.21.1 the beta was
@@ -16,7 +26,8 @@ beta be told when the release lands.
   machine keeps the id and the save key it had, so a world made with `2.0.0-beta+1.21.1` opens on
   this build as itself.
   - **Still on 1.21.1?** That build is not going anywhere. The last version of that line is kept on
-    its own `1.21.1` branch and can still be built and played; it simply will not get new features.
+    its own `1.21.1` branch, can still be built and played, and gets anything that costs nothing to
+    give it — the REI pages above landed on both. It is simply not where the mod is going.
   - Requires **Fabric Loader 0.18.2** and **Fabric API 0.139.4** or newer.
 
 ### Removed

@@ -20,10 +20,18 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 
-	// JEI, the one recipe viewer on this line. Compile-only -- see the dependencies block.
+	// The two recipe viewers. Both compile-only -- see the dependencies block.
 	maven {
 		name = "BlameJared"              // JEI
 		url = "https://maven.blamejared.com/"
+	}
+	maven {
+		name = "shedaniel"               // REI, and the cloth-config it pulls in
+		url = "https://maven.shedaniel.me/"
+	}
+	maven {
+		name = "architectury"            // REI's other transitive dep, and where me.shedaniel.math lives
+		url = "https://maven.architectury.dev/"
 	}
 }
 
@@ -56,8 +64,8 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	// JEI, compiled against and never shipped: the plugin is loaded by JEI's own entrypoint and by
-	// nothing else, so a player without JEI never loads a line of that code.
+	// The two viewers, compiled against and never shipped: each plugin is loaded by that viewer's
+	// own entrypoint and by nothing else, so a player with neither never loads a line of that code.
 	//
 	// EMI is absent on purpose -- see the note in gradle.properties. It has no 1.21.11 build.
 	//
@@ -66,13 +74,31 @@ dependencies {
 	// would not resolve in a yarn workspace.
 	modCompileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
 
+	// REI is two artifacts: the api, and the default plugin -- which is where
+	// DefaultCustomShapelessDisplay lives, the shape the packing rows are handed over in. Left
+	// transitive on purpose: me.shedaniel.math.Rectangle, which every DisplayCategory signature
+	// names, ships inside architectury rather than inside REI.
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${project.rei_version}"
+
 	//   ./gradlew runClient                  # JEI on the runtime (default)
+	//   ./gradlew runClient -Pviewer=rei     # REI instead
 	//   ./gradlew runClient -Pviewer=none    # no viewer
+	//
+	// One at a time: two recipe viewers in one client is a supported-but-silly configuration, and
+	// which one owns the screen is then down to load order.
+	//
+	// -P only reaches a build started from the terminal. A run launched from the IDE uses whatever
+	// the last Gradle sync resolved, which is the default -- so to test REI from the IDE, put
+	// `viewer=rei` in gradle.properties (findProperty reads it) or in ~/.gradle/gradle.properties,
+	// and re-sync.
 	def viewer = project.findProperty("viewer") ?: "jei"
 	if (viewer == "jei") {
 		modLocalRuntime "mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}"
+	} else if (viewer == "rei") {
+		modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 	} else if (viewer != "none") {
-		throw new GradleException("Unknown -Pviewer=${viewer}; use jei or none")
+		throw new GradleException("Unknown -Pviewer=${viewer}; use jei, rei or none")
 	}
 }
 
