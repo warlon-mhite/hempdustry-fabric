@@ -9,6 +9,16 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
+### Breaking
+
+- **The two crop blocks no longer register an item.** `hempdustry:indica_crop` and
+  `hempdustry:sativa_crop` were items with no model, absent from the creative tab and obtainable only
+  with `/give` — vanilla wheat has no such item either, because the seeds are the item. If you gave
+  yourself one it is gone. **Planted crops, the seeds and everything the plants drop are untouched**,
+  and middle-clicking a growing plant still hands you its seeds. It also silences the two
+  `Unable to load model: 'hempdustry:item/indica_crop'` warnings the client logged on every launch.
+  Done now rather than later because removing a registry id stops being allowed at 2.0.0 stable.
+
 ### Added
 
 - **Recipe pages in [REI](https://modrinth.com/mod/rei)**, alongside the JEI and EMI ones the mod
