@@ -20,7 +20,7 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 
-	// The two recipe viewers. Both are compile-only -- see the dependencies block.
+	// The three recipe viewers. All compile-only -- see the dependencies block.
 	maven {
 		name = "TerraformersMC"          // EMI
 		url = "https://maven.terraformersmc.com/releases/"
@@ -28,6 +28,14 @@ repositories {
 	maven {
 		name = "BlameJared"              // JEI
 		url = "https://maven.blamejared.com/"
+	}
+	maven {
+		name = "shedaniel"               // REI, and the cloth-config it pulls in
+		url = "https://maven.shedaniel.me/"
+	}
+	maven {
+		name = "architectury"            // REI's other transitive dep, and where me.shedaniel.math lives
+		url = "https://maven.architectury.dev/"
 	}
 }
 
@@ -65,6 +73,15 @@ dependencies {
 	// IRecipeCategory#getTitle returns class_2561, the Mojang-mapped one returns Component.
 	modCompileOnly "mezz.jei:jei-1.21.1-fabric-api:${project.jei_version}"
 
+	// REI is two artifacts: the api, and the default plugin -- which is where
+	// DefaultCustomShapelessDisplay lives, the shape the packing rows are handed over in. Plus
+	// basic-math, because REI 16's api poms list no dependencies and me.shedaniel.math.Rectangle
+	// has to come from somewhere -- see gradle.properties.
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${project.rei_version}"
+	compileOnly "me.shedaniel.cloth:basic-math:${project.basic_math_version}"
+	modCompileOnly "dev.architectury:architectury-fabric:${project.architectury_version}"
+
 	// ONE VIEWER AT A TIME IN DEV, and this is not a preference -- it is the only way to test JEI.
 	//
 	// With EMI also installed, JEI still starts, still finds this mod's plugin through the
@@ -76,16 +93,24 @@ dependencies {
 	//
 	//   ./gradlew runClient                  # EMI (default)
 	//   ./gradlew runClient -Pviewer=jei     # JEI
-	//   ./gradlew runClient -Pviewer=none    # neither
+	//   ./gradlew runClient -Pviewer=rei     # REI
+	//   ./gradlew runClient -Pviewer=none    # none of them
 	//
-	// Players install one or the other, so this costs them nothing.
+	// Players install one of the three, so this costs them nothing.
+	//
+	// -P only reaches a build started from the terminal. A run launched from the IDE uses whatever
+	// the last Gradle sync resolved, which is EMI -- so to test JEI or REI from the IDE, put
+	// `viewer=rei` in gradle.properties (findProperty reads it) or in ~/.gradle/gradle.properties,
+	// and re-sync.
 	def viewer = project.findProperty("viewer") ?: "emi"
 	if (viewer == "emi") {
 		modLocalRuntime "dev.emi:emi-fabric:${project.emi_version}"
 	} else if (viewer == "jei") {
 		modLocalRuntime "mezz.jei:jei-1.21.1-fabric:${project.jei_version}"
+	} else if (viewer == "rei") {
+		modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 	} else if (viewer != "none") {
-		throw new GradleException("Unknown -Pviewer=${viewer}; use emi, jei or none")
+		throw new GradleException("Unknown -Pviewer=${viewer}; use emi, jei, rei or none")
 	}
 }
 

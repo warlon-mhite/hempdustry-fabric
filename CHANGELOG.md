@@ -9,7 +9,15 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in the beta.
+### Added
+
+- **Recipe pages in [REI](https://modrinth.com/mod/rei)**, alongside the JEI and EMI ones the mod
+  already had. All three viewers show the same three pages — Decarboxylator, Infuser and the
+  cauldron's retting and washing — and the same packing rows in the crafting tab, because they read
+  one description of what the mod does rather than three. Install one, or none; nothing in the mod
+  loads a line of viewer code unless the viewer is there.
+  - The cauldron page is the one worth having: retting and washing are not recipes, so the recipe
+    book cannot show them and no datapack can list them.
 
 ## [2.0.0-beta] — 2026-09-03
 

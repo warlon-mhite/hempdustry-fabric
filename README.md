@@ -14,7 +14,7 @@ actually been for over the last five thousand years.
 
 **Download:** SOON
 
-> **Status: version 2.0.0-beta**
+> **Status: version 2.0.1-beta**
 > This is a rewrite for Fabric 1.21.1 of an older Forge 1.16 mod (GanjaCraft) that was built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
@@ -107,7 +107,9 @@ Hemp is a fibre crop first, and the mod treats it that way.
 
 ### Odds and ends
 
-Six paintings, two music discs with original tracks by **Nefuß**, twenty-one advancements, and full
+Six paintings, two music discs with original tracks by **Nefuß**, twenty-one advancements, **recipe
+pages in JEI, EMI and REI** (including the cauldron steps, which are not recipes and which nothing
+else can show you), and full
 translations in eight locales
 (five English variants and three French, with regional vocabulary rather than copy-paste — Quebec
 gets *gougounes* and its own slang).
