@@ -93,6 +93,16 @@ public class DecarboxylatorBlockEntity extends BlockEntity
     public static final int BUDS_OUTPUT = 4;
     /** Decarboxylated hemp yielded per fan leaf — bulk trim, worth a quarter of a bud. */
     public static final int LEAF_OUTPUT = 1;
+    /**
+     * Decarboxylated hemp yielded per lump of hashish.
+     *
+     * <p>Eight buds' worth of resin in one item, and {@value #BUDS_OUTPUT} × 8 = 32 is not a
+     * coincidence: a concentrate compresses, it does not multiply. What the player buys by sifting
+     * first is <em>oven time</em> — 32 decarboxylated hemp out of one 500-tick cook instead of
+     * eight — plus the fact that trim sifts at a better ratio than it decarboxylates.
+     * See {@code DrySifterBlock}.
+     */
+    public static final int HASHISH_OUTPUT = 32;
 
     // PropertyDelegate indices. The cook time is synced because the config can change it.
     public static final int PROPERTY_BURN_TIME = 0;
