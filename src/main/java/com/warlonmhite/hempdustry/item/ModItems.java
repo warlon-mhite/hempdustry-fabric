@@ -14,6 +14,7 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.item.custom.SpliffItem;
 import com.warlonmhite.hempdustry.strain.Strain;
+import com.warlonmhite.hempdustry.util.ModTags;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ConsumableComponents;
@@ -55,7 +56,18 @@ public class ModItems {
      * cauldron rets, the crafting grid does the breaking and scutching. See {@code materials.md}.
      */
     public static final Item RETTED_HEMP_STEM = registerItem("retted_hemp_stem", settings -> new Item(settings));
-    public static final Item HEMP_LEAF = registerItem("hemp_leaf", settings -> new Item(settings));
+    /**
+     * The fan leaf — and, since 2026-09-08, the loom's cannabis-leaf banner pattern item.
+     *
+     * <p>{@code provides_banner_patterns} is what a loom actually reads; there is no separate
+     * {@code *_banner_pattern} item, because the leaf itself is the natural stencil and vanilla
+     * never consumes a pattern item anyway (the loom takes only the banner and the dye, confirmed
+     * in {@code LoomScreenHandler}). So this costs a player one leaf they keep for ever, which is
+     * the right price for something purely cosmetic. The tag it names is the other half — see
+     * {@link ModTags.BannerPatterns#HEMP_LEAF_PATTERN_ITEM}.
+     */
+    public static final Item HEMP_LEAF = registerItem("hemp_leaf", settings -> new Item(
+            settings.component(DataComponentTypes.PROVIDES_BANNER_PATTERNS, ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM)));
 
     // The cannabutter chain's two intermediates. Both are strain-agnostic: every strain's buds and
     // the leaf all decarboxylate to the same thing, so the pipeline downstream stays a single line
