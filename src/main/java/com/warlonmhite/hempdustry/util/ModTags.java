@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.util;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.block.Block;
+import net.minecraft.block.entity.BannerPattern;
 import net.minecraft.item.Item;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
@@ -84,6 +85,28 @@ public class ModTags {
 
         private static TagKey<Block> blockTag(String path) {
             return TagKey.of(RegistryKeys.BLOCK, Identifier.of("c", path));
+        }
+    }
+
+    public static class BannerPatterns {
+
+        /**
+         * The banner patterns {@code hemp_leaf} unlocks in a loom.
+         *
+         * <p>The loom does not read the item, it reads the item's
+         * {@code minecraft:provides_banner_patterns} component, and that component holds a
+         * <em>tag of banner patterns</em> rather than one pattern. So a pattern item is always two
+         * halves: this tag, and the component on {@link com.warlonmhite.hempdustry.item.ModItems#HEMP_LEAF}
+         * pointing at it. Vanilla mints one such tag per pattern item under
+         * {@code pattern_item/}, which is the path this copies.
+         *
+         * <p>Being a tag is also what makes it extensible: a datapack can add a second pattern here
+         * and the same leaf unlocks both, with no code change.
+         */
+        public static final TagKey<BannerPattern> HEMP_LEAF_PATTERN_ITEM =
+                TagKey.of(RegistryKeys.BANNER_PATTERN, Identifier.of(Hempdustry.MOD_ID, "pattern_item/hemp_leaf"));
+
+        private BannerPatterns() {
         }
     }
 
