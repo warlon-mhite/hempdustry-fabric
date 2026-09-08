@@ -1,0 +1,10 @@
+{
+  "type": "hempdustry:decarboxylating",
+  "ingredient": {
+    "item": "hempdustry:hashish"
+  },
+  "result": {
+    "count": 32,
+    "id": "hempdustry:decarboxylated_hemp"
+  }
+}

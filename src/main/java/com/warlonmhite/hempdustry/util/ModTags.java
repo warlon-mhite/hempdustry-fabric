@@ -51,6 +51,19 @@ public class ModTags {
          * ingredient first — exactly as a cow's milk bucket is not a food.
          */
         public static final TagKey<Item> HEMP_SEED_FOODS = createTag("hemp_seed_foods");
+        /**
+         * Flower the Dry Sifter separates resin from — every strain's buds, built off the strain
+         * registry so a third one joins by existing. Sifted at {@code FLOWER_CHANCE}.
+         */
+        public static final TagKey<Item> SIFTABLE_FLOWER = createTag("siftable/flower");
+        /**
+         * Leaf and trim the Dry Sifter separates resin from. Sifted at the slower
+         * {@code TRIM_CHANCE}: bulkier, and much less of it is resin.
+         *
+         * <p>Two tags rather than one with a rate baked in, because the rate <em>is</em> the
+         * balance — see {@link com.warlonmhite.hempdustry.block.custom.DrySifterBlock}.
+         */
+        public static final TagKey<Item> SIFTABLE_TRIM = createTag("siftable/trim");
         private static TagKey<Item> createTag(String name) {
             return TagKey.of(RegistryKeys.ITEM, Identifier.of(Hempdustry.MOD_ID, name));
         }
