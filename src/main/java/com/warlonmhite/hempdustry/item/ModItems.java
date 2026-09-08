@@ -75,6 +75,22 @@ public class ModItems {
     public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", settings -> new Item(settings));
     public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", settings -> new Item(settings));
 
+    /**
+     * Pressed dry-sift hashish — resin separated from the plant and squeezed into a slab.
+     *
+     * <p><b>Strain-agnostic</b>, like everything else this far down the chain. Sifting is a
+     * mechanical separation, not a chemical one: it keeps the trichome heads and throws the leaf
+     * away, and a trichome head is a trichome head whichever plant grew it. That also means it can
+     * never carry a strain the way a spliff does, which is why it is here beside the oven's two
+     * intermediates rather than in the smoking run.
+     *
+     * <p><b>Inert in the hand, like the rest of the raw plant.</b> Sifting concentrates THCA; it
+     * does not decarboxylate it. Eating a lump of hash does close to nothing, so this has no food
+     * component and no effects — it goes through the Decarboxylator like everything else. See
+     * CLAUDE.md, <i>heat activates</i>.
+     */
+    public static final Item HASHISH = registerItem("hashish", settings -> new Item(settings));
+
     public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign", settings -> new SignItem(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN, settings.maxCount(16)));
     public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign", settings -> new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, settings.maxCount(16)));
 

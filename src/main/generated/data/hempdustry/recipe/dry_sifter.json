@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "hempdustry:hemp_canvas",
+    "P": "hempdustry:hemp_planks"
+  },
+  "pattern": [
+    "PPP",
+    "CCC",
+    "PPP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:dry_sifter"
+  }
+}
