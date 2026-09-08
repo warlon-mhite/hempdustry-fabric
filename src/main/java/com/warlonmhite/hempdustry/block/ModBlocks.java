@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
+import com.warlonmhite.hempdustry.block.custom.DrySifterBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
@@ -203,6 +204,27 @@ public class ModBlocks {
                     .requiresTool()
                     .nonOpaque()
                     .sounds(BlockSoundGroup.STONE));
+
+
+    /**
+     * The Dry Sifter. A screened wooden box, so it is wood rather than the two machines' stone —
+     * it is a sieve on a frame, not a furnace, and it should read as something a farmer built.
+     *
+     * <p><b>{@code nonOpaque()} for the same reason the Infuser needs it:</b> the model is an open
+     * box with a hollow middle, and an opaque block has its neighbours cull the faces they press
+     * against it, which would show straight through the walls. Vanilla's composter is
+     * {@code notSolid} for exactly this.
+     *
+     * <p>Deliberately <b>not</b> registered as flammable, even though it is wooden: it is a work
+     * block a player leaves standing next to a field, and losing one to a stray lightning strike
+     * or a lava bucket would read as a bug rather than as a consequence. The composter is not
+     * flammable either.
+     */
+    public static final Block DRY_SIFTER = registerBlock("dry_sifter", DrySifterBlock::new,
+            AbstractBlock.Settings.create()
+                    .strength(0.6F)
+                    .nonOpaque()
+                    .sounds(BlockSoundGroup.WOOD));
 
 
     /**

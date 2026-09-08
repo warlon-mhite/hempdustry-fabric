@@ -536,6 +536,30 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.LEAF_OUTPUT),
                 "hemp_leaf");
 
+        // Hashish: eight buds' worth of resin in one lump, so it decarboxylates to eight buds' worth
+        // and the sifting is paid for in oven time rather than in yield. See DrySifterBlock.
+        offerDecarboxylating(Ingredient.ofItems(ModItems.HASHISH),
+                new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.HASHISH_OUTPUT),
+                "hashish");
+
+        // The Dry Sifter: a plank frame with a canvas screen stretched across the middle of it,
+        // which is the recipe read literally and also what a Moroccan sieve actually is — cloth on
+        // a hoop. Canvas rather than iron bars or a trapdoor because the screen has to be a *fabric*
+        // and this mod already weaves one; it also keeps the pattern hempdustry-exclusive, so it can
+        // never ambiguously match another mod's 3x3 in a kitchen-sink pack (CLAUDE.md §5).
+        //
+        // Cheap on purpose, like the Infuser and unlike the Decarboxylator: this block's job is to
+        // give the fan leaf somewhere to go, and gating a byproduct sink behind a bulk-farming cost
+        // would defeat the point of it existing.
+        createShaped(RecipeCategory.DECORATIONS, ModBlocks.DRY_SIFTER)
+                .pattern("PPP")
+                .pattern("CCC")
+                .pattern("PPP")
+                .input('P', ModBlocks.HEMP_PLANKS)
+                .input('C', ModItems.HEMP_CANVAS)
+                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
+                .offerTo(exporter, id("dry_sifter"));
+
         // One recipe describing the whole tub. Strength and Quality stay in the block entity — they
         // are measurements of the simmer, not of a recipe — but which items play each part is data.
         exporter.accept(id("infusing"), new InfusingRecipe(

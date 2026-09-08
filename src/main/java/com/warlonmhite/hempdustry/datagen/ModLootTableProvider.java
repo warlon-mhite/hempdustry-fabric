@@ -73,6 +73,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         // loot table only has to hand back the machine itself.
         addDrop(ModBlocks.DECARBOXYLATOR);
         addDrop(ModBlocks.INFUSER);
+        addDrop(ModBlocks.DRY_SIFTER);
 
         // Wall sign / wall hanging sign share the standing block's loot table (see ModBlocks#dropsLike),
         // so they must not get their own addDrop call here.

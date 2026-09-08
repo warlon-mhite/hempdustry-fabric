@@ -93,12 +93,14 @@ public class ModItemGroups {
                         // In unlock order. The press, drying rack, mixer and extractor go here.
                         entries.add(ModBlocks.DECARBOXYLATOR);
                         entries.add(ModBlocks.INFUSER);
+                        entries.add(ModBlocks.DRY_SIFTER);
 
                         // --- Processed hemp, raw to refined ----------------------------
                         // Strain-agnostic by construction: decarboxylation is where strain
                         // identity ends. Hashish, oil and rosin belong in this run.
                         entries.add(ModItems.DECARBOXYLATED_HEMP);
                         entries.add(ModItems.WASHED_DECARBOXYLATED_HEMP);
+                        entries.add(ModItems.HASHISH);
                         entries.add(ModItems.showcaseCannabutter(), ItemGroup.StackVisibility.PARENT_TAB_ONLY);
 
                         // --- Fibre and building materials ------------------------------
