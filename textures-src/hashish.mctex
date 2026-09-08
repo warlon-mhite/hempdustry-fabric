@@ -1,0 +1,50 @@
+# Hashish — a pressed slab of sifted resin.
+#
+# PLACEHOLDER art. Warlon Mhite may redraw it; that is what this file is for.
+#
+# ## Translation: what makes it hash and not a cookie or a mud pie
+#
+# The first draft of this was an octagonal blob and read as neither. The fix was the archetype, not
+# the palette: **vanilla never draws a block-shaped item as an axis-aligned rectangle, and never as
+# a circle either — it draws an oblique slab**, a flat plate tilted so you see the top face and the
+# near edge at once. The silhouette here is vanilla's own `item/brick`, measured out of the client
+# jar, because a pressed lump of hash is the same object: a small dense slab somebody made in a
+# mould or a press.
+#
+# What separates it from a brick is entirely colour and surface. Hash is much darker and browner
+# than the blond kief it is pressed from, the ramp runs to near-black at the rim, and the highlight
+# sits in one cluster up-left rather than as a gradient across the whole sprite (a straight
+# corner-to-corner fade explains only 9-16% of the brightness in real vanilla items — that is
+# pancake shading, and it is the classic tell).
+#
+# Items are high contrast: vanilla items span a median 164 luminance steps against a block's 76.
+# So this looks nothing like block/dry_sifter_pressed even though it is the same material, and that
+# is correct rather than an inconsistency.
+
+@palette default
+. = none
+1 = 130D05      deepest shadow, and the rim on the unlit side
+2 = 251A0A      rim
+3 = 3A2911
+4 = 4E3818
+5 = 664A21
+6 = 7E5D2B      the body of the top face
+7 = 9A7439      pressed sheen; one cluster, up-left, and nowhere else
+
+@texture item/hashish 16x16 type=item
+................
+................
+.......222222...
+......26666662..
+.....2677777762.
+....267777777666
+...2667777776665
+..25666777766654
+.245566666554432
+2344555555443321
+233444444333221.
+.2334443332221..
+..23333222111...
+...222211111....
+................
+................

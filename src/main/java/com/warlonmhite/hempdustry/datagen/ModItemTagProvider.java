@@ -2,12 +2,15 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.ModStrains;
+import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.ItemTags;
 
@@ -156,6 +159,21 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.SPACE_BROWNIE)
                 .add(ModItems.DAWAMESK)
                 .add(ModItems.BHANG_BUCKET);
+
+        // What the Dry Sifter will shake resin out of, split by how much resin there is to shake.
+        // Flower is where the trichomes actually are, so a bud fills a level every time; leaf is
+        // bulk with a thin dusting on it and takes about three. The two rates *are* the balance of
+        // the block, which is why they are two tags rather than one — see DrySifterBlock.
+        //
+        // Buds come off the strain registry rather than being named, exactly as the spliff and
+        // decarboxylating recipes do, so a third strain is siftable the moment it exists.
+        RegistryWrapper.Impl<Strain> strains = Strain.registry(wrapperLookup);
+        var flower = valueLookupBuilder(ModTags.Items.SIFTABLE_FLOWER);
+        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
+            flower.add(strains.getOrThrow(key).value().buds());
+        }
+        valueLookupBuilder(ModTags.Items.SIFTABLE_TRIM)
+                .add(ModItems.HEMP_LEAF);
 
         // ---------------------------------------------------------------------
         // Convention tags, the outbound half. Nothing in vanilla reads any of these; the entire
