@@ -164,7 +164,9 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
                     + "greenOutChanceMultiplier 0 disables green-outs, as does greenOut=false.");
             comment(root, "world", "cropGrowthMultiplier and machineSpeedMultiplier are speeds: 2.0 is twice as fast. "
                     + "machineSpeed drives the Decarboxylator; the Infuser has its own section. "
-                    + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here.");
+                    + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here. "
+                    + "creepersSeekHemp=false stops creepers wandering towards hemp crops; the goal is still "
+                    + "added to them, it simply never starts, so it takes effect on the next /hempdustry reload.");
             comment(root, "infuser", "Ticks. minTime is the earliest a batch can be pulled, fullTime a full simmer. "
                     + "20 ticks = 1 second. Defaults are 5 and 15 minutes; the ceiling is 32000 "
                     + "(about 26 minutes), which is as long a simmer as the screen can be told about.");
@@ -303,22 +305,31 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * completely. A config switch for it would be the mod fighting the datapack, which is the first
      * of the three filters at the top of this file.
      *
+     * <p><b>{@code creepersSeekHemp} is here and the bee switch is not, and the difference is the
+     * rule.</b> Bee pollination is a tag; this one is a goal added to a vanilla mob by a mixin, so
+     * there is nothing else an admin could turn it off with. It also changes how dangerous a
+     * player's farm is, which is exactly the kind of decision a server owner should get to make
+     * rather than inherit.
+     *
      * @param cropGrowthMultiplier     growth speed for both crops; 2.0 grows twice as fast
      * @param machineSpeedMultiplier   the Decarboxylator's speed (the Infuser has its own section)
+     * @param creepersSeekHemp         whether creepers wander towards hemp crops they can see
      */
-    public record World(double cropGrowthMultiplier, double machineSpeedMultiplier) {
+    public record World(double cropGrowthMultiplier, double machineSpeedMultiplier, boolean creepersSeekHemp) {
 
-        public static final World DEFAULT = new World(1.0, 1.0);
+        public static final World DEFAULT = new World(1.0, 1.0, true);
 
         public static final Codec<World> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.DOUBLE.fieldOf("cropGrowthMultiplier").forGetter(World::cropGrowthMultiplier),
-                Codec.DOUBLE.fieldOf("machineSpeedMultiplier").forGetter(World::machineSpeedMultiplier)
+                Codec.DOUBLE.fieldOf("machineSpeedMultiplier").forGetter(World::machineSpeedMultiplier),
+                Codec.BOOL.fieldOf("creepersSeekHemp").forGetter(World::creepersSeekHemp)
         ).apply(instance, World::new));
 
         World clamped() {
             return new World(
                     clampDouble("world.cropGrowthMultiplier", cropGrowthMultiplier, 0.05, 20.0),
-                    clampDouble("world.machineSpeedMultiplier", machineSpeedMultiplier, 0.05, 20.0));
+                    clampDouble("world.machineSpeedMultiplier", machineSpeedMultiplier, 0.05, 20.0),
+                    creepersSeekHemp);
         }
     }
 
