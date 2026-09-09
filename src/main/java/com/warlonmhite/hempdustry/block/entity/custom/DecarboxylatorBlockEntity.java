@@ -93,17 +93,8 @@ public class DecarboxylatorBlockEntity extends BlockEntity
     public static final int BUDS_OUTPUT = 4;
     /** Decarboxylated hemp yielded per fan leaf — bulk trim, worth a quarter of a bud. */
     public static final int LEAF_OUTPUT = 1;
-    /**
-     * Decarboxylated hemp yielded per lump of hashish.
-     *
-     * <p><b>Seven</b> buds' worth of resin in one lump, and {@value #BUDS_OUTPUT} × 7 = 28 is not a
-     * coincidence: a concentrate compresses, it does not multiply. The screen fills in seven
-     * clicks, not eight — {@code sift()} adds one per accepted item and refuses at
-     * {@code FULL_LEVEL = 7}, which is vanilla's own composter count. What the player buys by
-     * sifting first is <em>oven time</em> — 28 decarboxylated hemp out of one 500-tick cook instead
-     * of seven — plus the fact that trim has no opportunity cost at all. See {@code DrySifterBlock}.
-     */
-    public static final int HASHISH_OUTPUT = 28;
+    // There is deliberately NO hashish figure here. Nothing in the hash family decarboxylates:
+    // the oven takes plant matter, the bowl takes resin. See ModRecipeProvider and DrySifterBlock.
 
     // PropertyDelegate indices. The cook time is synced because the config can change it.
     public static final int PROPERTY_BURN_TIME = 0;

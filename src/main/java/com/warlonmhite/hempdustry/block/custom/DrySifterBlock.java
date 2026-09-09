@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
-import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -29,7 +29,7 @@ import net.minecraft.world.World;
 import net.minecraft.block.ShapeContext;
 
 /**
- * The Dry Sifter — a screened box that shakes resin off the plant and presses it into hashish.
+ * The Dry Sifter — a screened box that shakes resin off the plant and presses it into a hashish bar.
  *
  * <h2>The real process, and why it is this shape and not a machine</h2>
  *
@@ -48,26 +48,30 @@ import net.minecraft.block.ShapeContext;
  *
  * <h2>Balance — why sifting is worth doing</h2>
  *
- * Hashish is a <b>concentrate, not a multiplier</b>: it compresses many plant-parts into one item
- * that the Decarboxylator turns into {@value com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity#HASHISH_OUTPUT}
- * decarboxylated hemp in a single 500-tick cook. <b>The screen fills in seven, not eight</b> —
- * {@link #sift} adds one level per accepted item and {@link #onUseWithItem} refuses at
- * {@link #FULL_LEVEL}, which is vanilla's own composter count. Against the direct route:
+ * <b>The screen fills in seven, not eight</b> — {@link #sift} adds one level per accepted item and
+ * {@link #onUseWithItem} refuses at {@link #FULL_LEVEL}, which is vanilla's own composter count. So
+ * one bar is seven buds, or ~47 fan leaves at {@link #TRIM_CHANCE}, or any mix of the two.
+ *
+ * <p><b>Nothing that comes out of here decarboxylates.</b> The oven takes plant matter and the bowl
+ * takes resin; hash is a smoking material and only a smoking material. That is a rule rather than an
+ * omission, and it is what makes the block's two inputs answer two different questions:
  *
  * <table border="1">
- *   <caption>Routes to decarboxylated hemp</caption>
- *   <tr><th></th><th>direct</th><th>via hashish</th><th>oven cooks saved</th></tr>
- *   <tr><td>7 buds</td><td>28</td><td>28</td><td>7 → 1</td></tr>
- *   <tr><td>~47 fan leaves</td><td>~47</td><td>28</td><td>47 → 1</td></tr>
+ *   <caption>What a sift is worth</caption>
+ *   <tr><th>in</th><th>what it would otherwise have been</th><th>what sifting makes it</th></tr>
+ *   <tr><td>7 buds</td><td>7 hits of that strain</td><td><b>9 hits of hash</b></td></tr>
+ *   <tr><td>~47 fan leaves</td><td>~47 decarboxylated hemp, for the edible chain</td><td><b>9 hits of hash</b></td></tr>
  * </table>
  *
- * <p>So <b>buds break exactly even on yield and win sevenfold on throughput</b>, and trim comes out
- * <em>behind</em> on the edible chain — which is not the argument for sifting it. <b>What makes trim
- * worth sifting is that it has no opportunity cost.</b> A hemp plant yields exactly five fan leaves
- * however it is trimmed (a cut moves leaf-at-harvest into buds 1:1 and hands the leaf straight
- * back), so the leaves arrive whether or not there is a screen to put them in; every bud sifted, by
- * contrast, is a bud not smoked. The sifter is what turns a fixed byproduct into smoke.
-
+ * <p><b>Buds buy volume and pay for it with identity.</b> Nine pieces out of seven buds is a
+ * deliberate 1.29×, and what it costs is the strain — Purple Kush's Resistance and Lemon Haze's
+ * Speed both become the same hash body. A concentrate compresses; it does not conjure potency.
+ *
+ * <p><b>Trim is a genuine fork, not a ladder.</b> A hemp plant yields exactly five fan leaves however
+ * it is trimmed — a cut moves leaf-at-harvest into buds 1:1 and hands the leaf straight back — so
+ * leaves are <em>fixed</em> rather than abundant, and they now have two sinks worth having. Forty-odd
+ * of them is either a great deal of cannabutter or nine smokes: different currencies, neither
+ * strictly better. <b>Ten plants' worth of trim makes one bar.</b>
  *
  * <p>The two rates live in tags rather than in a hard item check, so a third strain's buds are
  * siftable the day the strain exists and a datapack can widen either side without touching code.
@@ -89,7 +93,7 @@ public class DrySifterBlock extends Block {
 
     /** The level at which the screen is full and a scheduled tick presses it into a slab. */
     public static final int FULL_LEVEL = 7;
-    /** The level at which there is a lump of hashish to take out. */
+    /** The level at which there is a pressed bar to take out. */
     public static final int READY_LEVEL = 8;
     /** Ticks between "the screen filled up" and "there is hash in it" — vanilla's composter delay. */
     private static final int PRESS_DELAY = 20;
@@ -111,9 +115,9 @@ public class DrySifterBlock extends Block {
     /**
      * Chance that one bud advances the screen one level — certainty, so exactly 7 buds make a lump.
      *
-     * <p>That number is chosen, not rounded to: seven buds decarboxylate to 28 either way, so the
-     * flower route is exactly break-even on yield and buys nothing but oven time. A concentrate
-     * should not conjure potency out of nowhere.
+     * <p>Certainty rather than a rate, because seven <em>is</em> the price and a player should be
+     * able to count it. What sifting buds buys is volume — nine pieces out of seven buds — and what
+     * it costs is the strain. A concentrate should not conjure potency out of nowhere.
      */
     public static final float FLOWER_CHANCE = 1.0F;
 
@@ -248,7 +252,7 @@ public class DrySifterBlock extends Block {
     private static void collect(ServerWorld world, BlockPos pos, BlockState state) {
         Vec3d spawn = Vec3d.add(pos, 0.5, 1.01, 0.5).addRandom(world.random, 0.7F);
         ItemEntity dropped = new ItemEntity(world, spawn.getX(), spawn.getY(), spawn.getZ(),
-                new ItemStack(ModItems.HASHISH));
+                new ItemStack(ModBlocks.HASHISH_BAR));
         dropped.setToDefaultPickupDelay();
         world.spawnEntity(dropped);
         world.setBlockState(pos, state.with(LEVEL, 0), Block.NOTIFY_ALL);
