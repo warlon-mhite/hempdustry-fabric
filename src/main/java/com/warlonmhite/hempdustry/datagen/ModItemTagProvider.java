@@ -170,7 +170,12 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         RegistryWrapper.Impl<Strain> strains = Strain.registry(wrapperLookup);
         var flower = valueLookupBuilder(ModTags.Items.SIFTABLE_FLOWER);
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
-            flower.add(strains.getOrThrow(key).value().buds());
+            Strain strain = strains.getOrThrow(key).value();
+            // Only things that grew on a plant are plant matter. Hashish is a strain entry too, but
+            // its "buds" are resin: it goes back into the screen as CONTENT = HASH, never as flower.
+            if (strain.flower().isPresent()) {
+                flower.add(strain.buds());
+            }
         }
         valueLookupBuilder(ModTags.Items.SIFTABLE_TRIM)
                 .add(ModItems.HEMP_LEAF);

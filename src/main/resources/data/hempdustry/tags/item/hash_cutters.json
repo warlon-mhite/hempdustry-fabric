@@ -1,0 +1,6 @@
+{
+  "values": [
+    { "id": "#minecraft:swords", "required": false },
+    { "id": "#c:tools/knife", "required": false }
+  ]
+}

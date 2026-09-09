@@ -61,6 +61,27 @@ public class ModTags {
          * balance — see {@link com.warlonmhite.hempdustry.block.custom.DrySifterBlock}.
          */
         public static final TagKey<Item> SIFTABLE_TRIM = createTag("siftable/trim");
+        /**
+         * What cuts a hashish bar: swords and knives.
+         *
+         * <p><b>Deliberately not shears.</b> Shears already mean "trim a plant" in this mod, and a
+         * verb that currently means exactly one thing should keep meaning exactly one thing. A blade
+         * pressed into a slab is the real motion anyway. No tier gate either — hash is soft, and
+         * vanilla's tier gates are about stone hardness.
+         *
+         * <p>The tag <b>file</b> is where the danger is. It names {@code #c:tools/knife}, which no
+         * vanilla item joins, so on a client with no cooking mod installed it does not resolve — and
+         * <b>one unresolvable required entry drops the whole tag</b>, taking {@code #minecraft:swords}
+         * with it and leaving the bar uncuttable with nothing but a server-log line to say why. Both
+         * entries are therefore {@code "required": false}. This is exactly how {@code #c:is_lush}
+         * stopped wild indica generating in caves (CLAUDE.md §5).
+         *
+         * <p>Hand-written rather than datagen'd because there is no {@code KNIFE_TOOLS} constant on
+         * Fabric — checked against {@code fabric-convention-tags-v2} 2.8.0, which has
+         * {@code SHEAR_TOOLS} and {@code MELEE_WEAPON_TOOLS} and no knife at all. {@code c:tools/knife}
+         * is the id Farmer's Delight and its kin actually use.
+         */
+        public static final TagKey<Item> HASH_CUTTERS = createTag("hash_cutters");
         private static TagKey<Item> createTag(String name) {
             return TagKey.of(RegistryKeys.ITEM, Identifier.of(Hempdustry.MOD_ID, name));
         }
