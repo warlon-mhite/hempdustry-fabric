@@ -50,19 +50,24 @@ import net.minecraft.block.ShapeContext;
  *
  * Hashish is a <b>concentrate, not a multiplier</b>: it compresses many plant-parts into one item
  * that the Decarboxylator turns into {@value com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity#HASHISH_OUTPUT}
- * decarboxylated hemp in a single 500-tick cook. Against the direct route:
+ * decarboxylated hemp in a single 500-tick cook. <b>The screen fills in seven, not eight</b> —
+ * {@link #sift} adds one level per accepted item and {@link #onUseWithItem} refuses at
+ * {@link #FULL_LEVEL}, which is vanilla's own composter count. Against the direct route:
  *
  * <table border="1">
  *   <caption>Routes to decarboxylated hemp</caption>
  *   <tr><th></th><th>direct</th><th>via hashish</th><th>oven cooks saved</th></tr>
- *   <tr><td>~8 buds</td><td>32</td><td>32</td><td>8 → 1</td></tr>
- *   <tr><td>~23 fan leaves</td><td>23</td><td>32</td><td>23 → 1</td></tr>
+ *   <tr><td>7 buds</td><td>28</td><td>28</td><td>7 → 1</td></tr>
+ *   <tr><td>~47 fan leaves</td><td>~47</td><td>28</td><td>47 → 1</td></tr>
  * </table>
  *
- * <p>So <b>buds break even on yield and win eightfold on throughput</b>, and <b>trim wins on both</b>
- * — which is the right answer twice over. It is what actually happens (hash is a trim product before
- * it is anything else), and it gives the fan leaf, the mod's most abundant byproduct, a job worth
- * doing. Neither route ever loses, so a player cannot mis-sift and be punished for it.
+ * <p>So <b>buds break exactly even on yield and win sevenfold on throughput</b>, and trim comes out
+ * <em>behind</em> on the edible chain — which is not the argument for sifting it. <b>What makes trim
+ * worth sifting is that it has no opportunity cost.</b> A hemp plant yields exactly five fan leaves
+ * however it is trimmed (a cut moves leaf-at-harvest into buds 1:1 and hands the leaf straight
+ * back), so the leaves arrive whether or not there is a screen to put them in; every bud sifted, by
+ * contrast, is a bud not smoked. The sifter is what turns a fixed byproduct into smoke.
+
  *
  * <p>The two rates live in tags rather than in a hard item check, so a third strain's buds are
  * siftable the day the strain exists and a datapack can widen either side without touching code.
@@ -92,15 +97,21 @@ public class DrySifterBlock extends Block {
     /**
      * Chance that one fan leaf advances the screen one level.
      *
-     * <p>≈23 leaves per lump, against the ~10% by weight real dry sift gets off trim. Deliberately
-     * the slower of the two rates: trim is bulky and mostly not resin, and it is also the input a
-     * player has most of.
-     */
-    public static final float TRIM_CHANCE = 0.35F;
-    /**
-     * Chance that one bud advances the screen one level — certainty, so exactly 8 buds make a lump.
+     * <p>{@link #FULL_LEVEL} / 0.15 ≈ <b>47 leaves per lump</b>, which is ~9–10 plants' worth of
+     * trim: <b>ten plants make one bar</b> is the whole rule of thumb, and it is one constant.
+     * Deliberately the slower of the two rates — trim is bulky and mostly not resin, and it is also
+     * the input a player has most of.
      *
-     * <p>That number is chosen, not rounded to: eight buds decarboxylate to 32 either way, so the
+     * <p><b>Was 0.35, which was far too generous.</b> At that rate a bar cost ~20 leaves ≈ 4 plants,
+     * and those same 4 plants had already handed over 16 buds — so the screen added nine hits on top
+     * of sixteen, a 56% free increase in total smokeable output for right-clicking a box with waste.
+     * 0.15 makes it ~24%, which is a bonus rather than a second harvest.
+     */
+    public static final float TRIM_CHANCE = 0.15F;
+    /**
+     * Chance that one bud advances the screen one level — certainty, so exactly 7 buds make a lump.
+     *
+     * <p>That number is chosen, not rounded to: seven buds decarboxylate to 28 either way, so the
      * flower route is exactly break-even on yield and buys nothing but oven time. A concentrate
      * should not conjure potency out of nowhere.
      */
