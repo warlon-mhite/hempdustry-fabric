@@ -9,6 +9,7 @@ import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -29,7 +30,13 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
 /**
- * A pressed slab of dry-sift hashish, sitting on the floor, that you cut pieces off with a blade.
+ * A pressed slab of hash, sitting on the floor, that you cut pieces off with a blade. Two of these
+ * exist — brown {@code hashish_bar} and blonde {@link FilteredHashishBarBlock} — and they differ by
+ * exactly one method, {@link #piece()}.
+ *
+ * <p><b>Both come out of the Dry Sifter, because pressing is what that block does.</b> Charas is the
+ * only hash with no bar, and now for a reason rather than a quantity: it is the only one that is
+ * never pressed. Hand-rubbed resin is rolled between the palms, not squeezed in a screen.
  *
  * <h2>Why the bar is a block at all</h2>
  *
@@ -103,6 +110,19 @@ public class HashishBarBlock extends Block {
      * edge rather than as anything that could be called a bug.
      */
     private static final double CUT_PIXELS = 3.0;
+
+    /**
+     * What a cut off this bar yields. Overridden by {@link FilteredHashishBarBlock}, which is the
+     * whole of the difference between the two bars — everything else, geometry included, is shared.
+     *
+     * <p>A method rather than a constructor field so both blocks keep a plain
+     * {@code Settings}-only constructor and therefore {@code createCodec}, which is the one-liner
+     * form of a block's {@code MapCodec}. A field would mean hand-rolling a {@code RecordCodecBuilder}
+     * twice for a value neither block ever varies at runtime.
+     */
+    protected Item piece() {
+        return ModItems.HASHISH;
+    }
 
     public HashishBarBlock(Settings settings) {
         super(settings);
@@ -206,7 +226,7 @@ public class HashishBarBlock extends Block {
         }
         int cuts = state.get(CUTS);
         if (world instanceof ServerWorld serverWorld) {
-            dropStack(serverWorld, pos, Direction.UP, new ItemStack(ModItems.HASHISH, YIELD[cuts]));
+            dropStack(serverWorld, pos, Direction.UP, new ItemStack(piece(), YIELD[cuts]));
             // The blade is the whole cost of a cut: nothing else is spent, and the bar itself is
             // what shrinks. Same slot dance as Defoliation.tryCut.
             stack.damage(1, player, hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
