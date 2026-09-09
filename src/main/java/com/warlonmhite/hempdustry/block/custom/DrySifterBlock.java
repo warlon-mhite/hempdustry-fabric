@@ -12,10 +12,12 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -27,6 +29,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.block.ShapeContext;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The Dry Sifter — a screened box that shakes resin off the plant and presses it into a hashish bar.
@@ -91,6 +94,25 @@ public class DrySifterBlock extends Block {
     /** Vanilla's own 0–8 property, so the blockstate reads exactly like a composter's. */
     public static final IntProperty LEVEL = Properties.LEVEL_8;
 
+    /**
+     * What is on the screen. <b>Plant and resin do not share one</b> — that is the whole rule, and
+     * it is one rule rather than a list of exceptions.
+     *
+     * <p>Buds and leaf mix freely, because both are plant matter with trichomes on them and the two
+     * rates already say how much. Resin is a different pass entirely: it is a <em>re-sift</em> at a
+     * finer mesh, and what comes out is not a bar.
+     */
+    public enum Content implements StringIdentifiable {
+        PLANT, HASH;
+
+        @Override
+        public String asString() {
+            return name().toLowerCase(java.util.Locale.ROOT);
+        }
+    }
+
+    public static final EnumProperty<Content> CONTENT = EnumProperty.of("content", Content.class);
+
     /** The level at which the screen is full and a scheduled tick presses it into a slab. */
     public static final int FULL_LEVEL = 7;
     /** The level at which there is a pressed bar to take out. */
@@ -120,6 +142,25 @@ public class DrySifterBlock extends Block {
      * it costs is the strain. A concentrate should not conjure potency out of nowhere.
      */
     public static final float FLOWER_CHANCE = 1.0F;
+    /**
+     * Chance that one piece of resin advances the screen.
+     *
+     * <p><b>This is where filtration's cost lives, and it is the whole of it.</b> Both content kinds
+     * press a bar and a bar is always nine pieces, so the loss cannot be taken out of the output —
+     * it has to be taken out of the input. {@link #FULL_LEVEL} / 0.4 ≈ <b>17.5 hashish per filtered
+     * bar</b>, near enough two bars: <b>two bars of hash make one bar of filtered</b>, a ~49% loss.
+     *
+     * <p>That is what a further sieve pass costs, and why the trade stops at three passes: the
+     * purity gain goes marginal and the yield loss does not. And what purity buys is
+     * <b>smoothness, not power</b> — filtered hashish has the same effects at the same strength and
+     * half the green-out odds, so it is a true sidegrade rather than an upgrade. See
+     * {@code Strain.greenOutFactor}.
+     *
+     * <p>Unlike {@link #FLOWER_CHANCE} this is deliberately <em>not</em> certainty. Seven buds is a
+     * number a player should be able to count; "about two bars" is a rule of thumb, and a screen
+     * that sometimes takes an extra piece is the composter grammar this block already runs on.
+     */
+    public static final float HASH_CHANCE = 0.4F;
 
     /**
      * A full cube with the bowl carved out of it, so the screen is something you can drop into and
@@ -132,7 +173,7 @@ public class DrySifterBlock extends Block {
 
     public DrySifterBlock(Settings settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(LEVEL, 0));
+        setDefaultState(getDefaultState().with(LEVEL, 0).with(CONTENT, Content.PLANT));
     }
 
     @Override
@@ -142,7 +183,7 @@ public class DrySifterBlock extends Block {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(LEVEL);
+        builder.add(LEVEL, CONTENT);
     }
 
     @Override
@@ -177,11 +218,16 @@ public class DrySifterBlock extends Block {
                                          PlayerEntity player, Hand hand, BlockHitResult hit) {
         int level = state.get(LEVEL);
         float chance = sieveChance(stack);
-        if (level >= FULL_LEVEL || chance <= 0.0F) {
+        Content content = contentOf(stack);
+        // Plant and resin do not share a screen. An empty screen takes whichever arrives first and
+        // is stamped with it; a part-full one refuses the other kind outright -- with super, never
+        // PASS, so the click still falls through to onUse and a ready screen can still be emptied.
+        if (level >= FULL_LEVEL || chance <= 0.0F || content == null
+                || (level > 0 && content != state.get(CONTENT))) {
             return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
         }
         if (world instanceof ServerWorld serverWorld) {
-            sift(serverWorld, pos, state, level, chance);
+            sift(serverWorld, pos, level == 0 ? state.with(CONTENT, content) : state, level, chance);
         }
         // Outside the server branch, as vanilla's composter does it: the cost is the same on both
         // sides whatever the roll, so spending it client-side too is what makes the stack shrink on
@@ -233,7 +279,25 @@ public class DrySifterBlock extends Block {
         if (stack.isIn(ModTags.Items.SIFTABLE_TRIM)) {
             return TRIM_CHANCE;
         }
+        if (stack.isIn(ModTags.Items.SIFTABLE_HASH)) {
+            return HASH_CHANCE;
+        }
         return 0.0F;
+    }
+
+    /**
+     * Which kind of screen this item belongs on, or {@code null} if the screen takes it at all.
+     *
+     * <p>Deliberately a companion to {@link #sieveChance} rather than folded into it: the rate and
+     * the kind are two different questions, and the two plant rates <em>are</em> the balance of the
+     * block while the kind is a rule about what may share a screen.
+     */
+    @Nullable
+    private static Content contentOf(ItemStack stack) {
+        if (stack.isIn(ModTags.Items.SIFTABLE_FLOWER) || stack.isIn(ModTags.Items.SIFTABLE_TRIM)) {
+            return Content.PLANT;
+        }
+        return stack.isIn(ModTags.Items.SIFTABLE_HASH) ? Content.HASH : null;
     }
 
     private static void sift(ServerWorld world, BlockPos pos, BlockState state, int level, float chance) {
@@ -249,13 +313,26 @@ public class DrySifterBlock extends Block {
         }
     }
 
+    /**
+     * Taking the batch out. <b>Both content kinds press a bar, because pressing is what this block
+     * does</b> — a brown one from plant matter, a blonde one from resin.
+     *
+     * <p>They are the same block bar the colour and what a cut yields (see {@code HashishBarBlock}),
+     * so a player who has learned one has learned the other, and the cost of filtering is taken out
+     * of the <em>input</em> instead — see {@link #HASH_CHANCE}.
+     *
+     * <p><b>Charas is the only hash with no bar</b>, and now for a reason rather than a quantity: it
+     * is the only one that is never pressed. Hand-rubbed resin is rolled between the palms.
+     */
     private static void collect(ServerWorld world, BlockPos pos, BlockState state) {
+        ItemStack yield = new ItemStack(state.get(CONTENT) == Content.HASH
+                ? ModBlocks.FILTERED_HASHISH_BAR
+                : ModBlocks.HASHISH_BAR);
         Vec3d spawn = Vec3d.add(pos, 0.5, 1.01, 0.5).addRandom(world.random, 0.7F);
-        ItemEntity dropped = new ItemEntity(world, spawn.getX(), spawn.getY(), spawn.getZ(),
-                new ItemStack(ModBlocks.HASHISH_BAR));
+        ItemEntity dropped = new ItemEntity(world, spawn.getX(), spawn.getY(), spawn.getZ(), yield);
         dropped.setToDefaultPickupDelay();
         world.spawnEntity(dropped);
-        world.setBlockState(pos, state.with(LEVEL, 0), Block.NOTIFY_ALL);
+        world.setBlockState(pos, state.with(LEVEL, 0).with(CONTENT, Content.PLANT), Block.NOTIFY_ALL);
         world.playSound(null, pos, SoundEvents.BLOCK_COMPOSTER_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
     }
 }

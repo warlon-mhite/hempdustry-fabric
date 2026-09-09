@@ -115,6 +115,36 @@ public class ModItems {
      */
     public static final Item CHARAS = registerItem("charas", settings -> new Item(settings));
 
+    /**
+     * Filtered hashish — loose blonde powder, the cleanest thing the screen makes.
+     *
+     * <p><b>Filtering is real and it is about purity, not power.</b> Successive sieve passes at
+     * shrinking mesh — 160 → 90 → 70 µm in the trade — with the plant matter pulled out between
+     * each. Trichome heads run 25–200 µm, so every pass drops more leaf and keeps less. Seven
+     * hashish in, four out: a 43% yield loss, which is the honest cost of a pass.
+     *
+     * <p><b>What that buys is smoothness, not strength.</b> Same effects at the same amplifiers, and
+     * <em>half</em> the green-out odds via {@code green_out_factor = 2.0}. That is the honest
+     * version: less leaf means less chlorophyll and less coughing, which is the entire reason anyone
+     * filters. It is a true sidegrade — 43% of your hash for a gentler ride.
+     *
+     * <p><b>Loose, and there is no bar.</b> The Dry Sifter presses <em>plant-derived</em> powder into
+     * a slab because there is enough of it to press; re-sifting resin leaves a small quantity of very
+     * fine powder and there is not. Bubble hash comes out of the bags the same way, and it is what
+     * gives the block's two content kinds two different shapes of output rather than two numbers.
+     *
+     * <p><b>Deliberately not named for a pass count.</b> It was "Triple-Filtered" until 2026-09-09
+     * and that was simply wrong arithmetic: the block runs <em>two</em> passes, the bar and the
+     * re-sift. But the fix is not "Double-Filtered" — <b>a number in the name promises a ladder</b>,
+     * and this mod made purity a single sidegrade rather than a grade ladder on purpose (the family's
+     * axis is <em>method</em>, not grade). The registered id never carried a number either.
+     *
+     * <p><b>It is not siftable again</b>, so the mod's one filtering step stands for the trade's
+     * whole 1×–3× range. A third pass would be a second near-identical blonde for no mechanic, and
+     * the 43% loss already says what a pass costs.
+     */
+    public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", settings -> new Item(settings));
+
     public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign", settings -> new SignItem(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN, settings.maxCount(16)));
     public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign", settings -> new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, settings.maxCount(16)));
 
