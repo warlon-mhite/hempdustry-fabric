@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.Lifecycle;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.strain.ModStrains;
@@ -36,10 +38,12 @@ public final class DatapackStrainGameTest {
 
         SimpleRegistry<Strain> strains = new SimpleRegistry<>(Strain.REGISTRY_KEY, Lifecycle.stable());
         loaded.streamEntries().forEach(entry -> Registry.register(strains, entry.registryKey(), entry.value()));
-        // A different translation key keeps the record unequal to Purple Kush's; the items are the same.
+        // Purple Kush's own definition through the codec a datapack goes through, under another id and
+        // translation key (which keeps the record unequal to Purple Kush's); the items are the same.
+        JsonObject json = Strain.CODEC.encodeStart(JsonOps.INSTANCE, purpleKush).getOrThrow().getAsJsonObject();
+        json.addProperty("translation_key", "strain.hempdustry-gametest.copy");
         Registry.register(strains, RegistryKey.of(Strain.REGISTRY_KEY, Identifier.of("hempdustry-gametest", "copy")),
-                new Strain("strain.hempdustry-gametest.copy", purpleKush.color(), purpleKush.modelIndex(),
-                        purpleKush.seeds(), purpleKush.buds(), purpleKush.flower(), purpleKush.smokeEffects()));
+                Strain.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
 
         RegistryWrapper.WrapperLookup withCopy = new RegistryWrapper.WrapperLookup() {
             @Override
@@ -61,10 +65,10 @@ public final class DatapackStrainGameTest {
         ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.updateEntries(
                 new ItemGroup.DisplayContext(world.getEnabledFeatures(), true, withCopy));
 
-        long seeds = ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayStacks().stream()
-                .filter(stack -> stack.isOf(purpleKush.seeds()))
+        long buds = ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayStacks().stream()
+                .filter(stack -> stack.isOf(purpleKush.buds()))
                 .count();
-        context.assertEquals(1L, seeds, "the stacks of Purple Kush's seeds in the tab");
+        context.assertEquals(1L, buds, "the stacks of Purple Kush's buds in the tab");
         context.complete();
     }
 }

@@ -2,12 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
+    "B": "minecraft:iron_bars",
     "C": "hempdustry:hemp_canvas",
-    "P": "hempdustry:hemp_planks"
+    "P": "hempdustry:hemp_planks_slab"
   },
   "pattern": [
-    "PPP",
-    "CCC",
+    "PBP",
+    "PCP",
     "PPP"
   ],
   "result": {
