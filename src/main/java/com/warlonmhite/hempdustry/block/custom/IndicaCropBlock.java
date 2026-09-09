@@ -60,9 +60,9 @@ public class IndicaCropBlock extends CropBlock {
 
     public IndicaCropBlock(Settings settings) {
         super(settings);
-        // Defoliation.untrimmed is load-bearing: a BooleanProperty left out of the default state
+        // Defoliation.unworked is load-bearing: a BooleanProperty left out of the default state
         // resolves to *true*, which would plant every seed pre-trimmed. See its javadoc.
-        this.setDefaultState(Defoliation.untrimmed(this.stateManager.getDefaultState()
+        this.setDefaultState(Defoliation.unworked(this.stateManager.getDefaultState()
                 .with(this.getAgeProperty(), 0)
                 .with(HALF, DoubleBlockHalf.LOWER)));
     }
@@ -361,6 +361,6 @@ public class IndicaCropBlock extends CropBlock {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(AGE, HALF, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE);
+        builder.add(AGE, HALF, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED);
     }
 }

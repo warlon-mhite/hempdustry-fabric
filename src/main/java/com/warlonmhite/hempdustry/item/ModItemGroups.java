@@ -108,8 +108,11 @@ public class ModItemGroups {
                         entries.add(ModItems.DECARBOXYLATED_HEMP);
                         entries.add(ModItems.WASHED_DECARBOXYLATED_HEMP);
                         // The bar first, then the piece it cuts into: the order a player meets them.
+                        // Charas last of the family -- it is the one you can have before you own the
+                        // block, but it is also the rarest, and the run reads bar -> piece -> pinch.
                         entries.add(ModBlocks.HASHISH_BAR);
                         entries.add(ModItems.HASHISH);
+                        entries.add(ModItems.CHARAS);
                         entries.add(ModItems.showcaseCannabutter(), ItemGroup.StackVisibility.PARENT_TAB_ONLY);
 
                         // --- Fibre and building materials ------------------------------
