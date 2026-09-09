@@ -524,8 +524,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         //
         // Buds come from the built-in strains rather than being named, exactly as the spliff recipes
         // do, so strain #3 is decarboxylatable the moment it exists.
+        //
+        // Plant strains only: a hash entry's "buds" are resin, worth a bar or a pinch rather than a
+        // bud, and both are priced explicitly below.
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
+            if (strain.flower().isEmpty()) {
+                continue;
+            }
             offerDecarboxylating(Ingredient.ofItems(strain.buds()),
                     new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.BUDS_OUTPUT),
                     Registries.ITEM.getId(strain.buds()).getPath());
@@ -536,26 +542,60 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.LEAF_OUTPUT),
                 "hemp_leaf");
 
-        // Hashish: eight buds' worth of resin in one lump, so it decarboxylates to eight buds' worth
-        // and the sifting is paid for in oven time rather than in yield. See DrySifterBlock.
-        offerDecarboxylating(Ingredient.ofItems(ModItems.HASHISH),
-                new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.HASHISH_OUTPUT),
-                "hashish");
-
-        // The Dry Sifter: a plank frame with a canvas screen stretched across the middle of it,
-        // which is the recipe read literally and also what a Moroccan sieve actually is — cloth on
-        // a hoop. Canvas rather than iron bars or a trapdoor because the screen has to be a *fabric*
-        // and this mod already weaves one; it also keeps the pattern hempdustry-exclusive, so it can
-        // never ambiguously match another mod's 3x3 in a kitchen-sink pack (CLAUDE.md §5).
+        // NOTHING IN THE HASH FAMILY DECARBOXYLATES, and that is the rule rather than an omission:
+        // the oven takes plant matter, the bowl takes resin. Hash is a smoking material and only a
+        // smoking material -- it never becomes cannabutter, an edible or anything you swallow.
         //
-        // Cheap on purpose, like the Infuser and unlike the Decarboxylator: this block's job is to
-        // give the fan leaf somewhere to go, and gating a byproduct sink behind a bulk-farming cost
-        // would defeat the point of it existing.
+        // It also settles a question the old hashish -> 32 recipe kept asking badly. A concentrate
+        // must not conjure potency, so the oven number had to be exactly what went in; but no
+        // multiple of nine hits the bar's whole-batch figure, so the loose piece was always going to
+        // be worth a rounded-down pinch and the player was always going to wonder why their
+        // concentrate baked to less than its parts. Removing the route removes the question.
+        //
+        // The fan leaf keeps both of its sinks and they are now a genuine choice rather than a
+        // ladder: ~47 leaves is either 47 decarboxylated hemp for the edible chain, or nine
+        // smokeable pieces. Different currencies, neither strictly better.
+
+        // Packing nine pieces back into a bar -- vanilla's storage-block grammar, and the reason the
+        // fifth cut yields one piece rather than two. A storage block you can only ever destroy is
+        // the one storage-block shape vanilla never uses.
+        //
+        // THERE IS DELIBERATELY NO SHAPELESS UNPACK. Every vanilla storage block has one; this one
+        // unpacks by being cut, because the cut is the mechanic. A crafting-grid unpack would make
+        // the block, the blade and the durability cost all optional at once.
+        createShaped(RecipeCategory.MISC, ModBlocks.HASHISH_BAR)
+                .pattern("HHH")
+                .pattern("HHH")
+                .pattern("HHH")
+                .input('H', ModItems.HASHISH)
+                .criterion(hasItem(ModItems.HASHISH), conditionsFromItem(ModItems.HASHISH))
+                .offerTo(exporter, id("hashish_bar"));
+
+        // The Dry Sifter: vanilla's composter with its two holes filled in. The composter is seven
+        // wooden slabs in a U; a sift box is that same slatted box with a screen in it, so filling
+        // the U's empty cells with the screen is a deliberate echo rather than a near miss -- and it
+        // only lands because these are slabs, not planks.
+        //
+        // The stack is physically right too. The iron bars sit ABOVE the canvas: a coarse grate you
+        // beat the material against, and the fine woven screen underneath that the trichome heads
+        // fall through. That is the actual arrangement in a sift box, and it is legible from the
+        // recipe alone.
+        //
+        // One iron bars is a real but small gate, and it is earned -- this is the block that turns
+        // waste into a smokeable. The cloth chain (stems -> retting -> fibre -> canvas) was already
+        // the main cost; the iron is a nudge, not a wall.
+        //
+        // The multiset is unique: vanilla's composter is 7 slabs in a different shape with two empty
+        // cells, so nothing collides. Note recipe_collisions.py cannot see tags-as-atoms and the
+        // composter takes #minecraft:wooden_slabs, which hemp_planks_slab belongs to -- so the
+        // scanner reads those two as distinct where a player would not. The extra ingredients are
+        // what actually keeps them apart.
         createShaped(RecipeCategory.DECORATIONS, ModBlocks.DRY_SIFTER)
+                .pattern("PBP")
+                .pattern("PCP")
                 .pattern("PPP")
-                .pattern("CCC")
-                .pattern("PPP")
-                .input('P', ModBlocks.HEMP_PLANKS)
+                .input('P', ModBlocks.HEMP_PLANKS_SLAB)
+                .input('B', Items.IRON_BARS)
                 .input('C', ModItems.HEMP_CANVAS)
                 .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
                 .offerTo(exporter, id("dry_sifter"));
@@ -581,9 +621,42 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // spliff undercutting a bong, which gets four hits out of the same three buds.
         // Built-in strains only, the same boundary the art takes: a datapack can define a strain
         // but it cannot ship a recipe file for it either.
+        //
+        // Plants only. A hash-family strain has no flower, and a joint of pure hash would have
+        // nothing to burn -- this mod has no tobacco. Hash rolls into a spliff alongside two buds
+        // instead, which is the six hand-built recipes further down.
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
+            RegistryEntry.Reference<Strain> strain = strains.getOrThrow(key);
+            if (strain.value().flower().isEmpty()) {
+                continue;
+            }
             for (int dose = 1; dose <= ModItems.SPLIFF_MAX_DOSE; dose++) {
-                offerSpliff(strains.getOrThrow(key), dose);
+                offerSpliff(strain, dose);
+            }
+            // ...and the hash spliffs. Two doses, one pinch of hash in each:
+            //
+            //   BH / PP   dose 2 -- one bud, one pinch
+            //   BHB / PPP dose 3 -- two buds with the pinch between them
+            //
+            // The hash always sits in the MIDDLE of the bud row, which is what a rolled joint looks
+            // like: you lay the hash along the middle of the tobacco (here, the flower) rather than
+            // at one end, or it burns unevenly and falls out. At dose 2 there is no middle, so it
+            // simply sits beside its bud.
+            //
+            // Paper scales with dose exactly as the plain spliff's does -- that second resource is
+            // what stops a level-III spliff undercutting a bong -- so these can never collide with
+            // the plain recipes, whose rows are all buds.
+            //
+            // Deliberately NOT a full dose ladder: there is no 1 bud + 2 hash. Hash's sweet spot is
+            // one piece, since Resistance is the only effect in the family that scales, so a second
+            // pinch would buy almost nothing and double the recipe count again.
+            for (RegistryKey<Strain> hashKey : ModStrains.BUILT_IN) {
+                RegistryEntry.Reference<Strain> hash = strains.getOrThrow(hashKey);
+                if (hash.value().flower().isPresent()) {
+                    continue;
+                }
+                offerHashSpliff(strain, hash, 1);
+                offerHashSpliff(strain, hash, 2);
             }
         }
 
@@ -850,6 +923,46 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .build(recipeId.getValue().withPrefixedPath("recipes/misc/")));
     }
 
+
+    /**
+     * A hash spliff: {@code buds} of a plant strain with one pinch of hash in the middle of the row,
+     * over as many paper.
+     *
+     * <p>The load is two entries, so it is the first thing in the mod to exercise the multi-entry
+     * shape {@link SmokeContents} has always had. The plant is the primary entry — by count at
+     * {@code buds = 2}, and by {@code SmokeContents.primaryEntry}'s explicit plant-wins-a-tie rule
+     * at {@code buds = 1} — which is what names and tints the item; the hash rides along in the
+     * tooltip.
+     *
+     * <p>Unlocked by <b>the hash</b> rather than by the buds — by the time a player has hash they
+     * have long since had the buds, and the hash is the new thing.
+     */
+    private void offerHashSpliff(RegistryEntry.Reference<Strain> strain, RegistryEntry.Reference<Strain> hash,
+                                 int buds) {
+        ItemStack result = new ItemStack(ModItems.SPLIFF);
+        result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, buds, hash, 1));
+
+        Item hashItem = hash.value().buds();
+        // The pinch in the middle: "BH" at one bud, "BHB" at two. A joint is rolled with the hash
+        // down the centre line, not at an end.
+        String top = buds == 1 ? "BH" : "BHB";
+        String paper = String.valueOf('P').repeat(buds + 1);
+        RawShapedRecipe raw = RawShapedRecipe.create(
+                Map.of('B', Ingredient.ofItems(strain.value().buds()),
+                        'H', Ingredient.ofItems(hashItem),
+                        'P', Ingredient.ofItems(Items.PAPER)),
+                top, paper);
+
+        RegistryKey<Recipe<?>> recipeId = id("spliff_" + ModStrains.id(strain.registryKey())
+                + "_with_" + ModStrains.id(hash.registryKey()) + "_" + (buds + 1));
+        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingRecipeCategory.MISC, raw, result);
+        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
+                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
+                .criterion(hasItem(hashItem), conditionsFromItem(hashItem))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
+                .build(recipeId.getValue().withPrefixedPath("recipes/misc/")));
+    }
 
     /**
      * A shapeless recipe whose ingredients' containers stay in the result — see

@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
@@ -34,6 +35,37 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 public class ModLootTableProvider extends FabricBlockLootTableProvider {
+    /**
+     * Breaking a hashish bar hands back what is still in it: the whole bar if it is uncut, and the
+     * pieces that have not been cut off yet if it is not.
+     *
+     * <p>Vanilla's cake drops nothing at all, which would be punishing here for no reason — the bar
+     * is a stash, and a misplaced pickaxe should not delete a week of sifting. Nothing dupes either:
+     * the counts are exactly what is left after the cuts already taken.
+     *
+     * <p>One pool per cut count, each with a mutually exclusive condition, rather than one pool of
+     * alternatives. Same output, and each row reads as its own line.
+     */
+    private LootTable.Builder hashishBarDrops() {
+        LootTable.Builder table = LootTable.builder().pool(LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1))
+                .conditionally(cutsExactly(0))
+                .with(ItemEntry.builder(ModBlocks.HASHISH_BAR)));
+        for (int cuts = 1; cuts <= 4; cuts++) {
+            table.pool(LootPool.builder()
+                    .rolls(ConstantLootNumberProvider.create(1))
+                    .conditionally(cutsExactly(cuts))
+                    .with(ItemEntry.builder(ModItems.HASHISH).apply(SetCountLootFunction.builder(
+                            ConstantLootNumberProvider.create(HashishBarBlock.remaining(cuts))))));
+        }
+        return table;
+    }
+
+    private static LootCondition.Builder cutsExactly(int cuts) {
+        return BlockStatePropertyLootCondition.builder(ModBlocks.HASHISH_BAR)
+                .properties(StatePredicate.Builder.create().exactMatch(HashishBarBlock.CUTS, cuts));
+    }
+
     /**
      * Buds dropped by an untrimmed mature plant, and the Fortune curve on them — <b>deliberately
      * identical for every strain</b>, which is why they're constants here and not per-crop
@@ -74,6 +106,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.DECARBOXYLATOR);
         addDrop(ModBlocks.INFUSER);
         addDrop(ModBlocks.DRY_SIFTER);
+        addDrop(ModBlocks.HASHISH_BAR, hashishBarDrops());
 
         // Wall sign / wall hanging sign share the standing block's loot table (see ModBlocks#dropsLike),
         // so they must not get their own addDrop call here.

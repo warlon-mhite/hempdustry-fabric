@@ -8,7 +8,12 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.component.type.TooltipDisplayComponent;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+
+import java.util.function.Consumer;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.World;
@@ -53,6 +58,30 @@ public class SpliffItem extends Item {
         return contents.isEmpty()
                 ? super.getName(stack)
                 : SmokeContents.packedName(this.getTranslationKey() + ".packed", contents);
+    }
+
+    /**
+     * The contents line: <i>With Hashish</i>, italic grey, under the name.
+     *
+     * <p>A departure from {@code smoking.md}, which recorded that no tooltip was added because "the
+     * name already carries strain and level". Still true of a plain spliff; it stops being true the
+     * moment a second material is in there and the name can only hold one. <b>This is a contents
+     * line, not an effect list</b> — a packed spliff is a container, and vanilla's own dividing line
+     * puts contents in the tooltip (a shulker box, a firework's stars) and identity in the name.
+     *
+     * <p>Deliberately not "Laced with": in cannabis usage "laced" means <em>adulterated with a
+     * different drug</em>, which would read as an accusation in the one place the mod is describing
+     * something the player did on purpose.
+     */
+    @Override
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent,
+                              Consumer<Text> textConsumer, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+        stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).hashAdditive()
+                .ifPresent(hash -> textConsumer.accept(
+                        Text.translatable("hempdustry.spliff.with",
+                                        Text.translatable(hash.value().translationKey()))
+                                .formatted(Formatting.GRAY, Formatting.ITALIC)));
     }
 
     @Override

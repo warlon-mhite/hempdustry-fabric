@@ -17,6 +17,7 @@ import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * What is loaded in a spliff, pipe or bong — the payload of the {@code hempdustry:smoke_contents}
@@ -150,9 +151,20 @@ public record SmokeContents(List<Entry> entries) {
                 Entry::new);
     }
 
-    /** A single-strain load — the only shape anything produces today. */
+    /** A single-strain load. */
     public static SmokeContents of(RegistryEntry<Strain> strain, int count) {
         return new SmokeContents(List.of(new Entry(strain, count)));
+    }
+
+    /**
+     * A plant strain plus a pinch of hash — the two-entry load a hash spliff carries.
+     *
+     * <p>The plant goes first so it is unambiguously the primary entry, but nothing depends on the
+     * order: {@link #primaryStrain} picks by count and a hash spliff is 2 buds against 1 hash.
+     */
+    public static SmokeContents of(RegistryEntry<Strain> strain, int count,
+                                   RegistryEntry<Strain> additive, int additiveCount) {
+        return new SmokeContents(List.of(new Entry(strain, count), new Entry(additive, additiveCount)));
     }
 
     public boolean isEmpty() {
@@ -168,15 +180,73 @@ public record SmokeContents(List<Entry> entries) {
         return total;
     }
 
-    /** The dominant strain, for naming and tinting. {@code null} only when empty. */
-    public RegistryEntry<Strain> primaryStrain() {
+    /**
+     * The dominant entry, by count. {@code null} only when empty.
+     *
+     * <p><b>A tie goes to the plant.</b> The dose-2 hash spliff is one bud and one pinch, so the two
+     * entries are level and "whichever came first" would decide the item's name, its tint and which
+     * one {@link #hashAdditive} reports — from list order alone, which an NBT edit or a re-encode
+     * could flip. The plant is the identity in every load that has one, so it wins the tie
+     * explicitly rather than by construction.
+     */
+    private Entry primaryEntry() {
         Entry best = null;
         for (Entry entry : entries) {
-            if (best == null || entry.count() > best.count()) {
+            if (best == null || entry.count() > best.count()
+                    || (entry.count() == best.count()
+                        && entry.strain().value().flower().isPresent()
+                        && best.strain().value().flower().isEmpty())) {
                 best = entry;
             }
         }
+        return best;
+    }
+
+    /** The dominant strain, for naming and tinting. {@code null} only when empty. */
+    public RegistryEntry<Strain> primaryStrain() {
+        Entry best = primaryEntry();
         return best == null ? null : best.strain();
+    }
+
+    /**
+     * The level the primary entry's effects actually come out at. <b>Not {@link #dose()}.</b>
+     *
+     * <p>{@code Strain.effects(count, …)} reads each entry's own count, so a spliff of 2 buds and 1
+     * hashish is dose 3 but the strain lands at level <b>II</b>. The Roman numeral in the item's
+     * name has always meant "the level of the strain's effects" and has to keep meaning that —
+     * anything else is the name lying about what the item does. <b>For a single-entry load the two
+     * numbers are identical</b>, so nothing already in a world changes.
+     */
+    public int primaryCount() {
+        Entry best = primaryEntry();
+        return best == null ? 0 : best.count();
+    }
+
+    /**
+     * The hash-family entry riding along with a plant strain, if there is one.
+     *
+     * <p>"Hash-family" is spelled {@code flower().isEmpty()} — the mod-wide predicate for "this did
+     * not grow on a plant" — so charas and filtered hashish are covered without being named, and so
+     * is anything hash-shaped a datapack adds. Empty for a plain single-strain load, and empty for a
+     * genuine multi-plant blend, which is a different case that keeps the "Mixed" name.
+     */
+    public Optional<RegistryEntry<Strain>> hashAdditive() {
+        if (entries.size() != 2) {
+            return Optional.empty();
+        }
+        Entry primary = primaryEntry();
+        // Hoisted: this does not vary with the entry being examined, and reading it inside the loop
+        // suggests it does. A load whose primary is itself strainless (two hash entries, which only
+        // an edited stack produces) has no plant to name, so it stays a plain "Mixed" blend.
+        if (primary.strain().value().flower().isEmpty()) {
+            return Optional.empty();
+        }
+        for (Entry entry : entries) {
+            if (entry != primary && entry.strain().value().flower().isEmpty()) {
+                return Optional.of(entry.strain());
+            }
+        }
+        return Optional.empty();
     }
 
     /** True once more than one strain is loaded — naming and tinting both branch on this. */
@@ -205,9 +275,19 @@ public record SmokeContents(List<Entry> entries) {
         return ((r / total) << 16) | ((g / total) << 8) | (b / total);
     }
 
-    /** The display name of what is loaded — a strain name, or "Mixed" for a blend. */
+    /**
+     * The display name of what is loaded — a strain name, or "Mixed" for a genuine blend.
+     *
+     * <p><b>A strain-plus-hash load names the strain.</b> The plant is the identity and the hash is a
+     * modifier, which belongs in the tooltip rather than in the name — the same line vanilla draws
+     * between "Potion of Strength" (the payload is what the item <em>is</em>) and a shulker box
+     * listing its contents (the payload is what is <em>in</em> it). A packed spliff is a container.
+     *
+     * <p>{@code hempdustry.strain.blend} stays reserved for a load with more than one <em>plant</em>
+     * strain in it, which is the case where there is no primary strain to name it after.
+     */
     public Text loadName() {
-        if (isBlend()) {
+        if (isBlend() && hashAdditive().isEmpty()) {
             return Text.translatable("hempdustry.strain.blend");
         }
         RegistryEntry<Strain> strain = primaryStrain();
@@ -225,9 +305,11 @@ public record SmokeContents(List<Entry> entries) {
      */
     public static Text packedName(String formatKey, SmokeContents contents) {
         MutableText name = Text.translatable(formatKey, contents.loadName());
-        int dose = contents.dose();
-        if (dose > 1) {
-            name.append(ScreenTexts.SPACE).append(Text.translatable("enchantment.level." + dose));
+        // The primary entry's count, not the total: see primaryCount(). Identical for every
+        // single-entry load, so no name already in a world changes.
+        int level = contents.primaryCount();
+        if (level > 1) {
+            name.append(ScreenTexts.SPACE).append(Text.translatable("enchantment.level." + level));
         }
         return name;
     }

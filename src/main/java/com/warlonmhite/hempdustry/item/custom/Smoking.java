@@ -5,6 +5,8 @@ import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.sound.ModSounds;
+import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -154,7 +156,7 @@ public final class Smoking {
 
         // Every chance and every effect below goes through EffectPolicy, which is where the
         // server's config knobs are applied — once, rather than at each site that hands one out.
-        int greenOutOdds = EffectPolicy.greenOutChanceOneIn(greenOutChanceOneIn);
+        int greenOutOdds = EffectPolicy.greenOutChanceOneIn(smoothed(greenOutChanceOneIn, contents));
         boolean greenedOut = greenOutOdds > 0
                 && ThreadLocalRandom.current().nextInt(greenOutOdds) == 0;
 
@@ -194,6 +196,36 @@ public final class Smoking {
         // The stack is still packed here; a spliff's contents are gone a few lines later, which is
         // why contents is handed over as its own argument.
         HempdustryEvents.AFTER_SMOKE.invoker().afterSmoke(player, contents, stack);
+    }
+
+    /**
+     * The load's own green-out odds: the device's 1-in-N, widened by the primary material's
+     * {@code green_out_factor}.
+     *
+     * <p><b>Purity buys smoothness, not power.</b> Filtration is why people filter — less leaf, less
+     * chlorophyll, less coughing — so triple-filtered hash carries {@code 2.0} and halves the risk
+     * while keeping the exact same effect list. Everything else carries {@code 1.0}, which makes
+     * this a no-op, and it is datapack-exposed because that is where a knob like this belongs.
+     *
+     * <p>Read off {@link SmokeContents#primaryStrain}, so on a hash spliff it is the <em>plant</em>
+     * that decides: two buds and a pinch smoke like a joint of that plant, and the smoothness of the
+     * pinch does not redeem the paper around it. A pipe or bong packed with the hash alone gets it.
+     */
+    private static int smoothed(int greenOutChanceOneIn, SmokeContents contents) {
+        RegistryEntry<Strain> primary = contents.primaryStrain();
+        if (greenOutChanceOneIn <= 0 || primary == null) {
+            return greenOutChanceOneIn;
+        }
+        float factor = primary.value().greenOutFactor();
+        // A DATAPACK writes this number and nothing validates it, so zero and negatives have to mean
+        // something sane rather than something arithmetic. The field widens the 1-in-N, so "0" reads
+        // as infinitely smooth -- and 0 is already how EffectPolicy spells "no green-out at all".
+        // Without this branch Math.round(n * 0) is 0, Math.max(1, 0) is 1, and a server owner who
+        // typed 0 to turn green-outs OFF would have turned them on for every single hit.
+        if (factor <= 0.0F) {
+            return 0;
+        }
+        return Math.max(1, Math.round(greenOutChanceOneIn * factor));
     }
 
     /** Sit down for a minute. Sweaty, wobbly, useless — but brief, and it costs you nothing but the buds. */

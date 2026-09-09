@@ -1,0 +1,23 @@
+{
+  "buds": "hempdustry:hashish",
+  "color": 7031343,
+  "effects": [
+    {
+      "effect": "minecraft:night_vision",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:resistance"
+    },
+    {
+      "effect": "minecraft:slowness",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:hunger",
+      "scales": false
+    }
+  ],
+  "model_index": 3,
+  "translation_key": "hempdustry.strain.hashish"
+}

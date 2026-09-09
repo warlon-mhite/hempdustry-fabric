@@ -16,6 +16,7 @@ import net.minecraft.util.Identifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The strains this mod ships, and the registration of the registry itself.
@@ -62,9 +63,18 @@ public class ModStrains {
 
     public static final RegistryKey<Strain> INDICA = key("indica");
     public static final RegistryKey<Strain> SATIVA = key("sativa");
+    /** Not a plant: the Dry Sifter's product, strainless by construction. No seeds, no flower. */
+    public static final RegistryKey<Strain> HASHISH = key("hashish");
 
-    /** The strains with a full chain — crop, flower, worldgen, loot, art, recipes. Order is stable. */
-    public static final List<RegistryKey<Strain>> BUILT_IN = List.of(INDICA, SATIVA);
+    /**
+     * The strains the mod ships art and recipes for. <b>Append only, and never reorder</b> —
+     * {@link #modelIndex} is a position in this list, so moving an entry silently repaints every
+     * stack in every existing world with somebody else's art. That is the exact failure
+     * {@code model_index} exists to prevent, and it fails visually rather than loudly.
+     *
+     * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
+     */
+    public static final List<RegistryKey<Strain>> BUILT_IN = List.of(INDICA, SATIVA, HASHISH);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -147,7 +157,8 @@ public class ModStrains {
     public static void bootstrap(Registerable<Strain> context) {
         // Purple Kush — the body high: hard to hurt, hard to get anything done.
         context.register(INDICA, new Strain("hempdustry.strain.indica", 0x8E6FB5, modelIndex(INDICA),
-                ModItems.INDICA_SEEDS, ModItems.INDICA_BUDS, ModBlocks.INDICA_FLOWER,
+                Optional.of(ModItems.INDICA_SEEDS), ModItems.INDICA_BUDS,
+                Optional.of(ModBlocks.INDICA_FLOWER), 1.0F,
                 List.of(
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.HUNGER, 0, false),
@@ -157,12 +168,40 @@ public class ModStrains {
         // defence and taxes mining, sativa buffs movement and mining and taxes melee damage. Hunger
         // is in both because the munchies don't care which strain you smoked.
         context.register(SATIVA, new Strain("hempdustry.strain.sativa", 0xC7D14A, modelIndex(SATIVA),
-                ModItems.SATIVA_SEEDS, ModItems.SATIVA_BUDS, ModBlocks.SATIVA_FLOWER,
+                Optional.of(ModItems.SATIVA_SEEDS), ModItems.SATIVA_BUDS,
+                Optional.of(ModBlocks.SATIVA_FLOWER), 1.0F,
                 List.of(
                         new SmokeEffect(StatusEffects.SPEED, 0, true),
                         new SmokeEffect(StatusEffects.HASTE, 0, true),
                         new SmokeEffect(StatusEffects.HUNGER, 0, false),
                         new SmokeEffect(StatusEffects.WEAKNESS, 0, true))));
+
+        // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
+        // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity
+        // is the product's, not the cultivar's, which is how hash is actually named and sold.
+        //
+        // Resistance + Slowness + Hunger is the hash-family body: heavy, sedating, hard to bother,
+        // hard to hurry, hungry. Where the two plants share only Hunger, the hash entries share
+        // three effects and differ by one signature -- a family, against two individuals.
+        //
+        // Night Vision is this one's signature and it is sourced. Moroccan kif is *sifted resin*,
+        // which is exactly what this block makes, and Russo et al. (2004) measured dark adaptation
+        // and scotopic sensitivity in Rif-mountain kif smokers after the local fishermen's own
+        // reports, with a double-blinded graduated-THC arm alongside the field study. Small n and a
+        // case study rather than a trial -- but real, peer-reviewed, and about this exact product.
+        //
+        // Neither Night Vision nor Slowness scales: Night Vision has no meaningful amplifier in
+        // vanilla (level II is identical to level I), so flat is forced there rather than chosen.
+        // Resistance is the one scaling effect, which is what stops dosing hash being a pure
+        // downside -- but one piece is usually the right answer, which is a genuinely different
+        // dose curve from the plants' and is also how hash is used.
+        context.register(HASHISH, new Strain("hempdustry.strain.hashish", 0x6B4A2F, modelIndex(HASHISH),
+                Optional.empty(), ModItems.HASHISH, Optional.empty(), 1.0F,
+                List.of(
+                        new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
+                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
+                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
     }
 
     private static RegistryKey<Strain> key(String name) {

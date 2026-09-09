@@ -26,12 +26,25 @@ import com.warlonmhite.hempdustry.item.ModArmorMaterials;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 
+import net.minecraft.registry.RegistryWrapper;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ModModelProvider extends FabricModelProvider {
-    public ModModelProvider(FabricDataOutput output) {
+    /**
+     * The loaded strain registry, needed to tell a plant strain from a hash one.
+     *
+     * <p>{@code FabricModelProvider} takes only an output, so this arrives through
+     * {@code Pack.RegistryDependentFactory} and is joined at generate time. Fabric resolves the
+     * future before any provider runs, so the join never blocks.
+     */
+    private final CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup;
+
+    public ModModelProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
         super(output);
+        this.registryLookup = registryLookup;
     }
 
     @Override
@@ -119,11 +132,18 @@ public class ModModelProvider extends FabricModelProvider {
         //
         // Driven off ModStrains.BUILT_IN rather than the loaded registry, and that is the honest
         // boundary: bespoke art exists only for the strains the mod itself carries.
-        for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
+        //
+        // Plant strains only. A hash-family strain has no bespoke spliff art and never will: a pure
+        // hash spliff cannot be rolled (a joint needs something to burn), and a hash spliff's art is
+        // the plant's, because the plant is the primary entry. Generating one would upload a model
+        // pointing at a texture that does not exist. The devices are unaffected -- their packed art
+        // is shared and tinted by the strain's colour, which is exactly what a hash entry wants.
+        List<RegistryKey<Strain>> plantStrains = plantStrains();
+        for (RegistryKey<Strain> strain : plantStrains) {
             uploadGenerated(itemModelGenerator, spliffModel(strain), texture(ModStrains.id(strain) + "_spliff"));
         }
         List<RangeDispatchItemModel.Entry> spliffArt = new ArrayList<>();
-        for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
+        for (RegistryKey<Strain> strain : plantStrains) {
             spliffArt.add(ItemModels.rangeDispatchEntry(
                     ItemModels.basic(spliffModel(strain)), ModStrains.modelIndex(strain)));
         }
@@ -142,7 +162,7 @@ public class ModModelProvider extends FabricModelProvider {
         // that is a texture decision, not a code one, and it costs one line here when wanted.
         Identifier spliffTinted = Models.GENERATED_TWO_LAYERS.upload(
                 Identifier.of(Hempdustry.MOD_ID, "item/spliff_tinted"),
-                TextureMap.layered(texture(ModStrains.id(ModStrains.BUILT_IN.get(0)) + "_spliff"),
+                TextureMap.layered(texture(ModStrains.id(plantStrains.get(0)) + "_spliff"),
                         texture("spliff_load")),
                 itemModelGenerator.modelCollector);
         itemModelGenerator.output.accept(ModItems.SPLIFF, ItemModels.rangeDispatch(
@@ -188,6 +208,20 @@ public class ModModelProvider extends FabricModelProvider {
                 ItemModelGenerator.LEGGINGS_TRIM_ID_PREFIX, false);
         itemModelGenerator.registerArmor(ModItems.FLIP_FLOPS, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
                 ItemModelGenerator.BOOTS_TRIM_ID_PREFIX, false);
+    }
+
+    /**
+     * The built-in strains that grew on a plant, in {@link ModStrains#BUILT_IN} order.
+     *
+     * <p>{@code flower().isPresent()} is the mod-wide predicate for "this grew on a plant" — the
+     * same one the creative tab, the seed pools, the siftable tag and the spliff recipes key on —
+     * so anything hash-shaped added later is excluded here for free.
+     */
+    private List<RegistryKey<Strain>> plantStrains() {
+        RegistryWrapper.Impl<Strain> strains = Strain.registry(registryLookup.join());
+        return ModStrains.BUILT_IN.stream()
+                .filter(key -> strains.getOrThrow(key).value().flower().isPresent())
+                .toList();
     }
 
     /**

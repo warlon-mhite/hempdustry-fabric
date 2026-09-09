@@ -79,9 +79,16 @@ public class ModItemGroups {
                         // this file. The tab reads displayContext.lookup() for that, exactly as
                         // vanilla's Food & Drinks reads the potion registry.
                         List<RegistryEntry.Reference<Strain>> strains = Strain.all(displayContext.lookup());
-                        strains.forEach(strain -> entries.add(strain.value().seeds()));
-                        strains.forEach(strain -> entries.add(strain.value().buds()));
-                        strains.forEach(strain -> entries.add(strain.value().flower()));
+                        // Only a strain that grew on a plant has seeds and a flower — hashish has
+                        // neither, and its buds go in the processed run below with the rest of the
+                        // strain-agnostic material. See Strain.
+                        strains.forEach(strain -> strain.value().seeds().ifPresent(entries::add));
+                        strains.forEach(strain -> {
+                            if (strain.value().flower().isPresent()) {
+                                entries.add(strain.value().buds());
+                            }
+                        });
+                        strains.forEach(strain -> strain.value().flower().ifPresent(entries::add));
                         entries.add(ModItems.HEMP_STEM);
                         entries.add(ModItems.RETTED_HEMP_STEM);
                         entries.add(ModItems.HEMP_LEAF);
@@ -100,6 +107,8 @@ public class ModItemGroups {
                         // identity ends. Hashish, oil and rosin belong in this run.
                         entries.add(ModItems.DECARBOXYLATED_HEMP);
                         entries.add(ModItems.WASHED_DECARBOXYLATED_HEMP);
+                        // The bar first, then the piece it cuts into: the order a player meets them.
+                        entries.add(ModBlocks.HASHISH_BAR);
                         entries.add(ModItems.HASHISH);
                         entries.add(ModItems.showcaseCannabutter(), ItemGroup.StackVisibility.PARENT_TAB_ONLY);
 

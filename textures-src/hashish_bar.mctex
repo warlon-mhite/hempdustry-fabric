@@ -1,0 +1,69 @@
+# The hashish bar's block faces — a pressed slab of dry sift lying on the floor.
+#
+# PLACEHOLDER art. Warlon Mhite may redraw it; that is what this file is for.
+#
+# ## Why it looks nothing like item/hashish even though it is the same material
+#
+# Items are high contrast and blocks are not: vanilla items span a median 164 luminance steps
+# against a block's 76. item/hashish is a single small sprite that has to read at 16 px in a
+# hotbar, so it runs its whole ramp from near-black to a bright sheen. These are surfaces seen
+# in the world at whatever size the player is standing at, so the ramp is deliberately narrow
+# and the sheen is a suggestion rather than a highlight.
+#
+# ## Why both faces tile
+#
+# The block model is a cuboid that shrinks along one axis as the bar is cut, and its faces take
+# auto-generated UVs — so each cut state samples a *different sub-region* of these 16x16 files.
+# A texture with a composed centre would slide about as the bar shrank. A uniform, tileable
+# pressed surface samples the same at every length, which is what makes five models out of two
+# textures possible at all.
+#
+# Palette is the hash brown from item/hashish and the strain entry's own 0x6B4A2F, pulled
+# together and flattened for block contrast.
+
+@palette resin
+. = none
+1 = 2A1D0E      the deepest pits in the press
+2 = 39280F      shadow
+3 = 47311A      the body of the surface, and the commonest tone
+4 = 553C21      lit body
+5 = 6B4A2F      the strain colour itself — the tone the whole family is keyed to
+6 = 7A5738      pressed sheen, sparse and scattered
+
+# Seen from above: a pressed cake, dense and slightly uneven, with the sheen broken up rather
+# than gradiented. A straight corner-to-corner fade is pancake shading and the classic tell.
+@texture block/hashish_bar_top 16x16 type=block tiling=true
+3342333334234333
+2633233633233333
+4333333333333334
+3335333433332443
+3333333433333433
+3343333333333334
+3534333353333334
+3533433353533433
+4333333343523334
+3463211222333533
+2263343356234333
+2353433332234333
+3333433333332334
+3553321355334336
+3333335553333333
+1333334343333333
+
+@texture block/hashish_bar_side 16x16 type=block tiling=true
+3333323233333333
+3333422232233333
+3333323322233333
+3333332333334433
+3333423334524443
+3333322333334533
+3333352333333333
+3433333333333233
+3333333333343231
+4433233333333315
+3333332311233334
+3332333443113123
+3333322233323333
+3333333333333333
+2333313223433333
+1333333333433333

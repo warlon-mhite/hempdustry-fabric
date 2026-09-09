@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.DrySifterBlock;
+import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
@@ -15,6 +16,7 @@ import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.NoteBlockInstrument;
+import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -226,6 +228,31 @@ public class ModBlocks {
                     .nonOpaque()
                     .sounds(BlockSoundGroup.WOOD));
 
+
+    /**
+     * The pressed slab of hashish, and the hash family's storage block. Cut with a blade, nine
+     * pieces to a bar — see {@link HashishBarBlock}.
+     *
+     * <p>{@code BlockSoundGroup.HONEY} is the reuse: sticky, soft, resinous, and a sound group that
+     * already exists. {@code nonOpaque} because the bar is 4 px tall and must not cull whatever it
+     * sits next to. {@code PistonBehavior.DESTROY} because a partially-cut bar carries state a
+     * piston cannot move, which is what vanilla does to cake for the same reason.
+     *
+     * <p><b>Deliberately not in {@code #minecraft:enderman_holdable}</b>, same reasoning as the
+     * two-block plant (CLAUDE.md §5): an enderman would put the bar back with its cut count reset.
+     *
+     * <p><b>And deliberately not in {@code #c:storage_blocks}</b>, despite being a 9↔9 block — this
+     * is the one worth saying out loud. That convention tag means "nine of an item, and you can get
+     * them back out", so another mod generating uncrafting recipes from it would mint exactly the
+     * shapeless unpack this block exists to refuse. A bar unpacks <em>by being cut</em>, with a blade
+     * and a durability cost; a tag that quietly undoes that is worse than no tag at all.
+     */
+    public static final Block HASHISH_BAR = registerBlock("hashish_bar", HashishBarBlock::new,
+            AbstractBlock.Settings.create()
+                    .strength(0.5F)
+                    .sounds(BlockSoundGroup.HONEY)
+                    .nonOpaque()
+                    .pistonBehavior(PistonBehavior.DESTROY));
 
     /**
      * Space Cake — vanilla's cake, baked with cannabutter. Copies {@code Blocks.CAKE}'s settings
