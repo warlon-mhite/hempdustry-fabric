@@ -91,6 +91,30 @@ public class ModItems {
      */
     public static final Item HASHISH = registerItem("hashish", settings -> new Item(settings));
 
+    /**
+     * Charas — soft black resin rubbed off a <b>living</b> plant, and the only hash you can have
+     * before you own a single block.
+     *
+     * <p>It comes off the shears while trimming ({@link com.warlonmhite.hempdustry.block.custom.Defoliation#tryCut},
+     * 1-in-8 per cut) and <b>the plant survives</b>, which is what makes it a different verb from
+     * everything else in the mod: every other material comes from killing a plant or feeding a
+     * block, and this one comes from looking after one.
+     *
+     * <p><b>No bar and no block, ever.</b> Only pressed hash gets a bar, because pressing is what a
+     * bar <em>is</em>. Charas is soft, unpressed and scarce enough that you will rarely hold nine at
+     * once, so a storage block would be one nobody fills.
+     *
+     * <p><b>It really is scissor hash.</b> The resin that gums up a trimmer's blades, scraped off
+     * and smoked, is a known trimmer's perk with its own name; charas proper is rubbed from living
+     * plants by hand. Both are resin taken from a plant that is still growing, which is why both
+     * come out black and soft and keep the monoterpenes that drying destroys.
+     *
+     * <p><b>Strain-agnostic and inert in the hand</b>, exactly like {@link #HASHISH}: resin carries
+     * no memory of which plant it came off, and it never decarboxylates — see CLAUDE.md,
+     * <i>heat activates</i>, and {@code hashish.md} §5.
+     */
+    public static final Item CHARAS = registerItem("charas", settings -> new Item(settings));
+
     public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign", settings -> new SignItem(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN, settings.maxCount(16)));
     public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign", settings -> new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, settings.maxCount(16)));
 
