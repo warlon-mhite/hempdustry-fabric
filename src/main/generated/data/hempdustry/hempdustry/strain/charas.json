@@ -1,0 +1,23 @@
+{
+  "buds": "hempdustry:charas",
+  "color": 2826520,
+  "effects": [
+    {
+      "effect": "minecraft:slow_falling",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:resistance"
+    },
+    {
+      "effect": "minecraft:slowness",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:hunger",
+      "scales": false
+    }
+  ],
+  "model_index": 4,
+  "translation_key": "hempdustry.strain.charas"
+}

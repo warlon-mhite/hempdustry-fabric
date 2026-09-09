@@ -1,14 +1,65 @@
 {
   "parent": "hempdustry:hempdustry",
   "criteria": {
-    "sheared_hemp_crop": {
+    "sheared_hemp_crop_age_3": {
       "conditions": {
         "location": [
           {
             "condition": "minecraft:location_check",
             "predicate": {
               "block": {
-                "blocks": "#hempdustry:hemp_crops"
+                "blocks": "#hempdustry:hemp_crops",
+                "state": {
+                  "age": "3"
+                }
+              }
+            }
+          },
+          {
+            "condition": "minecraft:match_tool",
+            "predicate": {
+              "items": "#c:tools/shear"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:item_used_on_block"
+    },
+    "sheared_hemp_crop_age_4": {
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": "#hempdustry:hemp_crops",
+                "state": {
+                  "age": "4"
+                }
+              }
+            }
+          },
+          {
+            "condition": "minecraft:match_tool",
+            "predicate": {
+              "items": "#c:tools/shear"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:item_used_on_block"
+    },
+    "sheared_hemp_crop_age_5": {
+      "conditions": {
+        "location": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": "#hempdustry:hemp_crops",
+                "state": {
+                  "age": "5"
+                }
               }
             }
           },
@@ -38,7 +89,9 @@
   },
   "requirements": [
     [
-      "sheared_hemp_crop"
+      "sheared_hemp_crop_age_3",
+      "sheared_hemp_crop_age_4",
+      "sheared_hemp_crop_age_5"
     ]
   ],
   "sends_telemetry_event": true

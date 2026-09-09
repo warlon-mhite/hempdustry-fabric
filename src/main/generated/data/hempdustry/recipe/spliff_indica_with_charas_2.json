@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "spliff",
+  "key": {
+    "B": {
+      "item": "hempdustry:indica_buds"
+    },
+    "H": {
+      "item": "hempdustry:charas"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "pattern": [
+    "BH",
+    "PP"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 1,
+            "strain": "hempdustry:indica"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:charas"
+          }
+        ]
+      }
+    },
+    "count": 1,
+    "id": "hempdustry:spliff"
+  }
+}

@@ -124,7 +124,7 @@ public final class DefoliationGameTest implements FabricGameTest {
         java.util.Random seeds = new java.util.Random(SEED_SOURCE);
         for (int roll = 0; roll < ROLLS; roll++) {
             long seed = seeds.nextLong();
-            int[] untouched = harvest(table, world, origin, Defoliation.untrimmed(mature), seed, buds);
+            int[] untouched = harvest(table, world, origin, Defoliation.unworked(mature), seed, buds);
             context.assertTrue(untouched[1] > 0, crop + ": an untouched mature plant dropped no buds");
             for (int flags = 1; flags < 4; flags++) {
                 boolean early = (flags & 1) != 0;
