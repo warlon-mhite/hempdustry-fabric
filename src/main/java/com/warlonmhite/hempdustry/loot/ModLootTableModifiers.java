@@ -194,10 +194,12 @@ public class ModLootTableModifiers {
                         .conditionally(RandomChanceLootCondition.builder(chance(GRASS_SEED_CHANCE)));
                 // Driven off the loaded strain registry, so a datapack strain's seeds appear in
                 // grass without touching this file.
+                // Seedless strains — the hash family — are simply not in the pool: there is no
+                // seed to find, and a pool entry per plant strain is what keeps the coin flip fair.
                 for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-                    pool.with(ItemEntry.builder(strain.value().seeds())
+                    strain.value().seeds().ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
                             .apply(ApplyBonusLootFunction.uniformBonusCount(fortune, 2))
-                            .apply(ExplosionDecayLootFunction.builder()));
+                            .apply(ExplosionDecayLootFunction.builder())));
                 }
                 tableBuilder.pool(pool);
             } else if (CHEST_SOURCES.contains(key)) {
@@ -205,8 +207,8 @@ public class ModLootTableModifiers {
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(RandomChanceLootCondition.builder(chance(CHEST_SEED_CHANCE)));
                 for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-                    pool.with(ItemEntry.builder(strain.value().seeds())
-                            .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3))));
+                    strain.value().seeds().ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
+                            .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
                 }
                 tableBuilder.pool(pool);
             }

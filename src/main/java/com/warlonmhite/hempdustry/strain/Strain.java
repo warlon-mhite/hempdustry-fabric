@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A cannabis strain: its buds, its flower, its colour, and the effects it applies when smoked.
+ * A smokeable material and what it does: what packs into a device, its colour, and the effects one
+ * hit applies. For a plant strain that is buds, seeds and a wild flower; for hashish it is the
+ * product alone.
  *
  * <h2>This is a datapack registry, not an enum</h2>
  *
@@ -104,16 +106,33 @@ import java.util.Optional;
  *
  * See {@code .claude/docs/compat.md} for the whole frozen-surface list.
  *
- * @param translationKey lang key for the display name, e.g. {@code hempdustry.strain.indica}
- * @param color          packed device / spliff tint, the way a potion tints its liquid layer
- * @param modelIndex     stable art index; {@code 0} means "no art of its own"
- * @param seeds          the seed item that plants this strain's crop
- * @param buds           the bud item that packs into a spliff, pipe or bong
- * @param flower         the wild flower that drops this strain's seeds
- * @param smokeEffects   what one hit applies, before dose scaling
+ * <h2>A strain is a smokeable material, not necessarily a plant</h2>
+ *
+ * <b>{@code seeds} and {@code flower} are optional, and {@code buds} is not.</b> Every entry names
+ * the item that packs into a spliff, pipe or bong; only the ones that <em>grew on a plant</em> have
+ * a seed to sow and a wild flower to find. Hashish, charas and filtered hashish are the strainless
+ * ones: sifting keeps the trichome heads and throws the plant away, and a trichome head is a
+ * trichome head whichever plant grew it. Their identity is the product's, which is how hash is
+ * actually named and sold — by region and method, never by cultivar.
+ *
+ * <p><b>{@code flower().isPresent()} is therefore the predicate for "this grew on a plant"</b>, and
+ * it is the one every guard in the mod keys on: the creative tab's seed and flower runs, the grass
+ * seed pools, {@code #hempdustry:siftable/flower}, and the plain spliff recipes. One predicate, and
+ * anything hash-shaped added later is covered by it for free.
+ *
+ * @param translationKey  lang key for the display name, e.g. {@code hempdustry.strain.indica}
+ * @param color           packed device / spliff tint, the way a potion tints its liquid layer
+ * @param modelIndex      stable art index; {@code 0} means "no art of its own"
+ * @param seeds           the seed item that plants this strain's crop, if it is a plant at all
+ * @param buds            the item that packs into a spliff, pipe or bong. Every strain has one
+ * @param flower          the wild flower that drops this strain's seeds, if it is a plant at all
+ * @param greenOutFactor  divides the green-out odds; {@code 2.0} halves the risk. Purity buys
+ *                        smoothness, never power — see {@code hashish.md} §4
+ * @param smokeEffects    what one hit applies, before dose scaling
  */
 public record Strain(String translationKey, int color, int modelIndex,
-                     Item seeds, Item buds, Block flower, List<SmokeEffect> smokeEffects) {
+                     Optional<Item> seeds, Item buds, Optional<Block> flower,
+                     float greenOutFactor, List<SmokeEffect> smokeEffects) {
 
     /** The dynamic registry itself. Entries load from {@code data/<namespace>/hempdustry/strain/<id>.json}. */
     public static final RegistryKey<Registry<Strain>> REGISTRY_KEY =
@@ -123,9 +142,13 @@ public record Strain(String translationKey, int color, int modelIndex,
             Codec.STRING.fieldOf("translation_key").forGetter(Strain::translationKey),
             Codec.INT.fieldOf("color").forGetter(Strain::color),
             Codec.INT.optionalFieldOf("model_index", 0).forGetter(Strain::modelIndex),
-            Registries.ITEM.getCodec().fieldOf("seeds").forGetter(Strain::seeds),
+            // seeds and flower are optional because a hash entry has neither -- see the class
+            // javadoc. Widening a required field to optional is the one schema change compat.md
+            // permits: every strain JSON already written keeps parsing unchanged.
+            Registries.ITEM.getCodec().optionalFieldOf("seeds").forGetter(Strain::seeds),
             Registries.ITEM.getCodec().fieldOf("buds").forGetter(Strain::buds),
-            Registries.BLOCK.getCodec().fieldOf("flower").forGetter(Strain::flower),
+            Registries.BLOCK.getCodec().optionalFieldOf("flower").forGetter(Strain::flower),
+            Codec.FLOAT.optionalFieldOf("green_out_factor", 1.0F).forGetter(Strain::greenOutFactor),
             SmokeEffect.CODEC.listOf().optionalFieldOf("effects", List.of()).forGetter(Strain::smokeEffects)
     ).apply(instance, Strain::new));
 

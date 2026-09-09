@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_hashish": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:hashish"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:spliff_sativa_with_hashish_3"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_hashish"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:spliff_sativa_with_hashish_3"
+    ]
+  }
+}
