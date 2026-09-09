@@ -128,11 +128,16 @@ import java.util.Optional;
  * @param flower          the wild flower that drops this strain's seeds, if it is a plant at all
  * @param greenOutFactor  divides the green-out odds; {@code 2.0} halves the risk. Purity buys
  *                        smoothness, never power — see {@code hashish.md} §4
+ * @param dosePerItem     how much dose <em>one</em> of {@link #buds} is worth when packed. Almost
+ *                        always {@code 1}: a bud is a bud. Rosin is {@code 3}, because a dab is not
+ *                        a step on a ladder — one piece <em>is</em> the bowl. See
+ *                        {@code PackingRecipe}, where the device's {@code maxDose} is what then
+ *                        makes a concentrate bong-only without a rule having to say so
  * @param smokeEffects    what one hit applies, before dose scaling
  */
 public record Strain(String translationKey, int color, int modelIndex,
                      Optional<Item> seeds, Item buds, Optional<Block> flower,
-                     float greenOutFactor, List<SmokeEffect> smokeEffects) {
+                     float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects) {
 
     /** The dynamic registry itself. Entries load from {@code data/<namespace>/hempdustry/strain/<id>.json}. */
     public static final RegistryKey<Registry<Strain>> REGISTRY_KEY =
@@ -149,6 +154,7 @@ public record Strain(String translationKey, int color, int modelIndex,
             Registries.ITEM.getCodec().fieldOf("buds").forGetter(Strain::buds),
             Registries.BLOCK.getCodec().optionalFieldOf("flower").forGetter(Strain::flower),
             Codec.FLOAT.optionalFieldOf("green_out_factor", 1.0F).forGetter(Strain::greenOutFactor),
+            Codec.INT.optionalFieldOf("dose_per_item", 1).forGetter(Strain::dosePerItem),
             SmokeEffect.CODEC.listOf().optionalFieldOf("effects", List.of()).forGetter(Strain::smokeEffects)
     ).apply(instance, Strain::new));
 

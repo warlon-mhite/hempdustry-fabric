@@ -1,0 +1,58 @@
+{
+  "_comment": [
+    "A rounded lump, built the way Minecraft always builds a ball: three intersecting boxes whose",
+    "corners cancel, so the silhouette steps in at every corner instead of being a cube. It sits on",
+    "the floor and is 10px tall -- charas is scarce and this is nine of it, not a building block, so",
+    "it should read as an object on a shelf rather than as masonry.",
+    "",
+    "ambientocclusion off: AO on a small multi-box shape smears a false shadow across the seams",
+    "where the boxes meet, which is exactly where the silhouette needs to stay crisp."
+  ],
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "hempdustry:block/charas_ball",
+    "all": "hempdustry:block/charas_ball"
+  },
+  "elements": [
+    {
+      "__comment": "the body",
+      "from": [ 3, 0, 3 ],
+      "to": [ 13, 10, 13 ],
+      "faces": {
+        "down":  { "texture": "#all", "cullface": "down" },
+        "up":    { "texture": "#all" },
+        "north": { "texture": "#all" },
+        "south": { "texture": "#all" },
+        "west":  { "texture": "#all" },
+        "east":  { "texture": "#all" }
+      }
+    },
+    {
+      "__comment": "the east-west bulge, which knocks the north and south corners off",
+      "from": [ 2, 1, 4 ],
+      "to": [ 14, 9, 12 ],
+      "faces": {
+        "down":  { "texture": "#all" },
+        "up":    { "texture": "#all" },
+        "north": { "texture": "#all" },
+        "south": { "texture": "#all" },
+        "west":  { "texture": "#all" },
+        "east":  { "texture": "#all" }
+      }
+    },
+    {
+      "__comment": "the north-south bulge, which knocks the east and west corners off",
+      "from": [ 4, 1, 2 ],
+      "to": [ 12, 9, 14 ],
+      "faces": {
+        "down":  { "texture": "#all" },
+        "up":    { "texture": "#all" },
+        "north": { "texture": "#all" },
+        "south": { "texture": "#all" },
+        "west":  { "texture": "#all" },
+        "east":  { "texture": "#all" }
+      }
+    }
+  ]
+}

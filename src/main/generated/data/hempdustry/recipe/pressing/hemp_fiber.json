@@ -1,0 +1,8 @@
+{
+  "type": "hempdustry:pressing",
+  "ingredient": "hempdustry:retted_hemp_stem",
+  "result": {
+    "count": 8,
+    "id": "hempdustry:hemp_fiber"
+  }
+}

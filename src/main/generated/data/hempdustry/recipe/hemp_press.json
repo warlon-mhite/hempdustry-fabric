@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "hempdustry:hemp_bricks_block",
+    "P": "minecraft:piston"
+  },
+  "pattern": [
+    "BBB",
+    "BPB",
+    "BBB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:hemp_press"
+  }
+}

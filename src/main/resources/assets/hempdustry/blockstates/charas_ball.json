@@ -1,0 +1,15 @@
+{
+  "_comment": [
+    "One model, four rotations. A hand-rolled ball has no front, but rotating it means nine of them",
+    "on a shelf do not look stamped out of a mould -- which is the whole character of the thing.",
+    "Vanilla does exactly this with its own irregular blocks."
+  ],
+  "variants": {
+    "": [
+      { "model": "hempdustry:block/charas_ball" },
+      { "model": "hempdustry:block/charas_ball", "y": 90 },
+      { "model": "hempdustry:block/charas_ball", "y": 180 },
+      { "model": "hempdustry:block/charas_ball", "y": 270 }
+    ]
+  }
+}

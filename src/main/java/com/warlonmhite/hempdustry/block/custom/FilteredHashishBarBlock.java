@@ -17,7 +17,7 @@ import net.minecraft.item.Item;
  * number you can count — while the resin screen fills at {@code HASH_CHANCE}, which is deliberately
  * low: <b>about two bars of hashish make one bar of this</b>, a ~49% loss. That is what a further
  * sieve pass costs, and it is the whole reason filtering is a sidegrade rather than an upgrade.
- * See {@code DrySifterBlock}.
+ * See {@code SiftingBoxBlock}.
  */
 public class FilteredHashishBarBlock extends HashishBarBlock {
 
