@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_filtered_hashish": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:filtered_hashish"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:spliff_indica_with_filtered_hashish_2"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_filtered_hashish"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:spliff_indica_with_filtered_hashish_2"
+    ]
+  }
+}

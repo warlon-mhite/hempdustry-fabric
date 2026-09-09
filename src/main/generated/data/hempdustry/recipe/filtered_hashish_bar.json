@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "H": "hempdustry:filtered_hashish"
+  },
+  "pattern": [
+    "HHH",
+    "HHH",
+    "HHH"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:filtered_hashish_bar"
+  }
+}
