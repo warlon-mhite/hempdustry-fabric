@@ -1,0 +1,16 @@
+{
+  "_comment": [
+    "A hemp-brick bed with an iron platen over it. Vanilla's `orientable` parent, unchanged: the",
+    "press's shape is entirely in its two new faces, and a bespoke multi-element model would be",
+    "detail nobody sees on a block that spends its life against a wall with a campfire under it.",
+    "",
+    "The sides and the bottom are hemp bricks, which is what the recipe puts there and what makes",
+    "this read as the Decarboxylator's sibling."
+  ],
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "hempdustry:block/hemp_press_top",
+    "front": "hempdustry:block/hemp_press_front",
+    "side": "hempdustry:block/hemp_bricks_block"
+  }
+}

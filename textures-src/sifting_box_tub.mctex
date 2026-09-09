@@ -1,0 +1,99 @@
+# The Sifting Box's tub faces, and the water that turns it into an Ice-o-lator.
+#
+# PLACEHOLDER art. Warlon Mhite may redraw these; that is what the .mctex is for.
+#
+# A coopered tub: vertical staves and two iron hoops. That silhouette is load-bearing rather than
+# decorative -- this block holds a bucket of water when it is running as an Ice-o-lator, and a
+# slatted crate visibly would not. Barrels are how Minecraft already draws "a wooden thing that
+# holds liquid", so the block says what it can do before a tooltip does.
+#
+# The palette is hemp planks and hemp canvas, sampled from the mod's own textures, so it sits next
+# to the rest of the wood set. The screen face (block/sifting_box_screen) and the kief
+# (block/sifting_box_kief) are drawn in sifting_box.mctex -- they are the same mesh and the same
+# powder whichever mode is running.
+#
+# Block faces are low contrast on purpose (vanilla blocks span a median 76 luminance steps against
+# an item's 164).
+
+@palette wood
+. = none
+1 = 3F3A26      stave seam, darker than any plank tone so the staves read
+2 = 5A5236
+3 = 67603E
+4 = 82794E
+5 = 8A8155
+6 = 948A5E
+7 = A1976C
+i = 41403C      iron hoop, shadowed lower edge
+j = 5E5D57      iron hoop body
+k = 7C7A72      iron hoop highlight
+
+# The tub wall: vertical staves, banded by two hoops. The seams sit every four pixels so the
+# staves tile without a visible repeat at the block edge.
+@texture block/sifting_box_side 16x16 type=block tiling=true
+1654165516441655
+1546166414561664
+kjkkjkjkkjkkjkjk
+ijiijijiijiijiji
+1655164516541645
+1546165616641556
+1664154616551464
+1455166516441665
+1656144616541656
+1544165616651454
+kjkkjkjkkjkkjkjk
+ijiijijiijiijiji
+1655165416451655
+1464155616641546
+1556166414551664
+1645154616551456
+
+# The rim you see from above: the tops of the staves, with the upper hoop's iron showing at the
+# outer edge. The mesh is drawn by the separate inside face, not by this one.
+@texture block/sifting_box_top 16x16 type=block tiling=true
+kjkkjkjkkjkkjkjk
+j655164516541645
+k546165616641556
+j664154616551464
+k455166516441665
+j656144616541656
+k544165616651454
+j655165416451655
+k464155616641546
+j556166414551664
+k645154616551456
+j654165516441655
+k546166414561664
+j664156416551464
+k455165516441665
+kjkkjkjkkjkkjkjk
+
+# The water surface, drawn as one flat quad inside the tub when FILLED is true. Slush rather than
+# clear water: this tub is packed in ice by definition, so there are floating shards in it, and
+# they are what make the surface read as *cold* rather than as a swimming pool.
+#
+# The palette is sampled up from vanilla's own ice tones towards white for the shards. Deliberately
+# a narrow band -- water read at block contrast is nearly flat, and a high-contrast surface would
+# fight the frost particles the block already emits.
+@palette water
+w = 3E5F86      the deep between shards
+x = 4E739B      body
+y = 6E97BE      lit ripple
+z = A9CBE0      a floating shard, catching the light
+@texture block/sifting_box_water 16x16 type=block tiling=true palette=water
+xxwxxzzxxxwwxxxx
+xwxxxzzxxwwxxyyx
+wxxyyxxxxwxxxyyx
+xxxyyxxwwxxxxxxx
+xxxxxxwwxxzzxxxw
+zzxxxxwxxxzzxxww
+zzxxwwxxxxxxxwwx
+xxxxwwxxyyxxxxxx
+xxwwxxxxyyxxxxzz
+xwwxxzzxxxxwwxxz
+xxxxxzzxxxwwxxxx
+xyyxxxxxwwxxxxxw
+xyyxxxwwxxxxxxww
+xxxxxwwxxxyyxxwx
+xxzzxxxxxxyyxxxx
+xxzzxxxwwxxxxxxx

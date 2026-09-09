@@ -1,0 +1,162 @@
+{
+  "_comment": [
+    "The composter's shell: a 2px floor and four 2px walls, leaving a 12x12 well open at the top.",
+    "The only difference is what the inside face is -- a canvas screen rather than a plank bottom,",
+    "because the screen is the whole point of the block and the open top is the only place it can be",
+    "seen.",
+    "",
+    "The outer faces are a coopered tub (staves and two iron hoops) rather than a slatted crate, and",
+    "that is load-bearing rather than decorative: this block holds a bucket of water when it runs as",
+    "an Ice-o-lator, and a crate visibly would not.",
+    "",
+    "Hand-written rather than datagen'd for the same reason the two machines are: no model provider",
+    "expresses a five-element shell, and the blockstate that goes with it is multipart."
+  ],
+  "parent": "block/block",
+  "textures": {
+    "particle": "hempdustry:block/sifting_box_side",
+    "top": "hempdustry:block/sifting_box_top",
+    "bottom": "hempdustry:block/hemp_planks",
+    "side": "hempdustry:block/sifting_box_side",
+    "inside": "hempdustry:block/sifting_box_screen"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#inside"
+        },
+        "down": {
+          "texture": "#bottom",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        2,
+        16,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#side",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#side"
+        }
+      }
+    },
+    {
+      "from": [
+        14,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#side",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        0,
+        0
+      ],
+      "to": [
+        14,
+        16,
+        2
+      ],
+      "faces": {
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#side"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        0,
+        14
+      ],
+      "to": [
+        14,
+        16,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#side"
+        },
+        "south": {
+          "texture": "#side",
+          "cullface": "south"
+        }
+      }
+    }
+  ]
+}

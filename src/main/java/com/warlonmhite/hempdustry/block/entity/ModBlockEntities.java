@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block.entity;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntityType;
@@ -25,6 +26,12 @@ public class ModBlockEntities {
                     Identifier.of(Hempdustry.MOD_ID, "infuser"),
                     FabricBlockEntityTypeBuilder.create(InfuserBlockEntity::new,
                             ModBlocks.INFUSER).build(null));
+
+    public static final BlockEntityType<HempPressBlockEntity> HEMP_PRESS =
+            Registry.register(Registries.BLOCK_ENTITY_TYPE,
+                    Identifier.of(Hempdustry.MOD_ID, "hemp_press"),
+                    FabricBlockEntityTypeBuilder.create(HempPressBlockEntity::new,
+                            ModBlocks.HEMP_PRESS).build(null));
 
     public static void registerBlockEntities() {
         Hempdustry.LOGGER.info("Registering Block Entities for " + Hempdustry.MOD_ID);
