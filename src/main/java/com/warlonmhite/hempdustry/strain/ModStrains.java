@@ -65,6 +65,8 @@ public class ModStrains {
     public static final RegistryKey<Strain> SATIVA = key("sativa");
     /** Not a plant: the Dry Sifter's product, strainless by construction. No seeds, no flower. */
     public static final RegistryKey<Strain> HASHISH = key("hashish");
+    /** Not a plant either: resin rubbed off a living plant while trimming it. */
+    public static final RegistryKey<Strain> CHARAS = key("charas");
 
     /**
      * The strains the mod ships art and recipes for. <b>Append only, and never reorder</b> —
@@ -74,7 +76,7 @@ public class ModStrains {
      *
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
-    public static final List<RegistryKey<Strain>> BUILT_IN = List.of(INDICA, SATIVA, HASHISH);
+    public static final List<RegistryKey<Strain>> BUILT_IN = List.of(INDICA, SATIVA, HASHISH, CHARAS);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -199,6 +201,34 @@ public class ModStrains {
                 Optional.empty(), ModItems.HASHISH, Optional.empty(), 1.0F,
                 List.of(
                         new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
+                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
+                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+
+        // Charas -- the same hash body as hashish, and the family's second signature.
+        //
+        // SLOW FALLING, and the deciding argument is a rarity one rather than a flavour one. Every
+        // hash signature has to be matched against the vanilla source of the same effect:
+        //
+        //   Night Vision  golden carrot     trivial to get       <- hashish, made in bulk from waste
+        //   Slow Falling  phantom membrane  three nights awake   <- charas, ~4 plants, by hand, never automatable
+        //
+        // The scarcity of the mod item matches the scarcity of the vanilla alternative it competes
+        // with, which is what stops either being a shortcut past a gate vanilla already charges for.
+        // Charas is not "rare hashish"; it is the cheap route to the effect vanilla makes you stay
+        // awake for, and that is a niche it keeps for ever rather than a stage it passes through.
+        // The heavy, floaty body stone made mechanical is the flavour that agrees with it.
+        //
+        // Flat, like every signature in the family: Night Vision has no meaningful amplifier in
+        // vanilla, so hashish's is forced flat, and this one matches rather than diverging.
+        //
+        // Near-black, because that is what resin taken off a living plant and never dried actually
+        // looks like -- oxidised as it forms. Colour follows process here and means nothing else:
+        // a gold bar and a black bar can test the same, and no colour in this mod claims a number.
+        context.register(CHARAS, new Strain("hempdustry.strain.charas", 0x2B2118, modelIndex(CHARAS),
+                Optional.empty(), ModItems.CHARAS, Optional.empty(), 1.0F,
+                List.of(
+                        new SmokeEffect(StatusEffects.SLOW_FALLING, 0, false),
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
                         new SmokeEffect(StatusEffects.HUNGER, 0, false))));

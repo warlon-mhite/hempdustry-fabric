@@ -4,6 +4,8 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.advancement.SmokeCriterion;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.Quality;
@@ -15,6 +17,7 @@ import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementDisplay;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.AdvancementFrame;
+import net.minecraft.advancement.AdvancementRequirements;
 import net.minecraft.advancement.criterion.ConsumeItemCriterion;
 import net.minecraft.advancement.criterion.InventoryChangedCriterion;
 import net.minecraft.advancement.criterion.ItemCriterion;
@@ -28,6 +31,7 @@ import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.predicate.BlockPredicate;
+import net.minecraft.predicate.StatePredicate;
 import net.minecraft.predicate.component.ComponentMapPredicate;
 import net.minecraft.predicate.component.ComponentsPredicate;
 import net.minecraft.predicate.NumberRange;
@@ -41,6 +45,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.AssetInfo;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -78,6 +84,29 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
     /** Item predicates name their items through a lookup since 1.21.5; this is that lookup. */
     private static RegistryEntryLookup<Item> items(RegistryWrapper.WrapperLookup registries) {
         return registries.getOrThrow(RegistryKeys.ITEM);
+    }
+
+    /**
+     * The ages at which shearing a hemp crop is a <b>trim</b> — the two defoliation windows, and
+     * deliberately not the rub window above them.
+     *
+     * <p>{@code StatePredicate} can only express an exact match from a mod: its ranged matcher and
+     * the {@code Condition} record it lives in are both package-private, so a 3–5 span has to be
+     * three criteria OR-merged rather than one predicate. Cheap, and it reads plainly in the
+     * generated JSON.
+     *
+     * <p>Both crops use {@code Properties.AGE_7}, so {@link IndicaCropBlock#AGE} stands for the
+     * sativa one too and there is one predicate rather than two.
+     */
+    private static List<Integer> trimAges() {
+        List<Integer> ages = new ArrayList<>();
+        for (int age = Defoliation.EARLY_MIN_AGE; age <= Defoliation.EARLY_MAX_AGE; age++) {
+            ages.add(age);
+        }
+        for (int age = Defoliation.LATE_MIN_AGE; age <= Defoliation.LATE_MAX_AGE; age++) {
+            ages.add(age);
+        }
+        return ages;
     }
 
     private static AdvancementDisplay display(ItemConvertible icon, String id, AdvancementFrame frame,
@@ -126,19 +155,41 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // Shearing a growing plant needs NO custom criterion. Vanilla fires
         // minecraft:item_used_on_block from ServerPlayerInteractionManager#interactBlock the moment
         // BlockState#onUseWithItem returns an accepted result — which, for a hemp crop held against
-        // shears, happens exactly where Defoliation#tryCut succeeds and nowhere else. The item
-        // filter is not optional though: bonemeal reaches the same trigger down the
-        // ItemStack#useOnBlock path, so without it this would fire on fertilising too.
+        // shears, happens exactly where Defoliation#tryCut succeeds. The item filter is not optional
+        // though: bonemeal reaches the same trigger down the ItemStack#useOnBlock path, so without
+        // it this would fire on fertilising too.
+        //
+        // IT IS ALSO NOT ENOUGH ON ITS OWN ANY MORE. tryCut succeeds in THREE windows since
+        // 2026-09-09, and the third is the charas rub at ages 6-7 -- which is not a trim, takes no
+        // leaf, and must not grant a trimming advancement. So the criterion is split per trim age
+        // and OR-merged: age is the only discriminator that works, because it is the one property
+        // synced onto BOTH halves of a two-block plant (see IndicaCropBlock#isShapeSettled), and
+        // the criterion tests whichever block the player actually clicked. The trim flags are
+        // canonical on the lower half only, so a predicate on those would leak the moment somebody
+        // sheared the top of a ripe plant.
+        //
+        // Built from Defoliation's own window constants rather than the literals 3..5, so retuning a
+        // window moves the advancement with it. Two ranges rather than one 3..5 span, so it stays
+        // right if the windows ever stop being contiguous.
         //
         // Parented to the root rather than to a strain, for the same reason first_contact is: an
         // advancement has exactly one parent, and trimming is not a Purple Kush thing.
-        AdvancementEntry trimSeason = Advancement.Builder.create()
+        Advancement.Builder trimSeasonBuilder = Advancement.Builder.create()
                 .display(display(Items.SHEARS, "trim_season", AdvancementFrame.TASK))
-                .criterion("sheared_hemp_crop", ItemCriterion.Conditions.createItemUsedOnBlock(
-                        LocationPredicate.Builder.create().block(
-                                BlockPredicate.Builder.create().tag(registryLookup.getOrThrow(RegistryKeys.BLOCK), ModTags.Blocks.HEMP_CROPS)),
-                        ItemPredicate.Builder.create().tag(items(registryLookup), ConventionalItemTags.SHEAR_TOOLS)))
-                .parent(rootAdvancement)
+                .parent(rootAdvancement);
+        for (int age : trimAges()) {
+            trimSeasonBuilder.criterion("sheared_hemp_crop_age_" + age,
+                    ItemCriterion.Conditions.createItemUsedOnBlock(
+                            LocationPredicate.Builder.create().block(BlockPredicate.Builder.create()
+                                    .tag(registryLookup.getOrThrow(RegistryKeys.BLOCK), ModTags.Blocks.HEMP_CROPS)
+                                    .state(StatePredicate.Builder.create()
+                                            .exactMatch(IndicaCropBlock.AGE, age))),
+                            ItemPredicate.Builder.create().tag(items(registryLookup), ConventionalItemTags.SHEAR_TOOLS)));
+        }
+        AdvancementEntry trimSeason = trimSeasonBuilder
+                // ANY of the trim ages, not all of them. Without this an advancement ANDs its
+                // criteria and "Trim Season" would silently demand a cut in every window.
+                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
                 .build(consumer, Hempdustry.MOD_ID + ":trim_season");
 
         // TASK, not GOAL. Vanilla spends GOAL six times in the whole game, always on a large
