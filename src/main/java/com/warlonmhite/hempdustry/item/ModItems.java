@@ -324,7 +324,9 @@ public class ModItems {
     public static List<ItemStack> showcaseSmokeables(RegistryWrapper.WrapperLookup registries) {
         List<ItemStack> out = new ArrayList<>();
         List<RegistryEntry.Reference<Strain>> strains = Strain.all(registries);
-        for (RegistryEntry<Strain> strain : strains) {
+        // Plants only: a pure-hash spliff has no recipe (a joint needs something to burn), so
+        // offering one in the tab would be a stack nothing can make. Pipes and bongs take anything.
+        for (RegistryEntry.Reference<Strain> strain : rollable(strains)) {
             out.add(loaded(SPLIFF, strain, 1, 0));
         }
         for (DeviceType device : DeviceType.values()) {
@@ -347,7 +349,7 @@ public class ModItems {
     public static List<ItemStack> allSmokeables(RegistryWrapper.WrapperLookup registries) {
         List<ItemStack> out = new ArrayList<>();
         List<RegistryEntry.Reference<Strain>> strains = Strain.all(registries);
-        for (RegistryEntry<Strain> strain : strains) {
+        for (RegistryEntry.Reference<Strain> strain : rollable(strains)) {
             for (int dose = 1; dose <= SPLIFF_MAX_DOSE; dose++) {
                 out.add(loaded(SPLIFF, strain, dose, 0));
             }
@@ -362,6 +364,17 @@ public class ModItems {
             }
         }
         return out;
+    }
+
+    /**
+     * The strains a spliff can be rolled from on its own — the ones that grew on a plant.
+     *
+     * <p>A joint needs something to burn and this mod has no tobacco, so pure hash never rolls;
+     * it goes in <em>alongside</em> two buds instead. {@code flower().isPresent()} is the mod-wide
+     * predicate for "this grew on a plant" and covers anything hash-shaped added later for free.
+     */
+    private static List<RegistryEntry.Reference<Strain>> rollable(List<RegistryEntry.Reference<Strain>> strains) {
+        return strains.stream().filter(strain -> strain.value().flower().isPresent()).toList();
     }
 
     /** Highest dose a spliff can be rolled at. Devices carry their own ceiling on {@link DeviceType}. */

@@ -20,12 +20,25 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 
+import net.minecraft.registry.RegistryWrapper;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ModModelProvider extends FabricModelProvider {
-    public ModModelProvider(FabricDataOutput output) {
+    /**
+     * The loaded strain registry, needed to tell a plant strain from a hash one.
+     *
+     * <p>{@code FabricModelProvider} takes only an output, so this arrives through
+     * {@code Pack.RegistryDependentFactory} and is joined at generate time. Fabric resolves the
+     * future before any provider runs, so the join never blocks.
+     */
+    private final CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup;
+
+    public ModModelProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
         super(output);
+        this.registryLookup = registryLookup;
     }
 
     @Override
@@ -123,11 +136,18 @@ public class ModModelProvider extends FabricModelProvider {
         // boundary: bespoke art exists only for the strains the mod itself carries.
         // ModStrains.modelIndex is the single source for the number written into the data and
         // matched here.
-        for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
+        //
+        // Plant strains only. A hash-family strain has no bespoke spliff art and never will: a pure
+        // hash spliff cannot be rolled (a joint needs something to burn), and a hash spliff's art is
+        // the plant's, because the plant is the primary entry. Generating one would upload a model
+        // pointing at a texture that does not exist. The devices are unaffected -- their packed art
+        // is shared and tinted by the strain's colour, which is exactly what a hash entry wants.
+        List<RegistryKey<Strain>> plantStrains = plantStrains();
+        for (RegistryKey<Strain> strain : plantStrains) {
             uploadGenerated(itemModelGenerator, spliffModel(strain), texture(ModStrains.id(strain) + "_spliff"));
         }
         List<ModelOverride> spliffOverrides = new ArrayList<>();
-        for (RegistryKey<Strain> strain : ModStrains.BUILT_IN) {
+        for (RegistryKey<Strain> strain : plantStrains) {
             spliffOverrides.add(new ModelOverride(STRAIN_PREDICATE, ModStrains.modelIndex(strain), spliffModel(strain)));
         }
         // The spliff's BASE model is the one a strain with no bespoke art falls back to — which is
@@ -144,7 +164,7 @@ public class ModModelProvider extends FabricModelProvider {
         // untinted. Dropping those overrides would put every strain on this tinted base instead;
         // that is a texture decision, not a code one, and it costs one line here when wanted.
         uploadTintable(itemModelGenerator, ModelIds.getItemModelId(ModItems.SPLIFF),
-                texture(ModStrains.id(ModStrains.BUILT_IN.get(0)) + "_spliff"),
+                texture(ModStrains.id(plantStrains.get(0)) + "_spliff"),
                 texture("spliff_load"), spliffOverrides);
 
         // The devices share one packed texture, which they always did. The override is on "packed at
@@ -181,6 +201,20 @@ public class ModModelProvider extends FabricModelProvider {
 
     /** @see ModItemProperties#STRAIN */
     private static final Identifier STRAIN_PREDICATE = ModItemProperties.STRAIN;
+
+    /**
+     * The built-in strains that grew on a plant, in {@link ModStrains#BUILT_IN} order.
+     *
+     * <p>{@code flower().isPresent()} is the mod-wide predicate for "this grew on a plant" — the
+     * same one the creative tab, the seed pools, the siftable tag and the spliff recipes key on —
+     * so anything hash-shaped added later is excluded here for free.
+     */
+    private List<RegistryKey<Strain>> plantStrains() {
+        RegistryWrapper.Impl<Strain> strains = Strain.registry(registryLookup.join());
+        return ModStrains.BUILT_IN.stream()
+                .filter(key -> strains.getOrThrow(key).value().flower().isPresent())
+                .toList();
+    }
 
     /** @see ModItemProperties#PACKED */
     private static final Identifier PACKED_PREDICATE = ModItemProperties.PACKED;

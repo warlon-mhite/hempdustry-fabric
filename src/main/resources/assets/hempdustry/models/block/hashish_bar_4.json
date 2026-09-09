@@ -1,0 +1,44 @@
+{
+  "_comment": "Cut 4 of 4 -- 2 px long. Built along +Z from the north edge; the blockstate rotates this one set for the other three facings. Face UVs are deliberately left to the auto-generation, which samples each length from the same tileable texture.",
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "hempdustry:block/hashish_bar_side",
+    "top": "hempdustry:block/hashish_bar_top",
+    "side": "hempdustry:block/hashish_bar_side"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        0,
+        1
+      ],
+      "to": [
+        12,
+        4,
+        3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#top",
+          "cullface": "down"
+        }
+      }
+    }
+  ]
+}
