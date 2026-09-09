@@ -113,6 +113,10 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HASHISH_BAR);
                         entries.add(ModItems.HASHISH);
                         entries.add(ModItems.CHARAS);
+                        // Bar then piece again, so the run reads as two matching pairs with the
+                        // one unpressed material between them.
+                        entries.add(ModBlocks.FILTERED_HASHISH_BAR);
+                        entries.add(ModItems.FILTERED_HASHISH);
                         entries.add(ModItems.showcaseCannabutter(), ItemGroup.StackVisibility.PARENT_TAB_ONLY);
 
                         // --- Fibre and building materials ------------------------------

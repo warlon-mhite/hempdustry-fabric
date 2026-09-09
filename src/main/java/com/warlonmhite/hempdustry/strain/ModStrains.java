@@ -67,6 +67,8 @@ public class ModStrains {
     public static final RegistryKey<Strain> HASHISH = key("hashish");
     /** Not a plant either: resin rubbed off a living plant while trimming it. */
     public static final RegistryKey<Strain> CHARAS = key("charas");
+    /** Not a plant either: hashish put back through the screen at a finer mesh. */
+    public static final RegistryKey<Strain> FILTERED_HASHISH = key("filtered_hashish");
 
     /**
      * The strains the mod ships art and recipes for. <b>Append only, and never reorder</b> —
@@ -76,7 +78,7 @@ public class ModStrains {
      *
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
-    public static final List<RegistryKey<Strain>> BUILT_IN = List.of(INDICA, SATIVA, HASHISH, CHARAS);
+    public static final List<RegistryKey<Strain>> BUILT_IN = List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -229,6 +231,33 @@ public class ModStrains {
                 Optional.empty(), ModItems.CHARAS, Optional.empty(), 1.0F,
                 List.of(
                         new SmokeEffect(StatusEffects.SLOW_FALLING, 0, false),
+                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
+                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+
+        // Filtered hashish -- HASHISH's effect list, unchanged, and half the green-out odds.
+        //
+        // That is the whole design and the restraint is the point: purity buys SMOOTHNESS, NOT
+        // POWER. Filtration is a sieve pass at a finer mesh with the leaf pulled out, so what you
+        // remove is chlorophyll and plant matter -- less bitterness, less coughing -- and never a
+        // milligram more cannabinoid per hit. A cleaner grade that hit harder would be the same lie
+        // as grading three colours weak-to-strong.
+        //
+        // Not named for a pass count. It was "Triple-Filtered" until 2026-09-09, which was wrong
+        // arithmetic -- the block runs two passes -- but the fix is a plain name rather than
+        // "Double", because a number in the name promises a ladder and purity here is one sidegrade.
+        //
+        // green_out_factor 2.0 doubles the 1-in-N, i.e. halves the risk. Seven hashish in and four
+        // out is a 43% yield loss, so this is a true sidegrade: you pay nearly half your hash for a
+        // gentler ride, and the effects you get are identical.
+        //
+        // Paler than hashish because less oxidation and less leaf really is blonder -- colour
+        // follows process here as everywhere else in the family, and claims nothing about strength.
+        context.register(FILTERED_HASHISH, new Strain("hempdustry.strain.filtered_hashish", 0xC9A566,
+                modelIndex(FILTERED_HASHISH),
+                Optional.empty(), ModItems.FILTERED_HASHISH, Optional.empty(), 2.0F,
+                List.of(
+                        new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
                         new SmokeEffect(StatusEffects.HUNGER, 0, false))));

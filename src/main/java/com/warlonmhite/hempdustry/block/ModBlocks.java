@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.DrySifterBlock;
+import com.warlonmhite.hempdustry.block.custom.FilteredHashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
@@ -248,6 +249,19 @@ public class ModBlocks {
      * and a durability cost; a tag that quietly undoes that is worse than no tag at all.
      */
     public static final Block HASHISH_BAR = registerBlock("hashish_bar", HashishBarBlock::new,
+            AbstractBlock.Settings.create()
+                    .strength(0.5F)
+                    .sounds(BlockSoundGroup.HONEY)
+                    .nonOpaque()
+                    .pistonBehavior(PistonBehavior.DESTROY));
+
+    /**
+     * The blonde bar — the Dry Sifter's resin pass, pressed. Settings copied from
+     * {@link #HASHISH_BAR} because it <em>is</em> that block in a different colour; see
+     * {@link FilteredHashishBarBlock} for why the symmetry is deliberate.
+     */
+    public static final Block FILTERED_HASHISH_BAR = registerBlock("filtered_hashish_bar",
+            FilteredHashishBarBlock::new,
             AbstractBlock.Settings.create()
                     .strength(0.5F)
                     .sounds(BlockSoundGroup.HONEY)

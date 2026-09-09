@@ -62,6 +62,22 @@ public class ModTags {
          */
         public static final TagKey<Item> SIFTABLE_TRIM = createTag("siftable/trim");
         /**
+         * Resin the Dry Sifter re-sifts at a finer mesh, producing filtered hashish rather than a
+         * bar. Its own tag rather than a third rate on the plant side, because
+         * {@code DrySifterBlock.Content} keeps plant and resin off the same screen — one rule.
+         *
+         * <p><b>Filtered hashish is deliberately not in here.</b> The block's one filtering step
+         * stands for the trade's whole 1×–3× range, so a further pass would be a second
+         * near-identical blonde for no mechanic — and at a 43% yield loss it would be a pure loss,
+         * which is a trap. No route through this block may be one.
+         *
+         * <p>Hand-listed rather than derived from the strain registry. "Is a resin" and "is a
+         * <em>finished</em> resin" are two different facts, and expressing the second would mean a
+         * new field on {@code Strain} for the sake of one item. A third-party hash joins by joining
+         * the tag, which is what tags are the extension point for.
+         */
+        public static final TagKey<Item> SIFTABLE_HASH = createTag("siftable/hash");
+        /**
          * What cuts a hashish bar: swords and knives.
          *
          * <p><b>Deliberately not shears.</b> Shears already mean "trim a plant" in this mod, and a

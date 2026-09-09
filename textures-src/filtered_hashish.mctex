@@ -1,0 +1,46 @@
+# Triple-filtered hashish — loose blonde powder, the cleanest thing the screen makes.
+#
+# PLACEHOLDER art. Warlon Mhite may redraw it; that is what this file is for.
+#
+# ## Three items, three forms, and the silhouette is what tells them apart
+#
+#   item/hashish   an oblique slab   pressed in a mould    brown
+#   item/charas    an irregular ball hand-rolled           near-black
+#   item/filtered  a loose heap      never pressed at all  blonde
+#
+# So this one is a low mound with a broken, granular top edge — the shape of a pile of powder
+# tipped out, not a solid object. That matters more than the palette does: the family must never
+# read as one item in three shades, because the three are not a ladder. Colour follows process,
+# and nothing in this mod claims a colour means a number.
+#
+# Blonde because less oxidation and less leaf through the screen really is blonder. It is sampled
+# up from the kief tones in dry_sifter.mctex rather than invented, so the powder in the block and
+# the powder in your hand are the same material — but at item contrast, not block contrast.
+
+@palette default
+. = none
+1 = 4A3418      the shadow under the heap, and its rim
+2 = 6B4E24
+3 = 8A6A33
+4 = A98844      the body of the heap
+5 = C9A566      the strain entry's own colour — the lit face
+6 = E0C089      grains catching the light
+7 = F2DBAE      the brightest grains; scattered, never a band
+
+@texture item/filtered_hashish 16x16 type=item
+................
+................
+................
+.....67.........
+....5763........
+...4677543.4....
+..2567764334532.
+.145677543245431
+.13455632445432.
+.12343224354321.
+.13432134543211.
+.12211245432211.
+..112234321111..
+...1112211111...
+................
+................

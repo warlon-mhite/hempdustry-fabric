@@ -1,0 +1,67 @@
+# The filtered hashish bar's block faces — the Dry Sifter's resin pass, pressed.
+#
+# PLACEHOLDER art. Warlon Mhite may redraw it; that is what this file is for.
+#
+# ## It is hashish_bar's matrix under a blonde palette, and that is deliberate
+#
+# The two bars are the same block: same 8x4x14 slab, same five cut states, same nine pieces. Drawing
+# them as the same surface in two colours is what says so at a glance, and it is also the truth about
+# the material — both are pressed sift, and the only difference is how much leaf went through the
+# screen with it. Blonde means less oxidation and less plant matter, which is exactly what a second
+# pass removes.
+#
+# COLOUR FOLLOWS PROCESS AND NEVER POTENCY. This one is paler because it is cleaner, not because it
+# is stronger; filtered hashish has the same effects at the same amplifiers. A blonde bar that hit
+# harder than a brown one would be the same lie as grading three colours weak-to-strong.
+#
+# Palette is item/filtered_hashish's blonde ramp, flattened for block contrast the same way
+# hashish_bar's brown ramp was: vanilla blocks span a median 76 luminance steps against an item's
+# 164, so both bars look far less dramatic in the world than the pieces do in a hotbar.
+#
+# Both faces tile, for the reason hashish_bar's do: the model shrinks along one axis as the bar is
+# cut, and its faces take auto-generated UVs, so every cut state samples a different sub-region.
+
+@palette resin
+. = none
+1 = 6B4E24      the deepest pits in the press
+2 = 8A6A33      shadow
+3 = A98844      the body of the surface, and the commonest tone
+4 = BE9C55      lit body
+5 = C9A566      the strain colour itself — the tone the item is keyed to
+6 = DCBB7E      pressed sheen, sparse and scattered
+
+@texture block/filtered_hashish_bar_top 16x16 type=block tiling=true
+3342333334234333
+2633233633233333
+4333333333333334
+3335333433332443
+3333333433333433
+3343333333333334
+3534333353333334
+3533433353533433
+4333333343523334
+3463211222333533
+2263343356234333
+2353433332234333
+3333433333332334
+3553321355334336
+3333335553333333
+1333334343333333
+
+@texture block/filtered_hashish_bar_side 16x16 type=block tiling=true
+3333323233333333
+3333422232233333
+3333323322233333
+3333332333334433
+3333423334524443
+3333322333334533
+3333352333333333
+3433333333333233
+3333333333343231
+4433233333333315
+3333332311233334
+3332333443113123
+3333322233323333
+3333333333333333
+2333313223433333
+1333333333433333

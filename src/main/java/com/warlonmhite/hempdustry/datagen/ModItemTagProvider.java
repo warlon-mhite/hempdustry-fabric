@@ -179,6 +179,14 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         }
         valueLookupBuilder(ModTags.Items.SIFTABLE_TRIM)
                 .add(ModItems.HEMP_LEAF);
+        // Resin, for the re-sift pass. Charas is in it so the rule reads as one rule -- resin goes
+        // in the resin screen -- even though seven charas is about twenty-eight plants trimmed and
+        // is a terrible deal by any measure. FILTERED_HASHISH is NOT: the block's one filtering step
+        // already stands for the trade's whole 1x-3x range, and a further pass at a 43% yield loss
+        // would be a pure loss. No route through this block may be a trap.
+        valueLookupBuilder(ModTags.Items.SIFTABLE_HASH)
+                .add(ModItems.HASHISH)
+                .add(ModItems.CHARAS);
 
         // ---------------------------------------------------------------------
         // Convention tags, the outbound half. Nothing in vanilla reads any of these; the entire

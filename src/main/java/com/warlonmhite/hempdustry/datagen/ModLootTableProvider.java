@@ -45,24 +45,32 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      *
      * <p>One pool per cut count, each with a mutually exclusive condition, rather than one pool of
      * alternatives. Same output, and each row reads as its own line.
+     *
+     * <p>Parameterised because the two bars want the identical table with a different piece in it —
+     * which is the same reason they are the same block class with one method overridden.
      */
-    private LootTable.Builder hashishBarDrops() {
+    private LootTable.Builder hashishBarDrops(Block bar, Item piece) {
         LootTable.Builder table = LootTable.builder().pool(LootPool.builder()
                 .rolls(ConstantLootNumberProvider.create(1))
-                .conditionally(cutsExactly(0))
-                .with(ItemEntry.builder(ModBlocks.HASHISH_BAR)));
+                .conditionally(cutsExactly(bar, 0))
+                .with(ItemEntry.builder(bar)));
         for (int cuts = 1; cuts <= 4; cuts++) {
             table.pool(LootPool.builder()
                     .rolls(ConstantLootNumberProvider.create(1))
-                    .conditionally(cutsExactly(cuts))
-                    .with(ItemEntry.builder(ModItems.HASHISH).apply(SetCountLootFunction.builder(
+                    .conditionally(cutsExactly(bar, cuts))
+                    .with(ItemEntry.builder(piece).apply(SetCountLootFunction.builder(
                             ConstantLootNumberProvider.create(HashishBarBlock.remaining(cuts))))));
         }
         return table;
     }
 
-    private static LootCondition.Builder cutsExactly(int cuts) {
-        return BlockStatePropertyLootCondition.builder(ModBlocks.HASHISH_BAR)
+    /**
+     * The condition names the block explicitly, so the two bars cannot share one by accident —
+     * {@code block_state_property} checks the block as well as the state, and a table pointing at
+     * the wrong one would simply never fire and drop nothing at all.
+     */
+    private static LootCondition.Builder cutsExactly(Block bar, int cuts) {
+        return BlockStatePropertyLootCondition.builder(bar)
                 .properties(StatePredicate.Builder.create().exactMatch(HashishBarBlock.CUTS, cuts));
     }
 
@@ -106,7 +114,9 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.DECARBOXYLATOR);
         addDrop(ModBlocks.INFUSER);
         addDrop(ModBlocks.DRY_SIFTER);
-        addDrop(ModBlocks.HASHISH_BAR, hashishBarDrops());
+        addDrop(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
+        addDrop(ModBlocks.FILTERED_HASHISH_BAR,
+                hashishBarDrops(ModBlocks.FILTERED_HASHISH_BAR, ModItems.FILTERED_HASHISH));
 
         // Wall sign / wall hanging sign share the standing block's loot table (see ModBlocks#dropsLike),
         // so they must not get their own addDrop call here.

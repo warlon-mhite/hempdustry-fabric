@@ -203,7 +203,7 @@ public final class Smoking {
      * {@code green_out_factor}.
      *
      * <p><b>Purity buys smoothness, not power.</b> Filtration is why people filter — less leaf, less
-     * chlorophyll, less coughing — so triple-filtered hash carries {@code 2.0} and halves the risk
+     * chlorophyll, less coughing — so filtered hash carries {@code 2.0} and halves the risk
      * while keeping the exact same effect list. Everything else carries {@code 1.0}, which makes
      * this a no-op, and it is datapack-exposed because that is where a knob like this belongs.
      *

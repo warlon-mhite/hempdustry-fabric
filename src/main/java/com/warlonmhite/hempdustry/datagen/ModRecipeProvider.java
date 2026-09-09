@@ -571,6 +571,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HASHISH), conditionsFromItem(ModItems.HASHISH))
                 .offerTo(exporter, id("hashish_bar"));
 
+        // The blonde bar packs the same way. Two 3x3 squares of a single material would collide if
+        // they were the same material -- they are not, and that is the whole rule (materials.md).
+        createShaped(RecipeCategory.MISC, ModBlocks.FILTERED_HASHISH_BAR)
+                .pattern("HHH")
+                .pattern("HHH")
+                .pattern("HHH")
+                .input('H', ModItems.FILTERED_HASHISH)
+                .criterion(hasItem(ModItems.FILTERED_HASHISH), conditionsFromItem(ModItems.FILTERED_HASHISH))
+                .offerTo(exporter, id("filtered_hashish_bar"));
+
         // The Dry Sifter: vanilla's composter with its two holes filled in. The composter is seven
         // wooden slabs in a U; a sift box is that same slatted box with a screen in it, so filling
         // the U's empty cells with the screen is a deliberate echo rather than a near miss -- and it
