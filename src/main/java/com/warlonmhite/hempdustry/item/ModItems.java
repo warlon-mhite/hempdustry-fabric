@@ -37,7 +37,10 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 public class ModItems {
 
@@ -314,8 +317,25 @@ public class ModItems {
     public static final Item SPLIFF = registerItem("spliff",
             new SpliffItem(new Item.Settings().rarity(Rarity.COMMON).maxCount(16)));
 
+    /**
+     * Every device, keyed by its {@link DeviceType}. <b>Declared above the devices themselves on
+     * purpose</b> — static initialisers run in source order, so a map declared below them would
+     * still be null when {@code registerDevice} tried to fill it.
+     *
+     * <p>This exists because the three sites that iterate {@code DeviceType.values()} — the creative
+     * tab twice over, the model provider and the viewer pages — used to map the enum back to an item
+     * with {@code device == PIPE ? WOODEN_PIPE : BONG}, which silently turns <em>every</em> device
+     * after the second into a bong. It failed by showing the wrong item, not by throwing. Iterate
+     * {@link #devices()} instead of {@code values()} and a device added later cannot be missed.
+     *
+     * <p>An {@link EnumMap} because it iterates in ordinal order, which is what keeps the creative
+     * tab's device run stable between launches.
+     */
+    private static final Map<DeviceType, Item> DEVICES = new EnumMap<>(DeviceType.class);
+
     public static final Item WOODEN_PIPE = registerDevice(DeviceType.PIPE);
     public static final Item BONG = registerDevice(DeviceType.BONG);
+    public static final Item VAPORIZER = registerDevice(DeviceType.VAPORIZER);
 
     // Same shape as a vanilla common disc (single-stack, uncommon, jukebox-playable). The song data
     // — length, comparator output, "Now Playing" label — lives in the JUKEBOX_SONG entry it points at.
@@ -341,8 +361,18 @@ public class ModItems {
             .maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(3))));
 
     private static Item registerDevice(DeviceType device) {
-        return registerItem(device.baseName(), new SmokingDeviceItem(device,
+        Item item = registerItem(device.baseName(), new SmokingDeviceItem(device,
                 new Item.Settings().maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON)));
+        DEVICES.put(device, item);
+        return item;
+    }
+
+    /**
+     * Every device, in enum order — the one place anything should iterate devices from. See
+     * {@link #DEVICES}.
+     */
+    public static Map<DeviceType, Item> devices() {
+        return Collections.unmodifiableMap(DEVICES);
     }
 
     /**
@@ -383,8 +413,9 @@ public class ModItems {
         for (RegistryEntry.Reference<Strain> strain : rollable(strains)) {
             out.add(loaded(SPLIFF, strain, 1, 0));
         }
-        for (DeviceType device : DeviceType.values()) {
-            Item item = device == DeviceType.PIPE ? WOODEN_PIPE : BONG;
+        for (Map.Entry<DeviceType, Item> entry : DEVICES.entrySet()) {
+            DeviceType device = entry.getKey();
+            Item item = entry.getValue();
             out.add(new ItemStack(item));
             for (RegistryEntry<Strain> strain : strains) {
                 out.add(loaded(item, strain, 1, device.bowlSize()));
@@ -408,8 +439,9 @@ public class ModItems {
                 out.add(loaded(SPLIFF, strain, dose, 0));
             }
         }
-        for (DeviceType device : DeviceType.values()) {
-            Item item = device == DeviceType.PIPE ? WOODEN_PIPE : BONG;
+        for (Map.Entry<DeviceType, Item> entry : DEVICES.entrySet()) {
+            DeviceType device = entry.getKey();
+            Item item = entry.getValue();
             out.add(new ItemStack(item));
             for (RegistryEntry<Strain> strain : strains) {
                 for (int dose = 1; dose <= device.maxDose(); dose++) {

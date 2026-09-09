@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "hempdustry:hemp_planks"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    " I ",
+    "IRI",
+    " P "
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:vaporizer"
+  }
+}

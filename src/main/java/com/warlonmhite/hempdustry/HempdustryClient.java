@@ -17,7 +17,9 @@ import net.minecraft.util.math.ColorHelper;
 import net.minecraft.client.color.world.BiomeColors;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import com.warlonmhite.hempdustry.client.UpdateChecker;
 import com.warlonmhite.hempdustry.client.particle.AromaParticle;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
@@ -160,7 +162,7 @@ public class HempdustryClient implements ClientModInitializer {
             // at all. The symptom is a packed device looking exactly like an empty one, with no
             // error anywhere. Every vanilla tint does the same wrap: potions, spawn eggs, maps.
             return contents.isEmpty() ? -1 : ColorHelper.Argb.fullAlpha(contents.color());
-        }, ModItems.SPLIFF, ModItems.WOODEN_PIPE, ModItems.BONG);
+        }, smokingGear());
     }
 
     /**
@@ -169,7 +171,7 @@ public class HempdustryClient implements ClientModInitializer {
      *
      * <ul>
      *   <li>{@code hempdustry:packed} — 0 or 1, "is there anything loaded in here". Drives the empty
-     *       ⇄ packed model on a pipe and a bong.</li>
+     *       ⇄ packed model on every device.</li>
      *   <li>{@code hempdustry:strain} — the loaded strain's {@code model_index}, for the rarer case
      *       of a strain that ships <em>bespoke</em> art rather than taking the shared tinted look.</li>
      * </ul>
@@ -206,15 +208,29 @@ public class HempdustryClient implements ClientModInitializer {
                     stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).primaryStrain();
             return loaded == null ? 0f : loaded.value().modelIndex();
         };
-        registerUnclamped(ModItems.SPLIFF, strainId, strain);
-        registerUnclamped(ModItems.WOODEN_PIPE, strainId, strain);
-        registerUnclamped(ModItems.BONG, strainId, strain);
+        for (Item item : smokingGear()) {
+            registerUnclamped(item, strainId, strain);
+        }
 
         Identifier packedId = ModItemProperties.PACKED;
         ClampedModelPredicateProvider packed = (stack, world, entity, seed) ->
                 stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).isEmpty() ? 0f : 1f;
-        ModelPredicateProviderRegistry.register(ModItems.WOODEN_PIPE, packedId, packed);
-        ModelPredicateProviderRegistry.register(ModItems.BONG, packedId, packed);
+        for (Item device : ModItems.devices().values()) {
+            ModelPredicateProviderRegistry.register(device, packedId, packed);
+        }
+    }
+
+    /**
+     * The spliff and every device, from {@link ModItems#devices()}. On this line the colour and the
+     * two model properties are registered per item, so a device missing here draws untinted and
+     * never shows as packed — no error, just the wrong picture. Listing the devices by name is how a
+     * vaporizer would have been left out.
+     */
+    private static Item[] smokingGear() {
+        List<Item> items = new ArrayList<>();
+        items.add(ModItems.SPLIFF);
+        items.addAll(ModItems.devices().values());
+        return items.toArray(Item[]::new);
     }
 
     /**
