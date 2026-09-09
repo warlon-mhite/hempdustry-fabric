@@ -18,7 +18,7 @@
 # pancake shading, and it is the classic tell).
 #
 # Items are high contrast: vanilla items span a median 164 luminance steps against a block's 76.
-# So this looks nothing like block/dry_sifter_pressed even though it is the same material, and that
+# So this looks nothing like block/sifting_box_pressed even though it is the same material, and that
 # is correct rather than an inconsistency.
 
 @palette default

@@ -1,0 +1,8 @@
+{
+  "type": "hempdustry:pressing",
+  "ingredient": "hempdustry:bubble_hash",
+  "result": {
+    "count": 1,
+    "id": "hempdustry:filtered_hashish"
+  }
+}

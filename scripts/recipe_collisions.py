@@ -59,6 +59,7 @@ SHAPED_TYPES = {
 NON_CRAFTING_TYPES = {
     "hempdustry:decarboxylating",     # one tray-load in the Decarboxylator
     "hempdustry:infusing",            # the Infuser's whole conversion, in one recipe
+    "hempdustry:pressing",            # one squeeze in the Hemp Press
     # In the grid, but unscannable: a SpecialCraftingRecipe's JSON carries no ingredient list at
     # all, so there is nothing here to compare. Its matcher requires a hempdustry device plus
     # hempdustry buds, which nothing else in the game can produce. See the module docstring.
