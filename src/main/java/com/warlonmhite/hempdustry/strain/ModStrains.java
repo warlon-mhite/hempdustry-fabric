@@ -69,6 +69,7 @@ public class ModStrains {
     public static final RegistryKey<Strain> CHARAS = key("charas");
     /** Not a plant either: hashish put back through the screen at a finer mesh. */
     public static final RegistryKey<Strain> FILTERED_HASHISH = key("filtered_hashish");
+    public static final RegistryKey<Strain> ROSIN = key("rosin");
 
     /**
      * The strains the mod ships art and recipes for. <b>Append only, and never reorder</b> —
@@ -78,7 +79,8 @@ public class ModStrains {
      *
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
-    public static final List<RegistryKey<Strain>> BUILT_IN = List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH);
+    public static final List<RegistryKey<Strain>> BUILT_IN =
+            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -162,7 +164,7 @@ public class ModStrains {
         // Purple Kush — the body high: hard to hurt, hard to get anything done.
         context.register(INDICA, new Strain("hempdustry.strain.indica", 0x8E6FB5, modelIndex(INDICA),
                 Optional.of(ModItems.INDICA_SEEDS), ModItems.INDICA_BUDS,
-                Optional.of(ModBlocks.INDICA_FLOWER), 1.0F,
+                Optional.of(ModBlocks.INDICA_FLOWER), 1.0F, 1,
                 List.of(
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.HUNGER, 0, false),
@@ -173,7 +175,7 @@ public class ModStrains {
         // is in both because the munchies don't care which strain you smoked.
         context.register(SATIVA, new Strain("hempdustry.strain.sativa", 0xC7D14A, modelIndex(SATIVA),
                 Optional.of(ModItems.SATIVA_SEEDS), ModItems.SATIVA_BUDS,
-                Optional.of(ModBlocks.SATIVA_FLOWER), 1.0F,
+                Optional.of(ModBlocks.SATIVA_FLOWER), 1.0F, 1,
                 List.of(
                         new SmokeEffect(StatusEffects.SPEED, 0, true),
                         new SmokeEffect(StatusEffects.HASTE, 0, true),
@@ -200,7 +202,7 @@ public class ModStrains {
         // downside -- but one piece is usually the right answer, which is a genuinely different
         // dose curve from the plants' and is also how hash is used.
         context.register(HASHISH, new Strain("hempdustry.strain.hashish", 0x6B4A2F, modelIndex(HASHISH),
-                Optional.empty(), ModItems.HASHISH, Optional.empty(), 1.0F,
+                Optional.empty(), ModItems.HASHISH, Optional.empty(), 1.0F, 1,
                 List.of(
                         new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
@@ -228,7 +230,7 @@ public class ModStrains {
         // looks like -- oxidised as it forms. Colour follows process here and means nothing else:
         // a gold bar and a black bar can test the same, and no colour in this mod claims a number.
         context.register(CHARAS, new Strain("hempdustry.strain.charas", 0x2B2118, modelIndex(CHARAS),
-                Optional.empty(), ModItems.CHARAS, Optional.empty(), 1.0F,
+                Optional.empty(), ModItems.CHARAS, Optional.empty(), 1.0F, 1,
                 List.of(
                         new SmokeEffect(StatusEffects.SLOW_FALLING, 0, false),
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
@@ -255,9 +257,29 @@ public class ModStrains {
         // follows process here as everywhere else in the family, and claims nothing about strength.
         context.register(FILTERED_HASHISH, new Strain("hempdustry.strain.filtered_hashish", 0xC9A566,
                 modelIndex(FILTERED_HASHISH),
-                Optional.empty(), ModItems.FILTERED_HASHISH, Optional.empty(), 2.0F,
+                Optional.empty(), ModItems.FILTERED_HASHISH, Optional.empty(), 2.0F, 1,
                 List.of(
                         new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
+                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
+                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+
+        // Rosin -- the hash body with the signature stripped out, and the only smokeable in the mod
+        // with nothing to explore with. That is the design, not an oversight: concentration costs
+        // character, which is a real complaint about this plant and a better trade than a bigger
+        // number. Its pitch is entirely economic -- one piece fills a bowl, so it is 3x the item
+        // efficiency of the filtered hashish it was pressed from, and it buys that by giving up the
+        // Night Vision that is the only reason anybody smokes hash in the first place.
+        //
+        // greenOutFactor 2.0 is inherited from that filtered hashish: purity carries.
+        //
+        // dosePerItem 3 is what makes one piece a whole bowl -- and, for free, what makes it
+        // bong-only. PackingRecipe measures the largest entry against the device's maxDose, and only
+        // the bong's is 3. A concentrate has to be vaporised off a hot surface; a rolled paper is
+        // not one, and a pipe's bowl is not either.
+        context.register(ROSIN, new Strain("hempdustry.strain.rosin", 0xD8A93A, modelIndex(ROSIN),
+                Optional.empty(), ModItems.ROSIN, Optional.empty(), 2.0F, 3,
+                List.of(
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
                         new SmokeEffect(StatusEffects.HUNGER, 0, false))));

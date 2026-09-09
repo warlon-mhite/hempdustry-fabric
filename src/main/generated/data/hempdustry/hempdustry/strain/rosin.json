@@ -1,0 +1,21 @@
+{
+  "buds": "hempdustry:rosin",
+  "color": 14199098,
+  "dose_per_item": 3,
+  "effects": [
+    {
+      "effect": "minecraft:resistance"
+    },
+    {
+      "effect": "minecraft:slowness",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:hunger",
+      "scales": false
+    }
+  ],
+  "green_out_factor": 2.0,
+  "model_index": 6,
+  "translation_key": "hempdustry.strain.rosin"
+}

@@ -94,7 +94,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
     /** Decarboxylated hemp yielded per fan leaf — bulk trim, worth a quarter of a bud. */
     public static final int LEAF_OUTPUT = 1;
     // There is deliberately NO hashish figure here. Nothing in the hash family decarboxylates:
-    // the oven takes plant matter, the bowl takes resin. See ModRecipeProvider and DrySifterBlock.
+    // the oven takes plant matter, the bowl takes resin. See ModRecipeProvider and SiftingBoxBlock.
 
     // PropertyDelegate indices. The cook time is synced because the config can change it.
     public static final int PROPERTY_BURN_TIME = 0;

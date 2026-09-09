@@ -1,0 +1,19 @@
+{
+  "_comment": [
+    "The water surface: one quad at y=13, three pixels below the rim, so you look down INTO the tub",
+    "rather than at a flush lid.",
+    "",
+    "Its height does not track the fill level, and that is deliberate: the level counts how much",
+    "resin has sunk through the mesh, not how much water is in there, and a surface that rose as you",
+    "worked would be telling the wrong story."
+  ],
+  "textures": {
+    "particle": "hempdustry:block/sifting_box_water",
+    "water": "hempdustry:block/sifting_box_water"
+  },
+  "elements": [
+    { "from": [ 2, 0, 2 ], "to": [ 14, 13, 14 ],
+      "faces": { "up": { "texture": "#water" } }
+    }
+  ]
+}

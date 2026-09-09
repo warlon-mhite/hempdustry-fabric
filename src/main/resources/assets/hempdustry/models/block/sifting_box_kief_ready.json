@@ -1,0 +1,15 @@
+{
+  "_comment": [
+    "A finished dry batch: kief heaped to the rim. One pixel above kief7's 15 -- the batch is done,",
+    "not merely fuller -- and it is what says 'there is something here to take'."
+  ],
+  "textures": {
+    "particle": "hempdustry:block/sifting_box_kief",
+    "inside": "hempdustry:block/sifting_box_kief"
+  },
+  "elements": [
+    { "from": [ 2, 0, 2 ], "to": [ 14, 16, 14 ],
+      "faces": { "up": { "texture": "#inside" } }
+    }
+  ]
+}
