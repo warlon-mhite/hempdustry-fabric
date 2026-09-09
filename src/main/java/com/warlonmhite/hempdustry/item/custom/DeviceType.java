@@ -1,18 +1,44 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.ParticleTypes;
+
 /**
- * A reusable smoking device (pipe, bong, …). One enum entry fully describes a device's balance, so
- * the item classes stay strain- and device-agnostic.
+ * A reusable smoking device (pipe, bong, vaporizer, …). One enum entry fully describes a device's
+ * balance, so the item classes stay strain- and device-agnostic.
  *
  * <p>Durability is measured in <em>hits</em>: a device takes 1 damage per hit and is repaired with
  * the material it's built from. The numbers below keep the original 1:3 pipe:bong fragility ratio
- * and divide into whole bowls (pipe = 4 packs × 2, bong = 6 packs × 4) so a device never shatters
- * mid-bowl. Tune freely.
+ * and divide into whole bowls (pipe = 4 packs × 2, bong = 6 packs × 4, vaporizer = 16 × 2) so a
+ * device never shatters mid-bowl. Tune freely.
+ *
+ * <p><b>Adding a row here is most of a new device.</b> Everything that iterates devices goes through
+ * {@link com.warlonmhite.hempdustry.item.ModItems#devices()} — the creative tab, the model provider
+ * and the recipe-viewer pages — so a fourth entry is picked up without any of them being edited.
  */
 public enum DeviceType {
-    //   registry base   packedModel   maxDamage  bowlSize  maxDose  duration  enchantability  cooldown  cough(1-in-N)  nausea(1-in-N)  soundDelay
-    PIPE("wooden_pipe",  "packed_pipe",  8,         2,        2,       700,      15,             60,       4,             50,             0),
-    BONG("bong",         "packed_bong",  24,        4,        3,       1000,     10,             100,      3,             5,              10);
+    //        registry base  packedModel        maxDmg bowl maxDose duration ench cooldown cough nausea delay spent  exhale particle
+    PIPE     ("wooden_pipe", "packed_pipe",       8,    2,    2,      700,   15,    60,      4,    50,    0,    0,   ParticleTypes.CAMPFIRE_COSY_SMOKE),
+    BONG     ("bong",        "packed_bong",      24,    4,    3,     1000,   10,   100,      3,     5,   10,    0,   ParticleTypes.CAMPFIRE_COSY_SMOKE),
+    /**
+     * The dry-herb vaporizer. Heat below combustion, so it is the mildest device in the mod and the
+     * only one that hands the bud back — see {@code .claude/docs/vaporizer.md} for the full design.
+     *
+     * <p>Three of its numbers are load-bearing rather than tuned:
+     * <ul>
+     *   <li><b>{@code maxDose} 1</b> is the whole trade-away — it can never reach level II or III,
+     *       and because {@link Smoking#greenOutChanceOneIn} can never green you out at dose 1, "a
+     *       vaporizer cannot put you on the floor" is true by construction rather than by a special
+     *       case beside it.</li>
+     *   <li><b>{@code durationTicks} 800</b> against the pipe's 700, at the same bowl size. With
+     *       only two hits a bowl, duration is the sole axis left to state the efficiency claim
+     *       with — vaporizing really does extract more per gram than burning does.</li>
+     *   <li><b>{@code cooldownTicks} 60</b>, level with the pipe and deliberately not lower. The
+     *       cooldown is shared across every smokeable, so a shorter one here would be a way to shave
+     *       time off a bong rotation.</li>
+     * </ul>
+     */
+    VAPORIZER("vaporizer",   "packed_vaporizer", 32,    2,    1,      800,    5,    60,     50,   200,    0,    1,   ParticleTypes.CLOUD);
 
     private final String baseName;
     private final String packedModel;
@@ -25,10 +51,12 @@ public enum DeviceType {
     private final int coughChanceOneIn;
     private final int nauseaChanceOneIn;
     private final int soundDelayTicks;
+    private final int spentYield;
+    private final ParticleEffect exhaleParticle;
 
     DeviceType(String baseName, String packedModel, int maxDamage, int bowlSize, int maxDose,
                int durationTicks, int enchantability, int cooldownTicks, int coughChanceOneIn,
-               int nauseaChanceOneIn, int soundDelayTicks) {
+               int nauseaChanceOneIn, int soundDelayTicks, int spentYield, ParticleEffect exhaleParticle) {
         this.baseName = baseName;
         this.packedModel = packedModel;
         this.maxDamage = maxDamage;
@@ -40,6 +68,8 @@ public enum DeviceType {
         this.coughChanceOneIn = coughChanceOneIn;
         this.nauseaChanceOneIn = nauseaChanceOneIn;
         this.soundDelayTicks = soundDelayTicks;
+        this.spentYield = spentYield;
+        this.exhaleParticle = exhaleParticle;
     }
 
     /** Registry id of the empty device; packed variants are {@code baseName + "_" + strainId}. */
@@ -110,9 +140,39 @@ public enum DeviceType {
      * Ticks to hold the inhale sound (and the exhale puff that lines up with it) back from the hit
      * itself. The bong's own bubbling — {@link com.warlonmhite.hempdustry.sound.ModSounds#BONGHIT} —
      * plays immediately on the hit; the water-clearing take a beat, so the inhale sound needs to
-     * trail behind it to stay in sync. The pipe has nothing playing first, so it stays at 0.
+     * trail behind it to stay in sync. The pipe has nothing playing first, so it stays at 0, and so
+     * does the vaporizer, which reuses the plain inhale unchanged ({@code vaporizer.md} §6).
      */
     public int soundDelayTicks() {
         return soundDelayTicks;
+    }
+
+    /**
+     * Decarboxylated hemp handed back when a <em>bowl</em> is finished, or {@code 0} for a device
+     * that leaves nothing usable behind. Only the vaporizer yields any.
+     *
+     * <p>This is <b>AVB</b> — "already vaped bud". A vaporizer runs at roughly 185–210 °C, under the
+     * ~230 °C where plant matter starts to burn, so what comes out is spent but decarboxylated, and
+     * saving it for edibles is standard practice precisely because that step is already done. It is
+     * therefore the "heat activates" rule arriving through a second door, <b>not</b> an exception to
+     * it: nothing raw is ever handed back.
+     *
+     * <p><b>1, not 2.</b> The Decarboxylator gives four per bud, in bulk, unattended, and takes hemp
+     * leaf besides; a 25% return sits inside real AVB's 10–30% residual and keeps the oven the gate
+     * the whole edible chain is paid at. Two would be half, and would start reading as an
+     * alternative bud → decarb route. Per <em>bowl</em>, and a bowl is one bud, so it cannot be
+     * farmed by taking more hits.
+     */
+    public int spentYield() {
+        return spentYield;
+    }
+
+    /**
+     * The particle for this device's delayed exhale. Everything that burns puffs
+     * {@code CAMPFIRE_COSY_SMOKE}; the vaporizer puffs {@code CLOUD}, because <b>vapour is not
+     * smoke</b> and this is the cheapest honest signal that the device does not combust.
+     */
+    public ParticleEffect exhaleParticle() {
+        return exhaleParticle;
     }
 }
