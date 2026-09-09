@@ -1,0 +1,86 @@
+{
+  "_comment": [
+    "Twenty states, five models -- hashish_bar's blockstate with the blonde models in it. The",
+    "two bars are the same block in two colours and this file says so by being identical.",
+    "",
+    "Hand-written rather than datagen'd: the models are custom geometry with no vanilla parent",
+    "to retexture, so there is nothing for BlockStateModelGenerator to express."
+  ],
+  "variants": {
+    "cuts=0,facing=north": {
+      "model": "hempdustry:block/filtered_hashish_bar_0"
+    },
+    "cuts=0,facing=east": {
+      "model": "hempdustry:block/filtered_hashish_bar_0",
+      "y": 90
+    },
+    "cuts=0,facing=south": {
+      "model": "hempdustry:block/filtered_hashish_bar_0",
+      "y": 180
+    },
+    "cuts=0,facing=west": {
+      "model": "hempdustry:block/filtered_hashish_bar_0",
+      "y": 270
+    },
+    "cuts=1,facing=north": {
+      "model": "hempdustry:block/filtered_hashish_bar_1"
+    },
+    "cuts=1,facing=east": {
+      "model": "hempdustry:block/filtered_hashish_bar_1",
+      "y": 90
+    },
+    "cuts=1,facing=south": {
+      "model": "hempdustry:block/filtered_hashish_bar_1",
+      "y": 180
+    },
+    "cuts=1,facing=west": {
+      "model": "hempdustry:block/filtered_hashish_bar_1",
+      "y": 270
+    },
+    "cuts=2,facing=north": {
+      "model": "hempdustry:block/filtered_hashish_bar_2"
+    },
+    "cuts=2,facing=east": {
+      "model": "hempdustry:block/filtered_hashish_bar_2",
+      "y": 90
+    },
+    "cuts=2,facing=south": {
+      "model": "hempdustry:block/filtered_hashish_bar_2",
+      "y": 180
+    },
+    "cuts=2,facing=west": {
+      "model": "hempdustry:block/filtered_hashish_bar_2",
+      "y": 270
+    },
+    "cuts=3,facing=north": {
+      "model": "hempdustry:block/filtered_hashish_bar_3"
+    },
+    "cuts=3,facing=east": {
+      "model": "hempdustry:block/filtered_hashish_bar_3",
+      "y": 90
+    },
+    "cuts=3,facing=south": {
+      "model": "hempdustry:block/filtered_hashish_bar_3",
+      "y": 180
+    },
+    "cuts=3,facing=west": {
+      "model": "hempdustry:block/filtered_hashish_bar_3",
+      "y": 270
+    },
+    "cuts=4,facing=north": {
+      "model": "hempdustry:block/filtered_hashish_bar_4"
+    },
+    "cuts=4,facing=east": {
+      "model": "hempdustry:block/filtered_hashish_bar_4",
+      "y": 90
+    },
+    "cuts=4,facing=south": {
+      "model": "hempdustry:block/filtered_hashish_bar_4",
+      "y": 180
+    },
+    "cuts=4,facing=west": {
+      "model": "hempdustry:block/filtered_hashish_bar_4",
+      "y": 270
+    }
+  }
+}
