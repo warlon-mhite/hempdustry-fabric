@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:iron_bars"
+    },
+    "C": {
+      "item": "hempdustry:hemp_canvas"
+    },
+    "P": {
+      "item": "hempdustry:hemp_planks_slab"
+    }
+  },
+  "pattern": [
+    "PBP",
+    "PCP",
+    "PPP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:sifting_box"
+  }
+}

@@ -98,9 +98,13 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.HEMP_LEAF, Models.GENERATED);
         itemModelGenerator.register(ModItems.DECARBOXYLATED_HEMP, Models.GENERATED);
         itemModelGenerator.register(ModItems.WASHED_DECARBOXYLATED_HEMP, Models.GENERATED);
+        itemModelGenerator.register(ModItems.KIEF, Models.GENERATED);
+        itemModelGenerator.register(ModItems.FILTERED_KIEF, Models.GENERATED);
+        itemModelGenerator.register(ModItems.BUBBLE_HASH, Models.GENERATED);
         itemModelGenerator.register(ModItems.HASHISH, Models.GENERATED);
         itemModelGenerator.register(ModItems.CHARAS, Models.GENERATED);
         itemModelGenerator.register(ModItems.FILTERED_HASHISH, Models.GENERATED);
+        itemModelGenerator.register(ModItems.ROSIN, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMPCRETE, Models.GENERATED);
         itemModelGenerator.register(ModItems.TOASTED_HEMP_SEEDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_FLAPJACK, Models.GENERATED);
@@ -191,6 +195,14 @@ public class ModModelProvider extends FabricModelProvider {
             uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(item),
                     texture(device.baseName()), List.of(new ModelOverride(PACKED_PREDICATE, 1, packedModel)));
         }
+
+        // The moon rock: one item for every strain, tinted by whichever one is stuck to it. Two
+        // layers, exactly as a packed device is -- the hashish crust is the same on all of them and
+        // the bud showing through it is not.
+        Models.GENERATED_TWO_LAYERS.upload(
+                ModelIds.getItemModelId(ModItems.MOON_ROCK),
+                TextureMap.layered(texture("moon_rock"), texture("moon_rock_load")),
+                itemModelGenerator.writer);
 
         itemModelGenerator.register(ModItems.HEMP_PLANKS_SIGN, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_PLANKS_HANGING_SIGN, Models.GENERATED);

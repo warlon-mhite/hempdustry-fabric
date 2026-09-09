@@ -1,0 +1,10 @@
+{
+  "type": "hempdustry:pressing",
+  "ingredient": {
+    "item": "hempdustry:filtered_kief"
+  },
+  "result": {
+    "count": 1,
+    "id": "hempdustry:filtered_hashish"
+  }
+}

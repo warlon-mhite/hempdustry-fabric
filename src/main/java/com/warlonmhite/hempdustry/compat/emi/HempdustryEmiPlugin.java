@@ -34,6 +34,12 @@ public class HempdustryEmiPlugin implements EmiPlugin {
             category(ViewerRecipes.INFUSING, ModBlocks.INFUSER);
     private static final EmiRecipeCategory CAULDRON =
             category(ViewerRecipes.CAULDRON, Blocks.WATER_CAULDRON);
+    private static final EmiRecipeCategory PRESSING =
+            category(ViewerRecipes.PRESSING, ModBlocks.HEMP_PRESS);
+    private static final EmiRecipeCategory SIFTING =
+            category(ViewerRecipes.SIFTING, ModBlocks.SIFTING_BOX);
+    private static final EmiRecipeCategory ICE_O_LATOR =
+            category(ViewerRecipes.ICE_O_LATOR, ModBlocks.SIFTING_BOX);
 
     /**
      * A category whose name comes from <b>this mod's</b> lang key rather than EMI's.
@@ -65,6 +71,9 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         registry.addCategory(DECARBOXYLATING);
         registry.addCategory(INFUSING);
         registry.addCategory(CAULDRON);
+        registry.addCategory(PRESSING);
+        registry.addCategory(SIFTING);
+        registry.addCategory(ICE_O_LATOR);
 
         // The block you stand in front of to do the thing. EMI draws these beside the category and
         // lets a player click one to get here from the item.
@@ -72,6 +81,9 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         registry.addWorkstation(INFUSING, EmiStack.of(ModBlocks.INFUSER));
         registry.addWorkstation(CAULDRON, EmiStack.of(Blocks.WATER_CAULDRON));
         registry.addWorkstation(CAULDRON, EmiStack.of(Blocks.CAULDRON));
+        registry.addWorkstation(PRESSING, EmiStack.of(ModBlocks.HEMP_PRESS));
+        registry.addWorkstation(SIFTING, EmiStack.of(ModBlocks.SIFTING_BOX));
+        registry.addWorkstation(ICE_O_LATOR, EmiStack.of(ModBlocks.SIFTING_BOX));
 
         for (ViewerRecipes.Entry entry : ViewerRecipes.decarboxylating(registry.getRecipeManager())) {
             registry.addRecipe(new EntryEmiRecipe(DECARBOXYLATING, entry));
@@ -81,6 +93,15 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         }
         for (ViewerRecipes.Entry entry : ViewerRecipes.cauldron()) {
             registry.addRecipe(new EntryEmiRecipe(CAULDRON, entry));
+        }
+        for (ViewerRecipes.Entry entry : ViewerRecipes.pressing(registry.getRecipeManager())) {
+            registry.addRecipe(new EntryEmiRecipe(PRESSING, entry));
+        }
+        for (ViewerRecipes.Entry entry : ViewerRecipes.sifting()) {
+            registry.addRecipe(new EntryEmiRecipe(SIFTING, entry));
+        }
+        for (ViewerRecipes.Entry entry : ViewerRecipes.iceOLator()) {
+            registry.addRecipe(new EntryEmiRecipe(ICE_O_LATOR, entry));
         }
 
         // Packing goes in EMI's own crafting category rather than one of ours, which is what makes

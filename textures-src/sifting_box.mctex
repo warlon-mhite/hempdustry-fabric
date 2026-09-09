@@ -1,0 +1,110 @@
+# The Dry Sifter's block faces, plus the hashish item.
+#
+# PLACEHOLDER art. Warlon Mhite may redraw these; that is what the .mctex is for.
+#
+# Palettes are sampled from the mod's own existing textures, not invented, so the block sits next
+# to hemp planks and hemp canvas without either looking out of place:
+#
+#   wood    from block/hemp_planks   (5A5236 .. A89D73)
+#   canvas  from item/hemp_canvas    (262417 .. D6CB90)
+#   resin   from item/decarboxylated_hemp, warmed towards blond for loose kief
+#
+# The side face is the crafting recipe read literally — plank frame, canvas screen through the
+# middle, plank frame — which is also what the block is. Block faces are deliberately low contrast
+# (vanilla blocks span a median 76 luminance steps against an item's 164); the hashish item is not.
+
+@palette wood
+. = none
+1 = 3F3A26      seam, darker than any plank tone so the courses read
+2 = 5A5236
+3 = 67603E
+4 = 82794E
+5 = 8A8155
+6 = 948A5E
+7 = A1976C
+c = 5F5A3B      canvas shadow
+d = 827B4E      canvas midtone
+e = A39C6A      canvas light
+f = D6CB90      canvas highlight
+
+# The screen itself — a plain weave seen through the open top, with the warp passing over the weft
+# and back under it every two pixels. Each thread is two pixels wide but shaded across its width, so
+# no 2x2 square is one flat colour; a mesh drawn as flat 2x2 blocks is an 8x8 drawing scaled up, and
+# it moires badly the moment the block is more than a few metres away.
+@texture block/sifting_box_screen 16x16 type=block tiling=true
+edffedffedffedff
+edccedccedccedcc
+ffedffedffedffed
+ccedccedccedcced
+edffedffedffedff
+edccedccedccedcc
+ffedffedffedffed
+ccedccedccedcced
+edffedffedffedff
+edccedccedccedcc
+ffedffedffedffed
+ccedccedccedcced
+edffedffedffedff
+edccedccedccedcc
+ffedffedffedffed
+ccedccedccedcced
+
+@palette resin
+. = none
+1 = 4A3E1E      shadowed kief
+2 = 6E5C2C
+3 = 9A8140
+4 = C0A257
+5 = D9BC72      blond highlight — trichome heads catch the light
+a = 241A0C      pressed hash, darkest
+b = 3A2A12
+c = 4E3818
+d = 664A21
+e = 7E5D2B
+
+# Loose kief piling up on the screen. Granular, not smooth: the point is that it is a powder.
+@texture block/sifting_box_kief 16x16 type=block tiling=true palette=resin
+4534435445344353
+3445354334453542
+5343445453434454
+4454533544545343
+3534454335344535
+4453345444533454
+5345433453445345
+3454554334554433
+4533445455343454
+5445353344435545
+3354434545344334
+4443545433455443
+5534343454543354
+3455454345334545
+4345334533445434
+5433455444353443
+
+# Washed out in ice water instead of screened out dry. The SAME granular surface as the kief above,
+# because it is the same trichome heads -- what ice-water buys is that there is almost no leaf in it,
+# not a different substance. So this is that texture with the leaf-green muddiness taken out and a
+# touch of wet sheen added, and nothing else. A palette that made it look like a different material
+# would be claiming a potency difference the trade explicitly says colour does not predict.
+@palette washed
+b = 6B5A34      damp shadow between grains
+c = 8E7A48
+d = B29C63
+e = D2BE8B      a wet grain catching the light
+@texture block/sifting_box_bubble 16x16 type=block tiling=true palette=washed
+cdcdedcdcdccdcdc
+dcdcdcedcdcdcedc
+cdedcdcdcedcdcdd
+dcdcedcdcdcdcdec
+cedcdcdedcdcdcdc
+dcdcdcdcdcedcdcd
+cdcedcdcdcdcdedc
+edcdcdcedcdcdcdc
+cdcdcedcdedcdcdc
+dcedcdcdcdcdcedc
+cdcdcdedcdcedcdc
+dcdcedcdcdcdcdcd
+cedcdcdcdedcdcec
+dcdcdcedcdcdcdcd
+cdcedcdcdcdcedcd
+dcdcdcdcedcdcdcb

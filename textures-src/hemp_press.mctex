@@ -1,0 +1,65 @@
+# The Hemp Press's block faces.
+#
+# PLACEHOLDER art. Warlon Mhite may redraw these; that is what the .mctex is for.
+#
+# The block is a hemp-brick bed with an iron plate driven down onto it by a screw, which is what its
+# recipe says it is (three iron over a piston over three hemp bricks). Only two faces are new: the
+# top, which is the plate and the screw boss, and the front, which is where you see the mechanism.
+# The sides and the bottom are block/hemp_bricks_block, unchanged -- the frame really is the same
+# masonry, and reusing it is what puts the press visibly in the same family as the Decarboxylator.
+#
+# Iron tones are sampled from vanilla's block/iron_block rather than invented, so the plate reads as
+# the same metal a player already knows.
+
+@palette default
+. = none
+1 = 4B4642      the shadow under the plate, and every seam
+2 = 6E6862      iron, unlit face
+3 = 8A837C      iron, body
+4 = A69E96      iron, lit face
+5 = C4BCB2      the polished top of the plate
+6 = 5A5236      hemp brick, dark
+7 = 82794E      hemp brick, mid
+8 = A1976C      hemp brick, light
+9 = 3F3A26      hemp brick mortar
+
+# The plate, seen from above: a square iron platen with the screw boss through the middle. The boss
+# is drawn as a ring rather than a disc so it reads as something that turns.
+@texture block/hemp_press_top 16x16 type=block
+1111111111111111
+1444444444444421
+1433333333333321
+1433444444433321
+1434411111144321
+1434111221114321
+1341122552211431
+1341125552211431
+1341125552211431
+1341122552211431
+1434111221114321
+1434411111144321
+1433444444433321
+1433333333333321
+1422222222222221
+1111111111111111
+
+# The front: brick below, iron plate above, and the screw's collar between them. The gap is where
+# the pressing happens and it is drawn as a shadow line, which is the only way a still image can say
+# "these two surfaces come together".
+@texture block/hemp_press_front 16x16 type=block
+1111111111111111
+1444444444444421
+1433333333333321
+1122333333332211
+1111133443311111
+1111112332111111
+1111111111111111
+9999999999999999
+6788766788767886
+6877886678876678
+9999999999999999
+8766788767886788
+7886678876678776
+6788766788767886
+9999999999999999
+1111111111111111

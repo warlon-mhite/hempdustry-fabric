@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "Multipart, for the same reason the composter's is: the tub is one part that is always drawn and",
+    "the contents are a single quad over it. As variants, every level would be a full copy of the",
+    "five-element shell.",
+    "",
+    "`filled` is what chooses the PROCESS, so it also chooses what the contents look like. Dry, you",
+    "watch a heap of kief pile up on the screen exactly as before. Filled, all you see is the water:",
+    "the resin is underneath it, where you genuinely could not see it, so the levels deliberately",
+    "look identical and the composter's fill sound is the progress feedback (a comparator gives the",
+    "exact number for anyone who wants one).",
+    "",
+    "Level 8 is the batch waiting to be taken, and it is the one state that must read differently in",
+    "each mode -- kief heaped to the rim when dry, washed powder sitting proud of the water when wet.",
+    "Multipart ANDs the keys in a single `when`, which is what makes that expressible without a",
+    "second property: the water is deliberately not spent until collection precisely so that this",
+    "state still remembers which process made it.",
+    "",
+    "Heights follow vanilla's composter exactly (3,5,7,9,11,13,15) so the fill reads at the rate",
+    "players already know from a block that looks like this one."
+  ],
+  "multipart": [
+    { "apply": { "model": "hempdustry:block/sifting_box" } },
+
+    { "when": { "filled": "false", "level": "1" }, "apply": { "model": "hempdustry:block/sifting_box_kief1" } },
+    { "when": { "filled": "false", "level": "2" }, "apply": { "model": "hempdustry:block/sifting_box_kief2" } },
+    { "when": { "filled": "false", "level": "3" }, "apply": { "model": "hempdustry:block/sifting_box_kief3" } },
+    { "when": { "filled": "false", "level": "4" }, "apply": { "model": "hempdustry:block/sifting_box_kief4" } },
+    { "when": { "filled": "false", "level": "5" }, "apply": { "model": "hempdustry:block/sifting_box_kief5" } },
+    { "when": { "filled": "false", "level": "6" }, "apply": { "model": "hempdustry:block/sifting_box_kief6" } },
+    { "when": { "filled": "false", "level": "7" }, "apply": { "model": "hempdustry:block/sifting_box_kief7" } },
+    { "when": { "filled": "false", "level": "8" }, "apply": { "model": "hempdustry:block/sifting_box_kief_ready" } },
+
+    { "when": { "filled": "true" },                "apply": { "model": "hempdustry:block/sifting_box_water" } },
+    { "when": { "filled": "true", "level": "8" },  "apply": { "model": "hempdustry:block/sifting_box_bubble_ready" } }
+  ]
+}

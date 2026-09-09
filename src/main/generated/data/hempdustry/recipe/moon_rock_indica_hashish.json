@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "moon_rock",
+  "ingredients": [
+    {
+      "item": "hempdustry:indica_buds"
+    },
+    {
+      "item": "hempdustry:rosin"
+    },
+    [
+      {
+        "item": "hempdustry:hashish"
+      },
+      {
+        "item": "hempdustry:kief"
+      }
+    ]
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 3,
+            "strain": "hempdustry:indica"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:hashish"
+          }
+        ]
+      }
+    },
+    "count": 1,
+    "id": "hempdustry:moon_rock"
+  }
+}

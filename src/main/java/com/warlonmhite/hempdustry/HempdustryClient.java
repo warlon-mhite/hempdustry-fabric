@@ -27,6 +27,7 @@ import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.particle.ModParticles;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
+import com.warlonmhite.hempdustry.screen.custom.HempPressScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
@@ -61,6 +62,7 @@ public class HempdustryClient implements ClientModInitializer {
 
         HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
+        HandledScreens.register(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
 
         ParticleFactoryRegistry.getInstance().register(ModParticles.AROMA, AromaParticle.Factory::new);
 
@@ -162,7 +164,7 @@ public class HempdustryClient implements ClientModInitializer {
             // at all. The symptom is a packed device looking exactly like an empty one, with no
             // error anywhere. Every vanilla tint does the same wrap: potions, spawn eggs, maps.
             return contents.isEmpty() ? -1 : ColorHelper.Argb.fullAlpha(contents.color());
-        }, smokingGear());
+        }, tinted());
     }
 
     /**
@@ -230,6 +232,16 @@ public class HempdustryClient implements ClientModInitializer {
         List<Item> items = new ArrayList<>();
         items.add(ModItems.SPLIFF);
         items.addAll(ModItems.devices().values());
+        return items.toArray(Item[]::new);
+    }
+
+    /**
+     * Everything whose load mask takes the strain's colour: the smoking gear, and the moon rock,
+     * one item for every strain with the bud showing through its crust in that strain's colour.
+     */
+    private static Item[] tinted() {
+        List<Item> items = new ArrayList<>(List.of(smokingGear()));
+        items.add(ModItems.MOON_ROCK);
         return items.toArray(Item[]::new);
     }
 

@@ -1,0 +1,16 @@
+{
+  "_comment": [
+    "A finished wash: the washed powder sitting proud of the water at y=13, so it is visible ABOVE",
+    "the surface. That is the only tell a wet batch is ready -- the levels below it are all just",
+    "water, because the resin really is underneath it."
+  ],
+  "textures": {
+    "particle": "hempdustry:block/sifting_box_bubble",
+    "inside": "hempdustry:block/sifting_box_bubble"
+  },
+  "elements": [
+    { "from": [ 3, 0, 3 ], "to": [ 13, 15, 13 ],
+      "faces": { "up": { "texture": "#inside" } }
+    }
+  ]
+}
