@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_charas_ball": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:charas_ball"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:charas_from_charas_ball"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_charas_ball"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:charas_from_charas_ball"
+    ]
+  }
+}

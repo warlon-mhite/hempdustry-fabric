@@ -8,6 +8,7 @@ import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.EdibleItem;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.HempMilkItem;
+import com.warlonmhite.hempdustry.item.custom.MoonRockItem;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
@@ -92,6 +93,28 @@ public class ModItems {
      * component and no effects — it goes through the Decarboxylator like everything else. See
      * CLAUDE.md, <i>heat activates</i>.
      */
+    /**
+     * What falls through the screen when plant matter is shaken over it dry. <b>Not smokeable</b> —
+     * loose powder falls straight through a bowl's screen, which is exactly why the trade presses it.
+     * Press it into {@link #HASHISH}, or stick it to a bud as a moon rock's coat.
+     */
+    public static final Item KIEF = registerItem("kief", settings -> new Item(settings));
+    /**
+     * The same trichome heads, washed out in ice water instead of screened out dry: cleaner, with
+     * almost no leaf in it. Presses into {@link #FILTERED_HASHISH}, which is where the smoothness
+     * shows up. Not smokeable, for the same reason kief is not.
+     */
+    /**
+     * Kief put over the screen a second time at a finer mesh — the trade's <i>3× filtré</i>, at two
+     * passes rather than three. <b>The dry road to a blonde product</b>, and the expensive one: each
+     * pass keeps less and drops more, which is exactly why the trade stops at three.
+     *
+     * <p>Presses into {@link #FILTERED_HASHISH}, the same place {@link #BUBBLE_HASH} goes, because
+     * <b>the two buy the same thing</b> — smoothness — and pressing is pressing. Where they differ is
+     * the price: see {@code SiftingBoxBlock.KIEF_CHANCE}.
+     */
+    public static final Item FILTERED_KIEF = registerItem("filtered_kief", settings -> new Item(settings));
+    public static final Item BUBBLE_HASH = registerItem("bubble_hash", settings -> new Item(settings));
     public static final Item HASHISH = registerItem("hashish", settings -> new Item(settings));
 
     /**
@@ -147,6 +170,16 @@ public class ModItems {
      * the 43% loss already says what a pass costs.
      */
     public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", settings -> new Item(settings));
+    /**
+     * Pressed out of filtered hashish in the Hemp Press. A strain entry with no flower, like the
+     * rest of the hash family — but the only one whose {@code dose_per_item} is not 1.
+     */
+    public static final Item ROSIN = registerItem("rosin", settings -> new Item(settings));
+    /**
+     * A bud dipped in rosin and rolled in hashish. One item for every strain: the strain rides in
+     * the {@code smoke_contents} component, exactly as it does on a spliff. See {@link MoonRockItem}.
+     */
+    public static final Item MOON_ROCK = registerItem("moon_rock", settings -> new MoonRockItem(settings));
 
     public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign", settings -> new SignItem(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN, settings.maxCount(16)));
     public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign", settings -> new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, settings.maxCount(16)));
@@ -421,7 +454,13 @@ public class ModItems {
             Item item = entry.getValue();
             out.add(new ItemStack(item));
             for (RegistryEntry<Strain> strain : strains) {
-                out.add(loaded(item, strain, 1, device.bowlSize()));
+                // The smallest load that strain can actually make in that device -- one item's
+                // worth. For everything but rosin that is dose 1, exactly as before; for rosin it is
+                // dose 3, and in the two devices that cannot hold it there is nothing to show.
+                int dose = strain.value().dosePerItem();
+                if (dose <= device.maxDose()) {
+                    out.add(loaded(item, strain, dose, device.bowlSize()));
+                }
             }
         }
         return out;
@@ -447,7 +486,11 @@ public class ModItems {
             Item item = entry.getValue();
             out.add(new ItemStack(item));
             for (RegistryEntry<Strain> strain : strains) {
-                for (int dose = 1; dose <= device.maxDose(); dose++) {
+                // Dose climbs one ITEM at a time, not one point at a time. They are the same thing
+                // for every strain but rosin, whose one piece is worth three -- so a rosin bong at
+                // dose 1 or 2 is a state no recipe can reach and does not belong in the search tab.
+                int step = Math.max(1, strain.value().dosePerItem());
+                for (int dose = step; dose <= device.maxDose(); dose += step) {
                     out.add(loaded(item, strain, dose, device.bowlSize()));
                 }
             }
@@ -462,6 +505,47 @@ public class ModItems {
      * it goes in <em>alongside</em> two buds instead. {@code flower().isPresent()} is the mod-wide
      * predicate for "this grew on a plant" and covers anything hash-shaped added later for free.
      */
+    /**
+     * One moon rock per plant strain, loaded exactly as its recipe loads it — the plant at 3 with a
+     * pinch of hashish riding along.
+     *
+     * <p>Built from the registry rather than listed, so a third strain gets a creative-tab entry the
+     * day it exists. The hashish entry is looked up rather than named for the same reason a datapack
+     * that renames or replaces it keeps working; if it is gone, so are the moon rocks, which is the
+     * honest answer.
+     */
+    public static List<ItemStack> moonRocks(RegistryWrapper.WrapperLookup registries) {
+        RegistryEntry<Strain> hashish = Strain.registry(registries)
+                .getOptional(com.warlonmhite.hempdustry.strain.ModStrains.HASHISH).orElse(null);
+        if (hashish == null) {
+            return List.of();
+        }
+        List<ItemStack> out = new ArrayList<>();
+        for (RegistryEntry.Reference<Strain> strain : rollable(Strain.all(registries))) {
+            out.add(moonRock(strain, hashish));
+        }
+        return out;
+    }
+
+    /** The exact stack {@code ModRecipeProvider} bakes, so the tab and the recipe cannot disagree. */
+    public static ItemStack moonRock(RegistryEntry<Strain> strain, RegistryEntry<Strain> hashish) {
+        ItemStack stack = new ItemStack(MOON_ROCK);
+        stack.set(ModComponents.SMOKE_CONTENTS,
+                SmokeContents.of(strain, MOON_ROCK_DOSE, hashish, MOON_ROCK_HASH_DOSE));
+        return stack;
+    }
+
+    /**
+     * The plant's share of a moon rock, and the hashish coat's.
+     *
+     * <p>Three is what makes it a full bowl and what confines it to the bong; one is a coat rather
+     * than a second material. Together they total four, which is over every device's
+     * {@code maxDose} and deliberately harmless — {@code PackingRecipe} caps the largest entry, not
+     * the sum, and green-out already clamps its dose index.
+     */
+    public static final int MOON_ROCK_DOSE = 3;
+    public static final int MOON_ROCK_HASH_DOSE = 1;
+
     private static List<RegistryEntry.Reference<Strain>> rollable(List<RegistryEntry.Reference<Strain>> strains) {
         return strains.stream().filter(strain -> strain.value().flower().isPresent()).toList();
     }

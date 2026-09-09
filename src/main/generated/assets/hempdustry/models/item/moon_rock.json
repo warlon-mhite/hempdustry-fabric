@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "hempdustry:item/moon_rock",
+    "layer1": "hempdustry:item/moon_rock_load"
+  }
+}

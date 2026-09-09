@@ -100,23 +100,36 @@ public class ModItemGroups {
                         // In unlock order. The press, drying rack, mixer and extractor go here.
                         entries.add(ModBlocks.DECARBOXYLATOR);
                         entries.add(ModBlocks.INFUSER);
-                        entries.add(ModBlocks.DRY_SIFTER);
+                        entries.add(ModBlocks.SIFTING_BOX);
+                        entries.add(ModBlocks.HEMP_PRESS);
 
                         // --- Processed hemp, raw to refined ----------------------------
                         // Strain-agnostic by construction: decarboxylation is where strain
                         // identity ends. Hashish, oil and rosin belong in this run.
                         entries.add(ModItems.DECARBOXYLATED_HEMP);
                         entries.add(ModItems.WASHED_DECARBOXYLATED_HEMP);
+                        // The two loose intermediates sit before the pressed forms they become,
+                        // which is the order the chain runs in.
+                        entries.add(ModItems.KIEF);
+                        entries.add(ModItems.FILTERED_KIEF);
+                        entries.add(ModItems.BUBBLE_HASH);
                         // The bar first, then the piece it cuts into: the order a player meets them.
                         // Charas last of the family -- it is the one you can have before you own the
                         // block, but it is also the rarest, and the run reads bar -> piece -> pinch.
                         entries.add(ModBlocks.HASHISH_BAR);
                         entries.add(ModItems.HASHISH);
+                        entries.add(ModBlocks.CHARAS_BALL);
                         entries.add(ModItems.CHARAS);
                         // Bar then piece again, so the run reads as two matching pairs with the
                         // one unpressed material between them.
                         entries.add(ModBlocks.FILTERED_HASHISH_BAR);
                         entries.add(ModItems.FILTERED_HASHISH);
+                        entries.add(ModItems.ROSIN);
+                        // One per plant strain, each already loaded the way its recipe loads it --
+                        // a moon rock with no smoke_contents is an inert nug and would be a lie in
+                        // the tab, so the bare item is deliberately not listed.
+                        ModItems.moonRocks(displayContext.lookup())
+                                .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.PARENT_TAB_ONLY));
                         entries.add(ModItems.showcaseCannabutter(), ItemGroup.StackVisibility.PARENT_TAB_ONLY);
 
                         // --- Fibre and building materials ------------------------------

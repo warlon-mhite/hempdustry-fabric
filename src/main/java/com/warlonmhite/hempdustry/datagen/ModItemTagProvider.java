@@ -163,7 +163,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // What the Dry Sifter will shake resin out of, split by how much resin there is to shake.
         // Flower is where the trichomes actually are, so a bud fills a level every time; leaf is
         // bulk with a thin dusting on it and takes about three. The two rates *are* the balance of
-        // the block, which is why they are two tags rather than one — see DrySifterBlock.
+        // the block, which is why they are two tags rather than one — see SiftingBoxBlock.
         //
         // Buds come off the strain registry rather than being named, exactly as the spliff and
         // decarboxylating recipes do, so a third strain is siftable the moment it exists.
@@ -179,14 +179,11 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         }
         valueLookupBuilder(ModTags.Items.SIFTABLE_TRIM)
                 .add(ModItems.HEMP_LEAF);
-        // Resin, for the re-sift pass. Charas is in it so the rule reads as one rule -- resin goes
-        // in the resin screen -- even though seven charas is about twenty-eight plants trimmed and
-        // is a terrible deal by any measure. FILTERED_HASHISH is NOT: the block's one filtering step
-        // already stands for the trade's whole 1x-3x range, and a further pass at a 43% yield loss
-        // would be a pure loss. No route through this block may be a trap.
-        valueLookupBuilder(ModTags.Items.SIFTABLE_HASH)
-                .add(ModItems.HASHISH)
-                .add(ModItems.CHARAS);
+        // The re-sift. Only kief is in here: bubble hash and filtered kief are each already the
+        // clean end of their own road, and a further pass on either would be a pure loss for no
+        // mechanical gain. No route through this block may be a trap.
+        valueLookupBuilder(ModTags.Items.SIFTABLE_KIEF)
+                .add(ModItems.KIEF);
 
         // ---------------------------------------------------------------------
         // Convention tags, the outbound half. Nothing in vanilla reads any of these; the entire

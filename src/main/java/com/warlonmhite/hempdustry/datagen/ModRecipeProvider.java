@@ -11,6 +11,7 @@ import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.RawShapedRecipe;
 import net.minecraft.recipe.ShapedRecipe;
+import net.minecraft.recipe.ShapelessRecipe;
 import net.minecraft.recipe.book.CraftingRecipeCategory;
 import java.util.List;
 import java.util.Map;
@@ -18,12 +19,14 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.recipe.ContainerCarriedRecipe;
 import com.warlonmhite.hempdustry.recipe.DecarboxylatingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusedShapedRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusedShapelessRecipe;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
+import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
@@ -571,6 +574,23 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HASHISH), conditionsFromItem(ModItems.HASHISH))
                 .offerTo(exporter, id("hashish_bar"));
 
+        // Nine charas rolled into a ball. UNLIKE THE TWO BARS THIS UNPACKS IN THE GRID TOO, and the
+        // asymmetry is the point: a bar is cut with a blade because pressing is what a bar is, and
+        // charas is never pressed -- you roll it between your palms and you pull it apart the same
+        // way. It is also the one member rare enough that a blade toll on top would sting.
+        createShaped(RecipeCategory.MISC, ModBlocks.CHARAS_BALL)
+                .pattern("CCC")
+                .pattern("CCC")
+                .pattern("CCC")
+                .input('C', ModItems.CHARAS)
+                .criterion(hasItem(ModItems.CHARAS), conditionsFromItem(ModItems.CHARAS))
+                .offerTo(exporter, id("charas_ball"));
+
+        createShapeless(RecipeCategory.MISC, ModItems.CHARAS, 9)
+                .input(ModBlocks.CHARAS_BALL)
+                .criterion(hasItem(ModBlocks.CHARAS_BALL), conditionsFromItem(ModBlocks.CHARAS_BALL))
+                .offerTo(exporter, id("charas_from_charas_ball"));
+
         // The blonde bar packs the same way. Two 3x3 squares of a single material would collide if
         // they were the same material -- they are not, and that is the whole rule (materials.md).
         createShaped(RecipeCategory.MISC, ModBlocks.FILTERED_HASHISH_BAR)
@@ -600,7 +620,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // composter takes #minecraft:wooden_slabs, which hemp_planks_slab belongs to -- so the
         // scanner reads those two as distinct where a player would not. The extra ingredients are
         // what actually keeps them apart.
-        createShaped(RecipeCategory.DECORATIONS, ModBlocks.DRY_SIFTER)
+        createShaped(RecipeCategory.DECORATIONS, ModBlocks.SIFTING_BOX)
                 .pattern("PBP")
                 .pattern("PCP")
                 .pattern("PPP")
@@ -608,7 +628,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .input('B', Items.IRON_BARS)
                 .input('C', ModItems.HEMP_CANVAS)
                 .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
-                .offerTo(exporter, id("dry_sifter"));
+                .offerTo(exporter, id("sifting_box"));
 
         // One recipe describing the whole tub. Strength and Quality stay in the block entity — they
         // are measurements of the simmer, not of a recipe — but which items play each part is data.
@@ -617,6 +637,118 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
                 Ingredient.ofItems(ModItems.WASHED_DECARBOXYLATED_HEMP),
                 new ItemStack(ModItems.CANNABUTTER)), null);
+
+        // The Hemp Press. THE MOD'S OWN MACHINE GRAMMAR IS "a vanilla utility block wrapped in a
+        // ring of hempdustry material" -- the Decarboxylator is 8 hemp bricks round a copper ingot,
+        // the Infuser 8 hempcrete round a cauldron -- and this follows it: 8 hemp bricks round a
+        // PISTON, which is the vanilla block whose whole job is to press something. A player reading
+        // the grid knows what this does before it has a tooltip.
+        //
+        // Hemp bricks rather than hempcrete puts it in the Decarboxylator's visual family, which is
+        // right: those two are the mod's heated blocks. The multiset differs from the
+        // Decarboxylator's by the piston, so the two cannot collide.
+        //
+        // Unlocked by hemp bricks, like the Decarboxylator. The press is now on the path to ANY
+        // hashish at all, so gating its discovery behind an endgame item would hide the block a
+        // player needs in order to reach the endgame.
+        createShaped(RecipeCategory.DECORATIONS, ModBlocks.HEMP_PRESS)
+                .pattern("BBB")
+                .pattern("BPB")
+                .pattern("BBB")
+                .input('B', ModBlocks.HEMP_BRICKS_BLOCK)
+                .input('P', Items.PISTON)
+                .criterion(hasItem(ModBlocks.HEMP_BRICKS_BLOCK), conditionsFromItem(ModBlocks.HEMP_BRICKS_BLOCK))
+                .offerTo(exporter, id("hemp_press"));
+
+        // ---------------------------------------------------------------------
+        // The Hemp Press's conversions
+        // ---------------------------------------------------------------------
+        // ALL FOUR ARE 1:1, WHICH IS THE FURNACE'S GRAMMAR AND NOT AN ACCIDENT. Every vanilla
+        // machine is one item in, one item out, per cycle; N-into-1 is what the crafting GRID is
+        // for. So the press never makes a bar -- nine pressed pieces make a bar in the grid, exactly
+        // as nine ingots make a block.
+        //
+        // KIEF -> HASHISH is the step the mod was missing entirely. In the trade the powder under
+        // the screen is kief, and it is *pressed with heat* to become hashish -- two steps and two
+        // tools. The Sifting Box used to do both, which was only ever defensible while there was no
+        // press. Now there is one, and the vessel makes powder.
+        offerPressing(Ingredient.ofItems(ModItems.KIEF),
+                new ItemStack(ModItems.HASHISH), "hashish");
+
+        // The washed powder presses to the blonde slab. Same step, cleaner input -- and the
+        // cleanliness is the whole payoff for the ice room, cashed out here as filtered hashish's
+        // halved green-out rather than as a bigger number.
+        offerPressing(Ingredient.ofItems(ModItems.BUBBLE_HASH),
+                new ItemStack(ModItems.FILTERED_HASHISH), "filtered_hashish");
+
+        // The dry road's blonde, pressed. It lands on the SAME item the washed powder does, because
+        // the two buy the same thing -- smoothness, which is the only purity axis the mod has -- and
+        // pressing is pressing. What separates the roads is price, not product: see
+        // SiftingBoxBlock.KIEF_CHANCE, which is where the dry one is made to hurt.
+        offerPressing(Ingredient.ofItems(ModItems.FILTERED_KIEF),
+                new ItemStack(ModItems.FILTERED_HASHISH), "filtered_hashish_from_filtered_kief");
+
+        // Rosin, 1:1. Pressing hash is the highest-yield step in the whole chain -- 60-90% in life,
+        // against 10-30% off flower -- so near enough one for one is the honest number, and it is
+        // what makes the tree worth building: one filtered hashish becomes one rosin, and one rosin
+        // fills a bong on its own where three filtered hashish would have been needed.
+        //
+        // FILTERED HASHISH ONLY. Pressing plain hashish, charas, kief or flower is deliberately not
+        // a recipe -- not "it yields less", it simply is not offered. That makes the ice room the
+        // hard gate on the whole concentrate tier, which is what justifies building one; and it
+        // keeps the press to one thing to learn per input, with no second route that exists only to
+        // be worse than the first.
+        offerPressing(Ingredient.ofItems(ModItems.FILTERED_HASHISH),
+                new ItemStack(ModItems.ROSIN, HempPressBlockEntity.ROSIN_OUTPUT),
+                "rosin");
+
+        // Breaking and scutching, which is the job materials.md has wanted off the crafting grid
+        // since 2026-08-22 -- and the second role that earns this block its slot.
+        //
+        // The shapeless grid recipe stays and still gives FIBER_PER_RETTED_STEM. Taking it away is a
+        // balance change to shipped content with nothing to do with concentrates; making the press
+        // simply better at it is additive, and is what a machine is for.
+        offerPressing(Ingredient.ofItems(ModItems.RETTED_HEMP_STEM),
+                new ItemStack(ModItems.HEMP_FIBER, HempPressBlockEntity.PRESSED_FIBER_OUTPUT),
+                "hemp_fiber");
+
+        // ---------------------------------------------------------------------
+        // Moon rocks
+        // ---------------------------------------------------------------------
+        // A bud, dipped in rosin, rolled in resin. Three tiers of the mod's own chain in one item,
+        // and it needs no invention at all -- it is what a moon rock is.
+        //
+        // THE COAT IS A CHOICE, AND IT IS THE ONLY ONE. Whatever you roll it in rides along in the
+        // load as a second entry, so the coat decides the moon rock's signature while the plant
+        // decides everything else. That is three recipes per strain and zero lines of code --
+        // SmokeContents already carries a two-entry load and already names the hash half.
+        //
+        // A COAT MAY BE GIVEN LOOSE OR PRESSED, and it is the same coat either way. Pressing changes
+        // a powder's shape and not its chemistry, so kief stands in for hashish, and bubble hash and
+        // filtered kief both stand in for filtered hashish -- one Ingredient each rather than a
+        // recipe each. That is vanilla's coal-or-charcoal grammar, not a shortcut needing a
+        // counterweight: a loose coat saves exactly one press cycle and no material at all, which is
+        // why none of them carries a penalty. There is nothing to penalise.
+        //
+        // Shapeless, because you are coating a nug rather than laying anything out, and because a
+        // ShapelessRecipe built by hand can carry components on its result where the builder cannot.
+        // Every multiset differs by the bud or by the coat, so none of them can collide.
+        //
+        // Unlocked by the rosin: by the time a player has any, they have had the buds and the resin
+        // for a long while, and the rosin is the piece that was missing.
+        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
+            RegistryEntry.Reference<Strain> strain = strains.getOrThrow(key);
+            if (strain.value().flower().isEmpty()) {
+                continue;
+            }
+            offerMoonRock(strain, strains.getOrThrow(ModStrains.HASHISH), "hashish",
+                    Ingredient.ofItems(ModItems.HASHISH, ModItems.KIEF));
+            offerMoonRock(strain, strains.getOrThrow(ModStrains.FILTERED_HASHISH), "filtered_hashish",
+                    Ingredient.ofItems(ModItems.FILTERED_HASHISH, ModItems.BUBBLE_HASH,
+                            ModItems.FILTERED_KIEF));
+            offerMoonRock(strain, strains.getOrThrow(ModStrains.CHARAS), "charas",
+                    Ingredient.ofItems(ModItems.CHARAS));
+        }
 
         // ---------------------------------------------------------------------
         // Smoking gear
@@ -660,9 +792,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             // Deliberately NOT a full dose ladder: there is no 1 bud + 2 hash. Hash's sweet spot is
             // one piece, since Resistance is the only effect in the family that scales, so a second
             // pinch would buy almost nothing and double the recipe count again.
+            //
+            // A CONCENTRATE IS NOT A PINCH, so rosin is excluded and anything like it will be too.
+            // dosePerItem > 1 is the mod-wide spelling of "one of these is a whole bowl": a paper
+            // has no hot surface to vaporise it off, and rolling one in as a dose-1 additive would
+            // quietly undercut the bong exclusive that is the entire reason the Press exists.
             for (RegistryKey<Strain> hashKey : ModStrains.BUILT_IN) {
                 RegistryEntry.Reference<Strain> hash = strains.getOrThrow(hashKey);
-                if (hash.value().flower().isPresent()) {
+                if (hash.value().flower().isPresent() || hash.value().dosePerItem() > 1) {
                     continue;
                 }
                 offerHashSpliff(strain, hash, 1);
@@ -911,6 +1048,48 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      */
     private void offerDecarboxylating(Ingredient input, ItemStack result, String name) {
         exporter.accept(id("decarboxylating/" + name), new DecarboxylatingRecipe(input, result), null);
+    }
+
+    /**
+     * One squeeze in the Hemp Press. Named {@code pressing/<output>} so the folder reads as the
+     * machine's whole recipe list, and so a datapack overriding one of ours knows where to put it.
+     *
+     * <p>No unlock advancement: machine recipes are not in the recipe book, so there is nothing an
+     * advancement could reveal. See {@link PressingRecipe}.
+     */
+    private void offerPressing(Ingredient input, ItemStack result, String name) {
+        exporter.accept(id("pressing/" + name), new PressingRecipe(input, result), null);
+    }
+
+    /**
+     * One strain's moon rock in one coat: its bud, one rosin and one pinch of {@code coat},
+     * shapeless, producing the coated nug with its {@code smoke_contents} already built — the plant
+     * at {@code ModItems.MOON_ROCK_DOSE} with the coat riding along at 1.
+     *
+     * <p>{@code coatIngredient} is separate from {@code coat} because the two are different
+     * questions: what may be <em>put in</em> the grid, and which strain entry the result <em>carries</em>.
+     * The hashish coat accepts kief as well, since kief is hashish that has not been pressed yet.
+     *
+     * <p>Built by hand rather than through {@link ShapelessRecipeJsonBuilder} because that builder's
+     * result is a bare {@code new ItemStack(item, count)} with no way to attach components — the
+     * same reason {@link #offerSpliff} is built by hand. The stack comes from
+     * {@link ModItems#moonRock} so the creative tab and the recipe cannot disagree about what one is.
+     */
+    private void offerMoonRock(RegistryEntry.Reference<Strain> strain, RegistryEntry.Reference<Strain> coat,
+                               String coatName, Ingredient coatIngredient) {
+        ItemStack result = ModItems.moonRock(strain, coat);
+        RegistryKey<Recipe<?>> recipeId = id("moon_rock_" + ModStrains.id(strain.registryKey())
+                + "_" + coatName);
+        ShapelessRecipe recipe = new ShapelessRecipe("moon_rock", CraftingRecipeCategory.MISC, result,
+                List.of(Ingredient.ofItems(strain.value().buds()),
+                        Ingredient.ofItems(ModItems.ROSIN),
+                        coatIngredient));
+        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
+                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
+                .criterion(hasItem(ModItems.ROSIN), conditionsFromItem(ModItems.ROSIN))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
+                .build(recipeId.getValue().withPrefixedPath("recipes/misc/")));
     }
 
     /**

@@ -53,6 +53,9 @@ public class HempdustryJeiPlugin implements IModPlugin {
     private EntryJeiCategory decarboxylating;
     private EntryJeiCategory infusing;
     private EntryJeiCategory cauldron;
+    private EntryJeiCategory pressing;
+    private EntryJeiCategory sifting;
+    private EntryJeiCategory iceOLator;
 
     @Override
     public Identifier getPluginUid() {
@@ -87,7 +90,15 @@ public class HempdustryJeiPlugin implements IModPlugin {
                 new ItemStack(ModBlocks.INFUSER), 2);
         cauldron = new EntryJeiCategory(gui, ViewerRecipes.CAULDRON,
                 new ItemStack(Blocks.WATER_CAULDRON), 1);
-        registration.addRecipeCategories(decarboxylating, infusing, cauldron);
+        pressing = new EntryJeiCategory(gui, ViewerRecipes.PRESSING,
+                new ItemStack(ModBlocks.HEMP_PRESS), 2);
+        // Both of the Sifting Box's modes, catalysed by the same block. Two categories rather than
+        // one because the water changes what comes out, and one page could not say that.
+        sifting = new EntryJeiCategory(gui, ViewerRecipes.SIFTING,
+                new ItemStack(ModBlocks.SIFTING_BOX), 1);
+        iceOLator = new EntryJeiCategory(gui, ViewerRecipes.ICE_O_LATOR,
+                new ItemStack(ModBlocks.SIFTING_BOX), 2);
+        registration.addRecipeCategories(decarboxylating, infusing, cauldron, pressing, sifting, iceOLator);
     }
 
     @Override
@@ -103,6 +114,9 @@ public class HempdustryJeiPlugin implements IModPlugin {
         registration.addRecipes(decarboxylating.getRecipeType(), ViewerRecipes.decarboxylating(client.world));
         registration.addRecipes(infusing.getRecipeType(), ViewerRecipes.infusing(client.world));
         registration.addRecipes(cauldron.getRecipeType(), ViewerRecipes.cauldron());
+        registration.addRecipes(pressing.getRecipeType(), ViewerRecipes.pressing(client.world));
+        registration.addRecipes(sifting.getRecipeType(), ViewerRecipes.sifting(client.world));
+        registration.addRecipes(iceOLator.getRecipeType(), ViewerRecipes.iceOLator(client.world));
 
         // Packing goes into JEI's own crafting category rather than one of ours, which is what makes
         // JEI's built-in "move ingredients into the grid" work on it without a transfer handler of
@@ -139,5 +153,8 @@ public class HempdustryJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.INFUSER), infusing.getRecipeType());
         registration.addRecipeCatalyst(new ItemStack(Blocks.WATER_CAULDRON), cauldron.getRecipeType());
         registration.addRecipeCatalyst(new ItemStack(Blocks.CAULDRON), cauldron.getRecipeType());
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.HEMP_PRESS), pressing.getRecipeType());
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.SIFTING_BOX), sifting.getRecipeType());
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.SIFTING_BOX), iceOLator.getRecipeType());
     }
 }

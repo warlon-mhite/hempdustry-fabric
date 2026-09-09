@@ -112,7 +112,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         valueLookupBuilder(BlockTags.PICKAXE_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_BLOCK)
                 .add(ModBlocks.DECARBOXYLATOR)
-                .add(ModBlocks.INFUSER);
+                .add(ModBlocks.INFUSER)
+                .add(ModBlocks.HEMP_PRESS);
 
         valueLookupBuilder(BlockTags.SHOVEL_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
@@ -130,7 +131,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         valueLookupBuilder(BlockTags.AXE_MINEABLE)
                 // The Dry Sifter is a wooden crate and vanilla's composter — the block it copies —
                 // is axe-mineable, so leaving it out meant no tool sped it up at all.
-                .add(ModBlocks.DRY_SIFTER)
+                .add(ModBlocks.SIFTING_BOX)
                 .add(ModBlocks.HEMP_BRICKS_BLOCK)
                 .add(ModBlocks.HEMP_BRICKS_SLAB)
                 .add(ModBlocks.HEMP_BRICKS_STAIRS)

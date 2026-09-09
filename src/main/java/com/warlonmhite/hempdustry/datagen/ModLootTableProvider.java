@@ -113,7 +113,9 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         // loot table only has to hand back the machine itself.
         addDrop(ModBlocks.DECARBOXYLATOR);
         addDrop(ModBlocks.INFUSER);
-        addDrop(ModBlocks.DRY_SIFTER);
+        addDrop(ModBlocks.SIFTING_BOX);
+        addDrop(ModBlocks.HEMP_PRESS);
+        addDrop(ModBlocks.CHARAS_BALL);
         addDrop(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
         addDrop(ModBlocks.FILTERED_HASHISH_BAR,
                 hashishBarDrops(ModBlocks.FILTERED_HASHISH_BAR, ModItems.FILTERED_HASHISH));

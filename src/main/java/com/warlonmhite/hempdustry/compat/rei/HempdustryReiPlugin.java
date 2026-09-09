@@ -35,6 +35,12 @@ public class HempdustryReiPlugin implements REIClientPlugin {
             CategoryIdentifier.of(ViewerRecipes.INFUSING);
     private static final CategoryIdentifier<EntryReiDisplay> CAULDRON =
             CategoryIdentifier.of(ViewerRecipes.CAULDRON);
+    private static final CategoryIdentifier<EntryReiDisplay> PRESSING =
+            CategoryIdentifier.of(ViewerRecipes.PRESSING);
+    private static final CategoryIdentifier<EntryReiDisplay> SIFTING =
+            CategoryIdentifier.of(ViewerRecipes.SIFTING);
+    private static final CategoryIdentifier<EntryReiDisplay> ICE_O_LATOR =
+            CategoryIdentifier.of(ViewerRecipes.ICE_O_LATOR);
 
     @Override
     public void registerCategories(CategoryRegistry registry) {
@@ -43,6 +49,9 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         registry.add(new EntryReiCategory(ViewerRecipes.DECARBOXYLATING, ModBlocks.DECARBOXYLATOR, 1));
         registry.add(new EntryReiCategory(ViewerRecipes.INFUSING, ModBlocks.INFUSER, 2));
         registry.add(new EntryReiCategory(ViewerRecipes.CAULDRON, Blocks.WATER_CAULDRON, 1));
+        registry.add(new EntryReiCategory(ViewerRecipes.PRESSING, ModBlocks.HEMP_PRESS, 2));
+        registry.add(new EntryReiCategory(ViewerRecipes.SIFTING, ModBlocks.SIFTING_BOX, 1));
+        registry.add(new EntryReiCategory(ViewerRecipes.ICE_O_LATOR, ModBlocks.SIFTING_BOX, 2));
 
         // The block you stand in front of to do the thing. REI draws these beside the category and
         // lets a player click one to get here from the item.
@@ -50,6 +59,9 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         registry.addWorkstations(INFUSING, EntryStacks.of(ModBlocks.INFUSER));
         registry.addWorkstations(CAULDRON, EntryStacks.of(Blocks.WATER_CAULDRON),
                 EntryStacks.of(Blocks.CAULDRON));
+        registry.addWorkstations(PRESSING, EntryStacks.of(ModBlocks.HEMP_PRESS));
+        registry.addWorkstations(SIFTING, EntryStacks.of(ModBlocks.SIFTING_BOX));
+        registry.addWorkstations(ICE_O_LATOR, EntryStacks.of(ModBlocks.SIFTING_BOX));
     }
 
     @Override
@@ -75,6 +87,15 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         // Packing goes into REI's own crafting category rather than one of ours, which is what
         // makes REI's built-in "move ingredients into the grid" work on it without a transfer
         // handler of our own. See ViewerRecipes#packing.
+        for (ViewerRecipes.Entry entry : ViewerRecipes.pressing(client.world)) {
+            registry.add(new EntryReiDisplay(PRESSING, entry));
+        }
+        for (ViewerRecipes.Entry entry : ViewerRecipes.sifting(client.world)) {
+            registry.add(new EntryReiDisplay(SIFTING, entry));
+        }
+        for (ViewerRecipes.Entry entry : ViewerRecipes.iceOLator(client.world)) {
+            registry.add(new EntryReiDisplay(ICE_O_LATOR, entry));
+        }
         for (ViewerRecipes.Packing packing : ViewerRecipes.packing(client.world.getRegistryManager())) {
             registry.add(new DefaultCustomShapelessDisplay(
                     EntryIngredients.ofIngredients(packing.inputs()),

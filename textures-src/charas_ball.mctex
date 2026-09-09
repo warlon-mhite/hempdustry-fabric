@@ -1,0 +1,47 @@
+# The Charas Ball — nine pinches rolled together.
+#
+# PLACEHOLDER art. Warlon Mhite may redraw it; that is what the .mctex is for.
+#
+# ## Why a ball and not a bar
+#
+# The family lands three colours on three FORMS — a pinch, a brown pressed bar, a blonde pressed bar
+# — and a fourth flat slab would collapse that to three colours on two forms. Charas is rubbed off a
+# LIVING plant and rolled between the palms; it is never pressed, and the shape it is actually sold
+# in (Malana cream, charas sticks) is a ball. So the block is a ball, and it is the one member of
+# the family you pull apart by hand instead of cutting.
+#
+# The palette is item/charas's own, opened up by two steps at the top: a block face is low contrast
+# (vanilla blocks span a median 76 luminance steps against an item's 164) but near-black needs a
+# little more room than that or the whole thing reads as a hole in the world.
+#
+# The surface is the tell. Charas is soft, sticky and faintly glossy — hand-rolled resin picks up a
+# sheen from the palms — so the highlight is ONE soft cluster up-left rather than a gradient, and the
+# grain is irregular rather than granular. It is not powder; it has been worked.
+
+@palette default
+. = none
+1 = 100C09      the deepest crease
+2 = 1A150F
+3 = 251E15      the body of the ball
+4 = 32291C
+5 = 3F3423
+6 = 4E402C      lit face
+7 = 60503A      the palm sheen; one cluster, up-left, nowhere else
+
+@texture block/charas_ball 16x16 type=block
+2333322333233332
+3345566543334333
+3456777654333233
+3457776654432333
+3346766544333323
+3334554433332332
+3233443333233333
+3323333233332333
+3332333332333433
+2333323333344433
+3233333334455433
+3333333345566443
+3323333455665433
+3333234556554333
+3233334455443332
+3323333443333233

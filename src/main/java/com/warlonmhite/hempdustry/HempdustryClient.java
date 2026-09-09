@@ -16,6 +16,7 @@ import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
+import com.warlonmhite.hempdustry.screen.custom.HempPressScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
@@ -52,6 +53,7 @@ public class HempdustryClient implements ClientModInitializer {
 
         HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
+        HandledScreens.register(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
 
         registerItemModelHooks();
         registerBlockColors();

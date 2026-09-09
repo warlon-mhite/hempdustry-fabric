@@ -49,34 +49,29 @@ public class ModTags {
          */
         public static final TagKey<Item> HEMP_ARMOR_REPAIR = createTag("hemp_armor_repair");
         /**
-         * Flower the Dry Sifter separates resin from — every strain's buds, built off the strain
+         * Flower the Sifting Box separates resin from — every strain's buds, built off the strain
          * registry so a third one joins by existing. Sifted at {@code FLOWER_CHANCE}.
          */
         public static final TagKey<Item> SIFTABLE_FLOWER = createTag("siftable/flower");
         /**
-         * Leaf and trim the Dry Sifter separates resin from. Sifted at the slower
+         * Leaf and trim the Sifting Box separates resin from. Sifted at the slower
          * {@code TRIM_CHANCE}: bulkier, and much less of it is resin.
          *
          * <p>Two tags rather than one with a rate baked in, because the rate <em>is</em> the
-         * balance — see {@link com.warlonmhite.hempdustry.block.custom.DrySifterBlock}.
+         * balance — see {@link com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock}.
          */
         public static final TagKey<Item> SIFTABLE_TRIM = createTag("siftable/trim");
         /**
-         * Resin the Dry Sifter re-sifts at a finer mesh, producing filtered hashish rather than a
-         * bar. Its own tag rather than a third rate on the plant side, because
-         * {@code DrySifterBlock.Content} keeps plant and resin off the same screen — one rule.
+         * Powder the box re-sifts at a finer mesh, producing {@code filtered_kief} rather than more
+         * kief. Its own tag rather than a third rate on the plant side, because
+         * {@code SiftingBoxBlock.Content} keeps plant matter and powder off the same screen — one
+         * rule to state, not a list of exceptions.
          *
-         * <p><b>Filtered hashish is deliberately not in here.</b> The block's one filtering step
-         * stands for the trade's whole 1×–3× range, so a further pass would be a second
-         * near-identical blonde for no mechanic — and at a 43% yield loss it would be a pure loss,
-         * which is a trap. No route through this block may be one.
-         *
-         * <p>Hand-listed rather than derived from the strain registry. "Is a resin" and "is a
-         * <em>finished</em> resin" are two different facts, and expressing the second would mean a
-         * new field on {@code Strain} for the sake of one item. A third-party hash joins by joining
-         * the tag, which is what tags are the extension point for.
+         * <p><b>Bubble hash is deliberately not in here</b>, and neither is filtered kief. Both are
+         * already the clean end of their own road, and a further pass on either would be a pure loss
+         * at no mechanical gain — which is a trap, and no route through this block may be one.
          */
-        public static final TagKey<Item> SIFTABLE_HASH = createTag("siftable/hash");
+        public static final TagKey<Item> SIFTABLE_KIEF = createTag("siftable/kief");
         /**
          * What cuts a hashish bar: swords and knives.
          *

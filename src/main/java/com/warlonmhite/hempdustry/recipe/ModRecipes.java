@@ -79,6 +79,17 @@ public class ModRecipes {
             Identifier.of(Hempdustry.MOD_ID, "infusing"),
             new InfusingRecipe.Serializer());
 
+    /** What the Hemp Press turns into what — the third machine recipe type. See {@link PressingRecipe}. */
+    public static final RecipeType<PressingRecipe> PRESSING_TYPE = Registry.register(
+            Registries.RECIPE_TYPE,
+            Identifier.of(Hempdustry.MOD_ID, "pressing"),
+            recipeType("pressing"));
+
+    public static final RecipeSerializer<PressingRecipe> PRESSING = Registry.register(
+            Registries.RECIPE_SERIALIZER,
+            Identifier.of(Hempdustry.MOD_ID, "pressing"),
+            new PressingRecipe.Serializer());
+
     /**
      * A bare {@code RecipeType}, ready to be registered.
      *
@@ -118,5 +129,6 @@ public class ModRecipes {
         // are sent over the wire.
         RecipeSynchronization.synchronizeRecipeSerializer(DECARBOXYLATING);
         RecipeSynchronization.synchronizeRecipeSerializer(INFUSING);
+        RecipeSynchronization.synchronizeRecipeSerializer(PRESSING);
     }
 }

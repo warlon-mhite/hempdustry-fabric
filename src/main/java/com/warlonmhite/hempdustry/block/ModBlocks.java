@@ -3,9 +3,10 @@ package com.warlonmhite.hempdustry.block;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
-import com.warlonmhite.hempdustry.block.custom.DrySifterBlock;
+import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.custom.FilteredHashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
+import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
@@ -223,7 +224,7 @@ public class ModBlocks {
      * or a lava bucket would read as a bug rather than as a consequence. The composter is not
      * flammable either.
      */
-    public static final Block DRY_SIFTER = registerBlock("dry_sifter", DrySifterBlock::new,
+    public static final Block SIFTING_BOX = registerBlock("sifting_box", SiftingBoxBlock::new,
             AbstractBlock.Settings.create()
                     .strength(0.6F)
                     .nonOpaque()
@@ -248,6 +249,17 @@ public class ModBlocks {
      * shapeless unpack this block exists to refuse. A bar unpacks <em>by being cut</em>, with a blade
      * and a durability cost; a tag that quietly undoes that is worse than no tag at all.
      */
+    /**
+     * Heated from below, and emitting no light of its own — the heat is the neighbour's, and a block
+     * that glowed would be claiming otherwise. Stone-hard and tool-gated like the other two machines.
+     */
+    public static final Block HEMP_PRESS = registerBlock("hemp_press", HempPressBlock::new,
+            AbstractBlock.Settings.create()
+                    .strength(3.5F, 3.5F)
+                    .requiresTool()
+                    .nonOpaque()
+                    .sounds(BlockSoundGroup.STONE));
+
     public static final Block HASHISH_BAR = registerBlock("hashish_bar", HashishBarBlock::new,
             AbstractBlock.Settings.create()
                     .strength(0.5F)
@@ -273,6 +285,28 @@ public class ModBlocks {
      * wholesale (0.5 hardness, wool sounds, no occlusion) so it behaves identically to the block
      * players already know; the {@code maxCount(1)} on its item is vanilla's cake too.
      */
+    /**
+     * Nine charas, rolled together. <b>A ball and not a bar, and that is the whole point.</b>
+     *
+     * <p>{@code hashish.md} lands the family's three colours on three <em>forms</em> — a pinch, a
+     * brown pressed bar, a blonde pressed bar — and a fourth flat slab would collapse that to three
+     * colours on two forms. Charas is <b>rubbed off a living plant and rolled between the palms</b>,
+     * never pressed, which is why it has no bar and why the shape it is actually sold in is a ball.
+     *
+     * <p>So it is a plain storage block: 9 ↔ 1 in the grid, both directions, <b>no blade and no
+     * {@code CUTS}</b>. You unroll it by hand. That also keeps the rule the Press introduced exactly
+     * true — <b>charas never goes through the Press</b> — while giving the rarest thing in the family
+     * somewhere to sit on a shelf.
+     *
+     * <p>Honey sound group, like the two bars: sticky, soft, resinous.
+     */
+    public static final Block CHARAS_BALL = registerBlock("charas_ball", Block::new,
+            AbstractBlock.Settings.create()
+                    .strength(0.5F)
+                    .sounds(BlockSoundGroup.HONEY)
+                    .nonOpaque()
+                    .pistonBehavior(PistonBehavior.DESTROY));
+
     public static final Block SPACE_CAKE = registerBlockWithItem("space_cake", SpaceCakeBlock::new,
             AbstractBlock.Settings.copy(Blocks.CAKE),
             EdibleBlockItem::new,

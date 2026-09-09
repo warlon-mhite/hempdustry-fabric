@@ -1,8 +1,11 @@
 package com.warlonmhite.hempdustry.compat;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
+import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
@@ -10,7 +13,9 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.recipe.DecarboxylatingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
+import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
+import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -18,7 +23,12 @@ import net.minecraft.item.Items;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.world.World;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.util.Formatting;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -60,6 +70,9 @@ public final class ViewerRecipes {
     public static final Identifier DECARBOXYLATING = Identifier.of(Hempdustry.MOD_ID, "decarboxylating");
     public static final Identifier INFUSING = Identifier.of(Hempdustry.MOD_ID, "infusing");
     public static final Identifier CAULDRON = Identifier.of(Hempdustry.MOD_ID, "cauldron");
+    public static final Identifier PRESSING = Identifier.of(Hempdustry.MOD_ID, "pressing");
+    public static final Identifier SIFTING = Identifier.of(Hempdustry.MOD_ID, "sifting");
+    public static final Identifier ICE_O_LATOR = Identifier.of(Hempdustry.MOD_ID, "ice_o_lator");
 
     /**
      * One row in a viewer: what goes in, what comes out, and the lines of text that carry whatever
@@ -122,6 +135,90 @@ public final class ViewerRecipes {
         return out;
     }
 
+    /** Every squeeze the press will take, read from {@code hempdustry:pressing}. */
+    public static List<Entry> pressing(World world) {
+        List<Entry> out = new ArrayList<>();
+        for (RecipeEntry<PressingRecipe> entry : ModRecipes.allOfType(world, ModRecipes.PRESSING_TYPE)) {
+            PressingRecipe recipe = entry.value();
+            out.add(new Entry(entry.id().getValue(), List.of(recipe.ingredient()), recipe.result(),
+                    List.of(Text.translatable("hempdustry.category.pressing.heat"),
+                            Text.translatable("hempdustry.category.pressing.info",
+                                    seconds(HempPressBlockEntity.pressTime()))),
+                    false));
+        }
+        return out;
+    }
+
+    /**
+     * The Sifting Box's two modes, neither of which has a recipe to read: it is a vessel, so what it
+     * takes and what it makes are constants in a block rather than data anybody can see. Both are
+     * built from those same constants, the way the cauldron's page is, so a page cannot drift from
+     * the code.
+     *
+     * <p>Two categories rather than one, because <b>the water changes what comes out</b> and a
+     * single page could not say that without lying about one of the two.
+     */
+    public static List<Entry> sifting(World world) {
+        return List.of(
+                screen(world, ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE,
+                        ModItems.KIEF, "flower"),
+                screen(world, ModTags.Items.SIFTABLE_TRIM, SiftingBoxBlock.TRIM_CHANCE,
+                        ModItems.KIEF, "trim"),
+                // The re-sift, which is the one row a player will not guess: the same box, a second
+                // pass, and a different product out. Its cost is the whole reason the ice room is
+                // worth building, so it has to be visible rather than discovered.
+                screen(world, ModTags.Items.SIFTABLE_KIEF, SiftingBoxBlock.KIEF_CHANCE,
+                        ModItems.FILTERED_KIEF, "kief"));
+    }
+
+    private static Entry screen(World world, TagKey<Item> input, float chance, Item output, String name) {
+        return new Entry(Identifier.of(Hempdustry.MOD_ID, "sifting/" + name),
+                List.of(ofTag(world, input)),
+                new ItemStack(output, SiftingBoxBlock.YIELD),
+                List.of(Text.translatable("hempdustry.category.sifting.info",
+                        Math.round(SiftingBoxBlock.FULL_LEVEL / chance))),
+                true);
+    }
+
+    /**
+     * The ice-water wash — the same block with a bucket of water in it and ice on all four sides.
+     *
+     * <p><b>Three rows, one per jacket</b>, because the jacket is the entire mechanic and a page
+     * that showed only "plant in, powder out" would be hiding the one thing a player has to know.
+     * The counts are the same arithmetic the block runs: {@code FULL_LEVEL} over the rate.
+     */
+    public static List<Entry> iceOLator(World world) {
+        return List.of(
+                wash(world, Items.BLUE_ICE, SiftingBoxBlock.BLUE_ICE_RATE),
+                wash(world, Items.PACKED_ICE, SiftingBoxBlock.PACKED_ICE_RATE),
+                wash(world, Items.ICE, SiftingBoxBlock.ICE_RATE));
+    }
+
+    private static Entry wash(World world, Item jacket, float rate) {
+        int buds = Math.round(SiftingBoxBlock.FULL_LEVEL / (SiftingBoxBlock.FLOWER_CHANCE * rate));
+        int leaves = Math.round(SiftingBoxBlock.FULL_LEVEL / (SiftingBoxBlock.TRIM_CHANCE * rate));
+        return new Entry(Identifier.of(Hempdustry.MOD_ID, "ice_o_lator/" + Registries.ITEM.getId(jacket).getPath()),
+                List.of(ofTag(world, ModTags.Items.SIFTABLE_FLOWER),
+                        Ingredient.ofItems(Items.WATER_BUCKET),
+                        Ingredient.ofItems(jacket)),
+                new ItemStack(ModItems.BUBBLE_HASH, SiftingBoxBlock.YIELD),
+                List.of(Text.translatable("hempdustry.category.ice_o_lator.jacket")
+                                .formatted(Formatting.DARK_GRAY),
+                        Text.translatable("hempdustry.category.ice_o_lator.info", buds, leaves)),
+                true);
+    }
+
+    /**
+     * An {@code Ingredient} over a tag, resolved against the world the viewer is looking at — which
+     * is what makes these pages show a third-party strain's buds the moment a datapack adds them.
+     * An unresolvable tag answers empty rather than throwing: a missing tag is a datapack problem,
+     * not a reason for a recipe viewer to fail to open.
+     */
+    private static Ingredient ofTag(World world, TagKey<Item> tag) {
+        return world.getRegistryManager().getOrThrow(RegistryKeys.ITEM).getOptional(tag)
+                .map(Ingredient::ofTag).orElse(Ingredient.ofItems(ModItems.HEMP_LEAF));
+    }
+
     /**
      * The two water-cauldron behaviours, which are the only step in the whole chain a player cannot
      * discover from anywhere else: they are not recipes, so the recipe book cannot show them, and
@@ -166,14 +263,28 @@ public final class ViewerRecipes {
      */
     public static List<Packing> packing(RegistryWrapper.WrapperLookup registries) {
         List<Packing> out = new ArrayList<>();
+        RegistryEntry<Strain> hashish = Strain.registry(registries)
+                .getOptional(ModStrains.HASHISH).orElse(null);
         for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
             // Every device, from the one place that knows them all: a device added later gets its
             // packing rows in both viewers without this file being touched.
             for (Map.Entry<DeviceType, Item> entry : ModItems.devices().entrySet()) {
                 DeviceType type = entry.getKey();
                 Item device = entry.getValue();
-                for (int dose = 1; dose <= type.maxDose(); dose++) {
+                // Rows climb one ITEM at a time, not one dose point at a time, and a row that the
+                // real recipe would refuse is never drawn. Identical for every strain but rosin,
+                // whose one piece is worth three -- so it gets a bong row and no others, which is
+                // the whole of "concentrates are bong-only" showing up in a viewer for free.
+                int step = Math.max(1, strain.value().dosePerItem());
+                for (int dose = step; dose <= type.maxDose(); dose += step) {
                     out.add(packed(strain, device, type, dose));
+                }
+                // The moon rock: one item, one bowl, and the only row here whose load is two
+                // entries. Skipped where a device's maxDose refuses it, which is a pipe and a
+                // vaporizer, and skipped for strains that never grew on a plant.
+                if (hashish != null && strain.value().flower().isPresent()
+                        && ModItems.MOON_ROCK_DOSE <= type.maxDose()) {
+                    out.add(packedMoonRock(strain, hashish, device, type));
                 }
             }
         }
@@ -188,13 +299,39 @@ public final class ViewerRecipes {
 
         List<Ingredient> inputs = new ArrayList<>();
         inputs.add(Ingredient.ofItems(device));
-        for (int i = 0; i < dose; i++) {
+        // How many of the item, not how many dose points -- see the step above.
+        int items = dose / Math.max(1, strain.value().dosePerItem());
+        for (int i = 0; i < items; i++) {
             inputs.add(Ingredient.ofItems(strain.value().buds()));
         }
         Identifier id = Identifier.of(Hempdustry.MOD_ID,
                 "packing/" + strain.registryKey().getValue().getPath() + "/"
                         + type.name().toLowerCase(java.util.Locale.ROOT) + "_" + dose);
         return new Packing(id, inputs, result);
+    }
+
+    /**
+     * A moon rock row. Its input ingredient is the <b>bare</b> moon rock item, because an
+     * {@code Ingredient} matches on item identity and cannot ask about components — so the page
+     * draws an untinted, unnamed nug where a player would expect "Purple Kush Moon Rock".
+     *
+     * <p>Only the picture is wrong. A viewer's "move ingredients into the grid" pulls whatever
+     * moon rock the player actually has, which is a loaded one, and {@code PackingRecipe} then
+     * reads its load and crafts correctly.
+     */
+    private static Packing packedMoonRock(RegistryEntry.Reference<Strain> strain,
+                                          RegistryEntry<Strain> hashish, Item device, DeviceType type) {
+        ItemStack result = new ItemStack(device);
+        result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, ModItems.MOON_ROCK_DOSE,
+                hashish, ModItems.MOON_ROCK_HASH_DOSE));
+        result.set(ModComponents.CHARGES, type.bowlSize());
+        Identifier id = Identifier.of(Hempdustry.MOD_ID,
+                "packing/" + strain.registryKey().getValue().getPath() + "/"
+                        + type.name().toLowerCase(java.util.Locale.ROOT) + "_moon_rock");
+        return new Packing(id,
+                List.of(Ingredient.ofItems(device),
+                        Ingredient.ofItems(ModItems.MOON_ROCK)),
+                result);
     }
 
     /** One packing permutation, shaped for whatever a viewer calls a shapeless crafting recipe. */
@@ -258,6 +395,10 @@ public final class ViewerRecipes {
     public static List<Item> smokeables() {
         List<Item> out = new ArrayList<>();
         out.add(ModItems.SPLIFF);
+        // A moon rock's strain lives in the same component a spliff's does, so without this every
+        // strain's moon rock folds into one entry in the item list -- and the moon rock crafting
+        // rows, which differ only by that component, collapse with them.
+        out.add(ModItems.MOON_ROCK);
         out.addAll(ModItems.devices().values());
         return out;
     }

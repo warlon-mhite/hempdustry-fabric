@@ -241,7 +241,7 @@ public final class Defoliation {
                 // about a third of the time, on an integrated server as readily as a dedicated one.
                 //
                 // So it is emitted from the server with a null "except" player, which costs the
-                // actor about a tick of latency and is exactly what DrySifterBlock does for the same
+                // actor about a tick of latency and is exactly what SiftingBoxBlock does for the same
                 // success-or-not distinction (COMPOSTER_FILL vs COMPOSTER_FILL_SUCCESS), and what
                 // vanilla's composter does before it. Honey is the mod's resin sound -- a hashish
                 // bar is cut to it too -- so "that noise means resin" is one thing to learn.
