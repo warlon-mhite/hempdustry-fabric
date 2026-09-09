@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.item.custom;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -30,10 +31,18 @@ public final class SmokeScheduler {
 
     private static final class Pending {
         final UUID player;
+        /**
+         * What to puff. Held rather than looked up on arrival because the stack that was smoked may
+         * be gone by then — a spliff is consumed on the same tick it is used. Particle types are
+         * registry singletons with no world or entity behind them, so parking one here for two
+         * seconds keeps nothing else alive.
+         */
+        final ParticleEffect particle;
         int ticksLeft;
 
-        Pending(UUID player, int ticksLeft) {
+        Pending(UUID player, ParticleEffect particle, int ticksLeft) {
             this.player = player;
+            this.particle = particle;
             this.ticksLeft = ticksLeft;
         }
     }
@@ -50,9 +59,9 @@ public final class SmokeScheduler {
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> PENDING.clear());
     }
 
-    /** Schedules an exhale puff for {@code player} in {@code delayTicks} ticks. */
-    public static void schedule(PlayerEntity player, int delayTicks) {
-        PENDING.add(new Pending(player.getUuid(), Math.max(1, delayTicks)));
+    /** Schedules an exhale puff of {@code particle} for {@code player} in {@code delayTicks} ticks. */
+    public static void schedule(PlayerEntity player, ParticleEffect particle, int delayTicks) {
+        PENDING.add(new Pending(player.getUuid(), particle, Math.max(1, delayTicks)));
     }
 
     private static void tick(MinecraftServer server) {
@@ -65,7 +74,7 @@ public final class SmokeScheduler {
             }
             ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
             if (player != null && player.isAlive()) {
-                Smoking.spawnExhale(player.getEntityWorld(), player);
+                Smoking.spawnExhale(player.getEntityWorld(), player, pending.particle);
             }
             return true;
         });

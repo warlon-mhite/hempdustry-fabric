@@ -689,7 +689,30 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(Blocks.GLASS), conditionsFromItem(Blocks.GLASS))
                 .offerTo(exporter, id("bong"));
 
-        // Pack an empty pipe/bong with a strain's buds in the crafting grid. Special recipe so the
+        // Iron chamber, a redstone heating element, and a hemp-plank body. Redstone is in the CRAFT
+        // and not in the bowl, which is what the name promises: no vanilla "Redstone X" burns
+        // redstone as fuel — the Torch, Lamp, Repeater and Comparator are every one of them crafted
+        // with it and none of them consume it. Packing a vaporizer is therefore bud + device,
+        // exactly as it is for the pipe and bong, and PackingRecipe needed no change at all.
+        //
+        // The hemp planks are the anti-collision guard, the same rule the Decarboxylator's recipe
+        // above records: no other mod can reference hempdustry:hemp_planks, so this pattern cannot
+        // ambiguously match somebody else's in a kitchen-sink pack. They also earn the slot on their
+        // own — wooden-bodied dry-herb vaporizers are the iconic form of the thing.
+        //
+        // Unlock on the hemp planks rather than the iron: iron is early and unlocking on it would
+        // put this in the recipe book long before a player could plausibly build it.
+        createShaped(RecipeCategory.MISC, ModItems.VAPORIZER)
+                .pattern(" I ")
+                .pattern("IRI")
+                .pattern(" P ")
+                .input('I', Items.IRON_INGOT)
+                .input('R', Items.REDSTONE)
+                .input('P', ModBlocks.HEMP_PLANKS)
+                .criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS))
+                .offerTo(exporter, id("vaporizer"));
+
+        // Pack an empty device with a strain's buds in the crafting grid. Special recipe so the
         // device's durability + enchantments carry over onto the packed result (see PackingRecipe).
         ComplexRecipeJsonBuilder.create(PackingRecipe::new).offerTo(exporter, id("packing"));
 

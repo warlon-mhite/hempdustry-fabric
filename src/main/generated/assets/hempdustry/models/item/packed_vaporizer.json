@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "hempdustry:item/vaporizer",
+    "layer1": "hempdustry:item/packed_vaporizer_load"
+  }
+}

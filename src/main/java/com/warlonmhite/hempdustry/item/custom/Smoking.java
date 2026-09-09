@@ -13,7 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -150,7 +150,8 @@ public final class Smoking {
      */
     public static void takeHit(World world, PlayerEntity player, ItemStack stack,
                                SmokeContents contents, int durationTicks, int coughChanceOneIn,
-                               int nauseaChanceOneIn, int greenOutChanceOneIn) {
+                               int nauseaChanceOneIn, int greenOutChanceOneIn,
+                               ParticleEffect exhaleParticle) {
         world.playSound(null, player.getX(), player.getY(), player.getZ(),
                 ModSounds.SMOKING, SoundCategory.PLAYERS, 1f, 1f);
 
@@ -177,7 +178,7 @@ public final class Smoking {
         }
 
         if (!world.isClient()) {
-            SmokeScheduler.schedule(player, EXHALE_DELAY_TICKS);
+            SmokeScheduler.schedule(player, exhaleParticle, EXHALE_DELAY_TICKS);
         }
 
         if (coughChanceOneIn > 0 && ThreadLocalRandom.current().nextInt(coughChanceOneIn) == 0) {
@@ -244,12 +245,18 @@ public final class Smoking {
         EffectPolicy.filter(List.of(effect)).forEach(player::addStatusEffect);
     }
 
-    /** A small smoke puff at the player's mouth, drifting the way they're facing. */
-    static void spawnExhale(ServerWorld world, PlayerEntity player) {
+    /**
+     * A small puff at the player's mouth, drifting the way they're facing. What it puffs is the
+     * device's own: smoke for anything that burns, {@code CLOUD} for the vaporizer, which does not.
+     *
+     * <p>{@code ServerWorld.spawnParticles} sends a packet to every player in range rather than to
+     * the smoker alone, which is what makes this visible to everyone else on a server.
+     */
+    static void spawnExhale(ServerWorld world, PlayerEntity player, ParticleEffect particle) {
         Vec3d look = player.getRotationVector();
         double x = player.getX() + look.x * 0.5;
         double y = player.getEyeY() - 0.1 + look.y * 0.5;
         double z = player.getZ() + look.z * 0.5;
-        world.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, x, y, z, 8, 0.02, 0.02, 0.02, 0.005);
+        world.spawnParticles(particle, x, y, z, 8, 0.02, 0.02, 0.02, 0.005);
     }
 }

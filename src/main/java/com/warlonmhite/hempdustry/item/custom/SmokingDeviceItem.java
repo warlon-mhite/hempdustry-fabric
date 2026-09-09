@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
+import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,7 +15,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.world.World;
 
 /**
- * A smoking device — wooden pipe or bong — in <em>either</em> state. Empty and packed are the same
+ * A smoking device — wooden pipe, bong or vaporizer — in <em>either</em> state. Empty and packed are the same
  * item; what is loaded lives in the {@code hempdustry:smoke_contents} component, the way a potion
  * carries {@code potion_contents}. See CLAUDE.md §5b D10.
  *
@@ -87,25 +88,47 @@ public class SmokingDeviceItem extends Item {
             }
             Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
                     device.coughChanceOneIn(), device.nauseaChanceOneIn(),
-                    Smoking.greenOutChanceOneIn(contents.dose(), false));
+                    Smoking.greenOutChanceOneIn(contents.dose(), false), device.exhaleParticle());
             Smoking.startCooldown(player, stack, EffectPolicy.cooldown(device.cooldownTicks()));
 
             if (!player.getAbilities().creativeMode) {
                 int remaining = stack.getOrDefault(ModComponents.CHARGES, 0) - 1;
                 EquipmentSlot slot = hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
                 stack.damage(1, player, slot);
-                if (!stack.isEmpty()) {
-                    if (remaining <= 0) {
-                        // Bowl spent. Clearing the two components is the whole "revert to empty" —
-                        // durability and enchantments are already where they need to be.
+                if (remaining <= 0) {
+                    // The bowl is spent whether or not the device survived the hit, and both halves
+                    // of that matter. Every device's maxDamage is a whole number of bowls, so the
+                    // shot that breaks one is ALWAYS the last shot of a bowl — for the vaporizer
+                    // that is hit 32 of 32, once in the life of every single one. Yielding inside
+                    // the isEmpty() guard would have silently eaten that last AVB every time.
+                    yieldSpent(player);
+                    if (!stack.isEmpty()) {
+                        // Clearing the two components is the whole "revert to empty" — durability
+                        // and enchantments are already where they need to be.
                         stack.remove(ModComponents.SMOKE_CONTENTS);
                         stack.remove(ModComponents.CHARGES);
-                    } else {
-                        stack.set(ModComponents.CHARGES, remaining);
                     }
+                } else if (!stack.isEmpty()) {
+                    stack.set(ModComponents.CHARGES, remaining);
                 }
             }
         }
         return ActionResult.SUCCESS;
+    }
+
+    /**
+     * Hands back what the finished bowl left behind — <b>AVB</b>, "already vaped bud", as
+     * {@code decarboxylated_hemp}. A no-op for every device that burns its load; see
+     * {@link DeviceType#spentYield()} for why only the vaporizer has any and why it is 1.
+     *
+     * <p>{@code giveItemStack} puts it in the inventory and drops the remainder at the player's feet
+     * if there is no room, which is vanilla's own behaviour for a bucket emptying or a bundle
+     * spilling — the yield can never be lost to a full hotbar.
+     */
+    private void yieldSpent(PlayerEntity player) {
+        int yield = device.spentYield();
+        if (yield > 0) {
+            player.giveItemStack(new ItemStack(ModItems.DECARBOXYLATED_HEMP, yield));
+        }
     }
 }

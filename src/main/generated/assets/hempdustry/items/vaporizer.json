@@ -1,0 +1,25 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "component": "hempdustry:smoke_contents",
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "hempdustry:item/vaporizer"
+    },
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "hempdustry:item/packed_vaporizer",
+      "tints": [
+        {
+          "type": "minecraft:constant",
+          "value": -1
+        },
+        {
+          "type": "hempdustry:strain",
+          "default": 16777215
+        }
+      ]
+    },
+    "property": "minecraft:has_component"
+  }
+}

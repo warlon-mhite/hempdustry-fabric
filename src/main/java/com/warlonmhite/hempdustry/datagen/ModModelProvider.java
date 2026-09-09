@@ -30,6 +30,7 @@ import net.minecraft.registry.RegistryWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class ModModelProvider extends FabricModelProvider {
@@ -181,8 +182,9 @@ public class ModModelProvider extends FabricModelProvider {
         // This is the half of the strain system a datapack can actually reach. Bespoke art needs a
         // texture and a datapack cannot ship one, so before this a datapack's strain packed a device
         // that looked exactly like every other strain's.
-        for (DeviceType device : DeviceType.values()) {
-            Item item = device == DeviceType.PIPE ? ModItems.WOODEN_PIPE : ModItems.BONG;
+        for (Map.Entry<DeviceType, Item> deviceEntry : ModItems.devices().entrySet()) {
+            DeviceType device = deviceEntry.getKey();
+            Item item = deviceEntry.getValue();
             Identifier packedModel = Models.GENERATED_TWO_LAYERS.upload(
                     Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedModel()),
                     TextureMap.layered(texture(device.baseName()), texture(device.packedModel() + "_load")),

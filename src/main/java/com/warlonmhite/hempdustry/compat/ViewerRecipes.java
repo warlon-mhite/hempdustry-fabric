@@ -7,7 +7,6 @@ import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
-import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.recipe.DecarboxylatingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
@@ -26,6 +25,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * What a recipe viewer should be shown, worked out once and read by both plugins.
@@ -167,11 +167,11 @@ public final class ViewerRecipes {
     public static List<Packing> packing(RegistryWrapper.WrapperLookup registries) {
         List<Packing> out = new ArrayList<>();
         for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-            for (Item device : List.of(ModItems.WOODEN_PIPE, ModItems.BONG)) {
-                if (!(device instanceof SmokingDeviceItem smokeable)) {
-                    continue;
-                }
-                DeviceType type = smokeable.device();
+            // Every device, from the one place that knows them all: a device added later gets its
+            // packing rows in both viewers without this file being touched.
+            for (Map.Entry<DeviceType, Item> entry : ModItems.devices().entrySet()) {
+                DeviceType type = entry.getKey();
+                Item device = entry.getValue();
                 for (int dose = 1; dose <= type.maxDose(); dose++) {
                     out.add(packed(strain, device, type, dose));
                 }
@@ -248,9 +248,18 @@ public final class ViewerRecipes {
         return key.toString();
     }
 
-    /** The items {@link #smokeKey} applies to — everything that can be packed. */
+    /**
+     * The items {@link #smokeKey} applies to — everything that can be packed.
+     *
+     * <p>Built from {@link ModItems#devices()} rather than listed by hand: this is what tells a
+     * viewer that a packed vaporizer and an empty one are different entries, and a device left out
+     * of it silently folds every load of that device into the empty one in the item list.
+     */
     public static List<Item> smokeables() {
-        return List.of(ModItems.SPLIFF, ModItems.WOODEN_PIPE, ModItems.BONG);
+        List<Item> out = new ArrayList<>();
+        out.add(ModItems.SPLIFF);
+        out.addAll(ModItems.devices().values());
+        return out;
     }
 
     /** Ticks as whole seconds, for a note. */

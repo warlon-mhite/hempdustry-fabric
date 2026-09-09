@@ -7,6 +7,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.tooltip.TooltipType;
@@ -98,7 +99,8 @@ public class SpliffItem extends Item {
             }
             Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
                     COUGH_CHANCE_ONE_IN, NAUSEA_CHANCE_ONE_IN,
-                    Smoking.greenOutChanceOneIn(contents.dose(), true));
+                    Smoking.greenOutChanceOneIn(contents.dose(), true),
+                    ParticleTypes.CAMPFIRE_COSY_SMOKE);
             // Marks the stack before it shrinks: what is left of it is what the player smoked
             // from, and that is what the cooldown swipe should sit on.
             Smoking.startCooldown(player, stack, EffectPolicy.cooldown(COOLDOWN_TICKS));
