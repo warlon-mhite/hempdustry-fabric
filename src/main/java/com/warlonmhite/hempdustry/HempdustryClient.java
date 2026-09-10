@@ -35,6 +35,9 @@ public class HempdustryClient implements ClientModInitializer {
         BlockRenderLayerMap.putBlock(ModBlocks.HEMP_PLANKS_TRAPDOOR, BlockRenderLayer.CUTOUT);
 
 
+        // Vanilla's leaves texture, holes and all — solid would fill them in with black.
+        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_LEAVES, BlockRenderLayer.CUTOUT);
+
         BlockRenderLayerMap.putBlock(ModBlocks.INDICA_CROP, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.INDICA_FLOWER, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.POTTED_INDICA_FLOWER, BlockRenderLayer.CUTOUT);

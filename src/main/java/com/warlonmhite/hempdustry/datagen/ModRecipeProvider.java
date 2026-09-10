@@ -237,6 +237,19 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModBlocks.HEMP_BALE), conditionsFromItem(ModBlocks.HEMP_BALE))
                 .offerTo(exporter, id("hemp_stem_from_bale"));
 
+        createShaped(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_LEAVES)
+                .pattern("###")
+                .pattern("###")
+                .pattern("###")
+                .input('#', ModItems.HEMP_LEAF)
+                .criterion(hasItem(ModItems.HEMP_LEAF), conditionsFromItem(ModItems.HEMP_LEAF))
+                .offerTo(exporter, id("hemp_leaves"));
+
+        createShapeless(RecipeCategory.MISC, ModItems.HEMP_LEAF, 9)
+                .input(ModBlocks.HEMP_LEAVES)
+                .criterion(hasItem(ModBlocks.HEMP_LEAVES), conditionsFromItem(ModBlocks.HEMP_LEAVES))
+                .offerTo(exporter, id("hemp_leaf_from_leaves"));
+
         // Hempcrete -> planks, brick, powder block
         createShaped(RecipeCategory.MISC, ModBlocks.HEMP_PLANKS)
                 .pattern("###")

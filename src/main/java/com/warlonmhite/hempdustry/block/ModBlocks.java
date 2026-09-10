@@ -92,6 +92,35 @@ public class ModBlocks {
     public static final Block HEMP_BALE = registerBlock("hemp_bale", PillarBlock::new,
             AbstractBlock.Settings.copy(Blocks.HAY_BLOCK).strength(0.5f).sounds(BlockSoundGroup.GRASS));
 
+    /**
+     * Nine hemp leaves baled into a block, and back again. Vanilla's leaves settings to the pixel —
+     * it is in {@code #minecraft:leaves}, which is the <em>only</em> way to get shears' 15× mining
+     * rule (that rule names the tag, not a block list — verified in {@code ShearsItem}), and carries
+     * {@code #minecraft:mineable/hoe} and {@code #sword_efficient} in for free.
+     * <p>
+     * Deliberately <b>not</b> a {@link LeavesBlock}: that class exists to decay, and this block is
+     * crafted rather than grown, so there is no log for a {@code distance} to count from. Everything
+     * that reads that property guards on {@code state.contains(DISTANCE)} first, so a plain
+     * {@link Block} sits in the tag safely.
+     * <p>
+     * The tag's one real cost is {@code #replaceable_by_trees} — a sapling grown next to a wall of
+     * these will eat it. That is exactly what happens to a wall of oak leaves, so it stays.
+     * <p>
+     * Untinted, unlike every vanilla leaf: the texture carries hemp's own green rather than the
+     * biome's, which also keeps it out of the tint-pairing trap in {@code crops.md}.
+     */
+    public static final Block HEMP_LEAVES = registerBlock("hemp_leaves", Block::new,
+            AbstractBlock.Settings.create()
+                    .mapColor(MapColor.DARK_GREEN)
+                    .strength(0.2F)
+                    .sounds(BlockSoundGroup.GRASS)
+                    .nonOpaque()
+                    .burnable()
+                    .allowsSpawning(Blocks::canSpawnOnLeaves)
+                    .suffocates(Blocks::never)
+                    .blockVision(Blocks::never)
+                    .solidBlock(Blocks::never));
+
 
     /**
      * Hemp cloth in bulk — the bale, not a lighter fabric than canvas. Vanilla wool's settings

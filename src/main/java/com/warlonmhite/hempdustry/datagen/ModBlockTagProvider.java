@@ -118,6 +118,17 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .addOptionalTag(ModTags.Conventional.HEMP_STORAGE_BLOCKS_BLOCK);
         valueLookupBuilder(ConventionalBlockTags.CONCRETES).add(ModBlocks.HEMPCRETE_BLOCK);
 
+        // HEMP_LEAVES joins the vanilla leaves tag, which is the only route to shears' 15x mining
+        // rule — that rule names this tag rather than a block list (ShearsItem#createToolComponent).
+        // It brings #minecraft:mineable/hoe and #minecraft:sword_efficient along, since both include
+        // this tag, so one entry buys the whole vanilla leaf-breaking feel. The cost is
+        // #replaceable_by_trees, which includes it too: a sapling grown beside a wall of these eats
+        // it, exactly as it eats a wall of oak leaves.
+        //
+        // The matching ITEM tag is deliberately NOT joined. Its one vanilla effect is the leaf_litter
+        // smelting recipe, and nine hemp leaves for one leaf litter is a trade nobody asked for.
+        valueLookupBuilder(BlockTags.LEAVES).add(ModBlocks.HEMP_LEAVES);
+
         valueLookupBuilder(BlockTags.PICKAXE_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_BLOCK)
                 .add(ModBlocks.DECARBOXYLATOR)

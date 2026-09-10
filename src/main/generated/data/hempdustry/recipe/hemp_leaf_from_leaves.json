@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "hempdustry:hemp_leaves"
+  ],
+  "result": {
+    "count": 9,
+    "id": "hempdustry:hemp_leaf"
+  }
+}
