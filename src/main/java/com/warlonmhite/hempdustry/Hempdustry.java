@@ -80,18 +80,19 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.INDICA_FLOWER, 0.65f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.SATIVA_FLOWER, 0.65f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
-		// The two storage blocks, both at their vanilla counterpart's rate. Vanilla composts hay at
-		// 0.85 and every leaf block at 0.3, so a bale of stems and a block of leaves are not the
-		// same tier and should not be -- leaves are the bottom of vanilla's ladder wherever they
-		// appear. The bale had simply been missed: hay_block is 0.85 in the 1.21.11 bytecode, and
-		// nothing about the bale ever argued for declining it.
+		// The two storage blocks. Vanilla puts every compacted plant block a tier above the item it
+		// is made from -- dried kelp 0.3 to the dried kelp block's 0.5, wheat 0.65 to hay's 0.85 --
+		// so the bale sits at hay's 0.85 and the leaf block at the dried kelp block's 0.5. The leaf
+		// block is not a tree's leaves, which are 0.3 wherever they appear: it is nine leaves
+		// pressed together, which is the dried kelp block's case exactly. The bale had simply been
+		// missed: hay_block is 0.85 in the 1.21.11 bytecode.
 		//
 		// Neither is an exploit in either direction, which is why the numbers can just follow
 		// vanilla. Composting nine stems at 0.5 each is worth far more than one bale at 0.85, and
-		// nine leaves at 0.3 each far more than one leaf block at 0.3 -- exactly as nine wheat beat
+		// nine leaves at 0.3 each far more than one leaf block at 0.5 -- exactly as nine wheat beat
 		// a hay bale in vanilla. Compacting to compost is always the worse trade.
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMP_BALE, 0.85f);
-		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMP_LEAVES, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMP_LEAVES, 0.5f);
 
 		// Fuel is a build-time event since 1.21.2 rather than a registry you push entries into.
 		FuelRegistryEvents.BUILD.register((builder, context) -> {

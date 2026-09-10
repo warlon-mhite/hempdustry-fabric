@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.NoteBlockInstrument;
+import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -108,6 +109,11 @@ public class ModBlocks {
      * <p>
      * Untinted, unlike every vanilla leaf: the texture carries hemp's own green rather than the
      * biome's, which also keeps it out of the tint-pairing trap in {@code crops.md}.
+     * <p>
+     * A piston breaks it rather than pushing it, as vanilla's {@code createLeavesSettings} sets for
+     * every leaf. That line was missed on the way in, and a leaf block that a piston shoves like
+     * stone reads as a bug. {@code ticksRandomly} is the one vanilla setting left out: it only
+     * drives decay.
      */
     public static final Block HEMP_LEAVES = registerBlock("hemp_leaves", Block::new,
             AbstractBlock.Settings.create()
@@ -119,7 +125,8 @@ public class ModBlocks {
                     .allowsSpawning(Blocks::canSpawnOnLeaves)
                     .suffocates(Blocks::never)
                     .blockVision(Blocks::never)
-                    .solidBlock(Blocks::never));
+                    .solidBlock(Blocks::never)
+                    .pistonBehavior(PistonBehavior.DESTROY));
 
 
     /**
