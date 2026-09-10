@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.NoteBlockInstrument;
+import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.BlockItem;
@@ -109,6 +110,11 @@ public class ModBlocks {
      * Untinted, unlike every vanilla leaf: the texture carries hemp's own green rather than the
      * biome's, which also keeps it out of the tint-pairing trap in {@code crops.md}.
      * <p>
+     * A piston breaks it rather than pushing it, as vanilla's {@code createLeavesBlock} sets for
+     * every leaf. That line was missed on the way in, and a leaf block that a piston shoves like
+     * stone reads as a bug. {@code ticksRandomly} is the one vanilla setting left out: it only
+     * drives decay.
+     * <p>
      * The four predicates are spelled out rather than borrowed from {@code Blocks}: vanilla's
      * {@code never} and {@code canSpawnOnLeaves} helpers are private on this line. The spawning one
      * is vanilla's own rule verbatim — ocelots and parrots, nothing else.
@@ -124,7 +130,8 @@ public class ModBlocks {
                             type == EntityType.OCELOT || type == EntityType.PARROT)
                     .suffocates((state, world, pos) -> false)
                     .blockVision((state, world, pos) -> false)
-                    .solidBlock((state, world, pos) -> false)));
+                    .solidBlock((state, world, pos) -> false)
+                    .pistonBehavior(PistonBehavior.DESTROY)));
 
 
     /**
