@@ -5,6 +5,8 @@
     "minecraft:smoker",
     "minecraft:blast_furnace",
     "minecraft:magma_block",
+    "minecraft:lava",
+    "minecraft:lava_cauldron",
     "hempdustry:decarboxylator"
   ]
 }
