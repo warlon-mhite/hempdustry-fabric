@@ -33,6 +33,14 @@ beta be told when the release lands.
   the screen share one button without getting in each other's way. In the screen, the two bucket
   slots are replaced by a milk indicator beside the flame, and the recipe pages in JEI and REI now
   say the milk is poured in. The tub still holds one milk and makes one cannabutter per batch.
+- **Wild hemp is much harder to find.** Wild Purple Kush and Lemon Haze now turn up about a fifth as
+  often as before, and a find is usually one to four plants rather than a field. Every so often you
+  will still stumble on a big patch of six to eight. Only newly explored land is affected; wild
+  plants already standing in your world stay where they are.
+  - Bone meal on grass could also grow wild hemp, anywhere it grows wild — an endless free supply
+    of seeds. It grows only vanilla flowers now.
+  - Wild Purple Kush now really does grow on the moss of lush caves, a plant here and there. It was
+    meant to from the start, but it was being planted before the moss was laid and never took.
 
 ### Added
 

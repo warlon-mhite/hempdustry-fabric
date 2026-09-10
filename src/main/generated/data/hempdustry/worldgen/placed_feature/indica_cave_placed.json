@@ -3,7 +3,7 @@
   "placement": [
     {
       "type": "minecraft:count",
-      "count": 24
+      "count": 64
     },
     {
       "type": "minecraft:in_square"
@@ -24,7 +24,11 @@
       "type": "minecraft:environment_scan",
       "allowed_search_condition": {
         "type": "minecraft:matching_blocks",
-        "blocks": "minecraft:air"
+        "blocks": [
+          "minecraft:air",
+          "minecraft:moss_carpet",
+          "minecraft:short_grass"
+        ]
       },
       "direction_of_search": "down",
       "max_steps": 12,
