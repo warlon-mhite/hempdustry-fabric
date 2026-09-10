@@ -149,8 +149,24 @@ public final class Smoking {
     public static void takeHit(World world, PlayerEntity player, ItemStack stack,
                                SmokeContents contents, int durationTicks, int coughChanceOneIn,
                                int nauseaChanceOneIn, int greenOutChanceOneIn) {
-        world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                ModSounds.SMOKING, SoundCategory.PLAYERS, 1f, 1f);
+        takeHit(world, player, stack, contents, durationTicks, coughChanceOneIn,
+                nauseaChanceOneIn, greenOutChanceOneIn, 0);
+    }
+
+    /**
+     * As above, but the inhale sound (and the exhale puff timed off it) trail the hit by
+     * {@code soundDelayTicks}. The bong uses this to let its own bubbling — played by the caller,
+     * not here — clear before the inhale sound starts.
+     */
+    public static void takeHit(World world, PlayerEntity player, ItemStack stack,
+                               SmokeContents contents, int durationTicks, int coughChanceOneIn,
+                               int nauseaChanceOneIn, int greenOutChanceOneIn, int soundDelayTicks) {
+        if (soundDelayTicks > 0) {
+            SmokeScheduler.scheduleSound(player, soundDelayTicks, ModSounds.SMOKING);
+        } else {
+            world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                    ModSounds.SMOKING, SoundCategory.PLAYERS, 1f, 1f);
+        }
 
         // Every chance and every effect below goes through EffectPolicy, which is where the
         // server's config knobs are applied — once, rather than at each site that hands one out.
@@ -175,7 +191,7 @@ public final class Smoking {
         }
 
         if (!world.isClient()) {
-            SmokeScheduler.schedule(player, EXHALE_DELAY_TICKS);
+            SmokeScheduler.schedule(player, EXHALE_DELAY_TICKS + soundDelayTicks);
         }
 
         if (coughChanceOneIn > 0 && ThreadLocalRandom.current().nextInt(coughChanceOneIn) == 0) {

@@ -6,6 +6,13 @@
     ]
   },
 
+  "bonghit": {
+    "subtitle": "subtitles.hempdustry.bonghit",
+    "sounds": [
+      "hempdustry:bonghit"
+    ]
+  },
+
   "coughing": {
     "subtitle": "subtitles.hempdustry.coughing",
     "sounds": [

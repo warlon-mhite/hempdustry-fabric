@@ -2,12 +2,14 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
+import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ActionResult;
@@ -87,7 +89,11 @@ public class SmokingDeviceItem extends Item {
             }
             Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
                     device.coughChanceOneIn(), device.nauseaChanceOneIn(),
-                    Smoking.greenOutChanceOneIn(contents.dose(), false));
+                    Smoking.greenOutChanceOneIn(contents.dose(), false), device.soundDelayTicks());
+            if (device == DeviceType.BONG) {
+                world.playSound(null, player.getX(), player.getY(), player.getZ(),
+                        ModSounds.BONGHIT, SoundCategory.PLAYERS, 1f, 1f);
+            }
             Smoking.startCooldown(player, stack, EffectPolicy.cooldown(device.cooldownTicks()));
 
             if (!player.getAbilities().creativeMode) {

@@ -5,6 +5,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,20 @@ public final class SmokeScheduler {
 
     private static final List<Pending> PENDING = new ArrayList<>();
 
+    private static final class PendingSound {
+        final UUID player;
+        int ticksLeft;
+        final SoundEvent sound;
+
+        PendingSound(UUID player, int ticksLeft, SoundEvent sound) {
+            this.player = player;
+            this.ticksLeft = ticksLeft;
+            this.sound = sound;
+        }
+    }
+
+    private static final List<PendingSound> PENDING_SOUNDS = new ArrayList<>();
+
     /** Registers the tick pump. Call once from mod init. */
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(SmokeScheduler::tick);
@@ -47,7 +63,10 @@ public final class SmokeScheduler {
         // with entries still in it would strand them — and every entry keeps its player's UUID alive
         // in a static field for the rest of the process. Clearing on stop also means the next world
         // never inherits the last one's backlog.
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> PENDING.clear());
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            PENDING.clear();
+            PENDING_SOUNDS.clear();
+        });
     }
 
     /** Schedules an exhale puff for {@code player} in {@code delayTicks} ticks. */
@@ -55,19 +74,36 @@ public final class SmokeScheduler {
         PENDING.add(new Pending(player.getUuid(), Math.max(1, delayTicks)));
     }
 
+    /** Schedules {@code sound} to play at {@code player}'s position in {@code delayTicks} ticks. */
+    public static void scheduleSound(PlayerEntity player, int delayTicks, SoundEvent sound) {
+        PENDING_SOUNDS.add(new PendingSound(player.getUuid(), Math.max(1, delayTicks), sound));
+    }
+
     private static void tick(MinecraftServer server) {
-        if (PENDING.isEmpty()) {
-            return;
+        if (!PENDING.isEmpty()) {
+            PENDING.removeIf(pending -> {
+                if (--pending.ticksLeft > 0) {
+                    return false;
+                }
+                ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
+                if (player != null && player.isAlive()) {
+                    Smoking.spawnExhale(player.getEntityWorld(), player);
+                }
+                return true;
+            });
         }
-        PENDING.removeIf(pending -> {
-            if (--pending.ticksLeft > 0) {
-                return false;
-            }
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
-            if (player != null && player.isAlive()) {
-                Smoking.spawnExhale(player.getEntityWorld(), player);
-            }
-            return true;
-        });
+        if (!PENDING_SOUNDS.isEmpty()) {
+            PENDING_SOUNDS.removeIf(pending -> {
+                if (--pending.ticksLeft > 0) {
+                    return false;
+                }
+                ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
+                if (player != null && player.isAlive()) {
+                    player.getEntityWorld().playSound(null, player.getX(), player.getY(), player.getZ(),
+                            pending.sound, SoundCategory.PLAYERS, 1f, 1f);
+                }
+                return true;
+            });
+        }
     }
 }
