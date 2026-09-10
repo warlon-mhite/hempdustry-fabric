@@ -78,8 +78,9 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // What will heat an Infuser standing on top of it. Anything here that carries a LIT
         // property must also be lit (see InfuserBlockEntity#isHeatedFrom), which is what makes the
         // campfire the practical choice — it is permanently lit and cheap, where a furnace is only
-        // lit while it is itself busy smelting, and a magma block is a Nether trip. Listing all
-        // three gives the player a genuine early/mid/exotic ladder rather than one right answer.
+        // lit while it is itself busy smelting, and a magma block or lava is a Nether trip.
+        // Listing several gives the player a genuine early/mid/exotic ladder rather than one right
+        // answer.
         //
         // Note this is an explicit list, NOT "anything hot": there is no vanilla or Fabric
         // convention tag for heat sources to inherit from (the nearest, c:player_workstations/
@@ -95,6 +96,14 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(Blocks.SMOKER)
                 .add(Blocks.BLAST_FURNACE)
                 .add(Blocks.MAGMA_BLOCK)
+                // Lava, both ways it comes: the fluid and a lava cauldron. Neither carries LIT, so
+                // both are always hot. The cauldron is the tidy one — a full block face, so a hopper
+                // still cannot reach the Infuser's bottom, and one bucket serves forever — while
+                // standing the tub straight on a lava source is the cheap Nether answer. Note
+                // Blocks.LAVA is flowing lava as well, which heats it too: that is the physically
+                // obvious reading, and a flow is not a supply anyone can farm from.
+                .add(Blocks.LAVA)
+                .add(Blocks.LAVA_CAULDRON)
                 // Our own oven counts, which lets the two machines be stacked: the Decarboxylator's
                 // fire heats the Infuser sitting on it. Same LIT caveat as a furnace — it only
                 // radiates while it is actually cooking something.
