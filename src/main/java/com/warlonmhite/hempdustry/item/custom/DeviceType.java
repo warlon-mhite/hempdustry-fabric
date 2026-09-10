@@ -10,9 +10,9 @@ package com.warlonmhite.hempdustry.item.custom;
  * mid-bowl. Tune freely.
  */
 public enum DeviceType {
-    //   registry base   packedModel   maxDamage  bowlSize  maxDose  duration  enchantability  cooldown  cough(1-in-N)  nausea(1-in-N)
-    PIPE("wooden_pipe",  "packed_pipe",  8,         2,        2,       700,      15,             60,       4,             50),
-    BONG("bong",         "packed_bong",  24,        4,        3,       1000,     10,             100,      3,             5);
+    //   registry base   packedModel   maxDamage  bowlSize  maxDose  duration  enchantability  cooldown  cough(1-in-N)  nausea(1-in-N)  soundDelay
+    PIPE("wooden_pipe",  "packed_pipe",  8,         2,        2,       700,      15,             60,       4,             50,             0),
+    BONG("bong",         "packed_bong",  24,        4,        3,       1000,     10,             100,      3,             5,              10);
 
     private final String baseName;
     private final String packedModel;
@@ -24,10 +24,11 @@ public enum DeviceType {
     private final int cooldownTicks;
     private final int coughChanceOneIn;
     private final int nauseaChanceOneIn;
+    private final int soundDelayTicks;
 
     DeviceType(String baseName, String packedModel, int maxDamage, int bowlSize, int maxDose,
                int durationTicks, int enchantability, int cooldownTicks, int coughChanceOneIn,
-               int nauseaChanceOneIn) {
+               int nauseaChanceOneIn, int soundDelayTicks) {
         this.baseName = baseName;
         this.packedModel = packedModel;
         this.maxDamage = maxDamage;
@@ -38,6 +39,7 @@ public enum DeviceType {
         this.cooldownTicks = cooldownTicks;
         this.coughChanceOneIn = coughChanceOneIn;
         this.nauseaChanceOneIn = nauseaChanceOneIn;
+        this.soundDelayTicks = soundDelayTicks;
     }
 
     /** Registry id of the empty device; packed variants are {@code baseName + "_" + strainId}. */
@@ -102,5 +104,15 @@ public enum DeviceType {
     /** Odds of nausea per hit, as 1-in-N (pipe 1-in-50 = 2%, bong 1-in-5 = 20%). */
     public int nauseaChanceOneIn() {
         return nauseaChanceOneIn;
+    }
+
+    /**
+     * Ticks to hold the inhale sound (and the exhale puff that lines up with it) back from the hit
+     * itself. The bong's own bubbling — {@link com.warlonmhite.hempdustry.sound.ModSounds#BONGHIT} —
+     * plays immediately on the hit; the water-clearing take a beat, so the inhale sound needs to
+     * trail behind it to stay in sync. The pipe has nothing playing first, so it stays at 0.
+     */
+    public int soundDelayTicks() {
+        return soundDelayTicks;
     }
 }

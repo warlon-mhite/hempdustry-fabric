@@ -12,6 +12,7 @@ import net.minecraft.util.Identifier;
 public class ModSounds {
 
     public static final SoundEvent SMOKING = registerSoundEvent("smoking");
+    public static final SoundEvent BONGHIT = registerSoundEvent("bonghit");
     public static final SoundEvent COUGHING = registerSoundEvent("coughing");
 
     /**
