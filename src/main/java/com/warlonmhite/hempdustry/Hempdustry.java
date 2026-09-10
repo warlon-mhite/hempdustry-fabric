@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry;
 import com.warlonmhite.hempdustry.advancement.ModCriteria;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
+import com.warlonmhite.hempdustry.block.ModDispenserBehaviors;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
@@ -49,6 +50,7 @@ public class Hempdustry implements ModInitializer {
 		ModBlockEntities.registerBlockEntities();
 		ModScreenHandlers.registerScreenHandlers();
 		ModCauldronBehaviors.registerCauldronBehaviors();
+		ModDispenserBehaviors.registerDispenserBehaviors();
 		ModEntities.registerModEntities();
 		ModSounds.registerSounds();
 		ModWorldGeneration.generateModWorldGeneration();

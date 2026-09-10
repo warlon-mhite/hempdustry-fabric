@@ -41,7 +41,7 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         // The note-line counts are fixed per category rather than measured, because REI asks for a
         // category's height once and uses it for every page in it.
         registry.add(new EntryReiCategory(ViewerRecipes.DECARBOXYLATING, ModBlocks.DECARBOXYLATOR, 1));
-        registry.add(new EntryReiCategory(ViewerRecipes.INFUSING, ModBlocks.INFUSER, 2));
+        registry.add(new EntryReiCategory(ViewerRecipes.INFUSING, ModBlocks.INFUSER, 3));
         registry.add(new EntryReiCategory(ViewerRecipes.CAULDRON, Blocks.WATER_CAULDRON, 1));
 
         // The block you stand in front of to do the thing. REI draws these beside the category and

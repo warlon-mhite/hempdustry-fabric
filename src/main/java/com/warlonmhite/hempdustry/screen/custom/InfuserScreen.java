@@ -37,6 +37,14 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
     private static final int NOTCH_U = 176, NOTCH_V = 5, NOTCH_W = 2, NOTCH_H = 7;
     private static final int MARK_U = 178, MARK_V = 5, MARK_W = 2, MARK_H = 7;
     private static final int FLAME_U = 180, FLAME_V = 5, FLAME_W = 14, FLAME_H = 14;
+    private static final int MILK_U = 194, MILK_V = 5, MILK_W = 14, MILK_H = 12;
+
+    /**
+     * Milk indicator: an empty pot outline, filled white once milk is poured in. It stands where the
+     * milk slot used to, in the left column, as the first of the batch's two preconditions — milk,
+     * then heat — which is why it is a picture like the flame and not a slot: nothing goes in here.
+     */
+    private static final int MILK_X = 27, MILK_Y = 37;
 
     /**
      * The bar runs between the hemp slots and the collection slot, where a furnace puts its arrow.
@@ -46,7 +54,7 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
     /**
      * Heat indicator, centred under the bar and on the row of the bottom two slots.
      *
-     * <p>It used to sit between the milk slot and the bucket return, borrowing a furnace's
+     * <p>It used to sit between the old milk slot and bucket return, borrowing a furnace's
      * fire-in-the-middle-of-the-column arrangement. That read as a lie: this flame is not a fuel
      * gauge and has nothing to do with either bucket — it reports whether the block <em>below</em>
      * the Infuser is hot. Sitting it directly beneath the simmer bar puts it next to the one thing
@@ -91,6 +99,10 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
         float nextGrade = this.handler.getNextGradeMark();
         if (nextGrade >= 0.0F) {
             drawMark(context, x, y, nextGrade, MARK_U, MARK_V, MARK_W, MARK_H);
+        }
+
+        if (this.handler.isFilled()) {
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + MILK_X, y + MILK_Y, MILK_U, MILK_V, MILK_W, MILK_H, 256, 256);
         }
 
         // Heat indicator. Not a fuel gauge — it reports whether something hot is underneath.

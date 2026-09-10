@@ -12,10 +12,14 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsage;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.stat.Stats;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -23,6 +27,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.server.world.ServerWorld;
@@ -48,10 +53,9 @@ import org.jetbrains.annotations.Nullable;
  * the original mistake: a single {@code heated} property meant a tub sitting on a campfire with
  * nothing in it looked and sounded like a working one.
  * <ul>
- *   <li>{@link #FILLED} — there is milk in the tub, either waiting in the slot or already committed
- *       to a batch. This is what the <b>model</b> keys off — the blockstate lays a milk surface into
- *       the pot as a multipart part — and it is deliberately independent of heat: what makes a tub
- *       look full is liquid being in it.</li>
+ *   <li>{@link #FILLED} — there is milk in the tub. This is what the <b>model</b> keys off — the
+ *       blockstate lays a milk surface into the pot as a multipart part — and it is deliberately
+ *       independent of heat: what makes a tub look full is liquid being in it.</li>
  *   <li>{@link #INFUSING} — a batch is actually simmering. This is what the <b>bubbling and steam</b>
  *       key off, so the ambience only ever means "something is happening in here", and stops when
  *       the batch finishes.</li>
@@ -59,6 +63,11 @@ import org.jetbrains.annotations.Nullable;
  * Between them they still teach heat-from-below without a word of text — put a filled tub on a
  * campfire and it starts working in front of you — which is the "you are not wearing a HUD"
  * principle doing real work.
+ *
+ * <p><b>Milk is poured in by hand, the way a cauldron takes water</b> — right-click with a bucket
+ * of milk and the tub fills and hands the empty back. Everything else about a right-click opens the
+ * screen, which is the lectern's rule: a book in hand places it, anything else opens it to read. So
+ * the pour and the GUI share one button without clashing. See {@link #onUseWithItem}.
  *
  * <p>Deliberately absent from {@code FlammableBlockRegistry}, like the rest of the mod's machinery.
  */
@@ -135,6 +144,39 @@ public class InfuserBlock extends BlockWithEntity {
         }
         return validateTicker(type, ModBlockEntities.INFUSER,
                 (tickWorld, pos, tickState, blockEntity) -> blockEntity.tick(tickWorld, pos, tickState));
+    }
+
+    /**
+     * Pours a bucket of milk into an empty tub and hands the empty back — vanilla's cauldron fill,
+     * down to {@link ItemUsage#exchangeStack}'s creative rule (the full bucket is kept, and the empty
+     * is only added if the player has none).
+     *
+     * <p><b>A full tub, or anything that is not milk, falls through to {@link #onUse} and opens the
+     * screen.</b> That is the lectern's rule, and it is what lets a player with milk in hand still
+     * look inside a busy tub. The fall-through has to be {@code super}, not {@code PASS}: since
+     * 1.21.2 {@code onUse} only runs after {@code PASS_TO_DEFAULT_BLOCK_ACTION}, and plain
+     * {@code PASS} would swallow the click (CLAUDE.md §5).
+     *
+     * <p>The client predicts from the synced {@link #FILLED} state and the synced recipe, so the arm
+     * swings at once; the server decides from the block entity, and if the two ever disagree the
+     * server's refusal falls through to the screen like any other.
+     */
+    @Override
+    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
+                                         PlayerEntity player, Hand hand, BlockHitResult hit) {
+        if (state.get(FILLED) || !InfuserBlockEntity.isMilk(world, stack)) {
+            return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+        }
+        if (!world.isClient()) {
+            if (!(world.getBlockEntity(pos) instanceof InfuserBlockEntity infuser) || !infuser.fill(stack, player)) {
+                return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+            }
+            Item milk = stack.getItem();
+            player.setStackInHand(hand,
+                    ItemUsage.exchangeStack(stack, player, InfuserBlockEntity.emptiedContainer(stack)));
+            player.incrementStat(Stats.USED.getOrCreateStat(milk));
+        }
+        return ActionResult.SUCCESS;
     }
 
     @Override

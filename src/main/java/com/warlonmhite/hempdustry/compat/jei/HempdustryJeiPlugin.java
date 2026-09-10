@@ -84,7 +84,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
         decarboxylating = new EntryJeiCategory(gui, ViewerRecipes.DECARBOXYLATING,
                 new ItemStack(ModBlocks.DECARBOXYLATOR), 1);
         infusing = new EntryJeiCategory(gui, ViewerRecipes.INFUSING,
-                new ItemStack(ModBlocks.INFUSER), 2);
+                new ItemStack(ModBlocks.INFUSER), 3);
         cauldron = new EntryJeiCategory(gui, ViewerRecipes.CAULDRON,
                 new ItemStack(Blocks.WATER_CAULDRON), 1);
         registration.addRecipeCategories(decarboxylating, infusing, cauldron);

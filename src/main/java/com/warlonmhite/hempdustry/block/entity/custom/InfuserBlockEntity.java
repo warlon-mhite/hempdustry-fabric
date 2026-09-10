@@ -19,6 +19,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.HopperBlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -33,14 +34,18 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -57,13 +62,11 @@ import org.jetbrains.annotations.Nullable;
  * batch — {@link #haveMilk}, {@link #batchUnwashed}, {@link #batchWashed} — is bookkeeping on this
  * block entity rather than items sitting in slots. Two different rhythms:
  * <ul>
- *   <li><b>Milk goes in on contact, and only ever one at a time.</b> A bucket put in the slot is
- *       emptied into the tub that tick and its empty returned to {@link #BUCKET_SLOT} — but only if
- *       the tub is empty. <b>One milk buys one cannabutter:</b> the tub stays full for the whole
- *       batch and takes the next bucket only once the result has been collected. A second bucket
- *       parked in the milk slot meanwhile just <em>waits</em>, visibly, and is drawn in on the tick
- *       after collection. That is what the bucket-return slot is really for — without it the empty
- *       would sit in the milk slot and there would be nowhere to park the next one.</li>
+ *   <li><b>Milk is poured in by hand, one at a time</b> — right-click the tub with a bucket, or
+ *       point a dispenser at it — and the empty comes straight back ({@link #fill}). It is not a
+ *       slot: the tub holds one milk or none, and a two-state vessel is what vanilla fills in the
+ *       world, like a cauldron. <b>One milk buys one cannabutter:</b> the tub stays full for the
+ *       whole batch and takes the next bucket only once the result has been collected.</li>
  *   <li><b>Hemp dissolves gradually</b>, one item per {@link #ABSORB_INTERVAL}, and only until
  *       {@link #minTime()}. That is what locks a batch: past the loading window the absorber has had
  *       all its turns, so nothing more goes in however much room is left.</li>
@@ -100,14 +103,22 @@ import org.jetbrains.annotations.Nullable;
 public class InfuserBlockEntity extends BlockEntity
         implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
 
-    public static final int MILK_SLOT = 0;
+    /**
+     * <b>Retired in 2.0.1.</b> Milk used to go in through a slot here and its empty come back out
+     * through {@link #RETIRED_BUCKET_SLOT}; it is poured in by hand now ({@link #fill}). Both indices
+     * stay reserved because a save records items by slot number — renumbering would load an old
+     * world's hemp into the output slot. Nothing is ever put in either again, and
+     * {@link #ejectRetiredSlots} hands back whatever an old world left there.
+     */
+    public static final int RETIRED_MILK_SLOT = 0;
     /** The two interchangeable hemp slots are contiguous from here. */
     public static final int FIRST_HEMP_SLOT = 1;
     public static final int HEMP_SLOT_COUNT = 2;
     public static final int OUTPUT_SLOT = 3;
-    /** Where emptied buckets are returned. Take-only; nothing may be inserted here. */
-    public static final int BUCKET_SLOT = 4;
+    /** Retired in 2.0.1 with {@link #RETIRED_MILK_SLOT}: where emptied buckets used to come back. */
+    public static final int RETIRED_BUCKET_SLOT = 4;
     public static final int SLOT_COUNT = 5;
+    private static final int[] RETIRED_SLOTS = {RETIRED_MILK_SLOT, RETIRED_BUCKET_SLOT};
 
     /**
      * <b>Default</b> earliest a batch can be taken at all, and the zero point of {@link Quality}'s
@@ -198,7 +209,12 @@ public class InfuserBlockEntity extends BlockEntity
      */
     public static final int PROPERTY_MIN_TIME = 3;
     public static final int PROPERTY_FULL_TIME = 4;
-    public static final int PROPERTY_COUNT = 5;
+    /**
+     * Whether there is milk in the tub, for the screen's milk indicator. The model already shows it,
+     * but the block is behind the screen while the screen is open.
+     */
+    public static final int PROPERTY_FILLED = 5;
+    public static final int PROPERTY_COUNT = 6;
 
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(SLOT_COUNT, ItemStack.EMPTY);
 
@@ -208,7 +224,7 @@ public class InfuserBlockEntity extends BlockEntity
     /**
      * Whether there is milk in the tub. <b>One milk, one cannabutter</b> — this is a flag rather
      * than a counter on purpose: the tub takes a bucket only when it is empty, and stays full until
-     * the batch is collected. Set by {@link #intakeMilk}, cleared by {@link #onPreviewTaken}.
+     * the batch is collected. Set by {@link #fill}, cleared by {@link #onPreviewTaken}.
      */
     private boolean haveMilk;
     /** Hemp already drawn into the running batch, by type. Together capped at {@link #BATCH_CAP}. */
@@ -243,6 +259,7 @@ public class InfuserBlockEntity extends BlockEntity
                 case PROPERTY_WASHED_PERCENT -> washedPercent();
                 case PROPERTY_MIN_TIME -> minTime();
                 case PROPERTY_FULL_TIME -> fullTime();
+                case PROPERTY_FILLED -> haveMilk ? 1 : 0;
                 default -> 0;
             };
         }
@@ -330,10 +347,7 @@ public class InfuserBlockEntity extends BlockEntity
             dirty = true;
         }
 
-        // Milk is emptied into the tub the moment it is put in, heat or no heat, and its bucket is
-        // returned straight away — so the milk slot is free for the player to park the *next*
-        // bucket while this batch runs.
-        if (intakeMilk()) {
+        if (ejectRetiredSlots(world, pos)) {
             dirty = true;
         }
 
@@ -424,46 +438,64 @@ public class InfuserBlockEntity extends BlockEntity
     }
 
     /**
-     * Empties a milk bucket into the tub the instant it is put in the slot and returns the empty
-     * bucket to {@link #BUCKET_SLOT}. Deliberately independent of heat and of hemp: a bucket in the
-     * slot is milk in the tub, which is what makes {@link #isFilled()} honest.
+     * Pours one milk into the tub, if the tub is empty and {@code milk} counts as milk. Returns
+     * whether it went in. Deliberately independent of heat and of hemp: milk in the tub is what
+     * makes {@link #isFilled()} true, nothing else.
      *
-     * <p><b>Only ever one at a time.</b> {@link #haveMilk} gates this, so a tub that already has milk
-     * ignores further buckets entirely — one milk buys one cannabutter, and the machine cannot
-     * silently swallow a stack of them. A second bucket parked in the slot simply <em>waits</em>,
-     * visibly, and is taken up on the tick after the batch is collected. That is a better queue than
-     * an invisible counter: what is pending is a real item you can see and take back.
+     * <p><b>Filled in the world, not through a slot.</b> The tub holds one milk or none, and a
+     * two-state vessel is what vanilla fills by hand — a water bucket on a cauldron. The slot this
+     * replaced emptied a bucket by itself and parked the empty in a second slot: two slots of GUI to
+     * say one bit. {@link InfuserBlock#onUseWithItem} is the click and {@code ModDispenserBehaviors}
+     * the dispenser; both come through here.
      *
-     * <p>{@link #hasBucketRoom()} is a second guard, for the case where the return slot has filled
-     * with 16 empties — without somewhere to put the bucket, the milk would be taken and the bucket
-     * destroyed.
+     * <p><b>One milk, one cannabutter.</b> {@link #haveMilk} gates this, so a full tub refuses and
+     * the caller keeps its bucket.
+     *
+     * <p>Only the milk is taken. The container is the caller's to hand back, because only the caller
+     * knows where it goes — a player's hand or a dispenser's slots — and {@link #emptiedContainer}
+     * says what it is. The sound and the game event are vanilla's cauldron fill.
      */
-    private boolean intakeMilk() {
-        ItemStack milk = getStack(MILK_SLOT);
-        if (haveMilk || !isMilk(this.world, milk)) {
+    public boolean fill(ItemStack milk, @Nullable Entity actor) {
+        if (haveMilk || this.world == null || this.world.isClient() || !isMilk(this.world, milk)) {
             return false;
-        }
-        ItemStack empty = emptiedContainer(milk);
-        if (!hasRoomFor(empty)) {
-            return false;
-        }
-        milk.decrement(1);
-        ItemStack returned = getStack(BUCKET_SLOT);
-        if (returned.isEmpty()) {
-            setStack(BUCKET_SLOT, empty);
-        } else {
-            returned.increment(1);
         }
         haveMilk = true;
+        // Now rather than on the next tick, so a second click a moment later already sees a full tub.
+        this.world.setBlockState(this.pos, getCachedState().with(InfuserBlock.FILLED, true), Block.NOTIFY_ALL);
+        this.world.playSound(null, this.pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+        this.world.emitGameEvent(actor, GameEvent.FLUID_PLACE, this.pos);
+        markDirty();
         return true;
+    }
+
+    /**
+     * Hands back whatever a world from before 2.0.1 left in the two retired slots, by popping it out
+     * of the top of the tub. Returns whether anything came out.
+     *
+     * <p>Neither slot is in the screen or on any face now, so a bucket left in one would otherwise be
+     * unreachable until the tub was broken. Out of the top because the underside is the heat and the
+     * spout pours cannabutter only. {@link ItemScatterer} rather than {@code Block.dropStack}, which
+     * obeys {@code doTileDrops}: these are the player's own items, not the block's drops.
+     */
+    private boolean ejectRetiredSlots(World world, BlockPos pos) {
+        boolean ejected = false;
+        for (int slot : RETIRED_SLOTS) {
+            ItemStack stack = getStack(slot);
+            if (!stack.isEmpty()) {
+                setStack(slot, ItemStack.EMPTY);
+                ItemScatterer.spawn(world, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, stack);
+                ejected = true;
+            }
+        }
+        return ejected;
     }
 
     /**
      * What to hand back when a milk is poured in — <b>the item's own recipe remainder</b>, and a
      * plain bucket only if it hasn't got one.
      *
-     * <p>Vanilla's remainder mechanism fires for real crafting recipes and never for a block entity,
-     * so the empty has to be handed back by hand; the question is only what "the empty" is. Reading
+     * <p>Vanilla's remainder mechanism fires for real crafting recipes and never for a block, so the
+     * empty has to be handed back by hand; the question is only what "the empty" is. Reading
      * it off the item rather than assuming a bucket is what makes
      * {@code #hempdustry:milk_buckets} safe to widen. The tag folds in {@code #c:buckets/milk}, so
      * <b>the milk that arrives here may belong to a mod this one has never heard of</b> — and if it
@@ -471,21 +503,10 @@ public class InfuserBlockEntity extends BlockEntity
      * bucket would also quietly destroy a container worth more than one. Both of vanilla's and this
      * mod's milks answer {@code BUCKET} here, so nothing changes for either.
      */
-    private static ItemStack emptiedContainer(ItemStack milk) {
+    public static ItemStack emptiedContainer(ItemStack milk) {
         // getRecipeRemainder is an ItemStack since 1.21.2 — empty, not null, when there is none.
         ItemStack remainder = milk.getItem().getRecipeRemainder();
         return remainder.isEmpty() ? new ItemStack(Items.BUCKET) : remainder.copy();
-    }
-
-    /**
-     * Whether the return slot can take {@code empty}. The guard exists so a full return slot stalls
-     * the milk queue instead of destroying the container — see {@link #intakeMilk()}.
-     */
-    private boolean hasRoomFor(ItemStack empty) {
-        ItemStack returned = getStack(BUCKET_SLOT);
-        return returned.isEmpty()
-                || (ItemStack.areItemsAndComponentsEqual(returned, empty)
-                    && returned.getCount() < returned.getMaxCount());
     }
 
     /**
@@ -586,9 +607,9 @@ public class InfuserBlockEntity extends BlockEntity
     /**
      * Whether the tub holds liquid. This drives {@link InfuserBlock#FILLED} and therefore the
      * block's texture, and is deliberately independent of heat: what makes the tub look full is milk
-     * being in it, not something burning underneath. Since milk is emptied in on contact, it is true
-     * from the tick the bucket lands in the slot and false again the moment the batch is collected —
-     * so the texture is a direct readout of {@link #haveMilk} with nothing else mixed in.
+     * being in it, not something burning underneath. True from the moment milk is poured in and false
+     * again the moment the batch is collected — a direct readout of {@link #haveMilk} with nothing
+     * else mixed in.
      */
     public boolean isFilled() {
         return haveMilk;
@@ -692,11 +713,6 @@ public class InfuserBlockEntity extends BlockEntity
      * <p>Taking a batch <em>early</em>, at a grade below its best, is deliberately still not
      * automatable: that trade is only meaningful once cannabutter <em>does</em> something, and it
      * would need a GUI toggle to express. See the deferred-toggle note in CLAUDE.md §3.
-     *
-     * <p>Only the cannabutter goes out here. Emptied buckets stay in their slot on purpose: at one
-     * milk per batch the return slot holds sixteen batches' worth, which is hours of unattended
-     * running, and splitting two item types across one spout would just hand the player a sorting
-     * problem for no gain.
      *
      * <p>Pushing routes through {@link #removeStack}, so it closes the batch out exactly as a player
      * or a hopper taking it would — the one place that guarantee lives.
@@ -816,8 +832,7 @@ public class InfuserBlockEntity extends BlockEntity
      *
      * <p>Clearing {@link #haveMilk} here is what makes the tub take milk again — the emptying of the
      * tub and the taking of the cannabutter are the same event, which is the whole "one milk, one
-     * cannabutter" rule. If a bucket was parked in the milk slot it is drawn in on the very next
-     * tick and the next batch begins by itself.
+     * cannabutter" rule.
      */
     public void onPreviewTaken() {
         // Fired before the numbers are wiped, because this is the last moment they exist — and only
@@ -880,7 +895,7 @@ public class InfuserBlockEntity extends BlockEntity
      * was poured in, so handing a full milk bucket back as well would mint a bucket out of nothing —
      * three iron a go. Breaking the tub spills the milk and you keep the empty, which is both
      * dupe-free and the physically obvious outcome. At most one milk is ever at stake, since the tub
-     * holds one at a time; a bucket parked in the milk slot is a normal item and spills normally.
+     * holds one at a time.
      */
     public DefaultedList<ItemStack> getBatchItems() {
         DefaultedList<ItemStack> spill = DefaultedList.of();
@@ -961,27 +976,21 @@ public class InfuserBlockEntity extends BlockEntity
     }
 
     /**
-     * Both hemp slots take either type. There are two of them so a batch can <em>mix</em> washed and
-     * unwashed — which is the only way to reach {@link Quality#CLEAN} — not so each type has a
-     * dedicated home.
+     * Only the two hemp slots take anything, and both take either type. There are two of them so a
+     * batch can <em>mix</em> washed and unwashed — which is the only way to reach
+     * {@link Quality#CLEAN} — not so each type has a dedicated home. The output is take-only, and
+     * the two retired slots take nothing ever again.
      */
     @Override
     public boolean isValid(int slot, ItemStack stack) {
-        if (slot == MILK_SLOT) {
-            return isMilk(this.world, stack);
-        }
-        if (slot >= FIRST_HEMP_SLOT && slot < FIRST_HEMP_SLOT + HEMP_SLOT_COUNT) {
-            return isHemp(this.world, stack);
-        }
-        // The output and the bucket return are both take-only: only the machine puts things there.
-        return false;
+        return slot >= FIRST_HEMP_SLOT && slot < FIRST_HEMP_SLOT + HEMP_SLOT_COUNT && isHemp(this.world, stack);
     }
 
     @Override
     public int[] getAvailableSlots(Direction side) {
         return switch (side) {
-            case DOWN -> new int[]{OUTPUT_SLOT, BUCKET_SLOT};
-            default -> new int[]{MILK_SLOT, FIRST_HEMP_SLOT, FIRST_HEMP_SLOT + 1};
+            case DOWN -> new int[]{OUTPUT_SLOT};
+            default -> new int[]{FIRST_HEMP_SLOT, FIRST_HEMP_SLOT + 1};
         };
     }
 
@@ -992,17 +1001,13 @@ public class InfuserBlockEntity extends BlockEntity
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction side) {
-        if (slot == OUTPUT_SLOT) {
-            // Automation only ever gets a batch at its best grade. Without this a hopper would snatch
-            // the Rough preview the instant it appeared, making an automated Infuser strictly worse
-            // than a hand-tended one — the opposite of what automation should buy you.
-            // Kept in step with the spout deliberately: two definitions of "done" would be a trap.
-            // (Unreachable in practice — see pushOutput for why no hopper can sit under this block.)
-            return isAtBestQuality();
-        }
-        // Emptied buckets are always drainable — and a hopper under the block is what keeps the
-        // return slot from filling up and stalling the milk queue.
-        return slot == BUCKET_SLOT;
+        // Automation only ever gets a batch at its best grade. Without this a hopper would snatch
+        // the Rough preview the instant it appeared, making an automated Infuser strictly worse
+        // than a hand-tended one — the opposite of what automation should buy you.
+        // Kept in step with the spout deliberately: two definitions of "done" would be a trap.
+        // (Unreachable by a hopper — see pushOutput for why none can sit under this block — but a
+        // pipe reaches it through the Transfer API.)
+        return slot == OUTPUT_SLOT && isAtBestQuality();
     }
 
     @Override

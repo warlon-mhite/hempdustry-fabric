@@ -104,6 +104,10 @@ public final class ViewerRecipes {
      * better grades, so listing both is the honest picture of what the machine takes. The output
      * carries no strength or quality component because those are measured per batch, not per recipe
      * — the note says so rather than the page implying a fixed result.
+     *
+     * <p><b>The milk sits in the row the way the water bucket does on the cauldron page</b>, and the
+     * first note says it is poured in rather than placed: the tub has no milk slot, so a player who
+     * opens the screen looking for one needs to have read it here.
      */
     public static List<Entry> infusing(World world) {
         List<Entry> out = new ArrayList<>();
@@ -112,7 +116,8 @@ public final class ViewerRecipes {
             out.add(new Entry(entry.id().getValue(),
                     List.of(recipe.container(), recipe.hemp(), recipe.washedHemp()),
                     recipe.result(),
-                    List.of(Text.translatable("hempdustry.category.infusing.heat"),
+                    List.of(Text.translatable("hempdustry.category.infusing.pour"),
+                            Text.translatable("hempdustry.category.infusing.heat"),
                             Text.translatable("hempdustry.category.infusing.batch",
                                     InfuserBlockEntity.BATCH_CAP,
                                     minutes(InfuserBlockEntity.minTime()),
