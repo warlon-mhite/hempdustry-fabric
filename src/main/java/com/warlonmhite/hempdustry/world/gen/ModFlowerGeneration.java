@@ -16,10 +16,13 @@ public class ModFlowerGeneration {
                 ModPlacedFeatures.INDICA_PLACED_KEY
         );
 
-        // Cave biomes (lush caves + modded underground jungles): on the cave floor.
+        // Cave biomes (lush caves + modded underground jungles): on the cave floor. VEGETAL, not
+        // UNDERGROUND_DECORATION: lush-cave moss is itself vegetation, so a step earlier the floor is
+        // still stone and clay, indica finds no dirt, and the tier placed nothing at all. Added
+        // features run after vanilla's in the same step, so the moss is down by the time this runs.
         BiomeModifications.addFeature(
                 BiomeSelectors.tag(ModTags.Biomes.INDICA_FLOWER_GEN_CAVE),
-                GenerationStep.Feature.UNDERGROUND_DECORATION,
+                GenerationStep.Feature.VEGETAL_DECORATION,
                 ModPlacedFeatures.INDICA_CAVE_PLACED_KEY
         );
 
