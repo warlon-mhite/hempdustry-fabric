@@ -118,6 +118,21 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .addOptionalTag(ModTags.Conventional.HEMP_STORAGE_BLOCKS_BLOCK);
         getOrCreateTagBuilder(ConventionalBlockTags.CONCRETES).add(ModBlocks.HEMPCRETE_BLOCK);
 
+        // HEMP_LEAVES joins the vanilla leaves tag, which is the only route to shears' 15x mining
+        // rule — that rule names this tag rather than a block list (ShearsItem#createToolComponent).
+        // #minecraft:sword_efficient includes this tag, so that comes along; the cost that also comes
+        // along is #replaceable_by_trees, so a sapling grown beside a wall of these eats it, exactly
+        // as it eats a wall of oak leaves.
+        //
+        // NOTE this is where the 1.21.11 line differs: THERE #minecraft:mineable/hoe includes
+        // #minecraft:leaves, so the tag grants hoe-mineability too. On 1.21.1 that tag still lists
+        // every leaf block by name, so HOE_MINEABLE below has to name ours as well.
+        //
+        // The matching ITEM tag is deliberately NOT joined -- it does nothing here but the
+        // find-a-tree tutorial hint, and on the 1.21.11 line it would additionally smelt nine hemp
+        // leaves into one leaf litter, which is a trade nobody asked for.
+        getOrCreateTagBuilder(BlockTags.LEAVES).add(ModBlocks.HEMP_LEAVES);
+
         getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_BLOCK)
                 .add(ModBlocks.DECARBOXYLATOR)
@@ -134,7 +149,9 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // goats hemp leaf and nothing else, and a bale that feeds horses would start it down the
         // "hemp is a worse wheat for every farm animal" road that goat_food was scoped to avoid.
         getOrCreateTagBuilder(BlockTags.HOE_MINEABLE)
-                .add(ModBlocks.HEMP_BALE);
+                .add(ModBlocks.HEMP_BALE)
+                // Named directly, unlike on 1.21.11: see the LEAVES note above.
+                .add(ModBlocks.HEMP_LEAVES);
 
         getOrCreateTagBuilder(BlockTags.AXE_MINEABLE)
                 .add(ModBlocks.HEMP_BRICKS_BLOCK)

@@ -1,0 +1,39 @@
+# Block of Hemp Leaves — vanilla oak_leaves' own foliage noise, retoned to hemp.
+#
+# Same move as hemp_wool.mctex: the GRID below is vanilla `block/oak_leaves.png`
+# extracted verbatim — four grey tones and the scatter of transparent gaps that make
+# leaves read as leaves on Fancy. Redrawing that scatter by hand buys nothing and
+# tiles worse. Only the PALETTE is ours.
+#
+# Vanilla's four greys were mapped by luminance onto the ramp between hemp_leaf.png's
+# two body colours — 2F4C1C (shadow) and 73993B (highlight) — so every pixel is a
+# colour the leaf item already uses and vanilla's shading spacing is preserved.
+#
+# It is deliberately NOT biome-tinted: the block is crafted, not grown, and a tint
+# would have to be paired on the item side too (see crops.md). To retone, move the
+# two endpoints and re-derive the middle two linearly by luminance.
+
+@palette hemp_leaf
+. = none
+1 = 2F4C1C   from 686468
+2 = 3C5A22   from 777577
+3 = 587B2F   from 989998
+4 = 73993B   from B9BCB9
+
+@texture block/hemp_leaves 16x16 palette=hemp_leaf type=block tiling=true
+11.4.33.2213..42
+3...1123.323.434
+..22.3324.3..444
+.3211.4341....4.
+3232..34...133..
+332..42111..123.
+22.14343.22.3324
+211.444.1123.423
+43.11433.2323.32
+4...11123.333.43
+.33.1.3324.3...4
+4211...434.23...
+233.33..4.1124.4
+34.4211..1.34234
+4.4343..22..434.
+3.444..1112..4.3

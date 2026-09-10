@@ -64,6 +64,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMPCRETE_BLOCK);
         addDrop(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         addDrop(ModBlocks.HEMP_BALE);
+        addDrop(ModBlocks.HEMP_LEAVES);
         addDrop(ModBlocks.HEMP_WOOL);
         addDrop(ModBlocks.HEMP_CARPET);
         // Empty, exactly like vanilla's cake: you cannot pick a cake back up once it is placed.

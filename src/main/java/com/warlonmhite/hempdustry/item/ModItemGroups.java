@@ -85,9 +85,10 @@ public class ModItemGroups {
                         entries.add(ModItems.HEMP_STEM);
                         entries.add(ModItems.RETTED_HEMP_STEM);
                         entries.add(ModItems.HEMP_LEAF);
-                        // The crop's storage block, where vanilla keeps the hay bale: Natural,
-                        // with the plant, not with the building sets.
+                        // The two storage blocks, where vanilla keeps the hay bale: Natural, with
+                        // the plant, not with the building sets.
                         entries.add(ModBlocks.HEMP_BALE);
+                        entries.add(ModBlocks.HEMP_LEAVES);
 
                         // --- Work blocks -----------------------------------------------
                         // In unlock order. The press, drying rack, mixer and extractor go here.

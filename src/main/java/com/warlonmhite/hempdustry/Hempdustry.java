@@ -80,6 +80,18 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.INDICA_FLOWER, 0.65f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.SATIVA_FLOWER, 0.65f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
+		// The two storage blocks, both at their vanilla counterpart's rate. Vanilla composts hay at
+		// 0.85 and every leaf block at 0.3, so a bale of stems and a block of leaves are not the
+		// same tier and should not be -- leaves are the bottom of vanilla's ladder wherever they
+		// appear. The bale had simply been missed: hay_block is 0.85 in the bytecode on both
+		// lines, and nothing about the bale ever argued for declining it.
+		//
+		// Neither is an exploit in either direction, which is why the numbers can just follow
+		// vanilla. Composting nine stems at 0.5 each is worth far more than one bale at 0.85, and
+		// nine leaves at 0.3 each far more than one leaf block at 0.3 -- exactly as nine wheat beat
+		// a hay bale in vanilla. Compacting to compost is always the worse trade.
+		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMP_BALE, 0.85f);
+		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMP_LEAVES, 0.3f);
 
 		FuelRegistry.INSTANCE.add(ModItems.HEMP_STEM, 50);
 		FuelRegistry.INSTANCE.add(ModItems.RETTED_HEMP_STEM, 50);
@@ -108,6 +120,10 @@ public class Hempdustry implements ModInitializer {
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_CROP, 10, 25);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_FLOWER, 20, 40);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_BALE, 50, 10);
+		// Vanilla leaves parity, exactly (30/60). Nothing about hemp foliage argues for a
+		// different number than oak foliage, and a leaf block that burns unlike every other
+		// leaf block would read as a bug.
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_LEAVES, 30, 60);
 		// Hemp cloth burns *more* readily than the sheep wool it stands in for, not less. Sheep
 		// wool is the outlier among natural fibres — high nitrogen and moisture content, LOI ~25%,
 		// self-extinguishing, which is why it is what firefighter base layers and aircraft carpet

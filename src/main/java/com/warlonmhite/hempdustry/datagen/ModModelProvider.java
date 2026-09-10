@@ -53,6 +53,10 @@ public class ModModelProvider extends FabricModelProvider {
         blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
 
         blockStateModelGenerator.registerLog(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
+        // TexturedModel.LEAVES, not registerSimpleCubeAll: it parents to minecraft:block/leaves,
+        // which is cube_all with ambient occlusion off -- the reason vanilla foliage does not
+        // shade itself into a dark blob.
+        blockStateModelGenerator.registerSingleton(ModBlocks.HEMP_LEAVES, TexturedModel.LEAVES);
 
         registerSpaceCake(blockStateModelGenerator);
 
