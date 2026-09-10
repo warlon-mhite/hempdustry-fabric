@@ -18,6 +18,22 @@ beta be told when the release lands.
   and middle-clicking a growing plant still hands you its seeds. It also silences the two
   `Unable to load model: 'hempdustry:item/indica_crop'` warnings the client logged on every launch.
   Done now rather than later because removing a registry id stops being allowed at 2.0.0 stable.
+- **Hoppers and pipes can no longer put milk into the Infuser.** Its milk slot and bucket-return
+  slot are gone (see *Changed*), so a hopper line that fed it milk buckets stops doing so. Point a
+  **dispenser** at the tub instead: it pours the milk in and keeps the empty bucket, and a
+  comparator behind the tub reads 0 once a batch is collected, so the dispenser can refill it on
+  its own. Hemp still goes in by hopper exactly as before, and the spout still pours the
+  cannabutter out. **Nothing in your world is lost** — a bucket a beta world left in either old slot
+  pops out of the top of the tub the first time it loads.
+
+### Changed
+
+- **Milk is poured into the Infuser by hand, like water into a cauldron.** Right-click the tub with
+  a bucket of milk or hemp milk: it fills, and you get the empty back. Right-click with anything
+  else — or with milk while it is already full — and the screen opens as before, so the pour and
+  the screen share one button without getting in each other's way. In the screen, the two bucket
+  slots are replaced by a milk indicator beside the flame, and the recipe pages in JEI, REI and EMI
+  now say the milk is poured in. The tub still holds one milk and makes one cannabutter per batch.
 
 ### Added
 

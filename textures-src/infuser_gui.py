@@ -13,17 +13,18 @@ jar and checked by `check_panel.py`.
 
 Must stay in step with InfuserScreenHandler (slots) and InfuserScreen (sprite regions).
 
-    [milk]     [hemp]
-                       ==|==!==>  [ OUT ]  | dark NOTCH = collectable from here
-    [bucket]   [hemp]    (flame)            ! bright MARK = next grade (moves with the ratio)
+               [hemp]
+    (milk)                ==|==!==>  [ OUT ]  | dark NOTCH = collectable from here
+               [hemp]       (flame)            ! bright MARK = next grade (moves with the ratio)
 
-The left column is in on top, out underneath: milk is emptied into the tub on contact and its
-bucket returned below, which is what lets several batches be queued up in advance.
+Milk has no slot. It is poured into the tub in the world, like water into a cauldron, so the left
+column only reports it: an empty pot outline that fills white once there is milk in the tub. It
+replaced a milk slot and a bucket-return slot, two slots of GUI that between them said one bit.
 
-The flame is centred under the bar rather than in that column. It is not a fuel gauge and neither
-bucket feeds it -- it reports whether the block BELOW the Infuser is hot -- so parking it between
-the two bucket slots implied a relationship that does not exist. Under the bar it governs, "no
-heat, no progress" reads without a tooltip.
+The flame is centred under the bar rather than in that column. It is not a fuel gauge -- it reports
+whether the block BELOW the Infuser is hot -- and under the bar it governs, "no heat, no progress"
+reads without a tooltip. Milk and heat are the batch's two preconditions, and both are pictures
+rather than slots because nothing goes in either.
 
 The notch is the whole point of the bar. A plain fill would say "cooking"; the notch says
 "collectable from here, but not finished" -- which is the actual decision the player is making.
@@ -35,8 +36,6 @@ either type, so any icon drawn in them would have been a half-truth from the sta
 import gui_common as gui
 
 # Slots — must match InfuserScreenHandler.
-MILK = (26, 17)
-BUCKET = (26, 53)
 HEMP = (62, 17)
 WASHED = (62, 53)
 OUTPUT = (138, 35)
@@ -46,12 +45,56 @@ BAR_XY, BAR_WH = (84, 39), (44, 5)
 # Centred on the bar (84 + 44/2 = 106, less half the flame's 14) and on the row of the bottom two
 # slots (53..68, less half of 14 about its centre).
 FLAME_XY = (99, 54)
+# Centred in the left column the milk slot used to occupy (x 26..41) and on the middle row, between
+# the two hemp slots (17..32 and 53..68).
+MILK_XY = (27, 37)
 
 # Sprite regions in the sheet margin.
 BAR_AT = (176, 0)
 NOTCH_AT = (176, 5)
 MARK_AT = (178, 5)
 FLAME_AT = (180, 5)
+MILK_AT = (194, 5)
+
+# The milk indicator, 14x12. Unlit, it is an empty pot in the unlit-indicator grey -- an outline, not
+# the flame's filled silhouette, because "empty vessel" is the thing it has to say. Lit, the same pot
+# holds milk: a white surface a pixel below the brim, where the block model puts it.
+MILK_OFF = [
+    "##..........##",
+    ".#..........#.",
+    ".#..........#.",
+    ".#..........#.",
+    ".#..........#.",
+    ".#..........#.",
+    ".#..........#.",
+    ".#..........#.",
+    ".#..........#.",
+    "..##########..",
+    "..#........#..",
+    ".##........##.",
+]
+MILK_ON = [
+    "##..........##",
+    ".#..........#.",
+    ".#wwwwwwwwww#.",
+    ".#mmmmmmmmms#.",
+    ".#mmmmmmmmms#.",
+    ".#mmmmmmmmms#.",
+    ".#mmmmmmmmms#.",
+    ".#mmmmmmmmms#.",
+    ".#ssssssssss#.",
+    "..##########..",
+    "..#........#..",
+    ".##........##.",
+]
+MILK_OFF_COLORS = {"#": gui.SLOT_BG, ".": gui.BG}
+MILK_ON_COLORS = {
+    "#": gui.SLOT_BG,
+    ".": gui.BG,
+    "w": (255, 255, 255, 255),  # the surface
+    "m": (236, 232, 222, 255),  # ECE8DE
+    "s": (205, 199, 186, 255),  # CDC7BA, its own shadow
+}
 
 # The simmer bar is gold because vanilla's one horizontal container bar — the brewing stand's fuel
 # gauge — is gold, and this ramp is that sprite's own five tones. It also has to stay a colour: the
@@ -68,7 +111,7 @@ BAR_RAMP = [
 sheet = gui.Sheet()
 sheet.panel()
 
-for slot in (MILK, BUCKET, HEMP, WASHED):
+for slot in (HEMP, WASHED):
     sheet.slot(*slot)
 # Furnace-sized result well: vanilla marks what comes out by size.
 sheet.big_slot(*OUTPUT)
@@ -82,8 +125,9 @@ sheet.well(*BAR_XY, *BAR_WH)
 # the clock, so the minimum-time mark moves with the washed ratio -- a third of the way along for an
 # all-washed batch, half for a half-washed one. Both marks are drawn at runtime by InfuserScreen.
 
-# ---- unlit heat indicator, so the lit sprite has something to replace ----
+# ---- unlit heat and milk indicators, so the lit sprites have something to replace ----
 sheet.blit(gui.FLAME_OFF, gui.FLAME_OFF_COLORS, *FLAME_XY)
+sheet.blit(MILK_OFF, MILK_OFF_COLORS, *MILK_XY)
 
 # ---- sprites in the margin ----
 bar_w, bar_h = BAR_WH
@@ -100,6 +144,7 @@ sheet.rect(*NOTCH_AT, 2, 7, gui.SLOT_DARK)
 sheet.rect(*MARK_AT, 2, 7, gui.BEVEL_LIGHT)
 
 sheet.blit(gui.FLAME_ON, gui.FLAME_ON_COLORS, *FLAME_AT)
+sheet.blit(MILK_ON, MILK_ON_COLORS, *MILK_AT)
 
 if __name__ == "__main__":
     sheet.write(gui.resources("textures", "gui", "container", "infuser.png"))

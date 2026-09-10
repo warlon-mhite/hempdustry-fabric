@@ -18,8 +18,11 @@ import net.minecraft.world.World;
 import net.minecraft.util.math.MathHelper;
 
 /**
- * Menu for the {@link InfuserBlockEntity}: milk on the left, the two hemp slots beside it, and the
- * batch preview on the right.
+ * Menu for the {@link InfuserBlockEntity}: the two hemp slots, the batch preview on the right, and
+ * two indicators no slot could show — milk in the tub, and heat underneath.
+ *
+ * <p><b>Milk has no slot.</b> It is poured into the tub in the world, the way water goes into a
+ * cauldron, so this screen only reports whether it is there. See {@link InfuserBlockEntity#fill}.
  *
  * <p>The output slot is the unusual one. It shows a <em>preview</em> of the batch rather than a
  * finished item, so taking it is what commits the batch — {@link PreviewSlot#onTakeItem} tells the
@@ -36,15 +39,7 @@ public class InfuserScreenHandler extends ScreenHandler {
      */
     private final World world;
 
-    /**
-     * Layout, shared with the screen and the GUI-texture generator.
-     *
-     * <p>Milk, heat indicator and bucket return are stacked in the left column in exactly a furnace's
-     * arrangement — what goes in on top, the fire in the middle, what comes back out underneath — so
-     * the return slot needs no explaining.
-     */
-    public static final int MILK_X = 26, MILK_Y = 17;
-    public static final int BUCKET_X = 26, BUCKET_Y = 53;
+    /** Layout, shared with the screen and the GUI-texture generator. */
     public static final int HEMP_X = 62, HEMP_Y = 17;
     public static final int WASHED_X = 62, WASHED_Y = 53;
     /**
@@ -69,14 +64,11 @@ public class InfuserScreenHandler extends ScreenHandler {
         this.world = playerInventory.player.getWorld();
         inventory.onOpen(playerInventory.player);
 
-        this.addSlot(new InputSlot(inventory, InfuserBlockEntity.MILK_SLOT, MILK_X, MILK_Y));
         // Both hemp slots take either type; they exist so a batch can mix washed and unwashed, not
-        // so each type has a home.
+        // so each type has a home. The block entity's two retired slots get no Slot at all.
         this.addSlot(new InputSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT, HEMP_X, HEMP_Y));
         this.addSlot(new InputSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT + 1, WASHED_X, WASHED_Y));
         this.addSlot(new PreviewSlot(inventory, InfuserBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
-        // Take-only: what lands here is exactly what you put in above, minus the milk.
-        this.addSlot(new TakeOnlySlot(inventory, InfuserBlockEntity.BUCKET_SLOT, BUCKET_X, BUCKET_Y));
 
         addPlayerSlots(playerInventory);
         this.addProperties(propertyDelegate);
@@ -109,18 +101,6 @@ public class InfuserScreenHandler extends ScreenHandler {
         @Override
         public boolean canInsert(ItemStack stack) {
             return this.inventory.isValid(this.getIndex(), stack);
-        }
-    }
-
-    /** An {@link InputSlot} the player may only take from — the bucket return. */
-    private static class TakeOnlySlot extends InputSlot {
-        TakeOnlySlot(Inventory inventory, int index, int x, int y) {
-            super(inventory, index, x, y);
-        }
-
-        @Override
-        public boolean canInsert(ItemStack stack) {
-            return false;
         }
     }
 
@@ -248,6 +228,10 @@ public class InfuserScreenHandler extends ScreenHandler {
         return this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_HEATED) != 0;
     }
 
+    public boolean isFilled() {
+        return this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_FILLED) != 0;
+    }
+
     // ----- shift-click -----
 
     @Override
@@ -261,7 +245,9 @@ public class InfuserScreenHandler extends ScreenHandler {
         ItemStack inSlot = slot.getStack();
         moved = inSlot.copy();
 
-        int blockSlots = InfuserBlockEntity.SLOT_COUNT;
+        // Indices into this menu's slot list, not the block entity's inventory: the menu holds the
+        // two hemp slots and the preview, in that order, and then the player's.
+        int blockSlots = InfuserBlockEntity.HEMP_SLOT_COUNT + 1;
         int playerStart = blockSlots;
         int playerEnd = this.slots.size();
 
@@ -269,15 +255,10 @@ public class InfuserScreenHandler extends ScreenHandler {
             if (!this.insertItem(inSlot, playerStart, playerEnd, true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (InfuserBlockEntity.isMilk(this.world, inSlot)) {
-            if (!this.insertItem(inSlot, InfuserBlockEntity.MILK_SLOT, InfuserBlockEntity.MILK_SLOT + 1, false)) {
-                return ItemStack.EMPTY;
-            }
         } else if (InfuserBlockEntity.isHemp(this.world, inSlot)) {
             // Either type into either hemp slot — insertItem walks the range and takes the first
             // that will have it, which is what makes shift-clicking a mixed batch in work at all.
-            int firstHemp = InfuserBlockEntity.FIRST_HEMP_SLOT;
-            if (!this.insertItem(inSlot, firstHemp, firstHemp + InfuserBlockEntity.HEMP_SLOT_COUNT, false)) {
+            if (!this.insertItem(inSlot, 0, InfuserBlockEntity.HEMP_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;
             }
         } else {

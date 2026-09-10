@@ -98,6 +98,7 @@
   "hempdustry.category.decarboxylating": "Décarboxylation",
   "hempdustry.category.decarboxylating.info": "Consomme du combustible · %s s par unité",
   "hempdustry.category.infusing": "Infusion",
+  "hempdustry.category.infusing.pour": "Versez le lait d'un clic droit",
   "hempdustry.category.infusing.heat": "Nécessite une source de chaleur en dessous",
   "hempdustry.category.infusing.batch": "Jusqu'à %s chanvre · %s–%s min",
   "hempdustry.category.cauldron": "Trempage au chaudron",

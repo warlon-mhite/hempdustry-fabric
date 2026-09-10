@@ -98,6 +98,7 @@
   "hempdustry.category.decarboxylating": "Decarboxylating",
   "hempdustry.category.decarboxylating.info": "Burns fuel · %ss per item",
   "hempdustry.category.infusing": "Infusing",
+  "hempdustry.category.infusing.pour": "Pour milk in with a right-click",
   "hempdustry.category.infusing.heat": "Needs a heat source underneath",
   "hempdustry.category.infusing.batch": "Up to %s hemp · %s–%s min",
   "hempdustry.category.cauldron": "Cauldron Soaking",
