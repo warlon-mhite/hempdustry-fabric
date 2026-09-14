@@ -1,47 +1,38 @@
-# The Charas Ball — nine pinches rolled together.
+# The Charas Ball -- nine pinches rolled together.
 #
-# PLACEHOLDER art. Warlon Mhite may redraw it; that is what the .mctex is for.
+# Redrawn 2026-09-14. Generated art, not Warlon Mhite's hand: edit freely.
 #
-# ## Why a ball and not a bar
+# Charas is rubbed off a living plant and rolled between the palms, never pressed, so the surface is
+# hand-worked: a few soft creases, each with a lit lip below it, and glossy specks where rolled resin
+# picks up a sheen. A first draft with more creases read as cracked rock. Block contrast, but
+# near-black needs a little more room at the top or the ball reads as a hole in the world.
 #
-# The family lands three colours on three FORMS — a pinch, a brown pressed bar, a blonde pressed bar
-# — and a fourth flat slab would collapse that to three colours on two forms. Charas is rubbed off a
-# LIVING plant and rolled between the palms; it is never pressed, and the shape it is actually sold
-# in (Malana cream, charas sticks) is a ball. So the block is a ball, and it is the one member of
-# the family you pull apart by hand instead of cutting.
-#
-# The palette is item/charas's own, opened up by two steps at the top: a block face is low contrast
-# (vanilla blocks span a median 76 luminance steps against an item's 164) but near-black needs a
-# little more room than that or the whole thing reads as a hole in the world.
-#
-# The surface is the tell. Charas is soft, sticky and faintly glossy — hand-rolled resin picks up a
-# sheen from the palms — so the highlight is ONE soft cluster up-left rather than a gradient, and the
-# grain is irregular rather than granular. It is not powder; it has been worked.
+# The model is three intersecting boxes with auto-UVs, so every face samples a different part of
+# this texture -- it has no composed centre, and tiles.
 
-@palette default
+@palette ball
 . = none
-1 = 100C09      the deepest crease
-2 = 1A150F
-3 = 251E15      the body of the ball
-4 = 32291C
-5 = 3F3423
-6 = 4E402C      lit face
-7 = 60503A      the palm sheen; one cluster, up-left, nowhere else
+2 = 120E0A      a crease
+3 = 211912      the body
+4 = 2E2419
+5 = 3A2E20
+6 = 5A4631      a glossy speck
+7 = 7E664A
 
-@texture block/charas_ball 16x16 type=block
-2333322333233332
-3345566543334333
-3456777654333233
-3457776654432333
-3346766544333323
-3334554433332332
-3233443333233333
-3323333233332333
-3332333332333433
-2333323333344433
-3233333334455433
-3333333345566443
-3323333455665433
-3333234556554333
-3233334455443332
-3323333443333233
+@texture block/charas_ball 16x16 type=block tiling=true palette=ball
+3334333332233333
+3333333324433333
+4327223323333433
+3224443243333333
+3443333233333333
+3333443433333333
+3333334334334333
+4333333222237333
+3633332244433333
+3333326433333333
+3333323333333333
+3333343333333343
+3343334333333333
+4333334333333333
+3333343333433363
+3333333333334333

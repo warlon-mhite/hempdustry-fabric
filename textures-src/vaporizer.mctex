@@ -1,75 +1,101 @@
-# PLACEHOLDER — the Redstone Vaporizer, and the greyscale mask of its load.
+# The Redstone Vaporizer, and the greyscale mask of its load.
 #
-# Two files, and they must line up: packed_vaporizer_load.png is drawn on layer1 over
-# vaporizer.png on layer0, and the strain's colour tints layer1 alone. So every lit pixel in
-# the mask has to fall inside the oven window cut into the body below it — see
-# ModItemProperties.LOAD_TINT_INDEX and ModModelProvider's packed-device branch.
+# Redrawn 2026-09-14. Generated art, not Warlon Mhite's hand: edit freely.
 #
-# Palette is sampled, not invented: iron from vanilla's iron_ingot, redstone from vanilla's
-# redstone dust, and the base from this mod's own hemp_planks so the wood matches the pipe.
+# ## A PAX, not a torch
 #
-# Identity: what makes this a vaporizer and not a box is the mouthpiece nub on top and the
-# lit oven window in the belly. Everything else is the body those two hang off.
+# Warlon Mhite's brief is a portable vaporizer like the PAX 3, drawn on the diagonal like this mod's
+# pipe and spliffs. Three attempts taught what that needs. A balloon on a cone was a Volcano -- the
+# wrong device. A round-ended grey tube read as a torch, then as a syringe. What makes a PAX a PAX
+# is that it is FLAT: a rounded rectangle, not a capsule, about 2.7:1, showing its face and its
+# thickness at once. So this is a rounded rectangle on the diagonal -- running top-left to
+# bottom-right, the same way as the pipe and both spliffs (mirrored on Warlon Mhite's ask; the
+# geometry was rebuilt rather than flipped, so the light still comes from the upper left) -- with:
+#
+#   - a gunmetal face, a bright bevel along its upper edge, and a darker strip along its lower edge
+#     for the device's thickness -- the oblique-slab idea vanilla uses for ingots, on a handheld;
+#   - a flush dark mouthpiece cap and nub at the upper-left end (a hemp-wood tip read as odd);
+#   - a separate oven lid at the lower-right end, marked by a seam, where a PAX's oven actually is;
+#   - the four-petal LED on its face, near the mouthpiece.
+#
+# The outline is a 4-neighbour rim: on a diagonal shape the usual 8-neighbour rim comes out two
+# pixels thick on each edge and eats the face.
+#
+# ## The LED is the load
+#
+# Warlon Mhite's call: the device carries one colour, and it tells you what is in it. Empty, the
+# petal LED glows redstone -- the craft's one redstone dust. Packed, packed_vaporizer_load.png lies
+# exactly over those five LED pixels on layer1, and the strain's colour tints layer1 alone
+# (ModItemProperties.LOAD_TINT_INDEX) -- so the same petals turn the colour of the bud, the hash or
+# the charas inside. An earlier version kept the red LED AND showed the load in an oven window, two
+# coloured spots competing; this has one, where the eye already goes. The mask is greyscale and
+# top-lit like the other devices' loads, with a darker centre so the tint still reads as petals.
+
+# ## Making every load readable on gunmetal
+#
+# A tint is a multiply, so the mask can darken a strain's colour but never brighten it -- the
+# readability of the LED is decided by the strain's colour against the gunmetal around it. The mask
+# therefore runs at near full strength (DA-FF). Purple Kush's old colour, 0x8E6FB5, landed at the
+# gunmetal's own luminance and read as an empty grey LED; a dark bezel round the LED fixed that and
+# was rejected as ugly, so the fix went to the colour itself: Purple Kush is now 0xB57BFF
+# (ModStrains), which also lifts its pipe, bong and moon-rock loads. A charas load, being
+# near-black, still reads darker than the body -- which on this face is visible, not lost.
 
 @palette default
 . = none
-o = 121212
-k = 252525
-d = 353535
-m = 585858
-g = 727272
-l = 8F8F8F
-h = A8A8A8
-w = D8D8D8
-r = 5C0700
-R = AA0F01
-F = FF0000
-b = 2D0000
-1 = B0B0B0
-2 = BCBCBC
-3 = D4D4D4
+o = 141416      rim, shadow side
+k = 2E2F34      rim, lit side
+d = 36373D      the side strip -- the device's thickness
+g = 4F5058      the face
+h = 666770
+w = 9C9DA6      the bevel catching light
+c = 1E1E22      the mouthpiece cap
+C = 18181B
+n = 3A3B42      the mouthpiece nub
+l = 5C5D66      the oven lid
+D = 3F4047
+e = 26272B      the lid's seam
+r = 5C0700      the LED's centre
+R = C2130A      the petal LED, redstone
+F = FF4A2A
+
+@palette load
+. = none
+1 = DADADA
+2 = E6E6E6
+3 = F2F2F2
 4 = FFFFFF
-p = 5A5236
-q = 82794E
-s = A1976C
+5 = B0B0B0      the LED's centre, a step darker so a tinted LED still reads as petals
 
 @texture item/vaporizer 16x16 type=item
 ................
-......owwo......
-......ohho......
-....oodddgoo....
-...odmmmmmglo...
-..odmgggggmlho..
-..okmgbbbbgmlo..
-..okmgbFFbgmlo..
-..okmgbRRbgmlo..
-..okmgbbbbgmlo..
-..okmgggggmllo..
-..okmgggggmllo..
-..okdmmmmmglo...
-..oopqqqqqspo...
-...opqqqqqspo...
-....oopppoo.....
+................
+...kkko.........
+...kccwo........
+..kcchhwo.......
+..kcgghFwo......
+..odggFrRwo.....
+...odggRhhwo....
+....odggghhwo...
+.....odgggheeo..
+......odggeelo..
+.......odeello..
+........oello...
+.........ooo....
+................
+................
 
-# The load: only the oven window, and only where the body left a hole for it. Greyscale,
-# because this layer is what the strain's colour multiplies — white reads as "full strength
-# of whatever is packed", and anything already coloured would fight the tint. Same four greys
-# as packed_pipe_load, top-lit, so a packed chamber has some depth once the tint lands on it
-# instead of reading as a flat swatch.
-#
-# Empty, the window shows the element glowing red; packed, it shows what is in it. That is the
-# whole packed/unpacked tell, and it costs a four-pixel-wide hole in the body.
-@texture item/packed_vaporizer_load 16x16 type=item
+@texture item/packed_vaporizer_load 16x16 type=item palette=load
 ................
 ................
 ................
 ................
 ................
+.......4........
+......352.......
+.......1........
 ................
-.......44.......
-.......34.......
-.......23.......
-.......12.......
+................
 ................
 ................
 ................
