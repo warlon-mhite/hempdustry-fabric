@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
@@ -30,8 +31,13 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 /**
  * The Hemp Press: a screw press on a hemp-brick frame, heated from underneath.
@@ -56,16 +62,36 @@ public class HempPressBlock extends BlockWithEntity {
      * Whether the block underneath is hot. Named {@code LIT} because that is what every heated
      * vanilla block calls it — but unlike a furnace's, this one is <b>not</b> about a fire in this
      * block: it reports the neighbour, which is the same lie {@code machines.md} caught the Infuser
-     * telling with its glow. The block emits no light for exactly that reason; the flame in the
-     * screen and the wisp of steam are where it says so.
+     * telling with its glow. The block emits no light for exactly that reason. What shows it is the
+     * bed plate and the grate under it turning red — the parts the heat reaches from below — plus
+     * the flame in the screen and the wisp of steam.
      */
     public static final BooleanProperty LIT = Properties.LIT;
+    /**
+     * Whether a batch is being squeezed right now: heated, holding something the press takes, and
+     * with room for the result. Puts the rosin packet on the bed, and is what the block entity
+     * renderer times the platen's stroke from. Set by the server alongside {@link #LIT}.
+     */
+    public static final BooleanProperty PRESSING = BooleanProperty.of("pressing");
+
+    /**
+     * Bed, plate, pillars and crossbeam, drawn facing north. The platen and the capstan are left out
+     * because they move; a click in the gap lands on the plate below it.
+     */
+    private static final Map<Direction, VoxelShape> SHAPES = VoxelShapes.createHorizontalFacingShapeMap(
+            VoxelShapes.union(
+                    Block.createCuboidShape(0, 0, 0, 16, 3, 16),
+                    Block.createCuboidShape(2, 3, 2, 14, 4, 14),
+                    Block.createCuboidShape(0, 3, 5, 3, 13, 11),
+                    Block.createCuboidShape(13, 3, 5, 16, 13, 11),
+                    Block.createCuboidShape(0, 13, 5, 16, 16, 11)));
 
     public HempPressBlock(Settings settings) {
         super(settings);
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(FACING, Direction.NORTH)
-                .with(LIT, false));
+                .with(LIT, false)
+                .with(PRESSING, false));
     }
 
     @Override
@@ -75,7 +101,12 @@ public class HempPressBlock extends BlockWithEntity {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(FACING, LIT);
+        builder.add(FACING, LIT, PRESSING);
+    }
+
+    @Override
+    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return SHAPES.get(state.get(FACING));
     }
 
     @Override

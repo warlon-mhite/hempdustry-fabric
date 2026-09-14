@@ -1,0 +1,22 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "iron": "hempdustry:block/hemp_press_iron",
+    "particle": "hempdustry:block/hemp_press_iron"
+  },
+  "elements": [
+    {
+      "name": "platen",
+      "from": [3, 9, 3],
+      "to": [13, 11, 13],
+      "faces": {
+        "north": {"uv": [0, 10, 10, 12], "texture": "#iron"},
+        "east": {"uv": [0, 10, 10, 12], "texture": "#iron"},
+        "south": {"uv": [0, 10, 10, 12], "texture": "#iron"},
+        "west": {"uv": [0, 10, 10, 12], "texture": "#iron"},
+        "up": {"uv": [0, 0, 10, 10], "texture": "#iron"},
+        "down": {"uv": [0, 0, 10, 10], "texture": "#iron"}
+      }
+    }
+  ]
+}

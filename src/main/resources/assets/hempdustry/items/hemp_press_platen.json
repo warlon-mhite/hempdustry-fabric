@@ -1,0 +1,11 @@
+{
+  "_comment": [
+    "Not an item. HempPressBlockEntityRenderer draws the press's moving platen through the item",
+    "pipeline, because Fabric API has no extra-model loading on 1.21.11 and a client item definition",
+    "is the one place vanilla lets a model be looked up by id without a registered block or item."
+  ],
+  "model": {
+    "type": "minecraft:model",
+    "model": "hempdustry:block/hemp_press_platen"
+  }
+}
