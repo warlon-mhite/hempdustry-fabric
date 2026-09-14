@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=east": {
+    "facing=east,packed=false": {
       "model": "hempdustry:block/yellow_bong",
       "y": 90
     },
-    "facing=north": {
+    "facing=east,packed=true": {
+      "model": "hempdustry:block/yellow_bong_packed",
+      "y": 90
+    },
+    "facing=north,packed=false": {
       "model": "hempdustry:block/yellow_bong"
     },
-    "facing=south": {
+    "facing=north,packed=true": {
+      "model": "hempdustry:block/yellow_bong_packed"
+    },
+    "facing=south,packed=false": {
       "model": "hempdustry:block/yellow_bong",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,packed=true": {
+      "model": "hempdustry:block/yellow_bong_packed",
+      "y": 180
+    },
+    "facing=west,packed=false": {
       "model": "hempdustry:block/yellow_bong",
+      "y": 270
+    },
+    "facing=west,packed=true": {
+      "model": "hempdustry:block/yellow_bong_packed",
       "y": 270
     }
   }
