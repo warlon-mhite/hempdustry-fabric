@@ -59,9 +59,11 @@ contents.
 - **Green out.** Big doses carry a real chance of losing the hit entirely and spending a while
   nauseous and useless instead. A single-bud hit never does.
 - Pipes and bongs are damageable, enchantable and anvil-repairable, packed or empty.
-- **Bongs come in all sixteen colours of glass**, and in tinted glass too.
-- **Put your bong down.** Right-click a block with an empty one and it stands on the table; break it
-  and it comes back exactly as it went down.
+- **Bongs come in all sixteen colours of glass**, and in tinted glass too. A bong hit is *drawn*:
+  hold use and it comes up to your mouth, bubbling and filling with smoke, and the hit lands when the
+  draw is done. Let go early and it costs nothing.
+- **Put your bong down.** Empty, a right-click stands it on the table; packed, sneak and right-click.
+  Break it and it comes back exactly as it went down.
 
 ### From crop to cannabutter
 

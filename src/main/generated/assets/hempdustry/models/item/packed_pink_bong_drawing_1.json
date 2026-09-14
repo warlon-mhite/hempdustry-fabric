@@ -1,0 +1,6 @@
+{
+  "parent": "hempdustry:item/bong_template_draw_1",
+  "textures": {
+    "bong": "hempdustry:block/pink_bong"
+  }
+}

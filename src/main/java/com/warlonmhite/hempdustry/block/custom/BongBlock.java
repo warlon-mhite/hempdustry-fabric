@@ -2,6 +2,8 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
+import com.warlonmhite.hempdustry.component.ModComponents;
+import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -23,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 /**
- * An empty bong standing on something. Pure decoration, the way a flower pot or a candle is: it
+ * A bong standing on something — empty, or packed and set down by sneaking to be picked up and
+ * smoked later. Pure decoration, the way a flower pot or a candle is: it
  * does nothing when clicked, breaks instantly and always drops itself — a Silk-Touch rule like
  * glass's would shatter an enchanted device for the crime of being put down.
  *
@@ -36,6 +39,12 @@ public class BongBlock extends BlockWithEntity {
     public static final MapCodec<BongBlock> CODEC = createCodec(BongBlock::new);
 
     public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
+    /**
+     * A bowl is loaded — only the model reads it; the load itself is in the block entity with
+     * everything else. Set false in the default state below: a {@code BooleanProperty} left out of
+     * it defaults to <em>true</em> (CLAUDE.md §5).
+     */
+    public static final BooleanProperty PACKED = BooleanProperty.of("packed");
 
     // The chamber, the neck and lip, and the bowl on its downstem -- models/block/bong_template.json.
     private static final Map<Direction, VoxelShape> SHAPES = VoxelShapes.createHorizontalFacingShapeMap(
@@ -46,7 +55,7 @@ public class BongBlock extends BlockWithEntity {
 
     public BongBlock(Settings settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(FACING, Direction.NORTH));
+        setDefaultState(getDefaultState().with(FACING, Direction.NORTH).with(PACKED, false));
     }
 
     @Override
@@ -56,7 +65,7 @@ public class BongBlock extends BlockWithEntity {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, PACKED);
     }
 
     @Override
@@ -66,7 +75,8 @@ public class BongBlock extends BlockWithEntity {
 
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing().getOpposite());
+        return getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
+                .with(PACKED, ctx.getStack().contains(ModComponents.SMOKE_CONTENTS));
     }
 
     @Override
