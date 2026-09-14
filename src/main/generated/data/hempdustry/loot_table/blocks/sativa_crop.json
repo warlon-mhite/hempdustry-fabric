@@ -165,6 +165,7 @@
                   "condition": "minecraft:block_state_property",
                   "properties": {
                     "age": "7",
+                    "rubbed": "false",
                     "segment": "lower",
                     "trimmed_early": "false",
                     "trimmed_late": "false"
@@ -200,6 +201,7 @@
                       "condition": "minecraft:block_state_property",
                       "properties": {
                         "age": "7",
+                        "rubbed": "false",
                         "segment": "lower",
                         "trimmed_early": "true",
                         "trimmed_late": "false"
@@ -210,9 +212,21 @@
                       "condition": "minecraft:block_state_property",
                       "properties": {
                         "age": "7",
+                        "rubbed": "false",
                         "segment": "lower",
                         "trimmed_early": "false",
                         "trimmed_late": "true"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:sativa_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "rubbed": "true",
+                        "segment": "lower",
+                        "trimmed_early": "false",
+                        "trimmed_late": "false"
                       }
                     }
                   ]
@@ -240,10 +254,71 @@
               "type": "minecraft:item",
               "conditions": [
                 {
+                  "condition": "minecraft:any_of",
+                  "terms": [
+                    {
+                      "block": "hempdustry:sativa_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "rubbed": "false",
+                        "segment": "lower",
+                        "trimmed_early": "true",
+                        "trimmed_late": "true"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:sativa_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "rubbed": "true",
+                        "segment": "lower",
+                        "trimmed_early": "true",
+                        "trimmed_late": "false"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:sativa_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "rubbed": "true",
+                        "segment": "lower",
+                        "trimmed_early": "false",
+                        "trimmed_late": "true"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 1.0,
+                  "function": "minecraft:set_count"
+                },
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "function": "minecraft:apply_bonus",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
                   "block": "hempdustry:sativa_crop",
                   "condition": "minecraft:block_state_property",
                   "properties": {
                     "age": "7",
+                    "rubbed": "true",
                     "segment": "lower",
                     "trimmed_early": "true",
                     "trimmed_late": "true"
@@ -253,7 +328,7 @@
               "functions": [
                 {
                   "add": false,
-                  "count": 1.0,
+                  "count": 0.0,
                   "function": "minecraft:set_count"
                 },
                 {

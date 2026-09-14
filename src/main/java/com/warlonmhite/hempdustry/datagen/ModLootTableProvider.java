@@ -29,8 +29,11 @@ import net.minecraft.predicate.StatePredicate;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -82,6 +85,16 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      */
     private static final int BUDS_AT_ZERO_CUTS = 2;
     private static final float BUDS_FORTUNE_CHANCE = 0.20F;
+
+    /** The flags that move the buds, one bud each: the two trims, and only those. */
+    private static final BooleanProperty[] TRIMS = {Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE};
+    /**
+     * The flags that each took one leaf off the growing plant, which the harvest then takes back:
+     * both trims <b>and the rub</b> (see {@link Defoliation}). Leave one out and that leaf is a free
+     * leaf per plant.
+     */
+    private static final BooleanProperty[] LEAVES_TAKEN =
+            {Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED};
 
     public ModLootTableProvider(FabricDataOutput dataOutput, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
         super(dataOutput, registryLookup);
@@ -167,10 +180,12 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * single seed. A mature LOWER pays out buds, seeds, hemp stem and hemp leaf, each with the
      * usual base + {@code binomial(fortuneLevel + extra, probability)} bonus.
      *
-     * <p><b>Cut history moves buds and leaves in opposite directions</b>, by one each per cut the
-     * plant received while it was growing (see {@link Defoliation}): a plant sheared in both
-     * windows finishes with {@link #BUDS_AT_ZERO_CUTS} + 2 buds and {@code leavesAtZeroCuts - 2}
-     * leaves, an untouched one with the base of each. Stems are <b>flat</b> — stalk is structural,
+     * <p><b>Cut history moves buds and leaves in opposite directions</b> (see {@link Defoliation}).
+     * Buds go up by one per <b>trim</b> ({@link #TRIMS}); leaves go down by one per leaf the player
+     * already took off the plant — both trims <b>and the rub</b> ({@link #LEAVES_TAKEN}). A plant
+     * trimmed twice and rubbed finishes with {@link #BUDS_AT_ZERO_CUTS} + 2 buds and
+     * {@code leavesAtZeroCuts - 3} leaves, an untouched one with the base of each. The rub moves no
+     * buds: the sugar leaf it takes is not defoliation. Stems are <b>flat</b> — stalk is structural,
      * and pruning foliage has no business changing how much of it there is.
      *
      * <p><b>Buds and seeds are strain-independent</b> and stem/leaf counts are the only per-crop
@@ -178,17 +193,24 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * told apart by its effects and its leaf/stem character, not by handing over more of the same
      * premium drop.
      *
-     * <p>Note that the leaves a player takes during the two cuts exactly replace the leaves they
-     * give up at harvest, so a plant yields the same number of leaves either way and defoliating is
-     * a straight gain in buds. That is intended: it is what the real practice does (you keep the
-     * trimmed fan leaves <em>and</em> the flowers do better), and the price is paid in shear
-     * durability and in having to come back at the right two moments instead of planting and
-     * forgetting.
+     * <p>Note that the leaves a player takes during the two cuts and the rub exactly replace the
+     * leaves they give up at harvest, so a plant yields the same number of leaves either way and
+     * defoliating is a straight gain in buds. That is intended: it is what the real practice does
+     * (you keep the trimmed fan leaves <em>and</em> the flowers do better), and the price is paid in
+     * shear durability and in having to come back at the right moments instead of planting and
+     * forgetting. <b>Hence {@code leavesAtZeroCuts} must be at least three</b> — one per leaf that
+     * can be taken. Below that the base would go negative and silently eat the Fortune bonus, so it
+     * throws instead. Lemon Haze sits exactly on it: worked all three ways, its base is zero and
+     * only Fortune's bonus remains.
      */
     private LootTable.Builder hempCropDrops(Block crop, Supplier<StatePredicate.Builder> lowerPredicate,
                                             IntProperty ageProperty, int maxAge,
                                             Item buds, Item seeds,
                                             int leavesAtZeroCuts, int stemCount) {
+        if (leavesAtZeroCuts < LEAVES_TAKEN.length) {
+            throw new IllegalArgumentException(crop + " has " + leavesAtZeroCuts + " leaves at harvest,"
+                    + " fewer than the " + LEAVES_TAKEN.length + " a player can take off it while it grows");
+        }
         RegistryWrapper.Impl<Enchantment> enchantments = this.registries.getOrThrow(RegistryKeys.ENCHANTMENT);
         RegistryEntry<Enchantment> fortune = enchantments.getOrThrow(Enchantments.FORTUNE);
 
@@ -197,13 +219,12 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         LootCondition.Builder isMatureLower = BlockStatePropertyLootCondition.builder(crop)
                 .properties(lowerPredicate.get().exactMatch(ageProperty, maxAge));
 
-        // The three cut buckets. "One cut" is the only one that needs an OR, because it is reached
-        // by two different paths: the player caught the early window, or only the late one.
-        LootCondition.Builder zeroCuts = cutBucket(crop, lowerPredicate, ageProperty, maxAge, false, false);
-        LootCondition.Builder oneCut = AnyOfLootCondition.builder(
-                cutBucket(crop, lowerPredicate, ageProperty, maxAge, true, false),
-                cutBucket(crop, lowerPredicate, ageProperty, maxAge, false, true));
-        LootCondition.Builder twoCuts = cutBucket(crop, lowerPredicate, ageProperty, maxAge, true, true);
+        // The three cut buckets, which drive the buds. "One cut" is the only one that needs an OR,
+        // because it is reached by two different paths: the player caught the early window, or only
+        // the late one.
+        LootCondition.Builder zeroCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 0, TRIMS);
+        LootCondition.Builder oneCut = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 1, TRIMS);
+        LootCondition.Builder twoCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, TRIMS);
 
         return this.applyExplosionDecay(crop,
                 LootTable.builder()
@@ -215,12 +236,18 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                                         .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS + 1, oneCut, fortune, BUDS_FORTUNE_CHANCE, 2))
                                         .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS + 2, twoCuts, fortune, BUDS_FORTUNE_CHANCE, 2))
                                         .alternatively(ItemEntry.builder(seeds))))
-                        // Hemp leaf when mature — fewer of them the more the plant was trimmed.
+                        // Hemp leaf when mature — one fewer for every leaf already taken off the
+                        // plant while it grew: both trims AND the rub, so four buckets, not three.
                         .pool(LootPool.builder()
                                 .conditionally(isMatureLower)
-                                .with(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts, zeroCuts, fortune, 0.30F, 3)
-                                        .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 1, oneCut, fortune, 0.30F, 3))
-                                        .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 2, twoCuts, fortune, 0.30F, 3))))
+                                .with(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts,
+                                                workedBucket(crop, lowerPredicate, ageProperty, maxAge, 0, LEAVES_TAKEN), fortune, 0.30F, 3)
+                                        .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 1,
+                                                workedBucket(crop, lowerPredicate, ageProperty, maxAge, 1, LEAVES_TAKEN), fortune, 0.30F, 3))
+                                        .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 2,
+                                                workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, LEAVES_TAKEN), fortune, 0.30F, 3))
+                                        .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 3,
+                                                workedBucket(crop, lowerPredicate, ageProperty, maxAge, 3, LEAVES_TAKEN), fortune, 0.30F, 3))))
                         // Seeds when mature. Identical across strains, so replanting either costs the same.
                         .pool(LootPool.builder()
                                 .conditionally(isMatureLower)
@@ -235,15 +262,30 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                                         .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3)))));
     }
 
-    /** "This plant is a mature LOWER and was trimmed in exactly these windows." */
-    private static LootCondition.Builder cutBucket(Block crop, Supplier<StatePredicate.Builder> lowerPredicate,
-                                                   IntProperty ageProperty, int maxAge,
-                                                   boolean trimmedEarly, boolean trimmedLate) {
-        return BlockStatePropertyLootCondition.builder(crop)
-                .properties(lowerPredicate.get()
-                        .exactMatch(ageProperty, maxAge)
-                        .exactMatch(Defoliation.TRIMMED_EARLY, trimmedEarly)
-                        .exactMatch(Defoliation.TRIMMED_LATE, trimmedLate));
+    /**
+     * "This plant is a mature LOWER and exactly {@code count} of these {@code flags} are set" — an OR
+     * over every combination that gets there, so a bucket reached by several paths is still one
+     * condition. A bucket with only one path comes back bare rather than as a one-term OR.
+     *
+     * <p>Every bucket names <b>every</b> flag in the list, so the buckets for one list are mutually
+     * exclusive and cover all of its combinations: a plant cannot match two and fall through none.
+     */
+    private static LootCondition.Builder workedBucket(Block crop, Supplier<StatePredicate.Builder> lowerPredicate,
+                                                      IntProperty ageProperty, int maxAge,
+                                                      int count, BooleanProperty[] flags) {
+        List<LootCondition.Builder> paths = new ArrayList<>();
+        for (int set = 0; set < 1 << flags.length; set++) {
+            if (Integer.bitCount(set) != count) {
+                continue;
+            }
+            StatePredicate.Builder state = lowerPredicate.get().exactMatch(ageProperty, maxAge);
+            for (int i = 0; i < flags.length; i++) {
+                state.exactMatch(flags[i], (set & 1 << i) != 0);
+            }
+            paths.add(BlockStatePropertyLootCondition.builder(crop).properties(state));
+        }
+        return paths.size() == 1 ? paths.get(0)
+                : AnyOfLootCondition.builder(paths.toArray(LootCondition.Builder[]::new));
     }
 
     /** A fixed-count drop gated on one cut bucket, with the usual Fortune bonus on top. */
