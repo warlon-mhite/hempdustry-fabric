@@ -1,0 +1,708 @@
+{
+  "_comment": "Written by textures-src/bong_glass.py from block/bong_template.json -- edit that file and re-run the script, never this one.",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "#bong",
+    "metal": "minecraft:block/iron_block",
+    "load": "minecraft:block/white_wool",
+    "smoke": "minecraft:block/white_stained_glass"
+  },
+  "elements": [
+    {
+      "name": "chamber",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        5,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            6,
+            5
+          ],
+          "texture": "#bong"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            6,
+            5
+          ],
+          "texture": "#bong"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            6,
+            5
+          ],
+          "texture": "#bong"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            6,
+            5
+          ],
+          "texture": "#bong"
+        },
+        "up": {
+          "uv": [
+            0,
+            5,
+            6,
+            11
+          ],
+          "texture": "#bong"
+        },
+        "down": {
+          "uv": [
+            0,
+            5,
+            6,
+            11
+          ],
+          "texture": "#bong",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "water",
+      "from": [
+        5.5,
+        0.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        3,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            11,
+            5,
+            13.5
+          ],
+          "texture": "#bong"
+        },
+        "east": {
+          "uv": [
+            0,
+            11,
+            5,
+            13.5
+          ],
+          "texture": "#bong"
+        },
+        "south": {
+          "uv": [
+            0,
+            11,
+            5,
+            13.5
+          ],
+          "texture": "#bong"
+        },
+        "west": {
+          "uv": [
+            0,
+            11,
+            5,
+            13.5
+          ],
+          "texture": "#bong"
+        },
+        "up": {
+          "uv": [
+            0,
+            11,
+            5,
+            16
+          ],
+          "texture": "#bong"
+        },
+        "down": {
+          "uv": [
+            0,
+            11,
+            5,
+            16
+          ],
+          "texture": "#bong"
+        }
+      }
+    },
+    {
+      "name": "neck",
+      "from": [
+        6.5,
+        5,
+        6.5
+      ],
+      "to": [
+        9.5,
+        14,
+        9.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            0,
+            9,
+            9
+          ],
+          "texture": "#bong"
+        },
+        "east": {
+          "uv": [
+            6,
+            0,
+            9,
+            9
+          ],
+          "texture": "#bong"
+        },
+        "south": {
+          "uv": [
+            6,
+            0,
+            9,
+            9
+          ],
+          "texture": "#bong"
+        },
+        "west": {
+          "uv": [
+            6,
+            0,
+            9,
+            9
+          ],
+          "texture": "#bong"
+        }
+      }
+    },
+    {
+      "name": "lip",
+      "from": [
+        6,
+        14,
+        6
+      ],
+      "to": [
+        10,
+        15,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            0,
+            13,
+            1
+          ],
+          "texture": "#bong"
+        },
+        "east": {
+          "uv": [
+            9,
+            0,
+            13,
+            1
+          ],
+          "texture": "#bong"
+        },
+        "south": {
+          "uv": [
+            9,
+            0,
+            13,
+            1
+          ],
+          "texture": "#bong"
+        },
+        "west": {
+          "uv": [
+            9,
+            0,
+            13,
+            1
+          ],
+          "texture": "#bong"
+        },
+        "up": {
+          "uv": [
+            9,
+            1,
+            13,
+            5
+          ],
+          "texture": "#bong"
+        },
+        "down": {
+          "uv": [
+            9,
+            1,
+            13,
+            5
+          ],
+          "texture": "#bong"
+        }
+      }
+    },
+    {
+      "name": "downstem",
+      "from": [
+        8.5,
+        2,
+        7.5
+      ],
+      "to": [
+        13.5,
+        3,
+        8.5
+      ],
+      "rotation": {
+        "angle": 45,
+        "axis": "z",
+        "origin": [
+          11,
+          2.5,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            5,
+            14,
+            6
+          ],
+          "texture": "#bong"
+        },
+        "east": {
+          "uv": [
+            13,
+            5,
+            14,
+            6
+          ],
+          "texture": "#bong"
+        },
+        "south": {
+          "uv": [
+            9,
+            5,
+            14,
+            6
+          ],
+          "texture": "#bong"
+        },
+        "west": {
+          "uv": [
+            13,
+            5,
+            14,
+            6
+          ],
+          "texture": "#bong"
+        },
+        "up": {
+          "uv": [
+            9,
+            5,
+            14,
+            6
+          ],
+          "texture": "#bong"
+        },
+        "down": {
+          "uv": [
+            9,
+            5,
+            14,
+            6
+          ],
+          "texture": "#bong"
+        }
+      }
+    },
+    {
+      "name": "bowl",
+      "from": [
+        11.75,
+        4,
+        6.75
+      ],
+      "to": [
+        14.25,
+        5.75,
+        9.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            1.75
+          ],
+          "texture": "#metal"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            1.75
+          ],
+          "texture": "#metal"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            1.75
+          ],
+          "texture": "#metal"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            1.75
+          ],
+          "texture": "#metal"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            2.5
+          ],
+          "texture": "#metal"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            2.5
+          ],
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "name": "load",
+      "from": [
+        12.25,
+        5.75,
+        7.25
+      ],
+      "to": [
+        13.75,
+        6.5,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            0.75
+          ],
+          "texture": "#load",
+          "tintindex": 1
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            0.75
+          ],
+          "texture": "#load",
+          "tintindex": 1
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            0.75
+          ],
+          "texture": "#load",
+          "tintindex": 1
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            0.75
+          ],
+          "texture": "#load",
+          "tintindex": 1
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            1.5
+          ],
+          "texture": "#load",
+          "tintindex": 1
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1.5,
+            1.5
+          ],
+          "texture": "#load",
+          "tintindex": 1
+        }
+      }
+    },
+    {
+      "name": "chamber smoke",
+      "from": [
+        5.5,
+        3,
+        5.5
+      ],
+      "to": [
+        10.5,
+        4.9,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            7.0,
+            3.9000000000000004
+          ],
+          "texture": "#smoke"
+        },
+        "south": {
+          "uv": [
+            2,
+            2,
+            7.0,
+            3.9000000000000004
+          ],
+          "texture": "#smoke"
+        },
+        "east": {
+          "uv": [
+            2,
+            2,
+            7.0,
+            3.9000000000000004
+          ],
+          "texture": "#smoke"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            7.0,
+            3.9000000000000004
+          ],
+          "texture": "#smoke"
+        },
+        "up": {
+          "uv": [
+            2,
+            2,
+            7.0,
+            7.0
+          ],
+          "texture": "#smoke"
+        },
+        "down": {
+          "uv": [
+            2,
+            2,
+            7.0,
+            7.0
+          ],
+          "texture": "#smoke"
+        }
+      }
+    },
+    {
+      "name": "neck smoke",
+      "from": [
+        7,
+        5,
+        7
+      ],
+      "to": [
+        9,
+        13.9,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            4,
+            10.9
+          ],
+          "texture": "#smoke"
+        },
+        "south": {
+          "uv": [
+            2,
+            2,
+            4,
+            10.9
+          ],
+          "texture": "#smoke"
+        },
+        "east": {
+          "uv": [
+            2,
+            2,
+            4,
+            10.9
+          ],
+          "texture": "#smoke"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            4,
+            10.9
+          ],
+          "texture": "#smoke"
+        },
+        "up": {
+          "uv": [
+            2,
+            2,
+            4,
+            4
+          ],
+          "texture": "#smoke"
+        },
+        "down": {
+          "uv": [
+            2,
+            2,
+            4,
+            4
+          ],
+          "texture": "#smoke"
+        }
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        1
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        1
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        -45,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "head": {
+      "translation": [
+        0,
+        14.5,
+        0
+      ]
+    }
+  }
+}

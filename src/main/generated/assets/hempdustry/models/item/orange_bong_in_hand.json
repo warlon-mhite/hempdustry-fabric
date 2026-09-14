@@ -2,8 +2,32 @@
   "parent": "hempdustry:block/orange_bong",
   "overrides": [
     {
-      "model": "hempdustry:item/packed_orange_bong_in_hand",
+      "model": "hempdustry:block/orange_bong_packed",
       "predicate": {
+        "hempdustry:packed": 1
+      }
+    },
+    {
+      "model": "hempdustry:item/packed_orange_bong_drawing_1",
+      "predicate": {
+        "hempdustry:draw": 0.25,
+        "hempdustry:drawing": 1,
+        "hempdustry:packed": 1
+      }
+    },
+    {
+      "model": "hempdustry:item/packed_orange_bong_drawing_2",
+      "predicate": {
+        "hempdustry:draw": 0.5,
+        "hempdustry:drawing": 1,
+        "hempdustry:packed": 1
+      }
+    },
+    {
+      "model": "hempdustry:item/packed_orange_bong_drawing_3",
+      "predicate": {
+        "hempdustry:draw": 0.75,
+        "hempdustry:drawing": 1,
         "hempdustry:packed": 1
       }
     }

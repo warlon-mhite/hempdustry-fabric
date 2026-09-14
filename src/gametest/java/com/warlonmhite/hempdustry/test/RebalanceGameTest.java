@@ -165,6 +165,10 @@ public final class RebalanceGameTest implements FabricGameTest {
     private static void smoke(TestContext context, ServerPlayerEntity player, ItemStack stack) {
         player.setStackInHand(Hand.MAIN_HAND, stack);
         stack.getItem().use(context.getWorld(), player, Hand.MAIN_HAND);
+        // A bong's hit lands at the end of its draw, not on the click: finish the draw.
+        if (stack.getMaxUseTime(player) > 0) {
+            stack.getItem().finishUsing(stack, context.getWorld(), player);
+        }
     }
 
     private static void smokeUntilClean(TestContext context, ServerPlayerEntity player, Item device,

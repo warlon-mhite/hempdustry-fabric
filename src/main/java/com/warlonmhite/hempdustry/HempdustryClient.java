@@ -24,7 +24,11 @@ import java.util.HashMap;
 import java.util.List;
 import com.warlonmhite.hempdustry.client.UpdateChecker;
 import com.warlonmhite.hempdustry.client.particle.AromaParticle;
+import com.warlonmhite.hempdustry.client.sound.BongDrawSoundInstance;
+import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
@@ -104,6 +108,10 @@ public class HempdustryClient implements ClientModInitializer {
         registerItemColors();
 
         registerBlockColors();
+
+        // A bong's bubbling is played here, per client, so it can stop when the drawer lets go.
+        SmokingDeviceItem.drawSound = drawer -> MinecraftClient.getInstance().getSoundManager()
+                .play(new BongDrawSoundInstance(drawer));
     }
 
     /** Neutral white: multiplied into a texel it changes nothing, which is what "no tint" means. */
@@ -182,7 +190,16 @@ public class HempdustryClient implements ClientModInitializer {
             }
             return light.artificial() ? ColorHelper.Argb.lerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
         }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP);
+
+        // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
+        // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour
+        // is the hand's, where the item definition has the stack to read.
+        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) ->
+                        tintIndex == 1 ? PLACED_LOAD : NO_TINT,
+                ModBlocks.DEVICE_BLOCKS.values().toArray(Block[]::new));
     }
+
+    private static final int PLACED_LOAD = 0x6F8F3A;
 
     /**
      * {@code grassColor} blended towards white by {@code 1 - client.biomeTintStrength}.
@@ -286,6 +303,22 @@ public class HempdustryClient implements ClientModInitializer {
                 stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).isEmpty() ? 0f : 1f;
         for (Item device : everyDevice()) {
             ModelPredicateProviderRegistry.register(device, packedId, packed);
+        }
+
+        // The bong's draw, for its 3D hand model: the bow's pulling and pull, measured against the
+        // draw's own length rather than a bow's twenty ticks.
+        ClampedModelPredicateProvider drawing = (stack, world, entity, seed) ->
+                entity != null && entity.isUsingItem() && entity.getActiveItem() == stack ? 1f : 0f;
+        ClampedModelPredicateProvider draw = (stack, world, entity, seed) -> {
+            if (entity == null || entity.getActiveItem() != stack
+                    || !(stack.getItem() instanceof SmokingDeviceItem device) || device.device().drawTicks() <= 0) {
+                return 0f;
+            }
+            return (stack.getMaxUseTime(entity) - entity.getItemUseTimeLeft()) / (float) device.device().drawTicks();
+        };
+        for (Item bong : ModItems.bongs()) {
+            ModelPredicateProviderRegistry.register(bong, ModItemProperties.DRAWING, drawing);
+            ModelPredicateProviderRegistry.register(bong, ModItemProperties.DRAW, draw);
         }
     }
 

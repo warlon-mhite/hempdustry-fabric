@@ -8,6 +8,7 @@ shades of vanilla's own stained-glass colour (the one flat colour every block/<c
 is painted in), and the water and the bowl are left exactly as drawn. So when bong.png is
 redrawn, re-run this and the seventeen follow it -- which is why there is no .mctex per colour.
 """
+import json
 import struct
 import sys
 import zlib
@@ -134,9 +135,58 @@ def write_sheet(name, color):
 
 
 BLOCK = ITEM.parent / "block"
+MODELS = ITEM.parent.parent / "models"
+
+
+# The 3D bong's derived models. models/block/bong_template.json is the one hand-written file; the
+# packed bong and the three stages of a draw are it plus elements, written here so nobody has to
+# keep four copies of the same geometry in step by hand.
+def smoke(name, frm, to):
+    w, h, d = (to[i] - frm[i] for i in range(3))
+    uv = lambda a, b: [2, 2, 2 + a, 2 + b]  # inside the stained glass's border: an even milky fill
+    faces = {"north": uv(w, h), "south": uv(w, h), "east": uv(d, h), "west": uv(d, h),
+             "up": uv(w, d), "down": uv(w, d)}
+    return {"name": name, "from": frm, "to": to,
+            "faces": {f: {"uv": u, "texture": "#smoke"} for f, u in faces.items()}}
+
+
+# What sits in the bowl. Tint index 1, which the item definition fills with the strain's colour.
+LOAD = {"name": "load", "from": [12.25, 5.75, 7.25], "to": [13.75, 6.5, 8.75],
+        "faces": {f: {"uv": [0, 0, 1.5, 1.5 if f in ("up", "down") else 0.75], "texture": "#load",
+                      "tintindex": 1}
+                  for f in ("north", "east", "south", "west", "up", "down")}}
+
+# A draw in the bow's grammar: the item definition steps through these on use_duration, the way a
+# bow steps through pulling_0..2. Smoke gathers over the water, then climbs the neck.
+DRAW = [
+    [smoke("chamber smoke", [5.5, 3, 5.5], [10.5, 4, 10.5])],
+    [smoke("chamber smoke", [5.5, 3, 5.5], [10.5, 4.9, 10.5]),
+     smoke("neck smoke", [7, 5, 7], [9, 9.5, 9])],
+    [smoke("chamber smoke", [5.5, 3, 5.5], [10.5, 4.9, 10.5]),
+     smoke("neck smoke", [7, 5, 7], [9, 13.9, 9])],
+]
+
+
+def write_templates():
+    base = json.loads((MODELS / "block/bong_template.json").read_text())
+    note = ("Written by textures-src/bong_glass.py from block/bong_template.json -- edit that file "
+            "and re-run the script, never this one.")
+    textures = dict(base["textures"], load="minecraft:block/white_wool")
+
+    def emit(path, extra, more_textures=None):
+        model = {"_comment": note, "ambientocclusion": False,
+                 "textures": dict(textures, **(more_textures or {})),
+                 "elements": base["elements"] + extra, "display": base["display"]}
+        (MODELS / path).write_text(json.dumps(model, indent=2) + "\n")
+
+    emit("item/bong_template_packed.json", [LOAD])
+    for stage, elements in enumerate(DRAW, 1):
+        emit(f"item/bong_template_draw_{stage}.json", [LOAD] + elements,
+             {"smoke": "minecraft:block/white_stained_glass"})
 
 
 def main():
+    write_templates()
     clear = read_png(ITEM / "bong.png")
     write_sheet("clear", None)
     out = {}

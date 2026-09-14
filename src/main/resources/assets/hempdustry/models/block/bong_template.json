@@ -4,8 +4,8 @@
     "trident and spyglass keep a flat sprite for the inventory and a real one for the hand",
     "(ItemModelGenerator#createModelWithInHandVariant). North-default, downstem to the east.",
     "#bong is a per-glass sheet made by textures-src/bong_glass.py; its SHEET comment names the",
-    "UV regions used below. item/bong_template_packed.json is this plus one element -- keep the two",
-    "in step."
+    "UV regions used below. The packed bong and the three draw stages (item/bong_template_*.json)",
+    "are this plus elements, derived by the same script -- re-run it after editing this file."
   ],
   "ambientocclusion": false,
   "textures": {

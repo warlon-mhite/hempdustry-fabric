@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.BongBlock;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.google.gson.JsonArray;
@@ -27,6 +28,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.Direction;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -269,12 +271,24 @@ public class ModModelProvider extends FabricModelProvider {
         if (!ModBlocks.DEVICE_BLOCKS.containsKey(name)) {
             return;
         }
-        Identifier packedInHand = BONG_PACKED_TEMPLATE.upload(
-                Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName + "_in_hand"),
-                bongTextures(name), generator.writer);
+        // The placed packed bong's own model (registerBongBlocks), so the hand and the table show
+        // the same bowl -- tinted by the strain here, where there is a stack to ask.
+        Identifier packedInHand = Identifier.of(Hempdustry.MOD_ID, "block/" + name + "_packed");
+        // The draw, in the bow's grammar: while it is being used, the bong steps through the
+        // stages on how far into the draw it is -- smoke gathering over the water, then climbing
+        // the neck -- exactly as a bow steps through pulling_0..2. Thresholds at a quarter, a half
+        // and three quarters of the draw, the fraction ModItemProperties.DRAW reports.
+        List<ModelOverride> overrides = new ArrayList<>();
+        overrides.add(ModelOverride.of(packedInHand, PACKED_PREDICATE, 1));
+        for (int stage = 1; stage <= BONG_DRAW_TEMPLATES.size(); stage++) {
+            Identifier model = BONG_DRAW_TEMPLATES.get(stage - 1).upload(
+                    Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName + "_drawing_" + stage),
+                    bongTextures(name), generator.writer);
+            overrides.add(ModelOverride.of(model, PACKED_PREDICATE, 1, ModItemProperties.DRAWING, 1,
+                    ModItemProperties.DRAW, stage / (BONG_DRAW_TEMPLATES.size() + 1f)));
+        }
         uploadParented(generator, ModItemProperties.inHandModel(item),
-                Identifier.of(Hempdustry.MOD_ID, "block/" + name),
-                List.of(new ModelOverride(PACKED_PREDICATE, 1, packedInHand)));
+                Identifier.of(Hempdustry.MOD_ID, "block/" + name), overrides);
     }
 
     // The placed bong, hand-written once as block/bong_template.json and re-textured per glass.
@@ -283,6 +297,10 @@ public class ModModelProvider extends FabricModelProvider {
             Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/bong_template")), Optional.empty(), BONG_SHEET);
     private static final Model BONG_PACKED_TEMPLATE = new Model(
             Optional.of(Identifier.of(Hempdustry.MOD_ID, "item/bong_template_packed")), Optional.empty(), BONG_SHEET);
+    private static final List<Model> BONG_DRAW_TEMPLATES = java.util.stream.IntStream.rangeClosed(1, 3)
+            .mapToObj(stage -> new Model(Optional.of(Identifier.of(Hempdustry.MOD_ID,
+                    "item/bong_template_draw_" + stage)), Optional.empty(), BONG_SHEET))
+            .toList();
 
     private static TextureMap bongTextures(String name) {
         return new TextureMap().put(BONG_SHEET, Identifier.of(Hempdustry.MOD_ID, "block/" + name));
@@ -293,16 +311,22 @@ public class ModModelProvider extends FabricModelProvider {
      * block of vanilla's is, with the downstem to the east of the direction it faces.
      */
     private static void registerBongBlocks(BlockStateModelGenerator generator) {
-        BlockStateVariantMap facing = BlockStateVariantMap.create(Properties.HORIZONTAL_FACING)
-                .register(Direction.NORTH, BlockStateVariant.create())
-                .register(Direction.EAST, BlockStateVariant.create().put(VariantSettings.Y, VariantSettings.Rotation.R90))
-                .register(Direction.SOUTH, BlockStateVariant.create().put(VariantSettings.Y, VariantSettings.Rotation.R180))
-                .register(Direction.WEST, BlockStateVariant.create().put(VariantSettings.Y, VariantSettings.Rotation.R270));
         for (Map.Entry<String, Block> entry : ModBlocks.DEVICE_BLOCKS.entrySet()) {
-            Identifier model = BONG_TEMPLATE.upload(entry.getValue(), bongTextures(entry.getKey()),
+            Block block = entry.getValue();
+            Identifier model = BONG_TEMPLATE.upload(block, bongTextures(entry.getKey()), generator.modelCollector);
+            Identifier packed = BONG_PACKED_TEMPLATE.upload(block, "_packed", bongTextures(entry.getKey()),
                     generator.modelCollector);
-            generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(entry.getValue(),
-                    BlockStateVariant.create().put(VariantSettings.MODEL, model)).coordinate(facing));
+            BlockStateVariantMap variants = BlockStateVariantMap.create(Properties.HORIZONTAL_FACING, BongBlock.PACKED)
+                    .register((facing, packedState) -> {
+                        BlockStateVariant variant = BlockStateVariant.create()
+                                .put(VariantSettings.MODEL, packedState ? packed : model);
+                        return facing == Direction.NORTH ? variant : variant.put(VariantSettings.Y, switch (facing) {
+                            case EAST -> VariantSettings.Rotation.R90;
+                            case SOUTH -> VariantSettings.Rotation.R180;
+                            default -> VariantSettings.Rotation.R270;
+                        });
+                    });
+            generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(block).coordinate(variants));
         }
     }
 
@@ -351,7 +375,8 @@ public class ModModelProvider extends FabricModelProvider {
             JsonArray array = new JsonArray();
             for (ModelOverride override : overrides) {
                 JsonObject predicate = new JsonObject();
-                predicate.addProperty(override.predicate().toString(), override.threshold());
+                override.predicates().forEach((property, threshold) ->
+                        predicate.addProperty(property.toString(), threshold));
                 JsonObject entry = new JsonObject();
                 entry.add("predicate", predicate);
                 entry.addProperty("model", override.model().toString());
@@ -374,7 +399,8 @@ public class ModModelProvider extends FabricModelProvider {
             JsonArray array = new JsonArray();
             for (ModelOverride override : overrides) {
                 JsonObject predicate = new JsonObject();
-                predicate.addProperty(override.predicate().toString(), override.threshold());
+                override.predicates().forEach((property, threshold) ->
+                        predicate.addProperty(property.toString(), threshold));
                 JsonObject entry = new JsonObject();
                 entry.add("predicate", predicate);
                 entry.addProperty("model", override.model().toString());
@@ -385,8 +411,23 @@ public class ModModelProvider extends FabricModelProvider {
         });
     }
 
-    /** One {@code overrides} entry: which property to test, the {@code >=} threshold, and the model. */
-    private record ModelOverride(Identifier predicate, int threshold, Identifier model) {
+    /**
+     * One {@code overrides} entry: the model, and each property to test with its {@code >=} threshold.
+     * Every property has to pass for the entry to match, and the last matching entry wins.
+     */
+    private record ModelOverride(Map<Identifier, Number> predicates, Identifier model) {
+        ModelOverride(Identifier predicate, int threshold, Identifier model) {
+            this(Map.of(predicate, threshold), model);
+        }
+
+        /** {@code model} when every (property, threshold) pair holds, written in the order given. */
+        static ModelOverride of(Identifier model, Object... propertyThresholdPairs) {
+            Map<Identifier, Number> predicates = new LinkedHashMap<>();
+            for (int i = 0; i < propertyThresholdPairs.length; i += 2) {
+                predicates.put((Identifier) propertyThresholdPairs[i], (Number) propertyThresholdPairs[i + 1]);
+            }
+            return new ModelOverride(predicates, model);
+        }
     }
 
 
