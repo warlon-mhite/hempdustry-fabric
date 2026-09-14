@@ -109,6 +109,9 @@ public class ModItemGroups {
                         // identity ends. Hashish, oil and rosin belong in this run.
                         entries.add(ModItems.DECARBOXYLATED_HEMP);
                         entries.add(ModItems.WASHED_DECARBOXYLATED_HEMP);
+                        // Beside the oven's two, because it is the Infuser's third input -- the
+                        // furnace's cruder answer to the same heat, and what a vaporizer hands back.
+                        entries.add(ModItems.SCORCHED_HEMP);
                         // The two loose intermediates sit before the pressed forms they become,
                         // which is the order the chain runs in.
                         entries.add(ModItems.KIEF);

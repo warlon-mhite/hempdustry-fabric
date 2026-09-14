@@ -34,8 +34,8 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private static final int ARROW_WIDTH = 24;
     private static final int PADDING = 2;
     private static final int LINE_HEIGHT = 9;
-    /** Widest an entry gets: the Infuser's three inputs. Fixed, so pages in a category line up. */
-    private static final int MAX_INPUTS = 3;
+    /** Widest an entry gets: the Infuser's four inputs. Fixed, so pages in a category line up. */
+    private static final int MAX_INPUTS = 4;
     /** Inputs, arrow and output: the narrowest a page can be. */
     private static final int SLOTS_WIDTH = MAX_INPUTS * SLOT + ARROW_WIDTH + SLOT + PADDING * 2;
     /** The note lines' grey, opaque: an ARGB colour with no alpha byte is drawn as nothing. */

@@ -35,15 +35,22 @@ import java.util.Optional;
  * decarboxylated hemp, or change what a batch produces, and a recipe viewer can finally show the
  * conversion at all.
  *
- * <p>The two hemp ingredients are separate because the machine treats them differently — washed hemp
- * is what makes {@code Clean} and {@code Perfect} reachable, and absorption spends unwashed first. A
- * single ingredient with a flag would not survive that.
+ * <p>The hemp ingredients are separate because the machine treats them differently — washed hemp
+ * is what makes {@code Clean} and {@code Perfect} reachable, scorched hemp counts a quarter and
+ * pulls the grade down, and absorption spends the cheapest first. A single ingredient with a flag
+ * would not survive that.
+ *
+ * <p><b>{@code scorched_hemp} is optional, and has to be.</b> It was added after the recipe shipped,
+ * so a pack that overrides {@code infusing.json} with the three fields it knew about must keep
+ * loading — a required field would take the whole tub down with a parse error. Absent means the tub
+ * simply does not take scorched hemp, which is what that pack was written against.
  *
  * <p><b>Removing every infusing recipe disables the machine</b> rather than crashing it: with no
  * recipe the tub accepts nothing and produces nothing, which is a legitimate thing for a pack to want
  * and the only sane reading of "there is no conversion".
  */
-public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient washedHemp, ItemStack result)
+public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient washedHemp,
+                             Optional<Ingredient> scorchedHemp, ItemStack result)
         implements Recipe<SingleStackRecipeInput> {
 
     /**
@@ -62,7 +69,12 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     @Override
     public boolean matches(SingleStackRecipeInput input, World world) {
         ItemStack stack = input.item();
-        return container.test(stack) || hemp.test(stack) || washedHemp.test(stack);
+        return container.test(stack) || hemp.test(stack) || washedHemp.test(stack) || isScorched(stack);
+    }
+
+    /** Whether {@code stack} plays the scorched part — never, for a recipe that does not name one. */
+    public boolean isScorched(ItemStack stack) {
+        return scorchedHemp.isPresent() && scorchedHemp.get().test(stack);
     }
 
     @Override
@@ -70,11 +82,11 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
         return result.copy();
     }
 
-    /** The three things the tub accepts, in the order the screen lays them out. */
+    /** The things the tub accepts, in the order the screen lays them out. */
     @Override
     public IngredientPlacement getIngredientPlacement() {
         return IngredientPlacement.forMultipleSlots(
-                List.of(Optional.of(container), Optional.of(hemp), Optional.of(washedHemp)));
+                List.of(Optional.of(container), Optional.of(hemp), Optional.of(washedHemp), scorchedHemp));
     }
 
     @Override
@@ -115,6 +127,9 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
                 Ingredient.CODEC.fieldOf("container").forGetter(InfusingRecipe::container),
                 Ingredient.CODEC.fieldOf("hemp").forGetter(InfusingRecipe::hemp),
                 Ingredient.CODEC.fieldOf("washed_hemp").forGetter(InfusingRecipe::washedHemp),
+                // Optional: see the class notes. Every infusing.json written before it existed
+                // still parses, and means "this tub takes no scorched hemp".
+                Ingredient.CODEC.optionalFieldOf("scorched_hemp").forGetter(InfusingRecipe::scorchedHemp),
                 ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
         ).apply(instance, InfusingRecipe::new));
 
@@ -122,6 +137,7 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
                 Ingredient.PACKET_CODEC, InfusingRecipe::container,
                 Ingredient.PACKET_CODEC, InfusingRecipe::hemp,
                 Ingredient.PACKET_CODEC, InfusingRecipe::washedHemp,
+                Ingredient.OPTIONAL_PACKET_CODEC, InfusingRecipe::scorchedHemp,
                 ItemStack.PACKET_CODEC, InfusingRecipe::result,
                 InfusingRecipe::new);
 
