@@ -88,13 +88,63 @@ def write_png(path, rows):
                      + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
+# The placed bong's texture sheet -- models/block/bong_template.json names these regions by UV.
+#   A 0-5 x 0-4    chamber sides (6x5)       C 6-8 x 0-8   neck sides (3x9)
+#   B 0-5 x 5-10   chamber top/bottom (6x6)  D 9-12 x 0    lip sides (4x1)
+#   E 9-12 x 1-4   lip top, open mouth       F 9-13 x 5    downstem (5x1)
+#   W 0-4 x 11-15  water
+# b border, f fill, h highlight streak, w/v water, . empty. Drawn the way vanilla's own stained
+# glass is: a denser border ring around a thin fill, one flat colour at three alphas.
+SHEET = [
+    "bbbbbbbfbbbbb...",
+    "bhfffbbhbbbbb...",
+    "bfhffbbhbb..b...",
+    "bffffbbfbb..b...",
+    "bbbbbbbfbbbbb...",
+    "bbbbbbbfbbbbbb..",
+    "bhfffbbfb.......",
+    "bfhffbbfb.......",
+    "bffffbbfb.......",
+    "bffffb..........",
+    "bbbbbb..........",
+    "wwwww...........",
+    "wvwvw...........",
+    "vwvwv...........",
+    "wwwvw...........",
+    "vwwwv...........",
+]
+WATER, DEEP = (0x23, 0x48, 0xA6, 200), (0x09, 0x33, 0x9E, 210)
+
+
+def sheet_roles(name, color):
+    if name == "clear":
+        # Vanilla's plain glass: an opaque pale edge and a streak, nothing in between.
+        return {"b": (0xA8, 0xD0, 0xD9, 255), "f": (0, 0, 0, 0), "h": (0xD0, 0xEA, 0xE9, 255)}
+    if name == "tinted":
+        return {"b": (0x35, 0x28, 0x3B, 200), "f": (0x27, 0x25, 0x28, 110), "h": (0x49, 0x46, 0x4A, 110)}
+    c = rgb(color)
+    return {"b": c + (163,), "f": c + (102,), "h": c + (163,)}
+
+
+def write_sheet(name, color):
+    roles = dict(sheet_roles(name, color), w=WATER, v=DEEP)
+    rows = [[roles.get(ch, (0, 0, 0, 0)) for ch in line] for line in SHEET]
+    stem = "bong" if name == "clear" else f"{name}_bong"
+    write_png(BLOCK / f"{stem}.png", rows)
+
+
+BLOCK = ITEM.parent / "block"
+
+
 def main():
     clear = read_png(ITEM / "bong.png")
+    write_sheet("clear", None)
     out = {}
     for name, color in GLASS.items():
         swap = shades(color, name)
         rows = [[swap.get(px[:3], px[:3]) + (px[3],) for px in row] for row in clear]
         write_png(ITEM / f"{name}_bong.png", rows)
+        write_sheet(name, color)
         out[name] = rows
     if "--preview" in sys.argv:
         # One row of 8x-upscaled sprites on a mid-grey ground, clear bong first.

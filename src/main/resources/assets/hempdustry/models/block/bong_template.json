@@ -1,0 +1,101 @@
+{
+  "_comment": [
+    "The bong standing on a table, and the bong in your hand -- one model for both, the way the",
+    "trident and spyglass keep a flat sprite for the inventory and a real one for the hand",
+    "(ItemModelGenerator#createModelWithInHandVariant). North-default, downstem to the east.",
+    "#bong is a per-glass sheet made by textures-src/bong_glass.py; its SHEET comment names the",
+    "UV regions used below. item/bong_template_packed.json is this plus one element -- keep the two",
+    "in step."
+  ],
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "#bong",
+    "metal": "minecraft:block/iron_block"
+  },
+  "elements": [
+    {
+      "name": "chamber",
+      "from": [5, 0, 5],
+      "to": [11, 5, 11],
+      "faces": {
+        "north": {"uv": [0, 0, 6, 5], "texture": "#bong"},
+        "east": {"uv": [0, 0, 6, 5], "texture": "#bong"},
+        "south": {"uv": [0, 0, 6, 5], "texture": "#bong"},
+        "west": {"uv": [0, 0, 6, 5], "texture": "#bong"},
+        "up": {"uv": [0, 5, 6, 11], "texture": "#bong"},
+        "down": {"uv": [0, 5, 6, 11], "texture": "#bong", "cullface": "down"}
+      }
+    },
+    {
+      "name": "water",
+      "from": [5.5, 0.5, 5.5],
+      "to": [10.5, 3, 10.5],
+      "faces": {
+        "north": {"uv": [0, 11, 5, 13.5], "texture": "#bong"},
+        "east": {"uv": [0, 11, 5, 13.5], "texture": "#bong"},
+        "south": {"uv": [0, 11, 5, 13.5], "texture": "#bong"},
+        "west": {"uv": [0, 11, 5, 13.5], "texture": "#bong"},
+        "up": {"uv": [0, 11, 5, 16], "texture": "#bong"},
+        "down": {"uv": [0, 11, 5, 16], "texture": "#bong"}
+      }
+    },
+    {
+      "name": "neck",
+      "from": [6.5, 5, 6.5],
+      "to": [9.5, 14, 9.5],
+      "faces": {
+        "north": {"uv": [6, 0, 9, 9], "texture": "#bong"},
+        "east": {"uv": [6, 0, 9, 9], "texture": "#bong"},
+        "south": {"uv": [6, 0, 9, 9], "texture": "#bong"},
+        "west": {"uv": [6, 0, 9, 9], "texture": "#bong"}
+      }
+    },
+    {
+      "name": "lip",
+      "from": [6, 14, 6],
+      "to": [10, 15, 10],
+      "faces": {
+        "north": {"uv": [9, 0, 13, 1], "texture": "#bong"},
+        "east": {"uv": [9, 0, 13, 1], "texture": "#bong"},
+        "south": {"uv": [9, 0, 13, 1], "texture": "#bong"},
+        "west": {"uv": [9, 0, 13, 1], "texture": "#bong"},
+        "up": {"uv": [9, 1, 13, 5], "texture": "#bong"},
+        "down": {"uv": [9, 1, 13, 5], "texture": "#bong"}
+      }
+    },
+    {
+      "name": "downstem",
+      "from": [8.5, 2, 7.5],
+      "to": [13.5, 3, 8.5],
+      "rotation": {"angle": 45, "axis": "z", "origin": [11, 2.5, 8]},
+      "faces": {
+        "north": {"uv": [9, 5, 14, 6], "texture": "#bong"},
+        "east": {"uv": [13, 5, 14, 6], "texture": "#bong"},
+        "south": {"uv": [9, 5, 14, 6], "texture": "#bong"},
+        "west": {"uv": [13, 5, 14, 6], "texture": "#bong"},
+        "up": {"uv": [9, 5, 14, 6], "texture": "#bong"},
+        "down": {"uv": [9, 5, 14, 6], "texture": "#bong"}
+      }
+    },
+    {
+      "name": "bowl",
+      "from": [11.75, 4, 6.75],
+      "to": [14.25, 5.75, 9.25],
+      "faces": {
+        "north": {"uv": [0, 0, 2.5, 1.75], "texture": "#metal"},
+        "east": {"uv": [0, 0, 2.5, 1.75], "texture": "#metal"},
+        "south": {"uv": [0, 0, 2.5, 1.75], "texture": "#metal"},
+        "west": {"uv": [0, 0, 2.5, 1.75], "texture": "#metal"},
+        "up": {"uv": [0, 0, 2.5, 2.5], "texture": "#metal"},
+        "down": {"uv": [0, 0, 2.5, 2.5], "texture": "#metal"}
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {"rotation": [0, 0, 0], "translation": [0, 3, 1], "scale": [0.5, 0.5, 0.5]},
+    "thirdperson_lefthand": {"rotation": [0, 0, 0], "translation": [0, 3, 1], "scale": [0.5, 0.5, 0.5]},
+    "firstperson_righthand": {"rotation": [0, -45, 0], "translation": [0, 2, 0], "scale": [0.5, 0.5, 0.5]},
+    "firstperson_lefthand": {"rotation": [0, 45, 0], "translation": [0, 2, 0], "scale": [0.5, 0.5, 0.5]},
+    "head": {"translation": [0, 14.5, 0]}
+  }
+}
