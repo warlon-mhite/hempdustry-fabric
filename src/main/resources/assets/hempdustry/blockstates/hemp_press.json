@@ -1,19 +1,33 @@
 {
   "_comment": [
-    "Multipart rather than variants because `lit` has no model of its own and multipart matches an",
-    "unlisted property as a wildcard. As variants this would be eight entries pointing at four",
-    "models, half of them duplicates.",
+    "Multipart, because the press is assembled from parts rather than drawn as one: the frame turns",
+    "with `facing`, the bed plate turns with it and swaps for its hot twin on `lit`, and the rosin",
+    "packet sits on the bed while `pressing` -- square and centred, so it needs no rotation.",
     "",
-    "`lit` is deliberately invisible on the block: it means 'the block BELOW is hot', not 'this block",
-    "is burning', and a press that glowed would be claiming to power itself -- which is the exact bug",
-    "machines.md records the Infuser shipping with. It drives the steam in",
-    "HempPressBlock#randomDisplayTick and the flame in the screen, both of which point at the heat",
-    "rather than at the press."
+    "`lit` means 'the block BELOW is hot', not 'this block is burning'. What shows it is the bed plate",
+    "and the grate under it, the parts the heat actually reaches from underneath. The block itself",
+    "still emits no light: a press that lit the room would be claiming to power itself, which is the",
+    "exact bug machines.md records the Infuser shipping with.",
+    "",
+    "The platen and the capstan are not in here at all. They move, so HempPressBlockEntityRenderer",
+    "draws them."
   ],
   "multipart": [
     { "when": { "facing": "north" }, "apply": { "model": "hempdustry:block/hemp_press" } },
     { "when": { "facing": "east" },  "apply": { "model": "hempdustry:block/hemp_press", "y": 90 } },
     { "when": { "facing": "south" }, "apply": { "model": "hempdustry:block/hemp_press", "y": 180 } },
-    { "when": { "facing": "west" },  "apply": { "model": "hempdustry:block/hemp_press", "y": 270 } }
+    { "when": { "facing": "west" },  "apply": { "model": "hempdustry:block/hemp_press", "y": 270 } },
+
+    { "when": { "facing": "north", "lit": "false" }, "apply": { "model": "hempdustry:block/hemp_press_plate" } },
+    { "when": { "facing": "east",  "lit": "false" }, "apply": { "model": "hempdustry:block/hemp_press_plate", "y": 90 } },
+    { "when": { "facing": "south", "lit": "false" }, "apply": { "model": "hempdustry:block/hemp_press_plate", "y": 180 } },
+    { "when": { "facing": "west",  "lit": "false" }, "apply": { "model": "hempdustry:block/hemp_press_plate", "y": 270 } },
+
+    { "when": { "facing": "north", "lit": "true" }, "apply": { "model": "hempdustry:block/hemp_press_plate_hot" } },
+    { "when": { "facing": "east",  "lit": "true" }, "apply": { "model": "hempdustry:block/hemp_press_plate_hot", "y": 90 } },
+    { "when": { "facing": "south", "lit": "true" }, "apply": { "model": "hempdustry:block/hemp_press_plate_hot", "y": 180 } },
+    { "when": { "facing": "west",  "lit": "true" }, "apply": { "model": "hempdustry:block/hemp_press_plate_hot", "y": 270 } },
+
+    { "when": { "pressing": "true" }, "apply": { "model": "hempdustry:block/hemp_press_parchment" } }
   ]
 }

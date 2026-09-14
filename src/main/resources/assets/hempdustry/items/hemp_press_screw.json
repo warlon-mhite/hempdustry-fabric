@@ -1,0 +1,9 @@
+{
+  "_comment": [
+    "Not an item: the press's capstan, drawn by HempPressBlockEntityRenderer. See hemp_press_platen.json."
+  ],
+  "model": {
+    "type": "minecraft:model",
+    "model": "hempdustry:block/hemp_press_screw"
+  }
+}
