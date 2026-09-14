@@ -27,6 +27,11 @@ beta be told when the release lands.
 
 ### Changed
 
+- **A bong hit is drawn, not clicked.** Hold use with a packed bong and it comes up to your mouth
+  for a second and a half: the water bubbles, smoke gathers in the chamber and climbs the neck, a
+  wisp rises from the bowl, and the hit lands when the draw is done. Let go early and nothing is
+  spent — no charge, no durability — and the bubbling stops when you do. The pipe and the vaporizer
+  still hit on a single click.
 - **Milk is poured into the Infuser by hand, like water into a cauldron.** Right-click the tub with
   a bucket of milk or hemp milk: it fills, and you get the empty back. Right-click with anything
   else — or with milk while it is already full — and the screen opens as before, so the pour and
@@ -57,8 +62,9 @@ beta be told when the release lands.
   share one button in the recipe book. A packed one is still called "Purple Kush Bong" — the colour
   is right there on it.
 - **Set a bong down.** Right-click a block with an empty bong and it stands there, like a flower
-  pot. It breaks in one hit and always drops back exactly as it went down — worn, enchanted or
-  named. It is for show: to smoke it, pick it back up.
+  pot; sneak and right-click to put down a packed one, bowl and all. It breaks in one hit and always
+  drops back exactly as it went down — packed, worn, enchanted or named. It is for show: to smoke
+  it, pick it back up.
 - **The bong is 3D in your hand**, and stays the familiar flat icon in your inventory, on the ground
   and in item frames — the way the trident and the spyglass do it.
   - For resource packs: every glass has its own item sprite (`textures/item/<colour>_bong.png`) and

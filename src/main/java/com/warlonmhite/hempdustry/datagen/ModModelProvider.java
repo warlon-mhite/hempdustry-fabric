@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.BongBlock;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.google.gson.JsonArray;
@@ -19,6 +20,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.client.data.*;
 import net.minecraft.client.render.item.model.ItemModel;
 import net.minecraft.client.render.item.model.RangeDispatchItemModel;
+import net.minecraft.client.render.item.property.numeric.UseDurationProperty;
 import net.minecraft.client.render.model.json.WeightedVariant;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
 import com.warlonmhite.hempdustry.client.item.StrainTintSource;
@@ -289,12 +291,26 @@ public class ModModelProvider extends FabricModelProvider {
             generator.output.accept(item, flat);
             return;
         }
-        Identifier packedInHand = BONG_PACKED_TEMPLATE.upload(
-                Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName + "_in_hand"),
-                bongTextures(name), generator.modelCollector);
+        // The placed packed bong's own model (registerBongBlocks), so the hand and the table show
+        // the same bowl -- tinted by the strain here, where there is a stack to ask.
+        ItemModel.Unbaked packedInHand = strainTinted(Identifier.of(Hempdustry.MOD_ID, "block/" + name + "_packed"));
+        // The draw, in the bow's grammar: while it is being used, the bong steps through the
+        // stages on how far into the draw it is -- smoke gathering over the water, then climbing
+        // the neck -- exactly as a bow steps through pulling_0..2. Thresholds at a quarter, a half
+        // and three quarters of the draw; the scale turns ticks into that fraction.
+        RangeDispatchItemModel.Entry[] draw = new RangeDispatchItemModel.Entry[BONG_DRAW_TEMPLATES.size()];
+        for (int stage = 1; stage <= draw.length; stage++) {
+            Identifier model = BONG_DRAW_TEMPLATES.get(stage - 1).upload(
+                    Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName + "_drawing_" + stage),
+                    bongTextures(name), generator.modelCollector);
+            draw[stage - 1] = ItemModels.rangeDispatchEntry(strainTinted(model), stage / (draw.length + 1f));
+        }
         ItemModel.Unbaked inHand = ItemModels.condition(
                 ItemModels.hasComponentProperty(ModComponents.SMOKE_CONTENTS),
-                strainTinted(packedInHand),
+                ItemModels.condition(ItemModels.usingItemProperty(),
+                        ItemModels.rangeDispatch(new UseDurationProperty(false),
+                                1f / DeviceType.BONG.drawTicks(), packedInHand, draw),
+                        packedInHand),
                 ItemModels.basic(Identifier.of(Hempdustry.MOD_ID, "block/" + name)));
         generator.output.accept(item, ItemModelGenerator.createModelWithInHandVariant(flat, inHand));
     }
@@ -305,6 +321,10 @@ public class ModModelProvider extends FabricModelProvider {
             Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/bong_template")), Optional.empty(), BONG_SHEET);
     private static final Model BONG_PACKED_TEMPLATE = new Model(
             Optional.of(Identifier.of(Hempdustry.MOD_ID, "item/bong_template_packed")), Optional.empty(), BONG_SHEET);
+    private static final List<Model> BONG_DRAW_TEMPLATES = java.util.stream.IntStream.rangeClosed(1, 3)
+            .mapToObj(stage -> new Model(Optional.of(Identifier.of(Hempdustry.MOD_ID,
+                    "item/bong_template_draw_" + stage)), Optional.empty(), BONG_SHEET))
+            .toList();
 
     private static TextureMap bongTextures(String name) {
         return new TextureMap().put(BONG_SHEET, Identifier.of(Hempdustry.MOD_ID, "block/" + name));
@@ -321,10 +341,14 @@ public class ModModelProvider extends FabricModelProvider {
                 .register(Direction.SOUTH, BlockStateModelGenerator.ROTATE_Y_180)
                 .register(Direction.WEST, BlockStateModelGenerator.ROTATE_Y_270);
         for (Map.Entry<String, Block> entry : ModBlocks.DEVICE_BLOCKS.entrySet()) {
-            Identifier model = BONG_TEMPLATE.upload(entry.getValue(), bongTextures(entry.getKey()),
+            Block block = entry.getValue();
+            Identifier model = BONG_TEMPLATE.upload(block, bongTextures(entry.getKey()), generator.modelCollector);
+            Identifier packed = BONG_PACKED_TEMPLATE.upload(block, "_packed", bongTextures(entry.getKey()),
                     generator.modelCollector);
-            generator.blockStateCollector.accept(VariantsBlockModelDefinitionCreator
-                    .of(entry.getValue(), BlockStateModelGenerator.createWeightedVariant(model))
+            generator.blockStateCollector.accept(VariantsBlockModelDefinitionCreator.of(block)
+                    .with(BlockStateVariantMap.models(BongBlock.PACKED)
+                            .register(false, BlockStateModelGenerator.createWeightedVariant(model))
+                            .register(true, BlockStateModelGenerator.createWeightedVariant(packed)))
                     .apply(facing));
         }
     }

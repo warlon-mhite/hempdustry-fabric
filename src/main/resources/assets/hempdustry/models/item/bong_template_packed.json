@@ -1,9 +1,5 @@
 {
-  "_comment": [
-    "block/bong_template.json with a load in the bowl -- the 3D bong in hand when packed. Every",
-    "element but the last is a copy of that file's; keep the two in step. The load is tint index",
-    "1, which the item definition's tints fill with the strain's colour (ModModelProvider#strainTinted)."
-  ],
+  "_comment": "Written by textures-src/bong_glass.py from block/bong_template.json -- edit that file and re-run the script, never this one.",
   "ambientocclusion": false,
   "textures": {
     "particle": "#bong",

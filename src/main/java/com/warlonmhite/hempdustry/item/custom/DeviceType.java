@@ -17,9 +17,9 @@ import net.minecraft.particle.ParticleTypes;
  * and the recipe-viewer pages — so a fourth entry is picked up without any of them being edited.
  */
 public enum DeviceType {
-    //        registry base  packedModel        maxDmg bowl maxDose duration ench cooldown cough nausea delay spent  exhale particle
-    PIPE     ("wooden_pipe", "packed_pipe",       8,    2,    2,      700,   15,    60,      4,    50,    0,    0,   ParticleTypes.CAMPFIRE_COSY_SMOKE),
-    BONG     ("bong",        "packed_bong",      24,    4,    3,     1000,   10,   100,      3,     5,   10,    0,   ParticleTypes.CAMPFIRE_COSY_SMOKE),
+    //        registry base  packedModel        maxDmg bowl maxDose duration ench cooldown cough nausea delay draw spent  exhale particle
+    PIPE     ("wooden_pipe", "packed_pipe",       8,    2,    2,      700,   15,    60,      4,    50,    0,    0,    0,   ParticleTypes.CAMPFIRE_COSY_SMOKE),
+    BONG     ("bong",        "packed_bong",      24,    4,    3,     1000,   10,   100,      3,     5,   10,   30,    0,   ParticleTypes.CAMPFIRE_COSY_SMOKE),
     /**
      * The dry-herb vaporizer. Heat below combustion, so it is the mildest device in the mod and the
      * only one that hands the bud back — see {@code .claude/docs/vaporizer.md} for the full design.
@@ -38,7 +38,7 @@ public enum DeviceType {
      *       time off a bong rotation.</li>
      * </ul>
      */
-    VAPORIZER("vaporizer",   "packed_vaporizer", 32,    2,    1,      800,    5,    60,     50,   200,    0,    1,   ParticleTypes.CLOUD);
+    VAPORIZER("vaporizer",   "packed_vaporizer", 32,    2,    1,      800,    5,    60,     50,   200,    0,    0,    1,   ParticleTypes.CLOUD);
 
     private final String baseName;
     private final String packedModel;
@@ -51,12 +51,14 @@ public enum DeviceType {
     private final int coughChanceOneIn;
     private final int nauseaChanceOneIn;
     private final int soundDelayTicks;
+    private final int drawTicks;
     private final int spentYield;
     private final ParticleEffect exhaleParticle;
 
     DeviceType(String baseName, String packedModel, int maxDamage, int bowlSize, int maxDose,
                int durationTicks, int enchantability, int cooldownTicks, int coughChanceOneIn,
-               int nauseaChanceOneIn, int soundDelayTicks, int spentYield, ParticleEffect exhaleParticle) {
+               int nauseaChanceOneIn, int soundDelayTicks, int drawTicks, int spentYield,
+               ParticleEffect exhaleParticle) {
         this.baseName = baseName;
         this.packedModel = packedModel;
         this.maxDamage = maxDamage;
@@ -68,6 +70,7 @@ public enum DeviceType {
         this.coughChanceOneIn = coughChanceOneIn;
         this.nauseaChanceOneIn = nauseaChanceOneIn;
         this.soundDelayTicks = soundDelayTicks;
+        this.drawTicks = drawTicks;
         this.spentYield = spentYield;
         this.exhaleParticle = exhaleParticle;
     }
@@ -145,6 +148,22 @@ public enum DeviceType {
      */
     public int soundDelayTicks() {
         return soundDelayTicks;
+    }
+
+    /**
+     * How long the use key is held for one hit, or {@code 0} for a hit on the click. Only the bong
+     * draws: 30 ticks with the device raised to the mouth in vanilla's goat-horn pose
+     * ({@code UseAction.TOOT_HORN}), its bubbling playing from the first tick and the hit landing
+     * on the last. Let go early and nothing is spent, as with a potion put down half-drunk.
+     *
+     * <p>A draw is a cost as well as a picture — a player ripping a bong is a player standing
+     * still with their hands full — which is the honest price of being the device that reaches
+     * level III. The pipe and vaporizer keep the click they always had; a new device declares
+     * its own draw here rather than being special-cased. {@link #soundDelayTicks()} is counted
+     * from the start of the draw, since that is when the bubbling starts.
+     */
+    public int drawTicks() {
+        return drawTicks;
     }
 
     /**
