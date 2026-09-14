@@ -61,6 +61,9 @@ public class HempdustryClient implements ClientModInitializer {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.INDICA_FLOWER, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POTTED_INDICA_FLOWER, RenderLayer.getCutout());
 
+        // Stained glass is drawn at partial alpha, so the placed bongs need the translucent pass.
+        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> BlockRenderLayerMap.INSTANCE.putBlock(bong, RenderLayer.getTranslucent()));
+
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.SATIVA_CROP, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.SATIVA_FLOWER, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POTTED_SATIVA_FLOWER, RenderLayer.getCutout());
@@ -80,9 +83,11 @@ public class HempdustryClient implements ClientModInitializer {
 
         // The press's platen and capstan move, so a renderer draws them rather than the block model.
         BlockEntityRendererFactories.register(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
-        // ...and they are models no block state names, so they have to be asked for by id.
+        // ...and they are models no block state names, so they have to be asked for by id. So are the
+        // bongs' 3D hand models, which no item names either: ItemRendererMixin draws them.
         ModelLoadingPlugin.register(context -> {
             context.addModels(HempPressBlockEntityRenderer.PARTS);
+            context.addModels(ModItems.bongs().stream().map(ModItemProperties::inHandModel).toList());
             // The press's icon is its four part models at rest, put together as it bakes -- the
             // composite item model the 1.21.11 build names in data. Its own model, which parents the
             // frame's, gives the display transforms.

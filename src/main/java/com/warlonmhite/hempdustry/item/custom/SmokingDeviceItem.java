@@ -5,14 +5,28 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.sound.ModSounds;
+import net.minecraft.advancement.criterion.Criteria;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ShapeContext;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.item.ItemUsageContext;
+import net.minecraft.util.ActionResult;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.event.GameEvent;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -43,23 +57,32 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SmokingDeviceItem extends Item {
     private final DeviceType device;
+    private final @Nullable Block placed;
     /** What mends it on an anvil; null means the device's own build material, see {@link #canRepair}. */
     @Nullable
     private final Item repairMaterial;
 
-    public SmokingDeviceItem(DeviceType device, Settings settings) {
-        this(device, settings, null);
+    /** @param placed what an empty one stands as when put down, or {@code null} if it does not. */
+    public SmokingDeviceItem(DeviceType device, @Nullable Block placed, Settings settings) {
+        this(device, placed, settings, null);
     }
 
     /**
      * A device repaired with something other than its type's build material — the coloured bongs,
      * each mended with the glass it is blown from.
      */
-    public SmokingDeviceItem(DeviceType device, Settings settings, @Nullable Item repairMaterial) {
+    public SmokingDeviceItem(DeviceType device, @Nullable Block placed, Settings settings,
+                             @Nullable Item repairMaterial) {
         super(settings);
         this.device = device;
+        this.placed = placed;
         this.repairMaterial = repairMaterial;
         Smoking.registerSmokeable(this);
+        if (placed != null) {
+            // What BlockItem#appendBlocks does at registration. Block#asItem reads this map, and it
+            // is how pick-block and the block's loot table find their way back to the device.
+            Item.BLOCK_ITEMS.put(placed, this);
+        }
     }
 
     public DeviceType device() {
@@ -106,6 +129,54 @@ public class SmokingDeviceItem extends Item {
     public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, world, entity, slot, selected);
         Smoking.expire(stack, world);
+    }
+
+    /**
+     * Stands an <em>empty</em> device on the block clicked, if it has a block to stand as — the bong
+     * does, the pipe and vaporizer do not. A packed one never places: right-click is how it is
+     * smoked, so this passes and {@link #use} runs instead.
+     *
+     * <p>{@code BlockItem#place} cut down to what a decorative block needs, since this class is
+     * every device and cannot be a {@code BlockItem}. What keeps it short is
+     * {@code readComponents}: the block entity holds on to durability, enchantments and a name
+     * without a line of ours, and hands them back when broken ({@code BongBlockEntity}).
+     */
+    @Override
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        ItemStack stack = context.getStack();
+        if (placed == null || !contentsOf(stack).isEmpty()) {
+            return ActionResult.PASS;
+        }
+        ItemPlacementContext placement = new ItemPlacementContext(context);
+        World world = placement.getWorld();
+        BlockPos pos = placement.getBlockPos();
+        PlayerEntity player = placement.getPlayer();
+        BlockState state = placement.canPlace() ? placed.getPlacementState(placement) : null;
+        if (state == null || !state.canPlaceAt(world, pos)
+                || !world.canPlace(state, pos, player == null ? ShapeContext.absent() : ShapeContext.of(player))
+                || !world.setBlockState(pos, state, Block.NOTIFY_ALL_AND_REDRAW)) {
+            return ActionResult.FAIL;
+        }
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (blockEntity != null) {
+            blockEntity.readComponents(stack);
+            blockEntity.markDirty();
+        }
+        placed.onPlaced(world, pos, state, player, stack);
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            Criteria.PLACED_BLOCK.trigger(serverPlayer, pos, stack);
+        }
+        BlockSoundGroup sounds = state.getSoundGroup();
+        world.playSound(player, pos, sounds.getPlaceSound(), SoundCategory.BLOCKS,
+                (sounds.getVolume() + 1f) / 2f, sounds.getPitch() * 0.8f);
+        world.emitGameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Emitter.of(player, state));
+        stack.decrementUnlessCreative(1, player);
+        return ActionResult.success(world.isClient);
+    }
+
+    /** The block an empty one stands as when put down, or {@code null} for a device that does not. */
+    public @Nullable Block placedBlock() {
+        return placed;
     }
 
     @Override

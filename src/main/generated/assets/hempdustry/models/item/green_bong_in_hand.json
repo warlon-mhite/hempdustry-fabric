@@ -1,0 +1,11 @@
+{
+  "parent": "hempdustry:block/green_bong",
+  "overrides": [
+    {
+      "model": "hempdustry:item/packed_green_bong_in_hand",
+      "predicate": {
+        "hempdustry:packed": 1
+      }
+    }
+  ]
+}

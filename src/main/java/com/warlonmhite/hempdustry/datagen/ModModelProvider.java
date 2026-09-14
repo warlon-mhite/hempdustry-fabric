@@ -23,9 +23,13 @@ import net.minecraft.util.Identifier;
 
 import net.minecraft.registry.RegistryWrapper;
 
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.Direction;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class ModModelProvider extends FabricModelProvider {
@@ -63,6 +67,8 @@ public class ModModelProvider extends FabricModelProvider {
         hempPlanksPool.pressurePlate(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
         hempPlanksPool.fence(ModBlocks.HEMP_PLANKS_FENCE);
         hempPlanksPool.fenceGate(ModBlocks.HEMP_PLANKS_FENCE_GATE);
+
+        registerBongBlocks(blockStateModelGenerator);
 
         blockStateModelGenerator.registerDoor(ModBlocks.HEMP_PLANKS_DOOR);
         blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
@@ -241,7 +247,17 @@ public class ModModelProvider extends FabricModelProvider {
     /** @see ModItemProperties#PACKED */
     private static final Identifier PACKED_PREDICATE = ModItemProperties.PACKED;
 
-    /** A device's empty model, its packed one (the art plus a strain-tinted load), and the switch. */
+    /**
+     * A device's empty model, its packed one (the art plus a strain-tinted load), and the switch.
+     *
+     * <p>A device that stands as a block ({@link ModBlocks#DEVICE_BLOCKS}) is also 3D in the hand:
+     * vanilla's trident/spyglass split, the flat sprite in the inventory, on the ground and in a
+     * frame, and the placed block's own model everywhere else. Packed, the hand model is the same
+     * bong with a strain-tinted load sitting in the bowl. Without item definitions that switch is
+     * not data on this line: {@code item/<bong>_in_hand} holds the hand model and its packed
+     * override, and the client's {@code ItemRendererMixin} chooses it the way vanilla chooses
+     * {@code trident_in_hand}.
+     */
     private static void registerDevice(ItemModelGenerator generator, Item item, String art,
                                        String packedModelName, String loadTexture) {
         Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName);
@@ -249,6 +265,45 @@ public class ModModelProvider extends FabricModelProvider {
                 TextureMap.layered(texture(art), texture(loadTexture)), generator.writer);
         uploadWithOverrides(generator, ModelIds.getItemModelId(item),
                 texture(art), List.of(new ModelOverride(PACKED_PREDICATE, 1, packedModel)));
+        String name = Registries.ITEM.getId(item).getPath();
+        if (!ModBlocks.DEVICE_BLOCKS.containsKey(name)) {
+            return;
+        }
+        Identifier packedInHand = BONG_PACKED_TEMPLATE.upload(
+                Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName + "_in_hand"),
+                bongTextures(name), generator.writer);
+        uploadParented(generator, ModItemProperties.inHandModel(item),
+                Identifier.of(Hempdustry.MOD_ID, "block/" + name),
+                List.of(new ModelOverride(PACKED_PREDICATE, 1, packedInHand)));
+    }
+
+    // The placed bong, hand-written once as block/bong_template.json and re-textured per glass.
+    private static final TextureKey BONG_SHEET = TextureKey.of("bong");
+    private static final Model BONG_TEMPLATE = new Model(
+            Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/bong_template")), Optional.empty(), BONG_SHEET);
+    private static final Model BONG_PACKED_TEMPLATE = new Model(
+            Optional.of(Identifier.of(Hempdustry.MOD_ID, "item/bong_template_packed")), Optional.empty(), BONG_SHEET);
+
+    private static TextureMap bongTextures(String name) {
+        return new TextureMap().put(BONG_SHEET, Identifier.of(Hempdustry.MOD_ID, "block/" + name));
+    }
+
+    /**
+     * One model per glass and a facing blockstate. North-default, rotated the way every horizontal
+     * block of vanilla's is, with the downstem to the east of the direction it faces.
+     */
+    private static void registerBongBlocks(BlockStateModelGenerator generator) {
+        BlockStateVariantMap facing = BlockStateVariantMap.create(Properties.HORIZONTAL_FACING)
+                .register(Direction.NORTH, BlockStateVariant.create())
+                .register(Direction.EAST, BlockStateVariant.create().put(VariantSettings.Y, VariantSettings.Rotation.R90))
+                .register(Direction.SOUTH, BlockStateVariant.create().put(VariantSettings.Y, VariantSettings.Rotation.R180))
+                .register(Direction.WEST, BlockStateVariant.create().put(VariantSettings.Y, VariantSettings.Rotation.R270));
+        for (Map.Entry<String, Block> entry : ModBlocks.DEVICE_BLOCKS.entrySet()) {
+            Identifier model = BONG_TEMPLATE.upload(entry.getValue(), bongTextures(entry.getKey()),
+                    generator.modelCollector);
+            generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(entry.getValue(),
+                    BlockStateVariant.create().put(VariantSettings.MODEL, model)).coordinate(facing));
+        }
     }
 
     private static Identifier texture(String name) {
@@ -293,6 +348,29 @@ public class ModModelProvider extends FabricModelProvider {
             }
             json.add("textures", textures);
 
+            JsonArray array = new JsonArray();
+            for (ModelOverride override : overrides) {
+                JsonObject predicate = new JsonObject();
+                predicate.addProperty(override.predicate().toString(), override.threshold());
+                JsonObject entry = new JsonObject();
+                entry.add("predicate", predicate);
+                entry.addProperty("model", override.model().toString());
+                array.add(entry);
+            }
+            json.add("overrides", array);
+            return (JsonElement) json;
+        });
+    }
+
+    /**
+     * A model that inherits everything from {@code parent} and adds an {@code overrides} array —
+     * the bongs' 3D hand models, which are the placed block plus the packed switch.
+     */
+    private static void uploadParented(ItemModelGenerator generator, Identifier modelId, Identifier parent,
+                                       List<ModelOverride> overrides) {
+        generator.writer.accept(modelId, () -> {
+            JsonObject json = new JsonObject();
+            json.addProperty("parent", parent.toString());
             JsonArray array = new JsonArray();
             for (ModelOverride override : overrides) {
                 JsonObject predicate = new JsonObject();

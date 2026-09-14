@@ -37,7 +37,6 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -86,29 +85,7 @@ public class HempPressBlock extends BlockWithEntity {
             {13, 3, 5, 16, 13, 11},
             {0, 13, 5, 16, 16, 11}};
 
-    private static final Map<Direction, VoxelShape> SHAPES = facingShapes(FRAME);
-
-    /**
-     * {@link #FRAME} turned to each horizontal facing, a quarter-turn at a time about the block's
-     * vertical centre line, as vanilla turns a facing block's shape. A point at (x, z) facing north
-     * sits at (16 - z, x) facing east.
-     */
-    private static Map<Direction, VoxelShape> facingShapes(double[][] north) {
-        Map<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
-        for (Direction facing : Direction.Type.HORIZONTAL) {
-            VoxelShape shape = VoxelShapes.empty();
-            for (double[] box : north) {
-                double x1 = box[0], z1 = box[2], x2 = box[3], z2 = box[5];
-                for (int turn = 0; turn < (facing.getHorizontal() + 2) % 4; turn++) {
-                    double nx1 = 16 - z2, nz1 = x1, nx2 = 16 - z1, nz2 = x2;
-                    x1 = nx1; z1 = nz1; x2 = nx2; z2 = nz2;
-                }
-                shape = VoxelShapes.union(shape, Block.createCuboidShape(x1, box[1], z1, x2, box[4], z2));
-            }
-            shapes.put(facing, shape);
-        }
-        return shapes;
-    }
+    private static final Map<Direction, VoxelShape> SHAPES = HorizontalShapes.of(FRAME);
 
     public HempPressBlock(Settings settings) {
         super(settings);

@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
 /**
@@ -38,6 +40,16 @@ public final class ModItemProperties {
 
     /** {@code hempdustry:strain} — the loaded strain's {@code model_index}; 0 for "no bespoke art". */
     public static final Identifier STRAIN = Identifier.of(Hempdustry.MOD_ID, "strain");
+
+    /**
+     * The 3D hand model of a device that stands as a block — the placed bong, with the packed switch.
+     * Written by the model provider, loaded by id on the client, and drawn by {@code ItemRendererMixin}
+     * wherever vanilla would draw a trident's hand model. One name, so the three cannot disagree.
+     */
+    public static Identifier inHandModel(Item item) {
+        Identifier id = Registries.ITEM.getId(item);
+        return Identifier.of(id.getNamespace(), "item/" + id.getPath() + "_in_hand");
+    }
 
     /**
      * The tint index carrying the strain's colour, and therefore <b>which texture layer gets tinted</b>.
