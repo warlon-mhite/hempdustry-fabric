@@ -170,7 +170,12 @@ public class ModStrains {
 
     public static void bootstrap(Registerable<Strain> context) {
         // Purple Kush — the body high: hard to hurt, hard to get anything done.
-        context.register(INDICA, new Strain("hempdustry.strain.indica", 0x8E6FB5, modelIndex(INDICA),
+        //
+        // The colour is every tinted Purple Kush load (pipe, bong, vaporizer LED, moon rock), and a
+        // tint is a multiply: it can only come out as bright as this value. The old 0x8E6FB5 sat at
+        // the vaporizer's gunmetal luminance and a packed one read as empty, so it is a brighter,
+        // more saturated violet -- still purple beside the buds, readable on grey, wood and glass.
+        context.register(INDICA, new Strain("hempdustry.strain.indica", 0xB57BFF, modelIndex(INDICA),
                 Optional.of(ModItems.INDICA_SEEDS), ModItems.INDICA_BUDS,
                 Optional.of(ModBlocks.INDICA_FLOWER), 1.0F, 1,
                 List.of(

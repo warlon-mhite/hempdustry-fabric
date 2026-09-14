@@ -1,6 +1,10 @@
 {
   "_comment": "Cut 0 of 4 -- 14 px long. Geometry identical to hashish_bar_0: the two bars are the same block in two colours, so only the textures differ. Built along +Z from the north edge; the blockstate rotates this one set for the other three facings.",
   "parent": "minecraft:block/block",
+  "__display_comment": "Same GUI transform as hashish_bar_0 and for the same reason: at block/block's 0.625 the bar is smaller than one piece of it.",
+  "display": {
+    "gui": { "rotation": [ 30, 225, 0 ], "translation": [ 0, 4.5, 0 ], "scale": [ 0.9, 0.9, 0.9 ] }
+  },
   "textures": {
     "particle": "hempdustry:block/filtered_hashish_bar_side",
     "top": "hempdustry:block/filtered_hashish_bar_top",

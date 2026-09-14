@@ -1,182 +1,202 @@
-# Rosin and the moon rock — the two items the extraction bench makes.
+# The loose intermediates and the extraction bench's two products: kief, filtered kief, bubble hash,
+# rosin and the moon rock.
 #
-# PLACEHOLDER art. Warlon Mhite may redraw these; that is what the .mctex is for.
+# Redrawn 2026-09-14 against vanilla's own textures. Generated art, not Warlon Mhite's hand.
 #
-# ## The family rule these have to obey
+# ## Forms first: every member is told apart by silhouette before colour
 #
-# Five concentrates now, and **the silhouette is what tells them apart**, never the shade. Colour in
-# this trade records how resin was made and cured and does not predict potency at all, so a family
-# that graded weak-to-strong by colour would be lying five times over.
+#   item/hashish, item/filtered_hashish   an oblique slab      pressed          (hashish.mctex)
+#   item/charas                           a rolled lump        hand-rolled      (charas.mctex)
+#   item/kief, item/filtered_kief         a powder heap        sifted, loose
+#   item/bubble_hash                      a pile of crumbs     washed and dried
+#   item/rosin                            an amber sheet      squeezed out hot
+#   item/moon_rock                        the bud, crusted     a bud, coated
 #
-#   item/hashish            an oblique slab      pressed in a mould     brown
-#   item/charas             an irregular ball    hand-rolled            near-black
-#   item/filtered_hashish   a loose heap         never pressed          blonde
-#   item/rosin              a viscous glob       squeezed out hot       amber, and GLOSSY
-#   item/moon_rock          a lumpy nug          coated, not made       green under a dark crust
+# ## Kief and filtered kief: a settled heap, not vanilla's triangle
 #
-# Rosin is the only one of the five that was ever a liquid, and that is its whole silhouette: a
-# soft-edged pool with a pulled tail and a hard specular highlight. Every other member is matte.
-# Items are high contrast (vanilla items span a median 164 luminance steps against a block's 76),
-# which is what lets a 16x16 glob read as wet.
+# A first pass borrowed the cone vanilla gives sugar and redstone, and Warlon Mhite called it what it
+# was: mid. Kief is sifted dust, and dust settles: so this is a rounded dome that has slumped and
+# spilled to one side, grained at nearly every pixel (a granular material is the one place dense
+# variation is texture rather than noise), with trichome sparkle on the lit side and a few loose
+# grains lying about the base -- which is how vanilla's glowstone dust and blaze powder break their
+# heaps up too. Faintly olive, because trichome dust is greenish, which also keeps it off sugar and
+# sand. Filtered kief is the same heap, blonder and warmer: one more pass, less leaf. Not stronger.
 
-@palette default
+# ## Bubble hash: crumbs, not powder
+#
+# Ice-water hash dries as crumbly clumps, not dust, so it is three nuggets and two crumbs, drawn back
+# to front with their own rims so the seams between them show. Warm pale tan with a grain in it --
+# a first draft in cool grey read as gravel.
+#
+# ## Rosin: the amber sheet, and nothing under it
+#
+# Rosin comes off the press as a thin amber sheet. An earlier pass laid it on parchment; the paper
+# made it read as a fried egg and, once the amber covered it, as a roast. So it is the sheet alone:
+# an irregular flattened pool with a drip lobe, a darker rim, one pixel of front edge for its
+# thickness, a lighter middle where it is thinnest, and one glassy streak up-left. The only glossy
+# member besides charas.
+
+# ## The moon rock: the mod's own bud, dipped and rolled
+#
+# A moon rock IS a bud -- dipped in rosin and rolled in kief -- so its silhouette is not drawn, it is
+# taken: item/indica_buds' exact outline and its inner bract lines (both buds share them), which
+# Warlon Mhite asked for after two invented nugs read as a potato and a sponge. The bud's own tones
+# are mapped onto a golden kief ramp, the bract lines become the crevices of the coat, and sparkle
+# goes on the lit side.
+#
+# Two layers, exactly as a packed device is. Layer 0 is that crust, the same for every strain.
+# Layer 1 sits exactly on the bud's dark and mid strain pixels -- where the coat is thinnest in the
+# recesses; with only the darkest, an indica and a sativa rock looked alike in a hotbar slot -- flat mid-grey and tinted at render time by StrainTintSource, so the strain shows
+# through the kief the way a real moon rock's bud does. Every tinted layer in this mod is flat,
+# because a shaded layer multiplied by a tint comes out muddy; and the mask must never sit on the
+# rim, because layer 1 draws over it. (The mask's linter findings are a mask's, not the item's.)
+
+@palette kief
 . = none
-1 = 3A2306      the shadow the glob casts, and its darkest rim
-2 = 5C3A0B
-3 = 7E520F
-4 = A06D14      body
-5 = C68A1C      the lit face
-6 = E4AC34      near the highlight
-7 = F6D06A      the wet sheen
-8 = FFF0BC      the specular hit; ONE cluster, up-left, and nowhere else
+1 = 3D3316      rim, and the shadow under the heap
+2 = 5B4E24
+3 = 7D6E33
+4 = 9E8D48      the body
+5 = BAA85E
+6 = D3C27C      grains catching the light
+7 = ECDFA8      trichome sparkle; scattered, never a band
+8 = FFF4C8      its brightest glints
 
-# A pulled glob of rosin: wide and low, with a tail dragged up to the right the way a viscous
-# extract lifts off a parchment. The tail is what stops this reading as a lump of amber.
-@texture item/rosin 16x16 type=item
-................
-...........122..
-..........12442.
-.........124531.
-........1245431.
-...12211245431..
-..1246788654321.
-.12456788765432.
-.12456776654431.
-.124556655443321
-.12344555443321.
-.1233444433221..
-..122333322211..
-...1122222111...
-.....111111.....
-................
-
-# ---------------------------------------------------------------------------------------------
-# The moon rock: two layers, exactly as a packed device is.
-#
-# Layer 0 is the crust -- hashish and rosin, the same on every strain, and untinted. Layer 1 is the
-# bud showing through it, drawn as flat mid-grey and tinted at render time by StrainTintSource, so
-# one texture covers Purple Kush, Lemon Haze and whatever comes third.
-#
-# That split is the whole reason this is one item instead of one per strain. It also means layer 1
-# must be a single flat value: a shaded layer multiplied by a tint comes out muddy, and every tinted
-# layer in this mod (the spliff's load, each device's load) is flat for the same reason.
-@palette crust extends=default
+@palette filtered_kief
 . = none
-a = 15100B      the deepest crevice in the crust
-b = 241B12
-c = 342718
-d = 46331F      body of the crust
-e = 5C4429
-f = 786134      a granule catching the light
-g = 9A8248      the sparkle a kief coat actually has; scattered, never a band
+1 = 5A4222
+2 = 7E612F
+3 = A2803F
+4 = C09B53
+5 = D6B46F
+6 = EACD94
+7 = FAE8C0
+8 = FFF8E4
 
-@texture item/moon_rock 16x16 type=item palette=crust
+@matrix heap 16x16
 ................
 ................
-.....bccba......
-...abdefedcb....
-..abdefgfedcb...
-.abdefggfedccb..
-.acefgggfedccbb.
-abdefggfedcbbba.
-abdeffedccbbbaa.
-abcdeedccbbbaaa.
-.abcdedccbbaaa..
-.abccddccbbaa...
-..abcccbbaaa....
-...abbbaaa......
+................
+................
+.......221......
+.....2286221....
+....225675521...
+...22744555521..
+..226474435341..
+..26865434343213
+.22445433433331.
+.124444433333421
+3.12333433433211
+...11111111111..
+.3...........23.
+................
+
+@texture item/kief from=heap palette=kief type=item
+@texture item/filtered_kief from=heap palette=filtered_kief type=item
+
+@palette bubble
+. = none
+1 = 564A34      rim
+2 = 796A4C      rim, lit side, and the seams between crumbs
+3 = 9C8C68
+4 = BCAC84      the body
+5 = D3C49D
+6 = E7DBBA      grains catching the light
+7 = F7F1DC
+
+@texture item/bubble_hash 16x16 type=item palette=bubble
+................
+................
+................
+.......221......
+.....276421.....
+.....2643421....
+.....2444431761.
+.....1244321261.
+...222111222111.
+..276421276421..
+..2444412643421.
+..246431244431..
+..111111112211..
+.761......11....
+.11.............
+................
+
+@palette rosin
+. = none
+1 = 5A2A04      rim, shadow side
+2 = 8A4E0A      rim, lit side, and the sheet's thin front edge
+3 = B8740F
+4 = DDA02A      the body
+5 = F0BE4A      where it is thinnest, and lit
+6 = FBDF8C      the glassy streak
+8 = FFF8E0      its specular pixel
+
+@texture item/rosin 16x16 type=item palette=rosin
+................
+................
+................
+................
+...22262221.....
+..22865444221...
+.226554455441...
+.2554444445321..
+.1244444443331..
+..122444333331..
+...11222222621..
+.....111111111..
+................
+................
 ................
 ................
 
-# The bud, seen through the gaps in the crust. Flat by necessity (see above) and deliberately
-# sparse -- a moon rock is mostly crust, and green showing everywhere would make it look like a bud
-# with a shadow rather than a nug that has been dipped in something.
+@palette moon
+. = none
+1 = 231A0E      rim
+2 = 43341B      rim, lit side, and the crevices between the lumps
+3 = 6A5428
+4 = 8B7137      the body of the crust
+5 = A88D4A
+6 = C4AB65      the lit lumps
+7 = E2D092      kief sparkle; scattered
+8 = FFF5CF      the brightest sparkle
+
+@texture item/moon_rock 16x16 type=item palette=moon
+................
+................
+.......2221.....
+.....22285221...
+....2275535621..
+....2555466351..
+...228635755521.
+...124653655641.
+....22454563561.
+...224255555621.
+..226662565641..
+..124425645521..
+...1221256211...
+....11.1111.....
+................
+................
+
 @palette load
 . = none
-G = 8F8F8F      flat mid-grey; StrainTintSource multiplies the strain's own colour into it
+G = 8F8F8F      flat mid-grey; StrainTintSource multiplies the strain's colour into it
+
 @texture item/moon_rock_load 16x16 type=item palette=load
 ................
 ................
 ................
-....GG..........
-....GG...GG.....
-.........GG.....
-..GG........GG..
-..GG..GG....GG..
-......GG........
-....GG......GG..
-....GG......GG..
-..........GG....
-..........GG....
+.........G......
+.......GG.G.....
+......G.G.......
+...........GG...
+.....G.G..G..G..
+......G.GG......
+.......G.GGG....
+..........G.G...
+.......G.G......
 ................
 ................
 ................
-
-# ---------------------------------------------------------------------------------------------
-# The two loose intermediates the Sifting Box makes.
-#
-# NEITHER IS PRESSED, and the silhouette has to say so or the family collapses into "hash in five
-# shades". Both are LOOSE HEAPS with broken, granular top edges -- the shape of powder tipped out of
-# a screen -- against the slab of item/hashish, the ball of item/charas and the glob of item/rosin.
-#
-# They differ from each other only in tone, and that is correct: kief and bubble hash are the same
-# trichome heads separated two ways. What ice-water buys is that there is almost no leaf in it, so
-# the washed one is paler and less muddy -- and NOT brighter or more saturated, because a colour
-# that read as "stronger" would be the one lie this whole family refuses to tell.
-
-@palette kief
-. = none
-1 = 4A3418      the shadow under the heap, and its rim
-2 = 6B4E24
-3 = 8A6A33
-4 = A98844      the body
-5 = C2A055      lit face
-6 = DCBC7B      grains catching the light
-7 = F0D9A6      the brightest grains; scattered, never a band
-
-@texture item/kief 16x16 type=item palette=kief
 ................
-................
-................
-.......56.......
-......4671......
-....234677532...
-...12456776431..
-..1245677654321.
-.124456665443211
-.123445554433211
-.122334444332211
-..1223333322211.
-...112222221111.
-.....11111111...
-................
-................
-
-# The washed one: the same heap, a shade paler and cooler, with the leaf-brown taken out of the
-# shadows. Read side by side they are obviously the same substance, which is the point.
-@palette bubble extends=kief
-1 = 5A5240      damp shadow -- greyer than kief's, because there is no leaf left in it to be brown
-2 = 7A7157
-3 = 9A9070
-4 = B8AC88      the body
-5 = CFC29C
-6 = E4D8B6      grains catching the light
-7 = F6EFD6      the brightest grains
-
-@texture item/bubble_hash 16x16 type=item from=item/kief palette=bubble
-
-# Kief put over the screen a second time. Same heap, same grain, one shade blonder and cleaner --
-# less leaf through a finer mesh really is blonder, and that is ALL it is. It must not read as
-# stronger, and it must not read as bubble hash either: the washed one is cool and grey-shadowed
-# where this one stays warm, because a dry screen never takes the leaf-brown out of the shadows the
-# way water does.
-@palette filtered_kief extends=kief
-1 = 5E4522      shadow -- still warm, unlike bubble hash's grey
-2 = 82632F
-3 = A5813F
-4 = C29B52      the body
-5 = D9B570
-6 = ECD096
-7 = FAE7BE      the brightest grains
-
-@texture item/filtered_kief 16x16 type=item from=item/kief palette=filtered_kief
