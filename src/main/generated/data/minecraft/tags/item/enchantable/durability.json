@@ -1,6 +1,23 @@
 {
   "values": [
     "hempdustry:wooden_pipe",
-    "hempdustry:bong"
+    "hempdustry:bong",
+    "hempdustry:tinted_bong",
+    "hempdustry:white_bong",
+    "hempdustry:light_gray_bong",
+    "hempdustry:gray_bong",
+    "hempdustry:black_bong",
+    "hempdustry:brown_bong",
+    "hempdustry:red_bong",
+    "hempdustry:orange_bong",
+    "hempdustry:yellow_bong",
+    "hempdustry:lime_bong",
+    "hempdustry:green_bong",
+    "hempdustry:cyan_bong",
+    "hempdustry:light_blue_bong",
+    "hempdustry:blue_bong",
+    "hempdustry:purple_bong",
+    "hempdustry:magenta_bong",
+    "hempdustry:pink_bong"
   ]
 }

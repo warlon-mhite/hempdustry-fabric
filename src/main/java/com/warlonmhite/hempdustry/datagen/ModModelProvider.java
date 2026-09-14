@@ -12,6 +12,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.CakeBlock;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
@@ -190,13 +191,15 @@ public class ModModelProvider extends FabricModelProvider {
         // that looked exactly like every other strain's.
         for (Map.Entry<DeviceType, Item> deviceEntry : ModItems.devices().entrySet()) {
             DeviceType device = deviceEntry.getKey();
-            Item item = deviceEntry.getValue();
-            Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + device.packedModel());
-            Models.GENERATED_TWO_LAYERS.upload(packedModel,
-                    TextureMap.layered(texture(device.baseName()), texture(device.packedModel() + "_load")),
-                    itemModelGenerator.writer);
-            uploadWithOverrides(itemModelGenerator, ModelIds.getItemModelId(item),
-                    texture(device.baseName()), List.of(new ModelOverride(PACKED_PREDICATE, 1, packedModel)));
+            registerDevice(itemModelGenerator, deviceEntry.getValue(), device.baseName(),
+                    device.packedModel(), device.packedModel() + "_load");
+        }
+        // The coloured bongs: the clear bong's art in other glass (textures-src/bong_glass.py), and
+        // the clear bong's load mask, since what sits in the bowl does not care what it is blown from.
+        for (Item bong : ModItems.COLORED_BONGS) {
+            String name = Registries.ITEM.getId(bong).getPath();
+            registerDevice(itemModelGenerator, bong, name, "packed_" + name,
+                    DeviceType.BONG.packedModel() + "_load");
         }
 
         // The moon rock: one item for every strain, tinted by whichever one is stuck to it. Two
@@ -237,6 +240,16 @@ public class ModModelProvider extends FabricModelProvider {
 
     /** @see ModItemProperties#PACKED */
     private static final Identifier PACKED_PREDICATE = ModItemProperties.PACKED;
+
+    /** A device's empty model, its packed one (the art plus a strain-tinted load), and the switch. */
+    private static void registerDevice(ItemModelGenerator generator, Item item, String art,
+                                       String packedModelName, String loadTexture) {
+        Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName);
+        Models.GENERATED_TWO_LAYERS.upload(packedModel,
+                TextureMap.layered(texture(art), texture(loadTexture)), generator.writer);
+        uploadWithOverrides(generator, ModelIds.getItemModelId(item),
+                texture(art), List.of(new ModelOverride(PACKED_PREDICATE, 1, packedModel)));
+    }
 
     private static Identifier texture(String name) {
         return Identifier.of(Hempdustry.MOD_ID, "item/" + name);

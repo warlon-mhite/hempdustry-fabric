@@ -279,22 +279,32 @@ public class HempdustryClient implements ClientModInitializer {
         Identifier packedId = ModItemProperties.PACKED;
         ClampedModelPredicateProvider packed = (stack, world, entity, seed) ->
                 stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).isEmpty() ? 0f : 1f;
-        for (Item device : ModItems.devices().values()) {
+        for (Item device : everyDevice()) {
             ModelPredicateProviderRegistry.register(device, packedId, packed);
         }
     }
 
     /**
-     * The spliff and every device, from {@link ModItems#devices()}. On this line the colour and the
-     * two model properties are registered per item, so a device missing here draws untinted and
-     * never shows as packed — no error, just the wrong picture. Listing the devices by name is how a
-     * vaporizer would have been left out.
+     * The spliff and every device. On this line the colour and the two model properties are
+     * registered per item, so a device missing here draws untinted and never shows as packed — no
+     * error, just the wrong picture. Listing the devices by name is how a vaporizer would have been
+     * left out.
      */
     private static Item[] smokingGear() {
         List<Item> items = new ArrayList<>();
         items.add(ModItems.SPLIFF);
-        items.addAll(ModItems.devices().values());
+        items.addAll(everyDevice());
         return items.toArray(Item[]::new);
+    }
+
+    /**
+     * {@link ModItems#devices()} and the coloured bongs, which that map leaves out on purpose (one
+     * canonical item per device) but which pack, tint and switch models like any other bong.
+     */
+    private static List<Item> everyDevice() {
+        List<Item> devices = new ArrayList<>(ModItems.devices().values());
+        devices.addAll(ModItems.COLORED_BONGS);
+        return devices;
     }
 
     /**

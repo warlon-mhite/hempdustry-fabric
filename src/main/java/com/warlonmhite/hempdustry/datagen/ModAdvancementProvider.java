@@ -26,6 +26,7 @@ import net.minecraft.advancement.criterion.PlayerInteractedWithEntityCriterion;
 import net.minecraft.advancement.criterion.TameAnimalCriterion;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.EntityType;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -261,7 +262,8 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         Advancement.Builder.create()
                 .display(display(ModItems.BONG, "bong_voyage", AdvancementFrame.TASK))
-                .criterion("smoked_a_bong", SmokeCriterion.Conditions.with(ModItems.BONG))
+                .criterion("smoked_a_bong", SmokeCriterion.Conditions.with(
+                        ModItems.bongs().toArray(Item[]::new)))
                 .parent(pipeDream)
                 .build(consumer, Hempdustry.MOD_ID + ":bong_voyage");
 
@@ -277,7 +279,9 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(Items.ANVIL, "burnout", AdvancementFrame.TASK))
                 .criterion("smoked_a_device_to_death", ItemDurabilityChangedCriterion.Conditions.create(
                         Optional.of(ItemPredicate.Builder.create()
-                                .items(ModItems.WOODEN_PIPE, ModItems.BONG).build()),
+                                .items(java.util.stream.Stream.concat(
+                                        java.util.stream.Stream.of(ModItems.WOODEN_PIPE),
+                                        ModItems.bongs().stream()).toArray(Item[]::new)).build()),
                         NumberRange.IntRange.atMost(0)))
                 .parent(pipeDream)
                 .build(consumer, Hempdustry.MOD_ID + ":burnout");

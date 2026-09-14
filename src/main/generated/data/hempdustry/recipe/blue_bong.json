@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bong",
+  "key": {
+    "G": {
+      "item": "minecraft:blue_stained_glass"
+    },
+    "I": {
+      "item": "minecraft:iron_nugget"
+    },
+    "P": {
+      "item": "minecraft:blue_stained_glass_pane"
+    },
+    "W": {
+      "item": "minecraft:water_bucket"
+    }
+  },
+  "pattern": [
+    " PI",
+    "GWG",
+    " G "
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:blue_bong"
+  }
+}

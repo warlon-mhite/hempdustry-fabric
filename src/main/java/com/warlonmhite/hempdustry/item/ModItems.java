@@ -34,6 +34,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 
@@ -387,6 +388,30 @@ public class ModItems {
     public static final Item BONG = registerDevice(DeviceType.BONG);
     public static final Item VAPORIZER = registerDevice(DeviceType.VAPORIZER);
 
+    /**
+     * Vanilla's creative-tab colour order. {@code ItemGroups} spells it out once per colour family
+     * and keeps no list of it, so this is that order written down once. <b>Declared above
+     * {@link #COLORED_BONGS}</b>, which reads it during static initialisation.
+     */
+    public static final List<DyeColor> DYE_ORDER = List.of(
+            DyeColor.WHITE, DyeColor.LIGHT_GRAY, DyeColor.GRAY, DyeColor.BLACK, DyeColor.BROWN,
+            DyeColor.RED, DyeColor.ORANGE, DyeColor.YELLOW, DyeColor.LIME, DyeColor.GREEN,
+            DyeColor.CYAN, DyeColor.LIGHT_BLUE, DyeColor.BLUE, DyeColor.PURPLE, DyeColor.MAGENTA,
+            DyeColor.PINK);
+
+    /**
+     * The tinted bong, then the sixteen stained-glass ones in {@link #DYE_ORDER} — clear glass is
+     * {@link #BONG}. One item per colour, the way vanilla does bundles, candles and shulker boxes:
+     * a glass colour is a material identity, not a payload, so it is an item and not a component
+     * (smoking.md, <em>Shape</em>). Tinted leads because vanilla lists tinted glass beside plain.
+     *
+     * <p>Every one is a {@link DeviceType#BONG}, so packing, smoking, the bong's own sound and the
+     * shared cooldown all reach them without a line of their own. They are deliberately <b>not</b>
+     * in {@link #devices()}, which stays one canonical item per device: the viewer pages would
+     * otherwise draw every packing row eighteen times over for a difference of glass.
+     */
+    public static final List<Item> COLORED_BONGS = registerColoredBongs();
+
     // Same shape as a vanilla common disc (single-stack, uncommon, jukebox-playable). The song data
     // — length, comparator output, "Now Playing" label — lives in the JUKEBOX_SONG entry it points at.
     public static final Item MUSIC_DISC_MOONLIGHT = registerItem("music_disc_moonlight",
@@ -411,10 +436,40 @@ public class ModItems {
             .maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(3))));
 
     private static Item registerDevice(DeviceType device) {
-        Item item = registerItem(device.baseName(), new SmokingDeviceItem(device,
-                new Item.Settings().maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON)));
+        Item item = registerItem(device.baseName(),
+                new SmokingDeviceItem(device, deviceSettings(new Item.Settings(), device)));
         DEVICES.put(device, item);
         return item;
+    }
+
+    private static List<Item> registerColoredBongs() {
+        List<Item> bongs = new ArrayList<>();
+        bongs.add(registerBong("tinted_bong", Items.TINTED_GLASS));
+        for (DyeColor color : DYE_ORDER) {
+            bongs.add(registerBong(color.asString() + "_bong",
+                    Registries.ITEM.get(Identifier.ofVanilla(color.asString() + "_stained_glass"))));
+        }
+        return List.copyOf(bongs);
+    }
+
+    /** A bong in coloured glass, repaired with the glass it is blown from. */
+    private static Item registerBong(String name, Item glass) {
+        return registerItem(name, new SmokingDeviceItem(DeviceType.BONG,
+                deviceSettings(new Item.Settings(), DeviceType.BONG), glass));
+    }
+
+    private static Item.Settings deviceSettings(Item.Settings settings, DeviceType device) {
+        // Enchantability is an Item override on this line, read off the device type in
+        // SmokingDeviceItem#getEnchantability, so the settings stop at the stack and the durability.
+        return settings.maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON);
+    }
+
+    /** Every bong, clear glass first — for anything that means "a bong" rather than one colour. */
+    public static List<Item> bongs() {
+        List<Item> all = new ArrayList<>();
+        all.add(BONG);
+        all.addAll(COLORED_BONGS);
+        return all;
     }
 
     /**

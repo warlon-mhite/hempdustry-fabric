@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "hempdustry:item/packed_red_bong",
+      "predicate": {
+        "hempdustry:packed": 1
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "hempdustry:item/red_bong"
+  }
+}

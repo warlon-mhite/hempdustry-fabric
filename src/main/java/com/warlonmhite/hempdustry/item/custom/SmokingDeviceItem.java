@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -16,6 +17,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A smoking device — wooden pipe, bong or vaporizer — in <em>either</em> state. Empty and packed are the same
@@ -41,10 +43,22 @@ import net.minecraft.world.World;
  */
 public class SmokingDeviceItem extends Item {
     private final DeviceType device;
+    /** What mends it on an anvil; null means the device's own build material, see {@link #canRepair}. */
+    @Nullable
+    private final Item repairMaterial;
 
     public SmokingDeviceItem(DeviceType device, Settings settings) {
+        this(device, settings, null);
+    }
+
+    /**
+     * A device repaired with something other than its type's build material — the coloured bongs,
+     * each mended with the glass it is blown from.
+     */
+    public SmokingDeviceItem(DeviceType device, Settings settings, @Nullable Item repairMaterial) {
         super(settings);
         this.device = device;
+        this.repairMaterial = repairMaterial;
         Smoking.registerSmokeable(this);
     }
 
@@ -68,6 +82,9 @@ public class SmokingDeviceItem extends Item {
         // pipe planks, bong glass, vaporizer iron. Nothing in vanilla repairs with redstone, so
         // redstone-as-repair would have been the modded tell. Allowed packed or empty — durability
         // is the same component either way.
+        if (repairMaterial != null) {
+            return ingredient.isOf(repairMaterial);
+        }
         return switch (device) {
             case PIPE -> ingredient.isIn(ItemTags.PLANKS);
             case BONG -> ingredient.isOf(Items.GLASS);
@@ -78,9 +95,11 @@ public class SmokingDeviceItem extends Item {
     @Override
     public Text getName(ItemStack stack) {
         SmokeContents contents = contentsOf(stack);
+        // The packed format is the device's, not this item's: a packed Red Bong is "Purple Kush
+        // Bong", because the glass is on the model and the name has room for one thing only.
         return contents.isEmpty()
                 ? super.getName(stack)
-                : SmokeContents.packedName(this.getTranslationKey() + ".packed", contents);
+                : SmokeContents.packedName("item." + Hempdustry.MOD_ID + "." + device.baseName() + ".packed", contents);
     }
 
     @Override
