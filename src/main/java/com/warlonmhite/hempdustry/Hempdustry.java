@@ -74,6 +74,9 @@ public class Hempdustry implements ModInitializer {
 		// dried kelp block.
 		CompostingChanceRegistry.INSTANCE.add(ModItems.DECARBOXYLATED_HEMP, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.WASHED_DECARBOXYLATED_HEMP, 0.5f);
+		// Burnt down to less than it was, so it drops to the loose leaf's 0.3 -- vanilla's dried kelp
+		// item rate. This is also its vanilla-shaped way out: nothing else consumes it but the tub.
+		CompostingChanceRegistry.INSTANCE.add(ModItems.SCORCHED_HEMP, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BEANIE, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 0.5f);

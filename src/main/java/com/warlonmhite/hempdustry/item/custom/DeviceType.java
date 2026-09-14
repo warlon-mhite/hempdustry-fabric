@@ -148,8 +148,8 @@ public enum DeviceType {
     }
 
     /**
-     * Decarboxylated hemp handed back when a <em>bowl</em> is finished, or {@code 0} for a device
-     * that leaves nothing usable behind. Only the vaporizer yields any.
+     * Scorched hemp handed back when a <em>bowl</em> of plant matter is finished, or {@code 0} for a
+     * device that leaves nothing usable behind. Only the vaporizer yields any.
      *
      * <p>This is <b>AVB</b> — "already vaped bud". A vaporizer runs at roughly 185–210 °C, under the
      * ~230 °C where plant matter starts to burn, so what comes out is spent but decarboxylated, and
@@ -157,11 +157,19 @@ public enum DeviceType {
      * therefore the "heat activates" rule arriving through a second door, <b>not</b> an exception to
      * it: nothing raw is ever handed back.
      *
-     * <p><b>1, not 2.</b> The Decarboxylator gives four per bud, in bulk, unattended, and takes hemp
-     * leaf besides; a 25% return sits inside real AVB's 10–30% residual and keeps the oven the gate
-     * the whole edible chain is paid at. Two would be half, and would start reading as an
-     * alternative bud → decarb route. Per <em>bowl</em>, and a bowl is one bud, so it cannot be
-     * farmed by taking more hits.
+     * <p><b>Scorched, not decarboxylated, since 2026-09-14.</b> AVB keeps only 10–30% of what the
+     * bud had, and oven-decarboxylated hemp keeps nearly all of it; they were one item, which made a
+     * re-vape of the oven's output a 4× multiplier on every bud and a way to smoke leaves. Scorched
+     * hemp is worth a quarter of a decarboxylated one in the Infuser, so the depletion lives in the
+     * item rather than in this count — and it re-vapes once more, for side effects only, then is
+     * gone ({@code SmokingDeviceItem#yieldSpent} yields nothing from anything that did not grow on a
+     * plant).
+     *
+     * <p><b>1 today, and now safe to raise.</b> It was held at 1 because 2 decarboxylated hemp would
+     * have read as an alternative bud → decarb route. Two scorched are worth half a decarboxylated
+     * hemp — about 12% of the bud, inside the real AVB range — so if play-test says the vaporizer
+     * needs more reason to be built, this is the knob and it no longer eats the oven's niche.
+     * Per <em>bowl</em>, so it cannot be farmed by taking more hits.
      */
     public int spentYield() {
         return spentYield;

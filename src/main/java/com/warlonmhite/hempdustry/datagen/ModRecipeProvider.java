@@ -558,6 +558,39 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.LEAF_OUTPUT),
                 "hemp_leaf");
 
+        // The furnace's answer to the same heat: ANY PLANT PART, ONE SCORCHED HEMP, ALWAYS ONE.
+        //
+        // A furnace is not an oven. Cooking hemp that hard drives the THC off and oxidises what is
+        // left, so what comes out is worth a quarter of the Decarboxylator's product in the Infuser
+        // and drags the grade down (InfuserBlockEntity.SCORCHED_PER_STRENGTH, Quality). That is the
+        // point of it: low-grade butter before the 504-stem oven, without the oven ever losing its
+        // reason to exist. A bud gives four decarboxylated hemp in there and one scorched hemp here,
+        // so the always-one is what keeps the gate honest -- and a bud is still worth more in a pipe
+        // than in this furnace, which is the joke a player learns once.
+        //
+        // Plant matter only, from the same flower filter as the oven's recipes above: hash never
+        // smelts, because the family never reaches butter. Furnace only, no smoker or campfire --
+        // vanilla keeps those two for food, and the mod's own toasted seeds follow that rule.
+        // Vanilla's numbers for the sea pickle and the chorus fruit: 200 ticks, 0.1 experience.
+        //
+        // One recipe over every input rather than one per input, which is the charcoal shape. The
+        // unlock is any of them: a recipe's unlock advancement ORs its criteria.
+        List<ItemConvertible> scorchable = new java.util.ArrayList<>();
+        scorchable.add(ModItems.HEMP_LEAF);
+        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
+            Strain strain = strains.getOrThrow(key).value();
+            if (strain.flower().isPresent()) {
+                scorchable.add(strain.buds());
+            }
+        }
+        CookingRecipeJsonBuilder scorching = CookingRecipeJsonBuilder.createSmelting(
+                Ingredient.ofItems(scorchable.toArray(ItemConvertible[]::new)),
+                RecipeCategory.MISC, ModItems.SCORCHED_HEMP, 0.1F, 200);
+        for (ItemConvertible input : scorchable) {
+            scorching.criterion(hasItem(input), conditionsFromItem(input));
+        }
+        scorching.offerTo(exporter, id("scorched_hemp"));
+
         // NOTHING IN THE HASH FAMILY DECARBOXYLATES, and that is the rule rather than an omission:
         // the oven takes plant matter, the bowl takes resin. Hash is a smoking material and only a
         // smoking material -- it never becomes cannabutter, an edible or anything you swallow.
@@ -649,6 +682,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 ofTag(ModTags.Items.MILK_BUCKETS),
                 Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
                 Ingredient.ofItems(ModItems.WASHED_DECARBOXYLATED_HEMP),
+                java.util.Optional.of(Ingredient.ofItems(ModItems.SCORCHED_HEMP)),
                 new ItemStack(ModItems.CANNABUTTER)), null);
 
         // The Hemp Press. THE MOD'S OWN MACHINE GRAMMAR IS "a vanilla utility block wrapped in a

@@ -18,16 +18,28 @@ import org.jetbrains.annotations.Nullable;
  * measured out of 100 and simply added, giving a 0–200 extraction score:
  *
  * <pre>
- *   score = timePercent + washedPercent
+ *   score = timePercent + purityPercent
+ *   purityPercent = washed% − scorched%
  * </pre>
  *
  * <ul>
  *   <li><b>{@code timePercent}</b> — how far through the <em>collectable</em> window the batch is:
  *       0 at the early-pull minimum, 100 at a full simmer. (Before the minimum there is nothing to
  *       grade, so that is where the scale starts.)</li>
- *   <li><b>{@code washedPercent}</b> — what share of the hemp was washed. Integer-floored, so it
- *       only reads 100 when there is genuinely not one unwashed item in the batch.</li>
+ *   <li><b>{@code purityPercent}</b> — the washed share of the hemp, minus the scorched share.
+ *       Integer-floored, so it only reads 100 when there is genuinely not one unwashed or scorched
+ *       item in the batch. It runs <b>−100 to 100</b>: plain decarboxylated hemp is the neutral
+ *       zero, washing lifts it and scorched hemp pushes it below.</li>
  * </ul>
+ *
+ * <h2>Why scorched hemp is a subtraction and not a third weight</h2>
+ *
+ * Both anchors below are batches with no scorched hemp in them, so subtracting its share leaves
+ * every one of them — and the proof that the weights must be equal — exactly where it was. What it
+ * adds is a floor: an all-scorched batch scores {@code time − 100}, never above 0, so it is
+ * {@link #ROUGH} however long it simmers. A half-washed, half-scorched batch nets to plain hemp and
+ * reaches {@link #STANDARD} at a full simmer, which is the honest reading of "half good, half
+ * burnt". {@link #PERFECT}'s gate needs purity 100, which already means nothing scorched.
  *
  * <h2>Why the weights are equal</h2>
  *
@@ -97,22 +109,29 @@ public enum Quality implements StringIdentifiable {
         this.name = name;
     }
 
+    /** Lowest purity there is: a batch of nothing but scorched hemp. */
+    public static final int MIN_PURITY = -100;
+
     /**
-     * The grade a batch earns right now, from the two dials. Both are percentages clamped to 0–100;
-     * see the class notes for the whole design.
+     * The grade a batch earns right now, from the two dials; see the class notes for the whole
+     * design.
+     *
+     * <p><b>Purity is clamped to −100–100, not 0–100.</b> Clamping it at zero, as the washed share
+     * used to be, would quietly grade an all-scorched batch exactly like an all-unwashed one — the
+     * furnace's butter would reach Standard, and the only thing it gives up would be gone.
      *
      * @param timePercent   0 at the early-pull minimum, 100 at a full simmer
-     * @param washedPercent share of the batch's hemp that was washed, integer-floored so it only
-     *                      reads 100 when nothing unwashed went in
+     * @param purityPercent washed share minus scorched share, integer-floored so it only reads 100
+     *                      when nothing unwashed or scorched went in
      */
-    public static Quality of(int timePercent, int washedPercent) {
+    public static Quality of(int timePercent, int purityPercent) {
         int time = MathHelper.clamp(timePercent, 0, 100);
-        int washed = MathHelper.clamp(washedPercent, 0, 100);
+        int purity = MathHelper.clamp(purityPercent, MIN_PURITY, 100);
         // Both dials maxed, checked before the score so Perfect can never be approximated into.
-        if (time >= 100 && washed >= 100) {
+        if (time >= 100 && purity >= 100) {
             return PERFECT;
         }
-        int score = time + washed;
+        int score = time + purity;
         if (score >= CLEAN_SCORE) {
             return CLEAN;
         }
@@ -127,14 +146,14 @@ public enum Quality implements StringIdentifiable {
      * <em>when</em> their batch will improve. Under the old all-or-nothing grading the answer was
      * always "the full timer"; now it moves with the washed ratio, so it has to be shown.
      */
-    public static int timeNeededFor(Quality target, int washedPercent) {
-        int washed = MathHelper.clamp(washedPercent, 0, 100);
+    public static int timeNeededFor(Quality target, int purityPercent) {
+        int purity = MathHelper.clamp(purityPercent, MIN_PURITY, 100);
         int needed = switch (target) {
             case ROUGH -> 0;
-            case STANDARD -> STANDARD_SCORE - washed;
-            case CLEAN -> CLEAN_SCORE - washed;
+            case STANDARD -> STANDARD_SCORE - purity;
+            case CLEAN -> CLEAN_SCORE - purity;
             // Perfect is a gate, not a score: nothing short of a spotless batch ever gets there.
-            case PERFECT -> washed >= 100 ? 100 : Integer.MAX_VALUE;
+            case PERFECT -> purity >= 100 ? 100 : Integer.MAX_VALUE;
         };
         if (needed > 100) {
             return -1;

@@ -126,16 +126,22 @@ public final class ViewerRecipes {
         List<Entry> out = new ArrayList<>();
         for (RecipeEntry<InfusingRecipe> entry : ModRecipes.allOfType(world, ModRecipes.INFUSING_TYPE)) {
             InfusingRecipe recipe = entry.value();
-            out.add(new Entry(entry.id().getValue(),
-                    List.of(recipe.container(), recipe.hemp(), recipe.washedHemp()),
-                    recipe.result(),
-                    List.of(Text.translatable("hempdustry.category.infusing.pour"),
-                            Text.translatable("hempdustry.category.infusing.heat"),
-                            Text.translatable("hempdustry.category.infusing.batch",
-                                    InfuserBlockEntity.BATCH_CAP,
-                                    minutes(InfuserBlockEntity.minTime()),
-                                    minutes(InfuserBlockEntity.fullTime()))),
-                    false));
+            List<Ingredient> inputs = new ArrayList<>(List.of(recipe.container(), recipe.hemp(), recipe.washedHemp()));
+            List<Text> notes = new ArrayList<>(List.of(Text.translatable("hempdustry.category.infusing.pour"),
+                    Text.translatable("hempdustry.category.infusing.heat"),
+                    Text.translatable("hempdustry.category.infusing.batch",
+                            InfuserBlockEntity.BATCH_CAP,
+                            minutes(InfuserBlockEntity.minTime()),
+                            minutes(InfuserBlockEntity.fullTime()))));
+            // Scorched hemp's whole price is invisible from its slot: it counts a quarter and holds
+            // the grade down. A player comparing it with the oven's hemp on this page is exactly the
+            // one who needs telling -- and a pack that dropped it gets neither the slot nor the note.
+            recipe.scorchedHemp().ifPresent(scorched -> {
+                inputs.add(scorched);
+                notes.add(Text.translatable("hempdustry.category.infusing.scorched",
+                        InfuserBlockEntity.SCORCHED_PER_STRENGTH));
+            });
+            out.add(new Entry(entry.id().getValue(), inputs, recipe.result(), notes, false));
         }
         return out;
     }
