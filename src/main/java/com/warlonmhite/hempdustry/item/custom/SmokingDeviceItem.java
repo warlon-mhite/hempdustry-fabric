@@ -108,7 +108,7 @@ public class SmokingDeviceItem extends Item {
                     // shot that breaks one is ALWAYS the last shot of a bowl — for the vaporizer
                     // that is hit 32 of 32, once in the life of every single one. Yielding inside
                     // the isEmpty() guard would have silently eaten that last AVB every time.
-                    yieldSpent(player);
+                    yieldSpent(player, contents);
                     if (!stack.isEmpty()) {
                         // Clearing the two components is the whole "revert to empty" — durability
                         // and enchantments are already where they need to be.
@@ -125,17 +125,25 @@ public class SmokingDeviceItem extends Item {
 
     /**
      * Hands back what the finished bowl left behind — <b>AVB</b>, "already vaped bud", as
-     * {@code decarboxylated_hemp}. A no-op for every device that burns its load; see
+     * {@code scorched_hemp}. A no-op for every device that burns its load; see
      * {@link DeviceType#spentYield()} for why only the vaporizer has any and why it is 1.
+     *
+     * <p><b>Only a bowl of plant matter leaves anything</b>, and every entry has to be one. What
+     * else a vaporizer can hold is resin — hashish, charas, filtered hashish, all dose 1 — or
+     * scorched hemp itself. Resin handing back hemp was a real leak: the hash family's one rule is
+     * that it never reaches cannabutter, and before this guard a vaporizer walked it there.
+     * Scorched hemp handing back more scorched hemp would be an endless bowl. The mod-wide
+     * predicate for "this grew on a plant" answers both, and anything hash-shaped a datapack adds.
      *
      * <p>{@code giveItemStack} puts it in the inventory and drops the remainder at the player's feet
      * if there is no room, which is vanilla's own behaviour for a bucket emptying or a bundle
      * spilling — the yield can never be lost to a full hotbar.
      */
-    private void yieldSpent(PlayerEntity player) {
+    private void yieldSpent(PlayerEntity player, SmokeContents contents) {
         int yield = device.spentYield();
-        if (yield > 0) {
-            player.giveItemStack(new ItemStack(ModItems.DECARBOXYLATED_HEMP, yield));
+        if (yield > 0 && contents.entries().stream()
+                .allMatch(entry -> entry.strain().value().flower().isPresent())) {
+            player.giveItemStack(new ItemStack(ModItems.SCORCHED_HEMP, yield));
         }
     }
 }

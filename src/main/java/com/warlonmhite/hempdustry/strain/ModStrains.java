@@ -70,6 +70,14 @@ public class ModStrains {
     /** Not a plant either: hashish put back through the screen at a finer mesh. */
     public static final RegistryKey<Strain> FILTERED_HASHISH = key("filtered_hashish");
     public static final RegistryKey<Strain> ROSIN = key("rosin");
+    /**
+     * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
+     * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
+     * {@code model_index} 0 and the shared tinted look, and none of the per-strain datagen loops
+     * (spliffs, hash spliffs, moon rocks, the oven) ever see it. It is loaded like any datapack
+     * strain would be, which is exactly what it is shaped like.
+     */
+    public static final RegistryKey<Strain> SCORCHED_HEMP = key("scorched_hemp");
 
     /**
      * The strains the mod ships art and recipes for. <b>Append only, and never reorder</b> —
@@ -281,6 +289,27 @@ public class ModStrains {
                 Optional.empty(), ModItems.ROSIN, Optional.empty(), 2.0F, 3,
                 List.of(
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
+                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+
+        // Scorched hemp -- the high is gone; the couch and the munchies are not.
+        //
+        // Re-vaping already-vaped bud is a real habit, and what comes off the second pass is mostly
+        // what was never the point: the cannabinoids that survived have largely oxidised toward CBN,
+        // which is far weaker than THC (its "sleepy" reputation is marketing more than evidence). So
+        // it keeps the family's side effects and drops every buff. NOTHING HERE MAY EVER BE A BUFF:
+        // a furnace turns any leaf into this, and a buff would make leaves a smoking material.
+        //
+        // Neither effect scales, so a pipe or bong of it is the same level I as a vaporizer's -- more
+        // of it is just more of nothing. greenOutFactor 0 is the codec's own spelling of "never
+        // greens you out" (Smoking#smoothed), and it is the honest one: there is nothing left in it
+        // to overdo.
+        //
+        // Colour is the item's charred brown, so a packed device reads as holding exactly that.
+        context.register(SCORCHED_HEMP, new Strain("hempdustry.strain.scorched_hemp", 0x614329,
+                modelIndex(SCORCHED_HEMP),
+                Optional.empty(), ModItems.SCORCHED_HEMP, Optional.empty(), 0.0F, 1,
+                List.of(
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
                         new SmokeEffect(StatusEffects.HUNGER, 0, false))));
     }

@@ -146,11 +146,14 @@ public class InfuserScreenHandler extends ScreenHandler {
      * <p>Falls back to the full clock when there is no batch yet to measure.
      */
     private int finishProgress() {
-        int washed = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_WASHED_PERCENT);
-        if (washed < 0) {
+        int purity = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_PURITY);
+        // Compared against the sentinel, never "< 0": a batch with scorched hemp in it has a
+        // genuinely negative purity, and reading that as "no batch" would draw its bar against the
+        // full clock -- a finished all-scorched batch would show a third of a bar, for ever.
+        if (purity == InfuserBlockEntity.NO_BATCH) {
             return fullTime();
         }
-        int needed = Quality.timeNeededFor(Quality.of(100, washed), washed);
+        int needed = Quality.timeNeededFor(Quality.of(100, purity), purity);
         if (needed < 0) {
             return fullTime();
         }
@@ -185,16 +188,16 @@ public class InfuserScreenHandler extends ScreenHandler {
      * better?" was always "the full timer", so there was nothing to show; with score-based grading it
      * moves with the washed ratio — a spotless batch earns Clean at 73% of the cook while a
      * three-quarters-washed one waits until 87% — and a player has no way to work that out from the
-     * inside. The washed share is synced for exactly this.
+     * inside. The purity dial is synced for exactly this.
      */
     public float getNextGradeMark() {
-        int washed = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_WASHED_PERCENT);
-        if (washed < 0) {
+        int purity = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_PURITY);
+        if (purity == InfuserBlockEntity.NO_BATCH) {
             return -1.0F;
         }
-        Quality next = Quality.of(timePercent(), washed).next();
+        Quality next = Quality.of(timePercent(), purity).next();
         while (next != null) {
-            int needed = Quality.timeNeededFor(next, washed);
+            int needed = Quality.timeNeededFor(next, purity);
             if (needed >= 0) {
                 int span = fullTime() - minTime();
                 // Scaled against the job, like everything else on the bar — so the *last* upgrade's

@@ -59,7 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * machine has a real footprint in the world instead of being a box you feed coal into.
  *
  * <p><b>Ingredients are consumed as they enter the batch, not when the result is collected.</b> The
- * batch — {@link #haveMilk}, {@link #batchUnwashed}, {@link #batchWashed} — is bookkeeping on this
+ * batch — {@link #haveMilk}, {@link #batchUnwashed}, {@link #batchWashed}, {@link #batchScorched} — is bookkeeping on this
  * block entity rather than items sitting in slots. Two different rhythms:
  * <ul>
  *   <li><b>Milk is poured in by hand, one at a time</b> — right-click the tub with a bucket, or
@@ -194,10 +194,33 @@ public class InfuserBlockEntity extends BlockEntity
      */
     public static final int PUSH_IDLE_COOLDOWN = 20;
 
+    /**
+     * Scorched hemp it takes to add one to a batch's strength — a quarter of a decarboxylated hemp.
+     *
+     * <p><b>This is the gate, not the grade.</b> Scorched hemp comes out of a vanilla furnace, and
+     * strength is what decides a butter's potency tier. At full weight a furnace would make tier-IV
+     * butter with no Decarboxylator at all; at a quarter, 24 scorched hemp is strength 6, which is
+     * tier I however long it simmers. The oven keeps tiers II–IV to itself. Real AVB keeps 10–30%
+     * of what the bud had; a quarter is inside that.
+     *
+     * <p>Rounded <em>up</em>, over the scorched items alone: a batch of one scorched hemp is
+     * strength 1, not 0 — nothing in the tub may ever produce an empty butter.
+     */
+    public static final int SCORCHED_PER_STRENGTH = 4;
+
     public static final int PROPERTY_PROGRESS = 0;
     public static final int PROPERTY_HEATED = 1;
-    /** Washed share of the batch, 0–100, or -1 when there is no batch to grade. */
-    public static final int PROPERTY_WASHED_PERCENT = 2;
+    /** The batch's {@link #purityPercent()}, −100–100, or {@link #NO_BATCH} when there is none. */
+    public static final int PROPERTY_PURITY = 2;
+    /**
+     * What {@link #purityPercent()} reports when there is no batch to grade.
+     *
+     * <p><b>Not {@code -1}, which it used to be.</b> Purity goes negative the moment scorched hemp
+     * is in a batch, so -1 is a real reading now — a batch of 50 unwashed and 51 scorched — and a
+     * sentinel inside the range makes the screen draw a live batch as if the tub were empty.
+     * {@code Short.MIN_VALUE} because the property delegate goes over the wire as a short.
+     */
+    public static final int NO_BATCH = Short.MIN_VALUE;
     /**
      * The two timings, synced.
      *
@@ -230,6 +253,7 @@ public class InfuserBlockEntity extends BlockEntity
     /** Hemp already drawn into the running batch, by type. Together capped at {@link #BATCH_CAP}. */
     private int batchUnwashed;
     private int batchWashed;
+    private int batchScorched;
     /**
      * Throttles {@link #pushOutput}. Not persisted — a few ticks of timer is not worth a save field.
      */
@@ -256,7 +280,7 @@ public class InfuserBlockEntity extends BlockEntity
                 case PROPERTY_HEATED -> heated ? 1 : 0;
                 // Synced so the screen can work out when this batch's grade will next improve,
                 // which under the score-based grading depends on the ratio and not just the clock.
-                case PROPERTY_WASHED_PERCENT -> washedPercent();
+                case PROPERTY_PURITY -> purityPercent();
                 case PROPERTY_MIN_TIME -> minTime();
                 case PROPERTY_FULL_TIME -> fullTime();
                 case PROPERTY_FILLED -> haveMilk ? 1 : 0;
@@ -315,10 +339,16 @@ public class InfuserBlockEntity extends BlockEntity
         return recipe != null && recipe.washedHemp().test(stack);
     }
 
-    /** Either kind of decarboxylated hemp — both hemp slots accept both. */
+    public static boolean isScorchedHemp(@Nullable World world, ItemStack stack) {
+        InfusingRecipe recipe = recipe(world);
+        return recipe != null && recipe.isScorched(stack);
+    }
+
+    /** Any of the three hemps — both hemp slots accept all of them. */
     public static boolean isHemp(@Nullable World world, ItemStack stack) {
         InfusingRecipe recipe = recipe(world);
-        return recipe != null && (recipe.hemp().test(stack) || recipe.washedHemp().test(stack));
+        return recipe != null
+                && (recipe.hemp().test(stack) || recipe.washedHemp().test(stack) || recipe.isScorched(stack));
     }
 
     /**
@@ -536,21 +566,26 @@ public class InfuserBlockEntity extends BlockEntity
 
     /** Dissolves a single hemp out of the slots into the batch. Unwashed first, so a mixed batch
      * keeps as much washed hemp in the tally as it can — that is what decides whether the grade can
-     * reach {@link Quality#CLEAN} or {@link Quality#PERFECT}. */
+     * reach {@link Quality#CLEAN} or {@link Quality#PERFECT}. Scorched goes before either, by the
+     * same rule: the cheapest material is spent first. */
     private void absorbOne() {
         if (batchHemp() >= BATCH_CAP) {
             return;
         }
-        for (int pass = 0; pass < 2; pass++) {
-            boolean wantWashed = pass == 1;
+        for (int pass = 0; pass < 3; pass++) {
             for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
                 ItemStack stack = getStack(FIRST_HEMP_SLOT + i);
-                if (wantWashed ? isWashedHemp(this.world, stack) : isUnwashedHemp(this.world, stack)) {
+                boolean match = switch (pass) {
+                    case 0 -> isScorchedHemp(this.world, stack);
+                    case 1 -> isUnwashedHemp(this.world, stack);
+                    default -> isWashedHemp(this.world, stack);
+                };
+                if (match) {
                     stack.decrement(1);
-                    if (wantWashed) {
-                        batchWashed++;
-                    } else {
-                        batchUnwashed++;
+                    switch (pass) {
+                        case 0 -> batchScorched++;
+                        case 1 -> batchUnwashed++;
+                        default -> batchWashed++;
                     }
                     return;
                 }
@@ -570,19 +605,34 @@ public class InfuserBlockEntity extends BlockEntity
         return total;
     }
 
-    /** Hemp already committed to the running batch. */
+    /**
+     * Hemp <b>items</b> already committed to the running batch — what {@link #BATCH_CAP} counts and
+     * what decides whether there is a batch at all. Not the strength; see {@link #strength()}.
+     */
     private int batchHemp() {
-        return batchUnwashed + batchWashed;
+        return batchUnwashed + batchWashed + batchScorched;
     }
 
     /**
-     * The purity dial: what share of the batch's hemp was washed, 0–100, or {@code -1} when there is
-     * no batch to grade. Integer-floored on purpose — {@link Quality} treats 100 as "not one
-     * unwashed item went in", so a single unwashed among a thousand has to read as 99.
+     * What the cannabutter's {@code STRENGTH} is stamped from: every decarboxylated hemp counts one,
+     * washed or not (washing changes purity, not potency), and scorched hemp counts one per
+     * {@link #SCORCHED_PER_STRENGTH}, rounded up.
      */
-    public int washedPercent() {
+    public int strength() {
+        return batchUnwashed + batchWashed
+                + (batchScorched + SCORCHED_PER_STRENGTH - 1) / SCORCHED_PER_STRENGTH;
+    }
+
+    /**
+     * The purity dial: the washed share of the batch minus the scorched share, −100–100, or
+     * {@link #NO_BATCH} when there is no batch to grade. Integer-floored on purpose —
+     * {@link Quality} treats 100 as "not one unwashed or scorched item went in", so a single one
+     * among a thousand has to read as 99. {@code floorDiv} rather than {@code /} so a negative
+     * reading floors the same way a positive one does instead of rounding toward zero.
+     */
+    public int purityPercent() {
         int total = batchHemp();
-        return total == 0 ? -1 : batchWashed * 100 / total;
+        return total == 0 ? NO_BATCH : Math.floorDiv((batchWashed - batchScorched) * 100, total);
     }
 
     /**
@@ -633,12 +683,12 @@ public class InfuserBlockEntity extends BlockEntity
      * The best grade this batch will ever reach — what it would earn at a full simmer.
      *
      * <p>This is knowable mid-simmer only because <b>the washed ratio is frozen after
-     * {@link #minTime()}</b>: absorption stops there, so nothing can change {@code washedPercent}
+     * {@link #minTime()}</b>: absorption stops there, so nothing can change {@code purityPercent}
      * afterwards and the only dial still moving is time. If hemp could still be absorbed later this
      * would be a guess, and everything built on it below would be wrong.
      */
     public Quality bestQuality() {
-        return Quality.of(100, washedPercent());
+        return Quality.of(100, purityPercent());
     }
 
     /**
@@ -652,7 +702,7 @@ public class InfuserBlockEntity extends BlockEntity
      * the hopper guard, so those three can never disagree about it.
      */
     public boolean isAtBestQuality() {
-        return isReady() && hasBatch() && Quality.of(timePercent(), washedPercent()) == bestQuality();
+        return isReady() && hasBatch() && Quality.of(timePercent(), purityPercent()) == bestQuality();
     }
 
     /**
@@ -816,8 +866,8 @@ public class InfuserBlockEntity extends BlockEntity
             setStack(OUTPUT_SLOT, ItemStack.EMPTY);
             return true;
         }
-        int strength = batchHemp();
-        Quality quality = Quality.of(timePercent(), washedPercent());
+        int strength = strength();
+        Quality quality = Quality.of(timePercent(), purityPercent());
         if (showsPreview(shown, recipe, strength, quality)) {
             return false;
         }
@@ -839,14 +889,14 @@ public class InfuserBlockEntity extends BlockEntity
         // when there was actually a batch to close, which is what stops a second listener call when
         // both the slot hook and removeStack fire for one collection (the close-out itself is
         // idempotent, an event is not).
-        int strength = batchHemp();
-        if (strength > 0 && world != null) {
+        if (batchHemp() > 0 && world != null) {
             HempdustryEvents.AFTER_INFUSE.invoker().onInfused(
-                    world, pos, strength, Quality.of(timePercent(), washedPercent()));
+                    world, pos, strength(), Quality.of(timePercent(), purityPercent()));
         }
         haveMilk = false;
         batchUnwashed = 0;
         batchWashed = 0;
+        batchScorched = 0;
         progress = 0;
         markDirty();
     }
@@ -909,6 +959,10 @@ public class InfuserBlockEntity extends BlockEntity
         // every single-item ingredient — which both of the shipped ones are.
         addBatchStacks(spill, InfusingRecipe.representative(recipe.hemp()).getItem(), batchUnwashed);
         addBatchStacks(spill, InfusingRecipe.representative(recipe.washedHemp()).getItem(), batchWashed);
+        // A pack that has since dropped scorched hemp from the recipe has nothing to name it by,
+        // so those few go with the tub -- the same answer as an ingredient with no matching stacks.
+        recipe.scorchedHemp().ifPresent(scorched ->
+                addBatchStacks(spill, InfusingRecipe.representative(scorched).getItem(), batchScorched));
         return spill;
     }
 
@@ -1046,6 +1100,7 @@ public class InfuserBlockEntity extends BlockEntity
         view.putBoolean("HaveMilk", haveMilk);
         view.putInt("BatchUnwashed", batchUnwashed);
         view.putInt("BatchWashed", batchWashed);
+        view.putInt("BatchScorched", batchScorched);
         view.putBoolean("PreviewShown", previewShown);
     }
 
@@ -1058,6 +1113,8 @@ public class InfuserBlockEntity extends BlockEntity
         haveMilk = view.getBoolean("HaveMilk", false);
         batchUnwashed = view.getInt("BatchUnwashed", 0);
         batchWashed = view.getInt("BatchWashed", 0);
+        // Absent in every world written before scorched hemp existed, and none is what those held.
+        batchScorched = view.getInt("BatchScorched", 0);
         // Absent in worlds written before this field existed, and false is what those meant.
         previewShown = view.getBoolean("PreviewShown", false);
     }
