@@ -32,20 +32,32 @@ import org.jetbrains.annotations.Nullable;
  *   <tr><td>0–2</td><td>too young — a seedling with no canopy to take</td><td>—</td></tr>
  *   <tr><td>3</td><td>late vegetative trim — the last age the plant is one block tall</td><td>{@link #TRIMMED_EARLY}</td></tr>
  *   <tr><td>4–5</td><td>early flowering trim — after the stretch into two blocks</td><td>{@link #TRIMMED_LATE}</td></tr>
- *   <tr><td>6–7</td><td><b>ripe — rub it for resin.</b> A 1-in-{@value #CHARAS_CHANCE_ONE_IN} pinch of charas, once per plant</td><td>{@link #RUBBED}</td></tr>
+ *   <tr><td>6–7</td><td><b>ripe — rub it for resin.</b> One sugar leaf, always, and a 1-in-{@value #CHARAS_CHANCE_ONE_IN} pinch of charas, once per plant</td><td>{@link #RUBBED}</td></tr>
  * </table>
+ *
+ * <p><b>Every window takes exactly one leaf, and every one of those leaves comes off the harvest.</b>
+ * The crop's loot table subtracts one leaf per flag set — both trims and the rub — so a plant yields
+ * the same number of leaves however it was worked; only <em>when</em> the player holds them changes.
+ * Only the two trims move the buds. A leaf handed over here without its flag reaching the loot table
+ * is a free leaf per plant, which is why the flag is set before the drop and both happen server-side
+ * in one call.
  *
  * <p><b>The two windows are split on the moment the plant becomes two blocks tall</b>
  * ({@code DOUBLE_BLOCK_AGE} = 4), which is the only cue either crop gives without new models: trim it
  * once while it is still short, once after it has shot up. That is also where real practice puts the
  * two cuts — late veg, just before the flip, and early flower once the stretch is over — and cannabis
  * really does roughly double in height in the first fortnight of flowering, which is exactly what the
- * second block is. Growers stop defoliating well before harvest, so ages 6–7 take no leaf.
+ * second block is. Growers stop stripping fan leaves well before harvest, so ages 6–7 take no
+ * <em>trim</em>.
  *
  * <p><b>Ages 6–7 are the rub window instead</b> (added 2026-09-09; they were dead before that).
- * Shearing a ripe plant cuts nothing off it — it takes the resin that comes away on the blades,
- * which is only worth doing once the plant is <em>full</em> of it. See
- * {@link #CHARAS_CHANCE_ONE_IN}, which carries the whole argument.
+ * Shearing a ripe plant snips one <b>sugar leaf</b> — the small, resin-caked leaf tucked into the
+ * bud — and the resin that gums up the blades is the charas. The trade calls that <em>scissor
+ * hash</em>, the trimmer's perk, and it is only worth doing once the plant is <em>full</em> of
+ * resin. The leaf is certain, the resin is a roll (changed 2026-09-14: until then a rub took no leaf,
+ * which meant shears that took resin off a plant without cutting anything, and three rubs in four
+ * that spent durability for nothing). See {@link #CHARAS_CHANCE_ONE_IN}, which carries the whole
+ * argument.
  *
  * <p><b>Windows moved 2026-08-22</b>, from 4–5 / 6. The old split had all of its cuts inside the
  * two-block phase (so neither window had a visible boundary), made the late window half as wide as
@@ -55,8 +67,8 @@ import org.jetbrains.annotations.Nullable;
  * <p><b>Separate booleans rather than one counter.</b> The windows are sequential, but a plant sits
  * at one age for many random ticks and a player may well meet a plant that is already past the
  * early window. A counter would either double-count a lingering age or lock out the late cut when
- * the early one was missed; independent flags have neither problem — and the rub is not a cut at
- * all, so it could never have shared a counter with the two that are.
+ * the early one was missed; independent flags have neither problem — and the rub, which takes a
+ * leaf but moves no buds, could never have shared a counter with the two that do.
  *
  * <p><b>The flags are canonical on the LOWER segment only</b>, exactly like {@code AGE}. Anything
  * that writes a crop's state has to carry them across — see {@link #carryOver} and its two callers:
@@ -174,7 +186,10 @@ public final class Defoliation {
                 .with(RUBBED, from.get(RUBBED));
     }
 
-    /** How many of the two cuts this plant has had — 0, 1 or 2. Drives the harvest payout. */
+    /**
+     * How many of the two trims this plant has had — 0, 1 or 2. The rub is deliberately not counted:
+     * it takes a leaf but moves no buds. Read by {@code HarvestHempCriterion}.
+     */
     public static int cutCount(BlockState lowerState) {
         return (lowerState.get(TRIMMED_EARLY) ? 1 : 0) + (lowerState.get(TRIMMED_LATE) ? 1 : 0);
     }
@@ -186,7 +201,7 @@ public final class Defoliation {
      * interaction.
      *
      * <p><b>Three windows live here, not two</b>, and this is the only place any of them is
-     * evaluated. Ages 3 and 4–5 cut leaf; ages 6–7 rub for resin. Keeping the rub in this function
+     * evaluated. All three cut one leaf; ages 6–7 also roll for resin. Keeping the rub in this function
      * rather than beside it is what stops the shears check, the age arithmetic, the spent-window
      * guard, the durability cost and the two-sided sound being written twice — and both crops
      * already call exactly this one entry point.
@@ -228,9 +243,12 @@ public final class Defoliation {
         }
 
         if (!world.isClient()) {
+            // The flag first, then the leaf. The flag is what the loot table reads to take this leaf
+            // back off the harvest, so the leaf is only ever handed over together with it.
             world.setBlockState(lowerPos, lowerState.with(window, true), Block.NOTIFY_LISTENERS);
+            Block.dropStack(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF));
             if (rub) {
-                // A rub takes nothing off the plant but resin -- no leaf, and the age is untouched.
+                // The age is untouched, and the charas is a roll on top of the leaf.
                 //
                 // THE ROLL AND THE SOUND THAT REPORTS IT ARE BOTH SERVER-SIDE, and they have to be.
                 // A rub that yields nothing still costs a durability point and still closes the
@@ -254,8 +272,6 @@ public final class Defoliation {
                                 : SoundEvents.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES,
                         SoundCategory.BLOCKS, gotCharas ? 0.8F : 1.0F,
                         (gotCharas ? 0.7F : 0.6F) + world.getRandom().nextFloat() * 0.2F);
-            } else {
-                Block.dropStack(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF));
             }
             stack.damage(1, player,
                     hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
