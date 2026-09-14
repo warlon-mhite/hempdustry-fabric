@@ -48,6 +48,9 @@ public class HempdustryClient implements ClientModInitializer {
         BlockRenderLayerMap.putBlock(ModBlocks.INDICA_FLOWER, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.POTTED_INDICA_FLOWER, BlockRenderLayer.CUTOUT);
 
+        // Stained glass is drawn at partial alpha, so the placed bongs need the translucent pass.
+        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> BlockRenderLayerMap.putBlock(bong, BlockRenderLayer.TRANSLUCENT));
+
         BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_CROP, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_FLOWER, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.POTTED_SATIVA_FLOWER, BlockRenderLayer.CUTOUT);

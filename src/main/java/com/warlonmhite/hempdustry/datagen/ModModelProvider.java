@@ -29,9 +29,13 @@ import net.minecraft.util.Identifier;
 
 import net.minecraft.registry.RegistryWrapper;
 
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.Direction;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class ModModelProvider extends FabricModelProvider {
@@ -69,6 +73,8 @@ public class ModModelProvider extends FabricModelProvider {
         hempPlanksPool.pressurePlate(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
         hempPlanksPool.fence(ModBlocks.HEMP_PLANKS_FENCE);
         hempPlanksPool.fenceGate(ModBlocks.HEMP_PLANKS_FENCE_GATE);
+
+        registerBongBlocks(blockStateModelGenerator);
 
         blockStateModelGenerator.registerDoor(ModBlocks.HEMP_PLANKS_DOOR);
         blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
@@ -260,7 +266,14 @@ public class ModModelProvider extends FabricModelProvider {
                 new StrainTintSource(NO_TINT));
     }
 
-    /** A device's empty model, its packed one (the art plus a strain-tinted load), and the switch. */
+    /**
+     * A device's empty model, its packed one (the art plus a strain-tinted load), and the switch.
+     *
+     * <p>A device that stands as a block ({@link ModBlocks#DEVICE_BLOCKS}) is also 3D in the hand:
+     * vanilla's trident/spyglass split, the flat sprite in the inventory, on the ground, in a frame
+     * and on a shelf, and the placed block's own model everywhere else. Packed, the hand model is
+     * the same bong with a strain-tinted load sitting in the bowl.
+     */
     private static void registerDevice(ItemModelGenerator generator, Item item, String art,
                                        String packedModelName, String loadTexture) {
         Identifier packedModel = Models.GENERATED_TWO_LAYERS.upload(
@@ -270,9 +283,52 @@ public class ModModelProvider extends FabricModelProvider {
         Identifier emptyModel = Models.GENERATED.upload(
                 ModelIds.getItemModelId(item), TextureMap.layer0(texture(art)),
                 generator.modelCollector);
-        generator.output.accept(item, ItemModels.condition(
+        ItemModel.Unbaked flat = ItemModels.condition(
                 ItemModels.hasComponentProperty(ModComponents.SMOKE_CONTENTS),
-                strainTinted(packedModel), ItemModels.basic(emptyModel)));
+                strainTinted(packedModel), ItemModels.basic(emptyModel));
+        String name = Registries.ITEM.getId(item).getPath();
+        if (!ModBlocks.DEVICE_BLOCKS.containsKey(name)) {
+            generator.output.accept(item, flat);
+            return;
+        }
+        Identifier packedInHand = BONG_PACKED_TEMPLATE.upload(
+                Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName + "_in_hand"),
+                bongTextures(name), generator.modelCollector);
+        ItemModel.Unbaked inHand = ItemModels.condition(
+                ItemModels.hasComponentProperty(ModComponents.SMOKE_CONTENTS),
+                strainTinted(packedInHand),
+                ItemModels.basic(Identifier.of(Hempdustry.MOD_ID, "block/" + name)));
+        generator.output.accept(item, ItemModelGenerator.createModelWithInHandVariant(flat, inHand));
+    }
+
+    // The placed bong, hand-written once as block/bong_template.json and re-textured per glass.
+    private static final TextureKey BONG_SHEET = TextureKey.of("bong");
+    private static final Model BONG_TEMPLATE = new Model(
+            Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/bong_template")), Optional.empty(), BONG_SHEET);
+    private static final Model BONG_PACKED_TEMPLATE = new Model(
+            Optional.of(Identifier.of(Hempdustry.MOD_ID, "item/bong_template_packed")), Optional.empty(), BONG_SHEET);
+
+    private static TextureMap bongTextures(String name) {
+        return new TextureMap().put(BONG_SHEET, Identifier.of(Hempdustry.MOD_ID, "block/" + name));
+    }
+
+    /**
+     * One model per glass and a facing blockstate. North-default, rotated the way every horizontal
+     * block of vanilla's is, with the downstem to the east of the direction it faces.
+     */
+    private static void registerBongBlocks(BlockStateModelGenerator generator) {
+        var facing = BlockStateVariantMap.operations(Properties.HORIZONTAL_FACING)
+                .register(Direction.NORTH, BlockStateModelGenerator.NO_OP)
+                .register(Direction.EAST, BlockStateModelGenerator.ROTATE_Y_90)
+                .register(Direction.SOUTH, BlockStateModelGenerator.ROTATE_Y_180)
+                .register(Direction.WEST, BlockStateModelGenerator.ROTATE_Y_270);
+        for (Map.Entry<String, Block> entry : ModBlocks.DEVICE_BLOCKS.entrySet()) {
+            Identifier model = BONG_TEMPLATE.upload(entry.getValue(), bongTextures(entry.getKey()),
+                    generator.modelCollector);
+            generator.blockStateCollector.accept(VariantsBlockModelDefinitionCreator
+                    .of(entry.getValue(), BlockStateModelGenerator.createWeightedVariant(model))
+                    .apply(facing));
+        }
     }
 
     /** White: a tint is a multiply, so this leaves a layer exactly as it was drawn. */

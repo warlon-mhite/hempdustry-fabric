@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.block;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.BongBlock;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
@@ -31,7 +32,14 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -395,6 +403,44 @@ public class ModBlocks {
             AbstractBlock.Settings.copy(Blocks.CAKE),
             EdibleBlockItem::new,
             new Item.Settings().maxCount(1));
+
+    /**
+     * Vanilla's creative-tab colour order. {@code ItemGroups} spells it out once per colour family
+     * and keeps no list of it, so this is that order written down once. Here rather than in
+     * {@code ModItems} because the bong blocks below need it, and this class must never reach into
+     * that one during static initialisation — {@code ModItems} reads blocks from here.
+     */
+    public static final List<DyeColor> DYE_ORDER = List.of(
+            DyeColor.WHITE, DyeColor.LIGHT_GRAY, DyeColor.GRAY, DyeColor.BLACK, DyeColor.BROWN,
+            DyeColor.RED, DyeColor.ORANGE, DyeColor.YELLOW, DyeColor.LIME, DyeColor.GREEN,
+            DyeColor.CYAN, DyeColor.LIGHT_BLUE, DyeColor.BLUE, DyeColor.PURPLE, DyeColor.MAGENTA,
+            DyeColor.PINK);
+
+    /**
+     * What a device stands as when it is put down, keyed by the device item's id — which the block
+     * shares, as a candle's does. Only bongs today, one per glass: clear, tinted, then
+     * {@link #DYE_ORDER}. A pipe or vaporizer has no entry, which is the whole of "it does not
+     * place". Blocks without items: the device <em>is</em> the item, see {@code SmokingDeviceItem}.
+     *
+     * <p>The block's name is the item's key, so a placed Red Bong needs no {@code block.*} line in
+     * eight locales to say so in a tooltip mod or a {@code /setblock} reply.
+     */
+    public static final Map<String, Block> DEVICE_BLOCKS = registerBongBlocks();
+
+    private static Map<String, Block> registerBongBlocks() {
+        List<String> names = new ArrayList<>(List.of("bong", "tinted_bong"));
+        DYE_ORDER.forEach(color -> names.add(color.getId() + "_bong"));
+        Map<String, Block> blocks = new LinkedHashMap<>();
+        for (String name : names) {
+            blocks.put(name, registerBlockWithoutItem(name, BongBlock::new, AbstractBlock.Settings.create()
+                    .breakInstantly()
+                    .nonOpaque()
+                    .sounds(BlockSoundGroup.GLASS)
+                    .pistonBehavior(PistonBehavior.DESTROY)
+                    .overrideTranslationKey("item." + Hempdustry.MOD_ID + "." + name)));
+        }
+        return Collections.unmodifiableMap(blocks);
+    }
 
 
     public static Block registerBlock(String name, Function<AbstractBlock.Settings, Block> factory,

@@ -60,6 +60,8 @@ contents.
   nauseous and useless instead. A single-bud hit never does.
 - Pipes and bongs are damageable, enchantable and anvil-repairable, packed or empty.
 - **Bongs come in all sixteen colours of glass**, and in tinted glass too.
+- **Put your bong down.** Right-click a block with an empty one and it stands on the table; break it
+  and it comes back exactly as it went down.
 
 ### From crop to cannabutter
 

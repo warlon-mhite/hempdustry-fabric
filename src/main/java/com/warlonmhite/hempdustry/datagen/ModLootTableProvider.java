@@ -28,7 +28,9 @@ import net.minecraft.loot.condition.LootCondition;
 import net.minecraft.loot.condition.RandomChanceLootCondition;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.entry.LeafEntry;
+import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.loot.function.ApplyBonusLootFunction;
+import net.minecraft.loot.function.CopyComponentsLootFunction;
 import net.minecraft.loot.function.CopyStateLootFunction;
 import net.minecraft.loot.function.SetCountLootFunction;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
@@ -154,6 +156,15 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         // The tray drops empty — you drain a reservoir before you move it — so it needs no
         // copy_state, unlike the pot, which keeps its soil.
         addDrop(ModBlocks.HYDRO_TRAY);
+        // A placed bong is the device itself, set down: it drops that device back, carrying every
+        // component the block entity kept (durability, enchantments, a name). Explosions still
+        // break it the way they break a flower pot, because it is glass.
+        for (Block bong : ModBlocks.DEVICE_BLOCKS.values()) {
+            addDrop(bong, LootTable.builder().pool(addSurvivesExplosionCondition(bong, LootPool.builder()
+                    .rolls(ConstantLootNumberProvider.create(1))
+                    .with(ItemEntry.builder(bong.asItem())
+                            .apply(CopyComponentsLootFunction.blockEntity(LootContextParameters.BLOCK_ENTITY))))));
+        }
         addDrop(ModBlocks.CHARAS_BALL);
         addDrop(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
         addDrop(ModBlocks.FILTERED_HASHISH_BAR,

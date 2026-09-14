@@ -56,6 +56,15 @@ beta be told when the release lands.
   share one button in the recipe book. A packed one is still called "Purple Kush Bong" — the colour
   is right there on it.
 
+- **Set a bong down.** Right-click a block with an empty bong and it stands there, like a flower
+  pot. It breaks in one hit and always drops back exactly as it went down — worn, enchanted or
+  named. It is for show: to smoke it, pick it back up.
+- **The bong is 3D in your hand**, and stays the familiar flat icon in your inventory, on the ground
+  and in item frames — the way the trident and the spyglass do it.
+  - For resource packs: every glass has its own item sprite (`textures/item/<colour>_bong.png`) and
+    block texture (`textures/block/<colour>_bong.png`), and the placed and held bong is one model,
+    `models/block/bong_template.json`.
+
 ## [Unreleased]
 
 ### Breaking
