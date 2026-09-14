@@ -68,6 +68,7 @@ contents.
   nauseous and useless instead; at a dose of three it also ends the high you already had and keeps
   you from smoking for a minute. A single-bud hit never does.
 - Pipes and bongs are damageable, enchantable and anvil-repairable, packed or empty.
+- **Bongs come in all sixteen colours of glass**, and in tinted glass too.
 
 ### From crop to cannabutter
 

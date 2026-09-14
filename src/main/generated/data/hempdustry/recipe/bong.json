@@ -1,6 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
+  "group": "bong",
   "key": {
     "G": "minecraft:glass",
     "I": "minecraft:iron_nugget",

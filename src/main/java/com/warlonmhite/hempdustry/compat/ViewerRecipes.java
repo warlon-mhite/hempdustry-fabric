@@ -418,6 +418,8 @@ public final class ViewerRecipes {
         // rows, which differ only by that component, collapse with them.
         out.add(ModItems.MOON_ROCK);
         out.addAll(ModItems.devices().values());
+        // Not in devices(), but packed just the same once a player has one.
+        out.addAll(ModItems.COLORED_BONGS);
         return out;
     }
 
