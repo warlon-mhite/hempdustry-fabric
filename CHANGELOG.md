@@ -51,6 +51,11 @@ beta be told when the release lands.
   loads a line of viewer code unless the viewer is there.
   - The cauldron page is the one worth having: retting and washing are not recipes, so the recipe
     book cannot show them and no datapack can list them.
+- **Bongs in every colour of glass.** Craft a bong from stained glass and the matching stained pane
+  for any of the sixteen colours, or from tinted glass and a plain pane for a smoked-glass one. They
+  pack, smoke and wear out exactly like the clear bong, repair with the glass they are made of, and
+  share one button in the recipe book. A packed one is still called "Purple Kush Bong" — the colour
+  is right there on it.
 
 ### Changed
 

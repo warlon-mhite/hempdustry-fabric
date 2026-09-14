@@ -871,7 +871,31 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .input('G', Blocks.GLASS)
                 .input('W', Items.WATER_BUCKET)
                 .criterion(hasItem(Blocks.GLASS), conditionsFromItem(Blocks.GLASS))
+                .group("bong")
                 .offerTo(exporter, id("bong"));
+
+        // The same shape in every other glass, one recipe per colour the way vanilla's dyed
+        // bundles are -- and grouped, so the recipe book gives all eighteen one button, as it does
+        // beds and banners. The pane is the matching stained pane; vanilla makes no tinted pane, so
+        // the tinted bong takes a plain one. No two share an ingredient multiset: the glass differs.
+        for (Item bong : ModItems.COLORED_BONGS) {
+            String name = Registries.ITEM.getId(bong).getPath();
+            String color = name.substring(0, name.length() - "_bong".length());
+            boolean tinted = color.equals("tinted");
+            Item glass = Registries.ITEM.get(Identifier.ofVanilla(tinted ? "tinted_glass" : color + "_stained_glass"));
+            Item pane = tinted ? Items.GLASS_PANE : Registries.ITEM.get(Identifier.ofVanilla(color + "_stained_glass_pane"));
+            createShaped(RecipeCategory.MISC, bong)
+                    .pattern(" PI")
+                    .pattern("GWG")
+                    .pattern(" G ")
+                    .input('P', pane)
+                    .input('I', Items.IRON_NUGGET)
+                    .input('G', glass)
+                    .input('W', Items.WATER_BUCKET)
+                    .criterion(hasItem(glass), conditionsFromItem(glass))
+                    .group("bong")
+                    .offerTo(exporter, id(name));
+        }
 
         // Iron chamber, a redstone heating element, and a hemp-plank body. Redstone is in the CRAFT
         // and not in the bowl, which is what the name promises: no vanilla "Redstone X" burns

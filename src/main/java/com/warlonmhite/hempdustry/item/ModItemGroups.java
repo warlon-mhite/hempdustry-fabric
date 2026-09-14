@@ -168,6 +168,10 @@ public class ModItemGroups {
                                 .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.PARENT_TAB_ONLY));
                         ModItems.allSmokeables(displayContext.lookup())
                                 .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.SEARCH_TAB_ONLY));
+                        // The glass run, empty only -- the way vanilla follows the bundle with its
+                        // sixteen dyed ones. A packed coloured bong differs from a packed clear one
+                        // by glass alone, so listing its loads would be the matrix all over again.
+                        ModItems.COLORED_BONGS.forEach(entries::add);
 
                         // --- Armour, head to foot --------------------------------------
                         entries.add(ModItems.HEMP_BEANIE);

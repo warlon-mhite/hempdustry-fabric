@@ -246,9 +246,9 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
         // Empty pipe/bong accept Unbreaking/Mending (and enchant at the table). Packed variants
         // inherit any enchantment through the component copy, so they don't need listing here.
-        valueLookupBuilder(ItemTags.DURABILITY_ENCHANTABLE)
-                .add(ModItems.WOODEN_PIPE)
-                .add(ModItems.BONG);
+        var durabilityEnchantable = valueLookupBuilder(ItemTags.DURABILITY_ENCHANTABLE)
+                .add(ModItems.WOODEN_PIPE);
+        ModItems.bongs().forEach(durabilityEnchantable::add);
 
         // Puts our discs on exactly the same footing as vanilla's twelve common discs: the
         // creeper loot table rolls this tag (expand:true, one entry each) when a skeleton lands
