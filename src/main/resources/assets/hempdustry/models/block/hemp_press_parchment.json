@@ -1,0 +1,21 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "parchment": "hempdustry:block/hemp_press_parchment",
+    "particle": "hempdustry:block/hemp_press_parchment"
+  },
+  "elements": [
+    {
+      "name": "parchment",
+      "from": [5, 4, 5],
+      "to": [11, 5, 11],
+      "faces": {
+        "north": {"uv": [0, 6, 6, 7], "texture": "#parchment"},
+        "east": {"uv": [0, 6, 6, 7], "texture": "#parchment"},
+        "south": {"uv": [0, 6, 6, 7], "texture": "#parchment"},
+        "west": {"uv": [0, 6, 6, 7], "texture": "#parchment"},
+        "up": {"uv": [0, 0, 6, 6], "texture": "#parchment"}
+      }
+    }
+  ]
+}

@@ -22,7 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import com.warlonmhite.hempdustry.client.UpdateChecker;
 import com.warlonmhite.hempdustry.client.particle.AromaParticle;
+import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
+import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import com.warlonmhite.hempdustry.client.render.CompositeItemModel;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.particle.ModParticles;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
@@ -66,8 +71,26 @@ public class HempdustryClient implements ClientModInitializer {
 
         ParticleFactoryRegistry.getInstance().register(ModParticles.AROMA, AromaParticle.Factory::new);
 
+        // The press's platen and capstan move, so a renderer draws them rather than the block model.
+        BlockEntityRendererFactories.register(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
+        // ...and they are models no block state names, so they have to be asked for by id.
+        ModelLoadingPlugin.register(context -> {
+            context.addModels(HempPressBlockEntityRenderer.PARTS);
+            // The press's icon is its four part models at rest, put together as it bakes -- the
+            // composite item model the 1.21.11 build names in data. Its own model, which parents the
+            // frame's, gives the display transforms.
+            context.modifyModelAfterBake().register((model, bake) -> {
+                if (!HempPressBlockEntityRenderer.ICON.equals(bake.resourceId())) {
+                    return model;
+                }
+                return new CompositeItemModel(model, HempPressBlockEntityRenderer.ICON_PARTS.stream()
+                        .map(part -> bake.baker().bake(part, bake.settings())).toList());
+            });
+        });
+
         registerItemProperties();
         registerItemColors();
+
         registerBlockColors();
     }
 

@@ -1,16 +1,109 @@
 {
   "_comment": [
-    "A hemp-brick bed with an iron platen over it. Vanilla's `orientable` parent, unchanged: the",
-    "press's shape is entirely in its two new faces, and a bespoke multi-element model would be",
-    "detail nobody sees on a block that spends its life against a wall with a campfire under it.",
-    "",
-    "The sides and the bottom are hemp bricks, which is what the recipe puts there and what makes",
-    "this read as the Decarboxylator's sibling."
+    "Authored in textures-src/hemp_press.bbmodel; this is its 'frame' group. The press is five",
+    "models: this static frame, the bed plate (cold, or hot and self-lit when lit=true), the rosin",
+    "packet (pressing=true), and the platen and capstan -- which are not in the blockstate at all.",
+    "HempPressBlockEntityRenderer draws those two, driven down the rod while a batch presses."
   ],
-  "parent": "minecraft:block/orientable",
+  "parent": "minecraft:block/block",
   "textures": {
-    "top": "hempdustry:block/hemp_press_top",
-    "front": "hempdustry:block/hemp_press_front",
-    "side": "hempdustry:block/hemp_bricks_block"
-  }
+    "bricks": "hempdustry:block/hemp_bricks_block",
+    "beam": "hempdustry:block/hemp_press_beam",
+    "iron": "hempdustry:block/hemp_press_iron",
+    "particle": "hempdustry:block/hemp_bricks_block"
+  },
+  "elements": [
+    {
+      "name": "base_left",
+      "from": [0, 0, 0],
+      "to": [5, 3, 16],
+      "faces": {
+        "north": {"uv": [11, 13, 16, 16], "texture": "#bricks", "cullface": "north"},
+        "east": {"uv": [0, 13, 16, 16], "texture": "#bricks"},
+        "south": {"uv": [0, 13, 5, 16], "texture": "#bricks", "cullface": "south"},
+        "west": {"uv": [0, 13, 16, 16], "texture": "#bricks", "cullface": "west"},
+        "up": {"uv": [0, 0, 5, 16], "texture": "#bricks"},
+        "down": {"uv": [0, 0, 5, 16], "texture": "#bricks", "cullface": "down"}
+      }
+    },
+    {
+      "name": "base_right",
+      "from": [11, 0, 0],
+      "to": [16, 3, 16],
+      "faces": {
+        "north": {"uv": [0, 13, 5, 16], "texture": "#bricks", "cullface": "north"},
+        "east": {"uv": [0, 13, 16, 16], "texture": "#bricks", "cullface": "east"},
+        "south": {"uv": [11, 13, 16, 16], "texture": "#bricks", "cullface": "south"},
+        "west": {"uv": [0, 13, 16, 16], "texture": "#bricks"},
+        "up": {"uv": [11, 0, 16, 16], "texture": "#bricks"},
+        "down": {"uv": [11, 0, 16, 16], "texture": "#bricks", "cullface": "down"}
+      }
+    },
+    {
+      "name": "base_middle",
+      "from": [5, 0, 2],
+      "to": [11, 3, 16],
+      "faces": {
+        "south": {"uv": [5, 13, 11, 16], "texture": "#bricks", "cullface": "south"},
+        "up": {"uv": [5, 2, 11, 16], "texture": "#bricks"},
+        "down": {"uv": [5, 0, 11, 14], "texture": "#bricks", "cullface": "down"}
+      }
+    },
+    {
+      "name": "base_sill",
+      "from": [5, 0, 0],
+      "to": [11, 1, 2],
+      "faces": {
+        "north": {"uv": [5, 15, 11, 16], "texture": "#bricks", "cullface": "north"},
+        "up": {"uv": [5, 0, 11, 2], "texture": "#bricks"},
+        "down": {"uv": [5, 14, 11, 16], "texture": "#bricks", "cullface": "down"}
+      }
+    },
+    {
+      "name": "pillar_left",
+      "from": [0, 3, 5],
+      "to": [3, 13, 11],
+      "faces": {
+        "north": {"uv": [13, 3, 16, 13], "texture": "#bricks"},
+        "east": {"uv": [5, 3, 11, 13], "texture": "#bricks"},
+        "south": {"uv": [0, 3, 3, 13], "texture": "#bricks"},
+        "west": {"uv": [5, 3, 11, 13], "texture": "#bricks", "cullface": "west"}
+      }
+    },
+    {
+      "name": "pillar_right",
+      "from": [13, 3, 5],
+      "to": [16, 13, 11],
+      "faces": {
+        "north": {"uv": [0, 3, 3, 13], "texture": "#bricks"},
+        "east": {"uv": [5, 3, 11, 13], "texture": "#bricks", "cullface": "east"},
+        "south": {"uv": [13, 3, 16, 13], "texture": "#bricks"},
+        "west": {"uv": [5, 3, 11, 13], "texture": "#bricks"}
+      }
+    },
+    {
+      "name": "beam",
+      "from": [0, 13, 5],
+      "to": [16, 16, 11],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 3], "texture": "#beam"},
+        "east": {"uv": [0, 9, 6, 12], "texture": "#beam", "cullface": "east"},
+        "south": {"uv": [0, 0, 16, 3], "texture": "#beam"},
+        "west": {"uv": [0, 9, 6, 12], "texture": "#beam", "cullface": "west"},
+        "up": {"uv": [0, 3, 16, 9], "texture": "#beam", "cullface": "up"},
+        "down": {"uv": [0, 3, 16, 9], "texture": "#beam"}
+      }
+    },
+    {
+      "name": "rod",
+      "from": [7, 9, 7],
+      "to": [9, 13, 9],
+      "faces": {
+        "north": {"uv": [14, 0, 16, 4], "texture": "#iron"},
+        "east": {"uv": [14, 0, 16, 4], "texture": "#iron"},
+        "south": {"uv": [14, 0, 16, 4], "texture": "#iron"},
+        "west": {"uv": [14, 0, 16, 4], "texture": "#iron"}
+      }
+    }
+  ]
 }
