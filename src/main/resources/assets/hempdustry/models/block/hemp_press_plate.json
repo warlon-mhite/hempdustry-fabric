@@ -1,0 +1,30 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "plate": "hempdustry:block/hemp_press_plate",
+    "particle": "hempdustry:block/hemp_press_plate"
+  },
+  "elements": [
+    {
+      "name": "plate",
+      "from": [2, 3, 2],
+      "to": [14, 4, 14],
+      "faces": {
+        "north": {"uv": [0, 12, 12, 13], "texture": "#plate"},
+        "east": {"uv": [0, 12, 12, 13], "texture": "#plate"},
+        "south": {"uv": [0, 12, 12, 13], "texture": "#plate"},
+        "west": {"uv": [0, 12, 12, 13], "texture": "#plate"},
+        "up": {"uv": [0, 0, 12, 12], "texture": "#plate"}
+      }
+    },
+    {
+      "name": "vent",
+      "from": [5, 1, 1],
+      "to": [11, 3, 2],
+      "faces": {
+        "north": {"uv": [0, 13, 6, 15], "texture": "#plate"},
+        "up": {"uv": [0, 15, 6, 16], "texture": "#plate"}
+      }
+    }
+  ]
+}

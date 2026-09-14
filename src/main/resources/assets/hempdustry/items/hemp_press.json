@@ -1,6 +1,11 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "hempdustry:item/hemp_press"
+    "type": "minecraft:composite",
+    "models": [
+      { "type": "minecraft:model", "model": "hempdustry:block/hemp_press" },
+      { "type": "minecraft:model", "model": "hempdustry:block/hemp_press_plate" },
+      { "type": "minecraft:model", "model": "hempdustry:block/hemp_press_platen" },
+      { "type": "minecraft:model", "model": "hempdustry:block/hemp_press_screw" }
+    ]
   }
 }
