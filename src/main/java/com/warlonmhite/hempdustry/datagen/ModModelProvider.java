@@ -104,6 +104,7 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.HEMP_LEAF, Models.GENERATED);
         itemModelGenerator.register(ModItems.DECARBOXYLATED_HEMP, Models.GENERATED);
         itemModelGenerator.register(ModItems.WASHED_DECARBOXYLATED_HEMP, Models.GENERATED);
+        itemModelGenerator.register(ModItems.SCORCHED_HEMP, Models.GENERATED);
         itemModelGenerator.register(ModItems.KIEF, Models.GENERATED);
         itemModelGenerator.register(ModItems.FILTERED_KIEF, Models.GENERATED);
         itemModelGenerator.register(ModItems.BUBBLE_HASH, Models.GENERATED);

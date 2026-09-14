@@ -78,6 +78,21 @@ public class ModItems {
     // of items. Strain identity is carried by the smoking system, not by edibles.
     public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", settings -> new Item(settings));
     public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", settings -> new Item(settings));
+    /**
+     * Hemp heated past the point of use — the furnace's version of the oven's work, and what a
+     * vaporizer bowl leaves behind (<b>AVB</b>, "already vaped bud").
+     *
+     * <p>Still heated, so still activated: it goes into the Infuser like the other two, and no raw
+     * plant is involved anywhere. But overheating drives THC off and oxidises what is left toward
+     * CBN, so it is worth a quarter of a decarboxylated hemp and drags the grade down — see
+     * {@code InfuserBlockEntity.SCORCHED_PER_STRENGTH} and {@code Quality}. That is what lets a
+     * furnace make butter before the Decarboxylator exists without the furnace competing with it.
+     *
+     * <p><b>It cannot be washed.</b> No cauldron behaviour is registered for it, deliberately:
+     * heat has already broken the chlorophyll down to brown, so there is nothing green left for
+     * water to take out.
+     */
+    public static final Item SCORCHED_HEMP = registerItem("scorched_hemp", settings -> new Item(settings));
 
     /**
      * Pressed dry-sift hashish — resin separated from the plant and squeezed into a slab.
