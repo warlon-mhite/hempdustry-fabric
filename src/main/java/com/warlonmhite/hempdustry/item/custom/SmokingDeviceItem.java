@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -63,9 +64,11 @@ public class SmokingDeviceItem extends Item {
     @Override
     public Text getName(ItemStack stack) {
         SmokeContents contents = contentsOf(stack);
+        // The packed format is the device's, not this item's: a packed Red Bong is "Purple Kush
+        // Bong", because the glass is on the model and the name has room for one thing only.
         return contents.isEmpty()
                 ? super.getName(stack)
-                : SmokeContents.packedName(this.getTranslationKey() + ".packed", contents);
+                : SmokeContents.packedName("item." + Hempdustry.MOD_ID + "." + device.baseName() + ".packed", contents);
     }
 
     @Override

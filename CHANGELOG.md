@@ -50,6 +50,11 @@ beta be told when the release lands.
   - **No hydroponics in the Nether.** Water boils away there — pour it in and it hisses off as usual.
   - **Any fertiliser feeds either bed.** Bone meal, or whatever your modpack tags as fertiliser —
     pot and tray both read the shared `#c:fertilizers` tag.
+- **Bongs in every colour of glass.** Craft a bong from stained glass and the matching stained pane
+  for any of the sixteen colours, or from tinted glass and a plain pane for a smoked-glass one. They
+  pack, smoke and wear out exactly like the clear bong, repair with the glass they are made of, and
+  share one button in the recipe book. A packed one is still called "Purple Kush Bong" — the colour
+  is right there on it.
 
 ## [Unreleased]
 

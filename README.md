@@ -59,6 +59,7 @@ contents.
 - **Green out.** Big doses carry a real chance of losing the hit entirely and spending a while
   nauseous and useless instead. A single-bud hit never does.
 - Pipes and bongs are damageable, enchantable and anvil-repairable, packed or empty.
+- **Bongs come in all sixteen colours of glass**, and in tinted glass too.
 
 ### From crop to cannabutter
 

@@ -269,7 +269,8 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
         Advancement.Builder.create()
                 .display(display(ModItems.BONG, "bong_voyage", AdvancementFrame.TASK))
-                .criterion("smoked_a_bong", SmokeCriterion.Conditions.with(registryLookup, ModItems.BONG))
+                .criterion("smoked_a_bong", SmokeCriterion.Conditions.with(registryLookup,
+                        ModItems.bongs().toArray(Item[]::new)))
                 .parent(pipeDream)
                 .build(consumer, Hempdustry.MOD_ID + ":bong_voyage");
 
@@ -285,7 +286,9 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(Items.ANVIL, "burnout", AdvancementFrame.TASK))
                 .criterion("smoked_a_device_to_death", ItemDurabilityChangedCriterion.Conditions.create(
                         Optional.of(ItemPredicate.Builder.create()
-                                .items(items(registryLookup), ModItems.WOODEN_PIPE, ModItems.BONG).build()),
+                                .items(items(registryLookup), java.util.stream.Stream.concat(
+                                        java.util.stream.Stream.of(ModItems.WOODEN_PIPE),
+                                        ModItems.bongs().stream()).toArray(Item[]::new)).build()),
                         NumberRange.IntRange.atMost(0)))
                 .parent(pipeDream)
                 .build(consumer, Hempdustry.MOD_ID + ":burnout");
