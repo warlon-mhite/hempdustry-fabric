@@ -382,18 +382,7 @@ public class ModItems {
     public static final Item VAPORIZER = registerDevice(DeviceType.VAPORIZER);
 
     /**
-     * Vanilla's creative-tab colour order. {@code ItemGroups} spells it out once per colour family
-     * and keeps no list of it, so this is that order written down once. <b>Declared above
-     * {@link #COLORED_BONGS}</b>, which reads it during static initialisation.
-     */
-    public static final List<DyeColor> DYE_ORDER = List.of(
-            DyeColor.WHITE, DyeColor.LIGHT_GRAY, DyeColor.GRAY, DyeColor.BLACK, DyeColor.BROWN,
-            DyeColor.RED, DyeColor.ORANGE, DyeColor.YELLOW, DyeColor.LIME, DyeColor.GREEN,
-            DyeColor.CYAN, DyeColor.LIGHT_BLUE, DyeColor.BLUE, DyeColor.PURPLE, DyeColor.MAGENTA,
-            DyeColor.PINK);
-
-    /**
-     * The tinted bong, then the sixteen stained-glass ones in {@link #DYE_ORDER} — clear glass is
+     * The tinted bong, then the sixteen stained-glass ones in {@link ModBlocks#DYE_ORDER} — clear glass is
      * {@link #BONG}. One item per colour, the way vanilla does bundles, candles and shulker boxes:
      * a glass colour is a material identity, not a payload, so it is an item and not a component
      * (smoking.md, <em>Shape</em>). Tinted leads because vanilla lists tinted glass beside plain.
@@ -438,7 +427,8 @@ public class ModItems {
                 case BONG -> settings.repairable(Items.GLASS);
                 case VAPORIZER -> settings.repairable(Items.IRON_INGOT);
             }
-            return new SmokingDeviceItem(device, settings);
+            // Null for everything but the bong: a device with no block does not place.
+            return new SmokingDeviceItem(device, ModBlocks.DEVICE_BLOCKS.get(device.baseName()), settings);
         });
         DEVICES.put(device, item);
         return item;
@@ -447,7 +437,7 @@ public class ModItems {
     private static List<Item> registerColoredBongs() {
         List<Item> bongs = new ArrayList<>();
         bongs.add(registerBong("tinted_bong", Items.TINTED_GLASS));
-        for (DyeColor color : DYE_ORDER) {
+        for (DyeColor color : ModBlocks.DYE_ORDER) {
             bongs.add(registerBong(color.getId() + "_bong",
                     Registries.ITEM.get(Identifier.ofVanilla(color.getId() + "_stained_glass"))));
         }
@@ -457,7 +447,7 @@ public class ModItems {
     /** A bong in coloured glass, repaired with the glass it is blown from. */
     private static Item registerBong(String name, Item glass) {
         return registerItem(name, settings -> new SmokingDeviceItem(DeviceType.BONG,
-                deviceSettings(settings, DeviceType.BONG).repairable(glass)));
+                ModBlocks.DEVICE_BLOCKS.get(name), deviceSettings(settings, DeviceType.BONG).repairable(glass)));
     }
 
     private static Item.Settings deviceSettings(Item.Settings settings, DeviceType device) {

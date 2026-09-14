@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "hempdustry:block/blue_bong",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "hempdustry:block/blue_bong"
+    },
+    "facing=south": {
+      "model": "hempdustry:block/blue_bong",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "hempdustry:block/blue_bong",
+      "y": 270
+    }
+  }
+}
