@@ -10,6 +10,9 @@
     "count": 1,
     "id": "hempdustry:cannabutter"
   },
+  "scorched_hemp": {
+    "item": "hempdustry:scorched_hemp"
+  },
   "washed_hemp": {
     "item": "hempdustry:washed_decarboxylated_hemp"
   }

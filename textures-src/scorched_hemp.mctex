@@ -1,0 +1,39 @@
+# Scorched Hemp -- decarboxylated hemp, cooked past the point of use.
+#
+# The MATRIX is item/decarboxylated_hemp.png extracted verbatim; only the PALETTE is ours. Same
+# heap, same five tones in the same luminance order, pushed from olive to a charred brown. That is
+# the whole visual idea: it is the same material, only worse, and a player who has seen the oven's
+# output should read this as "that, burnt" before reading the name.
+#
+# The green goes entirely. Heat breaks chlorophyll down to brown pheophytin, which is the real
+# reason this item cannot be washed -- there is no green left in it for water to take out.
+# Each tone sits a little darker than the one it replaces, so the two items stay apart at 1:1 in a
+# hotbar and not only at zoom.
+#
+# PLACEHOLDER: derived art, not drawn. Redraw or retone freely.
+
+@palette scorched
+. = none
+1 = 120D09
+2 = 2A1D14
+3 = 44301F
+4 = 614329
+5 = 855E38
+
+@texture item/scorched_hemp 16x16 palette=scorched type=item
+................
+................
+................
+................
+......2323......
+.....245542.....
+....14554342....
+..112344353322..
+...134333432311.
+..131543232121..
+.112342332121...
+...11232112111..
+.....111111.....
+................
+................
+................

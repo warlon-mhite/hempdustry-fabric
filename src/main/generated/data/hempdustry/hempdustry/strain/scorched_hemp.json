@@ -1,0 +1,16 @@
+{
+  "buds": "hempdustry:scorched_hemp",
+  "color": 6374185,
+  "effects": [
+    {
+      "effect": "minecraft:slowness",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:hunger",
+      "scales": false
+    }
+  ],
+  "green_out_factor": 0.0,
+  "translation_key": "hempdustry.strain.scorched_hemp"
+}

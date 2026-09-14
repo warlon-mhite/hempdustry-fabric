@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": [
+    {
+      "item": "hempdustry:hemp_leaf"
+    },
+    {
+      "item": "hempdustry:indica_buds"
+    },
+    {
+      "item": "hempdustry:sativa_buds"
+    }
+  ],
+  "result": {
+    "id": "hempdustry:scorched_hemp"
+  }
+}

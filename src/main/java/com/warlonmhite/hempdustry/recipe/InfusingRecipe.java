@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeEntry;
@@ -17,6 +18,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * What the Infuser turns into what: the three things it accepts, and the one thing it yields.
@@ -29,15 +31,22 @@ import java.util.List;
  * decarboxylated hemp, or change what a batch produces, and a recipe viewer can finally show the
  * conversion at all.
  *
- * <p>The two hemp ingredients are separate because the machine treats them differently — washed hemp
- * is what makes {@code Clean} and {@code Perfect} reachable, and absorption spends unwashed first. A
- * single ingredient with a flag would not survive that.
+ * <p>The hemp ingredients are separate because the machine treats them differently — washed hemp
+ * is what makes {@code Clean} and {@code Perfect} reachable, scorched hemp counts a quarter and
+ * pulls the grade down, and absorption spends the cheapest first. A single ingredient with a flag
+ * would not survive that.
+ *
+ * <p><b>{@code scorched_hemp} is optional, and has to be.</b> It was added after the recipe shipped,
+ * so a pack that overrides {@code infusing.json} with the three fields it knew about must keep
+ * loading — a required field would take the whole tub down with a parse error. Absent means the tub
+ * simply does not take scorched hemp, which is what that pack was written against.
  *
  * <p><b>Removing every infusing recipe disables the machine</b> rather than crashing it: with no
  * recipe the tub accepts nothing and produces nothing, which is a legitimate thing for a pack to want
  * and the only sane reading of "there is no conversion".
  */
-public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient washedHemp, ItemStack result)
+public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient washedHemp,
+                             Optional<Ingredient> scorchedHemp, ItemStack result)
         implements Recipe<SingleStackRecipeInput> {
 
     /**
@@ -57,7 +66,12 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     @Override
     public boolean matches(SingleStackRecipeInput input, World world) {
         ItemStack stack = input.item();
-        return container.test(stack) || hemp.test(stack) || washedHemp.test(stack);
+        return container.test(stack) || hemp.test(stack) || washedHemp.test(stack) || isScorched(stack);
+    }
+
+    /** Whether {@code stack} plays the scorched part — never, for a recipe that does not name one. */
+    public boolean isScorched(ItemStack stack) {
+        return scorchedHemp.isPresent() && scorchedHemp.get().test(stack);
     }
 
     @Override
@@ -77,10 +91,11 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
 
     @Override
     public DefaultedList<Ingredient> getIngredients() {
-        DefaultedList<Ingredient> list = DefaultedList.ofSize(3, Ingredient.EMPTY);
+        DefaultedList<Ingredient> list = DefaultedList.ofSize(scorchedHemp.isPresent() ? 4 : 3, Ingredient.EMPTY);
         list.set(0, container);
         list.set(1, hemp);
         list.set(2, washedHemp);
+        scorchedHemp.ifPresent(scorched -> list.set(3, scorched));
         return list;
     }
 
@@ -121,6 +136,9 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
                 Ingredient.DISALLOW_EMPTY_CODEC.fieldOf("container").forGetter(InfusingRecipe::container),
                 Ingredient.DISALLOW_EMPTY_CODEC.fieldOf("hemp").forGetter(InfusingRecipe::hemp),
                 Ingredient.DISALLOW_EMPTY_CODEC.fieldOf("washed_hemp").forGetter(InfusingRecipe::washedHemp),
+                // Optional: see the class notes. Every infusing.json written before it existed
+                // still parses, and means "this tub takes no scorched hemp".
+                Ingredient.DISALLOW_EMPTY_CODEC.optionalFieldOf("scorched_hemp").forGetter(InfusingRecipe::scorchedHemp),
                 ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
         ).apply(instance, InfusingRecipe::new));
 
@@ -128,6 +146,7 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
                 Ingredient.PACKET_CODEC, InfusingRecipe::container,
                 Ingredient.PACKET_CODEC, InfusingRecipe::hemp,
                 Ingredient.PACKET_CODEC, InfusingRecipe::washedHemp,
+                PacketCodecs.optional(Ingredient.PACKET_CODEC), InfusingRecipe::scorchedHemp,
                 ItemStack.PACKET_CODEC, InfusingRecipe::result,
                 InfusingRecipe::new);
 

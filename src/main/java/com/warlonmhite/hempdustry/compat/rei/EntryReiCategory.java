@@ -33,8 +33,8 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
     private static final int ARROW_WIDTH = 24;
     private static final int PADDING = 5;
     private static final int LINE_HEIGHT = 10;
-    /** Widest an entry gets: the Infuser's three inputs. Fixed, so pages in a category line up. */
-    private static final int MAX_INPUTS = 3;
+    /** Widest an entry gets: the Infuser's four inputs. Fixed, so pages in a category line up. */
+    private static final int MAX_INPUTS = 4;
     /** Room REI's corner button takes at the end of the last note line. */
     private static final int CORNER_BUTTON = 12;
     /** REI's own note colours, light theme then dark — {@code DefaultFuelCategory} uses this pair. */
