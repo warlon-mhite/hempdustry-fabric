@@ -166,7 +166,8 @@ public class HempPressBlockEntity extends BlockEntity
         heated = InfuserBlockEntity.isHeatedFrom(world.getBlockState(pos.down()));
         boolean dirty = wasHeated != heated;
 
-        if (heated && canPress(world)) {
+        boolean pressing = heated && canPress(world);
+        if (pressing) {
             progress++;
             if (progress >= pressTime()) {
                 progress = 0;
@@ -179,8 +180,9 @@ public class HempPressBlockEntity extends BlockEntity
             dirty = true;
         }
 
-        if (state.get(HempPressBlock.LIT) != heated) {
-            state = state.with(HempPressBlock.LIT, heated);
+        BlockState shown = state.with(HempPressBlock.LIT, heated).with(HempPressBlock.PRESSING, pressing);
+        if (shown != state) {
+            state = shown;
             world.setBlockState(pos, state, Block.NOTIFY_ALL);
             dirty = true;
         }
@@ -221,6 +223,33 @@ public class HempPressBlockEntity extends BlockEntity
 
     public boolean isHeated() {
         return heated;
+    }
+
+    // ----- client animation -----
+
+    /** Client only: the world time the current run of squeezes began, or -1 while idle. */
+    private long strokeStart = -1;
+
+    /**
+     * How many ticks into the current squeeze the press is, for the renderer, or -1 while idle.
+     *
+     * <p>The client never sees {@code progress}, and syncing it would be a packet a tick. It does not
+     * need to: a run of squeezes starts on the tick {@link HempPressBlock#PRESSING} turns on, and each
+     * squeeze lasts exactly {@link #pressTime()} — progress resets to 0 and climbs again on the next
+     * tick — so the phase falls out of the world clock.
+     */
+    public float strokeTicks(float tickDelta) {
+        // ponytail: the phase restarts from the top whenever the press is first seen, or resumes
+        // after its output filled up with progress half-decayed. It only draws a platen; sync progress
+        // in the update packet if a stroke ever has to land on the exact tick the item comes out.
+        if (world == null || !getCachedState().get(HempPressBlock.PRESSING)) {
+            strokeStart = -1;
+            return -1;
+        }
+        if (strokeStart < 0) {
+            strokeStart = world.getTime();
+        }
+        return (world.getTime() - strokeStart) % pressTime() + tickDelta;
     }
 
     // ----- inventory -----

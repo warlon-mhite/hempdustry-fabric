@@ -11,7 +11,10 @@ import net.minecraft.client.color.world.BiomeColors;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 
 import com.warlonmhite.hempdustry.client.UpdateChecker;
+import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
+import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
@@ -57,6 +60,9 @@ public class HempdustryClient implements ClientModInitializer {
         HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
         HandledScreens.register(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
+
+        // The press's platen and capstan move, so a renderer draws them rather than the block model.
+        BlockEntityRendererFactories.register(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
 
         registerItemModelHooks();
         registerBlockColors();
