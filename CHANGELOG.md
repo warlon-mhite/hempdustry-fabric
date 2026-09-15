@@ -53,6 +53,13 @@ beta be told when the release lands.
   - The cauldron page is the one worth having: retting and washing are not recipes, so the recipe
     book cannot show them and no datapack can list them.
 
+### Fixed
+
+- **`cropGrowthMultiplier` did not do what it said.** Small settings were rounded away — 1.2 grew
+  Purple Kush no faster at all — 1.5 and 2.0 grew it at the same speed, and some settings grew
+  Lemon Haze faster than asked. It now scales the growth chance itself, so 2.0 really is twice as
+  fast. **At the default of 1.0 nothing changes.**
+
 ## [2.0.0-beta] — 2026-09-03
 
 The first public build of the rewrite, and a beta because most of it has never been played. The

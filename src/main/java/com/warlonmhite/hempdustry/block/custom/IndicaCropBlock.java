@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
-import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -178,8 +177,7 @@ public class IndicaCropBlock extends CropBlock {
         int grown = age;
         if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
             float moisture = getAvailableMoisture(this, world, pos);
-            if (random.nextInt(Math.max(1, (int) (25.0F / moisture
-                    / HempdustryConfig.get().world().cropGrowthMultiplier())) + 1) == 0) {
+            if (HempGrowth.rolls(random, 25.0F, moisture)) {
                 grown++;
             }
         }
