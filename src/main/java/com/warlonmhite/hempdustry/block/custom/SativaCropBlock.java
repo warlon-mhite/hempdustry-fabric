@@ -2,7 +2,6 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
-import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -214,7 +213,7 @@ public class SativaCropBlock extends CropBlock {
         int grown = age;
         if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
             float moisture = getAvailableMoisture(this, world, pos);
-            if (random.nextInt(Math.max(1, (int) (GROWTH_RESISTANCE / moisture / HempdustryConfig.get().world().cropGrowthMultiplier())) + 1) == 0) {
+            if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture)) {
                 grown++;
             }
         }
