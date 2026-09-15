@@ -1,0 +1,127 @@
+# PLACEHOLDER — the Grow Lamp, an LED panel hung on copper chains.
+#
+# The model is a 14x3x14 copper panel (y 4..7) on two vanilla copper chains. Only three things are
+# drawn here, and each face uses a region of its texture:
+#   grow_lamp_top      the panel's top, uv 1..15 — vents over the driver
+#   grow_lamp_side     the panel's edge, uv rows 0..2 — a copper band; lit, its lowest row is the
+#                      diode strip glowing, so a powered lamp reads lit from the side too
+#   grow_lamp_bottom   the diode array, uv 1..15 — dark violet off, UV violet lit
+# The rest of each 16x16 is filler that only the break particles ever show.
+#
+# The diodes are the only purple there is: Minecraft light has no colour, so the lamp lights the
+# world white like every other light source. Shifted from magenta to violet on 2026-09-15, to read
+# as UV and blurple LED grow lights.
+#
+# It was a full copper cube until 2026-09-15, whose only lit face was the underside: a powered lamp
+# looked unpowered from every other angle, and in daylight that read as "gives no light".
+#
+#   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+#     textures-src/grow_lamp.mctex -o src/main/resources/assets/hempdustry/textures --preview
+
+@palette default
+a = 6D3421      copper, deep shadow
+b = 8A4129
+c = A4553A      copper mid
+d = C0684C
+e = D8845E      copper highlight
+f = E9A07A
+g = 2B1B2E      diode housing, dark
+h = 3E2744
+i = 3B2A66      diode off, dark violet
+j = 4F3A85
+
+@palette lit extends=default
+i = 8A3CFF      diode lit — UV violet, the blurple of an LED grow light
+j = CDB0FF      diode core, lavender hot spot
+
+@matrix band 16x16
+fefefefefefefefe
+dcdcdcdcdcdcdcdc
+hjhihjhihjhihjhi
+dddddddddddddddd
+dcccccccccccccca
+dcdddddddddddddb
+dcdcccccccccccdb
+dcdcddddddddcdcb
+dcdcddddddddcdcb
+dcdcccccccccccdb
+dcdddddddddddddb
+dcdddddddddddddb
+dcccccccccccccca
+dddddddddddddddd
+cccccccccccccccc
+bbbbbbbbbbbbbbba
+
+@texture block/grow_lamp_side from=band type=block
+@texture block/grow_lamp_side_on from=band palette=lit type=block
+
+@texture block/grow_lamp_top 16x16 type=block
+eeeeeeeeeeeeeeed
+efffffffffffffdc
+efddddddddddddcc
+efdcccccccccccbc
+efdcabababababbc
+efdcccccccccccbc
+efdcabababababbc
+efdcccccccccccbc
+efdcabababababbc
+efdcccccccccccbc
+efdcabababababbc
+efdcccccccccccbc
+efdbbbbbbbbbbbbc
+efddddddddddddcc
+edccccccccccccbb
+dcbbbbbbbbbbbbba
+
+@matrix diodes 16x16
+dddddddddddddddd
+dcccccccccccccca
+dchhhhhhhhhhhhba
+dchjihjihjihjhba
+dchiihiihiihihba
+dchhhhhhhhhhhhba
+dchjihjihjihjhba
+dchiihiihiihihba
+dchhhhhhhhhhhhba
+dchjihjihjihjhba
+dchiihiihiihihba
+dchhhhhhhhhhhhba
+dchjihjihjihjhba
+dchiihiihiihihba
+dcbbbbbbbbbbbbba
+daaaaaaaaaaaaaaa
+
+@texture block/grow_lamp_bottom from=diodes type=block
+@texture block/grow_lamp_bottom_on from=diodes palette=lit type=block
+
+# ---------------------------------------------------------------------------------------------
+# LabPBR specular maps (_s), for shader packs set to resource-pack PBR (Complementary: RP_MODE
+# labPBR). Same drawings, so every pixel lines up with its art. Per the LabPBR standard:
+#   R  perceptual smoothness        G  F0, or 230-255 = a hardcoded metal — 234 is copper
+#   B  porosity / SSS (0 here)      A  emission 0-254; 255 means "none" and is what non-glowing
+#                                      pixels carry
+# The copper housing is metal 234; the diode housing and lenses are a dielectric (G 10, ~4%).
+# Lit, the diodes glow: lens 200, core 254 — which is what makes a LabPBR pack render them as a
+# violet UV light. Nothing here can colour the light the lamp casts; see crops.md, the Grow Lamp.
+
+@palette spec
+a = 46EA00FF
+b = 5AEA00FF
+c = 6EEA00FF
+d = 82EA00FF
+e = 96EA00FF
+f = AAEA00FF
+g = 3C0A00FF
+h = 460A00FF
+i = C80A00FF
+j = DC0A00FF
+
+@palette spec_lit extends=spec
+i = C80A00C8
+j = DC0A00FE
+
+@texture block/grow_lamp_side_s from=band palette=spec type=block
+@texture block/grow_lamp_side_on_s from=band palette=spec_lit type=block
+@texture block/grow_lamp_top_s from=block/grow_lamp_top palette=spec type=block
+@texture block/grow_lamp_bottom_s from=diodes palette=spec type=block
+@texture block/grow_lamp_bottom_on_s from=diodes palette=spec_lit type=block

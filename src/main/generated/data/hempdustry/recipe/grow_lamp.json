@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "C": "minecraft:copper_ingot",
+    "L": "minecraft:redstone_lamp"
+  },
+  "pattern": [
+    "CAC",
+    "ALA",
+    "CAC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:grow_lamp"
+  }
+}

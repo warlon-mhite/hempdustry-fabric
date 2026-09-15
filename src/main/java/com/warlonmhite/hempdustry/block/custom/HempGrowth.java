@@ -29,8 +29,12 @@ public final class HempGrowth {
         return (float) (multiplier / ((int) (resistance / moisture) + 1));
     }
 
-    /** Rolls one random tick's growth, at the configured speed. */
-    static boolean rolls(Random random, float resistance, float moisture) {
-        return random.nextFloat() < chance(resistance, moisture, HempdustryConfig.get().world().cropGrowthMultiplier());
+    /**
+     * Rolls one random tick's growth at the configured speed times {@code bonus} — the grow pot's and
+     * the grow lamp's factors, which multiply the odds here for the same reason the config does.
+     */
+    static boolean rolls(Random random, float resistance, float moisture, float bonus) {
+        return random.nextFloat() < chance(resistance, moisture,
+                HempdustryConfig.get().world().cropGrowthMultiplier() * bonus);
     }
 }

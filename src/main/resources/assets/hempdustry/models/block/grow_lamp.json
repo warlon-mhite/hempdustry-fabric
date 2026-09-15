@@ -1,0 +1,248 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "hempdustry:block/grow_lamp_top",
+    "top": "hempdustry:block/grow_lamp_top",
+    "side": "hempdustry:block/grow_lamp_side",
+    "bottom": "hempdustry:block/grow_lamp_bottom",
+    "chain": "minecraft:block/copper_chain"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        4,
+        1
+      ],
+      "to": [
+        15,
+        7,
+        15
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#bottom"
+        },
+        "up": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#top"
+        },
+        "north": {
+          "uv": [
+            1,
+            0,
+            15,
+            3
+          ],
+          "texture": "#side"
+        },
+        "south": {
+          "uv": [
+            1,
+            0,
+            15,
+            3
+          ],
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            1,
+            0,
+            15,
+            3
+          ],
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            1,
+            0,
+            15,
+            3
+          ],
+          "texture": "#side"
+        }
+      }
+    },
+    {
+      "from": [
+        2.5,
+        7,
+        8
+      ],
+      "to": [
+        5.5,
+        16,
+        8
+      ],
+      "rotation": {
+        "origin": [
+          4,
+          8,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      },
+      "shade": false,
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            0,
+            0,
+            9
+          ],
+          "texture": "#chain"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            3,
+            9
+          ],
+          "texture": "#chain"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        7,
+        6.5
+      ],
+      "to": [
+        4,
+        16,
+        9.5
+      ],
+      "rotation": {
+        "origin": [
+          4,
+          8,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      },
+      "shade": false,
+      "faces": {
+        "west": {
+          "uv": [
+            6,
+            0,
+            3,
+            9
+          ],
+          "texture": "#chain"
+        },
+        "east": {
+          "uv": [
+            3,
+            0,
+            6,
+            9
+          ],
+          "texture": "#chain"
+        }
+      }
+    },
+    {
+      "from": [
+        10.5,
+        7,
+        8
+      ],
+      "to": [
+        13.5,
+        16,
+        8
+      ],
+      "rotation": {
+        "origin": [
+          12,
+          8,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      },
+      "shade": false,
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            0,
+            0,
+            9
+          ],
+          "texture": "#chain"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            3,
+            9
+          ],
+          "texture": "#chain"
+        }
+      }
+    },
+    {
+      "from": [
+        12,
+        7,
+        6.5
+      ],
+      "to": [
+        12,
+        16,
+        9.5
+      ],
+      "rotation": {
+        "origin": [
+          12,
+          8,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      },
+      "shade": false,
+      "faces": {
+        "west": {
+          "uv": [
+            6,
+            0,
+            3,
+            9
+          ],
+          "texture": "#chain"
+        },
+        "east": {
+          "uv": [
+            3,
+            0,
+            6,
+            9
+          ],
+          "texture": "#chain"
+        }
+      }
+    }
+  ]
+}
