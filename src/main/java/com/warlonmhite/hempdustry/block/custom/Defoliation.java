@@ -140,6 +140,13 @@ public final class Defoliation {
      */
     public static final int CHARAS_CHANCE_ONE_IN = 4;
 
+    /**
+     * The rub's odds on a plant that grew under any light but the sun ({@link GrowLight#artificial}).
+     * Charas is a field craft, rubbed off plants growing in the open; this is flavour and a trade,
+     * not a claim that lamps make weaker resin — the evidence on UV and potency is mixed.
+     */
+    public static final int CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS = 8;
+
     private Defoliation() {
     }
 
@@ -163,7 +170,8 @@ public final class Defoliation {
      * and friends rather than relying on the default.
      */
     public static BlockState unworked(BlockState state) {
-        return state.with(TRIMMED_EARLY, false).with(TRIMMED_LATE, false).with(RUBBED, false);
+        return state.with(TRIMMED_EARLY, false).with(TRIMMED_LATE, false).with(RUBBED, false)
+                .with(GrowLight.PROPERTY, GrowLight.NATURAL);
     }
 
     /**
@@ -183,7 +191,8 @@ public final class Defoliation {
         }
         return to.with(TRIMMED_EARLY, from.get(TRIMMED_EARLY))
                 .with(TRIMMED_LATE, from.get(TRIMMED_LATE))
-                .with(RUBBED, from.get(RUBBED));
+                .with(RUBBED, from.get(RUBBED))
+                .with(GrowLight.PROPERTY, from.get(GrowLight.PROPERTY));
     }
 
     /**
@@ -246,7 +255,11 @@ public final class Defoliation {
             // The flag first, then the leaf. The flag is what the loot table reads to take this leaf
             // back off the harvest, so the leaf is only ever handed over together with it.
             world.setBlockState(lowerPos, lowerState.with(window, true), Block.NOTIFY_LISTENERS);
-            Block.dropStack(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF));
+            // A Grow Lamp plant has leaf to spare: a TRIM of one hands over a second leaf, which the
+            // harvest does not take back. Read off the plant's record, never off the lamp.
+            GrowLight light = lowerState.get(GrowLight.PROPERTY);
+            int leaves = !rub && light == GrowLight.GROW_LAMP ? 2 : 1;
+            Block.dropStack(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF, leaves));
             if (rub) {
                 // The age is untouched, and the charas is a roll on top of the leaf.
                 //
@@ -263,7 +276,8 @@ public final class Defoliation {
                 // success-or-not distinction (COMPOSTER_FILL vs COMPOSTER_FILL_SUCCESS), and what
                 // vanilla's composter does before it. Honey is the mod's resin sound -- a hashish
                 // bar is cut to it too -- so "that noise means resin" is one thing to learn.
-                boolean gotCharas = world.getRandom().nextInt(CHARAS_CHANCE_ONE_IN) == 0;
+                int oneIn = light.artificial() ? CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS : CHARAS_CHANCE_ONE_IN;
+                boolean gotCharas = world.getRandom().nextInt(oneIn) == 0;
                 if (gotCharas) {
                     Block.dropStack(world, lowerPos, new ItemStack(ModItems.CHARAS));
                 }

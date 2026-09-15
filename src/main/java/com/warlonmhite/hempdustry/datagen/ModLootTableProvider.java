@@ -2,6 +2,8 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.GrowLight;
+import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
@@ -17,20 +19,27 @@ import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
 import net.minecraft.loot.LootPool;
 import net.minecraft.loot.LootTable;
+import net.minecraft.loot.condition.AllOfLootCondition;
 import net.minecraft.loot.condition.AnyOfLootCondition;
 import net.minecraft.loot.condition.BlockStatePropertyLootCondition;
+import net.minecraft.loot.condition.LocationCheckLootCondition;
 import net.minecraft.loot.condition.LootCondition;
+import net.minecraft.loot.condition.RandomChanceLootCondition;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.entry.LeafEntry;
 import net.minecraft.loot.function.ApplyBonusLootFunction;
+import net.minecraft.loot.function.CopyStateLootFunction;
 import net.minecraft.loot.function.SetCountLootFunction;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
+import net.minecraft.predicate.BlockPredicate;
 import net.minecraft.predicate.StatePredicate;
+import net.minecraft.predicate.entity.LocationPredicate;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +95,16 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
     private static final int BUDS_AT_ZERO_CUTS = 2;
     private static final float BUDS_FORTUNE_CHANCE = 0.20F;
 
+    /**
+     * The light ladder's buds (see {@code GrowLight}). The Grow Lamp's +2 is twice Fortune III's
+     * average +1, which is only fair because the lamp is Nether-gated through its glowstone. A
+     * STRESSED plant loses one bud and seeds itself.
+     */
+    private static final int GROW_LAMP_BUDS = 2;
+    private static final int LAMP_BUDS = 1;
+    private static final float AMBIENT_BUD_CHANCE = 0.5F;
+    private static final int STRESSED_SEEDS = 2;
+
     /** The flags that move the buds, one bud each: the two trims, and only those. */
     private static final BooleanProperty[] TRIMS = {Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE};
     /**
@@ -129,6 +148,8 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.INFUSER);
         addDrop(ModBlocks.SIFTING_BOX);
         addDrop(ModBlocks.HEMP_PRESS);
+        addDrop(ModBlocks.GROW_LAMP);
+        addDrop(ModBlocks.GROW_POT, growPotDrops());
         addDrop(ModBlocks.CHARAS_BALL);
         addDrop(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
         addDrop(ModBlocks.FILTERED_HASHISH_BAR,
@@ -225,6 +246,11 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         LootCondition.Builder zeroCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 0, TRIMS);
         LootCondition.Builder oneCut = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 1, TRIMS);
         LootCondition.Builder twoCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, TRIMS);
+        LootCondition.Builder stressed = grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.STRESSED);
+        LootCondition.Builder inGrowPot = LocationCheckLootCondition.builder(
+                LocationPredicate.Builder.create().block(BlockPredicate.Builder.create()
+                        .blocks(this.registries.getOrThrow(RegistryKeys.BLOCK), ModBlocks.GROW_POT)),
+                new BlockPos(0, -1, 0));
 
         return this.applyExplosionDecay(crop,
                 LootTable.builder()
@@ -232,7 +258,11 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                         // through to a single seed when the plant isn't mature yet.
                         .pool(LootPool.builder()
                                 .conditionally(isLower)
-                                .with(scaledEntry(buds, BUDS_AT_ZERO_CUTS, zeroCuts, fortune, BUDS_FORTUNE_CHANCE, 2)
+                                // A STRESSED plant first: one bud short of whatever its trims earned.
+                                .with(scaledEntry(buds, BUDS_AT_ZERO_CUTS - 1, AllOfLootCondition.builder(zeroCuts, stressed), fortune, BUDS_FORTUNE_CHANCE, 2)
+                                        .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS, AllOfLootCondition.builder(oneCut, stressed), fortune, BUDS_FORTUNE_CHANCE, 2))
+                                        .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS + 1, AllOfLootCondition.builder(twoCuts, stressed), fortune, BUDS_FORTUNE_CHANCE, 2))
+                                        .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS, zeroCuts, fortune, BUDS_FORTUNE_CHANCE, 2))
                                         .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS + 1, oneCut, fortune, BUDS_FORTUNE_CHANCE, 2))
                                         .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS + 2, twoCuts, fortune, BUDS_FORTUNE_CHANCE, 2))
                                         .alternatively(ItemEntry.builder(seeds))))
@@ -248,18 +278,45 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                                                 workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, LEAVES_TAKEN), fortune, 0.30F, 3))
                                         .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 3,
                                                 workedBucket(crop, lowerPredicate, ageProperty, maxAge, 3, LEAVES_TAKEN), fortune, 0.30F, 3))))
+                        // The light it grew under: +2 buds under a Grow Lamp, +1 under any lit lamp, and
+                        // an even chance of +1 under any other light-15 block. See GrowLight.
+                        .pool(LootPool.builder()
+                                .conditionally(isMatureLower)
+                                .with(fixedEntry(buds, GROW_LAMP_BUDS, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.GROW_LAMP))
+                                        .alternatively(fixedEntry(buds, LAMP_BUDS, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.LAMP)))
+                                        .alternatively(fixedEntry(buds, 1, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.AMBIENT))
+                                                .conditionally(RandomChanceLootCondition.builder(AMBIENT_BUD_CHANCE)))))
+                        // A leaf for any lit lamp. The Grow Lamp's larger share comes during growth
+                        // instead, a second leaf on each trim (Defoliation#tryCut).
+                        .pool(LootPool.builder()
+                                .conditionally(isMatureLower)
+                                .conditionally(AnyOfLootCondition.builder(
+                                        grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.GROW_LAMP),
+                                        grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.LAMP)))
+                                .with(ItemEntry.builder(ModItems.HEMP_LEAF)))
+                        // A STRESSED plant went hermaphrodite and seeded its own buds.
+                        .pool(LootPool.builder()
+                                .conditionally(stressed)
+                                .with(ItemEntry.builder(seeds)
+                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) STRESSED_SEEDS)))))
                         // Seeds when mature. Identical across strains, so replanting either costs the same.
                         .pool(LootPool.builder()
                                 .conditionally(isMatureLower)
                                 .with(ItemEntry.builder(seeds)
                                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(3.0F)))
                                         .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))
-                        // Hemp stem when mature. Unaffected by trimming.
+                        // Hemp stem when mature. Unaffected by trimming — but one short in a Grow Pot:
+                        // a plant with its roots boxed in grows a thinner stalk, and fibre hemp is a
+                        // field crop. Read off the block underneath, so it needs no state of its own.
                         .pool(LootPool.builder()
                                 .conditionally(isMatureLower)
                                 .with(ItemEntry.builder(ModItems.HEMP_STEM)
-                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) stemCount)))
-                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3)))));
+                                        .conditionally(inGrowPot)
+                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) (stemCount - 1))))
+                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3))
+                                        .alternatively(ItemEntry.builder(ModItems.HEMP_STEM)
+                                                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) stemCount)))
+                                                .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3))))));
     }
 
     /**
@@ -286,6 +343,34 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         }
         return paths.size() == 1 ? paths.get(0)
                 : AnyOfLootCondition.builder(paths.toArray(LootCondition.Builder[]::new));
+    }
+
+    /** "This plant is a mature LOWER that grew under {@code light}." */
+    private static LootCondition.Builder grewUnder(Block crop, Supplier<StatePredicate.Builder> lowerPredicate,
+                                                   IntProperty ageProperty, int maxAge, GrowLight light) {
+        return BlockStatePropertyLootCondition.builder(crop)
+                .properties(lowerPredicate.get().exactMatch(ageProperty, maxAge).exactMatch(GrowLight.PROPERTY, light));
+    }
+
+    /** A flat bonus: no Fortune, which already scales the plant's own drops. */
+    private static LeafEntry.Builder<?> fixedEntry(Item item, int count, LootCondition.Builder condition) {
+        return ItemEntry.builder(item)
+                .conditionally(condition)
+                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) count)));
+    }
+
+    /**
+     * The pot drops itself, carrying its fertility when it has any. A spent pot drops plain, so it
+     * stacks with a freshly crafted one — both are empty.
+     */
+    private LootTable.Builder growPotDrops() {
+        return LootTable.builder().pool(LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1.0F))
+                .with(ItemEntry.builder(ModBlocks.GROW_POT)
+                        .conditionally(BlockStatePropertyLootCondition.builder(ModBlocks.GROW_POT)
+                                .properties(StatePredicate.Builder.create().exactMatch(GrowPotBlock.FERTILITY, 0)))
+                        .alternatively(ItemEntry.builder(ModBlocks.GROW_POT)
+                                .apply(CopyStateLootFunction.builder(ModBlocks.GROW_POT).addProperty(GrowPotBlock.FERTILITY)))));
     }
 
     /** A fixed-count drop gated on one cut bucket, with the usual Fortune bonus on top. */

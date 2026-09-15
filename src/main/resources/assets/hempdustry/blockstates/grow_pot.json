@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "fertility=0": { "model": "hempdustry:block/grow_pot" },
+    "fertility=1": { "model": "hempdustry:block/grow_pot_fertile" },
+    "fertility=2": { "model": "hempdustry:block/grow_pot_fertile" },
+    "fertility=3": { "model": "hempdustry:block/grow_pot_fertile" }
+  }
+}

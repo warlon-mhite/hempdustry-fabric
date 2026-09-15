@@ -100,6 +100,12 @@ public class SativaCropBlock extends CropBlock {
         return this.getDefaultState().with(this.getAgeProperty(), age).with(SEGMENT, segment);
     }
 
+    /** Farmland, or a Grow Pot. */
+    @Override
+    protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
+        return super.canPlantOnTop(floor, world, pos) || GrowPotBlock.isPot(floor);
+    }
+
     @Override
     protected ItemConvertible getSeedsItem() {
         return ModItems.SATIVA_SEEDS;
@@ -212,8 +218,10 @@ public class SativaCropBlock extends CropBlock {
         int age = this.getAge(state);
         int grown = age;
         if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
-            float moisture = getAvailableMoisture(this, world, pos);
-            if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture)) {
+            BlockState floor = world.getBlockState(pos.down());
+            float moisture = GrowPotBlock.isPot(floor) ? GrowPotBlock.moisture(floor) : getAvailableMoisture(this, world, pos);
+            if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture,
+                    GrowPotBlock.speed(floor) * state.get(GrowLight.PROPERTY).speedAt(age))) {
                 grown++;
             }
         }
@@ -311,6 +319,13 @@ public class SativaCropBlock extends CropBlock {
         // across explicitly or every growth step would quietly wipe them — and randomTick calls
         // this on every tick, not only when the plant actually ages.
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, TriplePlantSegment.LOWER));
+        if (newAge > currentAge && current.isOf(this)) {
+            lower = lower.with(GrowLight.PROPERTY, current.get(GrowLight.PROPERTY)
+                    .afterStep(currentAge, GrowLight.over(world, pos, 3)));
+            if (newAge == this.getMaxAge()) {
+                GrowPotBlock.spend(world, pos.down());
+            }
+        }
         world.setBlockState(pos, lower, Block.NOTIFY_LISTENERS);
 
         BlockPos midPos = pos.up();
@@ -420,6 +435,7 @@ public class SativaCropBlock extends CropBlock {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(AGE, SEGMENT, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED);
+        builder.add(AGE, SEGMENT, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED,
+                GrowLight.PROPERTY);
     }
 }

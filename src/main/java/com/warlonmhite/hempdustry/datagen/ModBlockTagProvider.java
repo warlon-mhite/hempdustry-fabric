@@ -133,7 +133,18 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.HEMPCRETE_BLOCK)
                 .add(ModBlocks.DECARBOXYLATOR)
                 .add(ModBlocks.INFUSER)
-                .add(ModBlocks.HEMP_PRESS);
+                .add(ModBlocks.HEMP_PRESS)
+                .add(ModBlocks.GROW_LAMP)
+                .add(ModBlocks.GROW_POT);
+
+        valueLookupBuilder(ModTags.Blocks.GROW_LAMPS).add(ModBlocks.GROW_LAMP);
+        // Light 15 with no business counting as a light over a plant. The fire tags rather than the
+        // blocks by name, so a modded campfire or fire joins by joining vanilla's tag.
+        valueLookupBuilder(ModTags.Blocks.NOT_GROW_LIGHTS)
+                .forceAddTag(BlockTags.CAMPFIRES)
+                .forceAddTag(BlockTags.FIRE)
+                .add(Blocks.LAVA)
+                .add(Blocks.LAVA_CAULDRON);
 
         valueLookupBuilder(BlockTags.SHOVEL_MINEABLE)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK);

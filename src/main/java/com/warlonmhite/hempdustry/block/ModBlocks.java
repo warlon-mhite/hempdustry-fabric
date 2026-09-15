@@ -6,6 +6,8 @@ import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.custom.FilteredHashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
+import com.warlonmhite.hempdustry.block.custom.GrowLampBlock;
+import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
@@ -294,6 +296,31 @@ public class ModBlocks {
                     .requiresTool()
                     .nonOpaque()
                     .sounds(BlockSoundGroup.STONE));
+
+    /**
+     * The Grow Lamp — an LED panel hung on copper chains; see {@link GrowLampBlock}. Copper-bulb
+     * hardness and sounds, for the housing. {@code nonOpaque()} because it is a thin panel and two
+     * chains, not a cube: an opaque block would cull the faces its neighbours press against it.
+     */
+    public static final Block GROW_LAMP = registerBlock("grow_lamp", GrowLampBlock::new,
+            AbstractBlock.Settings.create()
+                    .nonOpaque()
+                    .mapColor(MapColor.ORANGE)
+                    .luminance(Blocks.createLightLevelFromLitBlockState(15))
+                    .strength(3.0F, 6.0F)
+                    .requiresTool()
+                    .sounds(BlockSoundGroup.COPPER_BULB));
+
+    /**
+     * The Grow Pot — see {@link GrowPotBlock}. {@code nonOpaque()} because the soil sits below the
+     * rim: an opaque block would light that recessed face from inside itself, which is black.
+     */
+    public static final Block GROW_POT = registerBlock("grow_pot", GrowPotBlock::new,
+            AbstractBlock.Settings.create()
+                    .mapColor(MapColor.TERRACOTTA_YELLOW)
+                    .strength(1.25F)
+                    .nonOpaque()
+                    .sounds(BlockSoundGroup.DECORATED_POT));
 
     public static final Block HASHISH_BAR = registerBlock("hashish_bar", HashishBarBlock::new,
             AbstractBlock.Settings.create()

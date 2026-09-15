@@ -74,6 +74,12 @@ public class IndicaCropBlock extends CropBlock {
         return this.getDefaultState().with(this.getAgeProperty(), age).with(HALF, half);
     }
 
+    /** Farmland, or a Grow Pot. */
+    @Override
+    protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
+        return super.canPlantOnTop(floor, world, pos) || GrowPotBlock.isPot(floor);
+    }
+
     @Override
     protected ItemConvertible getSeedsItem() {
         return ModItems.INDICA_SEEDS;
@@ -176,8 +182,10 @@ public class IndicaCropBlock extends CropBlock {
         int age = this.getAge(state);
         int grown = age;
         if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
-            float moisture = getAvailableMoisture(this, world, pos);
-            if (HempGrowth.rolls(random, 25.0F, moisture)) {
+            BlockState floor = world.getBlockState(pos.down());
+            float moisture = GrowPotBlock.isPot(floor) ? GrowPotBlock.moisture(floor) : getAvailableMoisture(this, world, pos);
+            if (HempGrowth.rolls(random, 25.0F, moisture,
+                    GrowPotBlock.speed(floor) * state.get(GrowLight.PROPERTY).speedAt(age))) {
                 grown++;
             }
         }
@@ -277,6 +285,13 @@ public class IndicaCropBlock extends CropBlock {
         // carried across explicitly or every growth step would quietly wipe them — and randomTick
         // calls this on every tick, not only when the plant actually ages.
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, DoubleBlockHalf.LOWER));
+        if (newAge > currentAge && current.isOf(this)) {
+            lower = lower.with(GrowLight.PROPERTY, current.get(GrowLight.PROPERTY)
+                    .afterStep(currentAge, GrowLight.over(world, pos, 2)));
+            if (newAge == this.getMaxAge()) {
+                GrowPotBlock.spend(world, pos.down());
+            }
+        }
         world.setBlockState(pos, lower, Block.NOTIFY_LISTENERS);
 
         BlockPos upPos = pos.up();
@@ -359,6 +374,7 @@ public class IndicaCropBlock extends CropBlock {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(AGE, HALF, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED);
+        builder.add(AGE, HALF, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED,
+                GrowLight.PROPERTY);
     }
 }

@@ -7,6 +7,33 @@ All notable changes to Hempdustry are recorded here. The format follows
 same place: `2.0.0-beta+1.21.11` sorts *before* `2.0.0+1.21.11`, which is what lets a player on the
 beta be told when the release lands.
 
+## [2.1.0] — unreleased
+
+### Added
+
+- **Grow hemp indoors: a Grow Pot and a Grow Lamp.**
+  - The **Grow Pot** is a planter of hemp brick with soil in it, for either strain. It is always
+    watered, cannot be trampled, and a plant in it never competes with its neighbours, so pots can
+    be packed wall to wall. Feed it bone meal — up to three — and a plant grows half again as fast
+    as in the best field; each plant that ripens uses one up, and a spent pot grows like dry
+    farmland. The soil shows dark while it is fed. A potted plant grows one stem short: its roots
+    are boxed in. Picking the pot up keeps its soil.
+  - The **Grow Lamp** is an LED panel in copper, hung from the ceiling on copper chains, with
+    amethyst-lensed diodes. It switches on like a redstone lamp — power the ceiling, or put a lever
+    on it. A lit lamp sheds a faint violet haze, and shader packs that read LabPBR materials make
+    its diodes glow. Hang it one to three blocks above your plants: every plant in the 3×3 below that grows up
+    under it harvests **two extra buds** and an extra leaf, gives a second leaf every time you trim
+    it, and grows a little faster while young.
+  - **Other lights help too, less.** A lit redstone lamp, copper bulb or modded lamp directly above
+    a plant is worth one extra bud and a leaf; glowstone, sea lanterns, lanterns and other full-
+    brightness blocks, an even chance of one. Torches and campfires do nothing.
+  - **The plant remembers its light.** What counts is the light it grew under the whole way, and
+    the weakest of it — hanging a lamp over a finished plant does nothing, and one lamp cannot be
+    carried from plant to plant. **Lose the light while a plant is flowering and it stresses**: a
+    bud short at harvest, and two seeds in its place. Plants grown under any lamp give charas
+    half as often; charas is a field craft. A lamp-grown plant looks a shade deeper green, a
+    stressed one yellowed.
+
 ## [Unreleased]
 
 ### Breaking

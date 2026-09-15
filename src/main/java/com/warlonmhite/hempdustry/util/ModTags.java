@@ -173,6 +173,10 @@ public class ModTags {
          * friends too, and this needs to mean "a plant that can be trimmed".
          */
         public static final TagKey<Block> HEMP_CROPS = createTag("hemp_crops");
+        /** Counts as a Grow Lamp over a hemp plant, whatever its light level — see {@code GrowLight}. */
+        public static final TagKey<Block> GROW_LAMPS = createTag("grow_lamps");
+        /** Bright, but not a light over a plant: never counted, whatever its light level. */
+        public static final TagKey<Block> NOT_GROW_LIGHTS = createTag("not_grow_lights");
         private static TagKey<Block> createTag(String name) {
             return TagKey.of(RegistryKeys.BLOCK, Identifier.of(Hempdustry.MOD_ID, name));
         }
