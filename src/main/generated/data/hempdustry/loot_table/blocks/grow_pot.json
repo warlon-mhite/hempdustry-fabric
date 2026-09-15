@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:grow_pot",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "fertility": "0"
+                  }
+                }
+              ],
+              "name": "hempdustry:grow_pot"
+            },
+            {
+              "type": "minecraft:item",
+              "functions": [
+                {
+                  "block": "hempdustry:grow_pot",
+                  "function": "minecraft:copy_state",
+                  "properties": [
+                    "fertility"
+                  ]
+                }
+              ],
+              "name": "hempdustry:grow_pot"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

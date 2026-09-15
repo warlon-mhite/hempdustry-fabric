@@ -3,6 +3,8 @@
     "hempdustry:hempcrete_block",
     "hempdustry:decarboxylator",
     "hempdustry:infuser",
-    "hempdustry:hemp_press"
+    "hempdustry:hemp_press",
+    "hempdustry:grow_lamp",
+    "hempdustry:grow_pot"
   ]
 }

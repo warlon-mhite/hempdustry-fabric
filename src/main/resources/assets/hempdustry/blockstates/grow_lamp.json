@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "lit=false": { "model": "hempdustry:block/grow_lamp" },
+    "lit=true": { "model": "hempdustry:block/grow_lamp_on" }
+  }
+}
