@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.GrowLight;
+import net.minecraft.util.math.BlockPos;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
 import com.warlonmhite.hempdustry.client.item.StrainTintSource;
@@ -12,6 +14,7 @@ import com.warlonmhite.hempdustry.config.HempdustryConfig;
 
 import com.warlonmhite.hempdustry.client.UpdateChecker;
 import com.warlonmhite.hempdustry.client.particle.AromaParticle;
+import net.minecraft.block.BlockState;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
@@ -52,6 +55,8 @@ public class HempdustryClient implements ClientModInitializer {
         BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_CROP, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_FLOWER, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.POTTED_SATIVA_FLOWER, BlockRenderLayer.CUTOUT);
+        // The chains the Grow Lamp hangs from are see-through between the links.
+        BlockRenderLayerMap.putBlock(ModBlocks.GROW_LAMP, BlockRenderLayer.CUTOUT);
 
         EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.HEMP_BOAT,
                 BoatEntityModel::getTexturedModelData);
@@ -75,6 +80,10 @@ public class HempdustryClient implements ClientModInitializer {
 
     /** Neutral white: multiplied into a texel it changes nothing, which is what "no tint" means. */
     private static final int NO_TINT = 0xFFFFFF;
+    /** Where a stressed plant's tint is pulled: yellowing, the grower's first sign of a sick plant. */
+    private static final int STRESSED_TINT = 0xD9C35A;
+    /** Where a lamp-grown plant's tint is pulled: a deeper, bluer green. */
+    private static final int LAMP_GROWN_TINT = 0x3C7A56;
 
     /**
      * Pulls the living plants part-way towards the grass colour of the biome they stand in, so a
@@ -98,8 +107,10 @@ public class HempdustryClient implements ClientModInitializer {
      * The bud, seed and flower <b>items</b> are untouched — their models declare no tint index, so
      * an item in a hand or a slot looks exactly as drawn, with no biome to ask about anyway.
      *
-     * <p>Break and step particles need no work: {@code BlockDustParticle} multiplies itself by
-     * {@code BlockColors.getColor(state, world, pos, 0)}, so they follow this automatically.
+     * <p>Break and step particles follow this automatically — {@code BlockDustParticle} multiplies
+     * itself by {@code BlockColors.getColor(state, world, pos, 0)} — <b>but they are coloured with
+     * the broken state, not the world's</b>: by then {@code pos} may hold air on this client. So a
+     * provider here trusts {@code state}, and reads the world only after checking what is there.
      *
      * <p>Returning ARGB is deliberate but, unlike the item tint above, the alpha byte is
      * <em>ignored</em> here — {@code BlockModelRenderer} reads only the three colour bytes off a
@@ -114,9 +125,32 @@ public class HempdustryClient implements ClientModInitializer {
                 return NO_TINT;
             }
             return biomeTint(BiomeColors.getGrassColor(view, pos));
-        }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP,
-                ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
+        }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
                 ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
+        // The crops take the same biome tint, then show the light they grew under: a lamp-grown
+        // plant a shade deeper, a stressed one yellowed. No models — the tint is a multiply per quad,
+        // and the record is on the LOWER, so an upper segment walks down to find it.
+        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> {
+            if (tintIndex != 0 || view == null || pos == null) {
+                return NO_TINT;
+            }
+            int tint = biomeTint(BiomeColors.getGrassColor(view, pos));
+            BlockPos lower = pos;
+            for (int i = 0; i < 2 && view.getBlockState(lower.down()).isOf(state.getBlock()); i++) {
+                lower = lower.down();
+            }
+            // The record is read off the world only while the world still holds the plant. A break
+            // particle is coloured with the state that was broken, and on this client that block can
+            // already be gone -- a chunk not loaded yet (break events reach everyone within 64
+            // blocks), or a plant placed and broken inside one tick. An unguarded get() there throws
+            // inside packet handling and disconnects the player; the broken state is the record left.
+            BlockState below = view.getBlockState(lower);
+            GrowLight light = (below.isOf(state.getBlock()) ? below : state).get(GrowLight.PROPERTY);
+            if (light == GrowLight.STRESSED) {
+                return ColorHelper.lerp(0.45F, tint, STRESSED_TINT);
+            }
+            return light.artificial() ? ColorHelper.lerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
+        }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP);
     }
 
     /**

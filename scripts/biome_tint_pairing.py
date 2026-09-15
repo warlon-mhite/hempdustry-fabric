@@ -28,18 +28,27 @@ TINTED_PARENTS = {"minecraft:block/tinted_cross", "minecraft:block/tinted_flower
 
 
 def registered_blocks():
-    """Block ids passed to ColorProviderRegistry.BLOCK.register(...) in HempdustryClient."""
+    """Block ids passed to every ColorProviderRegistry.BLOCK.register(...) call in HempdustryClient.
+
+    Every call, not the first: the crops have their own provider (it reads the light record) beside
+    the one the wild flowers share, and a checker that stopped at the first call reported both
+    crops as untinted.
+    """
     source = CLIENT.read_text(encoding="utf-8")
-    start = source.find("ColorProviderRegistry.BLOCK.register(")
+    marker = "ColorProviderRegistry.BLOCK.register("
+    start = source.find(marker)
     if start < 0:
         sys.exit("no ColorProviderRegistry.BLOCK.register(...) call in HempdustryClient")
-    depth, i = 0, source.index("(", start)
-    for i in range(i, len(source)):
-        depth += (source[i] == "(") - (source[i] == ")")
-        if depth == 0:
-            break
-    call = source[start:i]
-    return {name.lower() for name in re.findall(r"ModBlocks\.([A-Z0-9_]+)", call)}
+    names = set()
+    while start >= 0:
+        depth, i = 0, source.index("(", start)
+        for i in range(i, len(source)):
+            depth += (source[i] == "(") - (source[i] == ")")
+            if depth == 0:
+                break
+        names |= {name.lower() for name in re.findall(r"ModBlocks\.([A-Z0-9_]+)", source[start:i])}
+        start = source.find(marker, i)
+    return names
 
 
 def models_by_block():

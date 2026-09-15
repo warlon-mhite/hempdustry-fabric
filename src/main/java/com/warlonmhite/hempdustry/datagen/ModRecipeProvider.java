@@ -707,6 +707,30 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModBlocks.HEMP_BRICKS_BLOCK), conditionsFromItem(ModBlocks.HEMP_BRICKS_BLOCK))
                 .offerTo(exporter, id("hemp_press"));
 
+        // A pot of hemp brick with soil in it, in the shape a flower pot is drawn. Any dirt: rooted,
+        // coarse, mud, moss, or a modded soil in the tag. Unlocks on the brick, like the press.
+        createShaped(RecipeCategory.DECORATIONS, ModBlocks.GROW_POT)
+                .pattern("B B")
+                .pattern("BDB")
+                .pattern(" B ")
+                .input('B', ModItems.HEMP_BRICK)
+                .input('D', ItemTags.DIRT)
+                .criterion(hasItem(ModItems.HEMP_BRICK), conditionsFromItem(ModItems.HEMP_BRICK))
+                .offerTo(exporter, id("grow_pot"));
+
+        // A redstone lamp in a copper housing (vanilla's copper bulb is the precedent) behind an
+        // amethyst lens — purple, the colour every LED grow light is. The lamp needs glowstone, so
+        // the Nether gates the best light, which is what lets it pay +2 buds.
+        createShaped(RecipeCategory.REDSTONE, ModBlocks.GROW_LAMP)
+                .pattern("CAC")
+                .pattern("ALA")
+                .pattern("CAC")
+                .input('C', Items.COPPER_INGOT)
+                .input('A', Items.AMETHYST_SHARD)
+                .input('L', Items.REDSTONE_LAMP)
+                .criterion(hasItem(Items.REDSTONE_LAMP), conditionsFromItem(Items.REDSTONE_LAMP))
+                .offerTo(exporter, id("grow_lamp"));
+
         // ---------------------------------------------------------------------
         // The Hemp Press's conversions
         // ---------------------------------------------------------------------
