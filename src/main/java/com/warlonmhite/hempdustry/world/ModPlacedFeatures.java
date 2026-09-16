@@ -23,6 +23,10 @@ public class ModPlacedFeatures {
     public static final RegistryKey<PlacedFeature> SATIVA_PLACED_KEY = registerKey("sativa_placed");
     public static final RegistryKey<PlacedFeature> SATIVA_SPARSE_PLACED_KEY = registerKey("sativa_sparse_placed");
     public static final RegistryKey<PlacedFeature> SATIVA_RARE_PLACED_KEY = registerKey("sativa_rare_placed");
+    public static final RegistryKey<PlacedFeature> BELDIA_PLACED_KEY = registerKey("beldia_placed");
+
+    /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
+    private static final int BELDIA_RARITY = 8;
 
     public static RegistryKey<PlacedFeature> registerKey(String name) {
         return RegistryKey.of(RegistryKeys.PLACED_FEATURE, Identifier.of(Hempdustry.MOD_ID, name));
@@ -75,6 +79,11 @@ public class ModPlacedFeatures {
                 configured.getOrThrow(ModConfiguredFeatures.SATIVA_SPARSE_KEY), surfacePatch(128));
         register(context, SATIVA_RARE_PLACED_KEY,
                 configured.getOrThrow(ModConfiguredFeatures.SATIVA_RARE_KEY), surfacePatch(256));
+
+        // Wild Beldía: an attempt every few desert chunks, but the attempt only grows where sand meets
+        // water, so in practice a riverbank find. The seeds' real home is the desert temple.
+        register(context, BELDIA_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.BELDIA_KEY), surfacePatch(BELDIA_RARITY));
     }
 
     /** Standard surface-vegetation placement: one attempt per {@code rarity} chunks, on the terrain top. */

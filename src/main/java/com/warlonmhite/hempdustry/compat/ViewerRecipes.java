@@ -173,6 +173,8 @@ public final class ViewerRecipes {
         return List.of(
                 screen(world, ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE,
                         ModItems.KIEF, "flower"),
+                screen(world, ModTags.Items.SIFTABLE_RESINOUS, SiftingBoxBlock.RESINOUS_CHANCE,
+                        ModItems.KIEF, "resinous"),
                 screen(world, ModTags.Items.SIFTABLE_TRIM, SiftingBoxBlock.TRIM_CHANCE,
                         ModItems.KIEF, "trim"),
                 // The re-sift, which is the one row a player will not guess: the same box, a second
@@ -200,22 +202,27 @@ public final class ViewerRecipes {
      */
     public static List<Entry> iceOLator(World world) {
         return List.of(
-                wash(world, Items.BLUE_ICE, SiftingBoxBlock.BLUE_ICE_RATE),
-                wash(world, Items.PACKED_ICE, SiftingBoxBlock.PACKED_ICE_RATE),
-                wash(world, Items.ICE, SiftingBoxBlock.ICE_RATE));
+                wash(world, Items.BLUE_ICE, SiftingBoxBlock.BLUE_ICE_RATE, ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE, ""),
+                wash(world, Items.PACKED_ICE, SiftingBoxBlock.PACKED_ICE_RATE, ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE, ""),
+                wash(world, Items.ICE, SiftingBoxBlock.ICE_RATE, ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE, ""),
+                // The same three jackets for resinous buds, so the wash page shows what Beldía costs
+                // rather than leaving it off the page.
+                wash(world, Items.BLUE_ICE, SiftingBoxBlock.BLUE_ICE_RATE, ModTags.Items.SIFTABLE_RESINOUS, SiftingBoxBlock.RESINOUS_CHANCE, "resinous/"),
+                wash(world, Items.PACKED_ICE, SiftingBoxBlock.PACKED_ICE_RATE, ModTags.Items.SIFTABLE_RESINOUS, SiftingBoxBlock.RESINOUS_CHANCE, "resinous/"),
+                wash(world, Items.ICE, SiftingBoxBlock.ICE_RATE, ModTags.Items.SIFTABLE_RESINOUS, SiftingBoxBlock.RESINOUS_CHANCE, "resinous/"));
     }
 
-    private static Entry wash(World world, Item jacket, float rate) {
-        int buds = Math.round(SiftingBoxBlock.FULL_LEVEL / (SiftingBoxBlock.FLOWER_CHANCE * rate));
+    private static Entry wash(World world, Item jacket, float rate, TagKey<Item> buds, float budChance, String idPrefix) {
+        int budCount = Math.round(SiftingBoxBlock.FULL_LEVEL / (budChance * rate));
         int leaves = Math.round(SiftingBoxBlock.FULL_LEVEL / (SiftingBoxBlock.TRIM_CHANCE * rate));
-        return new Entry(Identifier.of(Hempdustry.MOD_ID, "ice_o_lator/" + Registries.ITEM.getId(jacket).getPath()),
-                List.of(ofTag(world, ModTags.Items.SIFTABLE_FLOWER),
+        return new Entry(Identifier.of(Hempdustry.MOD_ID, "ice_o_lator/" + idPrefix + Registries.ITEM.getId(jacket).getPath()),
+                List.of(ofTag(world, buds),
                         Ingredient.ofItems(Items.WATER_BUCKET),
                         Ingredient.ofItems(jacket)),
                 new ItemStack(ModItems.BUBBLE_HASH, SiftingBoxBlock.YIELD),
                 List.of(Text.translatable("hempdustry.category.ice_o_lator.jacket")
                                 .formatted(Formatting.DARK_GRAY),
-                        Text.translatable("hempdustry.category.ice_o_lator.info", buds, leaves)),
+                        Text.translatable("hempdustry.category.ice_o_lator.info", budCount, leaves)),
                 true);
     }
 

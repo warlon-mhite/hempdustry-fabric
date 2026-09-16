@@ -5,7 +5,9 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.Registry;
@@ -88,7 +90,13 @@ public class ModItemGroups {
                                 entries.add(strain.value().buds());
                             }
                         });
-                        strains.forEach(strain -> strain.value().flower().ifPresent(entries::add));
+                        // Beldía's wild flower is its own crop, and a crop block's item IS its
+                        // seeds -- already in the run above. Listing them again is a duplicate stack,
+                        // which crashes the client on opening the inventory.
+                        strains.forEach(strain -> strain.value().flower().map(Block::asItem)
+                                .filter(item -> item != Items.AIR
+                                        && !strain.value().seeds().map(item::equals).orElse(false))
+                                .ifPresent(entries::add));
                         entries.add(ModItems.HEMP_STEM);
                         entries.add(ModItems.RETTED_HEMP_STEM);
                         entries.add(ModItems.HEMP_LEAF);
