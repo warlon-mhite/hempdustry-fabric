@@ -67,6 +67,13 @@ def is_tinted(name, seen=()):
     model = find_model(name)
     if model is None:
         return False
+    # A model of ours that draws its own elements answers for itself. hempdustry:block/tinted_crop
+    # has no parent at all -- it is vanilla's tinted_cross moved down a pixel -- and was reported
+    # untinted until 2026-09-16 because this only ever judged a vanilla parent.
+    if any("tintindex" in face
+           for element in model.get("elements", [])
+           for face in element.get("faces", {}).values()):
+        return True
     parent = model.get("parent", "")
     if parent.startswith("hempdustry:block/"):
         return is_tinted(parent.split("/", 1)[1], (*seen, name))
