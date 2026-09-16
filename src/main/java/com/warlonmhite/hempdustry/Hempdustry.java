@@ -19,6 +19,7 @@ import com.warlonmhite.hempdustry.loot.ModLootTableModifiers;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.particle.ModParticles;
+import com.warlonmhite.hempdustry.world.ModPlacementModifiers;
 import com.warlonmhite.hempdustry.world.gen.ModWorldGeneration;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
@@ -55,11 +56,13 @@ public class Hempdustry implements ModInitializer {
 		ModEntities.registerModEntities();
 		ModSounds.registerSounds();
 		ModParticles.registerParticles();
+		ModPlacementModifiers.registerPlacementModifiers();
 		ModWorldGeneration.generateModWorldGeneration();
 
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BRICK, 0.05f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_SEEDS, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.BELDIA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_FIBER, 0.3f);
 		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_CANVAS, 0.5f);
@@ -69,6 +72,7 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.RETTED_HEMP_STEM, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_BUDS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_BUDS, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.BELDIA_BUDS, 0.5f);
 		// The two cannabutter-chain intermediates. Composting them is a ridiculous use of a fuelled
 		// oven, which is exactly why it should be allowed: everything else organic in the mod goes in
 		// the composter, and a lone pair of items that bounce off it reads as an oversight. They sit
@@ -129,6 +133,7 @@ public class Hempdustry implements ModInitializer {
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDICA_CROP, 10, 25);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDICA_FLOWER, 20, 40);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_CROP, 10, 25);
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.BELDIA_CROP, 10, 25);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_FLOWER, 20, 40);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_BALE, 50, 10);
 		// Vanilla leaves parity, exactly (30/60). Nothing about hemp foliage argues for a

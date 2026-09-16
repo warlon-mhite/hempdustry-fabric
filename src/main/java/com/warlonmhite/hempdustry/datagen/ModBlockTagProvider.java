@@ -33,16 +33,20 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         //
         // Requires the crops' isMature() override to be in place, or bees decapitate tall plants —
         // see IndicaCropBlock#isMature for why.
+        // Beldía joins for the bees and nothing else: it never stands on farmland, so it stays out of
+        // #minecraft:maintains_farmland above.
         valueLookupBuilder(BlockTags.CROPS)
                 .add(ModBlocks.INDICA_CROP)
-                .add(ModBlocks.SATIVA_CROP);
+                .add(ModBlocks.SATIVA_CROP)
+                .add(ModBlocks.BELDIA_CROP);
 
         // "A hemp plant you can defoliate", strain-agnostic. The "Trim Season" advancement matches
         // shears-used-on-a-block-in-this-tag, which is exactly where Defoliation#tryCut succeeds
         // and nowhere else — see ModAdvancementProvider.
         valueLookupBuilder(ModTags.Blocks.HEMP_CROPS)
                 .add(ModBlocks.INDICA_CROP)
-                .add(ModBlocks.SATIVA_CROP);
+                .add(ModBlocks.SATIVA_CROP)
+                .add(ModBlocks.BELDIA_CROP);
 
         // The wild flowers were in no tag at all, so a sword took as long over one as a fist did and
         // an enderman walked past them. Both of these are joined DIRECTLY rather than by way of

@@ -30,6 +30,12 @@ k = 635C4E
 m = 8F8672
 p = B8AC92
 
+# Beldía: a faint green, the colour of unbleached hemp paper.
+@palette spliff_beldia extends=spliff_kush
+k = 5A6048
+m = 879071
+p = B3BC9C
+
 @matrix spliff_roll 16x16 palette=spliff_kush
 ................
 ................
@@ -50,6 +56,7 @@ p = B8AC92
 
 @texture item/indica_spliff from=spliff_roll palette=spliff_kush type=item
 @texture item/sativa_spliff from=spliff_roll palette=spliff_lemon type=item
+@texture item/beldia_spliff from=spliff_roll palette=spliff_beldia type=item
 
 # ---- the strain tint mask ----
 # item/spliff.json draws item/indica_spliff on layer0 and this on layer1, where it is multiplied

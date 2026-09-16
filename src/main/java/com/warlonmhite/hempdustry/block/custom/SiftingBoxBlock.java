@@ -180,6 +180,18 @@ public class SiftingBoxBlock extends Block {
     public static final float FLOWER_CHANCE = 1.0F;
 
     /**
+     * What one <b>resinous</b> bud moves the screen: <b>two levels</b>, so 4 buds a batch against 7.
+     * Beldía, the Rif landrace grown for the sieve, is the one in {@code #hempdustry:siftable/resinous}.
+     *
+     * <p>The kief is the same kief — a hash is named by its process, never its strain. The plant just
+     * gets there on fewer buds, and the jacket's rate multiplies this exactly as it does a bud, so
+     * the dry-against-wash price ratio is unchanged. <b>Two, not more:</b> in whole buds 2.5 and 3
+     * both come to 3, one bud from here, and a Grow Lamp plant (4 buds, 8 levels) already fills a
+     * batch on its own at two.
+     */
+    public static final float RESINOUS_CHANCE = 2.0F;
+
+    /**
      * Chance that one kief advances the re-sift.
      *
      * <p><b>This is where the dry road's cost lives, and it is the whole of it.</b> A batch is always
@@ -412,6 +424,9 @@ public class SiftingBoxBlock extends Block {
      * cleanliness, which is exactly what the wash buys.
      */
     private static float sieveChance(ItemStack stack) {
+        if (stack.isIn(ModTags.Items.SIFTABLE_RESINOUS)) {
+            return RESINOUS_CHANCE;
+        }
         if (stack.isIn(ModTags.Items.SIFTABLE_FLOWER)) {
             return FLOWER_CHANCE;
         }
@@ -430,15 +445,22 @@ public class SiftingBoxBlock extends Block {
      */
     @Nullable
     private static Content contentOf(ItemStack stack) {
-        if (stack.isIn(ModTags.Items.SIFTABLE_FLOWER) || stack.isIn(ModTags.Items.SIFTABLE_TRIM)) {
+        if (stack.isIn(ModTags.Items.SIFTABLE_FLOWER) || stack.isIn(ModTags.Items.SIFTABLE_RESINOUS)
+                || stack.isIn(ModTags.Items.SIFTABLE_TRIM)) {
             return Content.PLANT;
         }
         return stack.isIn(ModTags.Items.SIFTABLE_KIEF) ? Content.KIEF : null;
     }
 
+    /**
+     * One item on the screen. A {@code chance} above 1 moves it more than one level: the whole part
+     * for certain and the fraction as a roll, so a resinous bud in a packed-ice wash (2 × 0.75) is one
+     * level and a coin flip on a second. A level past full is simply lost, as in a composter.
+     */
     private static void sift(ServerWorld world, BlockPos pos, BlockState state, int level, float chance) {
-        if (world.random.nextFloat() < chance) {
-            int next = level + 1;
+        int steps = (int) chance + (world.random.nextFloat() < chance - (int) chance ? 1 : 0);
+        if (steps > 0) {
+            int next = Math.min(FULL_LEVEL, level + steps);
             world.setBlockState(pos, state.with(LEVEL, next), Block.NOTIFY_ALL);
             if (next == FULL_LEVEL) {
                 world.scheduleBlockTick(pos, state.getBlock(), SETTLE_DELAY);

@@ -130,6 +130,8 @@ public class ModModelProvider extends FabricModelProvider {
 
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
         itemModelGenerator.register(ModItems.SATIVA_SEEDS, Models.GENERATED);
+        itemModelGenerator.register(ModItems.BELDIA_SEEDS, Models.GENERATED);
+        itemModelGenerator.register(ModItems.BELDIA_BUDS, Models.GENERATED);
         // Smoking gear. One item per device carries every strain in a component, so the visual
         // per-strain split lives in the *client item definition* rather than in separate items —
         // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged".

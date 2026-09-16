@@ -1,6 +1,16 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
+    "has_beldia_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:beldia_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
     "has_hemp_leaf": {
       "conditions": {
         "items": [
@@ -43,7 +53,8 @@
       "has_the_recipe",
       "has_hemp_leaf",
       "has_indica_buds",
-      "has_sativa_buds"
+      "has_sativa_buds",
+      "has_beldia_buds"
     ]
   ],
   "rewards": {

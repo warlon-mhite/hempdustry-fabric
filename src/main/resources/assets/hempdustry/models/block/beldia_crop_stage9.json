@@ -1,0 +1,6 @@
+{
+  "parent": "hempdustry:block/tinted_crop",
+  "textures": {
+    "cross": "hempdustry:block/beldia_crop_stage9"
+  }
+}

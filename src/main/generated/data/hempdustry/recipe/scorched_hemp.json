@@ -6,7 +6,8 @@
   "ingredient": [
     "hempdustry:hemp_leaf",
     "hempdustry:indica_buds",
-    "hempdustry:sativa_buds"
+    "hempdustry:sativa_buds",
+    "hempdustry:beldia_buds"
   ],
   "result": {
     "id": "hempdustry:scorched_hemp"

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "spliff",
+  "key": {
+    "B": "hempdustry:beldia_buds",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "BB",
+    "PP"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 2,
+            "strain": "hempdustry:beldia"
+          }
+        ]
+      }
+    },
+    "count": 1,
+    "id": "hempdustry:spliff"
+  }
+}
