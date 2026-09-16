@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_grow_pot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:grow_pot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:hydro_tray"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_grow_pot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:hydro_tray"
+    ]
+  }
+}

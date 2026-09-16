@@ -731,6 +731,18 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(Items.REDSTONE_LAMP), conditionsFromItem(Items.REDSTONE_LAMP))
                 .offerTo(exporter, id("grow_lamp"));
 
+        // A Grow Pot plumbed into a copper reservoir with a pump in it. Copper is the mod's
+        // electrical metal (the lamp's housing, and vanilla's own copper bulb); the redstone is the
+        // pump, which is also what the block needs a signal for once it is placed.
+        createShaped(RecipeCategory.REDSTONE, ModBlocks.HYDRO_TRAY)
+                .pattern("CRC")
+                .pattern("CPC")
+                .input('C', Items.COPPER_INGOT)
+                .input('R', Items.REDSTONE)
+                .input('P', ModBlocks.GROW_POT)
+                .criterion(hasItem(ModBlocks.GROW_POT), conditionsFromItem(ModBlocks.GROW_POT))
+                .offerTo(exporter, id("hydro_tray"));
+
         // ---------------------------------------------------------------------
         // The Hemp Press's conversions
         // ---------------------------------------------------------------------

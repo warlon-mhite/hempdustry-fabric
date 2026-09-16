@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "P": "hempdustry:grow_pot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "CRC",
+    "CPC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "hempdustry:hydro_tray"
+  }
+}

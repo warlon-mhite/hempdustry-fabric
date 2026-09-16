@@ -4,9 +4,12 @@ import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Fertilizable;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.IntProperty;
@@ -32,7 +35,7 @@ import net.minecraft.world.WorldView;
  * <p>The fertility is in the blockstate, so the pot keeps it when picked up (the loot table copies
  * it, as a beehive keeps its honey) and a freshly crafted pot starts empty.
  */
-public class GrowPotBlock extends Block implements Fertilizable {
+public class GrowPotBlock extends Block implements GrowMedium {
     public static final MapCodec<GrowPotBlock> CODEC = createCodec(GrowPotBlock::new);
 
     public static final int MAX_FERTILITY = 3;
@@ -67,22 +70,29 @@ public class GrowPotBlock extends Block implements Fertilizable {
         return isPot(state) && state.get(FERTILITY) > 0;
     }
 
-    /** The moisture a plant standing in this pot reads, in place of vanilla's farmland count. */
-    public static float moisture(BlockState pot) {
-        return isFertile(pot) ? FERTILE_MOISTURE : SPENT_MOISTURE;
+    @Override
+    public float moisture(BlockState state) {
+        return isFertile(state) ? FERTILE_MOISTURE : SPENT_MOISTURE;
     }
 
-    /** The growth-speed factor for a plant standing on {@code floor}; 1 on anything but a fertile pot. */
-    public static float speed(BlockState floor) {
-        return isFertile(floor) ? FERTILE_SPEED : 1.0F;
+    @Override
+    public float speed(BlockState state) {
+        return isFertile(state) ? FERTILE_SPEED : 1.0F;
     }
 
-    /** A plant ripened on {@code potPos}: one fertility is spent, if there was any. */
-    public static void spend(World world, BlockPos potPos) {
-        BlockState pot = world.getBlockState(potPos);
-        if (isFertile(pot)) {
-            world.setBlockState(potPos, pot.with(FERTILITY, pot.get(FERTILITY) - 1), Block.NOTIFY_LISTENERS);
+    @Override
+    public void spend(World world, BlockPos pos, BlockState state) {
+        if (isFertile(state)) {
+            world.setBlockState(pos, state.with(FERTILITY, state.get(FERTILITY) - 1), Block.NOTIFY_LISTENERS);
         }
+    }
+
+    /** Any fertiliser in {@code #c:fertilizers} feeds the soil; anything else falls through. */
+    @Override
+    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
+                                         PlayerEntity player, Hand hand, BlockHitResult hit) {
+        ActionResult fed = GrowMedium.tryFeed(stack, state, world, pos, player);
+        return fed != null ? fed : super.onUseWithItem(stack, state, world, pos, player, hand, hit);
     }
 
     // ----- bone meal feeds the soil -----

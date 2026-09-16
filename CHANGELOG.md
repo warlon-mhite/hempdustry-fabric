@@ -33,6 +33,23 @@ beta be told when the release lands.
     bud short at harvest, and two seeds in its place. Plants grown under any lamp give charas
     half as often; charas is a field craft. A lamp-grown plant looks a shade deeper green, a
     stressed one yellowed.
+- **A Hydro Tray, for growing at twice the pace.** Craft it from a Grow Pot, four copper ingots and
+  a redstone dust. Fill it with a **water bucket**, mix in **fertiliser**, and give it a **redstone
+  signal** — that is the pump — and hemp in it grows **twice as fast as the best field** (about 12
+  minutes for Purple Kush, 16 for Lemon Haze), with trays packed wall to wall. You can see all
+  three at a glance: the sight tube on its front shows the water level and turns from blue to
+  green once it is fed, and the pump's light comes on and bubbles rise through the clay pebbles while
+  it runs. A dispenser can fill it with water, and a dispenser
+  of bone meal can feed it.
+  - **Each plant that ripens drinks a third of the water**, and the fertiliser drains with the last
+    of it — so the rhythm is: fill, feed, three plants.
+  - **It is unforgiving, not dangerous.** Plain water or a stopped pump grows at an ordinary field's
+    pace; a dry tray is slower than plain dirt. **Nothing ever dies of neglect** — that is vanilla's
+    rule for farmland too. A plant in a tray harvests one stem short, like one in a pot, and a tray
+    you pick up comes back empty.
+  - **No hydroponics in the Nether.** Water boils away there — pour it in and it hisses off as usual.
+  - **Any fertiliser feeds either bed.** Bone meal, or whatever your modpack tags as fertiliser —
+    pot and tray both read the shared `#c:fertilizers` tag.
 
 ## [Unreleased]
 

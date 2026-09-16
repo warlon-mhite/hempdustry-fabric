@@ -9,6 +9,7 @@ import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.GrowLampBlock;
 import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
+import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
@@ -321,6 +322,20 @@ public class ModBlocks {
                     .strength(1.25F)
                     .nonOpaque()
                     .sounds(BlockSoundGroup.DECORATED_POT));
+
+    /**
+     * The Hydro Tray — see {@link HydroTrayBlock}. Copper, like the plumbing it is: the mod's
+     * electrical metal, and the same hardness as the Grow Lamp's housing. {@code nonOpaque()}
+     * because the solution sits below the lip, and an opaque block would light that recessed face
+     * from inside itself.
+     */
+    public static final Block HYDRO_TRAY = registerBlock("hydro_tray", HydroTrayBlock::new,
+            AbstractBlock.Settings.create()
+                    .mapColor(MapColor.ORANGE)
+                    .strength(3.0F, 6.0F)
+                    .requiresTool()
+                    .nonOpaque()
+                    .sounds(BlockSoundGroup.COPPER));
 
     public static final Block HASHISH_BAR = registerBlock("hashish_bar", HashishBarBlock::new,
             AbstractBlock.Settings.create()

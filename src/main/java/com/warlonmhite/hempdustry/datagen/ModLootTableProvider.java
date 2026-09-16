@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
+import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
@@ -150,6 +151,9 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMP_PRESS);
         addDrop(ModBlocks.GROW_LAMP);
         addDrop(ModBlocks.GROW_POT, growPotDrops());
+        // The tray drops empty — you drain a reservoir before you move it — so it needs no
+        // copy_state, unlike the pot, which keeps its soil.
+        addDrop(ModBlocks.HYDRO_TRAY);
         addDrop(ModBlocks.CHARAS_BALL);
         addDrop(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
         addDrop(ModBlocks.FILTERED_HASHISH_BAR,
@@ -247,9 +251,10 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         LootCondition.Builder oneCut = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 1, TRIMS);
         LootCondition.Builder twoCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, TRIMS);
         LootCondition.Builder stressed = grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.STRESSED);
-        LootCondition.Builder inGrowPot = LocationCheckLootCondition.builder(
+        LootCondition.Builder inABed = LocationCheckLootCondition.builder(
                 LocationPredicate.Builder.create().block(BlockPredicate.Builder.create()
-                        .blocks(this.registries.getOrThrow(RegistryKeys.BLOCK), ModBlocks.GROW_POT)),
+                        .blocks(this.registries.getOrThrow(RegistryKeys.BLOCK),
+                                ModBlocks.GROW_POT, ModBlocks.HYDRO_TRAY)),
                 new BlockPos(0, -1, 0));
 
         return this.applyExplosionDecay(crop,
@@ -305,13 +310,14 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                                 .with(ItemEntry.builder(seeds)
                                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(3.0F)))
                                         .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))
-                        // Hemp stem when mature. Unaffected by trimming — but one short in a Grow Pot:
-                        // a plant with its roots boxed in grows a thinner stalk, and fibre hemp is a
-                        // field crop. Read off the block underneath, so it needs no state of its own.
+                        // Hemp stem when mature. Unaffected by trimming — but one short in any bed of
+                        // ours: a plant with its roots boxed in (a pot's soil, a tray's net pot) grows a
+                        // thinner stalk, and fibre hemp is a field crop. Read off the block underneath,
+                        // so it needs no state of its own.
                         .pool(LootPool.builder()
                                 .conditionally(isMatureLower)
                                 .with(ItemEntry.builder(ModItems.HEMP_STEM)
-                                        .conditionally(inGrowPot)
+                                        .conditionally(inABed)
                                         .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) (stemCount - 1))))
                                         .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3))
                                         .alternatively(ItemEntry.builder(ModItems.HEMP_STEM)
