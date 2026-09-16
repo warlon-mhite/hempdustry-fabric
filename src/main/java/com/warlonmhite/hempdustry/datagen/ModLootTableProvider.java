@@ -165,6 +165,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
 
         addDrop(ModBlocks.INDICA_CROP, indicaCropDrops());
+        addDrop(ModBlocks.BELDIA_CROP, beldiaCropDrops());
         addDrop(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
 
         addDrop(ModBlocks.SATIVA_CROP, sativaCropDrops());
@@ -415,6 +416,22 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                         .alternatively(this.applyExplosionDecay(ModBlocks.SATIVA_FLOWER,
                                 ItemEntry.builder(ModItems.SATIVA_SEEDS)
                                         .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))));
+    }
+
+    /**
+     * Beldía: Purple Kush's five leaves and <b>one stem</b> — a short, leafy plant grown for its
+     * resin, so it sits at the bottom of the stem list (Purple Kush 2, Lemon Haze 4). Eleven items
+     * where the two older strains hand over twelve; the missing stem pays for buds that sift double.
+     * A flat count, so no condition beyond the shared table's; in a bed it is one short like any
+     * plant, which here is none. It is also its own wild plant, so a ripe one found on a desert
+     * riverbank pays exactly this.
+     */
+    private LootTable.Builder beldiaCropDrops() {
+        return this.hempCropDrops(ModBlocks.BELDIA_CROP,
+                () -> StatePredicate.Builder.create().exactMatch(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
+                IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
+                ModItems.BELDIA_BUDS, ModItems.BELDIA_SEEDS,
+                5, 1);
     }
 
     /**

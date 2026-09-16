@@ -52,6 +52,8 @@ public class ModItems {
     public static final Item INDICA_BUDS = registerItem("indica_buds", settings -> new Item(settings));
     public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", settings -> new BlockItem(ModBlocks.SATIVA_CROP, settings));
     public static final Item SATIVA_BUDS = registerItem("sativa_buds", settings -> new Item(settings));
+    public static final Item BELDIA_SEEDS = registerItem("beldia_seeds", settings -> new BlockItem(ModBlocks.BELDIA_CROP, settings));
+    public static final Item BELDIA_BUDS = registerItem("beldia_buds", settings -> new Item(settings));
     public static final Item HEMP_STEM = registerItem("hemp_stem", settings -> new Item(settings));
     /**
      * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has

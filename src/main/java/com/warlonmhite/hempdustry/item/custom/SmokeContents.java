@@ -314,11 +314,14 @@ public record SmokeContents(List<Entry> entries) {
         return name;
     }
 
-    /** Every status effect one hit of this load applies, lasting {@code durationTicks}. */
-    public List<StatusEffectInstance> effects(int durationTicks) {
+    /**
+     * Every status effect one hit of this load applies on the hit ({@code onExhale} false) or with
+     * the exhale ({@code onExhale} true), before the config's {@code EffectPolicy}.
+     */
+    public List<StatusEffectInstance> effects(int durationTicks, boolean onExhale) {
         List<StatusEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
-            out.addAll(entry.strain().value().effects(entry.count(), durationTicks));
+            out.addAll(entry.strain().value().effects(entry.count(), durationTicks, onExhale));
         }
         return out;
     }

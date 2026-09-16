@@ -25,7 +25,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
         valueLookupBuilder(ModTags.Items.HEMP_SEEDS)
                 .add(ModItems.INDICA_SEEDS)
-                .add(ModItems.SATIVA_SEEDS);
+                .add(ModItems.SATIVA_SEEDS)
+                .add(ModItems.BELDIA_SEEDS);
 
         // A tag rather than a hard milk_bucket check in the Infuser, so another mod's milk works
         // and a datapack can widen it without a code change.
@@ -173,10 +174,13 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
             Strain strain = strains.getOrThrow(key).value();
             // Only things that grew on a plant are plant matter. Hashish is a strain entry too, but
             // its "buds" are resin: it goes back into the screen as CONTENT = HASH, never as flower.
-            if (strain.flower().isPresent()) {
+            // Beldía's buds sit in their own tag below, at their own rate.
+            if (strain.flower().isPresent() && strain.buds() != ModItems.BELDIA_BUDS) {
                 flower.add(strain.buds());
             }
         }
+        valueLookupBuilder(ModTags.Items.SIFTABLE_RESINOUS)
+                .add(ModItems.BELDIA_BUDS);
         valueLookupBuilder(ModTags.Items.SIFTABLE_TRIM)
                 .add(ModItems.HEMP_LEAF);
         // The re-sift. Only kief is in here: bubble hash and filtered kief are each already the
@@ -198,6 +202,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         valueLookupBuilder(ModTags.Conventional.HEMP_CROPS)
                 .add(ModItems.INDICA_BUDS)
                 .add(ModItems.SATIVA_BUDS)
+                .add(ModItems.BELDIA_BUDS)
                 .add(ModItems.HEMP_LEAF);
         valueLookupBuilder(ConventionalItemTags.CROPS)
                 .addOptionalTag(ModTags.Conventional.HEMP_CROPS);

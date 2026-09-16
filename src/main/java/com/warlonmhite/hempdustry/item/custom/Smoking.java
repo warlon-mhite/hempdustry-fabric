@@ -181,8 +181,16 @@ public final class Smoking {
         if (greenedOut) {
             greenOut(player);
         } else {
-            for (StatusEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks))) {
+            for (StatusEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks, false))) {
                 player.addStatusEffect(effect);
+            }
+            // What a strain holds back to the exhale -- Beldía's streaming eyes -- rides the same
+            // timer as the puff, filtered now so a server's debuffs switch still removes it.
+            if (!world.isClient()) {
+                List<StatusEffectInstance> exhaled = EffectPolicy.filter(contents.effects(durationTicks, true));
+                if (!exhaled.isEmpty()) {
+                    SmokeScheduler.scheduleEffects(player, exhaled, EXHALE_DELAY_TICKS + soundDelayTicks);
+                }
             }
         }
 
@@ -198,7 +206,8 @@ public final class Smoking {
             SmokeScheduler.schedule(player, exhaleParticle, EXHALE_DELAY_TICKS + soundDelayTicks);
         }
 
-        if (coughChanceOneIn > 0 && ThreadLocalRandom.current().nextInt(coughChanceOneIn) == 0) {
+        int coughOdds = harshened(coughChanceOneIn, contents);
+        if (coughOdds > 0 && ThreadLocalRandom.current().nextInt(coughOdds) == 0) {
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
                     ModSounds.COUGHING, SoundCategory.PLAYERS, 1f, 1f);
         }
@@ -244,6 +253,24 @@ public final class Smoking {
             return 0;
         }
         return Math.max(1, Math.round(greenOutChanceOneIn * factor));
+    }
+
+    /**
+     * The load's own cough odds: the device's 1-in-N, widened or narrowed by the primary material's
+     * {@code cough_factor} exactly as {@link #smoothed} does the green-out. Beldía carries {@code 0.5}
+     * and coughs twice as often. A factor of zero or below is read as "never coughs", for the same
+     * datapack reason given there.
+     */
+    private static int harshened(int coughChanceOneIn, SmokeContents contents) {
+        RegistryEntry<Strain> primary = contents.primaryStrain();
+        if (coughChanceOneIn <= 0 || primary == null) {
+            return coughChanceOneIn;
+        }
+        float factor = primary.value().coughFactor();
+        if (factor <= 0.0F) {
+            return 0;
+        }
+        return Math.max(1, Math.round(coughChanceOneIn * factor));
     }
 
     /** Sit down for a minute. Sweaty, wobbly, useless — but brief, and it costs you nothing but the buds. */

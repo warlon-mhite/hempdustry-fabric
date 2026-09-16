@@ -19,6 +19,7 @@ public class ModTags {
         public static final TagKey<Biome> SATIVA_FLOWER_GEN = createTag("sativa_flower_gen");
         public static final TagKey<Biome> SATIVA_FLOWER_GEN_SPARSE = createTag("sativa_flower_gen_sparse");
         public static final TagKey<Biome> SATIVA_FLOWER_GEN_RARE = createTag("sativa_flower_gen_rare");
+        public static final TagKey<Biome> BELDIA_GEN = createTag("beldia_gen");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.of(RegistryKeys.BIOME, Identifier.of(Hempdustry.MOD_ID, name));
         }
@@ -53,6 +54,12 @@ public class ModTags {
          * registry so a third one joins by existing. Sifted at {@code FLOWER_CHANCE}.
          */
         public static final TagKey<Item> SIFTABLE_FLOWER = createTag("siftable/flower");
+        /**
+         * Buds grown for the sieve, which move the screen {@code RESINOUS_CHANCE} levels each instead
+         * of one — Beldía's. Kept <b>out of</b> {@link #SIFTABLE_FLOWER} rather than overlapping it,
+         * so each tag's recipe-viewer page counts only what it says.
+         */
+        public static final TagKey<Item> SIFTABLE_RESINOUS = createTag("siftable/resinous");
         /**
          * Leaf and trim the Sifting Box separates resin from. Sifted at the slower
          * {@code TRIM_CHANCE}: bulkier, and much less of it is resin.

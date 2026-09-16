@@ -70,6 +70,8 @@ public class ModStrains {
     /** Not a plant either: hashish put back through the screen at a finer mesh. */
     public static final RegistryKey<Strain> FILTERED_HASHISH = key("filtered_hashish");
     public static final RegistryKey<Strain> ROSIN = key("rosin");
+    /** The Rif's landrace, grown on sand beside water for the sieve. Its wild flower is its own crop. */
+    public static final RegistryKey<Strain> BELDIA = key("beldia");
     /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
@@ -88,7 +90,7 @@ public class ModStrains {
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
     public static final List<RegistryKey<Strain>> BUILT_IN =
-            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN);
+            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -194,6 +196,29 @@ public class ModStrains {
                         new SmokeEffect(StatusEffects.HASTE, 0, true),
                         new SmokeEffect(StatusEffects.HUNGER, 0, false),
                         new SmokeEffect(StatusEffects.WEAKNESS, 0, true))));
+
+        // Beldía -- the Rif's traditional landrace ("of the country" in Darija), grown for the sieve
+        // rather than the bowl: its buds count double at the Sifting Box, and its flower smokes harsh.
+        //
+        // "MIRAGE". INVISIBILITY is the signature, flat because a level buys nothing. BLINDNESS is the
+        // tax -- streaming eyes from leafy, unfiltered smoke -- and it lands with the exhale, for a
+        // quarter of the hit: a bong's 50 s of Invisibility opens on about 12 s of Blindness. Blindness
+        // stops sprinting and critical hits (PlayerEntity#canSprint, #isCriticalHit), so this is a
+        // sneak-past, never a fight. Priced against the potion: a golden carrot and a fermented spider
+        // eye, mid-game and cheap, so a farmable bud skips no gate. Hunger, as ever. Neither buff
+        // scales -- the one plant with no scaling effect, because it is grown to be sifted.
+        //
+        // cough_factor 0.5: the same smoke, twice the coughing.
+        //
+        // Warm amber rather than Lemon Haze's yellow-green, so the two read apart on a packed device.
+        context.register(BELDIA, new Strain("hempdustry.strain.beldia", 0xD9A94E, modelIndex(BELDIA),
+                Optional.of(ModItems.BELDIA_SEEDS), ModItems.BELDIA_BUDS,
+                Optional.of(ModBlocks.BELDIA_CROP), 1.0F, 1,
+                List.of(
+                        new SmokeEffect(StatusEffects.INVISIBILITY, 0, false),
+                        new SmokeEffect(StatusEffects.BLINDNESS, 0, false, 0.25F, true),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, false)),
+                0.5F));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

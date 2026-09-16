@@ -1,0 +1,145 @@
+{
+  "type": "minecraft:random_patch",
+  "config": {
+    "feature": {
+      "feature": {
+        "type": "minecraft:block_column",
+        "config": {
+          "allowed_placement": {
+            "type": "minecraft:matching_blocks",
+            "blocks": "minecraft:air"
+          },
+          "direction": "up",
+          "layers": [
+            {
+              "height": 1,
+              "provider": {
+                "type": "minecraft:simple_state_provider",
+                "state": {
+                  "Name": "hempdustry:beldia_crop",
+                  "Properties": {
+                    "age": "7",
+                    "half": "lower",
+                    "light": "natural",
+                    "rubbed": "false",
+                    "trimmed_early": "false",
+                    "trimmed_late": "false"
+                  }
+                }
+              }
+            },
+            {
+              "height": 1,
+              "provider": {
+                "type": "minecraft:simple_state_provider",
+                "state": {
+                  "Name": "hempdustry:beldia_crop",
+                  "Properties": {
+                    "age": "7",
+                    "half": "upper",
+                    "light": "natural",
+                    "rubbed": "false",
+                    "trimmed_early": "false",
+                    "trimmed_late": "false"
+                  }
+                }
+              }
+            }
+          ],
+          "prioritize_tip": false
+        }
+      },
+      "placement": [
+        {
+          "type": "minecraft:block_predicate_filter",
+          "predicate": {
+            "type": "minecraft:all_of",
+            "predicates": [
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": "minecraft:air"
+              },
+              {
+                "type": "minecraft:matching_blocks",
+                "blocks": "minecraft:air",
+                "offset": [
+                  0,
+                  1,
+                  0
+                ]
+              },
+              {
+                "type": "minecraft:matching_block_tag",
+                "offset": [
+                  0,
+                  -1,
+                  0
+                ],
+                "tag": "c:sands"
+              },
+              {
+                "type": "minecraft:any_of",
+                "predicates": [
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "fluids": [
+                      "minecraft:water",
+                      "minecraft:flowing_water"
+                    ],
+                    "offset": [
+                      1,
+                      -1,
+                      0
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "fluids": [
+                      "minecraft:water",
+                      "minecraft:flowing_water"
+                    ],
+                    "offset": [
+                      -1,
+                      -1,
+                      0
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "fluids": [
+                      "minecraft:water",
+                      "minecraft:flowing_water"
+                    ],
+                    "offset": [
+                      0,
+                      -1,
+                      1
+                    ]
+                  },
+                  {
+                    "type": "minecraft:matching_fluids",
+                    "fluids": [
+                      "minecraft:water",
+                      "minecraft:flowing_water"
+                    ],
+                    "offset": [
+                      0,
+                      -1,
+                      -1
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "hempdustry:in_beldia_biome"
+        }
+      ]
+    },
+    "tries": 20,
+    "xz_spread": 4,
+    "y_spread": 0
+  }
+}

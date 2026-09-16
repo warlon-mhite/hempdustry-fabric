@@ -51,6 +51,8 @@ public class HempdustryClient implements ClientModInitializer {
         BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_CROP, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_FLOWER, BlockRenderLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.POTTED_SATIVA_FLOWER, BlockRenderLayer.CUTOUT);
+
+        BlockRenderLayerMap.putBlock(ModBlocks.BELDIA_CROP, BlockRenderLayer.CUTOUT);
         // The chains the Grow Lamp hangs from are see-through between the links.
         BlockRenderLayerMap.putBlock(ModBlocks.GROW_LAMP, BlockRenderLayer.CUTOUT);
 
@@ -126,7 +128,10 @@ public class HempdustryClient implements ClientModInitializer {
             if (tintIndex != 0 || view == null || pos == null) {
                 return NO_TINT;
             }
-            int tint = biomeTint(BiomeColors.getGrassColor(view, pos));
+            // Beldía is drawn in its own colours, so it skips the biome and keeps only the light
+            // cue: a desert's grass colour is a dry olive that would turn a sand-grown plant to straw
+            // (and a potted one would change colour with the room it stands in).
+            int tint = state.isOf(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getGrassColor(view, pos));
             BlockPos lower = pos;
             for (int i = 0; i < 2 && view.getBlockState(lower.down()).isOf(state.getBlock()); i++) {
                 lower = lower.down();
@@ -136,7 +141,7 @@ public class HempdustryClient implements ClientModInitializer {
                 return ColorHelper.lerp(0.45F, tint, STRESSED_TINT);
             }
             return light.artificial() ? ColorHelper.lerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
-        }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP);
+        }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP);
     }
 
     /**

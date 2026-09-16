@@ -44,5 +44,12 @@ public class ModFlowerGeneration {
                 GenerationStep.Feature.VEGETAL_DECORATION,
                 ModPlacedFeatures.SATIVA_RARE_PLACED_KEY
         );
+
+        // Wild Beldía, ripe, on desert riverbanks. Deserts only -- #c:is_desert holds no beach.
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(ModTags.Biomes.BELDIA_GEN),
+                GenerationStep.Feature.VEGETAL_DECORATION,
+                ModPlacedFeatures.BELDIA_PLACED_KEY
+        );
     }
 }

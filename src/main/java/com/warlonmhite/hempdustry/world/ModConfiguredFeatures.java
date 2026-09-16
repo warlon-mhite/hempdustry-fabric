@@ -2,12 +2,23 @@ package com.warlonmhite.hempdustry.world;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.registry.Registerable;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.intprovider.ConstantIntProvider;
+import net.minecraft.world.gen.blockpredicate.BlockPredicate;
+import net.minecraft.world.gen.placementmodifier.BlockFilterPlacementModifier;
 import net.minecraft.world.gen.feature.*;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 
@@ -20,6 +31,10 @@ public class ModConfiguredFeatures {
     public static final RegistryKey<ConfiguredFeature<?, ?>> SATIVA_KEY = registerKey("sativa");
     public static final RegistryKey<ConfiguredFeature<?, ?>> SATIVA_SPARSE_KEY = registerKey("sativa_sparse");
     public static final RegistryKey<ConfiguredFeature<?, ?>> SATIVA_RARE_KEY = registerKey("sativa_rare");
+    public static final RegistryKey<ConfiguredFeature<?, ?>> BELDIA_KEY = registerKey("beldia");
+
+    /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
+    private static final int BELDIA_TRIES = 20;
 
     /**
      * A wild patch is usually small and one in ten is a big one — vanilla's own 64-try flower
@@ -61,6 +76,35 @@ public class ModConfiguredFeatures {
         register(context, SATIVA_KEY, wildPatch(ModBlocks.SATIVA_FLOWER));
         register(context, SATIVA_SPARSE_KEY, patch(ModBlocks.SATIVA_FLOWER, 6));
         register(context, SATIVA_RARE_KEY, patch(ModBlocks.SATIVA_FLOWER, 3));
+
+        // Wild Beldía is the crop itself, ripe, standing where sugar cane would: on sand with water
+        // right beside it, so a desert riverbank. BLOCK_COLUMN puts the LOWER and the UPPER down
+        // together, and the filter wants air for both, so a plant is never cut short to a lone half.
+        //
+        // The ground test is #c:sands -- the plant's own survival rule, so a modded desert's sands
+        // work -- and it is asked directly rather than through wouldSurvive, because a crop's
+        // canPlaceAt also reads light and worldgen has none yet. The water is vanilla's own four
+        // offsets from wouldSurviveNearWaterModifier. InBeldiaBiome then checks each plant's own biome,
+        // since the patch spreads past its centre's -- see that class. A desert shore grows it too.
+        BlockState ripe = ModBlocks.BELDIA_CROP.getDefaultState().with(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
+        register(context, BELDIA_KEY, Feature.RANDOM_PATCH, new RandomPatchFeatureConfig(BELDIA_TRIES, 4, 0,
+                PlacedFeatures.createEntry(Feature.BLOCK_COLUMN,
+                        new BlockColumnFeatureConfig(List.of(
+                                BlockColumnFeatureConfig.createLayer(ConstantIntProvider.create(1),
+                                        BlockStateProvider.of(ripe.with(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER))),
+                                BlockColumnFeatureConfig.createLayer(ConstantIntProvider.create(1),
+                                        BlockStateProvider.of(ripe.with(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
+                                Direction.UP, BlockPredicate.IS_AIR, false),
+                        BlockFilterPlacementModifier.of(BlockPredicate.allOf(
+                                BlockPredicate.IS_AIR,
+                                BlockPredicate.matchingBlocks(new Vec3i(0, 1, 0), Blocks.AIR),
+                                BlockPredicate.matchingBlockTag(new Vec3i(0, -1, 0), ConventionalBlockTags.SANDS),
+                                BlockPredicate.anyOf(
+                                        BlockPredicate.matchingFluids(new Vec3i(1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
+                                        BlockPredicate.matchingFluids(new Vec3i(-1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
+                                        BlockPredicate.matchingFluids(new Vec3i(0, -1, 1), Fluids.WATER, Fluids.FLOWING_WATER),
+                                        BlockPredicate.matchingFluids(new Vec3i(0, -1, -1), Fluids.WATER, Fluids.FLOWING_WATER)))),
+                        ModPlacementModifiers.InBeldiaBiomePlacementModifier.INSTANCE)));
     }
 
     private static ConfiguredFeature<?, ?> wildPatch(Block flower) {

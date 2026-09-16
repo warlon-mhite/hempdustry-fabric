@@ -134,10 +134,22 @@ import java.util.Optional;
  *                        {@code PackingRecipe}, where the device's {@code maxDose} is what then
  *                        makes a concentrate bong-only without a rule having to say so
  * @param smokeEffects    what one hit applies, before dose scaling
+ * @param coughFactor     widens the device's cough odds the way {@code greenOutFactor} widens the
+ *                        green-out's: {@code 2.0} halves them, {@code 0.5} doubles them. Beldía's
+ *                        harsh leafy smoke is the {@code 0.5}. The cough is a sound, so this is
+ *                        flavour rather than balance
  */
 public record Strain(String translationKey, int color, int modelIndex,
                      Optional<Item> seeds, Item buds, Optional<Block> flower,
-                     float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects) {
+                     float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
+                     float coughFactor) {
+
+    /** Every strain written before {@code cough_factor} existed coughs like the device does. */
+    public Strain(String translationKey, int color, int modelIndex,
+                  Optional<Item> seeds, Item buds, Optional<Block> flower,
+                  float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects) {
+        this(translationKey, color, modelIndex, seeds, buds, flower, greenOutFactor, dosePerItem, smokeEffects, 1.0F);
+    }
 
     /** The dynamic registry itself. Entries load from {@code data/<namespace>/hempdustry/strain/<id>.json}. */
     public static final RegistryKey<Registry<Strain>> REGISTRY_KEY =
@@ -155,7 +167,8 @@ public record Strain(String translationKey, int color, int modelIndex,
             Registries.BLOCK.getCodec().optionalFieldOf("flower").forGetter(Strain::flower),
             Codec.FLOAT.optionalFieldOf("green_out_factor", 1.0F).forGetter(Strain::greenOutFactor),
             Codec.INT.optionalFieldOf("dose_per_item", 1).forGetter(Strain::dosePerItem),
-            SmokeEffect.CODEC.listOf().optionalFieldOf("effects", List.of()).forGetter(Strain::smokeEffects)
+            SmokeEffect.CODEC.listOf().optionalFieldOf("effects", List.of()).forGetter(Strain::smokeEffects),
+            Codec.FLOAT.optionalFieldOf("cough_factor", 1.0F).forGetter(Strain::coughFactor)
     ).apply(instance, Strain::new));
 
     /**
@@ -204,19 +217,26 @@ public record Strain(String translationKey, int color, int modelIndex,
     }
 
     /**
-     * Fresh status-effect instances for one hit of this strain at {@code dose}, lasting
-     * {@code durationTicks}. A strain with no effects — including one a datapack has emptied
-     * deliberately — simply applies nothing.
+     * Fresh status-effect instances for one hit of this strain at {@code dose}: the ones that land
+     * on the hit ({@code onExhale} false) or the ones held back to the exhale ({@code onExhale} true).
+     * Each lasts {@code durationTicks} times its own {@link SmokeEffect#durationFactor}. A strain with
+     * no effects — including one a datapack has emptied deliberately — simply applies nothing.
      *
      * <p>A strain the world no longer defines never reaches this method at all: the reference is
      * dropped while the {@code smoke_contents} component decodes, leaving the device unpacked. See
      * {@code SmokeContents.ENTRIES_CODEC} for why that has to happen there rather than here.
      */
-    public List<StatusEffectInstance> effects(int dose, int durationTicks) {
+    public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale) {
         List<StatusEffectInstance> out = new ArrayList<>(smokeEffects.size());
         for (SmokeEffect effect : smokeEffects) {
+            if (effect.onExhale() != onExhale) {
+                continue;
+            }
             int amplifier = effect.baseAmplifier() + (effect.scales() ? Math.max(0, dose - 1) : 0);
-            out.add(new StatusEffectInstance(effect.effect(), durationTicks, amplifier));
+            // At least a tick: a datapack's 0 or negative factor is a very short effect, never one
+            // that silently does not exist.
+            int duration = Math.max(1, Math.round(durationTicks * effect.durationFactor()));
+            out.add(new StatusEffectInstance(effect.effect(), duration, amplifier));
         }
         return out;
     }
@@ -224,18 +244,31 @@ public record Strain(String translationKey, int color, int modelIndex,
     /**
      * One effect a strain grants when smoked.
      *
-     * <p>Both numbers are optional in JSON so a datapack entry can be as short as
-     * {@code {"effect": "minecraft:speed"}} — level I, dose-scaling, which is what every shipped
-     * effect but Hunger is.
+     * <p>Everything but the effect is optional in JSON so a datapack entry can be as short as
+     * {@code {"effect": "minecraft:speed"}} — level I, dose-scaling, lasting the device's whole
+     * duration from the hit, which is what almost every shipped effect is.
      *
-     * @param baseAmplifier amplifier at dose 1 (0 = level I)
-     * @param scales        whether dose raises it; {@code false} pins it at {@code baseAmplifier}
+     * @param baseAmplifier  amplifier at dose 1 (0 = level I)
+     * @param scales         whether dose raises it; {@code false} pins it at {@code baseAmplifier}
+     * @param durationFactor this effect's share of the device's duration. {@code 1.0} for nearly
+     *                       everything; Beldía's Blindness is {@code 0.25}, because a downside that
+     *                       lasts as long as Invisibility cancels it rather than pricing it
+     * @param onExhale       whether it lands with the exhale puff ({@code Smoking}'s exhale delay)
+     *                       rather than on the hit. Streaming eyes come when the smoke comes out
      */
-    public record SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales) {
+    public record SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales,
+                              float durationFactor, boolean onExhale) {
         public static final Codec<SmokeEffect> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 StatusEffect.ENTRY_CODEC.fieldOf("effect").forGetter(SmokeEffect::effect),
                 Codec.INT.optionalFieldOf("base_amplifier", 0).forGetter(SmokeEffect::baseAmplifier),
-                Codec.BOOL.optionalFieldOf("scales", true).forGetter(SmokeEffect::scales)
+                Codec.BOOL.optionalFieldOf("scales", true).forGetter(SmokeEffect::scales),
+                Codec.FLOAT.optionalFieldOf("duration_factor", 1.0F).forGetter(SmokeEffect::durationFactor),
+                Codec.BOOL.optionalFieldOf("on_exhale", false).forGetter(SmokeEffect::onExhale)
         ).apply(instance, SmokeEffect::new));
+
+        /** The whole duration, from the hit — every effect written before the last two fields existed. */
+        public SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales) {
+            this(effect, baseAmplifier, scales, 1.0F, false);
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.block;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
@@ -214,6 +215,12 @@ public class ModBlocks {
             AbstractBlock.Settings.copy(Blocks.ROSE_BUSH));
     public static final Block POTTED_SATIVA_FLOWER = registerBlock("potted_sativa_flower", settings -> new FlowerPotBlock(SATIVA_FLOWER, settings),
             AbstractBlock.Settings.copy(Blocks.POTTED_DANDELION));
+
+
+    // No block item, for the reason on INDICA_CROP above. It is also Beldía's wild plant: the world
+    // generates this very block, ripe, on desert riverbanks -- there is no separate wild flower.
+    public static final Block BELDIA_CROP = registerBlockWithoutItem("beldia_crop", BeldiaCropBlock::new,
+            AbstractBlock.Settings.copy(Blocks.WHEAT));
 
 
     /**

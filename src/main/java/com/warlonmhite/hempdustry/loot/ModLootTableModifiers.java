@@ -7,6 +7,8 @@ import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.TallPlantBlock;
+import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.Enchantments;
@@ -88,6 +90,27 @@ public class ModLootTableModifiers {
     private static final float SHIPWRECK_FIBER_CHANCE = 0.45f;
 
     /**
+     * Chance a desert temple chest holds 1-3 Beldía seeds. A temple has four chests, so about 59% a
+     * temple holds some: more likely than not, and the main way a player meets the plant.
+     */
+    private static final float DESERT_TEMPLE_SEED_CHANCE = 0.20f;
+
+    /**
+     * Weight of Beldía seeds inside the one pool of the desert well's and the desert pyramid's
+     * brushing tables. Both total 8, so this is about 11% a brush -- a brick's or an emerald's share
+     * -- and each sherd gets a ninth rarer. A weight, not a chance, so {@code loot.chanceMultiplier}
+     * leaves it alone.
+     *
+     * <p><b>Inside the existing pool, never a pool of its own.</b> A brushed block keeps exactly one
+     * item: {@code BrushableBlockEntity} logs "Expected max 1 loot from loot table" and drops the rest.
+     */
+    private static final int DESERT_ARCHAEOLOGY_SEED_WEIGHT = 1;
+
+    private static final Set<RegistryKey<LootTable>> DESERT_ARCHAEOLOGY_SOURCES = Set.of(
+            LootTables.DESERT_WELL_ARCHAEOLOGY,
+            LootTables.DESERT_PYRAMID_ARCHAEOLOGY);
+
+    /**
      * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
      *
      * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
@@ -165,6 +188,17 @@ public class ModLootTableModifiers {
                 new BlockPos(0, offsetY, 0));
     }
 
+    /**
+     * Whether these seeds plant Beldía, which keeps them out of tall grass and the generic chests and
+     * puts them in the desert's. The lore is placement: a desert plant is found in the desert.
+     *
+     * <p><b>Code, not a tag, and it has to be.</b> Item tags are not bound yet while loot tables load
+     * -- reading one here throws "Trying to access unbound tag" and takes the server down with it.
+     */
+    private static boolean isDesertSeed(Item seeds) {
+        return seeds instanceof BlockItem item && item.getBlock() instanceof BeldiaCropBlock;
+    }
+
     /** A shipped chance after {@code loot.chanceMultiplier}, kept inside 0..1 whatever is configured. */
     private static float chance(float base) {
         return MathHelper.clamp((float) (base * HempdustryConfig.get().loot().chanceMultiplier()), 0.0F, 1.0F);
@@ -209,8 +243,11 @@ public class ModLootTableModifiers {
                 // grass without touching this file.
                 // Seedless strains — the hash family — are simply not in the pool: there is no
                 // seed to find, and a pool entry per plant strain is what keeps the coin flip fair.
+                // Nor is the desert's: Beldía is found where it grows, and leaving it out keeps the
+                // other strains' share of this roll what it was.
                 for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seeds().ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
+                    strain.value().seeds().filter(seeds -> !isDesertSeed(seeds))
+                            .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
                             .apply(ApplyBonusLootFunction.uniformBonusCount(fortune, 2))
                             .apply(ExplosionDecayLootFunction.builder())));
                 }
@@ -220,10 +257,31 @@ public class ModLootTableModifiers {
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(RandomChanceLootCondition.builder(chance(CHEST_SEED_CHANCE)));
                 for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seeds().ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
+                    strain.value().seeds().filter(seeds -> !isDesertSeed(seeds))
+                            .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
                             .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
                 }
                 tableBuilder.pool(pool);
+            } else if (key.equals(LootTables.DESERT_PYRAMID_CHEST)) {
+                // The overworld chest pool's shape, for the desert's seeds only.
+                LootPool.Builder pool = LootPool.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .conditionally(RandomChanceLootCondition.builder(chance(DESERT_TEMPLE_SEED_CHANCE)));
+                for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
+                    strain.value().seeds().filter(ModLootTableModifiers::isDesertSeed)
+                            .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
+                            .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
+                }
+                tableBuilder.pool(pool);
+            } else if (DESERT_ARCHAEOLOGY_SOURCES.contains(key)) {
+                // Into vanilla's one brushing pool, as a weighted entry beside the sherds.
+                tableBuilder.modifyPools(pool -> {
+                    for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
+                        strain.value().seeds().filter(ModLootTableModifiers::isDesertSeed)
+                                .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
+                                        .weight(DESERT_ARCHAEOLOGY_SEED_WEIGHT)));
+                    }
+                });
             }
 
             // Independent of the seed branch above — a shipwreck's supply chest is also a seed chest,
