@@ -316,7 +316,8 @@ public record SmokeContents(List<Entry> entries) {
     }
 
     /**
-     * Every status effect one hit of this load applies, lasting {@code durationTicks}.
+     * Every status effect one hit of this load applies on the hit ({@code onExhale} false) or with
+     * the exhale ({@code onExhale} true), before the config's {@code EffectPolicy}.
      *
      * <p><b>A bud past the buff cap buys time, not level</b>: each one over
      * {@link EffectPolicy#maxBuffLevel} adds half the device's duration to that strain's effects,
@@ -324,11 +325,12 @@ public record SmokeContents(List<Entry> entries) {
      * Hunger once the buffs stop at II. Counted per entry, so a two-and-one mix, each strain at its
      * own count, has nothing past the cap.
      */
-    public List<StatusEffectInstance> effects(int durationTicks) {
+    public List<StatusEffectInstance> effects(int durationTicks, boolean onExhale) {
         List<StatusEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
             int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel());
-            out.addAll(entry.strain().value().effects(entry.count(), durationTicks + durationTicks * past / 2));
+            out.addAll(entry.strain().value().effects(entry.count(),
+                    durationTicks + durationTicks * past / 2, onExhale));
         }
         return out;
     }

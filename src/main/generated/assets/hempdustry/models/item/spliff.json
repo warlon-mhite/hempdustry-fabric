@@ -12,6 +12,12 @@
       "predicate": {
         "hempdustry:strain": 2
       }
+    },
+    {
+      "model": "hempdustry:item/spliff_beldia",
+      "predicate": {
+        "hempdustry:strain": 7
+      }
     }
   ],
   "textures": {

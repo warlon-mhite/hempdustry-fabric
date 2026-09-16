@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_beldia_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:beldia_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:spliff_beldia_3"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_beldia_buds"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:spliff_beldia_3"
+    ]
+  }
+}

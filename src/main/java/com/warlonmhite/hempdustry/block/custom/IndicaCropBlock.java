@@ -191,9 +191,9 @@ public class IndicaCropBlock extends CropBlock {
                 moisture = medium.moisture(floor);
                 bed = medium.speed(floor);
             } else {
-                moisture = getAvailableMoisture(this, world, pos);
+                moisture = this.fieldMoisture(world, pos);
             }
-            if (HempGrowth.rolls(random, 25.0F, moisture,
+            if (moisture > 0.0F && HempGrowth.rolls(random, 25.0F, moisture,
                     bed * state.get(GrowLight.PROPERTY).speedAt(age))) {
                 grown++;
             }
@@ -212,6 +212,15 @@ public class IndicaCropBlock extends CropBlock {
         if (grown != age || !this.isShapeSettled(world, pos, age)) {
             this.setAge(world, pos, grown);
         }
+    }
+
+    /**
+     * The moisture the growth roll reads when the plant stands in the open ground rather than in a
+     * bed of ours: vanilla's farmland count. <b>{@code 0} means "does not grow this tick"</b> — the
+     * roll is skipped rather than divided by zero. Beldía overrides this, since it grows on sand.
+     */
+    public float fieldMoisture(WorldView world, BlockPos pos) {
+        return getAvailableMoisture(this, world, pos);
     }
 
     /**

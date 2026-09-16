@@ -1,0 +1,25 @@
+{
+  "buds": "hempdustry:beldia_buds",
+  "color": 14264654,
+  "cough_factor": 0.5,
+  "effects": [
+    {
+      "effect": "minecraft:invisibility",
+      "scales": false
+    },
+    {
+      "duration_factor": 0.25,
+      "effect": "minecraft:blindness",
+      "on_exhale": true,
+      "scales": false
+    },
+    {
+      "effect": "minecraft:hunger",
+      "scales": false
+    }
+  ],
+  "flower": "hempdustry:beldia_crop",
+  "model_index": 7,
+  "seeds": "hempdustry:beldia_seeds",
+  "translation_key": "hempdustry.strain.beldia"
+}

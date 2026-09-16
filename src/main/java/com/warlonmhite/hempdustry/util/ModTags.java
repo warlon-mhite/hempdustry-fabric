@@ -19,6 +19,7 @@ public class ModTags {
         public static final TagKey<Biome> SATIVA_FLOWER_GEN = createTag("sativa_flower_gen");
         public static final TagKey<Biome> SATIVA_FLOWER_GEN_SPARSE = createTag("sativa_flower_gen_sparse");
         public static final TagKey<Biome> SATIVA_FLOWER_GEN_RARE = createTag("sativa_flower_gen_rare");
+        public static final TagKey<Biome> BELDIA_GEN = createTag("beldia_gen");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.of(RegistryKeys.BIOME, Identifier.of(Hempdustry.MOD_ID, name));
         }
@@ -56,6 +57,12 @@ public class ModTags {
          * registry so a third one joins by existing. Sifted at {@code FLOWER_CHANCE}.
          */
         public static final TagKey<Item> SIFTABLE_FLOWER = createTag("siftable/flower");
+        /**
+         * Buds grown for the sieve, which move the screen {@code RESINOUS_CHANCE} levels each instead
+         * of one — Beldía's. Kept <b>out of</b> {@link #SIFTABLE_FLOWER} rather than overlapping it,
+         * so each tag's recipe-viewer page counts only what it says.
+         */
+        public static final TagKey<Item> SIFTABLE_RESINOUS = createTag("siftable/resinous");
         /**
          * Leaf and trim the Sifting Box separates resin from. Sifted at the slower
          * {@code TRIM_CHANCE}: bulkier, and much less of it is resin.
@@ -166,6 +173,13 @@ public class ModTags {
          * {@code InfuserBlockEntity#isHeatedFrom}.
          */
         public static final TagKey<Block> HEAT_SOURCES = createTag("heat_sources");
+        /**
+         * {@code #c:sands} — the ground Beldía takes. Fabric API 0.105 ships neither this tag nor a
+         * constant for it, so it is named here and filled from {@code data/c/tags/block/sands.json}
+         * with what newer Fabric API puts in it: sand and red sand.
+         */
+        public static final TagKey<Block> SANDS =
+                TagKey.of(RegistryKeys.BLOCK, Identifier.of("c", "sands"));
         /**
          * Every hemp crop, strain-agnostic — the block-side counterpart of
          * {@link Items#HEMP_SEEDS}. Used by the "Trim Season" advancement to recognise a shearing

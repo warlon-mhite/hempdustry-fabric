@@ -7,7 +7,9 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.Registry;
@@ -102,7 +104,12 @@ public class ModItemGroups {
                                 addOnce.accept(strain.value().buds());
                             }
                         });
-                        strains.forEach(strain -> strain.value().flower().ifPresent(addOnce));
+                        // Beldía's wild flower is its own crop, and a crop block's item IS its
+                        // seeds -- already in the run above, which addOnce remembers. A flower with
+                        // no item at all is skipped: the tab refuses an empty stack.
+                        strains.forEach(strain -> strain.value().flower().map(Block::asItem)
+                                .filter(item -> item != Items.AIR)
+                                .ifPresent(addOnce));
                         entries.add(ModItems.HEMP_STEM);
                         entries.add(ModItems.RETTED_HEMP_STEM);
                         entries.add(ModItems.HEMP_LEAF);
