@@ -723,7 +723,10 @@
                   "offsetY": -1,
                   "predicate": {
                     "block": {
-                      "blocks": "hempdustry:grow_pot"
+                      "blocks": [
+                        "hempdustry:grow_pot",
+                        "hempdustry:hydro_tray"
+                      ]
                     }
                   }
                 }
