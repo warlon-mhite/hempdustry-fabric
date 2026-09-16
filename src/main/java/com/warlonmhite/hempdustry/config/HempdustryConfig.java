@@ -165,7 +165,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
             comment(root, "world", "cropGrowthMultiplier and machineSpeedMultiplier are speeds: 2.0 is twice as fast. "
                     + "machineSpeed drives the Decarboxylator; the Infuser has its own section. "
                     + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here. "
-                    + "creepersSeekHemp=false stops creepers wandering towards hemp crops; the goal is still "
+                    + "creepersSeekHemp=false stops creepers now and then wandering into grown, open-sky hemp fields; the goal is still "
                     + "added to them, it simply never starts, so it takes effect on the next /hempdustry reload.");
             comment(root, "infuser", "Ticks. minTime is the earliest a batch can be pulled, fullTime a full simmer. "
                     + "20 ticks = 1 second. Defaults are 5 and 15 minutes; the ceiling is 32000 "
@@ -313,7 +313,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      *
      * @param cropGrowthMultiplier     growth speed for both crops; 2.0 grows twice as fast
      * @param machineSpeedMultiplier   the Decarboxylator's speed (the Infuser has its own section)
-     * @param creepersSeekHemp         whether creepers wander towards hemp crops they can see
+     * @param creepersSeekHemp         whether creepers now and then wander into open hemp fields
      */
     public record World(double cropGrowthMultiplier, double machineSpeedMultiplier, boolean creepersSeekHemp) {
 
