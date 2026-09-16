@@ -1,7 +1,9 @@
 package com.warlonmhite.hempdustry.block;
 
+import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.dispenser.DispenserBehavior;
 import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
@@ -11,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -43,6 +46,25 @@ public final class ModDispenserBehaviors {
         }
     };
 
+    /**
+     * A dispenser fills a Hydro Tray in front of it and keeps the empty bucket — the tray's own
+     * refill, automated the vanilla way, exactly as the Infuser's milk is above.
+     *
+     * <p>It wraps vanilla's water-bucket behaviour rather than replacing it: anything that is not a
+     * fillable tray still places water as it always did.
+     */
+    private static final FallibleItemDispenserBehavior FILL_HYDRO_TRAY = new FallibleItemDispenserBehavior() {
+        @Override
+        protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
+            BlockPos front = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
+            World world = pointer.world();
+            this.setSuccess(HydroTrayBlock.fill(world, front, world.getBlockState(front)));
+            return this.isSuccess()
+                    ? this.decrementStackWithRemainder(pointer, stack, new ItemStack(Items.BUCKET))
+                    : stack;
+        }
+    };
+
     private ModDispenserBehaviors() {
     }
 
@@ -52,6 +74,7 @@ public final class ModDispenserBehaviors {
         // Vanilla gives the behaviour that puts a carpet on a tamed llama to its sixteen carpets by
         // name; the carpet tag and Equipment decide nothing here. Ours borrows the white carpet's.
         DispenserBlock.registerBehavior(ModBlocks.HEMP_CARPET, DispenserBlock.BEHAVIORS.get(Items.WHITE_CARPET));
+        fillHydroTrays();
     }
 
     private static void pourIntoInfusers(Item milk) {
@@ -62,6 +85,23 @@ public final class ModDispenserBehaviors {
         DispenserBlock.registerBehavior(milk, (pointer, stack) -> infuserInFront(pointer) != null
                 ? POUR_INTO_INFUSER.dispense(pointer, stack)
                 : previous.dispense(pointer, stack));
+    }
+
+    private static void fillHydroTrays() {
+        // Vanilla does register a behaviour for a water bucket (it places the fluid), so this wraps
+        // that one: only a tray with room takes the pour, and everything else behaves as before.
+        DispenserBehavior previous =
+                DispenserBlock.BEHAVIORS.getOrDefault(Items.WATER_BUCKET, new ItemDispenserBehavior());
+        DispenserBlock.registerBehavior(Items.WATER_BUCKET, (pointer, stack) -> fillableTrayInFront(pointer)
+                ? FILL_HYDRO_TRAY.dispense(pointer, stack)
+                : previous.dispense(pointer, stack));
+    }
+
+    private static boolean fillableTrayInFront(BlockPointer pointer) {
+        BlockPos front = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
+        BlockState state = pointer.world().getBlockState(front);
+        return state.getBlock() instanceof HydroTrayBlock
+                && state.get(HydroTrayBlock.LEVEL) < HydroTrayBlock.MAX_LEVEL;
     }
 
     @Nullable

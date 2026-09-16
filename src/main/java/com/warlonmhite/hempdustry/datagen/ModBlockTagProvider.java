@@ -139,7 +139,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.INFUSER)
                 .add(ModBlocks.HEMP_PRESS)
                 .add(ModBlocks.GROW_LAMP)
-                .add(ModBlocks.GROW_POT);
+                .add(ModBlocks.GROW_POT)
+                .add(ModBlocks.HYDRO_TRAY);
 
         getOrCreateTagBuilder(ModTags.Blocks.GROW_LAMPS).add(ModBlocks.GROW_LAMP);
         // Light 15 with no business counting as a light over a plant. The fire tags rather than the

@@ -1,0 +1,375 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "level": "1",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "level": "2",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "level": "3",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "level": "1",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "level": "2",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "level": "3",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_led"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_led_on"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "level": "1",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "level": "2",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "level": "3",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "level": "1",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "level": "2",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "level": "3",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_led",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_led_on",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "level": "1",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "level": "2",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "level": "3",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "level": "1",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "level": "2",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "level": "3",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_led",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_led_on",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "level": "1",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "level": "2",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "level": "3",
+        "fed": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_water_3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "level": "1",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "level": "2",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "level": "3",
+        "fed": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_solution_3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_led",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/hydro_tray_led_on",
+        "y": 270
+      }
+    }
+  ]
+}

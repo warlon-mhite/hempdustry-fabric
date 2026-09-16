@@ -100,10 +100,10 @@ public class SativaCropBlock extends CropBlock {
         return this.getDefaultState().with(this.getAgeProperty(), age).with(SEGMENT, segment);
     }
 
-    /** Farmland, or a Grow Pot. */
+    /** Farmland, or one of the mod's beds — a Grow Pot or a Hydro Tray. */
     @Override
     protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
-        return super.canPlantOnTop(floor, world, pos) || GrowPotBlock.isPot(floor);
+        return super.canPlantOnTop(floor, world, pos) || floor.getBlock() instanceof GrowMedium;
     }
 
     @Override
@@ -218,10 +218,19 @@ public class SativaCropBlock extends CropBlock {
         int age = this.getAge(state);
         int grown = age;
         if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
+            // The ground answers for itself when it is a bed of ours (a pot or a tray): its own
+            // moisture, and no crowding penalty, because the plant has soil or solution to itself.
             BlockState floor = world.getBlockState(pos.down());
-            float moisture = GrowPotBlock.isPot(floor) ? GrowPotBlock.moisture(floor) : getAvailableMoisture(this, world, pos);
+            float moisture;
+            float bed = 1.0F;
+            if (floor.getBlock() instanceof GrowMedium medium) {
+                moisture = medium.moisture(floor);
+                bed = medium.speed(floor);
+            } else {
+                moisture = getAvailableMoisture(this, world, pos);
+            }
             if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture,
-                    GrowPotBlock.speed(floor) * state.get(GrowLight.PROPERTY).speedAt(age))) {
+                    bed * state.get(GrowLight.PROPERTY).speedAt(age))) {
                 grown++;
             }
         }
@@ -323,7 +332,11 @@ public class SativaCropBlock extends CropBlock {
             lower = lower.with(GrowLight.PROPERTY, current.get(GrowLight.PROPERTY)
                     .afterStep(currentAge, GrowLight.over(world, pos, 3)));
             if (newAge == this.getMaxAge()) {
-                GrowPotBlock.spend(world, pos.down());
+                BlockPos floorPos = pos.down();
+                BlockState floor = world.getBlockState(floorPos);
+                if (floor.getBlock() instanceof GrowMedium medium) {
+                    medium.spend(world, floorPos, floor);
+                }
             }
         }
         world.setBlockState(pos, lower, Block.NOTIFY_LISTENERS);
