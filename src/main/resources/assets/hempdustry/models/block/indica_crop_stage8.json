@@ -1,5 +1,5 @@
 {
-  "parent": "minecraft:block/tinted_cross",
+  "parent": "hempdustry:block/tinted_crop",
   "textures": {
     "cross": "hempdustry:block/indica_crop_stage8"
   }

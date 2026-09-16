@@ -88,6 +88,7 @@ release build.)*
   Purple Kush no faster at all — 1.5 and 2.0 grew it at the same speed, and some settings grew
   Lemon Haze faster than asked. It now scales the growth chance itself, so 2.0 really is twice as
   fast. **At the default of 1.0 nothing changes.**
+- **Hemp plants floated a pixel above farmland.** They now sit in it, the way vanilla crops do.
 
 ## [2.0.0-beta] — 2026-09-03
 
