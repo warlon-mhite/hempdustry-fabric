@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "hempdustry:block/hydro_tray_led",
+    "led": "hempdustry:block/hydro_tray_led"
+  },
+  "elements": [
+    {
+      "from": [
+        10,
+        4,
+        -1.1
+      ],
+      "to": [
+        12,
+        5,
+        -1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "texture": "#led"
+        }
+      }
+    }
+  ]
+}

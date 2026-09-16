@@ -105,6 +105,7 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HEMP_PRESS);
                         entries.add(ModBlocks.GROW_POT);
                         entries.add(ModBlocks.GROW_LAMP);
+                        entries.add(ModBlocks.HYDRO_TRAY);
 
                         // --- Processed hemp, raw to refined ----------------------------
                         // Strain-agnostic by construction: decarboxylation is where strain
