@@ -8,15 +8,29 @@
 	"entrypoints": {
 		"fabric-gametest": [
 			"com.warlonmhite.hempdustry.test.AdvancementGameTest",
+			"com.warlonmhite.hempdustry.test.BannerPatternGameTest",
+			"com.warlonmhite.hempdustry.test.BeldiaGameTest",
+			"com.warlonmhite.hempdustry.test.BongPlacementGameTest",
+			"com.warlonmhite.hempdustry.test.BongRipGameTest",
+			"com.warlonmhite.hempdustry.test.CharasGameTest",
+			"com.warlonmhite.hempdustry.test.ConcentrateGameTest",
 			"com.warlonmhite.hempdustry.test.ConfigGameTest",
+			"com.warlonmhite.hempdustry.test.CreativeTabGameTest",
+			"com.warlonmhite.hempdustry.test.CreeperSeeksHempGameTest",
 			"com.warlonmhite.hempdustry.test.CropGrowthGameTest",
 			"com.warlonmhite.hempdustry.test.DatapackStrainGameTest",
 			"com.warlonmhite.hempdustry.test.DefoliationGameTest",
+			"com.warlonmhite.hempdustry.test.GlassBongGameTest",
+			"com.warlonmhite.hempdustry.test.HashishBarGameTest",
+			"com.warlonmhite.hempdustry.test.IndoorGrowGameTest",
 			"com.warlonmhite.hempdustry.test.InfuserPourGameTest",
 			"com.warlonmhite.hempdustry.test.PackingGameTest",
 			"com.warlonmhite.hempdustry.test.RebalanceGameTest",
+			"com.warlonmhite.hempdustry.test.ScorchedHempGameTest",
+			"com.warlonmhite.hempdustry.test.SiftingBoxGameTest",
 			"com.warlonmhite.hempdustry.test.TagBackedBehaviourGameTest",
-			"com.warlonmhite.hempdustry.test.TallPlantLootGameTest"
+			"com.warlonmhite.hempdustry.test.TallPlantLootGameTest",
+			"com.warlonmhite.hempdustry.test.VaporizerGameTest"
 		]
 	},
 	"depends": {
