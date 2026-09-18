@@ -25,6 +25,18 @@ beta be told when the release lands.
   cannabutter out. **Nothing in your world is lost** — a bucket a beta world left in either old slot
   pops out of the top of the tub the first time it loads.
 
+### Added
+
+- **A Russian translation**, by **MargoxaTheGamer** — the whole mod, translated by hand. Nine
+  locales now ship: five English variants, three French and Russian.
+- **Recipe pages in [REI](https://modrinth.com/mod/rei)**, alongside the JEI ones the mod already
+  had. Both viewers show the same three pages — Decarboxylator, Infuser and the cauldron's retting
+  and washing — and the same packing rows in the crafting tab, because both read one description of
+  what the mod does rather than two. Install either, neither, or the other one; nothing in the mod
+  loads a line of viewer code unless the viewer is there.
+  - The cauldron page is the one worth having: retting and washing are not recipes, so the recipe
+    book cannot show them and no datapack can list them.
+
 ### Changed
 
 - **Milk is poured into the Infuser by hand, like water into a cauldron.** Right-click the tub with
@@ -41,19 +53,6 @@ beta be told when the release lands.
     of seeds. It grows only vanilla flowers now.
   - Wild Purple Kush now really does grow on the moss of lush caves, a plant here and there. It was
     meant to from the start, but it was being planted before the moss was laid and never took.
-
-### Added
-
-- **Recipe pages in [REI](https://modrinth.com/mod/rei)**, alongside the JEI ones the mod already
-  had. Both viewers show the same three pages — Decarboxylator, Infuser and the cauldron's retting
-  and washing — and the same packing rows in the crafting tab, because both read one description of
-  what the mod does rather than two. Install either, neither, or the other one; nothing in the mod
-  loads a line of viewer code unless the viewer is there.
-  - The cauldron page is the one worth having: retting and washing are not recipes, so the recipe
-    book cannot show them and no datapack can list them.
-
-### Changed
-
 - **Hempdustry now runs on Minecraft 1.21.11**, ten patch versions on from the 1.21.1 the beta was
   built for. **Your world comes with you**: every item, block, recipe, tag, advancement and saved
   machine keeps the id and the save key it had, so a world made with `2.0.0-beta+1.21.1` opens on
