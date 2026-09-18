@@ -124,7 +124,12 @@ Requires **JDK 21**.
 ./gradlew build          # the mod jar lands in build/libs/
 ./gradlew runClient      # a dev client with the mod loaded
 ./gradlew runDatagen     # regenerate models, recipes, loot tables, tags, advancements
+./gradlew runGametest    # boot a headless server and run the game tests
 ```
+
+The game tests live in `src/gametest/` — their own source set, so nothing in them reaches the mod
+jar. They run real server code against the real registry, and `runGametest` exits non-zero if any of
+them fails.
 
 Most of the mod's data is generated rather than hand-written; if you change a recipe, a loot table,
 a tag or an advancement, run `runDatagen` and commit what it produces.

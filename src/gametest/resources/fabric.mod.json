@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "hempdustry-gametest",
+	"version": "1.0.0",
+	"name": "Hempdustry Game Tests",
+	"description": "Game tests for Hempdustry. Dev-only: this is its own source set and never ships inside the mod jar.",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-gametest": [
+			"com.warlonmhite.hempdustry.test.CropGrowthGameTest",
+			"com.warlonmhite.hempdustry.test.DefoliationGameTest",
+			"com.warlonmhite.hempdustry.test.InfuserPourGameTest",
+			"com.warlonmhite.hempdustry.test.TagBackedBehaviourGameTest",
+			"com.warlonmhite.hempdustry.test.TallPlantLootGameTest"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.5",
+		"minecraft": "~1.21.1",
+		"hempdustry": "*",
+		"fabric-gametest-api-v1": "*"
+	}
+}

@@ -114,6 +114,45 @@ dependencies {
 	}
 }
 
+// Game tests -- real server code against the real registry, no client and no player.
+//
+//   ./gradlew runGametest
+//
+// **Tracked, unlike the rest of the dev toolset, and that is the whole point.** These used to live
+// outside the repo and ride in on an init script, which meant there was exactly one copy of the
+// suite and it followed you from branch to branch on checkout. Most tests are written against
+// content that exists on one branch, so on every other branch `runGametest` died at
+// `compileGametestJava` -- before a single test ran -- and the cheapest real check this project has
+// was unavailable on the two branches that actually ship. A source set in here gives each branch
+// exactly its own tests, and merging a feature branch brings its tests with it.
+//
+// **Nothing here reaches the shipped jar.** `jar` and loom's `remapJar` package sourceSets.main and
+// nothing else; this set is never added to either, and never sits on main's compile classpath, so
+// the mod cannot accidentally compile against a test. Its fabric.mod.json declares a separate mod
+// id (`hempdustry-gametest`) that only the gametest run config ever loads.
+//
+// Placed after `dependencies` deliberately: the classpaths below are live configurations, and
+// main's dependencies have to be declared before they are read.
+sourceSets {
+	gametest {
+		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+	}
+}
+
+loom {
+	runs {
+		gametest {
+			server()
+			name = "Game Test"
+			source sourceSets.gametest
+			vmArg "-Dfabric-api.gametest"
+			vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.get()}/junit.xml"
+			runDir "build/gametest"
+		}
+	}
+}
+
 processResources {
 	inputs.property "version", project.version
 
