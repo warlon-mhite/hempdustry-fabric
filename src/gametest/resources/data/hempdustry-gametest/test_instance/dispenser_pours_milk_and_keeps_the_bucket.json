@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:dispenser_pours_milk_and_keeps_the_bucket",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100,
+  "setup_ticks": 0,
+  "required": true
+}

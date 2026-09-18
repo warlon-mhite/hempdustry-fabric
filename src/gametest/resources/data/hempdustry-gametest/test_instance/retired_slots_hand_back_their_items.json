@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:retired_slots_hand_back_their_items",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100,
+  "setup_ticks": 0,
+  "required": true
+}
