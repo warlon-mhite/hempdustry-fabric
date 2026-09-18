@@ -9,6 +9,7 @@ two of the licences below ask for attribution and attribution should travel with
 | Code and data | Warlon Mhite | [AGPL-3.0-only](LICENSE) |
 | Original art | Warlon Mhite | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
 | Music — two tracks | **Nefuß** | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| Russian translation | **MargoxaTheGamer** | [AGPL-3.0-only](LICENSE), as data |
 | Textures derived from Minecraft | Mojang | not ours to licence — see below |
 | The logo wordmark | several — see below | mixed; parts are not ours to licence |
 | People depicted in the paintings | themselves | not ours to licence — see below |
@@ -27,6 +28,14 @@ two of the licences below ask for attribution and attribution should travel with
 Licensed **CC BY-NC-SA 4.0**. Files: `assets/hempdustry/sounds/records/moonlight.ogg` and
 `robadob.ogg`. The mod shows each track's artist and title while it plays, so ordinary play credits
 Nefuß by itself.
+
+## Translation
+
+**MargoxaTheGamer** — the Russian translation (`assets/hempdustry/lang/ru_ru.json`), translated by
+hand from English. A translation is part of the mod's data and carries the same `AGPL-3.0-only`
+licence as the rest of it.
+
+The English and French locales are Warlon Mhite's.
 
 ## Code and data
 
