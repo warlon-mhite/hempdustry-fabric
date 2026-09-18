@@ -1,0 +1,27 @@
+{
+  "_comment": [
+    "The update manifest Hempdustry checks for itself, and the only place a new version has to be",
+    "announced. Read over https://raw.githubusercontent.com/, which is CDN-served and needs no API",
+    "key, no approval and no review queue -- so it reaches a player whichever site they got the mod",
+    "from. CurseForge and NexusMods both forbid embedding an API key in a distributed jar, so this",
+    "file is the only way those players can be told anything at all.",
+    "",
+    "The shape is Forge's update-checker format on purpose, even though this is a Fabric mod: a",
+    "NeoForge build points `updateJSONURL` straight at this same file and needs no new work.",
+    "See https://docs.neoforged.net/docs/misc/updatechecker/",
+    "",
+    "MAINTAINING IT: a key per Minecraft version. `-latest` is the newest build of any kind and is",
+    "what the in-game checker reads; `-recommended` is the newest *stable* one, and stays absent",
+    "until a stable exists. Both are read by NeoForge. Version strings are compared as semver with",
+    "build metadata ignored, so `2.0.0-beta+1.21.11` and `2.0.0-beta` compare equal -- the full jar",
+    "version is written here because it is what a player sees on the file they downloaded.",
+    "",
+    "This file is hand-maintained, which is its one cost: bump it as part of cutting a release, or",
+    "the checker is confidently wrong, which is worse than silent. It is a step in release.md."
+  ],
+  "homepage": "https://github.com/warlon-mhite/hempdustry-fabric/releases",
+  "promos": {
+    "1.21.1-latest": "2.0.0-beta+1.21.1",
+    "1.21.11-latest": "2.0.0-beta+1.21.11"
+  }
+}
