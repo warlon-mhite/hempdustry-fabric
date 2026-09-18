@@ -32,7 +32,10 @@ def registered_blocks():
 
     Every call, not the first: the crops have their own provider (it reads the light record) beside
     the one the wild flowers share, and a checker that stopped at the first call reported both
-    crops as untinted.
+    crops as untinted. Only the block list after the provider's body counts: the crops' provider names
+    ``ModBlocks.BELDIA_CROP`` inside it, which would otherwise pass for a registration. A collection
+    passed whole (``ModBlocks.DEVICE_BLOCKS.values()``, the placed bongs' load tint) is not a plant
+    and not a biome tint, so a name followed by ``.`` is skipped.
     """
     source = CLIENT.read_text(encoding="utf-8")
     marker = "ColorProviderRegistry.BLOCK.register("
@@ -46,7 +49,9 @@ def registered_blocks():
             depth += (source[i] == "(") - (source[i] == ")")
             if depth == 0:
                 break
-        names |= {name.lower() for name in re.findall(r"ModBlocks\.([A-Z0-9_]+)", source[start:i])}
+        args = source[start:i]
+        args = args[args.rfind("}") + 1:]
+        names |= {name.lower() for name in re.findall(r"ModBlocks\.([A-Z0-9_]+)\b(?!\.)", args)}
         start = source.find(marker, i)
     return names
 
