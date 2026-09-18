@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:one_rosin_fills_a_bong",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 200,
+  "setup_ticks": 0,
+  "required": true
+}

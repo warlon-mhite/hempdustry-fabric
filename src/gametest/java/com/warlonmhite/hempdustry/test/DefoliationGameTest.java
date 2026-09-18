@@ -48,6 +48,10 @@ public final class DefoliationGameTest {
                 "a freshly planted crop is already early-trimmed");
         context.assertTrue(!planted.get(Defoliation.TRIMMED_LATE),
                 "a freshly planted crop is already late-trimmed");
+        // The newest flag, and the one that fails most quietly: a crop born RUBBED never drops
+        // charas at all, and nothing on screen says why.
+        context.assertTrue(!planted.get(Defoliation.RUBBED),
+                "a freshly planted crop is already rubbed");
         context.complete();
     }
 
@@ -71,7 +75,24 @@ public final class DefoliationGameTest {
                     "growing to age " + (age + 1) + " wiped the early trim flag");
             context.assertTrue(!grown.get(Defoliation.TRIMMED_LATE),
                     "growing to age " + (age + 1) + " invented a late trim flag");
+            context.assertTrue(!grown.get(Defoliation.RUBBED),
+                    "growing to age " + (age + 1) + " invented a rubbed flag");
         }
+
+        // ...and the same for RUBBED, which needs its own pass because the flag can only be SET at
+        // ages 6-7. Growing an already-trimmed plant proves nothing about it: carryOver dropping
+        // RUBBED leaves it false, which is what it was anyway. Only a plant that is already rubbed
+        // can tell the two apart -- and if the flag is wiped, the plant can be rubbed a second time
+        // and pays out twice, silently.
+        context.setBlockState(CROP, ModBlocks.INDICA_CROP.getDefaultState()
+                .with(IndicaCropBlock.AGE, Defoliation.RUB_MIN_AGE)
+                .with(Defoliation.RUBBED, true));
+        crop.applyGrowth(context.getWorld(), cropPos, context.getWorld().getBlockState(cropPos));
+        BlockState ripened = context.getBlockState(CROP);
+        context.assertTrue(ripened.get(IndicaCropBlock.AGE) == Defoliation.RUB_MIN_AGE + 1,
+                "growth stalled on the way to maturity");
+        context.assertTrue(ripened.get(Defoliation.RUBBED),
+                "ripening wiped the rubbed flag — the plant can now be rubbed twice");
 
         context.expectBlock(ModBlocks.INDICA_CROP, UPPER);
         context.assertTrue(context.getBlockState(UPPER).get(IndicaCropBlock.HALF) == DoubleBlockHalf.UPPER,
@@ -85,19 +106,19 @@ public final class DefoliationGameTest {
     private static final long SEED_SOURCE = 0x4C454146L; // "LEAF"
 
     /**
-     * Every leaf taken off a growing plant comes off its harvest, one for one, and each cut moves
-     * one bud the other way.
+     * Every leaf taken off a growing plant comes off its harvest, one for one — the two trims
+     * <em>and</em> the rub — and only the two trims move the buds.
      *
-     * <p>Rolled against the real loot tables with the <b>same seed</b> for all four trim
+     * <p>Rolled against the real loot tables with the <b>same seed</b> for all eight flag
      * combinations. Every pool consumes the same random draws whichever bucket it lands in (the
      * Fortune binomial's trial count does not depend on the base count), so the only difference
      * between two rolls on one seed is the base counts — which is exactly what is asserted.
      *
-     * <p>Fails in both directions: a trim whose leaf is not taken off the harvest is a free leaf a
-     * plant, and a bucket that stopped matching (a plant falling through to no leaves, or through
-     * the bud pool to a single seed) takes the player's harvest away. Lemon Haze trimmed twice
-     * lands on a low base, so it also proves a small base still takes its Fortune bonus rather than
-     * vanishing.
+     * <p>Fails in both directions: a rub whose leaf is not taken off the harvest is a free leaf a
+     * plant, and a bucket that stopped matching (a plant falling through to no leaves, or a rubbed
+     * plant falling through the bud pool to a single seed) takes the player's harvest away.
+     * Lemon Haze worked three ways lands on a base of <b>zero</b>, so it also proves a zero base
+     * still takes its Fortune bonus rather than vanishing.
      */
     public static void everyLeafTakenComesOffTheHarvest(TestContext context) {
         ServerWorld world = context.getWorld();
@@ -119,22 +140,25 @@ public final class DefoliationGameTest {
         java.util.Random seeds = new java.util.Random(SEED_SOURCE);
         for (int roll = 0; roll < ROLLS; roll++) {
             long seed = seeds.nextLong();
-            int[] untouched = harvest(table, world, origin, Defoliation.untrimmed(mature), seed, buds);
+            int[] untouched = harvest(table, world, origin, Defoliation.unworked(mature), seed, buds);
             context.assertTrue(untouched[1] > 0, crop + ": an untouched mature plant dropped no buds");
-            for (int flags = 1; flags < 4; flags++) {
+            for (int flags = 1; flags < 8; flags++) {
                 boolean early = (flags & 1) != 0;
                 boolean late = (flags & 2) != 0;
+                boolean rubbed = (flags & 4) != 0;
                 int[] worked = harvest(table, world, origin, mature
                         .with(Defoliation.TRIMMED_EARLY, early)
-                        .with(Defoliation.TRIMMED_LATE, late), seed, buds);
-                String which = crop + " (early=" + early + ", late=" + late + ")";
-                int cuts = Integer.bitCount(flags);
-                context.assertTrue(worked[0] + cuts == untouched[0], which + ": harvested "
-                        + worked[0] + " leaves after " + cuts + " were taken, against "
+                        .with(Defoliation.TRIMMED_LATE, late)
+                        .with(Defoliation.RUBBED, rubbed), seed, buds);
+                String which = crop + " (early=" + early + ", late=" + late + ", rubbed=" + rubbed + ")";
+                int taken = Integer.bitCount(flags);
+                context.assertTrue(worked[0] + taken == untouched[0], which + ": harvested "
+                        + worked[0] + " leaves after " + taken + " were taken, against "
                         + untouched[0] + " untouched — a leaf taken is not coming off the harvest");
+                int cuts = Integer.bitCount(flags & 3);
                 context.assertTrue(worked[1] == untouched[1] + cuts, which + ": harvested "
-                        + worked[1] + " buds against " + untouched[1] + " untouched — a trim"
-                        + " moves one bud per cut");
+                        + worked[1] + " buds against " + untouched[1] + " untouched — only a trim"
+                        + " may move the buds, one per cut");
             }
         }
     }
