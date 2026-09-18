@@ -11,6 +11,57 @@ beta be told when the release lands.
 
 ### Added
 
+- **Hash: the resin, taken off the plant.** A second way to smoke hemp, made the way the trade makes
+  it: the powder that falls through a screen is **kief**, and kief pressed with heat is **hashish**.
+  Hash is for smoking and only for smoking — nothing in the family goes into the Decarboxylator or
+  makes cannabutter.
+  - The **Sifting Box** is a tub with a screen in it, crafted like a composter from hemp plank
+    slabs, with iron bars over hemp canvas in the middle. Fill it the way you fill a composter:
+    seven buds, or about forty-seven fan leaves, and it hands back **nine kief**. Sift kief a second
+    time for **filtered kief**, at about three kief to one. Plant matter and powder never share a
+    screen.
+  - **Wash it instead.** Fill a Sifting Box with a water bucket and put ice against all four of its
+    sides, and it washes plant matter into **bubble hash**, with frost rising off it while it
+    works. The ice sets the price: blue ice makes nine bubble hash from seven buds, packed ice from
+    about nine, plain ice from about fourteen — and plain ice melts if you light the room, which
+    stops the wash without a word. Build it in the dark, or buy packed ice.
+  - The **Hemp Press** — eight hemp bricks around a piston — is a screw press heated from below,
+    like the Infuser. It presses kief into **hashish**, bubble hash or filtered kief into **filtered
+    hashish**, and filtered hashish into **rosin**, one piece at a time. It also presses a retted
+    hemp stem into eight hemp fibre.
+  - **Hashish** smokes for Night Vision, with Resistance, Slowness and Hunger. **Filtered hashish**
+    gives the same high with half the chance of greening out — smoother, never stronger. Nine pieces
+    pack into a **bar** you can set down on a shelf, and you cut pieces back off it with a sword or
+    a knife: five cuts, nine pieces, and you watch it shrink as you go.
+  - **Charas** is rubbed off a living plant. Shear a fully grown plant and there is a one-in-four
+    chance of a pinch — once per plant, and the plant stays standing. Every rub also snips off one
+    hemp leaf, which the plant gives one fewer of at harvest. Charas smokes for Slow Falling, and
+    nine of it roll into a **charas ball** that you can pull apart again by hand.
+  - **Rosin** is the most concentrated thing in the mod and the plainest to smoke: the hash high
+    without its Night Vision. One piece fills a whole bong bowl. A pipe or a vaporizer will not take
+    it.
+  - **Moon rocks** are a bud, a rosin and a coat — hashish, kief, filtered hashish, bubble hash,
+    filtered kief or charas — crafted together. A moon rock packs a bong with a full bowl of the
+    bud's strain and the coat's effect on top: Night Vision from a brown coat, Night Vision with
+    less chance of greening out from a blonde one, Slow Falling from charas. Bong only.
+  - **Hash rolls into spliffs.** A pinch of hashish, filtered hashish or charas goes in with one or
+    two buds. The spliff keeps the strain's name, and a line underneath says what else is in it.
+- **The Redstone Vaporizer**, a fourth way to smoke. It heats the bud rather than burning it, which
+  makes it the gentlest device in the mod: one bud a bowl, an effect at level I that lasts longer
+  than a pipe's, and no way to green out. A finished bowl of buds hands the spent bud back as
+  **scorched hemp**. Craft it from iron, redstone and hemp planks, and repair it with iron.
+- **Scorched hemp**, and butter before the Decarboxylator. Smelt a fan leaf or a bud in a furnace
+  and it comes out scorched. The Infuser takes it, at a price: four scorched count as one, so a
+  batch never gets past the weakest butter however long it simmers, and every piece drags the grade
+  down. It cannot be washed. It will vape one more time, for Slowness and Hunger only, and it
+  composts.
+- **Beldía**, a third strain: the Rif's landrace, the plant Moroccan hash was made from. It grows on
+  sand — any sand, never farmland — with water within farmland's reach, or in a Grow Pot or a Hydro
+  Tray. Take its water away and it stops growing, but it never dies. Its buds are resinous: each one
+  counts twice in the Sifting Box, so four fill it. Smoked, it is **Mirage** — Invisibility on the
+  hit, then Blindness for a moment as you exhale, Hunger, and twice the coughing.
+  - Wild Beldía grows ripe on desert riverbanks and shores. Its seeds turn up in desert temple
+    chests and in the suspicious sand of desert wells and pyramids, and never in grass.
 - **Grow hemp indoors: a Grow Pot and a Grow Lamp.**
   - The **Grow Pot** is a planter of hemp brick with soil in it, for either strain. It is always
     watered, cannot be trampled, and a plant in it never competes with its neighbours, so pots can
@@ -64,6 +115,9 @@ beta be told when the release lands.
   - For resource packs: every glass has its own item sprite (`textures/item/<colour>_bong.png`) and
     block texture (`textures/block/<colour>_bong.png`), and the placed and held bong is one model,
     `models/block/bong_template.json`.
+  - *Bong Voyage* and *Burnout* count a bong of any colour.
+- **A cannabis leaf banner pattern.** Put a hemp leaf in the loom's pattern slot — you keep it — and
+  paint a seven-leaflet leaf onto a banner or a shield, in any of the sixteen colours.
 
 ### Changed
 
@@ -72,6 +126,35 @@ beta be told when the release lands.
   wisp rises from the bowl, and the hit lands when the draw is done. Let go early and nothing is
   spent — no charge, no durability — and the bubbling stops when you do. The pipe and the vaporizer
   still hit on a single click.
+- **Creepers are drawn to hemp.** Now and then a creeper wanders into a grown field under open sky,
+  prowls it for a while and moves on — only some creepers ever do, and only one to a field at a
+  time. A creeper standing in a grown field is very hard to see, so a big farm is worth walling and
+  lighting. Seedlings and roofed farms draw nothing. `creepersSeekHemp` in the config's `world`
+  section turns it off.
+- **Purple Kush's colour is a brighter violet**, so a packed Purple Kush load shows up on every
+  device.
+
+### Notes for pack makers
+
+- **Hash is data.** Hashish, filtered hashish, charas and rosin are strains with no seeds and no
+  flower, so a datapack rebalances them — or adds a resin of its own — in
+  `data/<namespace>/hempdustry/strain/` like any other strain. Strains gain three optional fields,
+  `dose_per_item`, `green_out_factor` and `cough_factor`, and each effect two more,
+  `duration_factor` and `on_exhale`; `seeds` and `flower` are optional now. Every strain file
+  written for 2.0 loads unchanged.
+- **A new recipe type, `hempdustry:pressing`**: one item in, one out. All five Hemp Press recipes
+  are ordinary JSON. The Infuser's `infusing` recipe gains an optional `scorched_hemp` field, and a
+  recipe written for 2.0 still loads.
+- **New tags.** `#hempdustry:siftable/flower`, `siftable/trim`, `siftable/resinous` and
+  `siftable/kief` decide what the Sifting Box takes and how fast it fills.
+  `#hempdustry:hash_cutters` is what cuts a bar — swords, and `#c:tools/knife` for modded knives.
+  `#hempdustry:grow_lamps` (a block tag) is what counts as a Grow Lamp, and
+  `#hempdustry:not_grow_lights` is what is bright but never lights a plant — fire, campfires and
+  lava. The biome tag `#hempdustry:beldia_gen` is where wild Beldía grows, and the leaf's banner
+  pattern hangs off `#hempdustry:pattern_item/hemp_leaf`, so a datapack can add another. Both beds
+  are fed from `#c:fertilizers`.
+- **A placement modifier, `hempdustry:in_beldia_biome`**, checks every plant of a patch rather than
+  the patch's centre, because a patch spreads past the edge of its biome.
 
 ## [Unreleased]
 
