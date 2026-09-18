@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:creeper_seeks_hemp_crop",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 400,
+  "setup_ticks": 0,
+  "required": true
+}
