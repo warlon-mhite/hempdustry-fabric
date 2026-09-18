@@ -89,6 +89,15 @@ release build.)*
   fast. **At the default of 1.0 nothing changes.**
 - **Hemp plants floated a pixel above farmland.** They now sit in it, the way vanilla crops do.
 
+### Known issues
+
+- **With the Villager Trade Rebalance experiment turned on, five chest types hold nothing of ours.**
+  That experiment ships as a datapack and replaces the desert pyramid, mineshaft, outpost, ancient
+  city and jungle temple tables, and this mod deliberately never injects into a datapack's table —
+  a pack that replaces a chest meant to replace it. So in such a world the mineshaft and outpost
+  carry no hemp seeds. Every other chest, and tall grass, are unaffected, and the experiment is off
+  by default.
+
 ## [2.0.0-beta] — 2026-09-03
 
 The first public build of the rewrite, and a beta because most of it has never been played. The

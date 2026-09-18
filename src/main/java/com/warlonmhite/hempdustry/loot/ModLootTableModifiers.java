@@ -173,7 +173,20 @@ public class ModLootTableModifiers {
     public static void modifyLootTables() {
         LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> {
             if (!source.isBuiltin()) {
-                return; // don't touch datapack overrides, only vanilla/mod tables
+                // Don't touch datapack overrides, only vanilla/mod tables: a pack curator who
+                // replaces a chest table meant to replace it, and an injection they cannot see is
+                // not something to hand them.
+                //
+                // KNOWN COST, and do not "fix" it by deleting this guard. Mojang's experimental
+                // feature packs are datapacks too, so Villager Trade Rebalance -- which replaces
+                // desert_pyramid, abandoned_mineshaft, pillager_outpost, ancient_city and
+                // jungle_temple -- arrives here as DATA_PACK, and in such a world those five chests
+                // hold none of ours. LootTableSource has four values (VANILLA, MOD, DATA_PACK,
+                // REPLACED) and none of them tells a Mojang feature pack from a third party's, so
+                // there is no targeted fix through this API; dropping the guard would inject into
+                // every pack's deliberate override instead, which is the worse of the two.
+                // Fabric's game-test world turns every experiment on, which is how this surfaced.
+                return;
             }
             // A pack curator can override a loot *table* with a datapack, but not an injection like
             // this one -- which is exactly why the switch exists. Read per event rather than cached:
