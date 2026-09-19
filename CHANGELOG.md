@@ -92,6 +92,9 @@ release build.)*
   the Infuser's pouring, heat and batch notes, and the cauldron's counts per water level. On
   1.21.11 they were being drawn fully transparent. They show again, and each page is now wide
   enough to hold them in any language. REI was never affected.
+- **Two hemp planks made six sticks from the recipe book, but four when laid in the grid by hand.**
+  Hemp planks now make four sticks like any other planks, however they are crafted. For more sticks
+  out of hemp, make them from stems.
 
 ### Known issues
 
