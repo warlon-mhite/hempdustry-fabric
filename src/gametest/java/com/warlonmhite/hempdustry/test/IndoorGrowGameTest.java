@@ -91,6 +91,16 @@ public final class IndoorGrowGameTest {
         grow(context, 1);
         context.assertTrue(record(context) == GrowLight.STRESSED,
                 "a plant that lost its lamp while flowering recorded " + record(context) + ", not STRESSED");
+        // The upper half carries a copy of the record, because whatever draws a block reads only
+        // that block. A stale copy is put right by the next random tick; the plant is ripe first so
+        // the tick cannot grow it, leaving only the shape check to notice.
+        context.assertTrue(context.getBlockState(CROP.up()).get(GrowLight.PROPERTY) == GrowLight.STRESSED,
+                "a stressed plant's upper half reads " + context.getBlockState(CROP.up()).get(GrowLight.PROPERTY));
+        grow(context, IndicaCropBlock.MAX_AGE);
+        context.setBlockState(CROP.up(), context.getBlockState(CROP.up()).with(GrowLight.PROPERTY, GrowLight.NATURAL));
+        world.getBlockState(pos).randomTick(world, pos, world.getRandom());
+        context.assertTrue(context.getBlockState(CROP.up()).get(GrowLight.PROPERTY) == GrowLight.STRESSED,
+                "a random tick left a stale upper half reading " + context.getBlockState(CROP.up()).get(GrowLight.PROPERTY));
 
         plant(context, litGrowLamp());
         grow(context, 2);
@@ -122,6 +132,35 @@ public final class IndoorGrowGameTest {
         int plainLeaves = trimLeaves(context, player, GrowLight.LAMP);
         context.assertTrue(lampLeaves == 2, "trimming a Grow Lamp plant dropped " + lampLeaves + " leaves, not 2");
         context.assertTrue(plainLeaves == 1, "trimming a lamp plant dropped " + plainLeaves + " leaves, not 1");
+
+        // Lemon Haze stands three tall, so both the MIDDLE and the UPPER carry a copy — in a column of
+        // its own, out of reach of anything above.
+        BlockPos haze = CROP.east(3);
+        BlockPos hazePos = context.getAbsolutePos(haze);
+        context.setBlockState(haze.down(), Blocks.FARMLAND);
+        context.setBlockState(haze, ModBlocks.SATIVA_CROP.getDefaultState());
+        context.setBlockState(haze.up(4), Blocks.REDSTONE_BLOCK);
+        context.setBlockState(haze.up(3), litGrowLamp());
+        grow(context, haze, GrowLight.FLOWERING_AGE);
+        context.setBlockState(haze.up(3), Blocks.AIR);
+        grow(context, haze, SativaCropBlock.MAX_AGE);
+        context.assertTrue(context.getBlockState(haze).get(GrowLight.PROPERTY) == GrowLight.STRESSED
+                        && context.getBlockState(haze.up(2)).isOf(ModBlocks.SATIVA_CROP),
+                "Lemon Haze did not grow three tall and stressed, so this probe proves nothing");
+        for (int y = 1; y <= 2; y++) {
+            GrowLight copy = context.getBlockState(haze.up(y)).get(GrowLight.PROPERTY);
+            context.assertTrue(copy == GrowLight.STRESSED, "a stressed Lemon Haze reads " + copy + " " + y + " up");
+        }
+        // Both copies stale, as on a plant grown before the copy existed: one right copy alone would
+        // trip a shape check that had stopped comparing the record, and hide it.
+        for (int y = 1; y <= 2; y++) {
+            context.setBlockState(haze.up(y), context.getBlockState(haze.up(y)).with(GrowLight.PROPERTY, GrowLight.NATURAL));
+        }
+        world.getBlockState(hazePos).randomTick(world, hazePos, world.getRandom());
+        for (int y = 1; y <= 2; y++) {
+            GrowLight copy = context.getBlockState(haze.up(y)).get(GrowLight.PROPERTY);
+            context.assertTrue(copy == GrowLight.STRESSED, "a random tick left Lemon Haze reading " + copy + " " + y + " up");
+        }
         context.complete();
     }
 
@@ -507,8 +546,12 @@ public final class IndoorGrowGameTest {
 
     /** {@code steps} growth steps through applyGrowth — bone meal's path, without its 1-in-3 miss. */
     private static void grow(TestContext context, int steps) {
+        grow(context, CROP, steps);
+    }
+
+    private static void grow(TestContext context, BlockPos crop, int steps) {
         ServerWorld world = context.getWorld();
-        BlockPos pos = context.getAbsolutePos(CROP);
+        BlockPos pos = context.getAbsolutePos(crop);
         for (int i = 0; i < steps; i++) {
             BlockState state = world.getBlockState(pos);
             ((CropBlock) state.getBlock()).applyGrowth(world, pos, state);

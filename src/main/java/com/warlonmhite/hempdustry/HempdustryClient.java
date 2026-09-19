@@ -2,7 +2,6 @@ package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
-import net.minecraft.util.math.BlockPos;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
 import com.warlonmhite.hempdustry.client.item.StrainTintSource;
@@ -17,7 +16,6 @@ import com.warlonmhite.hempdustry.client.particle.AromaParticle;
 import com.warlonmhite.hempdustry.client.sound.BongDrawSoundInstance;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
@@ -123,7 +121,7 @@ public class HempdustryClient implements ClientModInitializer {
      * <p>Break and step particles follow this automatically — {@code BlockDustParticle} multiplies
      * itself by {@code BlockColors.getColor(state, world, pos, 0)} — <b>but they are coloured with
      * the broken state, not the world's</b>: by then {@code pos} may hold air on this client. So a
-     * provider here trusts {@code state}, and reads the world only after checking what is there.
+     * provider here reads the plant off {@code state} and asks the world for nothing but its biome.
      *
      * <p>Returning ARGB is deliberate but, unlike the item tint above, the alpha byte is
      * <em>ignored</em> here — {@code BlockModelRenderer} reads only the three colour bytes off a
@@ -141,8 +139,9 @@ public class HempdustryClient implements ClientModInitializer {
         }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
                 ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
         // The crops take the same biome tint, then show the light they grew under: a lamp-grown
-        // plant a shade deeper, a stressed one yellowed. No models — the tint is a multiply per quad,
-        // and the record is on the LOWER, so an upper segment walks down to find it.
+        // plant a shade deeper, a stressed one yellowed. No models — the tint is a multiply per quad.
+        // Every segment carries a copy of the record, so this reads the state it was handed and never
+        // the world: that is also the broken state a break particle is coloured with.
         ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> {
             if (tintIndex != 0 || view == null || pos == null) {
                 return NO_TINT;
@@ -151,17 +150,7 @@ public class HempdustryClient implements ClientModInitializer {
             // cue: a desert's grass colour is a dry olive that would turn a sand-grown plant to straw
             // (and a potted one would change colour with the room it stands in).
             int tint = state.isOf(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getGrassColor(view, pos));
-            BlockPos lower = pos;
-            for (int i = 0; i < 2 && view.getBlockState(lower.down()).isOf(state.getBlock()); i++) {
-                lower = lower.down();
-            }
-            // The record is read off the world only while the world still holds the plant. A break
-            // particle is coloured with the state that was broken, and on this client that block can
-            // already be gone -- a chunk not loaded yet (break events reach everyone within 64
-            // blocks), or a plant placed and broken inside one tick. An unguarded get() there throws
-            // inside packet handling and disconnects the player; the broken state is the record left.
-            BlockState below = view.getBlockState(lower);
-            GrowLight light = (below.isOf(state.getBlock()) ? below : state).get(GrowLight.PROPERTY);
+            GrowLight light = state.get(GrowLight.PROPERTY);
             if (light == GrowLight.STRESSED) {
                 return ColorHelper.lerp(0.45F, tint, STRESSED_TINT);
             }
