@@ -100,6 +100,14 @@ public class SativaCropBlock extends CropBlock {
         return this.getDefaultState().with(this.getAgeProperty(), age).with(SEGMENT, segment);
     }
 
+    /**
+     * A segment above the LOWER, carrying a copy of the plant's light record, for the same reason as
+     * on {@link IndicaCropBlock}: whatever draws a block reads only that block.
+     */
+    private BlockState stateFor(int age, TriplePlantSegment segment, GrowLight light) {
+        return this.stateFor(age, segment).with(GrowLight.PROPERTY, light);
+    }
+
     /** Farmland, or one of the mod's beds — a Grow Pot or a Hydro Tray. */
     @Override
     protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
@@ -245,7 +253,7 @@ public class SativaCropBlock extends CropBlock {
         // writes themselves did nothing (an identical state early-outs in WorldChunk#setBlockState)
         // but each still paid a chunk lookup. isShapeSettled answers the same question in one or
         // two block reads.
-        if (grown != age || !this.isShapeSettled(world, pos, age)) {
+        if (grown != age || !this.isShapeSettled(world, pos, age, state.get(GrowLight.PROPERTY))) {
             this.setAge(world, pos, grown);
         }
     }
@@ -259,9 +267,9 @@ public class SativaCropBlock extends CropBlock {
      * <em>exactly</em> "setAge would be a no-op", and two separately-worded versions of that would
      * drift the first time the height table changed. (The LOWER needs no check — setAge writes it
      * back through {@link Defoliation#carryOver}, which at an unchanged age reproduces the state
-     * that is already there.)
+     * that is already there.) {@code light} is the LOWER's record, which every segment above copies.
      */
-    private boolean isShapeSettled(WorldView world, BlockPos pos, int age) {
+    private boolean isShapeSettled(WorldView world, BlockPos pos, int age, GrowLight light) {
         if (age < TWO_TALL_AGE) {
             return true; // a single stalk: nothing above is ever written this young
         }
@@ -272,13 +280,13 @@ public class SativaCropBlock extends CropBlock {
         if (age >= THREE_TALL_AGE) {
             BlockState top = world.getBlockState(pos.up(2));
             if (canOccupy(top)) {
-                return mid == this.stateFor(age, TriplePlantSegment.MIDDLE)
-                        && top == this.stateFor(age, TriplePlantSegment.UPPER);
+                return mid == this.stateFor(age, TriplePlantSegment.MIDDLE, light)
+                        && top == this.stateFor(age, TriplePlantSegment.UPPER, light);
             }
         }
         // Two tall — either because that is all the age calls for, or because the third block is
         // blocked and setAge falls back to the two-tall branch.
-        return mid == this.stateFor(age, TriplePlantSegment.UPPER);
+        return mid == this.stateFor(age, TriplePlantSegment.UPPER, light);
     }
 
     // Bonemeal path: CropBlock.grow() calls applyGrowth() on the targeted block. Only the LOWER
@@ -344,14 +352,15 @@ public class SativaCropBlock extends CropBlock {
         BlockPos midPos = pos.up();
         BlockPos topPos = pos.up(2);
         boolean midFree = this.canOccupy(world, midPos);
+        GrowLight light = lower.get(GrowLight.PROPERTY);
 
         if (newAge >= THREE_TALL_AGE && midFree && this.canOccupy(world, topPos)) {
             // Bottom-up: the new UPPER needs the MIDDLE under it to already be in place, otherwise
             // its canPlaceAt fails and the neighbour update wipes it straight back out.
-            world.setBlockState(midPos, this.stateFor(newAge, TriplePlantSegment.MIDDLE), Block.NOTIFY_LISTENERS);
-            world.setBlockState(topPos, this.stateFor(newAge, TriplePlantSegment.UPPER), Block.NOTIFY_LISTENERS);
+            world.setBlockState(midPos, this.stateFor(newAge, TriplePlantSegment.MIDDLE, light), Block.NOTIFY_LISTENERS);
+            world.setBlockState(topPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.NOTIFY_LISTENERS);
         } else if (newAge >= TWO_TALL_AGE && midFree) {
-            world.setBlockState(midPos, this.stateFor(newAge, TriplePlantSegment.UPPER), Block.NOTIFY_LISTENERS);
+            world.setBlockState(midPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.NOTIFY_LISTENERS);
         }
     }
 

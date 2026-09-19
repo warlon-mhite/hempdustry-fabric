@@ -10,7 +10,8 @@ import net.minecraft.world.BlockView;
 
 /**
  * The light a hemp plant grew under — a <b>record the plant keeps</b>, never a reading of the lamp
- * at harvest. Canonical on the LOWER segment, like the age and the trim flags.
+ * at harvest. Canonical on the LOWER segment, like the age and the trim flags, and copied onto every
+ * segment above it, because whatever draws a block reads only that block.
  *
  * <p>The first growth step writes the tier overhead. Every later step, natural or bone meal, can
  * only <b>lower</b> it to the weakest light the plant has grown under; losing the light entirely
