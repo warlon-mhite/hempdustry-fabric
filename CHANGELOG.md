@@ -62,6 +62,10 @@ beta be told when the release lands.
   Lemon Haze faster than asked. It now scales the growth chance itself, so 2.0 really is twice as
   fast. **At the default of 1.0 nothing changes.**
 - **Hemp plants floated a pixel above farmland.** They now sit in it, the way vanilla crops do.
+- **Hemp planks now make four sticks, like any other planks.** A recipe for six sat on exactly the
+  same grid as vanilla's, so which one you got depended on how you crafted: the recipe book picks the
+  one you clicked, the grid by hand picks whichever matches first. For more sticks out of hemp, make
+  them from stems.
 
 ### Known issues
 

@@ -737,13 +737,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .input('#', ModItems.HEMP_STEM)
                 .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
                 .offerTo(exporter, id("stick_from_stem"));
-
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, Items.STICK, 6)
-                .pattern("#")
-                .pattern("#")
-                .input('#', ModBlocks.HEMP_PLANKS)
-                .criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS))
-                .offerTo(exporter, id("stick_from_planks"));
+        // No stick recipe of our own for hemp planks: they are #minecraft:planks, so vanilla's makes
+        // four from them like any planks. A "2 hemp planks -> 6" recipe used to sit here on the same
+        // grid as vanilla's, and which one crafted depended on the recipe book or the hand.
 
         // ---------------------------------------------------------------------
         // Hempcrete-dyed concrete powders (8 hempcrete + 1 dye -> 4 powder).
