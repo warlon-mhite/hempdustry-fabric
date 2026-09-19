@@ -88,6 +88,10 @@ release build.)*
   Lemon Haze faster than asked. It now scales the growth chance itself, so 2.0 really is twice as
   fast. **At the default of 1.0 nothing changes.**
 - **Hemp plants floated a pixel above farmland.** They now sit in it, the way vanilla crops do.
+- **JEI's recipe pages had lost every note under their recipes**: the fuel and cooking time,
+  the Infuser's pouring, heat and batch notes, and the cauldron's counts per water level. On
+  1.21.11 they were being drawn fully transparent. They show again, and each page is now wide
+  enough to hold them in any language. REI was never affected.
 
 ### Known issues
 
