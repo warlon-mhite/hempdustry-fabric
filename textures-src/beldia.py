@@ -166,6 +166,55 @@ def age7():
                    ".s.."])
     return cv
 
+# ---- stressed: the same plant, light-starved ----
+# A flowering plant that loses its light goes hermaphrodite (the yellow anthers) and cannot hold its
+# colour: the leaves yellow from the light ones down, and the oldest, lowest tips die off dry and
+# brown. Same shapes, sick palette -- so a player reads the state off the colour, not the silhouette.
+PAL_STRESSED = """k = 6D6F2A
+d = 898C32
+m = A9AD3B
+l = BCC054
+p = CBCE7B
+c = C7CA83
+g = B5B85A
+y = D7C67A
+u = BEA751
+b = F2E04A
+n = 8A6A33"""
+
+PISTILS = ('a', 'f')   # amber once ripe, white while it flowers
+
+
+def sicken(cv, anthers=4, dead=3):
+    """A copy of the canvas with anthers set beside the pistils and dead flecks on the lowest tips."""
+    cv = [row[:] for row in cv]
+    filled = lambda x, y: 0 <= x < W and 0 <= y < H and cv[y][x] != '.'
+    near = lambda x, y, chars: any(filled(x + dx, y + dy) and cv[y + dy][x + dx] in chars
+                                   for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+    spread = lambda picked, x, y, d: all(max(abs(x - px), abs(y - py)) >= d for px, py in picked)
+
+    picked = []
+    for y in range(H):
+        for x in range(W):
+            if len(picked) < anthers and filled(x, y) and cv[y][x] not in PISTILS \
+                    and near(x, y, PISTILS) and spread(picked, x, y, 2):
+                picked.append((x, y))
+    for x, y in picked:
+        cv[y][x] = 'b'
+
+    tips = []
+    for y in range(H - 1, -1, -1):          # lowest leaves first: they are the oldest
+        for x in range(W):
+            if len(tips) < dead and filled(x, y) and cv[y][x] not in PISTILS + ('s', 't', 'b') \
+                    and sum(not filled(x + dx, y + dy)
+                            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))) >= 2 \
+                    and spread(tips, x, y, 3):
+                tips.append((x, y))
+    for x, y in tips:
+        cv[y][x] = 'n'
+    return cv
+
+
 HEAD = """# Beldía -- the crop, eight ages. Drawn for Hempdustry 2 (not a placeholder), UNTINTED: the models
 # parent hempdustry:block/tinted_crop only so the light record's lamp and stress cue can multiply it;
 # the biome is skipped for this block in HempdustryClient, so these colours are what a player sees.
@@ -189,6 +238,19 @@ emit('beldia_age4', age4(), [('beldia_crop_stage8',0),('beldia_crop_stage4',16)]
 emit('beldia_age5', age5(), [('beldia_crop_stage9',0),('beldia_crop_stage5',16)], out)
 emit('beldia_age6', age6(), [('beldia_crop_stage10',0),('beldia_crop_stage6',16)], out)
 emit('beldia_age7', age7(), [('beldia_crop_stage11',0),('beldia_crop_stage7',16)], out)
+
+# The flowering ages again, light-starved: a plant can only be stressed from age 4 (GrowLight).
+out += ['@palette beldia_stressed extends=beldia', PAL_STRESSED, '']
+for age, build, (upper, lower) in ((4, age4, (8, 4)), (5, age5, (9, 5)),
+                                   (6, age6, (10, 6)), (7, age7, (11, 7))):
+    ripe = age >= 6      # anthers need flowers to sit in
+    out.append('@sheet beldia_age%d_stressed %dx%d palette=beldia_stressed' % (age, W, H))
+    cv = sicken(build(), anthers=4 if ripe else 0, dead=4)
+    out.extend(''.join(r) for r in cv)
+    out.append('')
+    out.append('@slice block/beldia_crop_stage%d_stressed 0 0 16 16 type=plant' % upper)
+    out.append('@slice block/beldia_crop_stage%d_stressed 0 16 16 16 type=plant' % lower)
+    out.append('')
 
 ITEMS = """# ---- items ----
 # The BUDS are Warlon Mhite's hand-drawn Purple Kush bud, traced pixel for pixel, under a Beldía palette:
