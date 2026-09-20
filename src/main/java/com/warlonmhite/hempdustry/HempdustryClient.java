@@ -91,8 +91,6 @@ public class HempdustryClient implements ClientModInitializer {
 
     /** Neutral white: multiplied into a texel it changes nothing, which is what "no tint" means. */
     private static final int NO_TINT = 0xFFFFFF;
-    /** Where a stressed plant's tint is pulled: yellowing, the grower's first sign of a sick plant. */
-    private static final int STRESSED_TINT = 0xD9C35A;
     /** Where a lamp-grown plant's tint is pulled: a deeper, bluer green. */
     private static final int LAMP_GROWN_TINT = 0x3C7A56;
 
@@ -139,7 +137,9 @@ public class HempdustryClient implements ClientModInitializer {
         }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
                 ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
         // The crops take the same biome tint, then show the light they grew under: a lamp-grown
-        // plant a shade deeper, a stressed one yellowed. No models — the tint is a multiply per quad.
+        // plant a shade deeper. A STRESSED plant is not tinted at all — it has textures of its own,
+        // because a tint is a multiply and a multiply cannot bleach Purple Kush's dark flowers; the
+        // blockstate picks those, and a second yellow cue on top would only muddy them.
         // Every segment carries a copy of the record, so this reads the state it was handed and never
         // the world: that is also the broken state a break particle is coloured with.
         ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> {
@@ -151,10 +151,8 @@ public class HempdustryClient implements ClientModInitializer {
             // (and a potted one would change colour with the room it stands in).
             int tint = state.isOf(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getGrassColor(view, pos));
             GrowLight light = state.get(GrowLight.PROPERTY);
-            if (light == GrowLight.STRESSED) {
-                return ColorHelper.lerp(0.45F, tint, STRESSED_TINT);
-            }
-            return light.artificial() ? ColorHelper.lerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
+            return light.artificial() && light != GrowLight.STRESSED
+                    ? ColorHelper.lerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
         }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
