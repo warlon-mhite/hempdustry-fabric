@@ -104,12 +104,17 @@ public final class SchwagGameTest {
      */
     public static void cropLootTablesValidateClean(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        for (BlockState ripe : ripeLowers()) {
+        List<net.minecraft.world.level.block.Block> crops = new ArrayList<>();
+        ripeLowers().forEach(ripe -> crops.add(ripe.getBlock()));
+        // The fibre crop and its wild form carry schwag pools of their own, alternatives included.
+        crops.add(ModBlocks.INDUSTRIAL_HEMP_CROP);
+        crops.add(ModBlocks.DITCHWEED);
+        for (net.minecraft.world.level.block.Block crop : crops) {
             LootTable table = world.getServer().reloadableRegistries()
-                    .getLootTable(ripe.getBlock().getLootTable().orElseThrow());
+                    .getLootTable(crop.getLootTable().orElseThrow());
             ProblemReporter.Collector errors = new ProblemReporter.Collector();
             table.validate(new ValidationContext(errors, LootContextParamSets.BLOCK));
-            context.assertTrue(errors.isEmpty(), ripe.getBlock().getDescriptionId()
+            context.assertTrue(errors.isEmpty(), crop.getDescriptionId()
                     + "'s loot table does not validate: " + errors.getReport());
         }
         context.succeed();
@@ -269,7 +274,11 @@ public final class SchwagGameTest {
                         .setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE)),
                 Defoliation.unworked(ModBlocks.SATIVA_CROP.defaultBlockState()
                         .setValue(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER)
-                        .setValue(SativaCropBlock.AGE, SativaCropBlock.MAX_AGE)));
+                        .setValue(SativaCropBlock.AGE, SativaCropBlock.MAX_AGE)),
+                // Its own table builder would be a hole nobody noticed: every plant strain spoils.
+                Defoliation.unworked(ModBlocks.WARPED_KUSH_CROP.defaultBlockState()
+                        .setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER)
+                        .setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE)));
     }
 
     /** {buds, schwag} from one roll of the plant's own table, harvested with Fortune {@code level}. */
@@ -288,7 +297,8 @@ public final class SchwagGameTest {
                 .withParameter(LootContextParams.TOOL, tool)
                 .create(LootContextParamSets.BLOCK);
         Item buds = state.is(ModBlocks.INDICA_CROP) ? ModItems.INDICA_BUDS
-                : state.is(ModBlocks.BELDIA_CROP) ? ModItems.BELDIA_BUDS : ModItems.SATIVA_BUDS;
+                : state.is(ModBlocks.BELDIA_CROP) ? ModItems.BELDIA_BUDS
+                : state.is(ModBlocks.WARPED_KUSH_CROP) ? ModItems.WARPED_KUSH_BUDS : ModItems.SATIVA_BUDS;
         int[] counts = new int[2];
         for (ItemStack stack : table.getRandomItems(params, seed)) {
             if (stack.is(buds)) {

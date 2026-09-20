@@ -40,14 +40,22 @@ public final class LootGameTest {
     private static final int ROLLS = 1000;
     private static final BlockPos AT = new BlockPos(1, 1, 1);
 
+    /** Every strain found anywhere in the overworld: the fibre crop too, which a village would grow. */
     private static final Predicate<ItemStack> PLAIN_SEEDS =
-            s -> s.is(ModItems.INDICA_SEEDS) || s.is(ModItems.SATIVA_SEEDS);
+            s -> s.is(ModItems.INDICA_SEEDS) || s.is(ModItems.SATIVA_SEEDS) || s.is(ModItems.INDUSTRIAL_HEMP_SEEDS);
+    /** Seeds found only where they belong, which no village house may hold. */
+    private static final Predicate<ItemStack> REGION_BOUND_SEEDS =
+            s -> s.is(ModItems.WARPED_KUSH_SEEDS);
 
     public static void hempTurnsUpWhereItWasKept(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         // Plains and taiga houses: a rare find, a roll at 10%.
         expect(context, BuiltInLootTables.VILLAGE_PLAINS_HOUSE, PLAIN_SEEDS, 60, 140, "a plains village house held hemp seeds");
         expect(context, BuiltInLootTables.VILLAGE_TAIGA_HOUSE, PLAIN_SEEDS, 60, 140, "a taiga village house held hemp seeds");
+        expect(context, BuiltInLootTables.VILLAGE_PLAINS_HOUSE, REGION_BOUND_SEEDS, 0, 0,
+                "a plains village house held a region-bound strain's seeds");
+        expect(context, BuiltInLootTables.VILLAGE_TAIGA_HOUSE, REGION_BOUND_SEEDS, 0, 0,
+                "a taiga village house held a region-bound strain's seeds");
         // The desert house: Beldía's alone, as rare.
         expect(context, BuiltInLootTables.VILLAGE_DESERT_HOUSE, s -> s.is(ModItems.BELDIA_SEEDS), 60, 140,
                 "a desert village house held Beldía seeds");
