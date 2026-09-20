@@ -1,21 +1,236 @@
 {
-  "variants": {
-    "half=lower,age=0": { "model": "hempdustry:block/beldia_crop_stage0" },
-    "half=lower,age=1": { "model": "hempdustry:block/beldia_crop_stage1" },
-    "half=lower,age=2": { "model": "hempdustry:block/beldia_crop_stage2" },
-    "half=lower,age=3": { "model": "hempdustry:block/beldia_crop_stage3" },
-    "half=lower,age=4": { "model": "hempdustry:block/beldia_crop_stage4" },
-    "half=lower,age=5": { "model": "hempdustry:block/beldia_crop_stage5" },
-    "half=lower,age=6": { "model": "hempdustry:block/beldia_crop_stage6" },
-    "half=lower,age=7": { "model": "hempdustry:block/beldia_crop_stage7" },
-
-    "half=upper,age=0": { "model": "hempdustry:block/beldia_crop_stage8" },
-    "half=upper,age=1": { "model": "hempdustry:block/beldia_crop_stage8" },
-    "half=upper,age=2": { "model": "hempdustry:block/beldia_crop_stage8" },
-    "half=upper,age=3": { "model": "hempdustry:block/beldia_crop_stage8" },
-    "half=upper,age=4": { "model": "hempdustry:block/beldia_crop_stage8" },
-    "half=upper,age=5": { "model": "hempdustry:block/beldia_crop_stage9" },
-    "half=upper,age=6": { "model": "hempdustry:block/beldia_crop_stage10" },
-    "half=upper,age=7": { "model": "hempdustry:block/beldia_crop_stage11" }
-  }
+  "multipart": [
+    {
+      "when": {
+        "half": "lower",
+        "age": "0"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage0"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "0"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage8"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "1"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage1"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "1"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage8"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "2"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage2"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "2"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage8"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "3"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage3"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "3"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage8"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "4",
+        "light": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage4"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "4",
+        "light": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage4_stressed"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "4",
+        "light": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage8"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "4",
+        "light": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage8_stressed"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "5",
+        "light": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage5"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "5",
+        "light": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage5_stressed"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "5",
+        "light": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage9"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "5",
+        "light": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage9_stressed"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "6",
+        "light": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage6"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "6",
+        "light": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage6_stressed"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "6",
+        "light": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage10"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "6",
+        "light": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage10_stressed"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "7",
+        "light": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage7"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "7",
+        "light": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage7_stressed"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "7",
+        "light": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage11"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "7",
+        "light": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/beldia_crop_stage11_stressed"
+      }
+    }
+  ]
 }

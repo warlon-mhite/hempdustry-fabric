@@ -82,8 +82,10 @@ beta be told when the release lands.
     the weakest of it — hanging a lamp over a finished plant does nothing, and one lamp cannot be
     carried from plant to plant. **Lose the light while a plant is flowering and it stresses**: a
     bud short at harvest, and two seeds in its place. Plants grown under any lamp give charas
-    half as often; charas is a field craft. A lamp-grown plant looks a shade deeper green, a
-    stressed one yellowed.
+    half as often; charas is a field craft. A lamp-grown plant looks a shade deeper green, and a
+    **stressed one is drawn differently**: its colour drains — Purple Kush's purple fades to a
+    sickly green — the oldest leaves yellow and die back brown, and yellow anthers show in the
+    flowers, which is where the seeds come from.
 - **A Hydro Tray, for growing at twice the pace.** Craft it from a Grow Pot, four copper ingots and
   a redstone dust. Fill it with a **water bucket**, mix in **fertiliser**, and give it a **redstone
   signal** — that is the pump — and hemp in it grows **twice as fast as the best field** (about 12

@@ -27,6 +27,34 @@ ASSETS = [ROOT / "src/main/resources/assets/hempdustry", GENERATED / "assets/hem
 
 # Blockstate properties that mean "which slice of a multi-block plant is this".
 SEGMENT_PROPERTIES = ("half", "segment")
+# ...but a door and a stairs block carry "half" too, and neither is a plant: a door drops from one
+# half by vanilla's own rule, and a stairs block is one block. A plant does not face anywhere, so
+# the absence of "facing" is what tells them apart.
+NOT_A_PLANT = ("facing",)
+
+
+def state_properties(definition):
+    """Every property a blockstate file selects on, in either form it can be written.
+
+    A `variants` map keys on "half=lower,age=7"; a `multipart` list keys on {"half": "lower"},
+    optionally nested under AND/OR. Reading only the first form is how this check silently stopped
+    covering the three crops the day their blockstates became multipart -- it reported the plants it
+    still knew about and said nothing about the ones it had lost."""
+    props = set()
+    for key in definition.get("variants", {}):
+        props.update(part.split("=")[0] for part in key.split(",") if "=" in part)
+
+    def walk(when):
+        for key, value in when.items():
+            if key in ("AND", "OR"):
+                for clause in value:
+                    walk(clause)
+            else:
+                props.add(key)
+
+    for part in definition.get("multipart", []):
+        walk(part.get("when", {}))
+    return props
 
 
 def multi_block_plants():
@@ -34,7 +62,9 @@ def multi_block_plants():
     found = {}
     for assets in ASSETS:
         for state in sorted((assets / "blockstates").glob("*.json")):
-            keys = set(re.findall(r"\"([a-z_]+)=", state.read_text(encoding="utf-8")))
+            keys = state_properties(json.loads(state.read_text(encoding="utf-8")))
+            if keys.intersection(NOT_A_PLANT):
+                continue
             for prop in SEGMENT_PROPERTIES:
                 if prop in keys:
                     found[state.stem] = prop
