@@ -1,0 +1,34 @@
+{
+  "parent": "hempdustry:its_not_pollen",
+  "criteria": {
+    "has_bubble_hash": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:bubble_hash"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.see_you_ice_o_later.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:bubble_hash"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.see_you_ice_o_later.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_bubble_hash"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,87 @@
+{
+  "parent": "hempdustry:its_not_pollen",
+  "criteria": {
+    "has_bubble_hash": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:bubble_hash"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_charas": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:charas"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_filtered_hashish": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:filtered_hashish"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_hashish": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:hashish"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_rosin": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:rosin"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.around_the_world_in_80_grams.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:compass"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.around_the_world_in_80_grams.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_charas"
+    ],
+    [
+      "has_hashish"
+    ],
+    [
+      "has_filtered_hashish"
+    ],
+    [
+      "has_bubble_hash"
+    ],
+    [
+      "has_rosin"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

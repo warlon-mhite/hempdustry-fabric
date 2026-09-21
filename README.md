@@ -121,7 +121,7 @@ Hemp is a fibre crop first, and the mod treats it that way.
 
 ### Odds and ends
 
-Six paintings, two music discs with original tracks by **Nefuß**, twenty-four advancements, **recipe
+Six paintings, two music discs with original tracks by **Nefuß**, forty-two advancements, **recipe
 pages in both JEI and REI** (including the cauldron steps, which are not recipes and which nothing
 else can show you), and full
 translations in twelve locales

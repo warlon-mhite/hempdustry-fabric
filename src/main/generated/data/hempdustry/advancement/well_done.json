@@ -1,0 +1,34 @@
+{
+  "parent": "hempdustry:trim_season",
+  "criteria": {
+    "has_scorched_hemp": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:scorched_hemp"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.well_done.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:scorched_hemp"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.well_done.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_scorched_hemp"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -5,10 +5,12 @@ import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.advancement.SmokeCriterion;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.Quality;
+import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
@@ -38,6 +40,7 @@ import net.minecraft.predicate.NumberRange;
 import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.predicate.entity.LocationPredicate;
 import net.minecraft.predicate.item.ItemPredicate;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryEntryLookup;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
@@ -151,11 +154,19 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // The strains' sour sibling, beside them: nobody grows schwag, so it has no node of its own
         // in the cultivation branch. Vanilla's poisonous potato earns its keep the same way, as a
         // line in A Balanced Diet. Obtaining it is the whole criterion -- from a harvest or a wreck.
-        Advancement.Builder.create()
+        AdvancementEntry schwag = Advancement.Builder.create()
                 .display(display(ModItems.SCHWAG, "schwag", AdvancementFrame.TASK))
                 .criterion("has_schwag", InventoryChangedCriterion.Conditions.items(ModItems.SCHWAG))
                 .parent(rootAdvancement)
                 .build(consumer, Hempdustry.MOD_ID + ":schwag");
+
+        // Beldía's node sits with the other two strains. Obtaining the buds is the criterion, so a
+        // wild desert plant counts as much as a grown one.
+        Advancement.Builder.create()
+                .display(display(ModItems.BELDIA_BUDS, "kif_country", AdvancementFrame.TASK))
+                .criterion("has_beldia_buds", InventoryChangedCriterion.Conditions.items(ModItems.BELDIA_BUDS))
+                .parent(rootAdvancement)
+                .build(consumer, Hempdustry.MOD_ID + ":kif_country");
 
         // ---------------------------------------------------------------------
         // Cultivation
@@ -210,6 +221,24 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .criterion("harvested_fully_trimmed", HarvestHempCriterion.Conditions.fullyTrimmed())
                 .parent(trimSeason)
                 .build(consumer, Hempdustry.MOD_ID + ":perfect_cut");
+
+        // Charas only comes off a ripe plant met with shears, and at 1 in 4 a player who tried it
+        // once and got nothing has no reason to try again. The description is what teaches it.
+        Advancement.Builder.create()
+                .display(display(ModItems.CHARAS, "sticky_fingers", AdvancementFrame.TASK))
+                .criterion("has_charas", InventoryChangedCriterion.Conditions.items(ModItems.CHARAS))
+                .parent(trimSeason)
+                .build(consumer, Hempdustry.MOD_ID + ":sticky_fingers");
+
+        // The furnace road into the Infuser: a leaf and a furnace, no bricks at all, which is why it
+        // hangs here, where leaves first pile up. Obtaining the item is the criterion — the
+        // Vaporizer's spent bowl grants it too — exactly as vanilla's "Acquire Hardware" says
+        // "Smelt an Iron Ingot" and fires on any iron ingot.
+        Advancement.Builder.create()
+                .display(display(ModItems.SCORCHED_HEMP, "well_done", AdvancementFrame.TASK))
+                .criterion("has_scorched_hemp", InventoryChangedCriterion.Conditions.items(ModItems.SCORCHED_HEMP))
+                .parent(trimSeason)
+                .build(consumer, Hempdustry.MOD_ID + ":well_done");
 
         // Two criteria, ANDed (which is what an advancement does with several criteria by default),
         // because neither says the whole thing on its own. minecraft:tame_animal carries no item —
@@ -312,6 +341,20 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .parent(pipeDream)
                 .build(consumer, Hempdustry.MOD_ID + ":burnout");
 
+        Advancement.Builder.create()
+                .display(display(ModItems.VAPORIZER, "vapor_trail", AdvancementFrame.TASK))
+                .criterion("smoked_a_vaporizer", SmokeCriterion.Conditions.with(registryLookup, ModItems.VAPORIZER))
+                .parent(firstContact)
+                .build(consumer, Hempdustry.MOD_ID + ":vapor_trail");
+
+        // A joke, so hidden, and under the schwag node rather than First Contact: smoking it needs
+        // it first. Keyed on the strain, not the device, so any smokeable counts.
+        Advancement.Builder.create()
+                .display(display(Items.EMERALD, "you_get_what_you_pay_for", AdvancementFrame.TASK, true))
+                .criterion("smoked_schwag", SmokeCriterion.Conditions.of(ModStrains.SCHWAG))
+                .parent(schwag)
+                .build(consumer, Hempdustry.MOD_ID + ":you_get_what_you_pay_for");
+
         // ---------------------------------------------------------------------
         // Industry
         // ---------------------------------------------------------------------
@@ -328,9 +371,49 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .parent(hemprepreneurs)
                 .build(consumer, Hempdustry.MOD_ID + ":hemp_builder");
 
-        // The mod's only GOAL, and it earns it the way vanilla's create_full_beacon does: the
-        // Decarboxylator is 7 hemp bricks *blocks* — 504 hemp stem, roughly 252 indica or 126 sativa
-        // mature plants. Everything else in this tree is a TASK by comparison.
+        // ---------------------------------------------------------------------
+        // Growing indoors
+        // ---------------------------------------------------------------------
+
+        // Under Hemp Builder because the pot is hemp bricks round dirt: a node hangs under what the
+        // player must already have done, so everything indoors follows from the bricks.
+        AdvancementEntry pothead = Advancement.Builder.create()
+                .display(display(ModBlocks.GROW_POT, "pothead", AdvancementFrame.TASK))
+                .criterion("placed_a_grow_pot", ItemCriterion.Conditions.createPlacedBlock(ModBlocks.GROW_POT))
+                .parent(hempBuilder)
+                .build(consumer, Hempdustry.MOD_ID + ":pothead");
+
+        // Siblings, because a tray needs a pot and no lamp. Both read the plant, never the room: the
+        // light is the record the plant kept (a lamp moved over at the end changes nothing), and the
+        // bed is the block the plant stood on when it was broken.
+        BlockPredicate.Builder hydroTray = BlockPredicate.Builder.create()
+                .blocks(registryLookup.getOrThrow(RegistryKeys.BLOCK), ModBlocks.HYDRO_TRAY);
+        Advancement.Builder.create()
+                .display(display(ModBlocks.HYDRO_TRAY, "sea_of_green", AdvancementFrame.TASK))
+                .criterion("harvested_from_a_tray", HarvestHempCriterion.Conditions.grownIn(hydroTray))
+                .parent(pothead)
+                .build(consumer, Hempdustry.MOD_ID + ":sea_of_green");
+
+        AdvancementEntry midnightSun = Advancement.Builder.create()
+                .display(display(ModBlocks.GROW_LAMP, "midnight_sun", AdvancementFrame.TASK))
+                .criterion("harvested_under_a_grow_lamp", HarvestHempCriterion.Conditions.grownUnder(GrowLight.GROW_LAMP))
+                .parent(pothead)
+                .build(consumer, Hempdustry.MOD_ID + ":midnight_sun");
+
+        // The second GOAL. Everything the indoor set offers, on one plant: trimmed in both windows,
+        // under a Grow Lamp it never lost (losing it would have turned the record STRESSED), in a
+        // Hydro Tray. The lamp is what makes it an investment — it is a redstone lamp, so glowstone,
+        // so a trip to the Nether — which is why it sits under Midnight Sun and not under the tray.
+        Advancement.Builder.create()
+                .display(display(ModItems.INDICA_BUDS, "top_shelf", AdvancementFrame.GOAL))
+                .criterion("harvested_top_shelf", HarvestHempCriterion.Conditions.create(
+                        NumberRange.IntRange.exactly(2), Optional.of(GrowLight.GROW_LAMP), Optional.of(hydroTray.build())))
+                .parent(midnightSun)
+                .build(consumer, Hempdustry.MOD_ID + ":top_shelf");
+
+        // A GOAL, and it earns it the way vanilla's create_full_beacon does: the Decarboxylator is 7
+        // hemp bricks *blocks* — 504 hemp stem, roughly 252 indica or 126 sativa mature plants. The
+        // tree's only other GOAL is Top Shelf, below.
         AdvancementEntry activationEnergy = Advancement.Builder.create()
                 .display(display(ModBlocks.DECARBOXYLATOR, "activation_energy", AdvancementFrame.GOAL))
                 .criterion("has_decarboxylator", InventoryChangedCriterion.Conditions.items(ModBlocks.DECARBOXYLATOR))
@@ -414,5 +497,70 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 ))
                 .parent(greenThreads)
                 .build(consumer, Hempdustry.MOD_ID + ":chill_set");
+
+        // ---------------------------------------------------------------------
+        // Extraction
+        // ---------------------------------------------------------------------
+
+        // Under Green Threads because the Sifting Box's screen is hemp canvas. Every node from here
+        // is "obtain the product": each is made in exactly one way that matters, and the item is
+        // what the player can see.
+        AdvancementEntry itsNotPollen = Advancement.Builder.create()
+                .display(display(ModItems.KIEF, "its_not_pollen", AdvancementFrame.TASK))
+                .criterion("has_kief", InventoryChangedCriterion.Conditions.items(ModItems.KIEF))
+                .parent(greenThreads)
+                .build(consumer, Hempdustry.MOD_ID + ":its_not_pollen");
+
+        AdvancementEntry hotOffThePress = Advancement.Builder.create()
+                .display(display(ModBlocks.HASHISH_BAR, "hot_off_the_press", AdvancementFrame.TASK))
+                .criterion("has_hashish_bar", InventoryChangedCriterion.Conditions.items(ModBlocks.HASHISH_BAR))
+                .parent(itsNotPollen)
+                .build(consumer, Hempdustry.MOD_ID + ":hot_off_the_press");
+
+        AdvancementEntry cloudNine = Advancement.Builder.create()
+                .display(display(ModItems.HASHISH, "cloud_nine", AdvancementFrame.TASK))
+                .criterion("has_hashish", InventoryChangedCriterion.Conditions.items(ModItems.HASHISH))
+                .parent(hotOffThePress)
+                .build(consumer, Hempdustry.MOD_ID + ":cloud_nine");
+
+        Advancement.Builder.create()
+                .display(display(ModItems.MOON_ROCK, "one_small_step", AdvancementFrame.TASK))
+                .criterion("has_moon_rock", InventoryChangedCriterion.Conditions.items(ModItems.MOON_ROCK))
+                .parent(cloudNine)
+                .build(consumer, Hempdustry.MOD_ID + ":one_small_step");
+
+        AdvancementEntry doubleZero = Advancement.Builder.create()
+                .display(display(ModItems.FILTERED_HASHISH, "double_zero", AdvancementFrame.TASK))
+                .criterion("has_filtered_hashish", InventoryChangedCriterion.Conditions.items(ModItems.FILTERED_HASHISH))
+                .parent(hotOffThePress)
+                .build(consumer, Hempdustry.MOD_ID + ":double_zero");
+
+        // Under Double Zero, not under the ice wash: rosin is pressed from filtered hashish, which
+        // the dry road reaches too.
+        Advancement.Builder.create()
+                .display(display(ModItems.ROSIN, "under_pressure", AdvancementFrame.TASK))
+                .criterion("has_rosin", InventoryChangedCriterion.Conditions.items(ModItems.ROSIN))
+                .parent(doubleZero)
+                .build(consumer, Hempdustry.MOD_ID + ":under_pressure");
+
+        // A TASK, not a GOAL: plain ice from a snowy biome runs the wash, so it is a build but not an
+        // investment. Packed and blue ice only make it better.
+        Advancement.Builder.create()
+                .display(display(ModItems.BUBBLE_HASH, "see_you_ice_o_later", AdvancementFrame.TASK))
+                .criterion("has_bubble_hash", InventoryChangedCriterion.Conditions.items(ModItems.BUBBLE_HASH))
+                .parent(itsNotPollen)
+                .build(consumer, Hempdustry.MOD_ID + ":see_you_ice_o_later");
+
+        // One criterion per resin, ANDed by default, so each may be obtained at any time.
+        // Conditions.items(a, b, c…) would demand all five in the inventory at once instead.
+        Advancement.Builder aroundTheWorld = Advancement.Builder.create()
+                .display(display(Items.COMPASS, "around_the_world_in_80_grams", AdvancementFrame.CHALLENGE))
+                .parent(itsNotPollen);
+        for (Item resin : List.of(ModItems.CHARAS, ModItems.HASHISH, ModItems.FILTERED_HASHISH,
+                ModItems.BUBBLE_HASH, ModItems.ROSIN)) {
+            aroundTheWorld.criterion("has_" + Registries.ITEM.getId(resin).getPath(),
+                    InventoryChangedCriterion.Conditions.items(resin));
+        }
+        aroundTheWorld.build(consumer, Hempdustry.MOD_ID + ":around_the_world_in_80_grams");
     }
 }

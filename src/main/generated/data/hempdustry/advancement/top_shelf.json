@@ -1,0 +1,35 @@
+{
+  "parent": "hempdustry:midnight_sun",
+  "criteria": {
+    "harvested_top_shelf": {
+      "conditions": {
+        "bed": {
+          "blocks": "hempdustry:hydro_tray"
+        },
+        "cuts": 2,
+        "light": "grow_lamp"
+      },
+      "trigger": "hempdustry:harvest_hemp"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.top_shelf.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:indica_buds"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.top_shelf.title"
+    }
+  },
+  "requirements": [
+    [
+      "harvested_top_shelf"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

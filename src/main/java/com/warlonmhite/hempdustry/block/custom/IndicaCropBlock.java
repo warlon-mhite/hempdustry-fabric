@@ -396,7 +396,7 @@ public class IndicaCropBlock extends CropBlock {
             BlockState canonical = world.getBlockState(canonicalPos);
             if (canonical.isOf(this) && canonical.get(HALF) == DoubleBlockHalf.LOWER
                     && this.isMature(canonical)) {
-                HarvestHempCriterion.trigger(player, canonical);
+                HarvestHempCriterion.trigger(player, (ServerWorld) world, canonicalPos, canonical);
             }
 
             if (state.get(HALF) == DoubleBlockHalf.UPPER) {

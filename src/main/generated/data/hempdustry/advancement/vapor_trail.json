@@ -1,0 +1,32 @@
+{
+  "parent": "hempdustry:first_contact",
+  "criteria": {
+    "smoked_a_vaporizer": {
+      "conditions": {
+        "item": {
+          "items": "hempdustry:vaporizer"
+        }
+      },
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.vapor_trail.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:vaporizer"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.vapor_trail.title"
+    }
+  },
+  "requirements": [
+    [
+      "smoked_a_vaporizer"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
