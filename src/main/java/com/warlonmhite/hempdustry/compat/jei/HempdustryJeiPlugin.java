@@ -99,9 +99,9 @@ public class HempdustryJeiPlugin implements IModPlugin {
         }
         var recipes = client.world.getRecipeManager();
 
-        registration.addRecipes(decarboxylating.getRecipeType(), ViewerRecipes.decarboxylating(recipes));
-        registration.addRecipes(infusing.getRecipeType(), ViewerRecipes.infusing(recipes));
-        registration.addRecipes(cauldron.getRecipeType(), ViewerRecipes.cauldron());
+        registration.addRecipes(decarboxylating.getRecipeType(), decarboxylating.fitted(ViewerRecipes.decarboxylating(recipes)));
+        registration.addRecipes(infusing.getRecipeType(), infusing.fitted(ViewerRecipes.infusing(recipes)));
+        registration.addRecipes(cauldron.getRecipeType(), cauldron.fitted(ViewerRecipes.cauldron()));
 
         // Packing goes into JEI's own crafting category rather than one of ours, which is what makes
         // JEI's built-in "move ingredients into the grid" work on it without a transfer handler of

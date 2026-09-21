@@ -7,6 +7,8 @@ import dev.emi.emi.api.render.EmiTexture;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -76,9 +78,16 @@ public class EntryEmiRecipe implements EmiRecipe {
         return List.of(output);
     }
 
+    /**
+     * The slots' width, or the widest note's if that is wider. A note is translated text, and
+     * "Needs a heat source underneath" is already wider than the Infuser's slots in English; a fixed
+     * width ran it off the recipe. Measured on every call, so a language change is picked up too.
+     */
     @Override
     public int getDisplayWidth() {
-        return inputs.size() * SLOT + ARROW_WIDTH + SLOT + PADDING * 2;
+        TextRenderer font = MinecraftClient.getInstance().textRenderer;
+        int widest = entry.notes().stream().mapToInt(font::getWidth).max().orElse(0);
+        return Math.max(inputs.size() * SLOT + ARROW_WIDTH + SLOT + PADDING * 2, widest + 1); // notes start at x = 1
     }
 
     @Override

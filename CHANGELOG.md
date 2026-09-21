@@ -66,6 +66,9 @@ beta be told when the release lands.
   same grid as vanilla's, so which one you got depended on how you crafted: the recipe book picks the
   one you clicked, the grid by hand picks whichever matches first. For more sticks out of hemp, make
   them from stems.
+- **The notes under recipes in EMI, JEI and REI ran off the page**: the Infuser's "Needs a heat
+  source underneath" ran out of its recipe in English, and the French notes ran across the item list.
+  Each page is now wide enough for its notes in any language.
 
 ### Known issues
 

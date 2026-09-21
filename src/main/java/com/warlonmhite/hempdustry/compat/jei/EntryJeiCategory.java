@@ -11,11 +11,14 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+
+import java.util.List;
 
 /**
  * One {@link ViewerRecipes.Entry} drawn as a JEI page: the inputs in a row, an arrow, the output,
@@ -33,6 +36,8 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private static final int LINE_HEIGHT = 9;
     /** Widest an entry gets: the Infuser's three inputs. Fixed, so pages in a category line up. */
     private static final int MAX_INPUTS = 3;
+    /** Inputs, arrow and output: the narrowest a page can be. */
+    private static final int SLOTS_WIDTH = MAX_INPUTS * SLOT + ARROW_WIDTH + SLOT + PADDING * 2;
 
     private final RecipeType<ViewerRecipes.Entry> type;
     private final Text title;
@@ -40,6 +45,11 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private final IDrawableStatic arrow;
     private final IDrawableStatic slot;
     private final int noteLines;
+    /** This category's entries, kept so the notes can be measured in whatever language is on. */
+    private List<ViewerRecipes.Entry> entries = List.of();
+    /** The width last measured, and the language it was measured in. */
+    private int width = SLOTS_WIDTH;
+    private String measuredIn = "";
 
     public EntryJeiCategory(IGuiHelper guiHelper, Identifier id, ItemStack icon, int noteLines) {
         this.type = new RecipeType<>(id, ViewerRecipes.Entry.class);
@@ -65,9 +75,32 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
         return icon;
     }
 
+    /**
+     * The slots' width, or the widest note's if that is wider. Measured rather than fixed, because
+     * a note is translated text: "Needs a heat source underneath" is half again as wide as the
+     * slots in English, and a translation can be wider still. A fixed width ran every long note off
+     * the recipe, and the Infuser's off the page. Re-measured when the language changes, since
+     * switching it mid-game re-lays JEI's pages without registering the recipes again.
+     */
     @Override
     public int getWidth() {
-        return MAX_INPUTS * SLOT + ARROW_WIDTH + SLOT + PADDING * 2;
+        MinecraftClient client = MinecraftClient.getInstance();
+        String language = client.getLanguageManager().getLanguage();
+        if (!language.equals(measuredIn)) {
+            TextRenderer font = client.textRenderer;
+            int widest = entries.stream().flatMap(entry -> entry.notes().stream())
+                    .mapToInt(font::getWidth).max().orElse(0);
+            width = Math.max(SLOTS_WIDTH, widest + 1); // notes are drawn from x = 1
+            measuredIn = language;
+        }
+        return width;
+    }
+
+    /** Keeps the entries for {@link #getWidth} and hands them straight back to be registered. */
+    public List<ViewerRecipes.Entry> fitted(List<ViewerRecipes.Entry> entries) {
+        this.entries = entries;
+        this.measuredIn = "";
+        return entries;
     }
 
     @Override

@@ -10,6 +10,8 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -33,6 +35,8 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
     private static final int LINE_HEIGHT = 10;
     /** Widest an entry gets: the Infuser's three inputs. Fixed, so pages in a category line up. */
     private static final int MAX_INPUTS = 3;
+    /** Room REI's corner button takes at the end of the last note line. */
+    private static final int CORNER_BUTTON = 12;
     /** REI's own note colours, light theme then dark — {@code DefaultFuelCategory} uses this pair. */
     private static final int NOTE_LIGHT = 0xFF404040;
     private static final int NOTE_DARK = 0xFFBBBBBB;
@@ -67,9 +71,26 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
         return icon;
     }
 
+    /**
+     * The slots' width, or the widest note's if that is wider. A note is translated text, and
+     * "Needs a heat source underneath" is already wider than the Infuser's slots in English; a fixed
+     * width ran it off the recipe and under REI's own button in the bottom-right corner, which the
+     * last line has to clear. Measured on every call, so a language change is picked up too.
+     *
+     * <p>Only on the render thread: REI also asks while validating displays on its reload thread,
+     * and measuring text there bakes glyphs, which 1.21.11 refuses off the render thread. The
+     * validator only wants a width, so it gets the slots'; the page is laid out on the render thread.
+     */
     @Override
     public int getDisplayWidth(EntryReiDisplay display) {
-        return MAX_INPUTS * SLOT + ARROW_WIDTH + SLOT + PADDING * 2;
+        int slots = MAX_INPUTS * SLOT + ARROW_WIDTH + SLOT;
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (!client.isOnThread()) {
+            return slots + PADDING * 2;
+        }
+        TextRenderer font = client.textRenderer;
+        int widest = display.notes().stream().mapToInt(font::getWidth).max().orElse(0);
+        return Math.max(slots, widest + CORNER_BUTTON) + PADDING * 2;
     }
 
     @Override
