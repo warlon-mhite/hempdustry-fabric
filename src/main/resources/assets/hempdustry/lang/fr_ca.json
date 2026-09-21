@@ -109,6 +109,7 @@
   "tag.item.hempdustry.hemp_seeds": "Graines de Chanvre",
   "tag.item.hempdustry.milk_buckets": "Seaux de Lait",
   "tag.item.hempdustry.edibles": "Comestibles",
+  "tag.item.hempdustry.hemp_seed_foods": "Aliments aux Graines de Chanvre",
   "painting.hempdustry.b_rappaz.title": "Rappaz",
   "painting.hempdustry.b_rappaz.author": "Warlon Mhite",
   "painting.hempdustry.brownie_mary.title": "Brownie",
@@ -162,5 +163,11 @@
   "advancements.hempdustry.give_it_an_hour.title": "Laisse Monter",
   "advancements.hempdustry.give_it_an_hour.description": "Mange quelque chose au Beurre de Pot, puis attends",
   "advancements.hempdustry.perfect_batch.title": "Fournée Parfaite",
-  "advancements.hempdustry.perfect_batch.description": "Infuse une fournée sans rien de non rincé et sans rien précipiter"
+  "advancements.hempdustry.perfect_batch.description": "Infuse une fournée sans rien de non rincé et sans rien précipiter",
+  "advancements.hempdustry.hemp_hearts.title": "Cœurs de Chanvre",
+  "advancements.hempdustry.hemp_hearts.description": "Mange quelque chose à base de Graines de Chanvre",
+  "advancements.hempdustry.got_bhang.title": "Bhang Bhang",
+  "advancements.hempdustry.got_bhang.description": "Bois un Seau de Bhang",
+  "advancements.hempdustry.club_des_hashischins.title": "Le Club des Hachichins",
+  "advancements.hempdustry.club_des_hashischins.description": "Mange du Dawamesk"
 }

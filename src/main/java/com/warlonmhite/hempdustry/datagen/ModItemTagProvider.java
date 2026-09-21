@@ -60,6 +60,12 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.BHANG_BUCKET)
                 .add(ModItems.DAWAMESK);
 
+        // The undosed foods, as one group — the counterpart of EDIBLES above, and disjoint from it.
+        getOrCreateTagBuilder(ModTags.Items.HEMP_SEED_FOODS)
+                .add(ModItems.TOASTED_HEMP_SEEDS)
+                .add(ModItems.HEMP_FLAPJACK)
+                .add(ModItems.SIEMIENIOTKA);
+
         // Strain-agnostic: any hemp seed variant (future Lemon Haze included) feeds/tames parrots,
         // same as vanilla's wheat/melon/pumpkin/beetroot seeds.
         getOrCreateTagBuilder(ItemTags.PARROT_FOOD)

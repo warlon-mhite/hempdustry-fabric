@@ -109,6 +109,7 @@
   "tag.item.hempdustry.hemp_seeds": "Hemp Seeds",
   "tag.item.hempdustry.milk_buckets": "Milk Buckets",
   "tag.item.hempdustry.edibles": "Edibles",
+  "tag.item.hempdustry.hemp_seed_foods": "Hemp Seed Foods",
   "painting.hempdustry.b_rappaz.title": "Rappaz",
   "painting.hempdustry.b_rappaz.author": "Warlon Mhite",
   "painting.hempdustry.brownie_mary.title": "Brownie",
@@ -162,5 +163,11 @@
   "advancements.hempdustry.give_it_an_hour.title": "Give It an Hour",
   "advancements.hempdustry.give_it_an_hour.description": "Eat something made with Cannabutter, and wait",
   "advancements.hempdustry.perfect_batch.title": "Perfect Batch",
-  "advancements.hempdustry.perfect_batch.description": "Infuse a batch with nothing unwashed and nothing rushed"
+  "advancements.hempdustry.perfect_batch.description": "Infuse a batch with nothing unwashed and nothing rushed",
+  "advancements.hempdustry.hemp_hearts.title": "Hemp Hearts",
+  "advancements.hempdustry.hemp_hearts.description": "Eat a food made from Hemp Seeds",
+  "advancements.hempdustry.got_bhang.title": "Got Bhang?",
+  "advancements.hempdustry.got_bhang.description": "Drink Bhang",
+  "advancements.hempdustry.club_des_hashischins.title": "Club des Hashischins",
+  "advancements.hempdustry.club_des_hashischins.description": "Eat Dawamesk"
 }

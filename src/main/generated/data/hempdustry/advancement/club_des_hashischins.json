@@ -1,0 +1,32 @@
+{
+  "parent": "hempdustry:butter_late_than_never",
+  "criteria": {
+    "ate_dawamesk": {
+      "conditions": {
+        "item": {
+          "items": "hempdustry:dawamesk"
+        }
+      },
+      "trigger": "minecraft:consume_item"
+    }
+  },
+  "display": {
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.club_des_hashischins.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:dawamesk"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.club_des_hashischins.title"
+    }
+  },
+  "requirements": [
+    [
+      "ate_dawamesk"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

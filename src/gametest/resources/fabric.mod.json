@@ -7,6 +7,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"fabric-gametest": [
+			"com.warlonmhite.hempdustry.test.AdvancementGameTest",
 			"com.warlonmhite.hempdustry.test.CropGrowthGameTest",
 			"com.warlonmhite.hempdustry.test.DefoliationGameTest",
 			"com.warlonmhite.hempdustry.test.InfuserPourGameTest",
