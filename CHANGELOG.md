@@ -91,7 +91,8 @@ release build.)*
 - **JEI's recipe pages had lost every note under their recipes**: the fuel and cooking time,
   the Infuser's pouring, heat and batch notes, and the cauldron's counts per water level. On
   1.21.11 they were being drawn fully transparent. They show again, and each page is now wide
-  enough to hold them in any language. REI was never affected.
+  enough to hold them in any language. REI always drew its notes, but ran them off the recipe and
+  under its own corner button the same way; its pages widen to fit too.
 - **Two hemp planks made six sticks from the recipe book, but four when laid in the grid by hand.**
   Hemp planks now make four sticks like any other planks, however they are crafted. For more sticks
   out of hemp, make them from stems.
