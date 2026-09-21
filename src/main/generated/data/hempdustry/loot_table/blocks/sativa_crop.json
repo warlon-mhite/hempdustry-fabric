@@ -22,7 +22,27 @@
           "type": "minecraft:alternatives",
           "children": [
             {
-              "type": "minecraft:item",
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 1.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:sativa_buds"
+              },
               "conditions": [
                 {
                   "condition": "minecraft:all_of",
@@ -49,26 +69,37 @@
                   ]
                 }
               ],
-              "functions": [
-                {
-                  "add": false,
-                  "count": 1.0,
-                  "function": "minecraft:set_count"
-                },
-                {
-                  "enchantment": "minecraft:fortune",
-                  "formula": "minecraft:binomial_with_bonus_count",
-                  "function": "minecraft:apply_bonus",
-                  "parameters": {
-                    "extra": 2,
-                    "probability": 0.2
-                  }
-                }
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
               ],
-              "name": "hempdustry:sativa_buds"
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
             },
             {
-              "type": "minecraft:item",
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 2.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:sativa_buds"
+              },
               "conditions": [
                 {
                   "condition": "minecraft:all_of",
@@ -110,26 +141,37 @@
                   ]
                 }
               ],
-              "functions": [
-                {
-                  "add": false,
-                  "count": 2.0,
-                  "function": "minecraft:set_count"
-                },
-                {
-                  "enchantment": "minecraft:fortune",
-                  "formula": "minecraft:binomial_with_bonus_count",
-                  "function": "minecraft:apply_bonus",
-                  "parameters": {
-                    "extra": 2,
-                    "probability": 0.2
-                  }
-                }
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
               ],
-              "name": "hempdustry:sativa_buds"
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
             },
             {
-              "type": "minecraft:item",
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 3.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:sativa_buds"
+              },
               "conditions": [
                 {
                   "condition": "minecraft:all_of",
@@ -156,26 +198,37 @@
                   ]
                 }
               ],
-              "functions": [
-                {
-                  "add": false,
-                  "count": 3.0,
-                  "function": "minecraft:set_count"
-                },
-                {
-                  "enchantment": "minecraft:fortune",
-                  "formula": "minecraft:binomial_with_bonus_count",
-                  "function": "minecraft:apply_bonus",
-                  "parameters": {
-                    "extra": 2,
-                    "probability": 0.2
-                  }
-                }
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
               ],
-              "name": "hempdustry:sativa_buds"
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
             },
             {
-              "type": "minecraft:item",
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 2.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:sativa_buds"
+              },
               "conditions": [
                 {
                   "block": "hempdustry:sativa_crop",
@@ -188,26 +241,35 @@
                   }
                 }
               ],
-              "functions": [
-                {
-                  "add": false,
-                  "count": 2.0,
-                  "function": "minecraft:set_count"
-                },
-                {
-                  "enchantment": "minecraft:fortune",
-                  "formula": "minecraft:binomial_with_bonus_count",
-                  "function": "minecraft:apply_bonus",
-                  "parameters": {
-                    "extra": 2,
-                    "probability": 0.2
-                  }
-                }
-              ],
-              "name": "hempdustry:sativa_buds"
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
             },
             {
-              "type": "minecraft:item",
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 3.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:sativa_buds"
+              },
               "conditions": [
                 {
                   "condition": "minecraft:any_of",
@@ -235,26 +297,35 @@
                   ]
                 }
               ],
-              "functions": [
-                {
-                  "add": false,
-                  "count": 3.0,
-                  "function": "minecraft:set_count"
-                },
-                {
-                  "enchantment": "minecraft:fortune",
-                  "formula": "minecraft:binomial_with_bonus_count",
-                  "function": "minecraft:apply_bonus",
-                  "parameters": {
-                    "extra": 2,
-                    "probability": 0.2
-                  }
-                }
-              ],
-              "name": "hempdustry:sativa_buds"
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
             },
             {
-              "type": "minecraft:item",
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 4.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:sativa_buds"
+              },
               "conditions": [
                 {
                   "block": "hempdustry:sativa_crop",
@@ -267,23 +338,12 @@
                   }
                 }
               ],
-              "functions": [
-                {
-                  "add": false,
-                  "count": 4.0,
-                  "function": "minecraft:set_count"
-                },
-                {
-                  "enchantment": "minecraft:fortune",
-                  "formula": "minecraft:binomial_with_bonus_count",
-                  "function": "minecraft:apply_bonus",
-                  "parameters": {
-                    "extra": 2,
-                    "probability": 0.2
-                  }
-                }
-              ],
-              "name": "hempdustry:sativa_buds"
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
             },
             {
               "type": "minecraft:item",

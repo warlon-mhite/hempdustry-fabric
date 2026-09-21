@@ -136,7 +136,7 @@ public final class ScorchedHempGameTest implements FabricGameTest {
      */
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
     public void scorchedHempSmeltsFromPlantOnly(TestContext context) {
-        for (Item plant : new Item[]{ModItems.HEMP_LEAF, ModItems.INDICA_BUDS, ModItems.SATIVA_BUDS}) {
+        for (Item plant : new Item[]{ModItems.HEMP_LEAF, ModItems.INDICA_BUDS, ModItems.SATIVA_BUDS, ModItems.SCHWAG}) {
             context.assertTrue(smeltsTo(context, plant).isOf(ModItems.SCORCHED_HEMP),
                     plant + " did not smelt to scorched hemp");
             context.assertEquals(1, smeltsTo(context, plant).getCount(),

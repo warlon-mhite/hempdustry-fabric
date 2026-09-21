@@ -1,0 +1,18 @@
+{
+  "buds": "hempdustry:schwag",
+  "color": 9202236,
+  "cough_factor": 0.5,
+  "effects": [
+    {
+      "chance": 0.6,
+      "duration_factor": 0.14285715,
+      "effect": "minecraft:poison",
+      "max_amplifier": 1
+    },
+    {
+      "effect": "minecraft:hunger"
+    }
+  ],
+  "green_out_factor": 0.0,
+  "translation_key": "hempdustry.strain.schwag"
+}

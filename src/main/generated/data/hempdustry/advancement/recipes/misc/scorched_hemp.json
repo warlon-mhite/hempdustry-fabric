@@ -41,6 +41,16 @@
       },
       "trigger": "minecraft:inventory_changed"
     },
+    "has_schwag": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:schwag"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
     "has_the_recipe": {
       "conditions": {
         "recipe": "hempdustry:scorched_hemp"
@@ -52,6 +62,7 @@
     [
       "has_the_recipe",
       "has_hemp_leaf",
+      "has_schwag",
       "has_indica_buds",
       "has_sativa_buds",
       "has_beldia_buds"

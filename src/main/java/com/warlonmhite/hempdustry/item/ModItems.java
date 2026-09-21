@@ -52,6 +52,17 @@ public class ModItems {
     public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Settings()));
     public static final Item BELDIA_SEEDS = registerItem("beldia_seeds", new AliasedBlockItem(ModBlocks.BELDIA_CROP, new Item.Settings()));
     public static final Item BELDIA_BUDS = registerItem("beldia_buds", new Item(new Item.Settings()));
+    /**
+     * Schwag — a bud gone wrong: seedy, stemmy and weak. Vanilla's poisonous potato, moved into the
+     * bud system: it is what a ripe plant's bud sometimes becomes rather than an extra drop, rarely
+     * on a healthy plant and often on a stressed one (a light-interrupted plant goes hermaphrodite
+     * and seeds its own buds, which is exactly what the slang means). See {@code ModLootEntryTypes}.
+     *
+     * <p><b>One item for every strain</b>, because schwag has lost its pedigree — nobody sells it by
+     * cultivar, the same way there is one poisonous potato whichever plant grew it. It is its own
+     * strain entry with no seeds and no flower.
+     */
+    public static final Item SCHWAG = registerItem("schwag", new Item(new Item.Settings()));
     public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
     /**
      * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has

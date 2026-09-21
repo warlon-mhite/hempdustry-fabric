@@ -55,6 +55,15 @@ beta be told when the release lands.
   batch never gets past the weakest butter however long it simmers, and every piece drags the grade
   down. It cannot be washed. It will vape one more time, for Slowness and Hunger only, and it
   composts.
+- **Schwag**, the bud gone wrong — seedy, stemmy and weak. Every so often a ripe plant's bud comes
+  off as schwag instead: one plant in fifty loses one, and a hoe with any Fortune picks it out. A
+  **stressed** plant is far worse — each of its buds has a one-in-four chance of going to schwag,
+  and Fortune only takes that down to one in ten. Keep the lights on.
+  - Smoke it and there is a sixty per cent chance it poisons you, and nothing else happens: no high,
+    just the munchies and a lot of coughing. It scales like any strain, up to Poison II from a bong.
+  - It is still a bud: it rolls into a spliff, burns to scorched hemp in a furnace, leaves scorched
+    hemp behind in a vaporizer, and the Decarboxylator takes it at **half** a bud. The Sifting Box
+    will not. It composts, and shipwreck supply chests sometimes carry a little.
 - **Beldía**, a third strain: the Rif's landrace, the plant Moroccan hash was made from. It grows on
   sand — any sand, never farmland — with water within farmland's reach, or in a Grow Pot or a Hydro
   Tray. Take its water away and it stops growing, but it never dies. Its buds are resinous: each one
@@ -153,9 +162,14 @@ beta be told when the release lands.
 - **Hash is data.** Hashish, filtered hashish, charas and rosin are strains with no seeds and no
   flower, so a datapack rebalances them — or adds a resin of its own — in
   `data/<namespace>/hempdustry/strain/` like any other strain. Strains gain three optional fields,
-  `dose_per_item`, `green_out_factor` and `cough_factor`, and each effect two more,
-  `duration_factor` and `on_exhale`; `seeds` and `flower` are optional now. Every strain file
-  written for 2.0 loads unchanged.
+  `dose_per_item`, `green_out_factor` and `cough_factor`, and each effect three more,
+  `duration_factor`, `on_exhale`, `chance` and `max_amplifier`; `seeds` and `flower` are optional now. Every strain
+  file written for 2.0 loads unchanged.
+- **A loot entry type, `hempdustry:spoiling`**, turns some of what another entry drops into a
+  different item — it is how a crop's buds become schwag, and every number is in the crop's loot
+  table: `into`, an optional `enchantment`, and `one_item_chances` (one item, once) and
+  `each_item_chances` (every item, each) listed per level of that enchantment, the way vanilla's
+  `table_bonus` lists its `chances`. What comes out always adds up to what the wrapped entry made.
 - **A new recipe type, `hempdustry:pressing`**: one item in, one out. All five Hemp Press recipes
   are ordinary JSON. The Infuser's `infusing` recipe gains an optional `scorched_hemp` field, and a
   recipe written for 2.0 still loads.

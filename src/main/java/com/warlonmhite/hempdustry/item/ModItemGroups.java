@@ -104,6 +104,9 @@ public class ModItemGroups {
                                 addOnce.accept(strain.value().buds());
                             }
                         });
+                        // The bud gone wrong, at the end of the buds it can come from. Not a plant
+                        // strain, so the run above never adds it.
+                        entries.add(ModItems.SCHWAG);
                         // Beldía's wild flower is its own crop, and a crop block's item IS its
                         // seeds -- already in the run above, which addOnce remembers. A flower with
                         // no item at all is skipped: the tab refuses an empty stack.
