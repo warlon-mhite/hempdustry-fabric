@@ -516,7 +516,8 @@ public final class IndoorGrowGameTest {
                 .build(LootContextTypes.BLOCK);
         int[] counts = new int[4];
         for (ItemStack stack : table.generateLoot(params, seed)) {
-            if (stack.isOf(buds)) {
+            // A bud that went to schwag is still a bud the plant grew; SchwagGameTest owns the split.
+            if (stack.isOf(buds) || stack.isOf(ModItems.SCHWAG)) {
                 counts[0] += stack.getCount();
             } else if (stack.isOf(ModItems.HEMP_LEAF)) {
                 counts[1] += stack.getCount();

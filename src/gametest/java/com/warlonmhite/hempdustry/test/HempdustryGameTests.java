@@ -93,6 +93,11 @@ public class HempdustryGameTests implements ModInitializer {
         register("beldia_smokes_a_mirage", BeldiaGameTest::beldiaSmokesAMirage);
         register("beldia_stays_in_the_desert", BeldiaGameTest::beldiaStaysInTheDesert);
         register("wild_beldia_grows_ripe", BeldiaGameTest::wildBeldiaGrowsRipe);
+        register("crop_loot_tables_validate_clean", SchwagGameTest::cropLootTablesValidateClean);
+        register("healthy_plants_spoil_one_bud_in_fifty", SchwagGameTest::healthyPlantsSpoilOneBudInFifty);
+        register("stressed_buds_spoil_one_by_one", SchwagGameTest::stressedBudsSpoilOneByOne);
+        register("schwag_smokes_a_gamble", SchwagGameTest::schwagSmokesAGamble);
+        register("schwag_is_half_a_bud", SchwagGameTest::schwagIsHalfABud);
         register("eating_grants_the_food_nodes", AdvancementGameTest::eatingGrantsTheFoodNodes);
         register("a_big_dose_buys_time_not_level", RebalanceGameTest::aBigDoseBuysTimeNotLevel);
         register("a_full_green_out_ends_the_high", RebalanceGameTest::aFullGreenOutEndsTheHigh);

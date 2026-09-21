@@ -557,6 +557,12 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         offerDecarboxylating(Ingredient.ofItems(ModItems.HEMP_LEAF),
                 new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.LEAF_OUTPUT),
                 "hemp_leaf");
+        // Schwag: a bud, at half a bud. The oven is the careful heat, so it never makes scorched
+        // hemp out of anything -- that is the furnace's product, and schwag burns to it there like
+        // any other bud.
+        offerDecarboxylating(Ingredient.ofItems(ModItems.SCHWAG),
+                new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.SCHWAG_OUTPUT),
+                "schwag");
 
         // The furnace's answer to the same heat: ANY PLANT PART, ONE SCORCHED HEMP, ALWAYS ONE.
         //
@@ -577,6 +583,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // unlock is any of them: a recipe's unlock advancement ORs its criteria.
         List<ItemConvertible> scorchable = new java.util.ArrayList<>();
         scorchable.add(ModItems.HEMP_LEAF);
+        scorchable.add(ModItems.SCHWAG);
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
             if (strain.flower().isPresent()) {
@@ -888,6 +895,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 offerHashSpliff(strain, hash, 1);
                 offerHashSpliff(strain, hash, 2);
             }
+        }
+
+        // Schwag rolls on its own like any bud -- the schwag joint is the archetype -- but it is not
+        // a plant strain, so the loop above never sees it, and nothing rolls it in with hash: coating
+        // or cutting junk with resin is a waste of the resin.
+        RegistryEntry.Reference<Strain> schwag = strains.getOrThrow(ModStrains.SCHWAG);
+        for (int dose = 1; dose <= ModItems.SPLIFF_MAX_DOSE; dose++) {
+            offerSpliff(schwag, dose);
         }
 
         createShaped(RecipeCategory.MISC, ModItems.WOODEN_PIPE)

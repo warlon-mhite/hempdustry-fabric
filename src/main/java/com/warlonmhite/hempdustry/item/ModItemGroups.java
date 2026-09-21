@@ -90,6 +90,9 @@ public class ModItemGroups {
                                 entries.add(strain.value().buds());
                             }
                         });
+                        // The bud gone wrong, at the end of the buds it can come from. Not a plant
+                        // strain, so the run above never adds it.
+                        entries.add(ModItems.SCHWAG);
                         // Beldía's wild flower is its own crop, and a crop block's item IS its
                         // seeds -- already in the run above. Listing them again is a duplicate stack,
                         // which crashes the client on opening the inventory.

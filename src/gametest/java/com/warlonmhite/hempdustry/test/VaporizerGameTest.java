@@ -136,9 +136,15 @@ public final class VaporizerGameTest {
         context.assertEquals(count(player, ModItems.SCORCHED_HEMP), 0,
                 "a bowl of scorched hemp handed back more scorched hemp — the bowl never ends");
 
-        smokeABowl(player, world, strain(world));
+        // Schwag is plant matter with no plant of its own, which is the one case the plant predicate
+        // would get wrong: a spoiled bud still leaves a spent one.
+        smokeABowl(player, world, strain(world, ModStrains.SCHWAG));
         context.assertEquals(count(player, ModItems.SCORCHED_HEMP), 1,
-                "a bowl of buds handed nothing back, so the two refusals above prove nothing");
+                "a bowl of schwag handed nothing back — it grew on a plant like any bud");
+
+        smokeABowl(player, world, strain(world));
+        context.assertEquals(count(player, ModItems.SCORCHED_HEMP), 2,
+                "a bowl of buds handed nothing back, so the refusals above prove nothing");
         context.complete();
     }
 

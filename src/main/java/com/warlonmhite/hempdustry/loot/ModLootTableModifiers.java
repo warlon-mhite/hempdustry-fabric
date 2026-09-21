@@ -59,7 +59,8 @@ import java.util.Set;
  * {@link #onlyTheHalfThatWasBroken}; without it the seed drops at double the shipped rate.
  *
  * <p>Hemp fibre in shipwreck supply chests, as cordage rather than as an on-ramp — see
- * {@link #SHIPWRECK_FIBER_CHANCE}.
+ * {@link #SHIPWRECK_FIBER_CHANCE} — and a little schwag beside vanilla's poisonous potatoes, see
+ * {@link #SHIPWRECK_SCHWAG_CHANCE}.
  *
  * <p>And the mod's music discs in the two chests vanilla stocks its common discs in. Their creeper drop is
  * <em>not</em> here — that comes free from joining {@code #minecraft:creeper_drop_music_discs}
@@ -88,6 +89,15 @@ public class ModLootTableModifiers {
      * wrecked ship with no rope aboard is the odd thing, not one with some.
      */
     private static final float SHIPWRECK_FIBER_CHANCE = 0.45f;
+
+    /**
+     * Chance a shipwreck's supply chest holds a few schwag. It is where vanilla keeps its own
+     * poisonous potatoes (weight 7 of 84, two to six at a time), and pressed low-grade weed is what
+     * smugglers really moved by boat. Pitched at about what three of those 84 weights would come to
+     * over the pool's three to ten rolls, rather than the potato's seven: every schwag is still two
+     * decarboxylated hemp in the oven, and a wreck should not be a butter farm.
+     */
+    private static final float SHIPWRECK_SCHWAG_CHANCE = 0.20f;
 
     /**
      * Chance a desert temple chest holds 1-3 Beldía seeds. A temple has four chests, so about 59% a
@@ -291,6 +301,11 @@ public class ModLootTableModifiers {
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(RandomChanceLootCondition.builder(chance(SHIPWRECK_FIBER_CHANCE)))
                         .with(ItemEntry.builder(ModItems.HEMP_FIBER)
+                                .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 4)))));
+                tableBuilder.pool(LootPool.builder()
+                        .rolls(ConstantLootNumberProvider.create(1))
+                        .conditionally(RandomChanceLootCondition.builder(chance(SHIPWRECK_SCHWAG_CHANCE)))
+                        .with(ItemEntry.builder(ModItems.SCHWAG)
                                 .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 4)))));
             }
 

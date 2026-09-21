@@ -80,6 +80,12 @@ public class ModStrains {
      * strain would be, which is exactly what it is shaped like.
      */
     public static final RegistryKey<Strain> SCORCHED_HEMP = key("scorched_hemp");
+    /**
+     * A plant's bud gone wrong. Outside {@link #BUILT_IN} for the same reasons as scorched hemp — no
+     * art of its own, the shared tinted look — but unlike it, <b>plant matter</b>: see
+     * {@link #isPlantMatter}.
+     */
+    public static final RegistryKey<Strain> SCHWAG = key("schwag");
 
     /**
      * The strains the mod ships art and recipes for. <b>Append only, and never reorder</b> —
@@ -157,6 +163,20 @@ public class ModStrains {
                         THIRD_PARTY_MODEL_INDEX_MIN);
             }
         }
+    }
+
+    /**
+     * Whether a strain is plant matter — grown on a plant and never made into resin.
+     *
+     * <p>{@code flower().isPresent()} is the narrower question, "a strain with a plant of its own",
+     * and it stays the predicate for everything that needs one: the seed pools, the creative tab's
+     * runs, the Sifting Box, moon rocks. Schwag answers no to that and yes to this, because it grew
+     * on a plant that was never its own. So it burns in a furnace, rolls into a spliff and leaves a
+     * spent bowl in a vaporizer like any bud, and it is sifted, coated or found in the grass like
+     * none of them.
+     */
+    public static boolean isPlantMatter(RegistryEntry<Strain> strain) {
+        return strain.value().flower().isPresent() || strain.matchesKey(SCHWAG);
     }
 
     /** The art index a built-in strain gets. Datagen and the bootstrap both read this. */
@@ -343,7 +363,35 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
                         new SmokeEffect(StatusEffects.HUNGER, 0, true))));
+
+        // Schwag -- the poisonous potato of the bud system, and smoked the way the potato is eaten:
+        // a gamble with nothing to win. POISON on 60% of hits, the potato's odds, for a seventh of
+        // the device's duration -- 100 ticks from a pipe, the potato's number again -- and no buff at
+        // all. Poison scales like any effect but STOPS AT II, the highest survival vanilla ever
+        // gives (the strong potion, the pufferfish): a bong of two or three is about 12 damage over
+        // seven seconds. Uncapped, a bong of three was Poison III and took a full-health player to
+        // half a heart -- one arrow from dead in Hardcore, for smoking the worst thing in the mod.
+        //
+        // green_out_factor 0: there is nothing in it to overdo. cough_factor 0.5: stems and popping
+        // seeds, twice the coughing. Hunger, scaling with the dose, as every strain.
+        //
+        // Colour is the item's dull brown, so a packed device reads as holding exactly that.
+        context.register(SCHWAG, new Strain("hempdustry.strain.schwag", 0x8C6A3C,
+                modelIndex(SCHWAG),
+                Optional.empty(), ModItems.SCHWAG, Optional.empty(), 0.0F, 1,
+                List.of(
+                        new SmokeEffect(StatusEffects.POISON, 0, true, SCHWAG_POISON_SHARE, false,
+                                SCHWAG_POISON_CHANCE, SCHWAG_POISON_MAX_AMPLIFIER),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true)),
+                0.5F));
     }
+
+    /** A pipe's 700 ticks times this is 100, the poisonous potato's Poison. */
+    private static final float SCHWAG_POISON_SHARE = 1.0F / 7.0F;
+    /** The poisonous potato's odds of poisoning, as vanilla's consumable component has them. */
+    private static final float SCHWAG_POISON_CHANCE = 0.6F;
+    /** Poison II: vanilla's own survival ceiling for the effect. */
+    private static final int SCHWAG_POISON_MAX_AMPLIFIER = 1;
 
     private static RegistryKey<Strain> key(String name) {
         return RegistryKey.of(Strain.REGISTRY_KEY, Identifier.of(Hempdustry.MOD_ID, name));

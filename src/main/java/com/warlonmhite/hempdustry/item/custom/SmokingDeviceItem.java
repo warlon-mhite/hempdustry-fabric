@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.ModStrains;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -285,7 +286,8 @@ public class SmokingDeviceItem extends Item {
      * scorched hemp itself. Resin handing back hemp was a real leak: the hash family's one rule is
      * that it never reaches cannabutter, and before this guard a vaporizer walked it there.
      * Scorched hemp handing back more scorched hemp would be an endless bowl. The mod-wide
-     * predicate for "this grew on a plant" answers both, and anything hash-shaped a datapack adds.
+     * predicate for plant matter answers both, and anything hash-shaped a datapack adds. Schwag
+     * passes it: a spoiled bud still leaves a spent one.
      *
      * <p>{@code giveItemStack} puts it in the inventory and drops the remainder at the player's feet
      * if there is no room, which is vanilla's own behaviour for a bucket emptying or a bundle
@@ -294,7 +296,7 @@ public class SmokingDeviceItem extends Item {
     private void yieldSpent(PlayerEntity player, SmokeContents contents) {
         int yield = device.spentYield();
         if (yield > 0 && contents.entries().stream()
-                .allMatch(entry -> entry.strain().value().flower().isPresent())) {
+                .allMatch(entry -> ModStrains.isPlantMatter(entry.strain()))) {
             player.giveItemStack(new ItemStack(ModItems.SCORCHED_HEMP, yield));
         }
     }
