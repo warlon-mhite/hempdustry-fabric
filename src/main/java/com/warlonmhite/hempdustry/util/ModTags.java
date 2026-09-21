@@ -43,6 +43,14 @@ public class ModTags {
          */
         public static final TagKey<Item> EDIBLES = createTag("edibles");
         /**
+         * The wholesome half: the foods made from hemp seed, which carry no THC at all. Exists for
+         * the "Hemp Hearts" advancement, so a new seed food joins the tag instead of the criterion.
+         *
+         * <p>Hemp milk is left out on purpose. It is drunk rather than eaten, and it is an Infuser
+         * ingredient first — exactly as a cow's milk bucket is not a food.
+         */
+        public static final TagKey<Item> HEMP_SEED_FOODS = createTag("hemp_seed_foods");
+        /**
          * What repairs the hemp armour set on an anvil. Since 1.21.4 an {@code ArmorMaterial}
          * names a tag rather than an {@code Ingredient}, so this exists to hold one item.
          */

@@ -1,0 +1,32 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "ate_a_hemp_seed_food": {
+      "conditions": {
+        "item": {
+          "items": "#hempdustry:hemp_seed_foods"
+        }
+      },
+      "trigger": "minecraft:consume_item"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.hemp_hearts.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:toasted_hemp_seeds"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.hemp_hearts.title"
+    }
+  },
+  "requirements": [
+    [
+      "ate_a_hemp_seed_food"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

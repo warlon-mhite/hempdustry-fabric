@@ -1,0 +1,32 @@
+{
+  "parent": "hempdustry:activation_energy",
+  "criteria": {
+    "drank_bhang": {
+      "conditions": {
+        "item": {
+          "items": "hempdustry:bhang_bucket"
+        }
+      },
+      "trigger": "minecraft:consume_item"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.got_bhang.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:bhang_bucket"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.got_bhang.title"
+    }
+  },
+  "requirements": [
+    [
+      "drank_bhang"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

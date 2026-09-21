@@ -45,6 +45,7 @@ public class HempdustryGameTests implements ModInitializer {
                 InfuserPourGameTest::dispenserPoursMilkAndKeepsTheBucket);
         register("retired_slots_hand_back_their_items", InfuserPourGameTest::retiredSlotsHandBackTheirItems);
         register("growth_multiplier_scales_the_odds", CropGrowthGameTest::growthMultiplierScalesTheOdds);
+        register("eating_grants_the_food_nodes", AdvancementGameTest::eatingGrantsTheFoodNodes);
     }
 
     private static void register(String name, Consumer<TestContext> test) {

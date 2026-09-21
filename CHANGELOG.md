@@ -36,6 +36,11 @@ beta be told when the release lands.
   loads a line of viewer code unless the viewer is there.
   - The cauldron page is the one worth having: retting and washing are not recipes, so the recipe
     book cannot show them and no datapack can list them.
+- **Three advancements for the kitchen**, which had foods the tree never mentioned. **Hemp Hearts**
+  for eating anything made from hemp seed, **Got Bhang?** for drinking bhang, and **Club des
+  Hashischins** for eating dawamesk — named after the 1840s Paris club whose members, Gautier and
+  Baudelaire among them, ate exactly that. The seed foods share a new item tag,
+  `#hempdustry:hemp_seed_foods`, so a datapack can add its own.
 
 ### Changed
 

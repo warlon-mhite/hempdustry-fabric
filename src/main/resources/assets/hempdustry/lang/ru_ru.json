@@ -108,6 +108,7 @@
   "tag.item.hempdustry.hemp_seeds": "Семена конопли",
   "tag.item.hempdustry.milk_buckets": "Вёдра молока",
   "tag.item.hempdustry.edibles": "Съедобности",
+  "tag.item.hempdustry.hemp_seed_foods": "Hemp Seed Foods",
   "painting.hempdustry.b_rappaz.title": "Раппаз",
   "painting.hempdustry.b_rappaz.author": "Уарлон Уайт",
   "painting.hempdustry.brownie_mary.title": "Брауни",
@@ -161,5 +162,11 @@
   "advancements.hempdustry.give_it_an_hour.title": "Дайте ему часок",
   "advancements.hempdustry.give_it_an_hour.description": "Съешьте что-нибудь с конопляслом и подождите",
   "advancements.hempdustry.perfect_batch.title": "Идеальная партия",
-  "advancements.hempdustry.perfect_batch.description": "Сварите партию коноплясла, используя только сполоснутую и вовремя собранную коноплю"
+  "advancements.hempdustry.perfect_batch.description": "Сварите партию коноплясла, используя только сполоснутую и вовремя собранную коноплю",
+  "advancements.hempdustry.hemp_hearts.title": "Hemp Hearts",
+  "advancements.hempdustry.hemp_hearts.description": "Eat a food made from Hemp Seeds",
+  "advancements.hempdustry.got_bhang.title": "Got Bhang?",
+  "advancements.hempdustry.got_bhang.description": "Drink Bhang",
+  "advancements.hempdustry.club_des_hashischins.title": "Club des Hashischins",
+  "advancements.hempdustry.club_des_hashischins.description": "Eat Dawamesk"
 }

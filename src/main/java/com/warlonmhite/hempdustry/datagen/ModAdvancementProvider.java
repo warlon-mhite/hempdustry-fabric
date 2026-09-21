@@ -168,6 +168,16 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .parent(rootAdvancement)
                 .build(consumer, Hempdustry.MOD_ID + ":parrot_tamer");
 
+        // The seed's other life: food with no THC in it. Off the root because a seed is all it takes,
+        // and keyed on a tag so a new seed food needs no edit here. Hulled hemp seed is sold as
+        // "hemp hearts", which is the joke and the fact at once.
+        Advancement.Builder.create()
+                .display(display(ModItems.TOASTED_HEMP_SEEDS, "hemp_hearts", AdvancementFrame.TASK))
+                .criterion("ate_a_hemp_seed_food", ConsumeItemCriterion.Conditions.predicate(
+                        ItemPredicate.Builder.create().tag(items(registryLookup), ModTags.Items.HEMP_SEED_FOODS)))
+                .parent(rootAdvancement)
+                .build(consumer, Hempdustry.MOD_ID + ":hemp_hearts");
+
         // ---------------------------------------------------------------------
         // Smoking
         // ---------------------------------------------------------------------
@@ -264,6 +274,14 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .parent(hempBuilder)
                 .build(consumer, Hempdustry.MOD_ID + ":activation_energy");
 
+        // Bhang skips the butter: decarboxylated hemp goes straight into milk, so it hangs off the
+        // oven rather than off the Infuser branch.
+        Advancement.Builder.create()
+                .display(display(ModItems.BHANG_BUCKET, "got_bhang", AdvancementFrame.TASK))
+                .criterion("drank_bhang", ConsumeItemCriterion.Conditions.item(items(registryLookup), ModItems.BHANG_BUCKET))
+                .parent(activationEnergy)
+                .build(consumer, Hempdustry.MOD_ID + ":got_bhang");
+
         // Deliberately the only step between owning the machine and this node. "You decarboxylated
         // something" is an unavoidable consequence of building the oven, not a discovery of its own,
         // so it gets no node; the cauldron rinse is a separate thing the player has to work out.
@@ -303,6 +321,15 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                                         Map.of()))))
                 .parent(cannabutter)
                 .build(consumer, Hempdustry.MOD_ID + ":perfect_batch");
+
+        // The Club des Hachichins met at the Hôtel Pimodan in 1840s Paris — Gautier, Baudelaire,
+        // Dumas — and what they ate was dawamesk, the Algerian hash jam. Cannabutter is its base
+        // here, so this sits beside the other cannabutter foods.
+        Advancement.Builder.create()
+                .display(display(ModItems.DAWAMESK, "club_des_hashischins", AdvancementFrame.TASK))
+                .criterion("ate_dawamesk", ConsumeItemCriterion.Conditions.item(items(registryLookup), ModItems.DAWAMESK))
+                .parent(cannabutter)
+                .build(consumer, Hempdustry.MOD_ID + ":club_des_hashischins");
 
         // ---------------------------------------------------------------------
         // Textiles
