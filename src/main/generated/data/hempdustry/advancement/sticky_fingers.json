@@ -1,0 +1,34 @@
+{
+  "parent": "hempdustry:trim_season",
+  "criteria": {
+    "has_charas": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:charas"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.sticky_fingers.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:charas"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.sticky_fingers.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_charas"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

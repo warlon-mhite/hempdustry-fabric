@@ -1,0 +1,34 @@
+{
+  "parent": "hempdustry:double_zero",
+  "criteria": {
+    "has_rosin": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:rosin"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.under_pressure.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:rosin"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.under_pressure.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_rosin"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

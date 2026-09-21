@@ -1,0 +1,34 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "has_beldia_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:beldia_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.kif_country.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:beldia_buds"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.kif_country.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_beldia_buds"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

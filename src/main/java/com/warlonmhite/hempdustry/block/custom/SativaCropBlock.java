@@ -428,7 +428,7 @@ public class SativaCropBlock extends CropBlock {
                 // The trim flags and the canonical age both live on the LOWER, so the harvest
                 // criterion is fed from there whichever segment the player actually broke.
                 if (this.isMature(lower)) {
-                    HarvestHempCriterion.trigger(player, lower);
+                    HarvestHempCriterion.trigger(player, (ServerWorld) world, lowerPos, lower);
                 }
                 for (int offset = 2; offset >= 1; offset--) {
                     BlockPos segmentPos = lowerPos.up(offset);

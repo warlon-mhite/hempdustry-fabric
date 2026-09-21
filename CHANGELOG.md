@@ -129,6 +129,16 @@ beta be told when the release lands.
   - *Bong Voyage* and *Burnout* count a bong of any colour.
 - **A cannabis leaf banner pattern.** Put a hemp leaf in the loom's pattern slot — you keep it — and
   paint a seven-leaflet leaf onto a banner or a shield, in any of the sixteen colours.
+- **Seventeen new advancements**, so every 2.1 feature has a place in the tree. The tree has 42
+  now.
+  - **Growing:** *Kif Country* for Beldía, *Sticky Fingers* for charas, *Well Done* for scorched
+    hemp, and an indoor chain under *Hemp Builder* — *Pothead* (a Grow Pot), *Sea of Green* (a
+    harvest from a Hydro Tray), *Midnight Sun* (a harvest grown under a Grow Lamp) and ***Top
+    Shelf***, a goal: a plant trimmed twice, under a Grow Lamp it never lost, in a Hydro Tray.
+  - **Smoking:** *Vapor Trail* for the Vaporizer, and a hidden one for smoking schwag.
+  - **Extraction**, a branch of its own under *Green Threads*: kief, the hashish bar, cutting it,
+    filtered hashish, rosin, the moon rock and bubble hash each get a node, and ***Around the
+    World in 80 Grams*** is a challenge for holding all five resins — not at once.
 
 ### Changed
 
@@ -183,6 +193,10 @@ beta be told when the release lands.
   are fed from `#c:fertilizers`.
 - **A placement modifier, `hempdustry:in_beldia_biome`**, checks every plant of a patch rather than
   the patch's centre, because a patch spreads past the edge of its biome.
+- **Two advancement triggers learn new filters**, all optional, so a 2.0 advancement still loads.
+  `hempdustry:harvest_hemp` takes `light` — the record the plant kept (`natural`, `ambient`, `lamp`,
+  `grow_lamp` or `stressed`) — and `bed`, a vanilla block predicate tested against the block under
+  the plant. `hempdustry:smoke` takes `strain`, a strain id matched against every strain in the load.
 
 ## [2.0.2] — 2026-09-29
 

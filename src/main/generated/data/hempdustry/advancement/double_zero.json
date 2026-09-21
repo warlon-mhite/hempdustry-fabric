@@ -1,0 +1,34 @@
+{
+  "parent": "hempdustry:hot_off_the_press",
+  "criteria": {
+    "has_filtered_hashish": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:filtered_hashish"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.double_zero.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:filtered_hashish"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.double_zero.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_filtered_hashish"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

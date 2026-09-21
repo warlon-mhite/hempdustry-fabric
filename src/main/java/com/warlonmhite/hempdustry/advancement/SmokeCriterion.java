@@ -2,6 +2,9 @@ package com.warlonmhite.hempdustry.advancement;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.item.custom.SmokeContents;
+import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.advancement.AdvancementCriterion;
 import net.minecraft.advancement.criterion.AbstractCriterion;
 import net.minecraft.item.ItemConvertible;
@@ -9,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.predicate.entity.EntityPredicate;
 import net.minecraft.predicate.entity.LootContextPredicate;
 import net.minecraft.predicate.item.ItemPredicate;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -23,6 +27,10 @@ import java.util.Optional;
  * <p>The trigger passes the current time of day (already reduced mod 24000); the conditions decide
  * whether it counts. With no window it's strain- and time-agnostic (backs "First Contact"); with a
  * window it only counts inside a time-of-day band (backs the hidden "Blaze It!").
+ *
+ * <p>A {@code strain} narrows it to a load holding that strain — in <em>any</em> entry, so a moon
+ * rock counts for its bud and for its coat alike. It names a key in the datapack strain registry,
+ * so a strain a pack adds can be asked for exactly as the mod's own are.
  */
 public class SmokeCriterion extends AbstractCriterion<SmokeCriterion.Conditions> {
 
@@ -42,16 +50,22 @@ public class SmokeCriterion extends AbstractCriterion<SmokeCriterion.Conditions>
     }
 
     public record Conditions(Optional<LootContextPredicate> player, Optional<ItemPredicate> item,
-                             Optional<TimeWindow> time) implements AbstractCriterion.Conditions {
+                             Optional<TimeWindow> time, Optional<RegistryKey<Strain>> strain)
+            implements AbstractCriterion.Conditions {
         public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 EntityPredicate.LOOT_CONTEXT_PREDICATE_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
                 ItemPredicate.CODEC.optionalFieldOf("item").forGetter(Conditions::item),
-                TimeWindow.CODEC.optionalFieldOf("time").forGetter(Conditions::time)
+                TimeWindow.CODEC.optionalFieldOf("time").forGetter(Conditions::time),
+                RegistryKey.createCodec(Strain.REGISTRY_KEY).optionalFieldOf("strain").forGetter(Conditions::strain)
         ).apply(instance, Conditions::new));
 
-        /** True when neither optional filter is set, or the hit satisfies both of the ones that are. */
+        /** True when no optional filter is set, or the hit satisfies every one that is. */
         public boolean matches(long timeOfDay, ItemStack stack) {
             if (time.isPresent() && !time.get().contains(timeOfDay)) {
+                return false;
+            }
+            if (strain.isPresent() && stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY)
+                    .entries().stream().noneMatch(entry -> entry.strain().matchesKey(strain.get()))) {
                 return false;
             }
             return item.isEmpty() || item.get().test(stack);
@@ -59,7 +73,14 @@ public class SmokeCriterion extends AbstractCriterion<SmokeCriterion.Conditions>
 
         /** No conditions — any player, any device, any strain, any time. */
         public static AdvancementCriterion<Conditions> any() {
-            return ModCriteria.SMOKE.create(new Conditions(Optional.empty(), Optional.empty(), Optional.empty()));
+            return ModCriteria.SMOKE.create(new Conditions(Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.empty()));
+        }
+
+        /** Only counts a hit whose load holds {@code strain}, whatever it was smoked from. */
+        public static AdvancementCriterion<Conditions> of(RegistryKey<Strain> strain) {
+            return ModCriteria.SMOKE.create(new Conditions(Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.of(strain)));
         }
 
         /**
@@ -77,13 +98,13 @@ public class SmokeCriterion extends AbstractCriterion<SmokeCriterion.Conditions>
             return ModCriteria.SMOKE.create(new Conditions(Optional.empty(),
                     Optional.of(ItemPredicate.Builder.create()
                             .items(registries.getOrThrow(RegistryKeys.ITEM), items).build()),
-                    Optional.empty()));
+                    Optional.empty(), Optional.empty()));
         }
 
         /** Only counts a hit taken while the time of day is within {@code [minTicks, maxTicks]} (inclusive). */
         public static AdvancementCriterion<Conditions> during(long minTicks, long maxTicks) {
             return ModCriteria.SMOKE.create(new Conditions(Optional.empty(), Optional.empty(),
-                    Optional.of(new TimeWindow(minTicks, maxTicks))));
+                    Optional.of(new TimeWindow(minTicks, maxTicks)), Optional.empty()));
         }
     }
 
