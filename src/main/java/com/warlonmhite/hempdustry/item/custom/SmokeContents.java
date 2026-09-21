@@ -20,6 +20,7 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.random.RandomGenerator;
 
 /**
  * What is loaded in a spliff, pipe or bong — the payload of the {@code hempdustry:smoke_contents}
@@ -318,7 +319,8 @@ public record SmokeContents(List<Entry> entries) {
 
     /**
      * Every status effect one hit of this load applies on the hit ({@code onExhale} false) or with
-     * the exhale ({@code onExhale} true), before the config's {@code EffectPolicy}.
+     * the exhale ({@code onExhale} true), before the config's {@code EffectPolicy}. An effect with a
+     * {@code chance} below one is rolled on {@code random}, once per call.
      *
      * <p><b>A bud past the buff cap buys time, not level</b>: each one over
      * {@link EffectPolicy#maxBuffLevel} adds half the device's duration to that strain's effects,
@@ -331,14 +333,14 @@ public record SmokeContents(List<Entry> entries) {
      * concentrate's own strain-agnostic effects included, is held to the plain cap here, so the
      * raised cap {@code Smoking} hands the policy lifts only the bud.
      */
-    public List<StatusEffectInstance> effects(int durationTicks, boolean onExhale) {
+    public List<StatusEffectInstance> effects(int durationTicks, boolean onExhale, RandomGenerator random) {
         int load = buffBonus();
         List<StatusEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
             int bonus = entry.strain().value().flower().isPresent() ? load : 0;
             int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel(bonus));
             for (StatusEffectInstance effect : entry.strain().value().effects(entry.count(),
-                    durationTicks + durationTicks * past / 2, onExhale, bonus)) {
+                    durationTicks + durationTicks * past / 2, onExhale, bonus, random)) {
                 out.add(new StatusEffectInstance(effect.getEffectType(), effect.getDuration(),
                         EffectPolicy.amplifier(effect.getEffectType(), effect.getAmplifier(), bonus)));
             }

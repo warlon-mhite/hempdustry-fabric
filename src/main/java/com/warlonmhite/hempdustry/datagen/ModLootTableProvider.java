@@ -10,6 +10,7 @@ import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.loot.ModLootEntryTypes;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
 import net.minecraft.block.Block;
@@ -28,6 +29,7 @@ import net.minecraft.loot.condition.LootCondition;
 import net.minecraft.loot.condition.RandomChanceLootCondition;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.entry.LeafEntry;
+import net.minecraft.loot.entry.LootPoolEntry;
 import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.loot.function.ApplyBonusLootFunction;
 import net.minecraft.loot.function.CopyComponentsLootFunction;
@@ -107,6 +109,17 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
     private static final int LAMP_BUDS = 1;
     private static final float AMBIENT_BUD_CHANCE = 0.5F;
     private static final int STRESSED_SEEDS = 2;
+
+    /**
+     * Schwag, by Fortune level: the odds a <b>healthy</b> ripe plant loses one bud to it — the
+     * poisonous potato's 2%, once per plant — and that <b>each</b> bud of a stressed one does.
+     *
+     * <p>Fortune is a careful harvest that picks the seedy buds out: any level clears a healthy plant
+     * entirely, and it only softens a stressed one. Stress is the thing to avoid; Fortune limits the
+     * damage and never makes it safe.
+     */
+    private static final Float[] HEALTHY_SCHWAG_CHANCES = {0.02F, 0.0F};
+    private static final Float[] STRESSED_SCHWAG_CHANCES = {0.25F, 0.20F, 0.15F, 0.10F};
 
     /** The flags that move the buds, one bud each: the two trims, and only those. */
     private static final BooleanProperty[] TRIMS = {Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE};
@@ -282,13 +295,16 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                         // through to a single seed when the plant isn't mature yet.
                         .pool(LootPool.builder()
                                 .conditionally(isLower)
-                                // A STRESSED plant first: one bud short of whatever its trims earned.
-                                .with(scaledEntry(buds, BUDS_AT_ZERO_CUTS - 1, AllOfLootCondition.builder(zeroCuts, stressed), fortune, BUDS_FORTUNE_CHANCE, 2)
-                                        .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS, AllOfLootCondition.builder(oneCut, stressed), fortune, BUDS_FORTUNE_CHANCE, 2))
-                                        .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS + 1, AllOfLootCondition.builder(twoCuts, stressed), fortune, BUDS_FORTUNE_CHANCE, 2))
-                                        .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS, zeroCuts, fortune, BUDS_FORTUNE_CHANCE, 2))
-                                        .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS + 1, oneCut, fortune, BUDS_FORTUNE_CHANCE, 2))
-                                        .alternatively(scaledEntry(buds, BUDS_AT_ZERO_CUTS + 2, twoCuts, fortune, BUDS_FORTUNE_CHANCE, 2))
+                                // A STRESSED plant first: one bud short of whatever its trims earned,
+                                // and every bud it keeps may have gone to schwag. Every other ripe
+                                // plant risks the poisonous potato's one bad item, which any Fortune
+                                // clears. See SCHWAG_*_CHANCES.
+                                .with(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS - 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfLootCondition.builder(zeroCuts, stressed), fortune)
+                                        .alternatively(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfLootCondition.builder(oneCut, stressed), fortune))
+                                        .alternatively(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfLootCondition.builder(twoCuts, stressed), fortune))
+                                        .alternatively(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), zeroCuts, fortune))
+                                        .alternatively(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), oneCut, fortune))
+                                        .alternatively(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), twoCuts, fortune))
                                         .alternatively(ItemEntry.builder(seeds))))
                         // Hemp leaf when mature — one fewer for every leaf already taken off the
                         // plant while it grew: both trims AND the rub, so four buckets, not three.
@@ -377,6 +393,35 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                 .properties(lowerPredicate.get().exactMatch(ageProperty, maxAge).exactMatch(GrowLight.PROPERTY, light));
     }
 
+    /**
+     * A healthy ripe plant's buds: one of them turns to schwag {@link #HEALTHY_SCHWAG_CHANCES} of the
+     * time. Only the main bud pool is wrapped, and exactly one of its alternatives fires, so that is
+     * the odds per plant; the light ladder's bonus buds are never spoiled.
+     */
+    private static LootPoolEntry.Builder<?> healthyBuds(LeafEntry.Builder<?> buds, LootCondition.Builder bucket,
+                                                       RegistryEntry<Enchantment> fortune) {
+        return ModLootEntryTypes.SpoilingEntry.builder(buds, ModItems.SCHWAG)
+                .conditionally(bucket)
+                .enchantment(fortune)
+                .oneItem(HEALTHY_SCHWAG_CHANCES);
+    }
+
+    /**
+     * A stressed plant's buds: each one turns to schwag at {@link #STRESSED_SCHWAG_CHANCES}.
+     *
+     * <p>Both wrappers carry the bucket's condition <b>themselves</b>, and the buds inside carry none:
+     * they sit in an {@code alternatives} chain, and vanilla's validation reads only the conditions of
+     * the chain's own children. With them on the buds, every later alternative was reported as an
+     * "Unreachable entry!" — three warnings at every world load, though the drops were right.
+     */
+    private static LootPoolEntry.Builder<?> stressedBuds(LeafEntry.Builder<?> buds, LootCondition.Builder bucket,
+                                                        RegistryEntry<Enchantment> fortune) {
+        return ModLootEntryTypes.SpoilingEntry.builder(buds, ModItems.SCHWAG)
+                .conditionally(bucket)
+                .enchantment(fortune)
+                .eachItem(STRESSED_SCHWAG_CHANCES);
+    }
+
     /** A flat bonus: no Fortune, which already scales the plant's own drops. */
     private static LeafEntry.Builder<?> fixedEntry(Item item, int count, LootCondition.Builder condition) {
         return ItemEntry.builder(item)
@@ -402,8 +447,13 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
     private static LeafEntry.Builder<?> scaledEntry(Item item, int count, LootCondition.Builder bucket,
                                                     RegistryEntry<Enchantment> fortune,
                                                     float fortuneChance, int fortuneExtra) {
+        return scaledCount(item, count, fortune, fortuneChance, fortuneExtra).conditionally(bucket);
+    }
+
+    /** The same drop with no condition of its own, for a wrapper that carries it (the buds). */
+    private static LeafEntry.Builder<?> scaledCount(Item item, int count, RegistryEntry<Enchantment> fortune,
+                                                    float fortuneChance, int fortuneExtra) {
         return ItemEntry.builder(item)
-                .conditionally(bucket)
                 .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) count)))
                 .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, fortuneChance, fortuneExtra));
     }

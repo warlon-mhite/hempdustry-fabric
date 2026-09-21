@@ -15,6 +15,7 @@ import com.warlonmhite.hempdustry.item.custom.EdibleScheduler;
 import com.warlonmhite.hempdustry.item.custom.SmokeScheduler;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.loot.ModLootEntryTypes;
 import com.warlonmhite.hempdustry.loot.ModLootTableModifiers;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.sound.ModSounds;
@@ -57,6 +58,7 @@ public class Hempdustry implements ModInitializer {
 		ModSounds.registerSounds();
 		ModParticles.registerParticles();
 		ModPlacementModifiers.registerPlacementModifiers();
+		ModLootEntryTypes.registerLootEntryTypes();
 		ModWorldGeneration.generateModWorldGeneration();
 
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BRICK, 0.05f);
@@ -83,6 +85,10 @@ public class Hempdustry implements ModInitializer {
 		// Burnt down to less than it was, so it drops to the loose leaf's 0.3 -- vanilla's dried kelp
 		// item rate. This is also its vanilla-shaped way out: nothing else consumes it but the tub.
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SCORCHED_HEMP, 0.3f);
+		// A bud's rate: vanilla prices compost by what a thing physically is, never by what it is
+		// worth, and schwag is a bud. Vanilla's poisonous potato does not compost at all, which reads
+		// as an oversight rather than a rule -- every plant thing in this mod composts.
+		CompostingChanceRegistry.INSTANCE.add(ModItems.SCHWAG, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BEANIE, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 0.5f);

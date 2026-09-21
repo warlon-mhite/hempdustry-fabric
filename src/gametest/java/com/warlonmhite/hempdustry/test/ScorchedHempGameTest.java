@@ -132,7 +132,7 @@ public final class ScorchedHempGameTest {
      * not into a cauldron to be washed, and into a composter at the leaf's rate.
      */
     public static void scorchedHempSmeltsFromPlantOnly(TestContext context) {
-        for (Item plant : new Item[]{ModItems.HEMP_LEAF, ModItems.INDICA_BUDS, ModItems.SATIVA_BUDS}) {
+        for (Item plant : new Item[]{ModItems.HEMP_LEAF, ModItems.INDICA_BUDS, ModItems.SATIVA_BUDS, ModItems.SCHWAG}) {
             context.assertTrue(smeltsTo(context, plant).isOf(ModItems.SCORCHED_HEMP),
                     plant + " did not smelt to scorched hemp");
             context.assertEquals(smeltsTo(context, plant).getCount(), 1,

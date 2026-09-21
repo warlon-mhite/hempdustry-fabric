@@ -22,6 +22,7 @@ import net.minecraft.test.TestContext;
 import net.minecraft.util.Hand;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The 2.0.1 rebalance, through the real hit where it can be: {@code Item#use} on a packed device, so
@@ -189,7 +190,7 @@ public final class RebalanceGameTest {
 
     /** What one hit of {@code contents} applies after the config, the way Smoking hands it over. */
     private static List<StatusEffectInstance> hit(SmokeContents contents) {
-        return EffectPolicy.filter(contents.effects(900, false), contents.buffBonus());
+        return EffectPolicy.filter(contents.effects(900, false, ThreadLocalRandom.current()), contents.buffBonus());
     }
 
     private static RegistryEntry<Strain> strain(TestContext context, RegistryKey<Strain> key) {

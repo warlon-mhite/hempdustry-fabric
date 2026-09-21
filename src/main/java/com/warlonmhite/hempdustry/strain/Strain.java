@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.random.RandomGenerator;
 
 /**
  * A smokeable material and what it does: what packs into a device, its colour, and the effects one
@@ -226,15 +227,16 @@ public record Strain(String translationKey, int color, int modelIndex,
     /**
      * Fresh status-effect instances for one hit of this strain at {@code dose}: the ones that land
      * on the hit ({@code onExhale} false) or the ones held back to the exhale ({@code onExhale} true).
-     * Each lasts {@code durationTicks} times its own {@link SmokeEffect#durationFactor}. A strain with
-     * no effects — including one a datapack has emptied deliberately — simply applies nothing.
+     * Each lasts {@code durationTicks} times its own {@link SmokeEffect#durationFactor}, and lands
+     * only if its {@link SmokeEffect#chance} comes up on {@code random}. A strain with no effects —
+     * including one a datapack has emptied deliberately — simply applies nothing.
      *
      * <p>A strain the world no longer defines never reaches this method at all: the reference is
      * dropped while the {@code smoke_contents} component decodes, leaving the device unpacked. See
      * {@code SmokeContents.ENTRIES_CODEC} for why that has to happen there rather than here.
      */
-    public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale) {
-        return effects(dose, durationTicks, onExhale, 0);
+    public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale, RandomGenerator random) {
+        return effects(dose, durationTicks, onExhale, 0, random);
     }
 
     /**
@@ -242,16 +244,23 @@ public record Strain(String translationKey, int color, int modelIndex,
      * dose: how a bud loaded with a concentrate reaches past the cap. Costs are not raised, because
      * the concentrate is potency, not a bigger dose of the plant.
      */
-    public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale, int buffBonus) {
+    public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale, int buffBonus,
+                                              RandomGenerator random) {
         List<StatusEffectInstance> out = new ArrayList<>(smokeEffects.size());
         for (SmokeEffect effect : smokeEffects) {
             if (effect.onExhale() != onExhale) {
+                continue;
+            }
+            // A certain effect draws nothing, so every strain written before chance existed takes
+            // exactly the random numbers it always did.
+            if (effect.chance() < 1.0F && random.nextFloat() >= effect.chance()) {
                 continue;
             }
             int amplifier = effect.baseAmplifier() + (effect.scales() ? Math.max(0, dose - 1) : 0);
             if (effect.scales() && effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL) {
                 amplifier += buffBonus;
             }
+            amplifier = Math.min(effect.maxAmplifier(), amplifier);
             // At least a tick: a datapack's 0 or negative factor is a very short effect, never one
             // that silently does not exist.
             int duration = Math.max(1, Math.round(durationTicks * effect.durationFactor()));
@@ -274,20 +283,40 @@ public record Strain(String translationKey, int color, int modelIndex,
      *                       lasts as long as Invisibility cancels it rather than pricing it
      * @param onExhale       whether it lands with the exhale puff ({@code Smoking}'s exhale delay)
      *                       rather than on the hit. Streaming eyes come when the smoke comes out
+     * @param chance         the odds it lands at all on a given hit, rolled per hit. {@code 1.0} for
+     *                       nearly everything; schwag's Poison is {@code 0.6}, the poisonous potato's
+     *                       own odds. Vanilla's {@code apply_effects} consume effect calls the same
+     *                       number {@code probability}
+     * @param maxAmplifier   the highest amplifier dose may scale it to. Unbounded in practice (255,
+     *                       vanilla's own ceiling) for nearly everything; schwag's Poison stops at
+     *                       {@code 1}, level II, because survival vanilla never goes past Poison II
+     *                       (the strong potion, the pufferfish) and level III takes a full-health
+     *                       player to half a heart in seven seconds
      */
     public record SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales,
-                              float durationFactor, boolean onExhale) {
+                              float durationFactor, boolean onExhale, float chance, int maxAmplifier) {
+        /** Vanilla's highest amplifier, and the default: no cap a dose could reach. */
+        public static final int NO_CAP = 255;
+
         public static final Codec<SmokeEffect> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 StatusEffect.ENTRY_CODEC.fieldOf("effect").forGetter(SmokeEffect::effect),
                 Codec.INT.optionalFieldOf("base_amplifier", 0).forGetter(SmokeEffect::baseAmplifier),
                 Codec.BOOL.optionalFieldOf("scales", true).forGetter(SmokeEffect::scales),
                 Codec.FLOAT.optionalFieldOf("duration_factor", 1.0F).forGetter(SmokeEffect::durationFactor),
-                Codec.BOOL.optionalFieldOf("on_exhale", false).forGetter(SmokeEffect::onExhale)
+                Codec.BOOL.optionalFieldOf("on_exhale", false).forGetter(SmokeEffect::onExhale),
+                Codec.floatRange(0.0F, 1.0F).optionalFieldOf("chance", 1.0F).forGetter(SmokeEffect::chance),
+                Codec.intRange(0, NO_CAP).optionalFieldOf("max_amplifier", NO_CAP).forGetter(SmokeEffect::maxAmplifier)
         ).apply(instance, SmokeEffect::new));
 
-        /** The whole duration, from the hit — every effect written before the last two fields existed. */
+        /** The whole duration, from the hit — every effect written before the last four fields existed. */
         public SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales) {
             this(effect, baseAmplifier, scales, 1.0F, false);
+        }
+
+        /** Certain to land and uncapped — every effect written before {@code chance} existed. */
+        public SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales,
+                           float durationFactor, boolean onExhale) {
+            this(effect, baseAmplifier, scales, durationFactor, onExhale, 1.0F, NO_CAP);
         }
     }
 }

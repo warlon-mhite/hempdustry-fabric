@@ -1,0 +1,46 @@
+# Schwag -- a bud gone wrong: seedy, stemmy, weak.
+#
+# The MATRIX is item/beldia_buds.png's shape (itself the shared bud outline), so it reads as "a bud"
+# before it reads as anything else. The palette drains it: every green goes to a dull, dark brown
+# and the hairs to a darker one, with no green and no bright tone left -- the plant's colour, cured
+# badly. Darker than Beldía's bud on purpose: at slot size the two must never be confused.
+# Three pale seeds with a dark seam each (c over e) and a stalk poking out below are the two things
+# that make schwag schwag: it is sold by weight with the seeds and stems still in it.
+#
+# PLACEHOLDER: derived art, not drawn. Redraw or retone freely.
+
+@palette schwag
+. = none
+1 = 110D07
+2 = 2F2616
+3 = 3A2714
+4 = 423520
+5 = 4C3319
+6 = 564427
+7 = 5E4122
+8 = 6A552F
+9 = 6F5029
+a = 7C6638
+b = 9C7E4A
+c = C9B383
+e = 2A1C0E
+t = 9A8352
+u = 574628
+
+@texture item/schwag 16x16 palette=schwag type=item
+................
+................
+.......1111.....
+.....11b96911...
+....1ba6ce8b91..
+....19894ab391..
+...139a39b968a1.
+...194a82ce9a41.
+....114948a39b1.
+...1a5169686a31.
+..17ce819b6a41..
+..157518a499a1..
+...11t189b311...
+...1tu1111111...
+..1tu1..........
+..1111..........

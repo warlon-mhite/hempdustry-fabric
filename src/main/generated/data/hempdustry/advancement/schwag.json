@@ -1,0 +1,34 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "has_schwag": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:schwag"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.schwag.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:schwag"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.schwag.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_schwag"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -93,6 +93,11 @@ public class DecarboxylatorBlockEntity extends BlockEntity
     public static final int BUDS_OUTPUT = 4;
     /** Decarboxylated hemp yielded per fan leaf — bulk trim, worth a quarter of a bud. */
     public static final int LEAF_OUTPUT = 1;
+    /**
+     * Decarboxylated hemp yielded per schwag: half a bud. Still a bud, so still heat-activated, but a
+     * spoiled one costs its grower half its oven value on top of its whole high.
+     */
+    public static final int SCHWAG_OUTPUT = BUDS_OUTPUT / 2;
     // There is deliberately NO hashish figure here. Nothing in the hash family decarboxylates:
     // the oven takes plant matter, the bowl takes resin. See ModRecipeProvider and SiftingBoxBlock.
 

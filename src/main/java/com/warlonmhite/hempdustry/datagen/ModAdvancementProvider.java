@@ -148,6 +148,15 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .parent(rootAdvancement)
                 .build(consumer, Hempdustry.MOD_ID + ":sativa_strain");
 
+        // The strains' sour sibling, beside them: nobody grows schwag, so it has no node of its own
+        // in the cultivation branch. Vanilla's poisonous potato earns its keep the same way, as a
+        // line in A Balanced Diet. Obtaining it is the whole criterion -- from a harvest or a wreck.
+        Advancement.Builder.create()
+                .display(display(ModItems.SCHWAG, "schwag", AdvancementFrame.TASK))
+                .criterion("has_schwag", InventoryChangedCriterion.Conditions.items(ModItems.SCHWAG))
+                .parent(rootAdvancement)
+                .build(consumer, Hempdustry.MOD_ID + ":schwag");
+
         // ---------------------------------------------------------------------
         // Cultivation
         // ---------------------------------------------------------------------
