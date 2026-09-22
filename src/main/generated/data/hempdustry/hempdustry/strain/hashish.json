@@ -14,8 +14,7 @@
       "scales": false
     },
     {
-      "effect": "minecraft:hunger",
-      "scales": false
+      "effect": "minecraft:hunger"
     }
   ],
   "model_index": 3,

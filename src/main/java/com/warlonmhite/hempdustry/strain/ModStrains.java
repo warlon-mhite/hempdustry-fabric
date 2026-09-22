@@ -218,7 +218,7 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(StatusEffects.INVISIBILITY, 0, false),
                         new SmokeEffect(StatusEffects.BLINDNESS, 0, false, 0.25F, true),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, false)),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true)),
                 0.5F));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
@@ -246,7 +246,7 @@ public class ModStrains {
                         new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
 
         // Charas -- the same hash body as hashish, and the family's second signature.
         //
@@ -274,7 +274,7 @@ public class ModStrains {
                         new SmokeEffect(StatusEffects.SLOW_FALLING, 0, false),
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
 
         // Filtered hashish -- HASHISH's effect list, unchanged, and half the green-out odds.
         //
@@ -301,7 +301,7 @@ public class ModStrains {
                         new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
 
         // Rosin -- the hash body with the signature stripped out, and the only smokeable in the mod
         // with nothing to explore with. That is the design, not an oversight: concentration costs
@@ -321,7 +321,7 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
 
         // Scorched hemp -- the high is gone; the couch and the munchies are not.
         //
@@ -342,7 +342,7 @@ public class ModStrains {
                 Optional.empty(), ModItems.SCORCHED_HEMP, Optional.empty(), 0.0F, 1,
                 List.of(
                         new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, false))));
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
     }
 
     private static RegistryKey<Strain> key(String name) {

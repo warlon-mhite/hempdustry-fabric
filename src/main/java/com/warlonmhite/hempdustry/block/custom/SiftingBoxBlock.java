@@ -23,6 +23,7 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.StringIdentifiable;
@@ -307,6 +308,7 @@ public class SiftingBoxBlock extends Block {
         if (level >= FULL_LEVEL || chance <= 0.0F || content == null
                 || (state.get(FILLED) && content != Content.PLANT)
                 || (level > 0 && content != state.get(CONTENT))) {
+            explainRefusal(world, player, state, content, level);
             return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
         }
         if (world instanceof ServerWorld serverWorld) {
@@ -317,6 +319,33 @@ public class SiftingBoxBlock extends Block {
         // the frame you click rather than on the frame the server's answer arrives.
         stack.decrementUnlessCreative(1, player);
         return ActionResult.SUCCESS;
+    }
+
+    /**
+     * Says on the action bar why the box refused something it would sift. The two rules a player
+     * cannot see are the ones worth a line: a wash does nothing without its jacket of ice, and a dry
+     * screen never mixes plant matter with kief. Anything the box would never take (a stick, a full
+     * screen) is left silent, the way vanilla's composter is. Server side only, or the line would
+     * arrive twice.
+     */
+    private static void explainRefusal(World world, PlayerEntity player, BlockState state,
+                                       Content content, int level) {
+        if (world.isClient() || content == null || level >= FULL_LEVEL) {
+            return;
+        }
+        String key = null;
+        if (state.get(FILLED)) {
+            if (content == Content.PLANT) {
+                key = "hempdustry.sifting_box.needs_ice";
+            }
+        } else if (level > 0 && content != state.get(CONTENT)) {
+            key = content == Content.PLANT
+                    ? "hempdustry.sifting_box.no_plant_in_kief"
+                    : "hempdustry.sifting_box.no_kief_in_plant";
+        }
+        if (key != null) {
+            player.sendMessage(Text.translatable(key), true);
+        }
     }
 
     /** Taking the batch out. Empty-handed, or holding anything the box does not accept. */

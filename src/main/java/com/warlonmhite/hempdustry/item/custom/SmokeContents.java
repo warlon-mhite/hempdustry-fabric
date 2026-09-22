@@ -7,6 +7,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -324,14 +325,48 @@ public record SmokeContents(List<Entry> entries) {
      * so a bong of three lasts 75 s instead of 50. Without it the third bud would buy only a bigger
      * Hunger once the buffs stop at II. Counted per entry, so a two-and-one mix, each strain at its
      * own count, has nothing past the cap.
+     *
+     * <p><b>A bud loaded with a concentrate goes one level past the cap</b> (see {@link #buffBonus}):
+     * its scaling buffs rise by one and may reach {@code maxBuffLevel + 1}. Every other entry, the
+     * concentrate's own strain-agnostic effects included, is held to the plain cap here, so the
+     * raised cap {@code Smoking} hands the policy lifts only the bud.
      */
     public List<StatusEffectInstance> effects(int durationTicks, boolean onExhale) {
+        int load = buffBonus();
         List<StatusEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
-            int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel());
-            out.addAll(entry.strain().value().effects(entry.count(),
-                    durationTicks + durationTicks * past / 2, onExhale));
+            int bonus = entry.strain().value().flower().isPresent() ? load : 0;
+            int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel(bonus));
+            for (StatusEffectInstance effect : entry.strain().value().effects(entry.count(),
+                    durationTicks + durationTicks * past / 2, onExhale, bonus)) {
+                out.add(new StatusEffectInstance(effect.getEffectType(), effect.getDuration(),
+                        EffectPolicy.amplifier(effect.getEffectType(), effect.getAmplifier(), bonus)));
+            }
         }
         return out;
+    }
+
+    /**
+     * One when a bud is loaded with a concentrate, else none: the only way past the buff cap.
+     *
+     * <p>A moon rock is described in the trade as flower for character, concentrate for potency,
+     * and that is the rule: the concentrate lifts the plant's own effects rather than adding a
+     * bigger version of its own. A concentrate is a strain with no flower and a buff of its own,
+     * which is every hash and rosin and not scorched hemp. <b>Once</b>: two concentrates do not make
+     * a fourth level, because this is a flag on the load and not a count.
+     */
+    public int buffBonus() {
+        boolean bud = false;
+        boolean concentrate = false;
+        for (Entry entry : entries) {
+            Strain strain = entry.strain().value();
+            if (strain.flower().isPresent()) {
+                bud = true;
+            } else if (strain.smokeEffects().stream().anyMatch(effect ->
+                    effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL)) {
+                concentrate = true;
+            }
+        }
+        return bud && concentrate ? 1 : 0;
     }
 }
