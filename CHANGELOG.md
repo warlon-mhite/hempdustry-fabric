@@ -135,9 +135,21 @@ beta be told when the release lands.
   section turns it off.
 - **Purple Kush's colour is a brighter violet**, so a packed Purple Kush load shows up on every
   device.
+- **Level III is back, but only by pairing.** 2.0.1 stopped every helpful effect at level II. In
+  2.1.0 a bud smoked together with a concentrate — hashish, charas, filtered hashish or rosin, in a
+  spliff, a device or a moon rock — lifts that bud's helpful effects one level past the cap, to III.
+  Only once: two concentrates do not make IV, and the concentrate's own effects stay at II. The price
+  is a full green-out at a dose of three, which a bud-and-hash load easily is.
+- **The munchies scale on hash too.** Every hash, rosin, Beldía and scorched hemp now gives Hunger
+  that grows with the dose, as the plants do since 2.0.1.
+- **The Sifting Box says why it refused something.** A filled box with no ice around it tells you
+  the wash needs ice on all four sides, and a dry screen tells you it will not mix plant matter with
+  kief. Shears on a plant already rubbed for charas say so.
 
 ### Notes for pack makers
 
+- **The level-III cap is a knob.** `maxBuffLevel` in the config's `effects` section (default 2) is
+  the plain cap; pairing a bud with a concentrate goes one past it. Raise it for a stronger mod.
 - **Hash is data.** Hashish, filtered hashish, charas and rosin are strains with no seeds and no
   flower, so a datapack rebalances them — or adds a resin of its own — in
   `data/<namespace>/hempdustry/strain/` like any other strain. Strains gain three optional fields,

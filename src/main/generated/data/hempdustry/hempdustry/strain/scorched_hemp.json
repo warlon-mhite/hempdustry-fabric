@@ -7,8 +7,7 @@
       "scales": false
     },
     {
-      "effect": "minecraft:hunger",
-      "scales": false
+      "effect": "minecraft:hunger"
     }
   ],
   "green_out_factor": 0.0,

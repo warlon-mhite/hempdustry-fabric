@@ -36,7 +36,16 @@ public final class EffectPolicy {
      * empty strain does the same thing.
      */
     public static List<StatusEffectInstance> filter(List<StatusEffectInstance> effects) {
-        return filter(effects, true);
+        return filter(effects, true, 0);
+    }
+
+    /**
+     * As {@link #filter}, for a smoked load that may pass the buff cap by {@code buffBonus} levels:
+     * one when a bud is loaded with a concentrate, else none. The load has already held every entry
+     * that did not earn the bonus to the plain cap, so all this does is not clip the one that did.
+     */
+    public static List<StatusEffectInstance> filter(List<StatusEffectInstance> effects, int buffBonus) {
+        return filter(effects, true, buffBonus);
     }
 
     /**
@@ -47,10 +56,11 @@ public final class EffectPolicy {
      * effects are built, and scaling twice would square the multiplier.
      */
     public static List<StatusEffectInstance> filterKeepingDuration(List<StatusEffectInstance> effects) {
-        return filter(effects, false);
+        return filter(effects, false, 0);
     }
 
-    private static List<StatusEffectInstance> filter(List<StatusEffectInstance> effects, boolean scaleDuration) {
+    private static List<StatusEffectInstance> filter(List<StatusEffectInstance> effects, boolean scaleDuration,
+                                                     int buffBonus) {
         Effects config = HempdustryConfig.get().effects();
         if (!config.enabled()) {
             return List.of();
@@ -62,7 +72,7 @@ public final class EffectPolicy {
             }
             out.add(new StatusEffectInstance(instance.getEffectType(),
                     scaleDuration ? duration(instance.getDuration()) : instance.getDuration(),
-                    amplifier(instance.getEffectType(), instance.getAmplifier()),
+                    amplifier(instance.getEffectType(), instance.getAmplifier(), buffBonus),
                     instance.isAmbient(), instance.shouldShowParticles(), instance.shouldShowIcon()));
         }
         return out;
@@ -97,23 +107,28 @@ public final class EffectPolicy {
      * which is what makes a big dose a real decision now that its buffs stop early.
      */
     public static int amplifier(RegistryEntry<StatusEffect> effect, int amplifier) {
+        return amplifier(effect, amplifier, 0);
+    }
+
+    /** As above, with the buff cap raised by {@code buffBonus}; {@code maxLevel} still holds. */
+    public static int amplifier(RegistryEntry<StatusEffect> effect, int amplifier, int buffBonus) {
         Effects config = HempdustryConfig.get().effects();
         int cap = config.maxLevel();
         if (effect.value().getCategory() == StatusEffectCategory.BENEFICIAL) {
-            cap = Math.min(cap, config.maxBuffLevel());
+            cap = Math.min(cap, config.maxBuffLevel() + buffBonus);
         }
         return Math.min(amplifier, cap - 1);
     }
 
     /**
      * The highest level a buff reaches, which is also where extra dose turns into duration. That is
-     * {@code maxBuffLevel}, or {@code maxLevel} where it is the lower of the two: under
-     * {@code maxLevel: 1} a dose of two is level I, and its second bud has to buy time or it buys
-     * nothing at all.
+     * {@code maxBuffLevel}, raised by {@code buffBonus} for a bud loaded with a concentrate, or
+     * {@code maxLevel} where it is the lower of the two: under {@code maxLevel: 1} a dose of two is
+     * level I, paired or not, and its second bud has to buy time or it buys nothing at all.
      */
-    public static int maxBuffLevel() {
+    public static int maxBuffLevel(int buffBonus) {
         Effects config = HempdustryConfig.get().effects();
-        return Math.min(config.maxLevel(), config.maxBuffLevel());
+        return Math.min(config.maxLevel(), config.maxBuffLevel() + buffBonus);
     }
 
     /** A use cooldown in ticks, scaled. Zero is allowed here: it means "no cooldown". */
