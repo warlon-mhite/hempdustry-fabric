@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -35,9 +36,17 @@ import java.util.concurrent.ThreadLocalRandom;
  * <h2>The bundle is not Purple Kush's and not Lemon Haze's</h2>
  *
  * Absorption rather than Resistance-as-the-spine, specifically so edibles do not obsolete Purple
- * Kush's bong — that still owns the highest Resistance in the mod (III) and delivers it instantly,
- * where an edible trades down to II and pays an onset delay for Absorption, Regeneration and several
- * times the duration. Smoking is fast and mobile; edibles are slow and durable.
+ * Kush's bong — that still owns the highest Resistance in the mod and delivers it instantly, where an
+ * edible trades down to I and pays an onset delay for Absorption, Regeneration and several times the
+ * duration. Smoking is fast and mobile; edibles are slow and durable.
+ *
+ * <h2>The tier buys time, not level (2.0.1)</h2>
+ *
+ * Before 2.0.1 a Perfect tier-IV brownie was Absorption IV and Resistance II for eight minutes: an
+ * enchanted golden apple's Absorption for four times as long, from about one and a half plants. Now
+ * Absorption follows the tier only as far as {@code maxBuffLevel} lets it (II by default),
+ * Resistance and Regeneration are I at every tier, and the tier scales how long it all lasts. A
+ * Perfect batch is still worth the wait: its Slowness never passes I.
  *
  * <h2>Nothing arrives at once</h2>
  *
@@ -88,14 +97,24 @@ public final class EdibleEffects {
     private static final int RAMP_HUNGER = 400; // +20s — the munchies genuinely lag
     private static final int RAMP_PEAK = 600;   // +30s — the restorative peak
 
-    /** Munchies run 60 s flat whatever the tier — vanilla's own Hunger tops out at 30 s. */
-    private static final int HUNGER_DURATION = 1200;
+    /**
+     * Each tier's share of the quality's duration, in eighths: 62.5, 75, 87.5 and 100%. This is what
+     * a stronger butter buys now that the levels mostly stay put.
+     */
+    private static final int[] TIER_EIGHTHS = {5, 6, 7, 8};
 
-    /** Amplifier per tier for the two effects that scale slowly. 0-indexed by tier-1. */
+    /** Slowness per tier, 0-indexed by tier-1 -- except Perfect, whose Slowness never passes I. */
     private static final int[] SLOW_STEP = {0, 0, 1, 1};  // Slowness I, I, II, II
-    private static final int[] RESIST_STEP = {0, 0, 1, 1}; // Resistance I, I, II, II
-    /** Regeneration II always; only its length grows. 5 s at tier I is vanilla's golden apple. */
+    /** Regeneration I always; only its length grows. 5 s at tier I is vanilla's golden apple. */
     private static final int[] REGEN_DURATION = {100, 200, 300, 400};
+
+    /** The buffs an edible grants, which a full green-out ends along with the smoked ones. */
+    public static final List<RegistryEntry<StatusEffect>> BUFFS =
+            List.of(StatusEffects.ABSORPTION, StatusEffects.RESISTANCE, StatusEffects.REGENERATION);
+
+    /** One effect of the bundle and how many ticks after eating it lands. */
+    public record Dose(int delay, StatusEffectInstance effect) {
+    }
 
     /** Cannabutter strength (1..24) collapsed to a potency tier (1..4) by even quartiles. */
     public static int tierFromStrength(int strength) {
@@ -153,40 +172,57 @@ public final class EdibleEffects {
             // about, and no event fires.
             return;
         }
-        int onset = rollOnsetTicks(quality);
-        int duration = durationTicks(quality);
-        int index = MathHelper.clamp(tier, 1, MAX_TIER) - 1;
-
-        // The body drop, alone and first. This is what tells the player it has started.
-        queue(player, onset, StatusEffects.SLOWNESS, SLOW_STEP[index], duration);
-
-        // The padded, pain-dulled body. Ends with the slowness rather than outlasting it, so the
-        // heaviness is what lingers -- which is the right way round.
-        queue(player, onset + RAMP_BODY, StatusEffects.ABSORPTION, index, duration - RAMP_BODY);
-        queue(player, onset + RAMP_BODY, StatusEffects.RESISTANCE, RESIST_STEP[index], duration - RAMP_BODY);
-
-        // Munchies, which genuinely arrive later than the rest.
-        queue(player, onset + RAMP_HUNGER, StatusEffects.HUNGER, 0, HUNGER_DURATION);
-
-        // The restorative peak, last.
-        queue(player, onset + RAMP_PEAK, StatusEffects.REGENERATION, 1, REGEN_DURATION[index]);
+        for (Dose dose : bundle(tier, quality, rollOnsetTicks(quality))) {
+            queue(player, dose.delay(), dose.effect());
+        }
 
         // Fired on the swallow, not on the onset: the effects above are queued behind a come-up and
         // then ramp in stages, so there is no single later instant that means "this happened".
         HempdustryEvents.AFTER_EAT.invoker().onEaten(player, tier, quality);
     }
 
-    private static void queue(PlayerEntity player, int delay,
-                              RegistryEntry<StatusEffect> effect, int amplifier, int duration) {
-        if (duration <= 0) {
-            return;
+    /**
+     * The whole staggered sequence for one edible, before the config has had its say, with
+     * {@code onset} as the moment it kicks in. Split out of {@link #consume} so the bundle can be read
+     * without waiting out a random come-up.
+     */
+    public static List<Dose> bundle(int tier, Quality quality, int onset) {
+        int index = MathHelper.clamp(tier, 1, MAX_TIER) - 1;
+        int duration = durationTicks(quality) * TIER_EIGHTHS[index] / 8;
+        int slowness = quality == Quality.PERFECT ? 0 : SLOW_STEP[index];
+        List<Dose> out = new ArrayList<>();
+
+        // The body drop, alone and first. This is what tells the player it has started.
+        add(out, onset, StatusEffects.SLOWNESS, slowness, duration);
+
+        // The padded, pain-dulled body. Ends with the slowness rather than outlasting it, so the
+        // heaviness is what lingers -- which is the right way round. Absorption asks for the tier
+        // and EffectPolicy stops it at maxBuffLevel.
+        add(out, onset + RAMP_BODY, StatusEffects.ABSORPTION, index, duration - RAMP_BODY);
+        add(out, onset + RAMP_BODY, StatusEffects.RESISTANCE, 0, duration - RAMP_BODY);
+
+        // Munchies, which genuinely arrive later than the rest, and stay to the end: a minute of
+        // Hunger I was a point and a half of saturation, a cost nobody could see.
+        add(out, onset + RAMP_HUNGER, StatusEffects.HUNGER, 0, duration - RAMP_HUNGER);
+
+        // The restorative peak, last.
+        add(out, onset + RAMP_PEAK, StatusEffects.REGENERATION, 0, REGEN_DURATION[index]);
+        return out;
+    }
+
+    private static void add(List<Dose> out, int delay, RegistryEntry<StatusEffect> effect,
+                            int amplifier, int duration) {
+        if (duration > 0) {
+            out.add(new Dose(delay, new StatusEffectInstance(effect, duration, amplifier)));
         }
+    }
+
+    private static void queue(PlayerEntity player, int delay, StatusEffectInstance effect) {
         // Through the same gate as everything else: an edible obeys effects.enabled, the debuff and
         // munchies switches and the level cap exactly as a bong hit does. Durations arrive already
         // scaled from durationTicks, so the policy's own scaling is not applied twice here -- it is
         // filter() that is wanted, and it returns nothing when the effect is switched off.
-        for (StatusEffectInstance allowed : EffectPolicy.filterKeepingDuration(
-                List.of(new StatusEffectInstance(effect, duration, amplifier)))) {
+        for (StatusEffectInstance allowed : EffectPolicy.filterKeepingDuration(List.of(effect))) {
             EdibleScheduler.schedule(player, delay, allowed);
         }
     }

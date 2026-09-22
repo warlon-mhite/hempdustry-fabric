@@ -150,18 +150,19 @@ public class ModStrains {
                 ModItems.INDICA_SEEDS, ModItems.INDICA_BUDS, ModBlocks.INDICA_FLOWER,
                 List.of(
                         new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, false),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true),
                         new SmokeEffect(StatusEffects.MINING_FATIGUE, 0, true))));
 
         // Lemon Haze — the head high, and a deliberate mirror of Purple Kush: where indica buffs
         // defence and taxes mining, sativa buffs movement and mining and taxes melee damage. Hunger
-        // is in both because the munchies don't care which strain you smoked.
+        // is in both because the munchies don't care which strain you smoked -- but they do care how
+        // much: Hunger scales with the dose like any other cost, I to III.
         context.register(SATIVA, new Strain("hempdustry.strain.sativa", 0xC7D14A, modelIndex(SATIVA),
                 ModItems.SATIVA_SEEDS, ModItems.SATIVA_BUDS, ModBlocks.SATIVA_FLOWER,
                 List.of(
                         new SmokeEffect(StatusEffects.SPEED, 0, true),
                         new SmokeEffect(StatusEffects.HASTE, 0, true),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, false),
+                        new SmokeEffect(StatusEffects.HUNGER, 0, true),
                         new SmokeEffect(StatusEffects.WEAKNESS, 0, true))));
     }
 

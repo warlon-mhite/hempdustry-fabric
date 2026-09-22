@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
@@ -139,9 +140,13 @@ public final class Defoliation {
         } else if (age >= LATE_MIN_AGE && age <= LATE_MAX_AGE) {
             window = TRIMMED_LATE;
         } else {
+            if (age < EARLY_MIN_AGE) {
+                refuse(world, player, "hempdustry.trim.too_young");
+            }
             return null;
         }
         if (lowerState.get(window)) {
+            refuse(world, player, "hempdustry.trim.already");
             return null;
         }
 
@@ -156,5 +161,17 @@ public final class Defoliation {
         world.playSound(player, lowerPos, SoundEvents.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES,
                 SoundCategory.BLOCKS, 1.0F, 0.8F + world.getRandom().nextFloat() * 0.4F);
         return ActionResult.SUCCESS;
+    }
+
+    /**
+     * Says on the action bar why the shears did nothing. A plant's age is its model, so strictly
+     * the world already answers; but the trim windows are the mechanic a player is least likely to
+     * find by looking, and the refused click is the one moment they are testing it. Server side
+     * only, or the line would arrive twice.
+     */
+    private static void refuse(World world, PlayerEntity player, String key) {
+        if (!world.isClient()) {
+            player.sendMessage(Text.translatable(key), true);
+        }
     }
 }

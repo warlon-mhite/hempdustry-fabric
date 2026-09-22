@@ -67,12 +67,13 @@ public class SpliffItem extends Item {
             if (!Smoking.allowed(player, stack, contents)) {
                 return ActionResult.PASS;
             }
-            Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
+            boolean lockedOut = Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
                     COUGH_CHANCE_ONE_IN, NAUSEA_CHANCE_ONE_IN,
                     Smoking.greenOutChanceOneIn(contents.dose(), true));
             // Marks the stack before it shrinks: what is left of it is what the player smoked
             // from, and that is what the cooldown swipe should sit on.
-            Smoking.startCooldown(player, stack, EffectPolicy.cooldown(COOLDOWN_TICKS));
+            Smoking.startCooldown(player, stack,
+                    EffectPolicy.cooldown(lockedOut ? Smoking.GREEN_OUT_LOCKOUT_TICKS : COOLDOWN_TICKS));
             if (!player.getAbilities().creativeMode) {
                 stack.decrement(1);
             }

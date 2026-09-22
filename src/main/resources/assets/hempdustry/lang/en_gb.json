@@ -41,6 +41,8 @@
   "hempdustry.update.tooltip": "Open the Hempdustry page on Modrinth",
   "hempdustry.edible.potency": "Potency: %s",
   "hempdustry.edible.quality": "Quality: %s",
+  "hempdustry.trim.too_young": "Too young to trim",
+  "hempdustry.trim.already": "Already trimmed",
   "item.hempdustry.wooden_pipe": "Wooden Pipe",
   "item.hempdustry.wooden_pipe.packed": "%s Pipe",
   "item.hempdustry.bong": "Bong",

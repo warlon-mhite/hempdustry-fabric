@@ -6,8 +6,7 @@
       "effect": "minecraft:resistance"
     },
     {
-      "effect": "minecraft:hunger",
-      "scales": false
+      "effect": "minecraft:hunger"
     },
     {
       "effect": "minecraft:mining_fatigue"

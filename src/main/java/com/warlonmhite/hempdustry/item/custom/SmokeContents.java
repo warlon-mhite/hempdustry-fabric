@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.network.RegistryByteBuf;
@@ -39,8 +40,8 @@ import java.util.List;
  *
  * <p>Until mixing is designed properly, a multi-entry blend resolves the obvious way: <b>each
  * strain applies its own effects at its own bud count</b>, so a 2+1 mix is one strain at level II
- * and another at level I. That falls out as a broader-but-weaker trade against a single strain at
- * level III, which is roughly the fixed-budget shape mixing wants anyway — but it has not been
+ * and another at level I. That falls out as a broader-but-shorter trade against a single strain at
+ * dose three, which is roughly the fixed-budget shape mixing wants anyway — but it has not been
  * balanced, so treat it as a sane default rather than a design.
  */
 public record SmokeContents(List<Entry> entries) {
@@ -232,11 +233,20 @@ public record SmokeContents(List<Entry> entries) {
         return name;
     }
 
-    /** Every status effect one hit of this load applies, lasting {@code durationTicks}. */
+    /**
+     * Every status effect one hit of this load applies, lasting {@code durationTicks}.
+     *
+     * <p><b>A bud past the buff cap buys time, not level</b>: each one over
+     * {@link EffectPolicy#maxBuffLevel} adds half the device's duration to that strain's effects,
+     * so a bong of three lasts 75 s instead of 50. Without it the third bud would buy only a bigger
+     * Hunger once the buffs stop at II. Counted per entry, so a two-and-one mix, each strain at its
+     * own count, has nothing past the cap.
+     */
     public List<StatusEffectInstance> effects(int durationTicks) {
         List<StatusEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
-            out.addAll(entry.strain().value().effects(entry.count(), durationTicks));
+            int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel());
+            out.addAll(entry.strain().value().effects(entry.count(), durationTicks + durationTicks * past / 2));
         }
         return out;
     }

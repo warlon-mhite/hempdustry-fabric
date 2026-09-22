@@ -40,6 +40,8 @@
   "hempdustry.update.tooltip": "Открыть страницу Hempdustry в Modrinth",
   "hempdustry.edible.potency": "Мощность: %s",
   "hempdustry.edible.quality": "Качество: %s",
+  "hempdustry.trim.too_young": "Слишком молодое для обрезки",
+  "hempdustry.trim.already": "Уже обрезано",
   "item.hempdustry.wooden_pipe": "Деревянная трубка",
   "item.hempdustry.wooden_pipe.packed": "%s трубка",
   "item.hempdustry.bong": "Бонг",

@@ -1,9 +1,11 @@
 package com.warlonmhite.hempdustry.config;
 
 import com.warlonmhite.hempdustry.config.HempdustryConfig.Effects;
+import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
@@ -20,9 +22,9 @@ import java.util.List;
  *
  * <h2>What it does not do</h2>
  *
- * It scales and it removes; it never adds and never raises. {@code maxLevel} can lower an effect's
- * level but nothing here can push one above what the strain or the edible asked for, so a config
- * cannot invent a Resistance V that the balance was never checked against.
+ * It scales and it removes; it never adds and never raises. {@code maxLevel} and {@code maxBuffLevel}
+ * can lower an effect's level but nothing here can push one above what the strain or the edible asked
+ * for, so a config cannot invent a Resistance V that the balance was never checked against.
  */
 public final class EffectPolicy {
     private EffectPolicy() {
@@ -60,7 +62,7 @@ public final class EffectPolicy {
             }
             out.add(new StatusEffectInstance(instance.getEffectType(),
                     scaleDuration ? duration(instance.getDuration()) : instance.getDuration(),
-                    amplifier(instance.getAmplifier()),
+                    amplifier(instance.getEffectType(), instance.getAmplifier()),
                     instance.isAmbient(), instance.shouldShowParticles(), instance.shouldShowIcon()));
         }
         return out;
@@ -86,9 +88,26 @@ public final class EffectPolicy {
         return Math.max(1, (int) Math.round(scaled));
     }
 
-    /** An amplifier, capped by {@code maxLevel} (which is a level, so level II is amplifier 1). */
-    public static int amplifier(int amplifier) {
-        return Math.min(amplifier, HempdustryConfig.get().effects().maxLevel() - 1);
+    /**
+     * An amplifier, capped by {@code maxLevel} and, for a {@link StatusEffectCategory#BENEFICIAL}
+     * effect, by {@code maxBuffLevel} too. Both are levels, so level II is amplifier 1.
+     *
+     * <p>By category rather than by a list, for the same reason {@link #allowed} is: a datapack
+     * strain's Regeneration is a buff the day it is written. A cost is left to scale with the dose,
+     * which is what makes a big dose a real decision now that its buffs stop early.
+     */
+    public static int amplifier(RegistryEntry<StatusEffect> effect, int amplifier) {
+        Effects config = HempdustryConfig.get().effects();
+        int cap = config.maxLevel();
+        if (effect.value().getCategory() == StatusEffectCategory.BENEFICIAL) {
+            cap = Math.min(cap, config.maxBuffLevel());
+        }
+        return Math.min(amplifier, cap - 1);
+    }
+
+    /** The highest level a buff reaches, which is also where extra dose turns into duration. */
+    public static int maxBuffLevel() {
+        return HempdustryConfig.get().effects().maxBuffLevel();
     }
 
     /** A use cooldown in ticks, scaled. Zero is allowed here: it means "no cooldown". */

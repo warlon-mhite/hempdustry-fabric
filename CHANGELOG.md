@@ -41,9 +41,31 @@ beta be told when the release lands.
   Hashischins** for eating dawamesk — named after the 1840s Paris club whose members, Gautier and
   Baudelaire among them, ate exactly that. The seed foods share a new item tag,
   `#hempdustry:hemp_seed_foods`, so a datapack can add its own.
+- **Shears tell you why they did nothing.** On a plant too young to trim, or one already trimmed in
+  its current window, the action bar says so.
 
 ### Changed
 
+- **Smoking and edibles are rebalanced so the strongest thing in the mod no longer arrives in the
+  first hour.** A bong of three Lemon Haze used to give Speed III and Haste III, more than a full
+  beacon, from some glass and three buds.
+  - **No helpful effect goes above level II** — Speed, Haste, Resistance, Absorption and the rest,
+    from smoking and from edibles alike. That is where a beacon stops.
+  - **A third bud now makes the high last longer instead of stronger.** A bong or spliff of three
+    lasts half as long again as one of two.
+  - **The price still grows with the dose.** A bong of three is still Weakness III on Lemon Haze and
+    Mining Fatigue III on Purple Kush, and **Hunger now grows with the dose too**, from I to III. It
+    used to stay at I, which cost about one food point that a fed player never saw.
+  - **A green-out at a dose of three is now a real one.** It ends every buff you got from the mod,
+    smoked or eaten, empties your saturation, knocks you down for thirty seconds and keeps you from
+    smoking for a minute. A green-out at a dose of two is the short dizzy spell it always was.
+  - **Edibles last longer as they get stronger, rather than hitting harder.** Absorption stops at II,
+    Resistance and Regeneration are level I, and a stronger butter makes the effect last longer.
+    **Perfect cannabutter's edibles only ever slow you to Slowness I.** The munchies now last the
+    whole high instead of a minute.
+  - Server owners and modpack makers can raise the ceiling again: the new `maxBuffLevel` setting in
+    `config/hempdustry.json` (default 2) caps only the helpful effects, and the strains are still a
+    datapack.
 - **Milk is poured into the Infuser by hand, like water into a cauldron.** Right-click the tub with
   a bucket of milk or hemp milk: it fills, and you get the empty back. Right-click with anything
   else — or with milk while it is already full — and the screen opens as before, so the pour and
