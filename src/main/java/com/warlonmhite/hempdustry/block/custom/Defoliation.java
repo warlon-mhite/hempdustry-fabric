@@ -252,7 +252,7 @@ public final class Defoliation {
             return null;
         }
         if (lowerState.get(window)) {
-            refuse(world, player, "hempdustry.trim.already");
+            refuse(world, player, rub ? "hempdustry.trim.already_rubbed" : "hempdustry.trim.already");
             return null;
         }
 

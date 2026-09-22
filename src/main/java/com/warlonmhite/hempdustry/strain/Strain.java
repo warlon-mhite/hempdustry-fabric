@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.block.Block;
 import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.item.Item;
 import net.minecraft.network.RegistryByteBuf;
@@ -233,12 +234,24 @@ public record Strain(String translationKey, int color, int modelIndex,
      * {@code SmokeContents.ENTRIES_CODEC} for why that has to happen there rather than here.
      */
     public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale) {
+        return effects(dose, durationTicks, onExhale, 0);
+    }
+
+    /**
+     * As above, with every scaling <em>buff</em> raised by {@code buffBonus} levels on top of the
+     * dose: how a bud loaded with a concentrate reaches past the cap. Costs are not raised, because
+     * the concentrate is potency, not a bigger dose of the plant.
+     */
+    public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale, int buffBonus) {
         List<StatusEffectInstance> out = new ArrayList<>(smokeEffects.size());
         for (SmokeEffect effect : smokeEffects) {
             if (effect.onExhale() != onExhale) {
                 continue;
             }
             int amplifier = effect.baseAmplifier() + (effect.scales() ? Math.max(0, dose - 1) : 0);
+            if (effect.scales() && effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL) {
+                amplifier += buffBonus;
+            }
             // At least a tick: a datapack's 0 or negative factor is a very short effect, never one
             // that silently does not exist.
             int duration = Math.max(1, Math.round(durationTicks * effect.durationFactor()));

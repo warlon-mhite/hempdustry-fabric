@@ -198,13 +198,13 @@ public final class Smoking {
         if (greenedOut) {
             greenOut(player, contents.dose());
         } else {
-            for (StatusEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks, false))) {
+            for (StatusEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks, false), contents.buffBonus())) {
                 player.addStatusEffect(effect);
             }
             // What a strain holds back to the exhale -- Beldía's streaming eyes -- rides the same
             // timer as the puff, filtered now so a server's debuffs switch still removes it.
             if (!world.isClient()) {
-                List<StatusEffectInstance> exhaled = EffectPolicy.filter(contents.effects(durationTicks, true));
+                List<StatusEffectInstance> exhaled = EffectPolicy.filter(contents.effects(durationTicks, true), contents.buffBonus());
                 if (!exhaled.isEmpty()) {
                     SmokeScheduler.scheduleEffects(player, exhaled, EXHALE_DELAY_TICKS + soundDelayTicks);
                 }

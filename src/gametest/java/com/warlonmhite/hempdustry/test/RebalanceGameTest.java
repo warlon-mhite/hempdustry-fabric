@@ -27,12 +27,13 @@ import java.util.List;
  * The 2.0.1 rebalance, through the real hit where it can be: {@code Item#use} on a packed device, so
  * the strain JSON, {@code SmokeContents}, {@code Smoking} and {@code EffectPolicy} all have their say.
  *
- * <p>A green-out is a roll this test cannot seed, so a bong of three is smoked until it has seen
- * both a clean hit and a green-out. At one in four, sixty hits without a green-out is about three in
- * a hundred million.
+ * <p>A green-out is a roll this test cannot seed, so a spliff of three is smoked until it has seen
+ * both a clean hit and a green-out. At one in eight, a hundred and twenty hits without a green-out is
+ * about one in ten million. A spliff and not a bong, because a bong's click starts a draw here and
+ * the hit lands only when the draw finishes.
  */
 public final class RebalanceGameTest {
-    private static final int TRIES = 60;
+    private static final int TRIES = 120;
 
     public static void aBigDoseBuysTimeNotLevel(TestContext context) {
         ServerPlayerEntity clean = null;
@@ -40,15 +41,15 @@ public final class RebalanceGameTest {
         for (int i = 0; i < TRIES && (clean == null || !sawGreenOut); i++) {
             ServerPlayerEntity player = freshPlayer(context);
             player.getHungerManager().setSaturationLevel(5f);
-            ItemStack bong = packed(context, ModItems.BONG, ModStrains.SATIVA, 3);
-            smoke(context, player, bong);
+            ItemStack spliff = packed(context, ModItems.SPLIFF, ModStrains.SATIVA, 3);
+            smoke(context, player, spliff);
             if (player.hasStatusEffect(StatusEffects.SPEED)) {
                 clean = player;
             } else {
                 sawGreenOut = true;
-                long lockout = bong.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L) - context.getWorld().getTime();
+                long lockout = spliff.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L) - context.getWorld().getTime();
                 context.assertEquals((long) EffectPolicy.cooldown(Smoking.GREEN_OUT_LOCKOUT_TICKS), lockout,
-                        "a full green-out locks smoking out for its minute, not the bong's own cooldown");
+                        "a full green-out locks smoking out for its minute, not the spliff's own cooldown");
                 context.assertEquals(0f, player.getHungerManager().getSaturationLevel(),
                         "a full green-out empties the saturation");
                 context.assertEquals(1, level(player, StatusEffects.SLOWNESS),
@@ -62,8 +63,8 @@ public final class RebalanceGameTest {
         context.assertEquals(1, level(clean, StatusEffects.HASTE), "Haste stops at II");
         context.assertEquals(2, level(clean, StatusEffects.WEAKNESS), "Weakness still follows the dose");
         context.assertEquals(2, level(clean, StatusEffects.HUNGER), "Hunger follows the dose to III");
-        context.assertEquals(EffectPolicy.duration(1500), clean.getStatusEffect(StatusEffects.SPEED).getDuration(),
-                "the third bud buys half the bong's duration again");
+        context.assertEquals(EffectPolicy.duration(1350), clean.getStatusEffect(StatusEffects.SPEED).getDuration(),
+                "the third bud buys half the spliff's duration again");
 
         // Below the cap nothing is extended, and Hunger is the dose.
         ServerPlayerEntity piper = freshPlayer(context);
@@ -88,6 +89,14 @@ public final class RebalanceGameTest {
             context.assertEquals(0, level(piper, StatusEffects.MINING_FATIGUE), "and the cost with it");
             context.assertEquals(EffectPolicy.duration(1050), piper.getStatusEffect(StatusEffects.RESISTANCE).getDuration(),
                     "a second bud past the lowered cap buys half the pipe's duration again");
+
+            // Pairing lifts maxBuffLevel, never maxLevel, so a paired bud turns into time there too.
+            List<StatusEffectInstance> paired = hit(new SmokeContents(List.of(
+                    new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
+                    new SmokeContents.Entry(strain(context, ModStrains.HASHISH), 1))));
+            context.assertEquals(0, find(paired, StatusEffects.SPEED).getAmplifier(), "maxLevel 1 holds paired Speed at I");
+            context.assertEquals(EffectPolicy.duration(1350), find(paired, StatusEffects.SPEED).getDuration(),
+                    "a paired second bud past the lowered cap buys time as well");
         });
         context.complete();
     }
@@ -109,6 +118,36 @@ public final class RebalanceGameTest {
         context.assertTrue(spins.hasStatusEffect(StatusEffects.ABSORPTION), "and the edible's");
         context.assertEquals(5f, spins.getHungerManager().getSaturationLevel(), "and the saturation");
         context.assertEquals(300, spins.getStatusEffect(StatusEffects.SLOWNESS).getDuration(), "fifteen seconds of it");
+        context.complete();
+    }
+
+    public static void aBudWithAConcentrateReachesThree(TestContext context) {
+        // Two Lemon Haze and a pinch of hash: the bud's buffs one past the cap, its costs at the dose,
+        // and the hash's own Resistance at its own count.
+        List<StatusEffectInstance> paired = hit(new SmokeContents(List.of(
+                new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
+                new SmokeContents.Entry(strain(context, ModStrains.HASHISH), 1))));
+        context.assertEquals(2, find(paired, StatusEffects.SPEED).getAmplifier(), "paired Speed reaches III");
+        context.assertEquals(2, find(paired, StatusEffects.HASTE).getAmplifier(), "paired Haste reaches III");
+        context.assertEquals(1, find(paired, StatusEffects.WEAKNESS).getAmplifier(), "the cost is the bud's dose, not raised");
+        context.assertEquals(0, find(paired, StatusEffects.RESISTANCE).getAmplifier(), "the hash's own buff is its own count");
+
+        // Once: three buds and a whole rosin bowl still stop at III, and the rosin at the plain cap.
+        List<StatusEffectInstance> heavy = hit(new SmokeContents(List.of(
+                new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 3),
+                new SmokeContents.Entry(strain(context, ModStrains.ROSIN), 3))));
+        context.assertEquals(2, find(heavy, StatusEffects.SPEED).getAmplifier(), "the bonus is once, not per concentrate");
+        context.assertEquals(1, find(heavy, StatusEffects.RESISTANCE).getAmplifier(), "rosin's own Resistance stays at II");
+
+        // Scorched hemp is no concentrate: no buff of its own, so it lifts nothing.
+        List<StatusEffectInstance> scorched = hit(new SmokeContents(List.of(
+                new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
+                new SmokeContents.Entry(strain(context, ModStrains.SCORCHED_HEMP), 1))));
+        context.assertEquals(1, find(scorched, StatusEffects.SPEED).getAmplifier(), "scorched hemp does not pair");
+
+        // And the hash family's Hunger scales like the plant's.
+        List<StatusEffectInstance> rosin = hit(SmokeContents.of(strain(context, ModStrains.ROSIN), 3));
+        context.assertEquals(2, find(rosin, StatusEffects.HUNGER).getAmplifier(), "a rosin bowl is Hunger III");
         context.complete();
     }
 
@@ -148,9 +187,17 @@ public final class RebalanceGameTest {
         return player;
     }
 
+    /** What one hit of {@code contents} applies after the config, the way Smoking hands it over. */
+    private static List<StatusEffectInstance> hit(SmokeContents contents) {
+        return EffectPolicy.filter(contents.effects(900, false), contents.buffBonus());
+    }
+
+    private static RegistryEntry<Strain> strain(TestContext context, RegistryKey<Strain> key) {
+        return context.getWorld().getRegistryManager().getOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
+    }
+
     private static ItemStack packed(TestContext context, Item device, RegistryKey<Strain> strain, int dose) {
-        RegistryEntry<Strain> entry = context.getWorld().getRegistryManager()
-                .getOrThrow(Strain.REGISTRY_KEY).getOrThrow(strain);
+        RegistryEntry<Strain> entry = strain(context, strain);
         ItemStack stack = new ItemStack(device);
         stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(entry, dose));
         stack.set(ModComponents.CHARGES, 4);
