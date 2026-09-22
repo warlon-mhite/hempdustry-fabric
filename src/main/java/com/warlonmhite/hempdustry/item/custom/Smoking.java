@@ -5,10 +5,14 @@ import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.sound.ModSounds;
+import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -18,6 +22,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
@@ -114,10 +119,20 @@ public final class Smoking {
      */
     private static final int NAUSEA_DURATION_TICKS = 140; // 7s
 
-    /** How long a green-out holds you down. Short on purpose — a setback, not a punishment. */
+    /** How long the spins hold you down. Short on purpose — a setback, not a punishment. */
     private static final int GREEN_OUT_DURATION_TICKS = 300; // 15s
     /** The wobble outlasts the rest of it, so you feel it after you can move again. */
     private static final int GREEN_OUT_NAUSEA_TICKS = 400;   // 20s
+
+    /**
+     * From this dose a green-out is the full one rather than the spins. Three is past the default
+     * buff cap, so it is the dose a player takes for more than a buff can give them: a longer high.
+     */
+    public static final int FULL_GREEN_OUT_DOSE = 3;
+    private static final int FULL_GREEN_OUT_TICKS = 600;        // 30s
+    private static final int FULL_GREEN_OUT_NAUSEA_TICKS = 700; // 35s
+    /** How long a full green-out keeps every smokeable cooling down: a minute, before the multiplier. */
+    public static final int GREEN_OUT_LOCKOUT_TICKS = 1200;
 
     /**
      * Odds of greening out, as 1-in-N, indexed by dose. <b>Dose 1 can never green you out</b> — the
@@ -142,11 +157,15 @@ public final class Smoking {
      * <p>A green-out <b>replaces</b> the hit's effects rather than stacking on top of them. That is
      * what makes it a real loss and instantly readable — you spent three buds and got none of the
      * good part — instead of a debuff quietly layered under the buffs you were expecting.
+     *
+     * @return whether the hit was a full green-out, in which case the caller starts
+     *         {@link #GREEN_OUT_LOCKOUT_TICKS} instead of its own cooldown. It has to be the
+     *         caller: it starts the cooldown after this returns, and would overwrite one set here
      */
-    public static void takeHit(World world, PlayerEntity player, ItemStack stack,
-                               SmokeContents contents, int durationTicks, int coughChanceOneIn,
-                               int nauseaChanceOneIn, int greenOutChanceOneIn) {
-        takeHit(world, player, stack, contents, durationTicks, coughChanceOneIn,
+    public static boolean takeHit(World world, PlayerEntity player, ItemStack stack,
+                                  SmokeContents contents, int durationTicks, int coughChanceOneIn,
+                                  int nauseaChanceOneIn, int greenOutChanceOneIn) {
+        return takeHit(world, player, stack, contents, durationTicks, coughChanceOneIn,
                 nauseaChanceOneIn, greenOutChanceOneIn, 0);
     }
 
@@ -155,9 +174,9 @@ public final class Smoking {
      * {@code soundDelayTicks}. The bong uses this to let its own bubbling — played by the caller,
      * not here — clear before the inhale sound starts.
      */
-    public static void takeHit(World world, PlayerEntity player, ItemStack stack,
-                               SmokeContents contents, int durationTicks, int coughChanceOneIn,
-                               int nauseaChanceOneIn, int greenOutChanceOneIn, int soundDelayTicks) {
+    public static boolean takeHit(World world, PlayerEntity player, ItemStack stack,
+                                  SmokeContents contents, int durationTicks, int coughChanceOneIn,
+                                  int nauseaChanceOneIn, int greenOutChanceOneIn, int soundDelayTicks) {
         if (soundDelayTicks > 0) {
             SmokeScheduler.scheduleSound(player, soundDelayTicks, ModSounds.SMOKING);
         } else {
@@ -172,7 +191,7 @@ public final class Smoking {
                 && ThreadLocalRandom.current().nextInt(greenOutOdds) == 0;
 
         if (greenedOut) {
-            greenOut(player);
+            greenOut(player, contents.dose());
         } else {
             for (StatusEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks))) {
                 player.addStatusEffect(effect);
@@ -207,17 +226,53 @@ public final class Smoking {
         // The stack is still packed here; a spliff's contents are gone a few lines later, which is
         // why contents is handed over as its own argument.
         HempdustryEvents.AFTER_SMOKE.invoker().afterSmoke(player, contents, stack);
+        return greenedOut && contents.dose() >= FULL_GREEN_OUT_DOSE;
     }
 
-    /** Sit down for a minute. Sweaty, wobbly, useless — but brief, and it costs you nothing but the buds. */
-    private static void greenOut(PlayerEntity player) {
+    /**
+     * A green-out at {@code dose}. Below {@link #FULL_GREEN_OUT_DOSE} it is the spins: sweaty,
+     * wobbly, useless, but brief, and it costs nothing but the buds.
+     *
+     * <p>From it, the full one, and the high already running goes with it. Measured before this
+     * existed: the old green-out laid its debuffs under a Speed III and Haste III that kept running,
+     * so stacking three strains at dose three cost fifteen seconds and nothing else. Now every buff
+     * the mod hands out ends, the saturation goes (the cold sweat, and the next Hunger lands on the
+     * food bar at once), and the caller locks smoking out for a minute. Effects of a type the mod
+     * never grants, a potion of Fire Resistance say, are left alone: a green-out is not milk.
+     */
+    public static void greenOut(PlayerEntity player, int dose) {
+        boolean full = dose >= FULL_GREEN_OUT_DOSE;
+        if (full) {
+            for (RegistryEntry<StatusEffect> buff : buffsTheModGrants(player)) {
+                player.removeStatusEffect(buff);
+            }
+            player.getHungerManager().setSaturationLevel(0f);
+        }
+        int ticks = full ? FULL_GREEN_OUT_TICKS : GREEN_OUT_DURATION_TICKS;
+        int nausea = full ? FULL_GREEN_OUT_NAUSEA_TICKS : GREEN_OUT_NAUSEA_TICKS;
         for (StatusEffectInstance effect : EffectPolicy.filter(List.of(
-                new StatusEffectInstance(StatusEffects.NAUSEA, GREEN_OUT_NAUSEA_TICKS, 0),
-                new StatusEffectInstance(StatusEffects.SLOWNESS, GREEN_OUT_DURATION_TICKS, 1),
-                new StatusEffectInstance(StatusEffects.WEAKNESS, GREEN_OUT_DURATION_TICKS, 1),
-                new StatusEffectInstance(StatusEffects.MINING_FATIGUE, GREEN_OUT_DURATION_TICKS, 1)))) {
+                new StatusEffectInstance(StatusEffects.NAUSEA, nausea, 0),
+                new StatusEffectInstance(StatusEffects.SLOWNESS, ticks, 1),
+                new StatusEffectInstance(StatusEffects.WEAKNESS, ticks, 1),
+                new StatusEffectInstance(StatusEffects.MINING_FATIGUE, ticks, 1)))) {
             player.addStatusEffect(effect);
         }
+    }
+
+    /**
+     * Every beneficial effect a loaded strain or an edible can grant. Read off the registry, so a
+     * datapack strain's buffs are ended by a green-out the day they exist.
+     */
+    private static Set<RegistryEntry<StatusEffect>> buffsTheModGrants(PlayerEntity player) {
+        Set<RegistryEntry<StatusEffect>> out = new HashSet<>(EdibleEffects.BUFFS);
+        for (RegistryEntry<Strain> strain : Strain.registry(player.getRegistryManager()).streamEntries().toList()) {
+            for (Strain.SmokeEffect effect : strain.value().smokeEffects()) {
+                if (effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL) {
+                    out.add(effect.effect());
+                }
+            }
+        }
+        return out;
     }
 
     /** One effect, through the same gate. */

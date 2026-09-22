@@ -99,14 +99,15 @@ public class SmokingDeviceItem extends Item {
             if (!Smoking.allowed(player, stack, contents)) {
                 return TypedActionResult.pass(stack);
             }
-            Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
+            boolean lockedOut = Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
                     device.coughChanceOneIn(), device.nauseaChanceOneIn(),
                     Smoking.greenOutChanceOneIn(contents.dose(), false), device.soundDelayTicks());
             if (device == DeviceType.BONG) {
                 world.playSound(null, player.getX(), player.getY(), player.getZ(),
                         ModSounds.BONGHIT, SoundCategory.PLAYERS, 1f, 1f);
             }
-            Smoking.startCooldown(player, stack, EffectPolicy.cooldown(device.cooldownTicks()));
+            Smoking.startCooldown(player, stack,
+                    EffectPolicy.cooldown(lockedOut ? Smoking.GREEN_OUT_LOCKOUT_TICKS : device.cooldownTicks()));
 
             if (!player.getAbilities().creativeMode) {
                 int remaining = stack.getOrDefault(ModComponents.CHARGES, 0) - 1;

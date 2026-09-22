@@ -160,7 +160,9 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
                     + "local grass colour, so a plant does not clash with the biome around it. "
                     + "0 paints the crops exactly as drawn, 1 is the full tint vanilla gives grass.");
             comment(root, "effects", "enabled=false is 'industrial hemp only': no drug effects anywhere. "
-                    + "maxLevel caps every effect the mod applies. Multipliers are 0.05-10; "
+                    + "maxLevel caps every effect the mod applies; maxBuffLevel caps only the helpful ones "
+                    + "(Speed, Resistance, Absorption...), so a big dose still costs its full Hunger. "
+                    + "Raise maxBuffLevel for a stronger mod in a modded pack. Multipliers are 0.05-10; "
                     + "greenOutChanceMultiplier 0 disables green-outs, as does greenOut=false.");
             comment(root, "world", "cropGrowthMultiplier and machineSpeedMultiplier are speeds: 2.0 is twice as fast. "
                     + "machineSpeed drives the Decarboxylator; the Infuser has its own section. "
@@ -256,6 +258,10 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      *
      * @param enabled                  master switch; {@code false} is "industrial hemp only"
      * @param maxLevel                 highest level any mod effect may reach — the PvP knob
+     * @param maxBuffLevel             highest level a <em>beneficial</em> effect may reach. Two by
+     *                                 default, a beacon's ceiling: without it a bong of three buds is
+     *                                 Haste III in the first hour. A dose past it buys duration instead
+     *                                 (see {@code SmokeContents#effects}); costs are not capped by it
      * @param durationMultiplier       scales every effect's duration, smoking and edibles alike
      * @param cooldownMultiplier       scales the per-device use cooldowns
      * @param greenOutChanceMultiplier scales green-out odds; {@code 0} disables them
@@ -265,17 +271,18 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @param munchies                 whether Hunger is applied
      * @param debuffs                  whether harmful effects are applied at all
      */
-    public record Effects(boolean enabled, int maxLevel, double durationMultiplier,
+    public record Effects(boolean enabled, int maxLevel, int maxBuffLevel, double durationMultiplier,
                           double cooldownMultiplier, double greenOutChanceMultiplier,
                           double onsetMultiplier, boolean greenOut, boolean nausea,
                           boolean munchies, boolean debuffs) {
 
         public static final Effects DEFAULT =
-                new Effects(true, 4, 1.0, 1.0, 1.0, 1.0, true, true, true, true);
+                new Effects(true, 4, 2, 1.0, 1.0, 1.0, 1.0, true, true, true, true);
 
         public static final Codec<Effects> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.BOOL.fieldOf("enabled").forGetter(Effects::enabled),
                 Codec.INT.fieldOf("maxLevel").forGetter(Effects::maxLevel),
+                Codec.INT.fieldOf("maxBuffLevel").forGetter(Effects::maxBuffLevel),
                 Codec.DOUBLE.fieldOf("durationMultiplier").forGetter(Effects::durationMultiplier),
                 Codec.DOUBLE.fieldOf("cooldownMultiplier").forGetter(Effects::cooldownMultiplier),
                 Codec.DOUBLE.fieldOf("greenOutChanceMultiplier").forGetter(Effects::greenOutChanceMultiplier),
@@ -289,6 +296,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
         Effects clamped() {
             return new Effects(enabled,
                     clampInt("effects.maxLevel", maxLevel, 1, 10),
+                    clampInt("effects.maxBuffLevel", maxBuffLevel, 1, 10),
                     clampDouble("effects.durationMultiplier", durationMultiplier, 0.05, 10.0),
                     clampDouble("effects.cooldownMultiplier", cooldownMultiplier, 0.0, 10.0),
                     clampDouble("effects.greenOutChanceMultiplier", greenOutChanceMultiplier, 0.0, 100.0),

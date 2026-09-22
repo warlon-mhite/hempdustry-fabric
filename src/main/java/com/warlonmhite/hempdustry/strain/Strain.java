@@ -67,8 +67,13 @@ import java.util.Optional;
  * Mining Fatigue), so halving the duration would shorten the penalty too and dosing would partly
  * reward itself. The brake is instead that <b>dose amplifies the debuff as well</b>.
  *
- * <p>Effects flagged {@code scales = false} sit out of that — Hunger is flat at level I however much
- * you smoke, for the same reason it is identical across strains: the munchies don't care.
+ * <p>Effects flagged {@code scales = false} sit out of that. Hunger used to be one, flat at level I
+ * however much you smoked; it scales since 2.0.1, because a flat Hunger I cost a bong of three about
+ * one food point, all of it saturation, and a fed player never saw it.
+ *
+ * <p>The amplifier here is what the strain asks for. {@code EffectPolicy} then stops a buff at
+ * {@code maxBuffLevel} and leaves a cost alone, so a dose of three is II of the good part and III of
+ * the price.
  *
  * <h2>{@code model_index} is why this is safe for the art</h2>
  *

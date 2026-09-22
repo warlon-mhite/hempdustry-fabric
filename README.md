@@ -53,11 +53,13 @@ data on the item rather than a separate item per combination, the same way a pot
 contents.
 
 - **The device sets the duration, the dose sets the strength.** Pack more buds for a stronger hit;
-  the bong's bowl simply takes more of them than the pipe's.
+  the bong's bowl simply takes more of them than the pipe's. A helpful effect stops at level II,
+  where a beacon stops, so a third bud makes the high last longer instead.
 - **Every strain is a bundle of good and bad.** Purple Kush trades mining speed for damage
   resistance; Lemon Haze trades melee damage for movement and mining speed. Dosing raises both halves.
 - **Green out.** Big doses carry a real chance of losing the hit entirely and spending a while
-  nauseous and useless instead. A single-bud hit never does.
+  nauseous and useless instead; at a dose of three it also ends the high you already had and keeps
+  you from smoking for a minute. A single-bud hit never does.
 - Pipes and bongs are damageable, enchantable and anvil-repairable, packed or empty.
 
 ### From crop to cannabutter
