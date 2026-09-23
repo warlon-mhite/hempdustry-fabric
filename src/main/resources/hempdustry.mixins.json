@@ -3,7 +3,8 @@
 	"package": "com.warlonmhite.hempdustry.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"BeeGrowCropsGoalMixin"
+		"BeeGrowCropsGoalMixin",
+		"Schema1460Mixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

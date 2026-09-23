@@ -158,6 +158,13 @@ release build.)*
   other settings with it, and `/hempdustry reload` still said it had worked. Now the file is left
   exactly as it is, the settings already running stay, the log says what is wrong, and the reload
   command says it failed.
+- **A hemp boat no longer spoils Minecraft's upgrade of the entities around it.** When a world moves
+  to a newer Minecraft, the game rewrites every saved entity into the new format, and it could not
+  read a hemp boat or hemp chest boat — so it skipped every entity in that chunk. Moving a world from
+  1.21.1 to 1.21.11, an armour stand beside a hemp boat came out with no armour. The game now knows
+  both boats, the entities around them are upgraded like any others, and what a hemp chest boat
+  carries is upgraded too. Move a 1.21.1 world to 1.21.11 with this version or later, not with
+  2.0.0-beta's 1.21.11 build.
 
 ### Known issues
 
