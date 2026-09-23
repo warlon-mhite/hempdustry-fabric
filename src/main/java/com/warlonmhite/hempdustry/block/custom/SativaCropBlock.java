@@ -360,6 +360,24 @@ public class SativaCropBlock extends CropBlock {
         return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
     }
 
+    // ----- the smell of a ripe plant -----
+
+    /**
+     * A ripe plant lets off a wisp now and then from its top; see {@link RipeAroma}. Any segment
+     * can be sampled, and the helper keeps only the one with open air above it.
+     *
+     * <p>Reads {@link #AGE} directly, <b>not</b> {@link #getAge}: every segment above the LOWER
+     * reports maturity through {@code getAge} (the bee guard above), so asking it would have every
+     * tall plant smelling ripe from age 4. Their {@code AGE} mirrors the LOWER's, so any segment
+     * answers truthfully here.
+     */
+    @Override
+    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
+        if (state.get(AGE) >= this.getMaxAge()) {
+            RipeAroma.randomDisplayTick(world, pos, random);
+        }
+    }
+
     // ----- harvesting -----
     // Breaking any segment takes the whole plant and yields it exactly once: the loot table only
     // drops for the LOWER segment, so we drop the LOWER's loot by hand when the player broke one

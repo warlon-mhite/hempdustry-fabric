@@ -43,6 +43,13 @@ beta be told when the release lands.
   `#hempdustry:hemp_seed_foods`, so a datapack can add its own.
 - **Shears tell you why they did nothing.** On a plant too young to trim, or one already trimmed in
   its current window, the action bar says so.
+- **A ripe plant smells.** Now and then a faint wisp curls up off the top of a plant that is ready to
+  harvest, so a finished field can be told from a growing one from across the farm. The ripe art
+  still says the same thing on its own; the wisps are a second cue. They follow vanilla's Particles
+  setting (Decreased thins them, Minimal hides them), and `ripeAroma: false` in the `client` section
+  of `config/hempdustry.json` turns off just these. A plant with a block on its head gives off
+  nothing. They cost the server nothing at all, and a client the same frame rate with or without
+  them, even standing in a field of 26,000 ripe plants.
 
 ### Changed
 

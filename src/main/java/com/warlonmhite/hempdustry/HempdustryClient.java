@@ -11,13 +11,16 @@ import net.minecraft.client.color.world.BiomeColors;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 
 import com.warlonmhite.hempdustry.client.UpdateChecker;
+import com.warlonmhite.hempdustry.client.particle.AromaParticle;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
+import com.warlonmhite.hempdustry.particle.ModParticles;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -55,6 +58,8 @@ public class HempdustryClient implements ClientModInitializer {
 
         HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
+
+        ParticleFactoryRegistry.getInstance().register(ModParticles.AROMA, AromaParticle.Factory::new);
 
         registerItemModelHooks();
         registerBlockColors();
