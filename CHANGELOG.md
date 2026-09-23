@@ -38,9 +38,12 @@ beta be told when the release lands.
   - **The price still grows with the dose.** A bong of three is still Weakness III on Lemon Haze and
     Mining Fatigue III on Purple Kush, and **Hunger now grows with the dose too**, from I to III. It
     used to stay at I, which cost about one food point that a fed player never saw.
-  - **A green-out at a dose of three is now a real one.** It ends every buff you got from the mod,
-    smoked or eaten, empties your saturation, knocks you down for thirty seconds and keeps you from
-    smoking for a minute. A green-out at a dose of two is the short dizzy spell it always was.
+  - **A green-out at a dose of three is now a real one.** It ends every effect of a kind the mod
+    hands out as a buff — Speed, Haste, Resistance, Absorption, Regeneration, and any buff a
+    datapack strain adds — **whatever gave it to you**, a golden apple or a potion included. Effects
+    the mod never gives, such as Fire Resistance, are left alone. It also empties your saturation,
+    knocks you down for thirty seconds and keeps you from smoking for a minute. A green-out at a dose
+    of two is the short dizzy spell it always was.
   - **Edibles last longer as they get stronger, rather than hitting harder.** Absorption stops at II,
     Resistance and Regeneration are level I, and a stronger butter makes the effect last longer.
     **Perfect cannabutter's edibles only ever slow you to Slowness I.** The munchies now last the
@@ -65,6 +68,15 @@ beta be told when the release lands.
 - **Purple Kush and Lemon Haze seeds no longer look alike.** Both strains shipped the same picture,
   so a hotbar could not tell one from the other. They keep the same scatter of seeds, each leaning
   towards its strain's colour: Purple Kush a cool violet-grey, Lemon Haze a warm olive.
+- **Lava heats the Infuser.** Lava underneath works like a campfire, and a lava cauldron is the tidy
+  way to do it: a full block that lasts for ever. `#hempdustry:heat_sources` had the magma block but
+  not the lava itself.
+- **The hemp bale composts now**, at hay's rate, as does the new Block of Hemp Leaves.
+- **Every player gets the in-game update notice now, wherever they got the mod.** Updates on
+  CurseForge, NexusMods and GitHub were always there to download, but the notice only asked Modrinth,
+  where the mod is still in review, and its chat line only mentioned Modrinth, so it never fired. It
+  now reads a small update file published with the mod, tells you once when a newer version is out,
+  and its link opens the download page. `client.updateCheck: false` still turns it off.
 
 ### Added
 
@@ -93,6 +105,12 @@ beta be told when the release lands.
   of `config/hempdustry.json` turns off just these. A plant with a block on its head gives off
   nothing. They cost the server nothing at all, and a client the same frame rate with or without
   them, even standing in a field of 26,000 ripe plants.
+- **A Block of Hemp Leaves.** Nine hemp leaves pack into a block and come back out of it, the
+  storage block the leaf never had; it sits beside the hemp bale in the creative tab. It behaves like
+  leaves: quick to break with shears, a hoe or a sword, it burns, a piston pops it, and it composts.
+  Like any leaves, a sapling or a huge mushroom that grows into it takes its place.
+- **The bong sounds like a bong.** It bubbles on the hit and the inhale follows once the water
+  clears, where it used to share the pipe's sound.
 
 ### Fixed
 
@@ -122,6 +140,15 @@ beta be told when the release lands.
   a pack that replaces a chest meant to replace it. So in such a world the mineshaft and outpost
   carry no hemp seeds. Every other chest, and tall grass, are unaffected, and the experiment is off
   by default.
+- **A player's first join after updating may log
+  `Tried to load unrecognized recipe: hempdustry:stick_from_planks removed now.`**, and a warning
+  about the advancement that unlocked it. That is the six-stick recipe removed above; the game drops
+  it from the recipe book and never mentions it again. It is harmless.
+- **Moving a world to Minecraft 1.21.11? Do it with Hempdustry 2.0.1 or later there.** When a world
+  moves to a newer Minecraft the game rewrites every saved entity into the new format, and the
+  2.0.0-beta build for 1.21.11 let a hemp boat or hemp chest boat stop it doing that for every other
+  entity in the same chunk: an armour stand beside one came out with no armour. The 1.21.11 build of
+  2.0.1 fixes it. Nothing changes for a world that stays on 1.21.1.
 
 ## [2.0.0-beta] — 2026-09-03
 
@@ -294,5 +321,5 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.0-beta...HEAD
-[2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.0-beta
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/beta...HEAD
+[2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/beta
