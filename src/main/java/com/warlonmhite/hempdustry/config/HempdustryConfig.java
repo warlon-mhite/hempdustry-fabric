@@ -289,7 +289,8 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @param maxLevel                 highest level any mod effect may reach — the PvP knob
      * @param maxBuffLevel             highest level a <em>beneficial</em> effect may reach. Two by
      *                                 default, a beacon's ceiling: without it a bong of three buds is
-     *                                 Haste III in the first hour. A dose past it buys duration instead
+     *                                 Haste III in the first hour. A dose past it, or past
+     *                                 {@code maxLevel} where that is lower, buys duration instead
      *                                 (see {@code SmokeContents#effects}); costs are not capped by it
      * @param durationMultiplier       scales every effect's duration, smoking and edibles alike
      * @param cooldownMultiplier       scales the per-device use cooldowns

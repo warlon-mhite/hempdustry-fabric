@@ -63,6 +63,25 @@ public final class ConfigGameTest implements FabricGameTest {
         context.complete();
     }
 
+    /**
+     * Runs {@code body} with {@code json} as the config, and puts the real file back afterwards
+     * whatever happens -- for a test elsewhere that needs a setting other than the default.
+     */
+    static void withConfig(String json, Runnable body) {
+        Path path = FabricLoader.getInstance().getConfigDir().resolve(Hempdustry.MOD_ID + ".json");
+        byte[] original = read(path);
+        try {
+            write(path, json);
+            if (!HempdustryConfig.load()) {
+                throw new IllegalStateException("the test config was refused: " + json);
+            }
+            body.run();
+        } finally {
+            write(path, original);
+            HempdustryConfig.load();
+        }
+    }
+
     private static byte[] read(Path path) {
         try {
             return Files.readAllBytes(path);
