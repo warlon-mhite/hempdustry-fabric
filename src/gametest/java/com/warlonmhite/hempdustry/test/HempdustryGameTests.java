@@ -49,6 +49,7 @@ public class HempdustryGameTests implements ModInitializer {
         register("a_big_dose_buys_time_not_level", RebalanceGameTest::aBigDoseBuysTimeNotLevel);
         register("a_full_green_out_ends_the_high", RebalanceGameTest::aFullGreenOutEndsTheHigh);
         register("edibles_buy_time_not_level", RebalanceGameTest::ediblesBuyTimeNotLevel);
+        register("a_broken_config_is_left_alone", ConfigGameTest::aBrokenConfigIsLeftAlone);
     }
 
     private static void register(String name, Consumer<TestContext> test) {

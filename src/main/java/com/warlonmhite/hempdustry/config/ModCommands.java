@@ -35,7 +35,12 @@ public class ModCommands {
                 .requires(CommandManager.requirePermissionLevel(
                         new PermissionCheck.Require(new Permission.Level(PermissionLevel.GAMEMASTERS))))
                 .then(CommandManager.literal("reload").executes(context -> {
-                    HempdustryConfig.load();
+                    if (!HempdustryConfig.load()) {
+                        // The file could not be read and was left alone; the settings already running
+                        // stay. Say so, or a typo looks exactly like a reload that took.
+                        context.getSource().sendError(Text.translatable("commands.hempdustry.reload.failed"));
+                        return 0;
+                    }
                     // Sent as a broadcast-to-ops message: a balance change is something the other
                     // operators online want to know happened, the way /gamerule announces itself.
                     context.getSource().sendFeedback(

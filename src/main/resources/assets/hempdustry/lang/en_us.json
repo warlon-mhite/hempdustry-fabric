@@ -1,5 +1,6 @@
 {
   "commands.hempdustry.reload": "Hempdustry config reloaded. Strains are a datapack — use /reload for those.",
+  "commands.hempdustry.reload.failed": "Could not read config/hempdustry.json, so nothing changed — the server log says why.",
   "itemgroup.hempdustry": "Hempdustry",
   "item.hempdustry.indica_seeds": "Purple Kush Seeds",
   "item.hempdustry.indica_buds": "Purple Kush Buds",

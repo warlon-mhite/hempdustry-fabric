@@ -16,6 +16,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  * The server's balance knobs — {@code config/hempdustry.json}.
@@ -50,8 +51,9 @@ import java.nio.file.Path;
  *
  * Missing fields fall back to the default rather than failing, so a half-written file still loads and
  * an upgrade that adds a knob needs no migration. Values outside their sane range are <b>clamped and
- * logged</b>, not rejected — a server should never fail to boot over a config typo. A file that is not
- * valid JSON at all logs the parse error and runs on defaults.
+ * logged</b>, not rejected — a server should never fail to boot over a config typo. A file that cannot
+ * be read at all — not valid JSON, or a value of the wrong type — logs the error, is applied not at
+ * all, and is <b>left exactly as it is</b> so the typo can be fixed; see {@link #load()}.
  *
  * <p>{@code /hempdustry reload} re-reads it in place.
  */
@@ -91,24 +93,45 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * contains is <b>merged over the defaults</b> before decoding, so a missing section, a missing
      * field, or a config written by an older version all still load. Comments and any other unknown
      * keys are ignored by the decoder and simply rewritten.
+     *
+     * <h2>A file it cannot read is never written over</h2>
+     *
+     * Invalid JSON, a value of the wrong type, or JSON that is not an object at all: the error is
+     * logged, nothing in the file is applied, and <b>the file is left untouched</b>. Rewriting it
+     * would replace every setting in it with its default over one typo, which is what this used to
+     * do. The config already running stays — the defaults at start-up, the last good read on a
+     * {@code /hempdustry reload}. An empty file is not an error: it is read as "all defaults" and
+     * written out in full, which is the way to get a fresh one.
+     *
+     * @return whether the file was read and applied; {@code false} means it was left alone
      */
-    public static void load() {
+    public static boolean load() {
         Path path = FabricLoader.getInstance().getConfigDir().resolve(Hempdustry.MOD_ID + ".json");
         HempdustryConfig loaded = DEFAULT;
         if (Files.exists(path)) {
             try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
                 JsonElement json = new GsonBuilder().create().fromJson(reader, JsonElement.class);
-                JsonObject merged = merge(defaultJson(), json);
-                loaded = CODEC.parse(JsonOps.INSTANCE, merged).resultOrPartial(error ->
-                        Hempdustry.LOGGER.error("Bad value in {}: {} — running on defaults", path, error)
-                ).orElse(DEFAULT);
+                if (json != null && !json.isJsonObject()) {
+                    Hempdustry.LOGGER.error("{} is not a JSON object — nothing in it was applied, and it is"
+                            + " left as it is", path);
+                    return false;
+                }
+                Optional<HempdustryConfig> parsed = CODEC.parse(JsonOps.INSTANCE, merge(defaultJson(), json))
+                        .resultOrPartial(error -> Hempdustry.LOGGER.error("Bad value in {}: {} — nothing in it"
+                                + " was applied, and it is left as it is", path, error));
+                if (parsed.isEmpty()) {
+                    return false;
+                }
+                loaded = parsed.get();
             } catch (IOException | RuntimeException e) {
-                Hempdustry.LOGGER.error("Could not read {} — running on defaults", path, e);
-                loaded = DEFAULT;
+                Hempdustry.LOGGER.error("Could not read {} — nothing in it was applied, and it is left as it is",
+                        path, e);
+                return false;
             }
         }
         instance = loaded.clamped();
         write(path, instance);
+        return true;
     }
 
     /** The defaults as JSON, which is the base every file is read on top of. */
