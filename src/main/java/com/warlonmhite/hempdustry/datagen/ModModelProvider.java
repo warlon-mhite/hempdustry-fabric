@@ -107,7 +107,6 @@ public class ModModelProvider extends FabricModelProvider {
         }
 
         itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
-        // item/sativa_seeds.png is currently a copy of the indica one — a hemp seed is a hemp seed.
         itemModelGenerator.register(ModItems.SATIVA_SEEDS, Models.GENERATED);
         // Smoking gear. One item per device carries every strain in a component, so the visual
         // per-strain split lives in the *client item definition* rather than in separate items —

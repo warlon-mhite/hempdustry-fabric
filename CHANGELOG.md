@@ -95,6 +95,9 @@ beta be told when the release lands.
     its own `1.21.1` branch, can still be built and played, and gets anything that costs nothing to
     give it — the REI pages above landed on both. It is simply not where the mod is going.
   - Requires **Fabric Loader 0.18.2** and **Fabric API 0.139.4** or newer.
+- **Purple Kush and Lemon Haze seeds no longer look alike.** Both strains shipped the same picture,
+  so a hotbar could not tell one from the other. They keep the same scatter of seeds, each leaning
+  towards its strain's colour: Purple Kush a cool violet-grey, Lemon Haze a warm olive.
 
 ### Removed
 
