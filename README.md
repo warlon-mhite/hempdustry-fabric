@@ -112,9 +112,10 @@ Hemp is a fibre crop first, and the mod treats it that way.
 Six paintings, two music discs with original tracks by **Nefuß**, twenty-four advancements, **recipe
 pages in both JEI and REI** (including the cauldron steps, which are not recipes and which nothing
 else can show you), and full
-translations in nine locales
+translations in twelve locales
 (five English variants and three French, with regional vocabulary rather than copy-paste — Quebec
-gets *gougounes* and its own slang — plus Russian, translated by **MargoxaTheGamer**).
+gets *gougounes* and its own slang — plus Russian, translated by **MargoxaTheGamer**, and German,
+Swiss German and Austrian German, translated by **Gülps'sch420**).
 
 ---
 
@@ -150,6 +151,9 @@ The two music discs are **[Nefuß](https://nefu1.bandcamp.com/)** — *Moonlight
 [SoundCloud](https://soundcloud.com/user-427551104/robadob)) — both written for this mod.
 
 The Russian translation is **MargoxaTheGamer**'s, translated by hand from English.
+
+The German translation is **Gülps'sch420**'s — German and Swiss German, translated by hand from
+English, with the Austrian locale adapted from her German.
 
 Some of the textures were drawn by a commissioned pixel artist who asked not to be credited by name.
 Everything else is Warlon Mhite's.

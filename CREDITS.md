@@ -10,6 +10,7 @@ two of the licences below ask for attribution and attribution should travel with
 | Original art | Warlon Mhite | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
 | Music — two tracks | **Nefuß** | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
 | Russian translation | **MargoxaTheGamer** | [AGPL-3.0-only](LICENSE), as data |
+| German translation | **Gülps'sch420** | [AGPL-3.0-only](LICENSE), as data |
 | Textures derived from Minecraft | Mojang | not ours to licence — see below |
 | The logo wordmark | several — see below | mixed; parts are not ours to licence |
 | People depicted in the paintings | themselves | not ours to licence — see below |
@@ -34,6 +35,10 @@ Nefuß by itself.
 **MargoxaTheGamer** — the Russian translation (`assets/hempdustry/lang/ru_ru.json`), translated by
 hand from English. A translation is part of the mod's data and carries the same `AGPL-3.0-only`
 licence as the rest of it.
+
+**Gülps'sch420** — the German translation (`assets/hempdustry/lang/de_de.json`) and the Swiss
+German one (`de_ch.json`), translated by hand from English. The Austrian locale (`de_at.json`) is
+adapted from her German. Same licence, for the same reason.
 
 The English and French locales are Warlon Mhite's.
 
