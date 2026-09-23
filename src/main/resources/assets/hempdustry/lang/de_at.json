@@ -1,5 +1,6 @@
 {
   "commands.hempdustry.reload": "Hempdustry-Konfiguration neu geladen. Sorten sind ein Datapack – benutze dafür /reload.",
+  "commands.hempdustry.reload.failed": "config/hempdustry.json konnte nicht gelesen werden, nichts wurde geändert – das Server-Log sagt, warum.",
   "itemgroup.hempdustry": "Hempdustry",
   "item.hempdustry.indica_seeds": "Purple-Kush-Samen",
   "item.hempdustry.indica_buds": "Purple-Kush-Blüten",

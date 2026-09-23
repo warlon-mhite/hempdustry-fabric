@@ -1,5 +1,6 @@
 {
   "commands.hempdustry.reload": "Hempdustry-Konfiguration neu gelade. Sorte sind es Datapack – bruuch defür /reload.",
+  "commands.hempdustry.reload.failed": "config/hempdustry.json het nöd chönne gläse wärde, nüt isch gänderet – im Server-Log staht, wieso.",
   "itemgroup.hempdustry": "Hempdustry",
   "item.hempdustry.indica_seeds": "Purple-Kush-Same",
   "item.hempdustry.indica_buds": "Purple-Kush-Blüete",

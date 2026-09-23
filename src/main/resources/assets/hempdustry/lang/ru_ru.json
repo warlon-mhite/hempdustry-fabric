@@ -1,5 +1,6 @@
 {
   "commands.hempdustry.reload": "Конфиг Hempdustry перезагружен. Сорта это датапак — для них используйте команду /reload.",
+  "commands.hempdustry.reload.failed": "Не удалось прочитать config/hempdustry.json, ничего не изменилось — причина в журнале сервера.",
   "itemgroup.hempdustry": "Hempdustry",
   "item.hempdustry.indica_seeds": "Семена Purple Kush",
   "item.hempdustry.indica_buds": "Бутоны Purple Kush",

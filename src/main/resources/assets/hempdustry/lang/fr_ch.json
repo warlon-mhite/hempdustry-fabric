@@ -1,5 +1,6 @@
 {
   "commands.hempdustry.reload": "Configuration d'Hempdustry rechargée. Les variétés sont un datapack — utilisez /reload pour celles-ci.",
+  "commands.hempdustry.reload.failed": "Impossible de lire config/hempdustry.json, rien n'a changé — le journal du serveur dit pourquoi.",
   "itemgroup.hempdustry": "Hempdustry",
   "item.hempdustry.indica_seeds": "Graines de Purple Kush",
   "item.hempdustry.indica_buds": "Fleurs de Purple Kush",

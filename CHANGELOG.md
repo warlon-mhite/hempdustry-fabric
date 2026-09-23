@@ -108,6 +108,11 @@ beta be told when the release lands.
 - **The notes under recipes in EMI, JEI and REI ran off the page**: the Infuser's "Needs a heat
   source underneath" ran out of its recipe in English, and the French notes ran across the item list.
   Each page is now wide enough for its notes in any language.
+- **A typo in `config/hempdustry.json` no longer wipes the file.** A file the mod could not read —
+  broken JSON, or a word where a number goes — was written over with every default, taking all your
+  other settings with it, and `/hempdustry reload` still said it had worked. Now the file is left
+  exactly as it is, the settings already running stay, the log says what is wrong, and the reload
+  command says it failed.
 
 ### Known issues
 
