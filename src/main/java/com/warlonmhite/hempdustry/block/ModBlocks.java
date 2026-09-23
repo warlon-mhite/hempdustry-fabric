@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.BongBlock;
+import com.warlonmhite.hempdustry.block.custom.CharasBallBlock;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
@@ -401,7 +402,7 @@ public class ModBlocks {
      * <p>Honey sound group, like the two bars: sticky, soft, resinous.
      */
     public static final Block CHARAS_BALL = registerBlock("charas_ball",
-            new Block(AbstractBlock.Settings.create()
+            new CharasBallBlock(AbstractBlock.Settings.create()
                     .strength(0.5F)
                     .sounds(BlockSoundGroup.HONEY)
                     .nonOpaque()
