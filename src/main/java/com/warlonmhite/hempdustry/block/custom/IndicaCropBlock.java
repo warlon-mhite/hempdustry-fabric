@@ -316,6 +316,24 @@ public class IndicaCropBlock extends CropBlock {
         return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
     }
 
+    // ----- the smell of a ripe plant -----
+
+    /**
+     * A ripe plant lets off a wisp now and then from its top; see {@link RipeAroma}. Either half
+     * can be sampled, and the helper keeps only the one with open air above it.
+     *
+     * <p>Reads {@link #AGE} directly, <b>not</b> {@link #getAge}: the upper half's {@code getAge}
+     * always reports maturity (the bee guard above), so asking it would have every two-tall plant
+     * smelling ripe from age 4. The upper half's {@code AGE} mirrors the lower's, so either half
+     * answers truthfully here.
+     */
+    @Override
+    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
+        if (state.get(AGE) >= this.getMaxAge()) {
+            RipeAroma.randomDisplayTick(world, pos, random);
+        }
+    }
+
     // ----- harvesting -----
     // Breaking either half removes both and yields the plant exactly once: the loot
     // table only drops for the lower half, so we drop the lower's loot (when an upper

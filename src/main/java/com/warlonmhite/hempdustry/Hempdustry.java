@@ -18,6 +18,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.loot.ModLootTableModifiers;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.sound.ModSounds;
+import com.warlonmhite.hempdustry.particle.ModParticles;
 import com.warlonmhite.hempdustry.world.gen.ModWorldGeneration;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
@@ -53,6 +54,7 @@ public class Hempdustry implements ModInitializer {
 		ModDispenserBehaviors.registerDispenserBehaviors();
 		ModEntities.registerModEntities();
 		ModSounds.registerSounds();
+		ModParticles.registerParticles();
 		ModWorldGeneration.generateModWorldGeneration();
 
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BRICK, 0.05f);
