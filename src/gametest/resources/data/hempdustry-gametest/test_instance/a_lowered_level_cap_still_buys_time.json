@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:a_lowered_level_cap_still_buys_time",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 200,
+  "setup_ticks": 0,
+  "required": true
+}

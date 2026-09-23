@@ -48,6 +48,7 @@ public class HempdustryGameTests implements ModInitializer {
         register("eating_grants_the_food_nodes", AdvancementGameTest::eatingGrantsTheFoodNodes);
         register("a_big_dose_buys_time_not_level", RebalanceGameTest::aBigDoseBuysTimeNotLevel);
         register("a_full_green_out_ends_the_high", RebalanceGameTest::aFullGreenOutEndsTheHigh);
+        register("a_lowered_level_cap_still_buys_time", RebalanceGameTest::aLoweredLevelCapStillBuysTime);
         register("edibles_buy_time_not_level", RebalanceGameTest::ediblesBuyTimeNotLevel);
         register("a_broken_config_is_left_alone", ConfigGameTest::aBrokenConfigIsLeftAlone);
         register("a_hemp_boat_does_not_stop_the_data_fixer", DataFixerGameTest::aHempBoatDoesNotStopTheDataFixer);

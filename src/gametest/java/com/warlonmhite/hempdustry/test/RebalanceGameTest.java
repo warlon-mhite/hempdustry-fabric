@@ -75,6 +75,23 @@ public final class RebalanceGameTest {
         context.complete();
     }
 
+    /**
+     * A lower {@code maxLevel} moves the point where dose turns into time along with it. Under
+     * {@code maxLevel: 1} a pipe of two is level I like a pipe of one, so its second bud has to buy
+     * the extra half duration or it buys nothing but a green-out chance.
+     */
+    public static void aLoweredLevelCapStillBuysTime(TestContext context) {
+        ConfigGameTest.withConfig("{ \"effects\": { \"maxLevel\": 1 } }", () -> {
+            ServerPlayerEntity piper = freshPlayer(context);
+            smokeUntilClean(context, piper, ModItems.WOODEN_PIPE, ModStrains.INDICA, 2);
+            context.assertEquals(0, level(piper, StatusEffects.RESISTANCE), "maxLevel 1 holds Resistance at I");
+            context.assertEquals(0, level(piper, StatusEffects.MINING_FATIGUE), "and the cost with it");
+            context.assertEquals(EffectPolicy.duration(1050), piper.getStatusEffect(StatusEffects.RESISTANCE).getDuration(),
+                    "a second bud past the lowered cap buys half the pipe's duration again");
+        });
+        context.complete();
+    }
+
     public static void aFullGreenOutEndsTheHigh(TestContext context) {
         ServerPlayerEntity full = highPlayer(context);
         Smoking.greenOut(full, 3);

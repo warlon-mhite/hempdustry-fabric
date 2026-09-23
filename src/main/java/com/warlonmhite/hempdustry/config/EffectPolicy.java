@@ -105,9 +105,15 @@ public final class EffectPolicy {
         return Math.min(amplifier, cap - 1);
     }
 
-    /** The highest level a buff reaches, which is also where extra dose turns into duration. */
+    /**
+     * The highest level a buff reaches, which is also where extra dose turns into duration. That is
+     * {@code maxBuffLevel}, or {@code maxLevel} where it is the lower of the two: under
+     * {@code maxLevel: 1} a dose of two is level I, and its second bud has to buy time or it buys
+     * nothing at all.
+     */
     public static int maxBuffLevel() {
-        return HempdustryConfig.get().effects().maxBuffLevel();
+        Effects config = HempdustryConfig.get().effects();
+        return Math.min(config.maxLevel(), config.maxBuffLevel());
     }
 
     /** A use cooldown in ticks, scaled. Zero is allowed here: it means "no cooldown". */
