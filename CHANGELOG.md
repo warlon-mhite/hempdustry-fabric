@@ -68,8 +68,10 @@ beta be told when the release lands.
 
 ### Added
 
-- **A Russian translation**, by **MargoxaTheGamer** — the whole mod, translated by hand. Nine
-  locales now ship: five English variants, three French and Russian.
+- **A Russian translation**, by **MargoxaTheGamer** — the whole mod, translated by hand.
+- **A German translation**, by **Gülps'sch420** — German, and Swiss German for Switzerland,
+  translated by hand, with an Austrian locale adapted from her German. Twelve locales now ship:
+  five English variants, three French, three German and Russian.
 - **Recipe pages in [REI](https://modrinth.com/mod/rei)**, alongside the JEI and EMI ones the mod
   already had. All three viewers show the same three pages — Decarboxylator, Infuser and the
   cauldron's retting and washing — and the same packing rows in the crafting tab, because they read
