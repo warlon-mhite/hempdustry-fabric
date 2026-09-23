@@ -46,7 +46,7 @@ import net.minecraft.world.World;
  *
  * <pre>{@code
  * repositories { maven { url = "https://api.modrinth.com/maven" } }
- * dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.11" }
+ * dependencies { modImplementation "maven.modrinth:hempdustry:2.0.1-beta+1.21.11" }
  * }</pre>
  */
 public final class HempdustryEvents {

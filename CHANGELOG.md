@@ -9,6 +9,10 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
+Nothing yet — everything below shipped in 2.0.1-beta.
+
+## [2.0.1-beta] — 2026-09-23
+
 ### Breaking
 
 - **The two crop blocks no longer register an item.** `hempdustry:indica_crop` and
@@ -351,5 +355,6 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/beta...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.1-beta...HEAD
+[2.0.1-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.1-beta
 [2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/beta

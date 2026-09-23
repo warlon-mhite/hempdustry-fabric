@@ -12,7 +12,7 @@ actually been for over the last five thousand years.
 [![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
 [![Art & music](https://img.shields.io/badge/Art%20%26%20music-CC%20BY--NC--SA%204.0-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-**Download:** SOON
+**Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-fabric/releases)
 
 > **Status: version 2.0.1-beta**
 > This is a rewrite for Fabric 1.21.11 of an older Forge 1.16 mod (GanjaCraft) that was built with
