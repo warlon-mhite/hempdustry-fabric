@@ -38,8 +38,8 @@
   "hempdustry.strain.blend": "Mélange",
 
   "hempdustry.update.available": "Hempdustry %1$s est disponible. Version installée : %2$s.",
-  "hempdustry.update.link": "Télécharger sur Modrinth",
-  "hempdustry.update.tooltip": "Ouvrir la page Hempdustry sur Modrinth",
+  "hempdustry.update.link": "Télécharger",
+  "hempdustry.update.tooltip": "Ouvrir la page de téléchargement d'Hempdustry",
   "hempdustry.edible.potency": "Puissance : %s",
   "hempdustry.edible.quality": "Qualité : %s",
   "hempdustry.trim.too_young": "Trop jeune pour être taillé",
