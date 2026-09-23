@@ -62,6 +62,9 @@ beta be told when the release lands.
     of seeds. It grows only vanilla flowers now.
   - Wild Purple Kush now really does grow on the moss of lush caves, a plant here and there. It was
     meant to from the start, but it was being planted before the moss was laid and never took.
+- **Purple Kush and Lemon Haze seeds no longer look alike.** Both strains shipped the same picture,
+  so a hotbar could not tell one from the other. They keep the same scatter of seeds, each leaning
+  towards its strain's colour: Purple Kush a cool violet-grey, Lemon Haze a warm olive.
 
 ### Added
 
