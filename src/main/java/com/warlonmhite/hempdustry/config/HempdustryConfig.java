@@ -177,7 +177,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
             JsonElement encoded = CODEC.encodeStart(JsonOps.INSTANCE, config).getOrThrow();
             JsonObject root = encoded.getAsJsonObject();
             comment(root, "client", "Read by a client, sent to nobody. updateCheck=false stops this client "
-                    + "asking Modrinth for a newer release on start-up; a dedicated server never asks. "
+                    + "checking for a newer release on start-up; a dedicated server never asks. "
                     + "Turn it off in a modpack, where the update it would announce cannot be taken anyway. "
                     + "biomeTintStrength is 0-1: how far hemp growing in the world is pulled towards the "
                     + "local grass colour, so a plant does not clash with the biome around it. "

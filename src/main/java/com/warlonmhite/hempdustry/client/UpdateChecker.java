@@ -20,6 +20,7 @@ import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.net.http.HttpClient;
@@ -56,21 +57,25 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Ours is deliberately written in Forge's format so a NeoForge build can point {@code updateJSONURL}
  * at the very same file.
  *
- * <p><b>Modrinth stays as a second source</b>, asked in parallel, with the higher version winning.
- * It costs one request and covers the manifest's one weakness: the manifest is hand-maintained and
- * can be forgotten at release time, while Modrinth's answer is generated from what was actually
- * uploaded.
+ * <p><b>Modrinth stays as a second source</b>, asked straight after it, with the higher version
+ * winning. It costs one request and covers the manifest's one weakness: the manifest is
+ * hand-maintained and can be forgotten at release time, while Modrinth's answer is generated from
+ * what was actually uploaded.
  *
  * <h2>Where the link points is data, not code</h2>
  *
  * The manifest's {@code homepage} decides where the chat line sends a player. So the day the
  * Modrinth listing clears review — or the day a new storefront is added — that is a one-line edit to
- * a JSON file rather than a new build of the mod. {@link #MODRINTH_PROJECT_URL} is only the
- * fallback, for when the manifest cannot be reached at all.
+ * a JSON file rather than a new build of the mod. It is checked, though, because it ends up in a
+ * click event: anything that is not an {@code http(s)} link with a host falls back to
+ * {@link #RELEASES_URL}. The manifest lives in that repository, so that page is there whenever the
+ * manifest is — unlike the Modrinth page, which does not exist until the listing clears review.
  */
 public final class UpdateChecker {
     private static final String MODRINTH_PROJECT = "hempdustry";
     private static final String MODRINTH_PROJECT_URL = "https://modrinth.com/mod/" + MODRINTH_PROJECT;
+    /** Where a manifest with no usable {@code homepage} sends a player. See the class javadoc. */
+    private static final String RELEASES_URL = "https://github.com/warlon-mhite/hempdustry-fabric/releases";
 
     /**
      * The mod's own update manifest — the primary source. Pinned to {@code master} on purpose: there
@@ -227,10 +232,29 @@ public final class UpdateChecker {
             Hempdustry.LOGGER.debug("Update manifest: ignoring unparseable version {}", number);
             return null;
         }
-        String homepage = root.has("homepage") && root.get("homepage").isJsonPrimitive()
-                ? root.get("homepage").getAsString()
-                : MODRINTH_PROJECT_URL;
-        return new Candidate(number.getAsString(), parsed, homepage);
+        return new Candidate(number.getAsString(), parsed, webLinkOr(root.get("homepage"), RELEASES_URL));
+    }
+
+    /**
+     * {@code element} if it is an {@code http} or {@code https} link with a host, else
+     * {@code fallback}. The manifest is written by hand and the link lands in a click event on join,
+     * so a typo in it must cost the link, not the message.
+     */
+    private static String webLinkOr(@Nullable JsonElement element, String fallback) {
+        if (element == null || !element.isJsonPrimitive()) {
+            return fallback;
+        }
+        try {
+            URI uri = new URI(element.getAsString());
+            if (("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))
+                    && uri.getHost() != null) {
+                return uri.toString();
+            }
+        } catch (URISyntaxException ignored) {
+            // falls through to the fallback, like any other link that is not a web page
+        }
+        Hempdustry.LOGGER.debug("Update manifest: ignoring homepage {}, not a web link", element);
+        return fallback;
     }
 
     /**
