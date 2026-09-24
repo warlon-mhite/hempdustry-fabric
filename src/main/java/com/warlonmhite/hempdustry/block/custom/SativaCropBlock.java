@@ -254,7 +254,7 @@ public class SativaCropBlock extends CropBlock {
         // but each still paid a chunk lookup. isShapeSettled answers the same question in one or
         // two block reads.
         if (grown != age || !this.isShapeSettled(world, pos, age, state.get(GrowLight.PROPERTY))) {
-            this.setAge(world, pos, grown);
+            this.setAge(world, pos, grown, 0.0F, random);
         }
     }
 
@@ -290,13 +290,25 @@ public class SativaCropBlock extends CropBlock {
     }
 
     // Bonemeal path: CropBlock.grow() calls applyGrowth() on the targeted block. Only the LOWER
-    // segment is fertilizable, so this only ever runs on the LOWER segment.
+    // segment is fertilizable, so this only ever runs on the LOWER segment. grow() is overridden as
+    // well so the roll uses the random it is handed, which is also what lets a test decide the roll.
     @Override
     public void applyGrowth(World world, BlockPos pos, BlockState state) {
+        this.boneMeal(world, pos, state, world.getRandom());
+    }
+
+    @Override
+    public void grow(ServerWorld world, Random random, BlockPos pos, BlockState state) {
+        this.boneMeal(world, pos, state, random);
+    }
+
+    /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
+    private void boneMeal(World world, BlockPos pos, BlockState state, Random random) {
         if (!isLower(state)) {
             return;
         }
-        this.setAge(world, pos, this.getAge(state) + this.getGrowthAmount(world));
+        this.setAge(world, pos, this.getAge(state) + this.getGrowthAmount(world),
+                PlantStress.ofBoneMeal(world, pos, state), random);
     }
 
     /** A flat one stage per successful bonemeal, for the same reasons as {@link IndicaCropBlock}. */
@@ -326,7 +338,7 @@ public class SativaCropBlock extends CropBlock {
      * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
      * player later builds over keeps its age and its harvest instead of silently reverting.
      */
-    private void setAge(World world, BlockPos pos, int newAge) {
+    private void setAge(World world, BlockPos pos, int newAge, float extraStress, Random random) {
         BlockState current = world.getBlockState(pos);
         int currentAge = current.isOf(this) && isLower(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
@@ -337,8 +349,8 @@ public class SativaCropBlock extends CropBlock {
         // this on every tick, not only when the plant actually ages.
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, TriplePlantSegment.LOWER));
         if (newAge > currentAge && current.isOf(this)) {
-            lower = lower.with(GrowLight.PROPERTY, current.get(GrowLight.PROPERTY)
-                    .afterStep(currentAge, GrowLight.over(world, pos, 3)));
+            lower = lower.with(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
+                    current.get(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random));
             if (newAge == this.getMaxAge()) {
                 BlockPos floorPos = pos.down();
                 BlockState floor = world.getBlockState(floorPos);
@@ -388,6 +400,11 @@ public class SativaCropBlock extends CropBlock {
         BlockPos lowerPos = this.findLowerPos(world, pos, state);
         BlockState lower = world.getBlockState(lowerPos);
         if (lower.isOf(this) && isLower(lower)) {
+            // A bottle on the plant waters its pot: that is where a player aims.
+            ActionResult watered = GrowPotBlock.tryWater(stack, world, lowerPos.down(), player, hand);
+            if (watered != null) {
+                return watered;
+            }
             ActionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.get(AGE),
                     stack, player, hand);
             if (result != null) {

@@ -61,7 +61,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p><b>Nothing here ever kills a plant.</b> That is vanilla's rule, checked in the jar: farmland
  * carrying a crop never reverts to dirt however long it goes unwatered — it only drops its moisture
- * and slows the crop down. Neglect costs time, never the harvest.
+ * and slows the crop down. Neglect costs time and, while the plant flowers, its health: a dry tray
+ * and a dead pump over water can each stress it ({@link PlantStress}).
  *
  * <p><b>And it does not work in the Nether.</b> Water boils away there, so the tray refuses a bucket
  * and refuses to be fed; vanilla then places the water itself and evaporates it with the usual hiss,
@@ -83,9 +84,9 @@ public class HydroTrayBlock extends Block implements GrowMedium {
     public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
 
     /** Wet: the best ground vanilla knows — a lone plant on fully watered farmland. */
-    public static final float WET_MOISTURE = GrowPotBlock.FERTILE_MOISTURE;
+    public static final float WET_MOISTURE = GrowPotBlock.WET_MOISTURE;
     /** Dry: vanilla's unwatered farmland, which is worse than the field a player started with. */
-    public static final float DRY_MOISTURE = GrowPotBlock.SPENT_MOISTURE;
+    public static final float DRY_MOISTURE = GrowPotBlock.DRY_MOISTURE;
     public static final float PUMPED_SPEED = 2.0F;
 
     public HydroTrayBlock(Settings settings) {
@@ -120,6 +121,23 @@ public class HydroTrayBlock extends Block implements GrowMedium {
         // The nutrients drain with the last of the water: an empty reservoir is an unfed one.
         world.setBlockState(pos, state.with(LEVEL, left).with(FED, left > 0 && state.get(FED)),
                 Block.NOTIFY_LISTENERS);
+    }
+
+    @Override
+    public boolean fed(BlockState state) {
+        return state.get(FED);
+    }
+
+    /**
+     * A dry reservoir starves the roots; water with the pump off goes stale round them and they rot,
+     * which is the classic way a deep-water-culture grow fails. A running pump over water is safe.
+     */
+    @Override
+    public float stress(BlockState state) {
+        if (state.get(LEVEL) == 0) {
+            return PlantStress.DRY_BED;
+        }
+        return state.get(POWERED) ? 0.0F : PlantStress.STAGNANT;
     }
 
     /**
@@ -165,9 +183,12 @@ public class HydroTrayBlock extends Block implements GrowMedium {
     /**
      * A water bucket fills the reservoir and hands back the empty, the way the Infuser takes its milk
      * and a cauldron takes its water — <b>not</b> by letting vanilla place a water block in the
-     * plant's space, which is what happened before. Any fertiliser mixes the nutrients in. Anything
-     * else, and any tray that cannot take what is offered, falls through to {@code super} rather than
-     * a bare {@code PASS}, which would swallow the click.
+     * plant's space, which is what happened before. A full tray refuses the bucket by accepting the
+     * click and doing nothing ({@code CONSUME}): anything short of accepted goes on to the bucket's
+     * own use and pours into the plant's space all the same. Only in the Nether does the bucket go
+     * through, so vanilla can pour it and hiss it away. Any fertiliser mixes the nutrients in, and
+     * anything else falls through to {@code super} rather than a bare {@code PASS}, which would
+     * swallow the click.
      */
     @Override
     protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
@@ -179,6 +200,9 @@ public class HydroTrayBlock extends Block implements GrowMedium {
                 player.incrementStat(Stats.USED.getOrCreateStat(Items.WATER_BUCKET));
             }
             return ActionResult.SUCCESS;
+        }
+        if (stack.isOf(Items.WATER_BUCKET) && !boilsAway(world, pos)) {
+            return ActionResult.CONSUME;
         }
         ActionResult fed = GrowMedium.tryFeed(stack, state, world, pos, player);
         return fed != null ? fed : super.onUseWithItem(stack, state, world, pos, player, hand, hit);

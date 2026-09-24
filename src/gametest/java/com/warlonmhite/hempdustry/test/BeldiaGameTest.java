@@ -108,7 +108,7 @@ public final class BeldiaGameTest {
         plant(player, world, soil, seeds);
         context.assertTrue(world.getBlockState(crop).isAir(), "a seed went down on dry sand");
         context.assertTrue(seeds.getCount() == 3, "dry sand ate the seed it refused");
-        // A Grow Pot is always watered, with no water anywhere near it.
+        // A bed answers for itself: a seed goes down in a Grow Pot with no water anywhere near it.
         context.setBlockState(SOIL, ModBlocks.GROW_POT);
         plant(player, world, soil, seeds);
         context.assertTrue(world.getBlockState(crop).isOf(ModBlocks.BELDIA_CROP), "a seed would not go down in a dry-room Grow Pot");

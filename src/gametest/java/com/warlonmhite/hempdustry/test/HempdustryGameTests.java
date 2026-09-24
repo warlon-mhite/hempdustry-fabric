@@ -88,6 +88,10 @@ public class HempdustryGameTests implements ModInitializer {
         register("tagged_fertiliser_feeds_both_beds", IndoorGrowGameTest::taggedFertiliserFeedsBothBeds);
         register("a_tray_holds_nothing_in_the_nether", IndoorGrowGameTest::aTrayHoldsNothingInTheNether);
         register("light_and_pot_change_the_harvest", IndoorGrowGameTest::lightAndPotChangeTheHarvest);
+        register("stress_has_more_causes_than_light", PlantStressGameTest::stressHasMoreCausesThanLight);
+        register("a_bee_step_is_a_growth_step", PlantStressGameTest::aBeeStepIsAGrowthStep);
+        register("a_pot_takes_one_bottle", PlantStressGameTest::aPotTakesOneBottle);
+        register("a_dispenser_waters_a_pot", PlantStressGameTest::aDispenserWatersAPot);
         register("beldia_grows_on_watered_sand", BeldiaGameTest::beldiaGrowsOnWateredSand);
         register("beldia_harvests_leafy_and_sifts_double", BeldiaGameTest::beldiaHarvestsLeafyAndSiftsDouble);
         register("beldia_smokes_a_mirage", BeldiaGameTest::beldiaSmokesAMirage);
