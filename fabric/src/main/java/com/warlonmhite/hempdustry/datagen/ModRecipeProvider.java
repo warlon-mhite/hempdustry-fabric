@@ -559,8 +559,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             if (strain.wildFlower().isEmpty()) {
                 continue;
             }
+            // Ruderalis is the weak bud, and pays half (see RUDERALIS_OUTPUT).
+            int output = key == ModStrains.RUDERALIS
+                    ? DecarboxylatorBlockEntity.RUDERALIS_OUTPUT : DecarboxylatorBlockEntity.BUDS_OUTPUT;
             offerDecarboxylating(Ingredient.of(strain.buds()),
-                    new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.BUDS_OUTPUT),
+                    new ItemStack(ModItems.DECARBOXYLATED_HEMP, output),
                     BuiltInRegistries.ITEM.getKey(strain.buds()).getPath());
         }
         // Fan leaf: bulk trim, worth a quarter of a bud, and strain-agnostic like everything else

@@ -119,6 +119,12 @@ public final class HempdustryGameTests {
         register("stressed_buds_spoil_one_by_one", SchwagGameTest::stressedBudsSpoilOneByOne);
         register("schwag_smokes_a_gamble", SchwagGameTest::schwagSmokesAGamble);
         register("schwag_is_half_a_bud", SchwagGameTest::schwagIsHalfABud);
+        register("ruderalis_grows_where_the_sniffer_digs", RuderalisGameTest::ruderalisGrowsWhereTheSnifferDigs);
+        register("ruderalis_harvests_seed_heavy", RuderalisGameTest::ruderalisHarvestsSeedHeavy);
+        register("ruderalis_smokes_lucky", RuderalisGameTest::ruderalisSmokesLucky);
+        register("ruderalis_is_only_ever_dug_up", RuderalisGameTest::ruderalisIsOnlyEverDugUp);
+        register("wild_ruderalis_grows_ripe", RuderalisGameTest::wildRuderalisGrowsRipe);
+        register("ruderalis_waits_out_the_dark", RuderalisGameTest::ruderalisWaitsOutTheDark);
         register("eating_grants_the_food_nodes", AdvancementGameTest::eatingGrantsTheFoodNodes);
         register("harvest_nodes_read_the_plant", AdvancementGameTest::harvestNodesReadThePlant);
         register("breaking_the_bed_harvests_the_plant_first",

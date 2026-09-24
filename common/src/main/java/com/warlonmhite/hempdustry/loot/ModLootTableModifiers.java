@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain;
+import com.warlonmhite.hempdustry.block.custom.RuderalisCropBlock;
 import com.warlonmhite.hempdustry.block.custom.WarpedKushCropBlock;
 import net.minecraft.advancements.criterion.BlockPredicate;
 import net.minecraft.advancements.criterion.ItemPredicate;
@@ -178,6 +179,27 @@ public class ModLootTableModifiers {
     private static final int BARTER_SEED_WEIGHT = 10;
 
     /**
+     * Weight of Ruderalis seeds inside the one pool of the common trail-ruins brushing table, which
+     * holds 31 entries totalling 45 -- so 1 of 46, about 2.2% a brush. Vanilla already keeps wheat
+     * and beetroot seeds there at weight 1 each, its own grammar for an old farmer's seed stock. Not
+     * the rare table: that one is twelve collectibles, and a seed would dilute them.
+     *
+     * <p>A weight, not a chance, so {@code loot.chanceMultiplier} leaves it alone. And inside the
+     * existing pool, never a pool of its own -- a brushed block keeps exactly one item.
+     */
+    private static final int TRAIL_RUINS_SEED_WEIGHT = 1;
+
+    /**
+     * Chance a sniffer's dig also turns up a Ruderalis seed. <b>A pool of its own, on top of
+     * vanilla's</b>: that table is one roll between torchflower seeds and pitcher pod, and a third
+     * entry would take both to a third -- and slow sniffer breeding with them, since
+     * {@code #minecraft:sniffer_food} is torchflower seeds alone. So vanilla's even split is untouched
+     * and a sniffer now and then digs up two things at once. With its eight-minute sniff cooldown
+     * that is about one seed per sniffer per half hour: a key, never a supply.
+     */
+    private static final float SNIFFER_SEED_CHANCE = 0.25f;
+
+    /**
      * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
      *
      * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
@@ -264,32 +286,46 @@ public class ModLootTableModifiers {
      * Whether these seeds plant Beldía, which keeps them out of tall grass and the generic chests and
      * puts them in the desert's. The lore is placement: a desert plant is found in the desert.
      *
-     * <p><b>Code, not a tag, and it has to be.</b> Item tags are not bound yet while loot tables load
-     * -- reading one here throws "Trying to access unbound tag" and takes the server down with it.
+     * <p><b>Code, not a tag, and it has to be</b> -- this and the two below. Item tags are not bound
+     * yet while loot tables load: reading one here throws "Trying to access unbound tag" and takes
+     * the server down with it. Nothing is lost either, since each of these plants needs a crop block
+     * of its own, which is code no datapack can add.
      */
     private static boolean isDesertSeed(Item seeds) {
-        return seeds instanceof BlockItem item && item.getBlock() instanceof BeldiaCropBlock;
+        return plants(seeds) instanceof BeldiaCropBlock;
+    }
+
+    /** Whether these seeds plant a Nether crop, found in the Nether's chests instead. */
+    private static boolean isNetherSeed(Item seeds) {
+        return plants(seeds) instanceof WarpedKushCropBlock;
+    }
+
+    /** Whether these seeds plant Ruderalis, which is only ever dug up: by a brush, or a sniffer. */
+    private static boolean isBuriedSeed(Item seeds) {
+        return plants(seeds) instanceof RuderalisCropBlock;
     }
 
     /**
-     * Whether these seeds plant a Nether crop, which is what keeps them out of tall grass and the
-     * overworld's chests and puts them in the Nether's.
-     *
-     * <p><b>Code, not a tag, and it has to be.</b> Item tags are not bound yet while loot tables load
-     * -- reading one here throws "Trying to access unbound tag" and takes the server down with it. And
-     * nothing is lost: a Nether strain needs a crop block that grows on nylium, which is code no
-     * datapack can add.
+     * Whether these seeds belong to one place, and so stay out of the tall grass and the generic
+     * chests that every other strain shares. Each such strain is found where it belongs, and leaving
+     * all of them out keeps the others' share of those rolls what it was.
      */
-    private static boolean isNetherSeed(Item seeds) {
-        return seeds instanceof BlockItem item && item.getBlock() instanceof WarpedKushCropBlock;
+    private static boolean isRegionBound(Item seeds) {
+        return isDesertSeed(seeds) || isNetherSeed(seeds) || isBuriedSeed(seeds);
+    }
+
+    /** The block these seeds plant, or null for an item that plants nothing. */
+    private static Block plants(Item seeds) {
+        return seeds instanceof BlockItem item ? item.getBlock() : null;
     }
 
     /**
      * One roll at {@code base} for 1-3 seeds of one plant strain: every strain whose seeds are
      * {@code found} there, at equal weight, so the chance stays {@code base} however many strains exist
-     * and which you get is a coin flip. A region's plant is found in its region -- Beldía in the
-     * desert, Warped Kush in the Nether -- and every other strain everywhere else. Driven off the
-     * loaded strain registry, so a datapack strain appears here without touching this file.
+     * and which you get is a coin flip. A region-bound plant is found only where it belongs -- Beldía
+     * in the desert, Warped Kush in the Nether, Ruderalis underground -- and every other strain
+     * everywhere else. Driven off the loaded strain registry, so a datapack strain appears here
+     * without touching this file.
      */
     private static LootPool.Builder seedStash(HolderLookup.Provider registries, float base, Predicate<Item> found) {
         LootPool.Builder pool = LootPool.lootPool()
@@ -339,22 +375,19 @@ public class ModLootTableModifiers {
                 // grass without touching this file.
                 // Seedless strains — the hash family — are simply not in the pool: there is no
                 // seed to find, and a pool entry per plant strain is what keeps the coin flip fair.
-                // Nor is a region's own: Beldía is found where it grows and nothing from warped
-                // nylium grows in a meadow's grass, and leaving both out keeps the other strains'
-                // share of this roll what it was.
+                // Nor is a region's own: Beldía is found where it grows, nothing from warped nylium
+                // grows in a meadow's grass, and Ruderalis grows nowhere until it is dug up.
                 for (Holder.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seedItem().filter(seeds -> !isDesertSeed(seeds) && !isNetherSeed(seeds))
+                    strain.value().seedItem().filter(seeds -> !isRegionBound(seeds))
                             .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)
                             .apply(ApplyBonusCount.addUniformBonusCount(fortune, 2))
                             .apply(ApplyExplosionDecay.explosionDecay())));
                 }
                 table.addPool(pool);
             } else if (CHEST_SOURCES.contains(key)) {
-                table.addPool(seedStash(registries, CHEST_SEED_CHANCE,
-                        seeds -> !isDesertSeed(seeds) && !isNetherSeed(seeds)));
+                table.addPool(seedStash(registries, CHEST_SEED_CHANCE, seeds -> !isRegionBound(seeds)));
             } else if (VILLAGE_HOUSE_SOURCES.contains(key)) {
-                table.addPool(seedStash(registries, VILLAGE_HOUSE_SEED_CHANCE,
-                        seeds -> !isDesertSeed(seeds) && !isNetherSeed(seeds)));
+                table.addPool(seedStash(registries, VILLAGE_HOUSE_SEED_CHANCE, seeds -> !isRegionBound(seeds)));
             } else if (key.equals(BuiltInLootTables.DESERT_PYRAMID)) {
                 table.addPool(seedStash(registries, DESERT_TEMPLE_SEED_CHANCE, ModLootTableModifiers::isDesertSeed));
             } else if (key.equals(BuiltInLootTables.VILLAGE_DESERT_HOUSE)) {
@@ -368,6 +401,23 @@ public class ModLootTableModifiers {
                             .ifPresent(seeds -> table.addToEveryPool(LootItem.lootTableItem(seeds)
                                     .setWeight(DESERT_ARCHAEOLOGY_SEED_WEIGHT)));
                 }
+            } else if (key.equals(BuiltInLootTables.TRAIL_RUINS_ARCHAEOLOGY_COMMON)) {
+                // Into vanilla's one brushing pool, beside its wheat and beetroot seeds.
+                for (Holder.Reference<Strain> strain : Strain.all(registries)) {
+                    strain.value().seedItem().filter(ModLootTableModifiers::isBuriedSeed)
+                            .ifPresent(seeds -> table.addToEveryPool(LootItem.lootTableItem(seeds)
+                                    .setWeight(TRAIL_RUINS_SEED_WEIGHT)));
+                }
+            } else if (key.equals(BuiltInLootTables.SNIFFER_DIGGING)) {
+                // A second pool, never a third entry in vanilla's -- see SNIFFER_SEED_CHANCE.
+                LootPool.Builder pool = LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .when(LootItemRandomChanceCondition.randomChance(chance(SNIFFER_SEED_CHANCE)));
+                for (Holder.Reference<Strain> strain : Strain.all(registries)) {
+                    strain.value().seedItem().filter(ModLootTableModifiers::isBuriedSeed)
+                            .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)));
+                }
+                table.addPool(pool);
             } else if (key.equals(BuiltInLootTables.BASTION_TREASURE)) {
                 LootPool.Builder pool = LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1))
