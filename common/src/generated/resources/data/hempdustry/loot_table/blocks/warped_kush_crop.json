@@ -1,0 +1,838 @@
+{
+  "type": "minecraft:block",
+  "functions": [
+    {
+      "function": "minecraft:explosion_decay"
+    }
+  ],
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:warped_kush_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "half": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 1.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:warped_kush_buds"
+              },
+              "conditions": [
+                {
+                  "condition": "minecraft:all_of",
+                  "terms": [
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "trimmed_early": "false",
+                        "trimmed_late": "false"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "condition": "stressed",
+                        "half": "lower"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 2.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:warped_kush_buds"
+              },
+              "conditions": [
+                {
+                  "condition": "minecraft:all_of",
+                  "terms": [
+                    {
+                      "condition": "minecraft:any_of",
+                      "terms": [
+                        {
+                          "block": "hempdustry:warped_kush_crop",
+                          "condition": "minecraft:block_state_property",
+                          "properties": {
+                            "age": "7",
+                            "half": "lower",
+                            "trimmed_early": "true",
+                            "trimmed_late": "false"
+                          }
+                        },
+                        {
+                          "block": "hempdustry:warped_kush_crop",
+                          "condition": "minecraft:block_state_property",
+                          "properties": {
+                            "age": "7",
+                            "half": "lower",
+                            "trimmed_early": "false",
+                            "trimmed_late": "true"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "condition": "stressed",
+                        "half": "lower"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 3.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:warped_kush_buds"
+              },
+              "conditions": [
+                {
+                  "condition": "minecraft:all_of",
+                  "terms": [
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "trimmed_early": "true",
+                        "trimmed_late": "true"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "condition": "stressed",
+                        "half": "lower"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 2.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:warped_kush_buds"
+              },
+              "conditions": [
+                {
+                  "block": "hempdustry:warped_kush_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "age": "7",
+                    "half": "lower",
+                    "trimmed_early": "false",
+                    "trimmed_late": "false"
+                  }
+                }
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 3.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:warped_kush_buds"
+              },
+              "conditions": [
+                {
+                  "condition": "minecraft:any_of",
+                  "terms": [
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "trimmed_early": "true",
+                        "trimmed_late": "false"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "trimmed_early": "false",
+                        "trimmed_late": "true"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "functions": [
+                  {
+                    "add": false,
+                    "count": 4.0,
+                    "function": "minecraft:set_count"
+                  },
+                  {
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "function": "minecraft:apply_bonus",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:warped_kush_buds"
+              },
+              "conditions": [
+                {
+                  "block": "hempdustry:warped_kush_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "age": "7",
+                    "half": "lower",
+                    "trimmed_early": "true",
+                    "trimmed_late": "true"
+                  }
+                }
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "hempdustry:warped_kush_seeds"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:warped_kush_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "half": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:warped_kush_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "age": "7",
+                    "half": "lower",
+                    "rubbed": "false",
+                    "trimmed_early": "false",
+                    "trimmed_late": "false"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 4.0,
+                  "function": "minecraft:set_count"
+                },
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "function": "minecraft:apply_bonus",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "minecraft:any_of",
+                  "terms": [
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "rubbed": "false",
+                        "trimmed_early": "true",
+                        "trimmed_late": "false"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "rubbed": "false",
+                        "trimmed_early": "false",
+                        "trimmed_late": "true"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "rubbed": "true",
+                        "trimmed_early": "false",
+                        "trimmed_late": "false"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 3.0,
+                  "function": "minecraft:set_count"
+                },
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "function": "minecraft:apply_bonus",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "minecraft:any_of",
+                  "terms": [
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "rubbed": "false",
+                        "trimmed_early": "true",
+                        "trimmed_late": "true"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "rubbed": "true",
+                        "trimmed_early": "true",
+                        "trimmed_late": "false"
+                      }
+                    },
+                    {
+                      "block": "hempdustry:warped_kush_crop",
+                      "condition": "minecraft:block_state_property",
+                      "properties": {
+                        "age": "7",
+                        "half": "lower",
+                        "rubbed": "true",
+                        "trimmed_early": "false",
+                        "trimmed_late": "true"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 2.0,
+                  "function": "minecraft:set_count"
+                },
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "function": "minecraft:apply_bonus",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:warped_kush_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "age": "7",
+                    "half": "lower",
+                    "rubbed": "true",
+                    "trimmed_early": "true",
+                    "trimmed_late": "true"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 1.0,
+                  "function": "minecraft:set_count"
+                },
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "function": "minecraft:apply_bonus",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:warped_kush_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "half": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:warped_kush_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "age": "7",
+                    "condition": "grow_lamp",
+                    "half": "lower"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 2.0,
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:warped_kush_buds"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:warped_kush_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "age": "7",
+                    "condition": "lamp",
+                    "half": "lower"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 1.0,
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:warped_kush_buds"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:warped_kush_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "age": "7",
+                    "condition": "ambient",
+                    "half": "lower"
+                  }
+                },
+                {
+                  "chance": 0.5,
+                  "condition": "minecraft:random_chance"
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 1.0,
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:warped_kush_buds"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:warped_kush_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "half": "lower"
+          }
+        },
+        {
+          "condition": "minecraft:any_of",
+          "terms": [
+            {
+              "block": "hempdustry:warped_kush_crop",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "age": "7",
+                "condition": "grow_lamp",
+                "half": "lower"
+              }
+            },
+            {
+              "block": "hempdustry:warped_kush_crop",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "age": "7",
+                "condition": "lamp",
+                "half": "lower"
+              }
+            }
+          ]
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hempdustry:hemp_leaf"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:warped_kush_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "condition": "stressed",
+            "half": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": 2.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "hempdustry:warped_kush_seeds"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:warped_kush_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "half": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": 3.0,
+              "function": "minecraft:set_count"
+            },
+            {
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:binomial_with_bonus_count",
+              "function": "minecraft:apply_bonus",
+              "parameters": {
+                "extra": 3,
+                "probability": 0.4
+              }
+            }
+          ],
+          "name": "hempdustry:warped_kush_seeds"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:warped_kush_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "half": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "minecraft:location_check",
+                  "offsetY": -1,
+                  "predicate": {
+                    "block": {
+                      "blocks": [
+                        "hempdustry:grow_pot",
+                        "hempdustry:hydro_tray"
+                      ]
+                    }
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 1.0,
+                  "function": "minecraft:set_count"
+                },
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "function": "minecraft:apply_bonus",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_stem"
+            },
+            {
+              "type": "minecraft:item",
+              "functions": [
+                {
+                  "add": false,
+                  "count": 2.0,
+                  "function": "minecraft:set_count"
+                },
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "function": "minecraft:apply_bonus",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_stem"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}
