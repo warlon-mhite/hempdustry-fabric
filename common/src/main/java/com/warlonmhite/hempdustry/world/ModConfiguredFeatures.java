@@ -39,6 +39,7 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<Feature> BELDIA_KEY = registerKey("beldia");
 
     public static final ResourceKey<Feature> DITCHWEED_KEY = registerKey("ditchweed");
+    public static final ResourceKey<Feature> WARPED_KUSH_KEY = registerKey("warped_kush");
 
     public static ResourceKey<Feature> registerKey(String name) {
         return ResourceKey.create(Registries.FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
@@ -81,6 +82,18 @@ public class ModConfiguredFeatures {
         // Ditchweed, feral Industrial Hemp: one plant. It grows where escaped fibre crops do, along
         // water, which is the placed feature's filter to say, as it is for vanilla's sugar cane.
         register(context, DITCHWEED_KEY, flower(ModBlocks.DITCHWEED));
+
+        // Warped Kush grows wild as its own crop, RIPE: the Nether's wild plants are always ready.
+        // A simple block only places both halves of a vanilla DoublePlantBlock, so a two-layer block
+        // column puts down the LOWER and the UPPER at age 7 together, as Beldía's does. Where it may
+        // stand — warped nylium, air for both halves — is the placed feature's to say.
+        BlockState ripeWarped = ModBlocks.WARPED_KUSH_CROP.defaultBlockState().setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
+        register(context, WARPED_KUSH_KEY, new BlockColumnFeature(List.of(
+                BlockColumnFeature.layer(ConstantInt.of(1),
+                        BlockStateProvider.of(ripeWarped.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER))),
+                BlockColumnFeature.layer(ConstantInt.of(1),
+                        BlockStateProvider.of(ripeWarped.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
+                Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false));
     }
 
     /**

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "spliff",
+  "key": {
+    "B": "hempdustry:warped_kush_buds",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "BBB",
+    "PPP"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 3,
+            "strain": "hempdustry:warped_kush"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:spliff"
+  }
+}

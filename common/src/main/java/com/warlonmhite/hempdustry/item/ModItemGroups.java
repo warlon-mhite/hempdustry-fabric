@@ -108,9 +108,10 @@ public class ModItemGroups {
                         // The bud gone wrong, at the end of the buds it can come from. Not a plant
                         // strain, so the run above never adds it.
                         entries.accept(ModItems.SCHWAG);
-                        // Beldía's wild flower is its own crop, and a crop block's item IS its
-                        // seeds -- already in the run above, which addOnce remembers. A flower with
-                        // no item at all is skipped: the tab refuses an empty stack.
+                        // Beldía's and Warped Kush's wild flower is each its own crop, and a crop
+                        // block's item IS its seeds -- already in the run above, which addOnce
+                        // remembers. A flower with no item at all is skipped: the tab refuses an
+                        // empty stack.
                         strains.forEach(strain -> strain.value().wildFlower().map(Block::asItem)
                                 .filter(item -> item != Items.AIR)
                                 .ifPresent(addOnce));

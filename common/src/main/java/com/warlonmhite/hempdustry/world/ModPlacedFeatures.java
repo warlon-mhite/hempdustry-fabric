@@ -21,6 +21,7 @@ import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.placement.BiomeFilter;
 import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter;
+import net.minecraft.world.level.levelgen.placement.CountOnEveryLayerPlacement;
 import net.minecraft.world.level.levelgen.placement.CountPlacement;
 import net.minecraft.world.level.levelgen.placement.EnvironmentScanPlacement;
 import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
@@ -40,6 +41,7 @@ public class ModPlacedFeatures {
     public static final ResourceKey<PlacedFeature> SATIVA_RARE_PLACED_KEY = registerKey("sativa_rare_placed");
     public static final ResourceKey<PlacedFeature> BELDIA_PLACED_KEY = registerKey("beldia_placed");
     public static final ResourceKey<PlacedFeature> DITCHWEED_PLACED_KEY = registerKey("ditchweed_placed");
+    public static final ResourceKey<PlacedFeature> WARPED_KUSH_PLACED_KEY = registerKey("warped_kush_placed");
 
     /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
     private static final int BELDIA_RARITY = 8;
@@ -49,6 +51,10 @@ public class ModPlacedFeatures {
     private static final int DITCHWEED_RARITY = 12;
     /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
     private static final int DITCHWEED_TRIES = 20;
+    /** One chunk in this many tries for a wild Warped Kush patch, on every floor of the Nether there. */
+    private static final int WARPED_KUSH_RARITY = 8;
+    /** A Warped Kush patch: 8 tries within 3 blocks and 1 up or down. */
+    private static final int WARPED_KUSH_TRIES = 8;
 
     /**
      * A wild patch is usually small and one in ten is a big one — vanilla's own 64-try flower
@@ -166,6 +172,23 @@ public class ModPlacedFeatures {
                                 BlockPredicate.matchesFluids(new Vec3i(-1, -1, 0), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
                                 BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
                                 BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), List.of(Fluids.WATER, Fluids.FLOWING_WATER))))));
+
+        // Warped Kush: a heightmap in the Nether only finds the bedrock roof, so this is placed the
+        // way vanilla's own Nether vegetation is -- CountOnEveryLayer, one attempt on each floor of the
+        // column -- after a rarity roll on the chunk. Then the patch: the tries scatter round each
+        // floor, and each wants warped nylium under it and air for both halves, so a column is never
+        // cut short to a lone half.
+        register(context, WARPED_KUSH_PLACED_KEY,
+                features.getOrThrow(ModConfiguredFeatures.WARPED_KUSH_KEY),
+                RarityFilter.onAverageOnceEvery(WARPED_KUSH_RARITY),
+                CountOnEveryLayerPlacement.of(1),
+                BiomeFilter.biome(),
+                CountPlacement.of(WARPED_KUSH_TRIES),
+                OffsetPlacement.ofTriangle(3, 1),
+                BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                        BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                        BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), List.of(Blocks.AIR)),
+                        BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), List.of(Blocks.WARPED_NYLIUM)))));
     }
 
     /**
