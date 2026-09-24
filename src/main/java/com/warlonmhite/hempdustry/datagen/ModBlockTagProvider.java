@@ -50,7 +50,15 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP)
                 .add(ModBlocks.BELDIA_CROP)
-                .add(ModBlocks.INDUSTRIAL_HEMP_CROP);
+                .add(ModBlocks.INDUSTRIAL_HEMP_CROP)
+                .add(ModBlocks.WARPED_KUSH_CROP);
+
+        // Hoglins keep about eight blocks from anything in here (HoglinSpecificSensor), and vanilla's
+        // only plant in it is warped fungus. Warped Kush grows beside it and joins it: a field of it
+        // is the one farm in a crimson forest hoglins leave alone. Deliberately NOT #minecraft:crops
+        // or #minecraft:maintains_farmland -- no bees in the Nether, and no farmland under it.
+        valueLookupBuilder(BlockTags.HOGLIN_REPELLENTS)
+                .add(ModBlocks.WARPED_KUSH_CROP);
 
         // Beldía's ground, read by the crop and by its worldgen feature alike. Sand and red sand by
         // name, because #c:sands is not on every Fabric API and #minecraft:sand carries suspicious

@@ -75,6 +75,7 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.BELDIA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDUSTRIAL_HEMP_SEEDS, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.WARPED_KUSH_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_FIBER, 0.3f);
 		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_CANVAS, 0.5f);
@@ -85,6 +86,7 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_BUDS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_BUDS, 0.5f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.BELDIA_BUDS, 0.5f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.WARPED_KUSH_BUDS, 0.5f);
 		// The two cannabutter-chain intermediates. Composting them is a ridiculous use of a fuelled
 		// oven, which is exactly why it should be allowed: everything else organic in the mod goes in
 		// the composter, and a lone pair of items that bounce off it reads as an oversight. They sit

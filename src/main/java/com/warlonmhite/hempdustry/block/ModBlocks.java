@@ -21,6 +21,7 @@ import com.warlonmhite.hempdustry.block.custom.IndustrialHempCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import com.warlonmhite.hempdustry.block.custom.SpaceCakeBlock;
+import com.warlonmhite.hempdustry.block.custom.WarpedKushCropBlock;
 import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
@@ -337,6 +338,13 @@ public class ModBlocks {
             BlockBehaviour.Properties.ofFullCopy(Blocks.ROSE_BUSH));
     public static final Block POTTED_DITCHWEED = registerBlockWithoutItem("potted_ditchweed", settings -> new FlowerPotBlock(DITCHWEED, settings),
             BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_DANDELION));
+
+
+    // No block item, for the reason on INDICA_CROP above. It is also Warped Kush's wild plant: the
+    // world generates this very block, ripe, on warped nylium. Never registered as flammable --
+    // nothing that grows in the Nether burns.
+    public static final Block WARPED_KUSH_CROP = registerBlockWithoutItem("warped_kush_crop", WarpedKushCropBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT).sound(SoundType.NETHER_WART));
 
 
     /**

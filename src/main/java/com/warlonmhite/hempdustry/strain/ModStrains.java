@@ -71,6 +71,9 @@ public class ModStrains {
     public static final ResourceKey<Strain> ROSIN = key("rosin");
     /** The Rif's landrace, grown on sand beside water for the sieve. Its wild flower is its own crop. */
     public static final ResourceKey<Strain> BELDIA = key("beldia");
+
+    /** The Nether's plant, grown on warped nylium. Its wild flower is its own crop, generated ripe. */
+    public static final ResourceKey<Strain> WARPED_KUSH = key("warped_kush");
     /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
@@ -95,7 +98,7 @@ public class ModStrains {
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
     public static final List<ResourceKey<Strain>> BUILT_IN =
-            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA);
+            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -234,6 +237,30 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.BLINDNESS, 0, false, 0.25F, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
                 0.5F));
+        // Warped Kush -- the Nether's plant, after Blueberry and Blue Dream, and a strain that
+        // literally gets you high.
+        //
+        // FIRE RESISTANCE is the signature, flat because vanilla gives its level II nothing more. The
+        // grounding is the plant's own: cannabinoids are first of all a protective system against
+        // radiation and heat for the flower's tissue, and a plant that grew up beside lava would carry
+        // a lot of it -- which is also why it rubs charas at 1-in-2. Weighed against vanilla, it is
+        // weaker per unit than brewing (one magma cream is three eight-minute potions; a bong bud is
+        // about 200 s). What it sells is convenience -- buds stack to 64, potions to one -- and it
+        // skips no gate, because it has to be grown from the Nether.
+        //
+        // JUMP BOOST is the scaling buff: the Nether is vertical, and level III is its own fall-
+        // damage risk. DARKNESS is the tax -- the warp -- and a real one in a world lit by lava;
+        // vanilla already ships a slider for its pulsing. Hunger, as ever.
+        //
+        // Teal, bright enough to read on a packed vaporizer's gunmetal (see Purple Kush above).
+        context.register(WARPED_KUSH, new Strain("hempdustry.strain.warped_kush", 0x35D0B4, modelIndex(WARPED_KUSH),
+                Optional.of(ModItems.WARPED_KUSH_SEEDS), ModItems.WARPED_KUSH_BUDS,
+                Optional.of(ModBlocks.WARPED_KUSH_CROP), 1.0F, 1,
+                List.of(
+                        new SmokeEffect(MobEffects.FIRE_RESISTANCE, 0, false),
+                        new SmokeEffect(MobEffects.JUMP_BOOST, 0, true),
+                        new SmokeEffect(MobEffects.DARKNESS, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

@@ -246,6 +246,24 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         add(ModBlocks.INDUSTRIAL_HEMP_CROP, industrialHempCropDrops());
         add(ModBlocks.DITCHWEED, ditchweedDrops());
         dropPottedContents(ModBlocks.POTTED_DITCHWEED);
+
+        add(ModBlocks.WARPED_KUSH_CROP, warpedKushCropDrops());
+    }
+
+    /**
+     * Warped Kush: Purple Kush's leaves less one, and its stems. Eleven items where the two
+     * overworld strains land on twelve -- a total that fell out of balancing two plants against each
+     * other, never a rule -- and the missing one pays for the mod's best charas rub and a Fire
+     * Resistance strain. The light pools inside {@code hempCropDrops} are inert here: this crop keeps
+     * no light record, so it is always {@code natural}. And it is also its own wild plant, so a ripe
+     * one found in a warped forest pays exactly this.
+     */
+    private LootTable.Builder warpedKushCropDrops() {
+        return this.hempCropDrops(ModBlocks.WARPED_KUSH_CROP,
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
+                IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
+                ModItems.WARPED_KUSH_BUDS, ModItems.WARPED_KUSH_SEEDS,
+                4, 2);
     }
 
     /**

@@ -117,7 +117,8 @@ public final class PlantStress {
     public static BlockState beeStep(Level world, BlockPos pos, BlockState current, BlockState next,
                                      RandomSource random) {
         if (!(current.getBlock() instanceof CropBlock crop) || !current.is(next.getBlock())
-                || !next.hasProperty(GrowLight.PROPERTY)) {
+                || !next.hasProperty(GrowLight.PROPERTY)
+                || crop instanceof IndicaCropBlock indica && !indica.recordsLight()) {
             return next;
         }
         int height = crop instanceof SativaCropBlock ? 3 : 2;

@@ -58,5 +58,12 @@ public class ModFlowerGeneration {
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.DITCHWEED_PLACED_KEY
         );
+
+        // Warped Kush, ripe and wild, in warped forests.
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(ModTags.Biomes.WARPED_KUSH_GEN),
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ModPlacedFeatures.WARPED_KUSH_PLACED_KEY
+        );
     }
 }

@@ -1,0 +1,8 @@
+{
+  "type": "hempdustry:decarboxylating",
+  "ingredient": "hempdustry:warped_kush_buds",
+  "result": {
+    "count": 4,
+    "id": "hempdustry:decarboxylated_hemp"
+  }
+}

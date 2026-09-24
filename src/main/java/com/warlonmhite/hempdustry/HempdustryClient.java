@@ -69,6 +69,8 @@ public class HempdustryClient implements ClientModInitializer {
         BlockRenderLayerMap.putBlock(ModBlocks.INDUSTRIAL_HEMP_CROP, ChunkSectionLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.DITCHWEED, ChunkSectionLayer.CUTOUT);
         BlockRenderLayerMap.putBlock(ModBlocks.POTTED_DITCHWEED, ChunkSectionLayer.CUTOUT);
+        // Untinted on purpose: the Nether's grass colour is the desert's olive, and it keeps no light record.
+        BlockRenderLayerMap.putBlock(ModBlocks.WARPED_KUSH_CROP, ChunkSectionLayer.CUTOUT);
         // The chains the Grow Lamp hangs from are see-through between the links.
         BlockRenderLayerMap.putBlock(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
         // The compost crumbs over the pot's soil are drawn with see-through pixels.
