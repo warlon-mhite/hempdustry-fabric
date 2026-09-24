@@ -71,6 +71,7 @@ public class HempdustryClient implements ClientModInitializer {
         BlockRenderLayerMap.putBlock(ModBlocks.POTTED_DITCHWEED, ChunkSectionLayer.CUTOUT);
         // Untinted on purpose: the Nether's grass colour is the desert's olive, and it keeps no light record.
         BlockRenderLayerMap.putBlock(ModBlocks.WARPED_KUSH_CROP, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.RUDERALIS_CROP, ChunkSectionLayer.CUTOUT);
         // The chains the Grow Lamp hangs from are see-through between the links.
         BlockRenderLayerMap.putBlock(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
         // The compost crumbs over the pot's soil are drawn with see-through pixels.
@@ -154,7 +155,10 @@ public class HempdustryClient implements ClientModInitializer {
             }
             return biomeTint(BiomeColors.getAverageGrassColor(view, pos));
         }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER, ModBlocks.DITCHWEED,
-                ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER, ModBlocks.POTTED_DITCHWEED);
+                ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER, ModBlocks.POTTED_DITCHWEED,
+                // A crop, but one with no light record for the crops' provider below to read: it
+                // takes the biome and nothing else, like the wild plants it is kin to.
+                ModBlocks.RUDERALIS_CROP);
         // The crops take the same biome tint, then show the light they grew under: a lamp-grown
         // plant a shade deeper. A STRESSED plant is not tinted at all — it has textures of its own,
         // because a tint is a multiply and a multiply cannot bleach Purple Kush's dark flowers; the

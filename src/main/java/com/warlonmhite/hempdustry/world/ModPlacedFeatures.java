@@ -42,6 +42,21 @@ public class ModPlacedFeatures {
 
     /** One chunk in this many tries for a wild Warped Kush patch, on every floor of the Nether there. */
     private static final int WARPED_KUSH_RARITY = 8;
+    public static final ResourceKey<PlacedFeature> RUDERALIS_PLACED_KEY = registerKey("ruderalis_placed");
+
+    /**
+     * One attempt per this many taiga chunks, and <b>an attempt is not a plant</b>: measured in real
+     * terrain (a snowy taiga, seed 20260922, 256 force-loaded chunks of which 101 were taiga-centred)
+     * this patch lands <b>0.47 plants per attempt</b>, since most of its tries meet fern, grass or
+     * sloping ground. So this number is about <b>one wild plant per 820 taiga chunks</b> — rarer than
+     * anything else in the mod (Lemon Haze's badlands tier is 1 patch per 256 chunks) and rarer in
+     * practice than vanilla's own 384 for a rare berry patch, which lands far more per attempt.
+     *
+     * <p>That is the intent: Ruderalis is meant to be <b>dug up</b>. Trail ruins and sniffers are the
+     * sources a player can work towards; a wild stand is luck, worth about one find to a player who
+     * crosses five or six taigas looking at the ground.
+     */
+    private static final int RUDERALIS_RARITY = 384;
 
     public static ResourceKey<PlacedFeature> registerKey(String name) {
         return ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
@@ -113,6 +128,11 @@ public class ModPlacedFeatures {
                 RarityFilter.onAverageOnceEvery(WARPED_KUSH_RARITY),
                 CountOnEveryLayerPlacement.of(1),
                 BiomeFilter.biome());
+
+        // Ruderalis: a relict stand in the cold north, where the plant is actually from and where
+        // vanilla already puts the trail ruins that hold its seeds.
+        register(context, RUDERALIS_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.RUDERALIS_KEY), surfacePatch(RUDERALIS_RARITY));
     }
 
     /** Standard surface-vegetation placement: one attempt per {@code rarity} chunks, on the terrain top. */

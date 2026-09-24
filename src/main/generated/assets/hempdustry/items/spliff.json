@@ -29,6 +29,13 @@
           "model": "hempdustry:item/spliff_warped_kush"
         },
         "threshold": 8.0
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "hempdustry:item/spliff_ruderalis"
+        },
+        "threshold": 9.0
       }
     ],
     "fallback": {

@@ -22,6 +22,7 @@ public class ModTags {
         public static final TagKey<Biome> BELDIA_GEN = createTag("beldia_gen");
         public static final TagKey<Biome> DITCHWEED_GEN = createTag("ditchweed_gen");
         public static final TagKey<Biome> WARPED_KUSH_GEN = createTag("warped_kush_gen");
+        public static final TagKey<Biome> RUDERALIS_GEN = createTag("ruderalis_gen");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }

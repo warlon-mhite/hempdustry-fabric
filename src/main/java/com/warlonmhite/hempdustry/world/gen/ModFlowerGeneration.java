@@ -59,6 +59,14 @@ public class ModFlowerGeneration {
                 ModPlacedFeatures.DITCHWEED_PLACED_KEY
         );
 
+        // Ruderalis, ripe and wild, in the two taigas: a few stands survive where the plant came
+        // from, at a fraction of any other plant's rate. Digging it up is the route that works.
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(ModTags.Biomes.RUDERALIS_GEN),
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ModPlacedFeatures.RUDERALIS_PLACED_KEY
+        );
+
         // Warped Kush, ripe and wild, in warped forests.
         BiomeModifications.addFeature(
                 BiomeSelectors.tag(ModTags.Biomes.WARPED_KUSH_GEN),

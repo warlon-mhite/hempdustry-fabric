@@ -45,7 +45,7 @@ public final class LootGameTest {
             s -> s.is(ModItems.INDICA_SEEDS) || s.is(ModItems.SATIVA_SEEDS) || s.is(ModItems.INDUSTRIAL_HEMP_SEEDS);
     /** Seeds found only where they belong, which no village house may hold. */
     private static final Predicate<ItemStack> REGION_BOUND_SEEDS =
-            s -> s.is(ModItems.WARPED_KUSH_SEEDS);
+            s -> s.is(ModItems.WARPED_KUSH_SEEDS) || s.is(ModItems.RUDERALIS_SEEDS);
 
     public static void hempTurnsUpWhereItWasKept(GameTestHelper context) {
         ServerLevel world = context.getLevel();
