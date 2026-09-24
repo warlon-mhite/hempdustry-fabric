@@ -25,7 +25,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         valueLookupBuilder(ModTags.Items.HEMP_SEEDS)
                 .add(ModItems.INDICA_SEEDS)
                 .add(ModItems.SATIVA_SEEDS)
-                .add(ModItems.BELDIA_SEEDS);
+                .add(ModItems.BELDIA_SEEDS)
+                .add(ModItems.INDUSTRIAL_HEMP_SEEDS);
 
         // A tag rather than a hard milk_bucket check in the Infuser, so another mod's milk works
         // and a datapack can widen it without a code change.

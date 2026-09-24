@@ -63,11 +63,16 @@ public final class PlantStress {
      * The record a plant carries after a growth step from {@code fromAge} to {@code toAge}: first the
      * light's verdict, then one roll at the worst odds among the ground and {@code extra} (the
      * overfeeding a bone meal step brings with it). {@code height} is how tall the plant stands grown,
-     * which is where its light is read.
+     * which is where its light is read. A plant that is not {@code stressable} is never stressed:
+     * losing its light only lowers its record to the sun's, as it does for a young plant, and nothing
+     * is rolled.
      */
     public static GrowLight afterStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge,
-                                      int height, float extra, RandomSource random) {
+                                      int height, float extra, RandomSource random, boolean stressable) {
         GrowLight next = record.afterStep(fromAge, GrowLight.over(world, lower, height));
+        if (!stressable) {
+            return next == GrowLight.STRESSED ? GrowLight.NATURAL : next;
+        }
         if (next == GrowLight.STRESSED || toAge < GrowLight.FLOWERING_AGE) {
             return next;
         }
@@ -116,8 +121,9 @@ public final class PlantStress {
             return next;
         }
         int height = crop instanceof SativaCropBlock ? 3 : 2;
+        boolean stressable = !(crop instanceof SativaCropBlock sativa) || sativa.canBeStressed();
         return next.setValue(GrowLight.PROPERTY, afterStep(world, pos, current.getValue(GrowLight.PROPERTY),
-                crop.getAge(current), crop.getAge(next), height, 0.0F, random));
+                crop.getAge(current), crop.getAge(next), height, 0.0F, random, stressable));
     }
 
     /** A hemp plant at or past {@link GrowLight#FLOWERING_AGE}, with a record to lose. */

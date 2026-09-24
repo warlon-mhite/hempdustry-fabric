@@ -59,6 +59,9 @@ public class HempdustryClient {
         client.blockLayer(ModBlocks.POTTED_SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
 
         client.blockLayer(ModBlocks.BELDIA_CROP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.INDUSTRIAL_HEMP_CROP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.DITCHWEED, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.POTTED_DITCHWEED, ChunkSectionLayer.CUTOUT);
         // The chains the Grow Lamp hangs from are see-through between the links.
         client.blockLayer(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
         // The compost crumbs over the pot's soil are drawn with see-through pixels.
@@ -139,8 +142,8 @@ public class HempdustryClient {
                 return NO_TINT;
             }
             return biomeTint(BiomeColors.getAverageGrassColor(view, pos));
-        }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
-                ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
+        }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER, ModBlocks.DITCHWEED,
+                ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER, ModBlocks.POTTED_DITCHWEED);
         // The crops take the same biome tint, then show the light they grew under: a lamp-grown
         // plant a shade deeper. A STRESSED plant is not tinted at all — it has textures of its own,
         // because a tint is a multiply and a multiply cannot bleach Purple Kush's dark flowers; the
@@ -158,7 +161,8 @@ public class HempdustryClient {
             GrowLight light = state.getValue(GrowLight.PROPERTY);
             return light.artificial() && light != GrowLight.STRESSED
                     ? ARGB.srgbLerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
-        }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP);
+        }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
+                ModBlocks.INDUSTRIAL_HEMP_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
         // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour

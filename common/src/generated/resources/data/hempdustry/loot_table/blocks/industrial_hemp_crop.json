@@ -1,0 +1,219 @@
+{
+  "type": "minecraft:block",
+  "functions": [
+    {
+      "function": "minecraft:explosion_decay"
+    }
+  ],
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:industrial_hemp_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "segment": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:industrial_hemp_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "age": "7",
+                    "segment": "lower"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "function": "minecraft:apply_bonus",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.5714286
+                  }
+                }
+              ],
+              "name": "hempdustry:industrial_hemp_seeds"
+            },
+            {
+              "type": "minecraft:item",
+              "name": "hempdustry:industrial_hemp_seeds"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:industrial_hemp_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "segment": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": 5.0,
+              "function": "minecraft:set_count"
+            },
+            {
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:binomial_with_bonus_count",
+              "function": "minecraft:apply_bonus",
+              "parameters": {
+                "extra": 3,
+                "probability": 0.5714286
+              }
+            }
+          ],
+          "name": "hempdustry:hemp_stem"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:industrial_hemp_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "segment": "lower"
+          }
+        },
+        {
+          "chance": 0.5,
+          "condition": "minecraft:random_chance"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hempdustry:hemp_leaf"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:industrial_hemp_crop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "7",
+            "segment": "lower"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:industrial_hemp_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "condition": "grow_lamp",
+                    "segment": "lower"
+                  }
+                }
+              ],
+              "name": "hempdustry:schwag"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:industrial_hemp_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "condition": "lamp",
+                    "segment": "lower"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": {
+                    "type": "minecraft:binomial",
+                    "n": 1.0,
+                    "p": 0.5
+                  },
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:schwag"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:industrial_hemp_crop",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "condition": "ambient",
+                    "segment": "lower"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": {
+                    "type": "minecraft:binomial",
+                    "n": 1.0,
+                    "p": 0.5
+                  },
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:schwag"
+            },
+            {
+              "type": "minecraft:item",
+              "functions": [
+                {
+                  "add": false,
+                  "count": {
+                    "type": "minecraft:binomial",
+                    "n": 1.0,
+                    "p": 0.25
+                  },
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:schwag"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}
