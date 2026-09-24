@@ -28,6 +28,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -255,6 +256,39 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         dropPottedContents(ModBlocks.POTTED_DITCHWEED);
 
         add(ModBlocks.WARPED_KUSH_CROP, warpedKushCropDrops());
+
+        add(ModBlocks.RUDERALIS_CROP, ruderalisCropDrops());
+    }
+
+    /** Ruderalis's seeds off one ripe plant: more than the one it cost, which is what makes it a weed. */
+    private static final int RUDERALIS_SEED_COUNT = 4;
+
+    /**
+     * Ruderalis, the seed crop: <b>1 bud, 4 seeds, 1 leaf and 1 stem, flat</b>. No Fortune, and no
+     * trims, light or bed to read -- the plant keeps none of them -- so the only way to more of it is
+     * more plants, and a patch that hands back four seeds for one doubles every harvest. Unripe, it is
+     * the seed back. One block tall, so there is no second half to pin the pools to. Its one bud is
+     * a bud like any other's: one plant in fifty it comes off as schwag, and any Fortune clears that.
+     */
+    private LootTable.Builder ruderalisCropDrops() {
+        Holder<Enchantment> fortune = this.enchantments.getOrThrow(Enchantments.FORTUNE);
+        Block crop = ModBlocks.RUDERALIS_CROP;
+        LootItemCondition.Builder ripe = MatchBlock.blockMatches(this.blocks, crop,
+                StatePropertiesPredicate.Builder.properties().hasProperty(CropBlock.AGE, CropBlock.MAX_AGE));
+        return this.applyExplosionDecay(crop, LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .add(healthyBuds(LootItem.lootTableItem(ModItems.RUDERALIS_BUDS), ripe, fortune)
+                                .otherwise(LootItem.lootTableItem(ModItems.RUDERALIS_SEEDS))))
+                .withPool(LootPool.lootPool()
+                        .when(ripe)
+                        .add(LootItem.lootTableItem(ModItems.RUDERALIS_SEEDS)
+                                .apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(RUDERALIS_SEED_COUNT)))))
+                .withPool(LootPool.lootPool()
+                        .when(ripe)
+                        .add(LootItem.lootTableItem(ModItems.HEMP_LEAF)))
+                .withPool(LootPool.lootPool()
+                        .when(ripe)
+                        .add(LootItem.lootTableItem(ModItems.HEMP_STEM))));
     }
 
     /**

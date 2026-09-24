@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#hempdustry:ruderalis_gen",
+  "features": "hempdustry:ruderalis_placed",
+  "step": "vegetal_decoration"
+}

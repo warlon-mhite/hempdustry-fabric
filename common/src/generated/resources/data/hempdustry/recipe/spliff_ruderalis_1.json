@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "spliff",
+  "key": {
+    "B": "hempdustry:ruderalis_buds",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "B",
+    "P"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 1,
+            "strain": "hempdustry:ruderalis"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:spliff"
+  }
+}

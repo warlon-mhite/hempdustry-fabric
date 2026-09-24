@@ -36,6 +36,12 @@ k = 5A6048
 m = 879071
 p = B3BC9C
 
+# Ruderalis: plain grey, whatever paper was to hand -- it is ditch weed.
+@palette spliff_ruderalis extends=spliff_kush
+k = 5A5A58
+m = 878784
+p = B4B4AE
+
 @matrix spliff_roll 16x16 palette=spliff_kush
 ................
 ................
@@ -57,6 +63,7 @@ p = B3BC9C
 @texture item/indica_spliff from=spliff_roll palette=spliff_kush type=item
 @texture item/sativa_spliff from=spliff_roll palette=spliff_lemon type=item
 @texture item/beldia_spliff from=spliff_roll palette=spliff_beldia type=item
+@texture item/ruderalis_spliff from=spliff_roll palette=spliff_ruderalis type=item
 
 # ---- the strain tint mask ----
 # item/spliff.json draws item/indica_spliff on layer0 and this on layer1, where it is multiplied

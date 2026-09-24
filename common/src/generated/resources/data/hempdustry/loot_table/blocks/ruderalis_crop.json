@@ -1,0 +1,94 @@
+{
+  "type": "minecraft:block",
+  "modifier": {
+    "type": "minecraft:explosion_decay"
+  },
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "name": "hempdustry:ruderalis_buds"
+              },
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ruderalis_crop",
+                "state": {
+                  "age": "7"
+                }
+              },
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "hempdustry:ruderalis_seeds"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ruderalis_crop",
+        "state": {
+          "age": "7"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": 4
+          },
+          "name": "hempdustry:ruderalis_seeds"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ruderalis_crop",
+        "state": {
+          "age": "7"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hempdustry:hemp_leaf"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ruderalis_crop",
+        "state": {
+          "age": "7"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hempdustry:hemp_stem"
+        }
+      ],
+      "rolls": 1
+    }
+  ]
+}

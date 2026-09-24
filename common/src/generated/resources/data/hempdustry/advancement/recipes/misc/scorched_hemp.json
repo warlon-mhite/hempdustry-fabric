@@ -31,6 +31,16 @@
       },
       "trigger": "minecraft:inventory_changed"
     },
+    "has_ruderalis_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:ruderalis_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
     "has_sativa_buds": {
       "conditions": {
         "items": [
@@ -76,7 +86,8 @@
       "has_indica_buds",
       "has_sativa_buds",
       "has_beldia_buds",
-      "has_warped_kush_buds"
+      "has_warped_kush_buds",
+      "has_ruderalis_buds"
     ]
   ],
   "rewards": {

@@ -42,6 +42,7 @@ public class ModPlacedFeatures {
     public static final ResourceKey<PlacedFeature> BELDIA_PLACED_KEY = registerKey("beldia_placed");
     public static final ResourceKey<PlacedFeature> DITCHWEED_PLACED_KEY = registerKey("ditchweed_placed");
     public static final ResourceKey<PlacedFeature> WARPED_KUSH_PLACED_KEY = registerKey("warped_kush_placed");
+    public static final ResourceKey<PlacedFeature> RUDERALIS_PLACED_KEY = registerKey("ruderalis_placed");
 
     /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
     private static final int BELDIA_RARITY = 8;
@@ -55,6 +56,22 @@ public class ModPlacedFeatures {
     private static final int WARPED_KUSH_RARITY = 8;
     /** A Warped Kush patch: 8 tries within 3 blocks and 1 up or down. */
     private static final int WARPED_KUSH_TRIES = 8;
+
+    /**
+     * One attempt per this many taiga chunks, and <b>an attempt is not a plant</b>: measured in real
+     * terrain (a snowy taiga, seed 20260922, 256 force-loaded chunks of which 101 were taiga-centred,
+     * on 1.21.11) this patch lands <b>0.47 plants per attempt</b>, since most of its tries meet fern,
+     * grass or sloping ground. So this number is about <b>one wild plant per 820 taiga chunks</b> —
+     * rarer than anything else in the mod (Lemon Haze's badlands tier is 1 patch per 256 chunks) and
+     * rarer in practice than vanilla's own 384 for a rare berry patch, which lands far more per attempt.
+     *
+     * <p>That is the intent: Ruderalis is meant to be <b>dug up</b>. Trail ruins and sniffers are the
+     * sources a player can work towards; a wild stand is luck, worth about one find to a player who
+     * crosses five or six taigas looking at the ground.
+     */
+    private static final int RUDERALIS_RARITY = 384;
+    /** A relict stand is a weed or two, never a field: a handful of tries within two blocks. */
+    private static final int RUDERALIS_TRIES = 6;
 
     /**
      * A wild patch is usually small and one in ten is a big one — vanilla's own 64-try flower
@@ -189,6 +206,22 @@ public class ModPlacedFeatures {
                         BlockPredicate.ONLY_IN_AIR_PREDICATE,
                         BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), List.of(Blocks.AIR)),
                         BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), List.of(Blocks.WARPED_NYLIUM)))));
+
+        // Ruderalis: a relict stand in the cold north, where the plant is actually from and where
+        // vanilla already puts the trail ruins that hold its seeds. Each try wants air — a taiga is
+        // full of ferns, berry bushes and snow layers it must not write over — and ground the plant
+        // would survive on.
+        register(context, RUDERALIS_PLACED_KEY,
+                features.getOrThrow(ModConfiguredFeatures.RUDERALIS_KEY),
+                RarityFilter.onAverageOnceEvery(RUDERALIS_RARITY),
+                InSquarePlacement.spread(),
+                PlacementUtils.HEIGHTMAP,
+                BiomeFilter.biome(),
+                CountPlacement.of(RUDERALIS_TRIES),
+                OffsetPlacement.ofTriangle(2, 1),
+                BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                        BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                        BlockPredicate.wouldSurvive(ModBlocks.RUDERALIS_CROP))));
     }
 
     /**

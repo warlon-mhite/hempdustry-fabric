@@ -10,6 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
@@ -40,6 +41,7 @@ public class ModConfiguredFeatures {
 
     public static final ResourceKey<Feature> DITCHWEED_KEY = registerKey("ditchweed");
     public static final ResourceKey<Feature> WARPED_KUSH_KEY = registerKey("warped_kush");
+    public static final ResourceKey<Feature> RUDERALIS_KEY = registerKey("ruderalis");
 
     public static ResourceKey<Feature> registerKey(String name) {
         return ResourceKey.create(Registries.FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
@@ -94,6 +96,16 @@ public class ModConfiguredFeatures {
                 BlockColumnFeature.layer(ConstantInt.of(1),
                         BlockStateProvider.of(ripeWarped.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
                 Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false));
+
+        // Ruderalis grows wild as its own crop, RIPE, so one find is a bud and the four seeds that
+        // start a patch. One block tall, so a simple block does it. Where it may stand — vanilla's own
+        // "would this survive here", which asks the block itself: the sniffer-diggable soils, and
+        // nothing about light, since this plant stands in the dark rather than breaking (see
+        // RuderalisCropBlock) — is the placed feature's to say. Never in
+        // #minecraft:can_spawn_from_bone_meal: the rarest seeds in the mod would fall out of a stack
+        // of bone meal in every taiga.
+        register(context, RUDERALIS_KEY, new SimpleBlockFeature(BlockStateProvider.of(
+                ModBlocks.RUDERALIS_CROP.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE))));
     }
 
     /**
