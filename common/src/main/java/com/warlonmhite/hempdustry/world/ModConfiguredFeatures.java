@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.util.ModTags;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
@@ -16,6 +17,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
@@ -46,6 +48,10 @@ public class ModConfiguredFeatures {
     private static final int BELDIA_TRIES = 20;
     public static final ResourceKey<ConfiguredFeature<?, ?>> DITCHWEED_KEY = registerKey("ditchweed");
     public static final ResourceKey<ConfiguredFeature<?, ?>> WARPED_KUSH_KEY = registerKey("warped_kush");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> RUDERALIS_KEY = registerKey("ruderalis");
+
+    /** A relict stand is a weed or two, never a field: a handful of tries within two blocks. */
+    private static final int RUDERALIS_TRIES = 6;
 
     /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
     private static final int DITCHWEED_TRIES = 20;
@@ -144,6 +150,26 @@ public class ModConfiguredFeatures {
                                 BlockPredicate.ONLY_IN_AIR_PREDICATE,
                                 BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), Blocks.AIR),
                                 BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), Blocks.WARPED_NYLIUM))))));
+
+        // Ruderalis grows wild as its own crop, RIPE, so one find is a bud and the four seeds that
+        // start a patch. One block tall, so a SIMPLE_BLOCK does it -- and the filter is vanilla's own
+        // "would this survive here", which asks the block itself: the sniffer-diggable soils, and
+        // nothing about light, since this plant stands in the dark rather than breaking (see
+        // RuderalisCropBlock). RANDOM_PATCH, never Feature.FLOWER -- a FLOWER feature is a bone-meal
+        // recipe for whatever biome it lands in, and the rarest seeds in the mod would fall out of a
+        // stack of bone meal in every taiga.
+        //
+        // ONLY_IN_AIR_PREDICATE is in the filter by hand: naming any placement modifier here loses
+        // the one onlyWhenEmpty(feature, config) would have added, and without it the patch writes
+        // over the ferns, berry bushes and snow layers a taiga is full of.
+        register(context, RUDERALIS_KEY, Feature.RANDOM_PATCH, new RandomPatchConfiguration(RUDERALIS_TRIES, 2, 1,
+                PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK,
+                        new SimpleBlockConfiguration(BlockStateProvider.simple(
+                                ModBlocks.RUDERALIS_CROP.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE))),
+                        BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                                BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                                BlockPredicate.wouldSurvive(
+                                        ModBlocks.RUDERALIS_CROP.defaultBlockState(), BlockPos.ZERO))))));
     }
 
     private static ConfiguredFeature<?, ?> wildPatch(Block flower) {

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ruderalis_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:ruderalis_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:spliff_ruderalis_1"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ruderalis_buds"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:spliff_ruderalis_1"
+    ]
+  }
+}

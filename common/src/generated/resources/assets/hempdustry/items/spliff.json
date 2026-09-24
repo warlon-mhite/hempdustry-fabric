@@ -50,6 +50,13 @@
       {
         "model": {
           "type": "minecraft:model",
+          "model": "hempdustry:item/spliff_ruderalis"
+        },
+        "threshold": 9.0
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
           "model": "hempdustry:item/spliff_tinted",
           "tints": [
             {
@@ -62,7 +69,7 @@
             }
           ]
         },
-        "threshold": 9.0
+        "threshold": 10.0
       }
     ],
     "fallback": {

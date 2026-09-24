@@ -73,6 +73,8 @@ public class ModStrains {
 
     /** The Nether's plant, grown on warped nylium. Its wild flower is its own crop, generated ripe. */
     public static final ResourceKey<Strain> WARPED_KUSH = key("warped_kush");
+    /** The wild ancestor, dug up rather than found growing. Its flower is its own crop, never generated. */
+    public static final ResourceKey<Strain> RUDERALIS = key("ruderalis");
     /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
@@ -97,7 +99,7 @@ public class ModStrains {
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
     public static final List<ResourceKey<Strain>> BUILT_IN =
-            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH);
+            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH, RUDERALIS);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -255,6 +257,29 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.JUMP_BOOST, 0, true),
                         new SmokeEffect(MobEffects.DARKNESS, 0, false),
                         new SmokeEffect(MobEffects.HUNGER, 0, true))));
+
+        // Ruderalis -- the feral ancestor, and the lucky one.
+        //
+        // LUCK, flat, and nearly inert by design. The potion has no brewing recipe, so this is the
+        // only way to have the effect in a survival world -- and exactly one vanilla loot table reads
+        // it (gameplay/fishing, the only one with a "quality"). The weakest strain grants the effect
+        // that makes you feel lucky while almost nothing happens. Do not give the mod's own pools a
+        // quality weight to "fix" that: the inertness is the joke.
+        //
+        // Nothing scales, so a bong of three hits exactly like a pipe of one -- the one strain where
+        // dosing buys nothing, and that is its price. Hunger, as ever.
+        //
+        // green_out_factor 2.0 halves the risk: there is not enough in ditch weed to overdo.
+        // cough_factor 0.5 doubles the coughing: feral and seedy smoke is harsh.
+        //
+        // Plain field green, the one strain that is simply green on a packed device.
+        context.register(RUDERALIS, new Strain("hempdustry.strain.ruderalis", 0x8CCB5E, modelIndex(RUDERALIS),
+                Optional.of(ModItems.RUDERALIS_SEEDS), ModItems.RUDERALIS_BUDS,
+                Optional.of(ModBlocks.RUDERALIS_CROP), 2.0F, 1,
+                List.of(
+                        new SmokeEffect(MobEffects.LUCK, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, false)),
+                0.5F));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

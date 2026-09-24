@@ -34,7 +34,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // Requires the crops' isMaxAge() override to be in place, or bees decapitate tall plants —
         // see IndicaCropBlock#isMature for why.
         // Beldía joins for the bees and nothing else: it never stands on farmland, so it stays out of
-        // #minecraft:maintains_farmland above.
+        // #minecraft:maintains_farmland above. Ruderalis stays out of both: a bee is an accelerant,
+        // and nothing hurries that plant.
         valueLookupBuilder(BlockTags.CROPS)
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP)
@@ -51,7 +52,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.SATIVA_CROP)
                 .add(ModBlocks.BELDIA_CROP)
                 .add(ModBlocks.INDUSTRIAL_HEMP_CROP)
-                .add(ModBlocks.WARPED_KUSH_CROP);
+                .add(ModBlocks.WARPED_KUSH_CROP)
+                .add(ModBlocks.RUDERALIS_CROP);
 
         // Hoglins keep about eight blocks from anything in here (HoglinSpecificSensor), and vanilla's
         // only plant in it is warped fungus. Warped Kush grows beside it and joins it: a field of it
