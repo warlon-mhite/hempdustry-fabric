@@ -94,6 +94,7 @@ public class Hempdustry {
 		registration.compostable(ModItems.INDICA_SEEDS, 0.3f);
 		registration.compostable(ModItems.SATIVA_SEEDS, 0.3f);
 		registration.compostable(ModItems.BELDIA_SEEDS, 0.3f);
+		registration.compostable(ModItems.INDUSTRIAL_HEMP_SEEDS, 0.3f);
 		registration.compostable(ModItems.HEMP_FIBER, 0.3f);
 		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
 		registration.compostable(ModItems.HEMP_CANVAS, 0.5f);
@@ -125,6 +126,7 @@ public class Hempdustry {
 		// 0.65 is what vanilla gives every small flower; ours are plants too and had been missed.
 		registration.compostable(ModBlocks.INDICA_FLOWER, 0.65f);
 		registration.compostable(ModBlocks.SATIVA_FLOWER, 0.65f);
+		registration.compostable(ModBlocks.DITCHWEED, 0.65f);
 		registration.compostable(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
 		// The two storage blocks. Vanilla puts every compacted plant block a tier above the item it
 		// is made from -- dried kelp 0.3 to the dried kelp block's 0.5, wheat 0.65 to hay's 0.85 --
@@ -178,6 +180,8 @@ public class Hempdustry {
 		registration.flammable(ModBlocks.SATIVA_CROP, 10, 25);
 		registration.flammable(ModBlocks.BELDIA_CROP, 10, 25);
 		registration.flammable(ModBlocks.SATIVA_FLOWER, 20, 40);
+		registration.flammable(ModBlocks.INDUSTRIAL_HEMP_CROP, 10, 25);
+		registration.flammable(ModBlocks.DITCHWEED, 20, 40);
 		registration.flammable(ModBlocks.HEMP_BALE, 50, 10);
 		// Vanilla leaves parity, exactly (30/60). Nothing about hemp foliage argues for a
 		// different number than oak foliage, and a leaf block that burns unlike every other

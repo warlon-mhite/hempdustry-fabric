@@ -50,5 +50,12 @@ public class ModFlowerGeneration {
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.BELDIA_PLACED_KEY
         );
+
+        // Ditchweed, the feral fibre crop: temperate lowland water — plains and their rivers.
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.DITCHWEED_GEN,
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ModPlacedFeatures.DITCHWEED_PLACED_KEY
+        );
     }
 }

@@ -9,6 +9,9 @@
     "hempdustry:decarboxylated_hemp": {
       "chance": 0.5
     },
+    "hempdustry:ditchweed": {
+      "chance": 0.65
+    },
     "hempdustry:flip_flops": {
       "chance": 0.5
     },
@@ -55,6 +58,9 @@
       "chance": 0.65
     },
     "hempdustry:indica_seeds": {
+      "chance": 0.3
+    },
+    "hempdustry:industrial_hemp_seeds": {
       "chance": 0.3
     },
     "hempdustry:retted_hemp_stem": {

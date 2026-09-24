@@ -23,7 +23,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // Vanilla lists every one of its crops here; ours have to opt in the same way.
         valueLookupBuilder(BlockTags.MAINTAINS_FARMLAND)
                 .add(ModBlocks.INDICA_CROP)
-                .add(ModBlocks.SATIVA_CROP);
+                .add(ModBlocks.SATIVA_CROP)
+                .add(ModBlocks.INDUSTRIAL_HEMP_CROP);
 
         // Nothing in 1.21.1's *code* reads #minecraft:crops (the only class referencing it is the
         // vanilla tag provider that builds it) — its one effect is that #minecraft:bee_growables
@@ -37,15 +38,19 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         valueLookupBuilder(BlockTags.CROPS)
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP)
-                .add(ModBlocks.BELDIA_CROP);
+                .add(ModBlocks.BELDIA_CROP)
+                .add(ModBlocks.INDUSTRIAL_HEMP_CROP);
 
         // "A hemp plant you can defoliate", strain-agnostic. The "Trim Season" advancement matches
         // shears-used-on-a-block-in-this-tag, which is exactly where Defoliation#tryCut succeeds
         // and nowhere else — see ModAdvancementProvider.
+        // Industrial Hemp is in it too, and cannot be defoliated: the tag is "a hemp plant" (creepers
+        // lurk in it; the trim advancement filters on the trim ages, which shears on it never accept).
         valueLookupBuilder(ModTags.Blocks.HEMP_CROPS)
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP)
-                .add(ModBlocks.BELDIA_CROP);
+                .add(ModBlocks.BELDIA_CROP)
+                .add(ModBlocks.INDUSTRIAL_HEMP_CROP);
 
         // Beldía's ground, read by the crop and by its worldgen feature alike. Sand and red sand by
         // name, because #c:sands is not on every Fabric API and #minecraft:sand carries suspicious
@@ -78,7 +83,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // the *item* tag #minecraft:small_flowers (suspicious stew -- see ModBlocks).
         valueLookupBuilder(BlockTags.SWORD_EFFICIENT)
                 .add(ModBlocks.INDICA_FLOWER)
-                .add(ModBlocks.SATIVA_FLOWER);
+                .add(ModBlocks.SATIVA_FLOWER)
+                .add(ModBlocks.DITCHWEED);
         // SATIVA_FLOWER is deliberately absent: it is two blocks tall, and an enderman lifts ONE
         // block. Taking either half orphans the other, which pops off and rolls the loot table --
         // so the mob destroys the plant instead of relocating it, and the block it carries can only

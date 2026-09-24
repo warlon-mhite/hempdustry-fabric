@@ -9,6 +9,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.features.VegetationFeatures;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -43,6 +44,10 @@ public class ModConfiguredFeatures {
 
     /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
     private static final int BELDIA_TRIES = 20;
+    public static final ResourceKey<ConfiguredFeature<?, ?>> DITCHWEED_KEY = registerKey("ditchweed");
+
+    /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
+    private static final int DITCHWEED_TRIES = 20;
 
     /**
      * A wild patch is usually small and one in ten is a big one — vanilla's own 64-try flower
@@ -113,6 +118,13 @@ public class ModConfiguredFeatures {
                                         BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), Fluids.WATER, Fluids.FLOWING_WATER),
                                         BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), Fluids.WATER, Fluids.FLOWING_WATER)))),
                         ModPlacementModifiers.InBeldiaBiomePlacementModifier.INSTANCE)));
+        // Ditchweed — feral Industrial Hemp — grows where escaped fibre crops do, along water. So it
+        // is placed exactly as sugar cane is: each plant must stand on its ground with water beside
+        // that ground, vanilla's own filter, which is why most tries of a patch land nothing.
+        register(context, DITCHWEED_KEY, Feature.RANDOM_PATCH, new RandomPatchConfiguration(DITCHWEED_TRIES, 4, 0,
+                PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK,
+                        new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.DITCHWEED)),
+                        VegetationFeatures.nearWaterPredicate(ModBlocks.DITCHWEED))));
     }
 
     private static ConfiguredFeature<?, ?> wildPatch(Block flower) {

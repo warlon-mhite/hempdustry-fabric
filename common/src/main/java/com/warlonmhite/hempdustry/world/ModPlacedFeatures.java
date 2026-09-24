@@ -36,6 +36,7 @@ public class ModPlacedFeatures {
 
     /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
     private static final int BELDIA_RARITY = 8;
+    public static final ResourceKey<PlacedFeature> DITCHWEED_PLACED_KEY = registerKey("ditchweed_placed");
 
     public static ResourceKey<PlacedFeature> registerKey(String name) {
         return ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
@@ -93,6 +94,11 @@ public class ModPlacedFeatures {
         // water, so in practice a riverbank find. The seeds' real home is the desert temple.
         register(context, BELDIA_PLACED_KEY,
                 configured.getOrThrow(ModConfiguredFeatures.BELDIA_KEY), surfacePatch(BELDIA_RARITY));
+        // Ditchweed: one attempt per 12 chunks, and the attempt only grows where there is water
+        // beside dirt — so in practice a riverbank find, not a meadow one. Vanilla sugar cane tries
+        // every 6 chunks with the same filter; the wild plant is a seed source and stays rarer.
+        register(context, DITCHWEED_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.DITCHWEED_KEY), surfacePatch(12));
     }
 
     /** Standard surface-vegetation placement: one attempt per {@code rarity} chunks, on the terrain top. */

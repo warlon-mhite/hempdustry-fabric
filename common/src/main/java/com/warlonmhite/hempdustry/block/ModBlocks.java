@@ -17,6 +17,7 @@ import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
+import com.warlonmhite.hempdustry.block.custom.IndustrialHempCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import com.warlonmhite.hempdustry.block.custom.SpaceCakeBlock;
@@ -47,6 +48,7 @@ import net.minecraft.world.level.block.ButtonBlock;
 import net.minecraft.world.level.block.CarpetBlock;
 import net.minecraft.world.level.block.CeilingHangingSignBlock;
 import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.FenceGateBlock;
@@ -344,6 +346,18 @@ public class ModBlocks {
     // generates this very block, ripe, on desert riverbanks -- there is no separate wild flower.
     public static final Block BELDIA_CROP = registerBlockWithoutItem("beldia_crop", BeldiaCropBlock::new,
             BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT));
+
+    // No block item, for the reason on INDICA_CROP above.
+    public static final Block INDUSTRIAL_HEMP_CROP = registerBlockWithoutItem("industrial_hemp_crop", IndustrialHempCropBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT));
+
+    // Ditchweed: feral Industrial Hemp, the fibre crops' descendants along ditches and riverbanks.
+    // Two tall and a plain DoublePlantBlock, like Wild Lemon Haze and for the same reasons (no bone
+    // meal duplication); unlike it, dirt only, since it grows by water rather than in badlands.
+    public static final Block DITCHWEED = registerBlock("ditchweed", DoublePlantBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.ROSE_BUSH));
+    public static final Block POTTED_DITCHWEED = registerBlockWithoutItem("potted_ditchweed", settings -> new FlowerPotBlock(DITCHWEED, settings),
+            BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_DANDELION));
 
 
     /**
