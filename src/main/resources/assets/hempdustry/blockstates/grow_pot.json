@@ -1,8 +1,44 @@
 {
-  "variants": {
-    "fertility=0": { "model": "hempdustry:block/grow_pot" },
-    "fertility=1": { "model": "hempdustry:block/grow_pot_fertile" },
-    "fertility=2": { "model": "hempdustry:block/grow_pot_fertile" },
-    "fertility=3": { "model": "hempdustry:block/grow_pot_fertile" }
-  }
+  "multipart": [
+    {
+      "when": {
+        "watered": "false"
+      },
+      "apply": {
+        "model": "hempdustry:block/grow_pot"
+      }
+    },
+    {
+      "when": {
+        "watered": "true"
+      },
+      "apply": {
+        "model": "hempdustry:block/grow_pot_watered"
+      }
+    },
+    {
+      "when": {
+        "fertility": "1"
+      },
+      "apply": {
+        "model": "hempdustry:block/grow_pot_compost_1"
+      }
+    },
+    {
+      "when": {
+        "fertility": "2"
+      },
+      "apply": {
+        "model": "hempdustry:block/grow_pot_compost_2"
+      }
+    },
+    {
+      "when": {
+        "fertility": "3"
+      },
+      "apply": {
+        "model": "hempdustry:block/grow_pot_compost_3"
+      }
+    }
+  ]
 }

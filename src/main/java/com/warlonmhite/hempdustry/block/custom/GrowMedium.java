@@ -15,8 +15,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Something a hemp plant can be planted in that is not farmland: the Grow Pot and the Hydro Tray.
  *
- * <p>A medium answers the two questions the growth roll asks of the ground — how wet it is and how
- * fast it drives the plant — and takes a charge off itself each time a plant ripens in it. The crops
+ * <p>A medium answers the questions the growth roll asks of the ground — how wet it is, how fast it
+ * drives the plant, and how likely it is to stress one — and takes a charge off itself each time a
+ * plant ripens in it. The crops
  * ask through this interface rather than naming the blocks, so a third bed is one class, and a
  * plant in <em>any</em> medium is free of vanilla's crowding penalty: each has soil or solution of
  * its own.
@@ -39,6 +40,12 @@ public interface GrowMedium extends Fertilizable {
 
     /** A plant has just ripened on this block: spend one charge, if there is one. */
     void spend(World world, BlockPos pos, BlockState state);
+
+    /** Whether there is food in this bed already — bone meal on a flowering plant here overfeeds it. */
+    boolean fed(BlockState state);
+
+    /** The odds one growth step in this bed stresses a flowering plant; see {@link PlantStress}. */
+    float stress(BlockState state);
 
     /**
      * Feeds a bed from the player's hand with <b>anything in {@code #c:fertilizers}</b> — bone meal

@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block;
 
+import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -17,7 +18,8 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A dispenser pours milk into an Infuser in front of it, and keeps the empty bucket.
+ * A dispenser pours milk into an Infuser in front of it, and keeps the empty bucket — and, below, fills
+ * a Hydro Tray and waters a Grow Pot the same way.
  *
  * <p>This is the Infuser's milk automation. Milk used to go in through a slot a hopper could feed;
  * it is poured by hand now, and the vanilla way to automate "use this item on that block" is a
@@ -64,6 +66,22 @@ public final class ModDispenserBehaviors {
         }
     };
 
+    /**
+     * A dispenser pours a water bottle into a Grow Pot in front of it and keeps the glass bottle — the
+     * pot's drip line. It waters a wet pot too, exactly as a hand does, so a line that fires on a timer
+     * overwaters. Vanilla's own bottle behaviour (mud) is wrapped, so anything else in front still gets it.
+     */
+    private static final FallibleItemDispenserBehavior WATER_GROW_POT = new FallibleItemDispenserBehavior() {
+        @Override
+        protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
+            BlockPos front = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
+            World world = pointer.world();
+            GrowPotBlock.water(world, front, world.getBlockState(front), world.getRandom());
+            this.setSuccess(true);
+            return this.decrementStackWithRemainder(pointer, stack, new ItemStack(Items.GLASS_BOTTLE));
+        }
+    };
+
     private ModDispenserBehaviors() {
     }
 
@@ -71,6 +89,7 @@ public final class ModDispenserBehaviors {
         pourIntoInfusers(Items.MILK_BUCKET);
         pourIntoInfusers(ModItems.HEMP_MILK_BUCKET);
         fillHydroTrays();
+        waterGrowPots();
     }
 
     private static void pourIntoInfusers(Item milk) {
@@ -90,6 +109,16 @@ public final class ModDispenserBehaviors {
                 DispenserBlock.BEHAVIORS.getOrDefault(Items.WATER_BUCKET, new ItemDispenserBehavior());
         DispenserBlock.registerBehavior(Items.WATER_BUCKET, (pointer, stack) -> fillableTrayInFront(pointer)
                 ? FILL_HYDRO_TRAY.dispense(pointer, stack)
+                : previous.dispense(pointer, stack));
+    }
+
+    private static void waterGrowPots() {
+        // Vanilla registers the potion's behaviour (a water bottle turns dirt to mud); wrap it.
+        DispenserBehavior previous = DispenserBlock.BEHAVIORS.getOrDefault(Items.POTION, new ItemDispenserBehavior());
+        DispenserBlock.registerBehavior(Items.POTION, (pointer, stack) -> GrowPotBlock.isWaterBottle(stack)
+                && GrowPotBlock.isPot(pointer.world().getBlockState(
+                        pointer.pos().offset(pointer.state().get(DispenserBlock.FACING))))
+                ? WATER_GROW_POT.dispense(pointer, stack)
                 : previous.dispense(pointer, stack));
     }
 

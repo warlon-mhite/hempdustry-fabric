@@ -13,6 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.CropBlock;
+import net.minecraft.block.FarmlandBlock;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
@@ -137,7 +138,7 @@ public final class IndoorGrowGameTest {
         // its own, out of reach of anything above.
         BlockPos haze = CROP.east(3);
         BlockPos hazePos = context.getAbsolutePos(haze);
-        context.setBlockState(haze.down(), Blocks.FARMLAND);
+        context.setBlockState(haze.down(), moistFarmland());
         context.setBlockState(haze, ModBlocks.SATIVA_CROP.getDefaultState());
         context.setBlockState(haze.up(4), Blocks.REDSTONE_BLOCK);
         context.setBlockState(haze.up(3), litGrowLamp());
@@ -252,9 +253,10 @@ public final class IndoorGrowGameTest {
         context.assertTrue(meal.getCount() == 8 - GrowPotBlock.MAX_FERTILITY,
                 "a full Grow Pot ate the bone meal it refused");
         GrowPotBlock pot = (GrowPotBlock) ModBlocks.GROW_POT;
-        context.assertTrue(pot.moisture(context.getBlockState(SOIL)) == GrowPotBlock.FERTILE_MOISTURE
+        context.setBlockState(SOIL, context.getBlockState(SOIL).with(GrowPotBlock.WATERED, true));
+        context.assertTrue(pot.moisture(context.getBlockState(SOIL)) == GrowPotBlock.WET_MOISTURE
                         && pot.speed(context.getBlockState(SOIL)) == GrowPotBlock.FERTILE_SPEED,
-                "a fertile pot does not read as fertile soil");
+                "a fed, watered pot does not read as fertile soil");
 
         // Hemp, and only hemp. A glowstone beside the plant, so the light check in canPlaceAt
         // passes at any time of day.
@@ -271,11 +273,13 @@ public final class IndoorGrowGameTest {
         grow(context, IndicaCropBlock.MAX_AGE);
         context.assertTrue(fertility(context) == GrowPotBlock.MAX_FERTILITY - 1,
                 "a plant ripening in a pot left it at fertility " + fertility(context) + " — one is spent per plant");
+        context.assertTrue(!context.getBlockState(SOIL).get(GrowPotBlock.WATERED),
+                "a plant ripening in a pot left it watered — it drinks the water");
 
         context.setBlockState(SOIL, ModBlocks.GROW_POT.getDefaultState());
-        context.assertTrue(pot.moisture(context.getBlockState(SOIL)) == GrowPotBlock.SPENT_MOISTURE
+        context.assertTrue(pot.moisture(context.getBlockState(SOIL)) == GrowPotBlock.DRY_MOISTURE
                         && pot.speed(context.getBlockState(SOIL)) == 1.0F,
-                "a spent pot still reads as fertile soil");
+                "a dry, spent pot still reads as good soil");
         context.complete();
     }
 
@@ -342,12 +346,15 @@ public final class IndoorGrowGameTest {
         context.assertTrue(context.getBlockState(CROP).isAir(),
                 "filling a tray placed water above it — the plant's own space");
 
-        // A full tray takes no more, and says so by falling through rather than eating the bucket.
+        // A full tray takes no more — and must still accept the click, or the client goes on to the
+        // bucket's own use and pours a water block into the plant's space (it fell through until
+        // 2026-09-24, and a real client poured). It keeps the bucket full.
         ItemStack second = new ItemStack(Items.WATER_BUCKET);
         player.setStackInHand(Hand.MAIN_HAND, second);
-        context.assertTrue(!world.getBlockState(pos).onUseWithItem(second, world, player, Hand.MAIN_HAND, hit).isAccepted(),
-                "a full tray accepted another bucket");
-        context.assertTrue(second.isOf(Items.WATER_BUCKET), "a full tray emptied the bucket anyway");
+        context.assertTrue(world.getBlockState(pos).onUseWithItem(second, world, player, Hand.MAIN_HAND, hit).isAccepted(),
+                "a full tray let a water bucket click through — the client would pour it into the plant's space");
+        context.assertTrue(second.isOf(Items.WATER_BUCKET) && level(context) == HydroTrayBlock.MAX_LEVEL,
+                "a full tray emptied the bucket anyway");
         context.complete();
     }
 
@@ -532,13 +539,21 @@ public final class IndoorGrowGameTest {
 
     // ----- helpers -----
 
+    private static BlockState moistFarmland() {
+        return Blocks.FARMLAND.getDefaultState().with(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE);
+    }
+
     private static BlockState litGrowLamp() {
         return ModBlocks.GROW_LAMP.getDefaultState().with(Properties.LIT, true);
     }
 
-    /** A seedling on farmland with {@code light} hung over it, and a redstone block keeping a lamp lit. */
+    /**
+     * A seedling on farmland with {@code light} hung over it, and a redstone block keeping a lamp lit.
+     * The farmland is moist: bone-dry farmland can stress a flowering plant on its own, and this is
+     * about the light alone.
+     */
     private static void plant(TestContext context, BlockState light) {
-        context.setBlockState(SOIL, Blocks.FARMLAND);
+        context.setBlockState(SOIL, moistFarmland());
         context.setBlockState(CROP.up(), Blocks.AIR);
         context.setBlockState(CROP, ModBlocks.INDICA_CROP.getDefaultState());
         context.setBlockState(LIGHT, light);
