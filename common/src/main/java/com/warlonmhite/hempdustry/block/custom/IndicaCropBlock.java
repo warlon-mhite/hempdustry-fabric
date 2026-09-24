@@ -116,7 +116,36 @@ public class IndicaCropBlock extends CropBlock {
             BlockState below = world.getBlockState(pos.below());
             return below.is(this) && below.getValue(HALF) == DoubleBlockHalf.LOWER;
         }
+        if (!this.needsLight()) {
+            // CropBlock's rule is light 8 and the soil; a plant that needs no light keeps the soil.
+            BlockPos floor = pos.below();
+            return this.mayPlaceOn(world.getBlockState(floor), world, floor);
+        }
         return super.canSurvive(state, world, pos);
+    }
+
+    /** Whether the plant needs light to survive and grow. Warped Kush, like nether wart, does not. */
+    protected boolean needsLight() {
+        return true;
+    }
+
+    /** The divisor in the growth roll; vanilla wheat's 25 here. */
+    public float growthResistance(LevelReader world, BlockPos pos) {
+        return 25.0F;
+    }
+
+    /**
+     * The moisture the growth roll reads when the plant stands in the open ground rather than in a
+     * bed of ours: vanilla's farmland count. <b>{@code 0} means "does not grow this tick"</b> — the
+     * roll is skipped rather than divided by zero. Beldía overrides this, since it grows on sand.
+     */
+    public float fieldMoisture(LevelReader world, BlockPos pos) {
+        return Services.PLATFORM.cropGrowthSpeed(defaultBlockState(), world, pos);
+    }
+
+    /** Whether each growth step writes the light record. Warped Kush keeps none. */
+    protected boolean recordsLight() {
+        return true;
     }
 
     // ----- growth -----
@@ -192,7 +221,7 @@ public class IndicaCropBlock extends CropBlock {
         }
         int age = this.getAge(state);
         int grown = age;
-        if (age < this.getMaxAge() && world.getRawBrightness(pos, 0) >= 9) {
+        if (age < this.getMaxAge() && (!this.needsLight() || world.getRawBrightness(pos, 0) >= 9)) {
             // The ground answers for itself when it is a bed of ours (a pot or a tray): its own
             // moisture, and no crowding penalty, because the plant has soil or solution to itself.
             BlockState floor = world.getBlockState(pos.below());
@@ -204,7 +233,7 @@ public class IndicaCropBlock extends CropBlock {
             } else {
                 moisture = this.fieldMoisture(world, pos);
             }
-            if (moisture > 0.0F && HempGrowth.rolls(random, 25.0F, moisture,
+            if (moisture > 0.0F && HempGrowth.rolls(random, this.growthResistance(world, pos), moisture,
                     bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {
                 grown++;
             }
@@ -223,15 +252,6 @@ public class IndicaCropBlock extends CropBlock {
         if (grown != age || !this.isShapeSettled(world, pos, age, state.getValue(GrowLight.PROPERTY))) {
             this.setAge(world, pos, grown, 0.0F, random);
         }
-    }
-
-    /**
-     * The moisture the growth roll reads when the plant stands in the open ground rather than in a
-     * bed of ours: vanilla's farmland count. <b>{@code 0} means "does not grow this tick"</b> — the
-     * roll is skipped rather than divided by zero. Beldía overrides this, since it grows on sand.
-     */
-    public float fieldMoisture(LevelReader world, BlockPos pos) {
-        return Services.PLATFORM.cropGrowthSpeed(defaultBlockState(), world, pos);
     }
 
     /**
@@ -328,8 +348,10 @@ public class IndicaCropBlock extends CropBlock {
         // calls this on every tick, not only when the plant actually ages.
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, DoubleBlockHalf.LOWER));
         if (newAge > currentAge && current.is(this)) {
-            lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
-                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 2, extraStress, random, true));
+            if (this.recordsLight()) {
+                lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
+                        current.getValue(GrowLight.PROPERTY), currentAge, newAge, 2, extraStress, random, true));
+            }
             if (newAge == this.getMaxAge()) {
                 BlockPos floorPos = pos.below();
                 BlockState floor = world.getBlockState(floorPos);

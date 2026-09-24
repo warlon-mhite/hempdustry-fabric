@@ -56,6 +56,16 @@
         "recipe": "hempdustry:scorched_hemp"
       },
       "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_warped_kush_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:warped_kush_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
     }
   },
   "requirements": [
@@ -65,7 +75,8 @@
       "has_schwag",
       "has_indica_buds",
       "has_sativa_buds",
-      "has_beldia_buds"
+      "has_beldia_buds",
+      "has_warped_kush_buds"
     ]
   ],
   "rewards": {

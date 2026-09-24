@@ -16,6 +16,7 @@ import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.level.levelgen.placement.BiomeFilter;
+import net.minecraft.world.level.levelgen.placement.CountOnEveryLayerPlacement;
 import net.minecraft.world.level.levelgen.placement.CountPlacement;
 import net.minecraft.world.level.levelgen.placement.EnvironmentScanPlacement;
 import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
@@ -37,6 +38,10 @@ public class ModPlacedFeatures {
     /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
     private static final int BELDIA_RARITY = 8;
     public static final ResourceKey<PlacedFeature> DITCHWEED_PLACED_KEY = registerKey("ditchweed_placed");
+    public static final ResourceKey<PlacedFeature> WARPED_KUSH_PLACED_KEY = registerKey("warped_kush_placed");
+
+    /** One chunk in this many tries for a wild Warped Kush patch, on every floor of the Nether there. */
+    private static final int WARPED_KUSH_RARITY = 8;
 
     public static ResourceKey<PlacedFeature> registerKey(String name) {
         return ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
@@ -99,6 +104,15 @@ public class ModPlacedFeatures {
         // every 6 chunks with the same filter; the wild plant is a seed source and stays rarer.
         register(context, DITCHWEED_PLACED_KEY,
                 configured.getOrThrow(ModConfiguredFeatures.DITCHWEED_KEY), surfacePatch(12));
+
+        // Warped Kush: a heightmap in the Nether only finds the bedrock roof, so this is placed the
+        // way vanilla's own Nether vegetation is -- CountOnEveryLayer, one attempt on each floor of the
+        // column -- after a rarity roll on the chunk.
+        register(context, WARPED_KUSH_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.WARPED_KUSH_KEY),
+                RarityFilter.onAverageOnceEvery(WARPED_KUSH_RARITY),
+                CountOnEveryLayerPlacement.of(1),
+                BiomeFilter.biome());
     }
 
     /** Standard surface-vegetation placement: one attempt per {@code rarity} chunks, on the terrain top. */

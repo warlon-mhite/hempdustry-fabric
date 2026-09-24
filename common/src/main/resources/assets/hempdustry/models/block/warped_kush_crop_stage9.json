@@ -1,0 +1,6 @@
+{
+  "parent": "hempdustry:block/crop_cross",
+  "textures": {
+    "cross": "hempdustry:block/warped_kush_crop_stage9"
+  }
+}

@@ -149,6 +149,21 @@ public final class Defoliation {
      */
     public static final int CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS = 8;
 
+    /**
+     * Warped Kush's odds: a plant grown beside lava carries more of the resin that is, first of all,
+     * the plant's own protection against radiation and heat. It keeps no light record, so the lamp
+     * rate never applies to it.
+     */
+    public static final int CHARAS_CHANCE_ONE_IN_WARPED = 2;
+
+    /** The rub's odds on this plant, as 1-in-N: Warped Kush's, else the sun's or the lamps'. */
+    public static int charasOneIn(BlockState lowerState) {
+        if (lowerState.getBlock() instanceof WarpedKushCropBlock) {
+            return CHARAS_CHANCE_ONE_IN_WARPED;
+        }
+        return lowerState.getValue(GrowLight.PROPERTY).artificial() ? CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS : CHARAS_CHANCE_ONE_IN;
+    }
+
     private Defoliation() {
     }
 
@@ -282,8 +297,7 @@ public final class Defoliation {
                 // success-or-not distinction (COMPOSTER_FILL vs COMPOSTER_FILL_SUCCESS), and what
                 // vanilla's composter does before it. Honey is the mod's resin sound -- a hashish
                 // bar is cut to it too -- so "that noise means resin" is one thing to learn.
-                int oneIn = light.artificial() ? CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS : CHARAS_CHANCE_ONE_IN;
-                boolean gotCharas = world.getRandom().nextInt(oneIn) == 0;
+                boolean gotCharas = world.getRandom().nextInt(charasOneIn(lowerState)) == 0;
                 if (gotCharas) {
                     Block.popResource(world, lowerPos, new ItemStack(ModItems.CHARAS));
                 }
