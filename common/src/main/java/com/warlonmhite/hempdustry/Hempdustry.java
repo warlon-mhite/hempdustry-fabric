@@ -96,6 +96,7 @@ public class Hempdustry {
 		registration.compostable(ModItems.BELDIA_SEEDS, 0.3f);
 		registration.compostable(ModItems.INDUSTRIAL_HEMP_SEEDS, 0.3f);
 		registration.compostable(ModItems.WARPED_KUSH_SEEDS, 0.3f);
+		registration.compostable(ModItems.RUDERALIS_SEEDS, 0.3f);
 		registration.compostable(ModItems.HEMP_FIBER, 0.3f);
 		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
 		registration.compostable(ModItems.HEMP_CANVAS, 0.5f);
@@ -107,6 +108,7 @@ public class Hempdustry {
 		registration.compostable(ModItems.SATIVA_BUDS, 0.5f);
 		registration.compostable(ModItems.BELDIA_BUDS, 0.5f);
 		registration.compostable(ModItems.WARPED_KUSH_BUDS, 0.5f);
+		registration.compostable(ModItems.RUDERALIS_BUDS, 0.5f);
 		// The two cannabutter-chain intermediates. Composting them is a ridiculous use of a fuelled
 		// oven, which is exactly why it should be allowed: everything else organic in the mod goes in
 		// the composter, and a lone pair of items that bounce off it reads as an oversight. They sit
@@ -183,6 +185,7 @@ public class Hempdustry {
 		registration.flammable(ModBlocks.BELDIA_CROP, 10, 25);
 		registration.flammable(ModBlocks.SATIVA_FLOWER, 20, 40);
 		registration.flammable(ModBlocks.INDUSTRIAL_HEMP_CROP, 10, 25);
+		registration.flammable(ModBlocks.RUDERALIS_CROP, 10, 25);
 		registration.flammable(ModBlocks.DITCHWEED, 20, 40);
 		registration.flammable(ModBlocks.HEMP_BALE, 50, 10);
 		// Vanilla leaves parity, exactly (30/60). Nothing about hemp foliage argues for a

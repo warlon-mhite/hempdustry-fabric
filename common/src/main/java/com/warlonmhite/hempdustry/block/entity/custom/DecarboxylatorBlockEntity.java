@@ -96,6 +96,12 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
      * spoiled one costs its grower half its oven value on top of its whole high.
      */
     public static final int SCHWAG_OUTPUT = BUDS_OUTPUT / 2;
+    /**
+     * Decarboxylated hemp yielded per Ruderalis bud: half a bud. It is the cheapest plant in the mod
+     * to keep -- no farmland, no water, nothing to tend -- and edibles do not care which strain went
+     * in, so at a full bud's price it would be the best butter farm there is.
+     */
+    public static final int RUDERALIS_OUTPUT = BUDS_OUTPUT / 2;
     // There is deliberately NO hashish figure here. Nothing in the hash family decarboxylates:
     // the oven takes plant matter, the bowl takes resin. See ModRecipeProvider and SiftingBoxBlock.
 

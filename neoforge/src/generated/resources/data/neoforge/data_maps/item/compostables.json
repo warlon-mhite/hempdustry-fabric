@@ -66,6 +66,12 @@
     "hempdustry:retted_hemp_stem": {
       "chance": 0.5
     },
+    "hempdustry:ruderalis_buds": {
+      "chance": 0.5
+    },
+    "hempdustry:ruderalis_seeds": {
+      "chance": 0.3
+    },
     "hempdustry:sativa_buds": {
       "chance": 0.5
     },

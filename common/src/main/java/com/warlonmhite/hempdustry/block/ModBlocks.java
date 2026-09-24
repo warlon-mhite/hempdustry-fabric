@@ -21,6 +21,7 @@ import com.warlonmhite.hempdustry.block.custom.IndustrialHempCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import com.warlonmhite.hempdustry.block.custom.SpaceCakeBlock;
+import com.warlonmhite.hempdustry.block.custom.RuderalisCropBlock;
 import com.warlonmhite.hempdustry.block.custom.WarpedKushCropBlock;
 import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
 import com.warlonmhite.hempdustry.platform.Services;
@@ -366,6 +367,11 @@ public class ModBlocks {
     // nothing that grows in the Nether burns.
     public static final Block WARPED_KUSH_CROP = registerBlockWithoutItem("warped_kush_crop", WarpedKushCropBlock::new,
             BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT).sound(SoundType.NETHER_WART));
+
+    // No block item, for the reason on INDICA_CROP above. Ruderalis has no wild plant at all: its
+    // seeds are only ever dug up.
+    public static final Block RUDERALIS_CROP = registerBlockWithoutItem("ruderalis_crop", RuderalisCropBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT));
 
 
     /**
