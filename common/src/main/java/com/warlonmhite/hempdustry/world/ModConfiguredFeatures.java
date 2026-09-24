@@ -45,6 +45,7 @@ public class ModConfiguredFeatures {
     /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
     private static final int BELDIA_TRIES = 20;
     public static final ResourceKey<ConfiguredFeature<?, ?>> DITCHWEED_KEY = registerKey("ditchweed");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> WARPED_KUSH_KEY = registerKey("warped_kush");
 
     /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
     private static final int DITCHWEED_TRIES = 20;
@@ -125,6 +126,24 @@ public class ModConfiguredFeatures {
                 PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK,
                         new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.DITCHWEED)),
                         VegetationFeatures.nearWaterPredicate(ModBlocks.DITCHWEED))));
+
+        // Warped Kush grows wild as its own crop, RIPE: the Nether's wild plants are always ready.
+        // SimpleBlockFeature only places both halves of a vanilla DoublePlantBlock, so a two-layer
+        // BLOCK_COLUMN puts down the LOWER and the UPPER at age 7 together; the filter wants warped
+        // nylium under it and air for both halves, so a column is never cut short to a lone half.
+        BlockState ripeWarped = ModBlocks.WARPED_KUSH_CROP.defaultBlockState().setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
+        register(context, WARPED_KUSH_KEY, Feature.RANDOM_PATCH, new RandomPatchConfiguration(8, 3, 1,
+                PlacementUtils.inlinePlaced(Feature.BLOCK_COLUMN,
+                        new BlockColumnConfiguration(List.of(
+                                BlockColumnConfiguration.layer(ConstantInt.of(1),
+                                        BlockStateProvider.simple(ripeWarped.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER))),
+                                BlockColumnConfiguration.layer(ConstantInt.of(1),
+                                        BlockStateProvider.simple(ripeWarped.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
+                                Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false),
+                        BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                                BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                                BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), Blocks.AIR),
+                                BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), Blocks.WARPED_NYLIUM))))));
     }
 
     private static ConfiguredFeature<?, ?> wildPatch(Block flower) {

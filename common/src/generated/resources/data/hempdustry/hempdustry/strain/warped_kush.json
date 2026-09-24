@@ -1,0 +1,24 @@
+{
+  "buds": "hempdustry:warped_kush_buds",
+  "color": 3526836,
+  "effects": [
+    {
+      "effect": "minecraft:fire_resistance",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:jump_boost"
+    },
+    {
+      "effect": "minecraft:darkness",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:hunger"
+    }
+  ],
+  "flower": "hempdustry:warped_kush_crop",
+  "model_index": 8,
+  "seeds": "hempdustry:warped_kush_seeds",
+  "translation_key": "hempdustry.strain.warped_kush"
+}

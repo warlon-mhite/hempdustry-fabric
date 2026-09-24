@@ -81,6 +81,12 @@
     "hempdustry:scorched_hemp": {
       "chance": 0.3
     },
+    "hempdustry:warped_kush_buds": {
+      "chance": 0.5
+    },
+    "hempdustry:warped_kush_seeds": {
+      "chance": 0.3
+    },
     "hempdustry:washed_decarboxylated_hemp": {
       "chance": 0.5
     }

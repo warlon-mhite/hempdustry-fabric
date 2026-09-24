@@ -112,7 +112,7 @@ public final class RebalanceGameTest {
         Smoking.greenOut(full, 3);
         context.assertFalse(full.hasEffect(MobEffects.SPEED), "a smoked buff ends");
         context.assertFalse(full.hasEffect(MobEffects.ABSORPTION), "an edible's buff ends");
-        context.assertTrue(full.hasEffect(MobEffects.FIRE_RESISTANCE),
+        context.assertTrue(full.hasEffect(MobEffects.HEALTH_BOOST),
                 "a potion of a type the mod never grants is left alone");
         context.assertValueEqual(0f, full.getFoodData().getSaturationLevel(), "the saturation goes");
         context.assertValueEqual(600, full.getEffect(MobEffects.SLOWNESS).getDuration(), "thirty seconds of it");
@@ -265,7 +265,7 @@ public final class RebalanceGameTest {
         ServerPlayer player = freshPlayer(context);
         player.addEffect(new MobEffectInstance(MobEffects.SPEED, 1000, 1));
         player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 1000, 1));
-        player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1000, 0));
+        player.addEffect(new MobEffectInstance(MobEffects.HEALTH_BOOST, 1000, 0));
         player.getFoodData().setSaturation(5f);
         return player;
     }

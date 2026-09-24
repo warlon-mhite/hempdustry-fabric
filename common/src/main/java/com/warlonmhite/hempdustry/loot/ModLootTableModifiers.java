@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain;
+import com.warlonmhite.hempdustry.block.custom.WarpedKushCropBlock;
 import net.minecraft.advancements.criterion.BlockPredicate;
 import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.advancements.criterion.LocationPredicate;
@@ -42,6 +43,7 @@ import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Runtime tweaks to vanilla loot tables.
@@ -161,6 +163,21 @@ public class ModLootTableModifiers {
     private static final float SHIPWRECK_INDUSTRIAL_SEED_CHANCE = 0.25f;
 
     /**
+     * Chance a bastion's treasure chest keeps a few Nether buds beside its gold. The piglins' grave
+     * goods: a 2,700-year-old grave in western China held nearly two pounds of female flower beside a
+     * warrior's bow, and the oldest braziers of burnt cannabis were in a cemetery. Placement is the
+     * whole story -- vanilla never explains piglins.
+     */
+    private static final float BASTION_TREASURE_BUD_CHANCE = 0.5f;
+
+    /**
+     * Weight of Nether seeds in piglin bartering, against vanilla's 469: about 2.1% a gold ingot, an
+     * ender pearl's odds. Vanilla already barters soul sand and nylium, so a Nether seed is its kind of
+     * trade. A weight is not a chance, so {@code loot.chanceMultiplier} leaves it alone.
+     */
+    private static final int BARTER_SEED_WEIGHT = 10;
+
+    /**
      * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
      *
      * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
@@ -185,6 +202,11 @@ public class ModLootTableModifiers {
             BuiltInLootTables.ABANDONED_MINESHAFT,
             BuiltInLootTables.WOODLAND_MANSION,
             BuiltInLootTables.PILLAGER_OUTPOST);
+
+    /** The Nether's own chests, where its seeds are found instead: a fortress, and a bastion's stores. */
+    private static final Set<ResourceKey<LootTable>> NETHER_CHEST_SOURCES = Set.of(
+            BuiltInLootTables.NETHER_BRIDGE,
+            BuiltInLootTables.BASTION_OTHER);
 
     /** The two chests vanilla stocks its common (creeper-droppable) discs in — 13 and cat. */
     private static final Set<ResourceKey<LootTable>> DISC_CHEST_SOURCES = Set.of(
@@ -250,18 +272,31 @@ public class ModLootTableModifiers {
     }
 
     /**
-     * One roll at {@code base} for 1-3 seeds of one plant strain: every strain with seeds at equal
-     * weight, so the chance stays {@code base} however many strains exist and which you get is a coin
-     * flip. {@code desert} picks Beldía's seeds alone, and otherwise every strain but Beldía's — the
-     * desert plant is found in the desert. Driven off the loaded strain registry, so a datapack strain
-     * appears here without touching this file.
+     * Whether these seeds plant a Nether crop, which is what keeps them out of tall grass and the
+     * overworld's chests and puts them in the Nether's.
+     *
+     * <p><b>Code, not a tag, and it has to be.</b> Item tags are not bound yet while loot tables load
+     * -- reading one here throws "Trying to access unbound tag" and takes the server down with it. And
+     * nothing is lost: a Nether strain needs a crop block that grows on nylium, which is code no
+     * datapack can add.
      */
-    private static LootPool.Builder seedStash(HolderLookup.Provider registries, float base, boolean desert) {
+    private static boolean isNetherSeed(Item seeds) {
+        return seeds instanceof BlockItem item && item.getBlock() instanceof WarpedKushCropBlock;
+    }
+
+    /**
+     * One roll at {@code base} for 1-3 seeds of one plant strain: every strain whose seeds are
+     * {@code found} there, at equal weight, so the chance stays {@code base} however many strains exist
+     * and which you get is a coin flip. A region's plant is found in its region -- Beldía in the
+     * desert, Warped Kush in the Nether -- and every other strain everywhere else. Driven off the
+     * loaded strain registry, so a datapack strain appears here without touching this file.
+     */
+    private static LootPool.Builder seedStash(HolderLookup.Provider registries, float base, Predicate<Item> found) {
         LootPool.Builder pool = LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(1))
                 .when(LootItemRandomChanceCondition.randomChance(chance(base)));
         for (Holder.Reference<Strain> strain : Strain.all(registries)) {
-            strain.value().seedItem().filter(seeds -> isDesertSeed(seeds) == desert)
+            strain.value().seedItem().filter(found)
                     .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)
                             .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
         }
@@ -304,29 +339,55 @@ public class ModLootTableModifiers {
                 // grass without touching this file.
                 // Seedless strains — the hash family — are simply not in the pool: there is no
                 // seed to find, and a pool entry per plant strain is what keeps the coin flip fair.
-                // Nor is the desert's: Beldía is found where it grows, and leaving it out keeps the
-                // other strains' share of this roll what it was.
+                // Nor is a region's own: Beldía is found where it grows and nothing from warped
+                // nylium grows in a meadow's grass, and leaving both out keeps the other strains'
+                // share of this roll what it was.
                 for (Holder.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seedItem().filter(seeds -> !isDesertSeed(seeds))
+                    strain.value().seedItem().filter(seeds -> !isDesertSeed(seeds) && !isNetherSeed(seeds))
                             .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)
                             .apply(ApplyBonusCount.addUniformBonusCount(fortune, 2))
                             .apply(ApplyExplosionDecay.explosionDecay())));
                 }
                 table.addPool(pool);
             } else if (CHEST_SOURCES.contains(key)) {
-                table.addPool(seedStash(registries, CHEST_SEED_CHANCE, false));
+                table.addPool(seedStash(registries, CHEST_SEED_CHANCE,
+                        seeds -> !isDesertSeed(seeds) && !isNetherSeed(seeds)));
             } else if (VILLAGE_HOUSE_SOURCES.contains(key)) {
-                table.addPool(seedStash(registries, VILLAGE_HOUSE_SEED_CHANCE, false));
+                table.addPool(seedStash(registries, VILLAGE_HOUSE_SEED_CHANCE,
+                        seeds -> !isDesertSeed(seeds) && !isNetherSeed(seeds)));
             } else if (key.equals(BuiltInLootTables.DESERT_PYRAMID)) {
-                table.addPool(seedStash(registries, DESERT_TEMPLE_SEED_CHANCE, true));
+                table.addPool(seedStash(registries, DESERT_TEMPLE_SEED_CHANCE, ModLootTableModifiers::isDesertSeed));
             } else if (key.equals(BuiltInLootTables.VILLAGE_DESERT_HOUSE)) {
-                table.addPool(seedStash(registries, DESERT_HOUSE_SEED_CHANCE, true));
+                table.addPool(seedStash(registries, DESERT_HOUSE_SEED_CHANCE, ModLootTableModifiers::isDesertSeed));
+            } else if (NETHER_CHEST_SOURCES.contains(key)) {
+                table.addPool(seedStash(registries, CHEST_SEED_CHANCE, ModLootTableModifiers::isNetherSeed));
             } else if (DESERT_ARCHAEOLOGY_SOURCES.contains(key)) {
                 // Into vanilla's one brushing pool, as a weighted entry beside the sherds.
                 for (Holder.Reference<Strain> strain : Strain.all(registries)) {
                     strain.value().seedItem().filter(ModLootTableModifiers::isDesertSeed)
                             .ifPresent(seeds -> table.addToEveryPool(LootItem.lootTableItem(seeds)
                                     .setWeight(DESERT_ARCHAEOLOGY_SEED_WEIGHT)));
+                }
+            } else if (key.equals(BuiltInLootTables.BASTION_TREASURE)) {
+                LootPool.Builder pool = LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .when(LootItemRandomChanceCondition.randomChance(chance(BASTION_TREASURE_BUD_CHANCE)));
+                for (Holder.Reference<Strain> strain : Strain.all(registries)) {
+                    Strain value = strain.value();
+                    if (value.seedItem().filter(seeds -> isNetherSeed(seeds)).isPresent()) {
+                        pool.add(LootItem.lootTableItem(value.buds())
+                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3))));
+                    }
+                }
+                table.addPool(pool);
+            } else if (key.equals(BuiltInLootTables.PIGLIN_BARTERING)) {
+                // Into vanilla's one bartering pool, as a weighted entry beside soul sand and the rest,
+                // rather than a second pool -- which would hand one over on top of every barter.
+                for (Holder.Reference<Strain> strain : Strain.all(registries)) {
+                    strain.value().seedItem().filter(seeds -> isNetherSeed(seeds))
+                            .ifPresent(seeds -> table.addToEveryPool(LootItem.lootTableItem(seeds)
+                                    .setWeight(BARTER_SEED_WEIGHT)
+                                    .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
                 }
             }
 

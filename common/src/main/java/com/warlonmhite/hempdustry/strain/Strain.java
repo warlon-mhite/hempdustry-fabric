@@ -139,7 +139,8 @@ import net.minecraft.world.level.block.Blocks;
  * @param modelIndex      stable art index; {@code 0} means "no art of its own"
  * @param seedItem        the seed item that plants this strain's crop, if it is a plant at all
  * @param buds            the item that packs into a spliff, pipe or bong. Every strain has one
- * @param wildFlower      the wild flower that drops this strain's seeds, if it is a plant at all
+ * @param wildFlower      the wild flower that drops this strain's seeds, if it is a plant at all. Warped
+ *                        Kush's is its own crop block, which the world generates ripe
  * @param greenOutFactor  divides the green-out odds; {@code 2.0} halves the risk. Purity buys
  *                        smoothness, never power — see {@code hashish.md} §4
  * @param dosePerItem     how much dose <em>one</em> of {@link #buds} is worth when packed. Almost

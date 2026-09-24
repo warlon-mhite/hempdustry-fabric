@@ -26,7 +26,23 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.INDICA_SEEDS)
                 .add(ModItems.SATIVA_SEEDS)
                 .add(ModItems.BELDIA_SEEDS)
-                .add(ModItems.INDUSTRIAL_HEMP_SEEDS);
+                .add(ModItems.INDUSTRIAL_HEMP_SEEDS)
+                .add(ModItems.WARPED_KUSH_SEEDS);
+
+        // Striders eat warped fungus, and only that; Warped Kush grows beside it. Joining the tag is
+        // the whole feature -- breeding, and #minecraft:strider_tempt_items includes it, so a strider
+        // follows the seeds too. Seeds rather than buds, the way chickens take seed: breeding
+        // should never burn a smokeable.
+        valueLookupBuilder(ItemTags.STRIDER_FOOD)
+                .add(ModItems.WARPED_KUSH_SEEDS);
+
+        // Piglins covet it. PiglinAi reads this tag to stare at a player holding one, run to one
+        // on the ground, admire it and pocket it (they drop it on death). They never barter for it --
+        // bartering is hardcoded to the gold ingot. The lore is placement, not text: a bastion's
+        // treasure keeps the buds beside the gold, as a 2,700-year-old grave kept flower beside a
+        // warrior's bow, and piglins barter the seed. See crops.md, Warped Kush.
+        valueLookupBuilder(ItemTags.PIGLIN_LOVED)
+                .add(ModItems.WARPED_KUSH_BUDS);
 
         // A tag rather than a hard milk_bucket check in the Infuser, so another mod's milk works
         // and a datapack can widen it without a code change.
@@ -238,6 +254,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.INDICA_BUDS)
                 .add(ModItems.SATIVA_BUDS)
                 .add(ModItems.BELDIA_BUDS)
+                .add(ModItems.WARPED_KUSH_BUDS)
                 .add(ModItems.HEMP_LEAF);
         valueLookupBuilder(ConventionalItemTags.CROPS)
                 .addOptionalTag(ModTags.Conventional.HEMP_CROPS);
