@@ -25,6 +25,7 @@
 			"com.warlonmhite.hempdustry.test.IndoorGrowGameTest",
 			"com.warlonmhite.hempdustry.test.InfuserPourGameTest",
 			"com.warlonmhite.hempdustry.test.PackingGameTest",
+			"com.warlonmhite.hempdustry.test.PlantStressGameTest",
 			"com.warlonmhite.hempdustry.test.RebalanceGameTest",
 			"com.warlonmhite.hempdustry.test.SchwagGameTest",
 			"com.warlonmhite.hempdustry.test.ScorchedHempGameTest",

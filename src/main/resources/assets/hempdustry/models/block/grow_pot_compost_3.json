@@ -1,0 +1,32 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "hempdustry:block/hemp_bricks_block",
+    "compost": "hempdustry:block/grow_pot_compost_3"
+  },
+  "elements": [
+    {
+      "from": [
+        2,
+        15.25,
+        2
+      ],
+      "to": [
+        14,
+        15.25,
+        14
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#compost"
+        }
+      }
+    }
+  ]
+}

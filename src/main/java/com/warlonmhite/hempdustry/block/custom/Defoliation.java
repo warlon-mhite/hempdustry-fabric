@@ -144,7 +144,8 @@ public final class Defoliation {
     /**
      * The rub's odds on a plant that grew under any light but the sun ({@link GrowLight#artificial}).
      * Charas is a field craft, rubbed off plants growing in the open; this is flavour and a trade,
-     * not a claim that lamps make weaker resin — the evidence on UV and potency is mixed.
+     * not a claim that lamps make weaker resin — the evidence on UV and potency is mixed. A stressed
+     * plant rubs at these odds too, whatever stressed it: it has less resin to give.
      */
     public static final int CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS = 8;
 

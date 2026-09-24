@@ -33,8 +33,9 @@ import org.jetbrains.annotations.Nullable;
  * bug. A popping two-block plant would also roll its loot twice ({@code crops.md}). Dry farmland
  * does not kill a crop either — it only stops helping it.
  *
- * <p>In a Grow Pot or a Hydro Tray the bed answers for itself, as it does for every plant: a pot is
- * always watered, and a tray has its own water level.
+ * <p>In a Grow Pot or a Hydro Tray the bed answers for itself, as it does for every plant: a seed goes
+ * down in either with no water in reach, and a dry pot or tray slows and stresses Beldía exactly as it
+ * does any other strain. The desert's forgiveness is the sand's, not the plant's.
  */
 public class BeldiaCropBlock extends IndicaCropBlock {
 
@@ -90,7 +91,7 @@ public class BeldiaCropBlock extends IndicaCropBlock {
         return getAvailableMoisture(this, world, pos) < 1.0F ? WATERED_MOISTURE / 2 : WATERED_MOISTURE;
     }
 
-    /** Whether the ground at {@code floor} is watered: a bed of ours always is, sand needs water in reach. */
+    /** Whether the ground at {@code floor} counts as watered: a bed of ours answers for itself, sand needs water in reach. */
     public static boolean isWatered(WorldView world, BlockPos floor) {
         if (world.getBlockState(floor).getBlock() instanceof GrowMedium) {
             return true;

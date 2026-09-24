@@ -19,8 +19,11 @@ import net.minecraft.world.BlockView;
  * seeding its own buds) and a younger one back to {@link #NATURAL}. So the harvest cannot be
  * cheated by moving a lamp over at the end, one lamp cannot be shuttled between plants (growth
  * steps land at random moments), and swapping a Grow Lamp for glowstone halfway through harvests as
- * glowstone. Bees are the one step that does not look — their write goes straight through
- * {@code BeeGrowCropsGoalMixin}, which only carries the record across.
+ * glowstone. A bee's step looks too: {@code BeeGrowCropsGoalMixin} runs it through
+ * {@link PlantStress#beeStep}.
+ *
+ * <p>Losing the light is one way to {@link #STRESSED} and the only certain one; the rest — a dry bed,
+ * a dead pump, overfeeding, overwatering, a bone-dry field — are rolls, in {@link PlantStress}.
  *
  * <p>The constants are in tier order, weakest first, and {@link #afterStep} relies on it.
  */
@@ -33,7 +36,7 @@ public enum GrowLight implements StringIdentifiable {
     LAMP("lamp"),
     /** {@code #hempdustry:grow_lamps} — the Grow Lamp, and whatever a pack adds. */
     GROW_LAMP("grow_lamp"),
-    /** Lost its lamp while flowering. Harvests a bud short and seeded. */
+    /** Lost its lamp while flowering, or stressed some other way ({@link PlantStress}). Harvests a bud short and seeded. */
     STRESSED("stressed");
 
     public static final EnumProperty<GrowLight> PROPERTY = EnumProperty.of("light", GrowLight.class);
@@ -56,7 +59,10 @@ public enum GrowLight implements StringIdentifiable {
         return this.name;
     }
 
-    /** Any light the plant grew under that was not the sun. Stress only ever comes from losing one. */
+    /**
+     * Anything but {@link #NATURAL}: a plant that grew under a light, or one that was stressed. Only
+     * these can be stressed by <em>losing</em> a light, and charas rubs at the lamp's odds off all of them.
+     */
     public boolean artificial() {
         return this != NATURAL;
     }

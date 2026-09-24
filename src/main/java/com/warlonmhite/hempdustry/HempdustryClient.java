@@ -73,6 +73,8 @@ public class HempdustryClient implements ClientModInitializer {
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BELDIA_CROP, RenderLayer.getCutout());
         // The chains the Grow Lamp hangs from are see-through between the links.
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GROW_LAMP, RenderLayer.getCutout());
+        // The compost crumbs over the pot's soil are drawn with see-through pixels.
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GROW_POT, RenderLayer.getCutout());
 
         EntityRendererRegistry.register(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
         EntityRendererRegistry.register(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));

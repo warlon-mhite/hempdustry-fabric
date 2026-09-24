@@ -3,7 +3,10 @@ package com.warlonmhite.hempdustry.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.GrowMedium;
+import com.warlonmhite.hempdustry.block.custom.PlantStress;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.CropBlock;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,6 +35,11 @@ import org.spongepowered.asm.mixin.injection.At;
  * has no concept of it. {@link Defoliation#carryOver} no-ops on any state without the properties, so
  * every other crop in the game — vanilla or modded — passes through untouched.
  *
+ * <p>The same wrap makes a bee's step count as a growth step for our plants: it reads the light and
+ * rolls for stress like any other ({@link PlantStress#beeStep}), and a plant a bee ripens drinks and
+ * eats from its bed, so a bee can neither carry a dry field through its flowering nor ripen a potted
+ * plant for free.
+ *
  * <h2>Why {@code @WrapOperation} and not {@code @Redirect}</h2>
  *
  * There is exactly one {@code setBlockState} call in {@code tick()}, so either would find its target
@@ -58,6 +66,18 @@ public class BeeGrowCropsGoalMixin {
     )
     private boolean hempdustry$preserveDefoliation(World world, BlockPos pos, BlockState newState,
                                                    Operation<Boolean> original) {
-        return original.call(world, pos, Defoliation.carryOver(world.getBlockState(pos), newState));
+        BlockState current = world.getBlockState(pos);
+        BlockState next = PlantStress.beeStep(world, pos, current, Defoliation.carryOver(current, newState),
+                world.getRandom());
+        boolean set = original.call(world, pos, next);
+        if (set && next.getBlock() instanceof CropBlock crop && current.isOf(crop)
+                && crop.isMature(next) && !crop.isMature(current)) {
+            BlockPos floorPos = pos.down();
+            BlockState floor = world.getBlockState(floorPos);
+            if (floor.getBlock() instanceof GrowMedium medium) {
+                medium.spend(world, floorPos, floor);
+            }
+        }
+        return set;
     }
 }

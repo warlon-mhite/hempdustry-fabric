@@ -72,12 +72,16 @@ beta be told when the release lands.
   - Wild Beldía grows ripe on desert riverbanks and shores. Its seeds turn up in desert temple
     chests and in the suspicious sand of desert wells and pyramids, and never in grass.
 - **Grow hemp indoors: a Grow Pot and a Grow Lamp.**
-  - The **Grow Pot** is a planter of hemp brick with soil in it, for either strain. It is always
-    watered, cannot be trampled, and a plant in it never competes with its neighbours, so pots can
-    be packed wall to wall. Feed it bone meal — up to three — and a plant grows half again as fast
-    as in the best field; each plant that ripens uses one up, and a spent pot grows like dry
-    farmland. The soil shows dark while it is fed. A potted plant grows one stem short: its roots
-    are boxed in. Picking the pot up keeps its soil.
+  - The **Grow Pot** is a planter of hemp brick with soil in it, for any strain. It cannot be
+    trampled, and a plant in it never competes with its neighbours, so pots can be packed wall to
+    wall. **Water it with a water bottle** — by hand, on the pot or on the plant, or from a
+    dispenser — and **feed it bone meal**, up to three; watered and fed, a plant grows half again as
+    fast as in the best field. Each plant that ripens drinks the water and eats one feed, so a pot
+    is watered every plant and fed every third. A dry pot grows like dry farmland however well it
+    is fed. The soil looks like farmland, moist or dry, and compost crumbs on top show how much food
+    is left. It takes no bucket — that is the Hydro Tray's. A potted plant grows one stem short: its
+    roots are boxed in. Picking the pot up keeps its food, not its water. Water bottles work in the
+    Nether, so a pot still grows hemp there.
   - The **Grow Lamp** is an LED panel in copper, hung from the ceiling on copper chains, with
     amethyst-lensed diodes. It switches on like a redstone lamp — power the ceiling, or put a lever
     on it. A lit lamp sheds a faint violet haze, and shader packs that read LabPBR materials make
@@ -91,10 +95,22 @@ beta be told when the release lands.
     the weakest of it — hanging a lamp over a finished plant does nothing, and one lamp cannot be
     carried from plant to plant. **Lose the light while a plant is flowering and it stresses**: a
     bud short at harvest, and two seeds in its place. Plants grown under any lamp give charas
-    half as often; charas is a field craft. A lamp-grown plant looks a shade deeper green, and a
+    half as often; charas is a field craft, and a stressed plant gives it half as often too. A lamp-grown plant looks a shade deeper green, and a
     **stressed one is drawn differently**: its colour drains — Purple Kush's purple fades to a
     sickly green — the oldest leaves yellow and die back brown, and yellow anthers show in the
     flowers, which is where the seeds come from.
+- **More than the light can stress a flowering plant**, and the beds carry most of the risk — it is
+  what indoor growing pays for its extra buds. Each of these is a chance, never a certainty, and
+  only while the plant flowers:
+  - **Bone meal on a flowering plant in a fed bed** overfeeds it: one in nine. Feed the soil, not
+    the plant. The bone meal still grows it.
+  - **A second bottle into a pot that is still wet** drowns the roots: one in four. Water a pot when
+    its soil looks dry.
+  - **A dry bed** — a pot with no water, a tray run dry: one in three each time the plant grows.
+  - **A tray with water in it and the pump off**: the water goes stale round the roots, one in six.
+  - **Bone-dry farmland**: one in twenty. Rain or water within reach keeps a field safe.
+  - A bee's pollination counts as the plant growing, so it reads the light and takes the same
+    chances — and a plant a bee ripens in a pot or a tray drinks and eats from it like any other.
 - **A Hydro Tray, for growing at twice the pace.** Craft it from a Grow Pot, four copper ingots and
   a redstone dust. Fill it with a **water bucket**, mix in **fertiliser**, and give it a **redstone
   signal** — that is the pump — and hemp in it grows **twice as fast as the best field** (about 12
@@ -105,10 +121,11 @@ beta be told when the release lands.
   of bone meal can feed it.
   - **Each plant that ripens drinks a third of the water**, and the fertiliser drains with the last
     of it — so the rhythm is: fill, feed, three plants.
-  - **It is unforgiving, not dangerous.** Plain water or a stopped pump grows at an ordinary field's
-    pace; a dry tray is slower than plain dirt. **Nothing ever dies of neglect** — that is vanilla's
-    rule for farmland too. A plant in a tray harvests one stem short, like one in a pot, and a tray
-    you pick up comes back empty.
+  - **It is unforgiving.** Plain water or a stopped pump grows at an ordinary field's pace; a dry
+    tray is slower than plain dirt. A dry tray, or a stopped pump over water, can stress a flowering
+    plant. **Nothing ever dies of neglect** — that is vanilla's rule for farmland too. A full tray
+    keeps your bucket. A plant in a tray harvests one stem short, like one in a pot, and a tray you
+    pick up comes back empty.
   - **No hydroponics in the Nether.** Water boils away there — pour it in and it hisses off as usual.
   - **Any fertiliser feeds either bed.** Bone meal, or whatever your modpack tags as fertiliser —
     pot and tray both read the shared `#c:fertilizers` tag.
