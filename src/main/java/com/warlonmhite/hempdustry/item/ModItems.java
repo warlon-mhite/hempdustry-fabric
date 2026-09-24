@@ -72,6 +72,7 @@ public class ModItems {
      * strain entry with no seeds and no flower.
      */
     public static final Item SCHWAG = registerItem("schwag", settings -> new Item(settings));
+    public static final Item INDUSTRIAL_HEMP_SEEDS = registerItem("industrial_hemp_seeds", settings -> new BlockItem(ModBlocks.INDUSTRIAL_HEMP_CROP, settings));
     public static final Item HEMP_STEM = registerItem("hemp_stem", settings -> new Item(settings));
     /**
      * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has

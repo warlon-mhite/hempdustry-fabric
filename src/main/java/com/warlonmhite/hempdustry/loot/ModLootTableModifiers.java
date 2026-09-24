@@ -154,6 +154,13 @@ public class ModLootTableModifiers {
             BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY);
 
     /**
+     * Chance a shipwreck's supply chest holds Industrial Hemp seed — the crop the rope and the sails
+     * came from. Its own roll, beside the strain seed pool rather than in it, so a wreck's odds of a
+     * smoking strain do not thin out. Pitched below that pool's 30%: Ditchweed is the main source.
+     */
+    private static final float SHIPWRECK_INDUSTRIAL_SEED_CHANCE = 0.25f;
+
+    /**
      * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
      *
      * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
@@ -350,6 +357,11 @@ public class ModLootTableModifiers {
                         .when(LootItemRandomChanceCondition.randomChance(chance(SHIPWRECK_SCHWAG_CHANCE)))
                         .add(LootItem.lootTableItem(ModItems.SCHWAG)
                                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 4)))));
+                tableBuilder.withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .when(LootItemRandomChanceCondition.randomChance(chance(SHIPWRECK_INDUSTRIAL_SEED_CHANCE)))
+                        .add(LootItem.lootTableItem(ModItems.INDUSTRIAL_HEMP_SEEDS)
+                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
             }
 
             // Both of these have exactly one pool, so the hemp goes in beside vanilla's own entries

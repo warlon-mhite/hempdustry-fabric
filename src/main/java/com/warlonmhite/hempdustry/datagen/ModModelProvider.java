@@ -118,6 +118,7 @@ public class ModModelProvider extends FabricModelProvider {
         // potted wild flower picking up the room's biome is what a player already expects.
         blockStateModelGenerator.createPlantWithDefaultItem(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockModelGenerators.PlantType.TINTED);
         registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
+        registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.DITCHWEED, ModBlocks.POTTED_DITCHWEED);
 
         // The crops' blockstates and stage models are hand-written under resources/ — the model
         // generator has no notion of a two- or three-tall crop, so INDICA_CROP and SATIVA_CROP
@@ -165,6 +166,7 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(ModItems.SATIVA_SEEDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.BELDIA_SEEDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.BELDIA_BUDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.INDUSTRIAL_HEMP_SEEDS, ModelTemplates.FLAT_ITEM);
         // Smoking gear. One item per device carries every strain in a component, so the visual
         // per-strain split lives in the *client item definition* rather than in separate items —
         // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged".

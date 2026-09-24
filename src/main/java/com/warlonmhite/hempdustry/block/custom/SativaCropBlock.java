@@ -235,9 +235,9 @@ public class SativaCropBlock extends CropBlock {
                 moisture = medium.moisture(floor);
                 bed = medium.speed(floor);
             } else {
-                moisture = getGrowthSpeed(this, world, pos);
+                moisture = this.fieldMoisture(world, pos);
             }
-            if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture,
+            if (HempGrowth.rolls(random, this.growthResistance(), moisture,
                     bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {
                 grown++;
             }
@@ -256,6 +256,29 @@ public class SativaCropBlock extends CropBlock {
         if (grown != age || !this.isShapeSettled(world, pos, age, state.getValue(GrowLight.PROPERTY))) {
             this.setAge(world, pos, grown, 0.0F, random);
         }
+    }
+
+    /** The divisor in the growth roll; {@link IndustrialHempCropBlock} grows at vanilla's 25. */
+    protected float growthResistance() {
+        return GROWTH_RESISTANCE;
+    }
+
+    /** Moisture on farmland: vanilla's, halved when the same crop crowds it. */
+    public float fieldMoisture(LevelReader world, BlockPos pos) {
+        return getGrowthSpeed(this, world, pos);
+    }
+
+    /**
+     * Whether anything can stress this plant — a lost light or any of {@link PlantStress}'s rolls. A
+     * plant that cannot keeps its light record all the same; losing the light only lowers it.
+     */
+    protected boolean canBeStressed() {
+        return true;
+    }
+
+    /** Whether shears trim and rub this plant. Industrial Hemp has nothing to trim for. */
+    protected boolean canBeWorked() {
+        return true;
     }
 
     /**
@@ -350,7 +373,7 @@ public class SativaCropBlock extends CropBlock {
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, TriplePlantSegment.LOWER));
         if (newAge > currentAge && current.is(this)) {
             lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
-                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random));
+                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random, this.canBeStressed()));
             if (newAge == this.getMaxAge()) {
                 BlockPos floorPos = pos.below();
                 BlockState floor = world.getBlockState(floorPos);
@@ -405,6 +428,8 @@ public class SativaCropBlock extends CropBlock {
             if (watered != null) {
                 return watered;
             }
+        }
+        if (this.canBeWorked() && lower.is(this) && isLower(lower)) {
             InteractionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.getValue(AGE),
                     stack, player, hand);
             if (result != null) {

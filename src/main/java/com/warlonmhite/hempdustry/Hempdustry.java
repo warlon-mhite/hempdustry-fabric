@@ -74,6 +74,7 @@ public class Hempdustry implements ModInitializer {
 		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.BELDIA_SEEDS, 0.3f);
+		CompostingChanceRegistry.INSTANCE.add(ModItems.INDUSTRIAL_HEMP_SEEDS, 0.3f);
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_FIBER, 0.3f);
 		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
 		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_CANVAS, 0.5f);
@@ -105,6 +106,7 @@ public class Hempdustry implements ModInitializer {
 		// 0.65 is what vanilla gives every small flower; ours are plants too and had been missed.
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.INDICA_FLOWER, 0.65f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.SATIVA_FLOWER, 0.65f);
+		CompostingChanceRegistry.INSTANCE.add(ModBlocks.DITCHWEED, 0.65f);
 		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
 		// The two storage blocks. Vanilla puts every compacted plant block a tier above the item it
 		// is made from -- dried kelp 0.3 to the dried kelp block's 0.5, wheat 0.65 to hay's 0.85 --
@@ -159,6 +161,8 @@ public class Hempdustry implements ModInitializer {
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_CROP, 10, 25);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.BELDIA_CROP, 10, 25);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_FLOWER, 20, 40);
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDUSTRIAL_HEMP_CROP, 10, 25);
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.DITCHWEED, 20, 40);
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_BALE, 50, 10);
 		// Vanilla leaves parity, exactly (30/60). Nothing about hemp foliage argues for a
 		// different number than oak foliage, and a leaf block that burns unlike every other

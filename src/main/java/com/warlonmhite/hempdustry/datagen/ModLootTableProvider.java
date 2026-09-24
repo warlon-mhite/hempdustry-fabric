@@ -47,6 +47,7 @@ import net.minecraft.world.level.storage.loot.predicates.LocationCheck;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
+import net.minecraft.world.level.storage.loot.providers.number.BinomialDistributionGenerator;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import java.util.ArrayList;
 import java.util.List;
@@ -241,6 +242,110 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         // both pots dropped nothing until 2.0.2.
         dropPottedContents(ModBlocks.POTTED_INDICA_FLOWER);
         dropPottedContents(ModBlocks.POTTED_SATIVA_FLOWER);
+
+        add(ModBlocks.INDUSTRIAL_HEMP_CROP, industrialHempCropDrops());
+        add(ModBlocks.DITCHWEED, ditchweedDrops());
+        dropPottedContents(ModBlocks.POTTED_DITCHWEED);
+    }
+
+    /**
+     * Industrial Hemp's stems, and Fortune's odds on them and on its seeds: {@code 4/7} is vanilla's
+     * own crop number (carrots, potatoes, wheat seeds), so Fortune is worth nearly twice as much here
+     * as on the smoking strains' 0.3 — the bulk crop is the one an enchanted hoe is for.
+     */
+    private static final int INDUSTRIAL_STEMS = 5;
+    private static final float INDUSTRIAL_FORTUNE_CHANCE = 4.0F / 7.0F;
+    /** Its one leaf is a coin flip and Fortune never touches it, so no hoe turns fibre into butter. */
+    private static final float INDUSTRIAL_LEAF_CHANCE = 0.5F;
+    /**
+     * Schwag is Industrial Hemp's only flower, so on it schwag is an <b>extra drop</b>, never a
+     * conversion, and Fortune never touches it — it stays on the stems, where the right tool belongs.
+     * One in four grown in the sun (Ditchweed's rate), one in two under a lamp or glowstone, and always
+     * under a Grow Lamp. No stressed row: fibre hemp is never stressed.
+     */
+    private static final float INDUSTRIAL_SCHWAG_NATURAL = 0.25F;
+    private static final float INDUSTRIAL_SCHWAG_LIT = 0.5F;
+    /** A broken Ditchweed's schwag. Lifted whole with shears or Silk Touch, it gives none. */
+    private static final float DITCHWEED_SCHWAG_CHANCE = 0.25F;
+
+    /**
+     * Industrial Hemp, the fibre crop: <b>never a bud</b>, lamp or no lamp. A ripe LOWER pays
+     * 5 + binomial(fortune + 3, 4/7) stems (6.7 on average, 8.4 with Fortune III), wheat's exact seed
+     * rule, and half a leaf. Unripe, it is one seed back. Every pool is pinned to the LOWER, the only
+     * segment that drops — the three-tall plant's other segments never roll.
+     */
+    private LootTable.Builder industrialHempCropDrops() {
+        Holder<Enchantment> fortune = this.registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        Block crop = ModBlocks.INDUSTRIAL_HEMP_CROP;
+        LootItemCondition.Builder isLower = LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER));
+        LootItemCondition.Builder isMatureLower = LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER)
+                        .hasProperty(SativaCropBlock.AGE, SativaCropBlock.MAX_AGE));
+        return this.applyExplosionDecay(crop, LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .when(isLower)
+                        .add(LootItem.lootTableItem(ModItems.INDUSTRIAL_HEMP_SEEDS)
+                                .when(isMatureLower)
+                                .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, INDUSTRIAL_FORTUNE_CHANCE, 3))
+                                .otherwise(LootItem.lootTableItem(ModItems.INDUSTRIAL_HEMP_SEEDS))))
+                .withPool(LootPool.lootPool()
+                        .when(isMatureLower)
+                        .add(LootItem.lootTableItem(ModItems.HEMP_STEM)
+                                .apply(SetItemCountFunction.setCount(ConstantValue.exactly((float) INDUSTRIAL_STEMS)))
+                                .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, INDUSTRIAL_FORTUNE_CHANCE, 3))))
+                .withPool(LootPool.lootPool()
+                        .when(isMatureLower)
+                        .when(LootItemRandomChanceCondition.randomChance(INDUSTRIAL_LEAF_CHANCE))
+                        .add(LootItem.lootTableItem(ModItems.HEMP_LEAF)))
+                // Last, because the lit rows take a draw and the Grow Lamp's takes none: nothing
+                // rolled after it can be shifted. The odds are counts of 0 or 1, not conditions, so a
+                // lamp plant that misses never falls through to the sun's row.
+                .withPool(LootPool.lootPool()
+                        .when(isMatureLower)
+                        .add(LootItem.lootTableItem(ModItems.SCHWAG)
+                                .when(lit(crop, GrowLight.GROW_LAMP))
+                                .otherwise(schwagAt(INDUSTRIAL_SCHWAG_LIT).when(lit(crop, GrowLight.LAMP)))
+                                .otherwise(schwagAt(INDUSTRIAL_SCHWAG_LIT).when(lit(crop, GrowLight.AMBIENT)))
+                                .otherwise(schwagAt(INDUSTRIAL_SCHWAG_NATURAL)))));
+    }
+
+    /** Industrial Hemp's LOWER with {@code light} on its record. */
+    private static LootItemCondition.Builder lit(Block crop, GrowLight light) {
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER)
+                        .hasProperty(GrowLight.PROPERTY, light));
+    }
+
+    /** One schwag at {@code chance}, as a count of 0 or 1. */
+    private static LootPoolSingletonContainer.Builder<?> schwagAt(float chance) {
+        return LootItem.lootTableItem(ModItems.SCHWAG)
+                .apply(SetItemCountFunction.setCount(BinomialDistributionGenerator.binomial(1, chance)));
+    }
+
+    /**
+     * Ditchweed: Wild Lemon Haze's table for the other plant — shears or Silk Touch lift it for
+     * potting, anything else breaks it into Industrial Hemp seeds, pinned to the lower half so the
+     * two-block double roll pays once.
+     */
+    private LootTable.Builder ditchweedDrops() {
+        Holder<Enchantment> fortune = this.registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        LootItemCondition.Builder isLower = LootItemBlockStatePropertyCondition.hasBlockStateProperties(ModBlocks.DITCHWEED)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(DoublePlantBlock.HALF, DoubleBlockHalf.LOWER));
+        return LootTable.lootTable().withPool(LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .when(isLower)
+                .add(LootItem.lootTableItem(ModBlocks.DITCHWEED)
+                        .when(this.hasShears().or(this.hasSilkTouch()))
+                        .otherwise(this.applyExplosionDecay(ModBlocks.DITCHWEED,
+                                LootItem.lootTableItem(ModItems.INDUSTRIAL_HEMP_SEEDS)
+                                        .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.40F, 3))))))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0F))
+                        .when(isLower)
+                        .when(this.hasShears().or(this.hasSilkTouch()).invert())
+                        .when(LootItemRandomChanceCondition.randomChance(DITCHWEED_SCHWAG_CHANCE))
+                        .add(LootItem.lootTableItem(ModItems.SCHWAG)));
     }
 
     /**
