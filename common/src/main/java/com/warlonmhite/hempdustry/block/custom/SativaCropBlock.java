@@ -48,7 +48,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * growth step rather than being edge-triggered at one exact age, which is what made the pre-rewrite
  * indica crop unrecoverable.
  */
-public class SativaCropBlock extends CropBlock {
+public class SativaCropBlock extends CropBlock implements Mildew.Host {
     public static final EnumProperty<TriplePlantSegment> SEGMENT =
             EnumProperty.create("segment", TriplePlantSegment.class);
     public static final IntegerProperty AGE = BlockStateProperties.AGE_7;
@@ -239,9 +239,9 @@ public class SativaCropBlock extends CropBlock {
                 moisture = medium.moisture(floor);
                 bed = medium.speed(floor);
             } else {
-                moisture = Services.PLATFORM.cropGrowthSpeed(state, world, pos);
+                moisture = this.fieldMoisture(world, pos);
             }
-            if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture,
+            if (HempGrowth.rolls(random, this.growthResistance(), moisture,
                     bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {
                 grown++;
             }
@@ -261,6 +261,29 @@ public class SativaCropBlock extends CropBlock {
             this.setAge(world, pos, grown, 0.0F, random);
         }
         Mildew.randomTick(world, pos, random);
+    }
+
+    /** The divisor in the growth roll; {@link IndustrialHempCropBlock} grows at vanilla's 25. */
+    protected float growthResistance() {
+        return GROWTH_RESISTANCE;
+    }
+
+    /** Moisture on farmland: vanilla's, halved when the same crop crowds it. */
+    public float fieldMoisture(LevelReader world, BlockPos pos) {
+        return Services.PLATFORM.cropGrowthSpeed(defaultBlockState(), world, pos);
+    }
+
+    /**
+     * Whether anything can stress this plant — a lost light or any of {@link PlantStress}'s rolls. A
+     * plant that cannot keeps its light record all the same; losing the light only lowers it.
+     */
+    protected boolean canBeStressed() {
+        return true;
+    }
+
+    /** Whether shears trim and rub this plant. Industrial Hemp has nothing to trim for. */
+    protected boolean canBeWorked() {
+        return true;
     }
 
     /**
@@ -355,7 +378,7 @@ public class SativaCropBlock extends CropBlock {
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, TriplePlantSegment.LOWER));
         if (newAge > currentAge && current.is(this)) {
             lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
-                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random))
+                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random, this.canBeStressed()))
                     .setValue(Mildew.PROPERTY, Mildew.afterStep(world, pos, current,
                             current.getValue(Mildew.PROPERTY), random));
             if (newAge == this.getMaxAge()) {
@@ -411,6 +434,8 @@ public class SativaCropBlock extends CropBlock {
             if (watered != null) {
                 return watered;
             }
+        }
+        if (this.canBeWorked() && lower.is(this) && isLower(lower)) {
             InteractionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.getValue(AGE),
                     stack, player, hand);
             if (result != null) {

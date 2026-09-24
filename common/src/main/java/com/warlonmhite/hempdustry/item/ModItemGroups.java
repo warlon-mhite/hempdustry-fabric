@@ -98,6 +98,8 @@ public class ModItemGroups {
                             }
                         };
                         strains.forEach(strain -> strain.value().seedItem().ifPresent(addOnce));
+                        // Industrial Hemp is no strain (nothing to smoke), so it is listed by hand.
+                        addOnce.accept(ModItems.INDUSTRIAL_HEMP_SEEDS);
                         strains.forEach(strain -> {
                             if (strain.value().wildFlower().isPresent()) {
                                 addOnce.accept(strain.value().buds());
@@ -112,6 +114,9 @@ public class ModItemGroups {
                         strains.forEach(strain -> strain.value().wildFlower().map(Block::asItem)
                                 .filter(item -> item != Items.AIR)
                                 .ifPresent(addOnce));
+                        // Ditchweed is no strain's flower, for the same reason its crop is no strain:
+                        // there is nothing on it to smoke. Listed by hand, like its seeds above.
+                        addOnce.accept(ModBlocks.DITCHWEED);
                         entries.accept(ModItems.HEMP_STEM);
                         entries.accept(ModItems.RETTED_HEMP_STEM);
                         entries.accept(ModItems.HEMP_LEAF);

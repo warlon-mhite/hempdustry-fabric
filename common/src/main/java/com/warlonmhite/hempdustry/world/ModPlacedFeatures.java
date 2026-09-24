@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.world;
 
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -38,11 +39,16 @@ public class ModPlacedFeatures {
     public static final ResourceKey<PlacedFeature> SATIVA_SPARSE_PLACED_KEY = registerKey("sativa_sparse_placed");
     public static final ResourceKey<PlacedFeature> SATIVA_RARE_PLACED_KEY = registerKey("sativa_rare_placed");
     public static final ResourceKey<PlacedFeature> BELDIA_PLACED_KEY = registerKey("beldia_placed");
+    public static final ResourceKey<PlacedFeature> DITCHWEED_PLACED_KEY = registerKey("ditchweed_placed");
 
     /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
     private static final int BELDIA_RARITY = 8;
     /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
     private static final int BELDIA_TRIES = 20;
+    /** One attempt per this many chunks: rarer than sugar cane's 6, as the wild plant is a seed source. */
+    private static final int DITCHWEED_RARITY = 12;
+    /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
+    private static final int DITCHWEED_TRIES = 20;
 
     /**
      * A wild patch is usually small and one in ten is a big one — vanilla's own 64-try flower
@@ -139,6 +145,27 @@ public class ModPlacedFeatures {
                                 BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
                                 BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), List.of(Fluids.WATER, Fluids.FLOWING_WATER))))),
                 ModPlacementModifiers.InBeldiaBiomePlacementModifier.INSTANCE);
+
+        // Ditchweed: one attempt per 12 chunks, and the attempt only grows where there is water
+        // beside dirt — so in practice a riverbank find, not a meadow one. Placed exactly as vanilla
+        // places sugar cane (patch_sugar_cane): each plant must survive on its ground, with water
+        // beside that ground, which is why most tries of a patch land nothing.
+        register(context, DITCHWEED_PLACED_KEY,
+                features.getOrThrow(ModConfiguredFeatures.DITCHWEED_KEY),
+                RarityFilter.onAverageOnceEvery(DITCHWEED_RARITY),
+                InSquarePlacement.spread(),
+                PlacementUtils.HEIGHTMAP,
+                BiomeFilter.biome(),
+                CountPlacement.of(DITCHWEED_TRIES),
+                OffsetPlacement.ofTriangle(4, 0),
+                BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                        BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                        BlockPredicate.wouldSurvive(ModBlocks.DITCHWEED),
+                        BlockPredicate.anyOf(
+                                BlockPredicate.matchesFluids(new Vec3i(1, -1, 0), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
+                                BlockPredicate.matchesFluids(new Vec3i(-1, -1, 0), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
+                                BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
+                                BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), List.of(Fluids.WATER, Fluids.FLOWING_WATER))))));
     }
 
     /**

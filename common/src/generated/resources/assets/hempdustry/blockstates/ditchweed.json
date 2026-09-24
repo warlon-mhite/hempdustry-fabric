@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "hempdustry:block/ditchweed_bottom"
+    },
+    "half=upper": {
+      "model": "hempdustry:block/ditchweed_top"
+    }
+  }
+}

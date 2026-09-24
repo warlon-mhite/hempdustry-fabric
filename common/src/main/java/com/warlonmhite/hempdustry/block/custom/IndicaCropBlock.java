@@ -35,7 +35,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * mirrors it. The plant is planted as a single LOWER stalk and grows into its
  * two-tall form once the lower half reaches {@link #DOUBLE_BLOCK_AGE}.
  */
-public class IndicaCropBlock extends CropBlock {
+public class IndicaCropBlock extends CropBlock implements Mildew.Host {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     public static final IntegerProperty AGE = BlockStateProperties.AGE_7;
     /** Highest age value; a lower half at this age is mature. Matches {@code BlockStateProperties.AGE_7}. */
@@ -332,7 +332,7 @@ public class IndicaCropBlock extends CropBlock {
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, DoubleBlockHalf.LOWER));
         if (newAge > currentAge && current.is(this)) {
             lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
-                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 2, extraStress, random))
+                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 2, extraStress, random, true))
                     .setValue(Mildew.PROPERTY, Mildew.afterStep(world, pos, current,
                             current.getValue(Mildew.PROPERTY), random));
             if (newAge == this.getMaxAge()) {

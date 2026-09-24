@@ -151,9 +151,21 @@ public enum Mildew implements StringRepresentable {
     private static final int[][] NEIGHBOURS = {
             {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
-    /** Mildew may take hold of this plant at all: switched on, a crop that does not resist it, unripe, under a roof. */
+    /**
+     * A crop that carries the {@link #PROPERTY} record. Every one takes mildew unless it says
+     * otherwise: a plant with no bud has nothing for mildew to spoil, and the Nether is too hot and
+     * dry for it — and its ceiling would count as a roof over every plant there.
+     */
+    public interface Host {
+        default boolean catchesMildew() {
+            return true;
+        }
+    }
+
+    /** Mildew may take hold of this plant at all: switched on, a crop that takes it and does not resist it, unripe, under a roof. */
     private static boolean canCatch(Level world, BlockPos lower, BlockState plant) {
         return HempdustryConfig.get().world().mildew() && plant.hasProperty(PROPERTY)
+                && plant.getBlock() instanceof Host host && host.catchesMildew()
                 && !plant.is(ModTags.Blocks.MILDEW_RESISTANT) && !ripe(plant) && roofed(world, lower);
     }
 

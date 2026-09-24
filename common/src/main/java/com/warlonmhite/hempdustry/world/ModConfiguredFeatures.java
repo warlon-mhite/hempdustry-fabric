@@ -38,6 +38,8 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<Feature> SATIVA_RARE_KEY = registerKey("sativa_rare");
     public static final ResourceKey<Feature> BELDIA_KEY = registerKey("beldia");
 
+    public static final ResourceKey<Feature> DITCHWEED_KEY = registerKey("ditchweed");
+
     public static ResourceKey<Feature> registerKey(String name) {
         return ResourceKey.create(Registries.FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
     }
@@ -75,6 +77,10 @@ public class ModConfiguredFeatures {
                 BlockColumnFeature.layer(ConstantInt.of(1),
                         BlockStateProvider.of(ripe.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
                 Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false));
+
+        // Ditchweed, feral Industrial Hemp: one plant. It grows where escaped fibre crops do, along
+        // water, which is the placed feature's filter to say, as it is for vanilla's sugar cane.
+        register(context, DITCHWEED_KEY, flower(ModBlocks.DITCHWEED));
     }
 
     /**
