@@ -20,6 +20,7 @@ public class ModTags {
         public static final TagKey<Biome> SATIVA_FLOWER_GEN_SPARSE = createTag("sativa_flower_gen_sparse");
         public static final TagKey<Biome> SATIVA_FLOWER_GEN_RARE = createTag("sativa_flower_gen_rare");
         public static final TagKey<Biome> BELDIA_GEN = createTag("beldia_gen");
+        public static final TagKey<Biome> DITCHWEED_GEN = createTag("ditchweed_gen");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }

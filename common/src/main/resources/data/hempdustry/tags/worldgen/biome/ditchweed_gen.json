@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:plains",
+    "minecraft:sunflower_plains",
+    "minecraft:river",
+    { "id": "biomesoplenty:prairie", "required": false },
+    { "id": "biomesoplenty:field", "required": false },
+    { "id": "regions_unexplored:prairie", "required": false }
+  ]
+}
