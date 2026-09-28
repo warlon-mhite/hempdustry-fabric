@@ -24,7 +24,7 @@ import java.util.List;
  * One {@link ViewerRecipes.Entry} drawn as a JEI page: the inputs in a row, an arrow, the output,
  * and the entry's notes underneath.
  *
- * <p>One class serving all three categories — they differ only in their {@link RecipeType}, title
+ * <p>One class serving every category — they differ only in their {@link RecipeType}, title
  * and icon, all of which are constructor arguments. The layout maths is the same for each and the
  * EMI side draws it identically; see {@link ViewerRecipes} for why both viewers read one model.
  */

@@ -18,12 +18,13 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * One {@link EntryReiDisplay} drawn as a REI page: the inputs in a row, an arrow, the output, and
  * the display's notes underneath.
  *
- * <p>One class serving all three categories — they differ only in their identifier, title and icon,
+ * <p>One class serving every category — they differ only in their identifier, title and icon,
  * all of which are constructor arguments. This is the same layout the JEI side draws, from the same
  * model; see {@link ViewerRecipes} for why both viewers read one.
  */
@@ -45,6 +46,8 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
     private final Text title;
     private final Renderer icon;
     private final int noteLines;
+    /** Every row this category shows, so each page is as wide as the widest of them. */
+    private List<ViewerRecipes.Entry> entries = List.of();
 
     public EntryReiCategory(Identifier id, ItemConvertible icon, int noteLines) {
         this.id = CategoryIdentifier.of(id);
@@ -71,11 +74,20 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
         return icon;
     }
 
+    /** Keeps this category's rows for {@link #getDisplayWidth}. */
+    public void fitted(List<ViewerRecipes.Entry> entries) {
+        this.entries = entries;
+    }
+
     /**
      * The slots' width, or the widest note's if that is wider. A note is translated text, and
      * "Needs a heat source underneath" is already wider than the Infuser's slots in English; a fixed
      * width ran it off the recipe and under REI's own button in the bottom-right corner, which the
      * last line has to clear. Measured on every call, so a language change is picked up too.
+     *
+     * <p>Measured over <b>every row in the category</b>, not just this one, so the rows stacked on
+     * one page are one width: sized each on its own, the wash rows came out a few pixels apart and
+     * their corner buttons did not line up.
      *
      * <p>Only on the render thread: REI also asks while validating displays on its reload thread,
      * and measuring text there bakes glyphs, which 1.21.11 refuses off the render thread. The
@@ -89,7 +101,9 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
             return slots + PADDING * 2;
         }
         TextRenderer font = client.textRenderer;
-        int widest = display.notes().stream().mapToInt(font::getWidth).max().orElse(0);
+        int widest = Stream.concat(entries.stream().flatMap(entry -> entry.notes().stream()),
+                        display.notes().stream())
+                .mapToInt(font::getWidth).max().orElse(0);
         return Math.max(slots, widest + CORNER_BUTTON) + PADDING * 2;
     }
 

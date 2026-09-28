@@ -12,8 +12,12 @@ import me.shedaniel.rei.plugin.client.BuiltinClientPlugin;
 import me.shedaniel.rei.plugin.common.displays.crafting.DefaultCustomShapelessDisplay;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.item.ItemConvertible;
+import net.minecraft.item.Items;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -42,17 +46,23 @@ public class HempdustryReiPlugin implements REIClientPlugin {
             CategoryIdentifier.of(ViewerRecipes.SIFTING);
     private static final CategoryIdentifier<EntryReiDisplay> ICE_O_LATOR =
             CategoryIdentifier.of(ViewerRecipes.ICE_O_LATOR);
+    private static final CategoryIdentifier<EntryReiDisplay> WORLD =
+            CategoryIdentifier.of(ViewerRecipes.WORLD);
+
+    /** Kept so each can be handed its rows and measure its page off all of them. */
+    private final Map<CategoryIdentifier<EntryReiDisplay>, EntryReiCategory> categories = new HashMap<>();
 
     @Override
     public void registerCategories(CategoryRegistry registry) {
         // The note-line counts are fixed per category rather than measured, because REI asks for a
         // category's height once and uses it for every page in it.
-        registry.add(new EntryReiCategory(ViewerRecipes.DECARBOXYLATING, ModBlocks.DECARBOXYLATOR, 1));
-        registry.add(new EntryReiCategory(ViewerRecipes.INFUSING, ModBlocks.INFUSER, 4));
-        registry.add(new EntryReiCategory(ViewerRecipes.CAULDRON, Blocks.WATER_CAULDRON, 1));
-        registry.add(new EntryReiCategory(ViewerRecipes.PRESSING, ModBlocks.HEMP_PRESS, 2));
-        registry.add(new EntryReiCategory(ViewerRecipes.SIFTING, ModBlocks.SIFTING_BOX, 1));
-        registry.add(new EntryReiCategory(ViewerRecipes.ICE_O_LATOR, ModBlocks.SIFTING_BOX, 2));
+        add(registry, DECARBOXYLATING, ModBlocks.DECARBOXYLATOR, 1);
+        add(registry, INFUSING, ModBlocks.INFUSER, 4);
+        add(registry, CAULDRON, Blocks.WATER_CAULDRON, 1);
+        add(registry, PRESSING, ModBlocks.HEMP_PRESS, 2);
+        add(registry, SIFTING, ModBlocks.SIFTING_BOX, 1);
+        add(registry, ICE_O_LATOR, ModBlocks.SIFTING_BOX, 2);
+        add(registry, WORLD, Items.SHEARS, 2);
 
         // The block you stand in front of to do the thing. REI draws these beside the category and
         // lets a player click one to get here from the item.
@@ -65,6 +75,22 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         registry.addWorkstations(ICE_O_LATOR, EntryStacks.of(ModBlocks.SIFTING_BOX));
     }
 
+    private void add(CategoryRegistry registry, CategoryIdentifier<EntryReiDisplay> id,
+                     ItemConvertible icon, int noteLines) {
+        EntryReiCategory category = new EntryReiCategory(id.getIdentifier(), icon, noteLines);
+        categories.put(id, category);
+        registry.add(category);
+    }
+
+    /** Hands a category its rows, so it can size every page to the widest, and registers them. */
+    private void add(DisplayRegistry registry, CategoryIdentifier<EntryReiDisplay> id,
+                     List<ViewerRecipes.Entry> entries) {
+        categories.get(id).fitted(entries);
+        for (ViewerRecipes.Entry entry : entries) {
+            registry.add(new EntryReiDisplay(id, entry));
+        }
+    }
+
     @Override
     public void registerDisplays(DisplayRegistry registry) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -75,15 +101,13 @@ public class HempdustryReiPlugin implements REIClientPlugin {
             return;
         }
 
-        for (ViewerRecipes.Entry entry : ViewerRecipes.decarboxylating(client.world)) {
-            registry.add(new EntryReiDisplay(DECARBOXYLATING, entry));
-        }
-        for (ViewerRecipes.Entry entry : ViewerRecipes.infusing(client.world)) {
-            registry.add(new EntryReiDisplay(INFUSING, entry));
-        }
-        for (ViewerRecipes.Entry entry : ViewerRecipes.cauldron()) {
-            registry.add(new EntryReiDisplay(CAULDRON, entry));
-        }
+        add(registry, DECARBOXYLATING, ViewerRecipes.decarboxylating(client.world));
+        add(registry, INFUSING, ViewerRecipes.infusing(client.world));
+        add(registry, CAULDRON, ViewerRecipes.cauldron());
+        add(registry, PRESSING, ViewerRecipes.pressing(client.world));
+        add(registry, SIFTING, ViewerRecipes.sifting(client.world));
+        add(registry, ICE_O_LATOR, ViewerRecipes.iceOLator(client.world));
+        add(registry, WORLD, ViewerRecipes.world(client.world));
         ViewerRecipes.info().forEach((item, text) -> BuiltinClientPlugin.getInstance()
                 .registerInformation(EntryStacks.of(item), item.getName(), lines -> {
                     lines.add(text);
@@ -92,19 +116,11 @@ public class HempdustryReiPlugin implements REIClientPlugin {
 
         // Packing goes into REI's own crafting category rather than one of ours, which is what
         // makes REI's built-in "move ingredients into the grid" work on it without a transfer
-        // handler of our own. See ViewerRecipes#packing.
-        for (ViewerRecipes.Entry entry : ViewerRecipes.pressing(client.world)) {
-            registry.add(new EntryReiDisplay(PRESSING, entry));
-        }
-        for (ViewerRecipes.Entry entry : ViewerRecipes.sifting(client.world)) {
-            registry.add(new EntryReiDisplay(SIFTING, entry));
-        }
-        for (ViewerRecipes.Entry entry : ViewerRecipes.iceOLator(client.world)) {
-            registry.add(new EntryReiDisplay(ICE_O_LATOR, entry));
-        }
+        // handler of our own. See ViewerRecipes#packing. Each slot is built from stacks, so the
+        // moon rock shows its load and the bong slot every glass.
         for (ViewerRecipes.Packing packing : ViewerRecipes.packing(client.world.getRegistryManager())) {
             registry.add(new DefaultCustomShapelessDisplay(
-                    EntryIngredients.ofIngredients(packing.inputs()),
+                    packing.inputs().stream().map(EntryIngredients::ofItemStacks).toList(),
                     List.of(EntryIngredients.of(packing.output())),
                     Optional.empty()));
         }

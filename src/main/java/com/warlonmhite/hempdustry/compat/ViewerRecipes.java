@@ -3,6 +3,8 @@ package com.warlonmhite.hempdustry.compat;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
+import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
@@ -17,6 +19,7 @@ import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -60,6 +63,8 @@ import java.util.Map;
  *   <li><b>Cauldron</b> has no recipe to read: retting and washing are {@code CauldronBehavior}
  *       entries, which no viewer can see and no datapack can express. They are built here from the
  *       same constants the behaviours use, so the page cannot drift from the code.</li>
+ *   <li><b>In the World</b> is the same for everything done to a block or an item in the world —
+ *       see {@link #world}.</li>
  *   <li><b>Packing</b> is not a category at all — see {@link #packing}.</li>
  * </ul>
  */
@@ -74,6 +79,7 @@ public final class ViewerRecipes {
     public static final Identifier PRESSING = Identifier.of(Hempdustry.MOD_ID, "pressing");
     public static final Identifier SIFTING = Identifier.of(Hempdustry.MOD_ID, "sifting");
     public static final Identifier ICE_O_LATOR = Identifier.of(Hempdustry.MOD_ID, "ice_o_lator");
+    public static final Identifier WORLD = Identifier.of(Hempdustry.MOD_ID, "world");
 
     /**
      * One row in a viewer: what goes in, what comes out, and the lines of text that carry whatever
@@ -234,8 +240,12 @@ public final class ViewerRecipes {
      * not a reason for a recipe viewer to fail to open.
      */
     private static Ingredient ofTag(World world, TagKey<Item> tag) {
+        return ofTag(world, tag, ModItems.HEMP_LEAF);
+    }
+
+    private static Ingredient ofTag(World world, TagKey<Item> tag, Item fallback) {
         return world.getRegistryManager().getOrThrow(RegistryKeys.ITEM).getOptional(tag)
-                .map(Ingredient::ofTag).orElse(Ingredient.ofItems(ModItems.HEMP_LEAF));
+                .map(Ingredient::ofTag).orElse(Ingredient.ofItems(fallback));
     }
 
     /**
@@ -263,15 +273,77 @@ public final class ViewerRecipes {
     }
 
     /**
+     * Everything a player gets by doing something to a block or an item rather than putting it in
+     * a grid or a machine: charas, the trimmed leaf, the pieces cut off a bar, the vaporizer's
+     * scorched hemp and schwag. None of them has a recipe, so without this page each is an item a
+     * viewer can say nothing about -- charas least of all, whose only source is a right-click.
+     *
+     * <p>A plant is drawn as its seeds, because a crop block's item is its seeds. The numbers come
+     * from the same constants the blocks and the device read.
+     */
+    public static List<Entry> world(World world) {
+        List<RegistryEntry.Reference<Strain>> strains = Strain.all(world.getRegistryManager());
+        List<Item> seeds = strains.stream().filter(strain -> strain.value().flower().isPresent())
+                .flatMap(strain -> strain.value().seeds().stream()).toList();
+        List<Item> spendable = strains.stream().filter(ModStrains::isPlantMatter)
+                .map(strain -> strain.value().buds()).toList();
+        Ingredient shears = ofTag(world, ConventionalItemTags.SHEAR_TOOLS, Items.SHEARS);
+
+        List<Entry> out = new ArrayList<>();
+        // A datapack can take every plant away; an empty Ingredient throws, so the plant rows go too.
+        if (!seeds.isEmpty()) {
+            Ingredient plant = Ingredient.ofItems(seeds.stream());
+            out.add(inWorld("trimming", List.of(plant, shears), new ItemStack(ModItems.HEMP_LEAF),
+                    Text.translatable("hempdustry.category.world.trimming"),
+                    Text.translatable("hempdustry.category.world.trimming.pays")));
+            out.add(inWorld("rubbing", List.of(plant, shears), new ItemStack(ModItems.CHARAS),
+                    Text.translatable("hempdustry.category.world.rubbing", Defoliation.CHARAS_CHANCE_ONE_IN),
+                    Text.translatable("hempdustry.category.world.rubbing.lamps",
+                            Defoliation.CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS)));
+            out.add(inWorld("schwag", List.of(plant), new ItemStack(ModItems.SCHWAG),
+                    Text.translatable("hempdustry.category.world.schwag"),
+                    Text.translatable("hempdustry.category.world.schwag.fortune")));
+        }
+        Ingredient blades = ofTag(world, ModTags.Items.HASH_CUTTERS, Items.IRON_SWORD);
+        out.add(cut(ModBlocks.HASHISH_BAR, ModItems.HASHISH, blades));
+        out.add(cut(ModBlocks.FILTERED_HASHISH_BAR, ModItems.FILTERED_HASHISH, blades));
+        if (!spendable.isEmpty()) {
+            out.add(inWorld("vaporizer",
+                    List.of(Ingredient.ofItems(ModItems.VAPORIZER), Ingredient.ofItems(spendable.stream())),
+                    new ItemStack(ModItems.SCORCHED_HEMP, DeviceType.VAPORIZER.spentYield()),
+                    Text.translatable("hempdustry.category.world.vaporizer"),
+                    Text.translatable("hempdustry.category.world.vaporizer.plant")));
+        }
+        return out;
+    }
+
+    /** A bar is placed and cut, never unpacked in a grid -- five cuts, the whole bar in pieces. */
+    private static Entry cut(net.minecraft.block.Block bar, Item piece, Ingredient blades) {
+        return inWorld("cutting/" + Registries.BLOCK.getId(bar).getPath(),
+                List.of(Ingredient.ofItems(bar), blades),
+                new ItemStack(piece, HashishBarBlock.remaining(0)),
+                Text.translatable("hempdustry.category.world.cutting"));
+    }
+
+    private static Entry inWorld(String name, List<Ingredient> inputs, ItemStack output, Text... notes) {
+        return new Entry(Identifier.of(Hempdustry.MOD_ID, "world/" + name), inputs, output,
+                List.of(notes), true);
+    }
+
+    /**
      * What a viewer can only say in a paragraph, handed to each viewer's own information page. A
      * packed bong sets down only while sneaking, because a plain right-click is how it is smoked,
-     * and no crafting row can say so.
+     * and no crafting row can say so. The indoor-growing blocks can only be shown being crafted:
+     * what each one does is a paragraph, not a row of slots.
      */
     public static Map<Item, Text> info() {
         Map<Item, Text> out = new LinkedHashMap<>();
         for (Item bong : ModItems.bongs()) {
             out.put(bong, Text.translatable("hempdustry.info.bong"));
         }
+        out.put(ModBlocks.GROW_POT.asItem(), Text.translatable("hempdustry.info.grow_pot"));
+        out.put(ModBlocks.HYDRO_TRAY.asItem(), Text.translatable("hempdustry.info.hydro_tray"));
+        out.put(ModBlocks.GROW_LAMP.asItem(), Text.translatable("hempdustry.info.grow_lamp"));
         return out;
     }
 
@@ -292,12 +364,24 @@ public final class ViewerRecipes {
      *
      * <p>The permutations are real, not illustrative: the same components the real recipe sets, so
      * the entry's output is byte-for-byte the item crafting one produces.
+     *
+     * <p>Each input slot is a list of stacks rather than an {@code Ingredient}, because two of them
+     * need what an ingredient cannot say: the moon rock carries its load in a component, and the
+     * bong's slot takes all eighteen glasses.
      */
     public static List<Packing> packing(RegistryWrapper.WrapperLookup registries) {
         List<Packing> out = new ArrayList<>();
-        RegistryEntry<Strain> hashish = Strain.registry(registries)
-                .getOptional(ModStrains.HASHISH).orElse(null);
-        for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
+        RegistryWrapper.Impl<Strain> registry = Strain.registry(registries);
+        // The three coats, in the order their recipes are written. A coat a datapack removed is
+        // simply not offered.
+        List<RegistryEntry.Reference<Strain>> coats = java.util.stream.Stream.of(
+                        ModStrains.HASHISH, ModStrains.FILTERED_HASHISH, ModStrains.CHARAS)
+                .flatMap(key -> registry.getOptional(key).stream()).toList();
+        // The strains with art of their own first, in the creative tab's order; schwag and scorched
+        // hemp have none (model_index 0) and would otherwise open every device's list.
+        List<RegistryEntry.Reference<Strain>> strains = new ArrayList<>(Strain.all(registries));
+        strains.sort(java.util.Comparator.comparing(strain -> strain.value().modelIndex() == 0));
+        for (RegistryEntry.Reference<Strain> strain : strains) {
             // Every device, from the one place that knows them all: a device added later gets its
             // packing rows in both viewers without this file being touched.
             for (Map.Entry<DeviceType, Item> entry : ModItems.devices().entrySet()) {
@@ -312,11 +396,13 @@ public final class ViewerRecipes {
                     out.add(packed(strain, device, type, dose));
                 }
                 // The moon rock: one item, one bowl, and the only row here whose load is two
-                // entries. Skipped where a device's maxDose refuses it, which is a pipe and a
-                // vaporizer, and skipped for strains that never grew on a plant.
-                if (hashish != null && strain.value().flower().isPresent()
-                        && ModItems.MOON_ROCK_DOSE <= type.maxDose()) {
-                    out.add(packedMoonRock(strain, hashish, device, type));
+                // entries -- one row per coat, since the coat is half of what it carries. Skipped
+                // where a device's maxDose refuses it, which is a pipe and a vaporizer, and skipped
+                // for strains that never grew on a plant.
+                if (strain.value().flower().isPresent() && ModItems.MOON_ROCK_DOSE <= type.maxDose()) {
+                    for (RegistryEntry.Reference<Strain> coat : coats) {
+                        out.add(packedMoonRock(strain, coat, device, type));
+                    }
                 }
             }
         }
@@ -329,12 +415,12 @@ public final class ViewerRecipes {
         result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
         result.set(ModComponents.CHARGES, type.bowlSize());
 
-        List<Ingredient> inputs = new ArrayList<>();
-        inputs.add(Ingredient.ofItems(device));
+        List<List<ItemStack>> inputs = new ArrayList<>();
+        inputs.add(anyOf(type, device));
         // How many of the item, not how many dose points -- see the step above.
         int items = dose / Math.max(1, strain.value().dosePerItem());
         for (int i = 0; i < items; i++) {
-            inputs.add(Ingredient.ofItems(strain.value().buds()));
+            inputs.add(List.of(new ItemStack(strain.value().buds())));
         }
         Identifier id = Identifier.of(Hempdustry.MOD_ID,
                 "packing/" + strain.registryKey().getValue().getPath() + "/"
@@ -343,31 +429,36 @@ public final class ViewerRecipes {
     }
 
     /**
-     * A moon rock row. Its input ingredient is the <b>bare</b> moon rock item, because an
-     * {@code Ingredient} matches on item identity and cannot ask about components — so the page
-     * draws an untinted, unnamed nug where a player would expect "Purple Kush Moon Rock".
-     *
-     * <p>Only the picture is wrong. A viewer's "move ingredients into the grid" pulls whatever
-     * moon rock the player actually has, which is a loaded one, and {@code PackingRecipe} then
-     * reads its load and crafts correctly.
+     * A moon rock row. The input is the loaded moon rock itself -- {@link ModItems#moonRock}, the
+     * stack its own recipe bakes -- so the page draws "Purple Kush Moon Rock" in its tint rather
+     * than a bare nug, and a viewer's "move ingredients into the grid" looks for that one.
      */
     private static Packing packedMoonRock(RegistryEntry.Reference<Strain> strain,
-                                          RegistryEntry<Strain> hashish, Item device, DeviceType type) {
+                                          RegistryEntry.Reference<Strain> coat, Item device, DeviceType type) {
+        ItemStack moonRock = ModItems.moonRock(strain, coat);
         ItemStack result = new ItemStack(device);
-        result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, ModItems.MOON_ROCK_DOSE,
-                hashish, ModItems.MOON_ROCK_HASH_DOSE));
+        result.set(ModComponents.SMOKE_CONTENTS,
+                moonRock.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY));
         result.set(ModComponents.CHARGES, type.bowlSize());
         Identifier id = Identifier.of(Hempdustry.MOD_ID,
                 "packing/" + strain.registryKey().getValue().getPath() + "/"
-                        + type.name().toLowerCase(java.util.Locale.ROOT) + "_moon_rock");
-        return new Packing(id,
-                List.of(Ingredient.ofItems(device),
-                        Ingredient.ofItems(ModItems.MOON_ROCK)),
-                result);
+                        + type.name().toLowerCase(java.util.Locale.ROOT) + "_moon_rock_"
+                        + coat.registryKey().getValue().getPath());
+        return new Packing(id, List.of(anyOf(type, device), List.of(moonRock)), result);
+    }
+
+    /**
+     * Every item that is this device. A bong packs the same in any of its eighteen glasses, so its
+     * slot offers them all -- which is what puts the packing rows under a stained-glass bong's uses
+     * without drawing each row eighteen times. The result stays the clear one.
+     */
+    private static List<ItemStack> anyOf(DeviceType type, Item device) {
+        List<Item> items = type == DeviceType.BONG ? ModItems.bongs() : List.of(device);
+        return items.stream().map(ItemStack::new).toList();
     }
 
     /** One packing permutation, shaped for whatever a viewer calls a shapeless crafting recipe. */
-    public record Packing(Identifier id, List<Ingredient> inputs, ItemStack output) {
+    public record Packing(Identifier id, List<List<ItemStack>> inputs, ItemStack output) {
     }
 
     /**

@@ -176,6 +176,12 @@ beta be told when the release lands.
   - **Extraction**, a branch of its own under *Green Threads*: kief, the hashish bar, cutting it,
     filtered hashish, rosin, the moon rock and bubble hash each get a node, and ***Around the
     World in 80 Grams*** is a challenge for holding all five resins — not at once.
+- **JEI and REI pages for all of it.** Beside the Sifting Box, Ice-o-lator and Hemp Press pages, an
+  **In the World** page covers everything that has no recipe to show: trimming a plant for a leaf,
+  rubbing a ripe one for charas, cutting a hash bar with a blade, the scorched hemp a vaporizer
+  hands back, and the schwag a stressed plant spoils into. The Grow Pot, Hydro Tray and Grow Lamp
+  each get an information page. Packing rows show a real moon rock in its strain's colour, one row
+  per coat, and look up from a bong of any colour of glass.
 
 ### Changed
 

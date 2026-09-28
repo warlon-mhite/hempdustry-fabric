@@ -15,6 +15,7 @@ import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeEntry;
@@ -22,9 +23,11 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.recipe.ShapelessRecipe;
 import net.minecraft.recipe.book.CraftingRecipeCategory;
+import net.minecraft.recipe.display.RecipeDisplay;
+import net.minecraft.recipe.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.recipe.display.SlotDisplay;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +59,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
     private EntryJeiCategory pressing;
     private EntryJeiCategory sifting;
     private EntryJeiCategory iceOLator;
+    private EntryJeiCategory world;
 
     @Override
     public Identifier getPluginUid() {
@@ -98,7 +102,8 @@ public class HempdustryJeiPlugin implements IModPlugin {
                 new ItemStack(ModBlocks.SIFTING_BOX), 1);
         iceOLator = new EntryJeiCategory(gui, ViewerRecipes.ICE_O_LATOR,
                 new ItemStack(ModBlocks.SIFTING_BOX), 2);
-        registration.addRecipeCategories(decarboxylating, infusing, cauldron, pressing, sifting, iceOLator);
+        world = new EntryJeiCategory(gui, ViewerRecipes.WORLD, new ItemStack(Items.SHEARS), 2);
+        registration.addRecipeCategories(decarboxylating, infusing, cauldron, pressing, sifting, iceOLator, world);
     }
 
     @Override
@@ -117,6 +122,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
         registration.addRecipes(pressing.getRecipeType(), pressing.fitted(ViewerRecipes.pressing(client.world)));
         registration.addRecipes(sifting.getRecipeType(), sifting.fitted(ViewerRecipes.sifting(client.world)));
         registration.addRecipes(iceOLator.getRecipeType(), iceOLator.fitted(ViewerRecipes.iceOLator(client.world)));
+        registration.addRecipes(world.getRecipeType(), world.fitted(ViewerRecipes.world(client.world)));
         ViewerRecipes.info().forEach((item, text) -> registration.addIngredientInfo(item, text));
 
         // Packing goes into JEI's own crafting category rather than one of ours, which is what makes
@@ -133,17 +139,42 @@ public class HempdustryJeiPlugin implements IModPlugin {
      * matches exactly these ingredients. Building a {@link ShapelessRecipe} here is a way of
      * describing that match in the one shape JEI's crafting category and its transfer handler both
      * understand.
+     *
+     * <p><b>JEI draws a crafting recipe from its {@code getDisplays()}, not its ingredients</b>, and
+     * a display slot can hold a stack with components where an {@code Ingredient} cannot. That is
+     * how the moon rock slot shows the loaded moon rock, and the bong slot every glass; the
+     * ingredients underneath are the bare items, which is all a recipe can match on anyway.
      */
     private static List<RecipeEntry<CraftingRecipe>> packingAsCrafting(RegistryWrapper.WrapperLookup registries) {
         List<RecipeEntry<CraftingRecipe>> out = new ArrayList<>();
         for (ViewerRecipes.Packing packing : ViewerRecipes.packing(registries)) {
+            List<Ingredient> ingredients = packing.inputs().stream()
+                    .map(stacks -> Ingredient.ofItems(stacks.stream().map(ItemStack::getItem)))
+                    .toList();
+            List<SlotDisplay> slots = packing.inputs().stream().map(HempdustryJeiPlugin::display).toList();
+            RecipeDisplay display = new ShapelessCraftingRecipeDisplay(slots,
+                    new SlotDisplay.StackSlotDisplay(packing.output()),
+                    new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE));
             // A RecipeEntry is keyed by a RegistryKey<Recipe<?>> since 1.21.4, and a shapeless
             // recipe takes a plain List rather than a DefaultedList.
             out.add(new RecipeEntry<>(RegistryKey.of(RegistryKeys.RECIPE, packing.id()),
-                    new ShapelessRecipe("", CraftingRecipeCategory.MISC, packing.output(),
-                            List.copyOf(packing.inputs()))));
+                    new ShapelessRecipe("", CraftingRecipeCategory.MISC, packing.output(), ingredients) {
+                        @Override
+                        public List<RecipeDisplay> getDisplays() {
+                            return List.of(display);
+                        }
+                    }));
         }
         return out;
+    }
+
+    /** One slot's stacks, exactly as given: a single stack, or a list JEI cycles through. */
+    private static SlotDisplay display(List<ItemStack> stacks) {
+        if (stacks.size() == 1) {
+            return new SlotDisplay.StackSlotDisplay(stacks.getFirst());
+        }
+        return new SlotDisplay.CompositeSlotDisplay(stacks.stream()
+                .<SlotDisplay>map(SlotDisplay.StackSlotDisplay::new).toList());
     }
 
     @Override
