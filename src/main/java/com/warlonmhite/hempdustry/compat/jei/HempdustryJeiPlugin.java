@@ -15,6 +15,7 @@ import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeEntry;
@@ -54,6 +55,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
     private EntryJeiCategory pressing;
     private EntryJeiCategory sifting;
     private EntryJeiCategory iceOLator;
+    private EntryJeiCategory world;
 
     @Override
     public Identifier getPluginUid() {
@@ -96,7 +98,8 @@ public class HempdustryJeiPlugin implements IModPlugin {
                 new ItemStack(ModBlocks.SIFTING_BOX), 1);
         iceOLator = new EntryJeiCategory(gui, ViewerRecipes.ICE_O_LATOR,
                 new ItemStack(ModBlocks.SIFTING_BOX), 2);
-        registration.addRecipeCategories(decarboxylating, infusing, cauldron, pressing, sifting, iceOLator);
+        world = new EntryJeiCategory(gui, ViewerRecipes.WORLD, new ItemStack(Items.SHEARS), 2);
+        registration.addRecipeCategories(decarboxylating, infusing, cauldron, pressing, sifting, iceOLator, world);
     }
 
     @Override
@@ -116,6 +119,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
         registration.addRecipes(pressing.getRecipeType(), pressing.fitted(ViewerRecipes.pressing(recipes)));
         registration.addRecipes(sifting.getRecipeType(), sifting.fitted(ViewerRecipes.sifting()));
         registration.addRecipes(iceOLator.getRecipeType(), iceOLator.fitted(ViewerRecipes.iceOLator()));
+        registration.addRecipes(world.getRecipeType(), world.fitted(ViewerRecipes.world(client.world.getRegistryManager())));
         ViewerRecipes.info().forEach((item, text) -> registration.addIngredientInfo(item, text));
 
         // Packing goes into JEI's own crafting category rather than one of ours, which is what makes
@@ -136,9 +140,13 @@ public class HempdustryJeiPlugin implements IModPlugin {
     private static List<RecipeEntry<CraftingRecipe>> packingAsCrafting(RegistryWrapper.WrapperLookup registries) {
         List<RecipeEntry<CraftingRecipe>> out = new ArrayList<>();
         for (ViewerRecipes.Packing packing : ViewerRecipes.packing(registries)) {
+            // Each slot is an Ingredient over the slot's own stacks. On this line an Ingredient keeps
+            // the stacks it was built from and draws them as they are, components and all, while
+            // matching on the item alone -- so the moon rock slot shows the loaded rock and the bong
+            // slot cycles every glass, and the recipe still takes whatever rock or glass is put in.
             DefaultedList<Ingredient> ingredients = DefaultedList.ofSize(packing.inputs().size(), Ingredient.EMPTY);
             for (int i = 0; i < packing.inputs().size(); i++) {
-                ingredients.set(i, packing.inputs().get(i));
+                ingredients.set(i, Ingredient.ofStacks(packing.inputs().get(i).stream()));
             }
             out.add(new RecipeEntry<>(packing.id(),
                     new ShapelessRecipe("", CraftingRecipeCategory.MISC, packing.output(), ingredients)));

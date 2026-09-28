@@ -34,7 +34,8 @@
 			"com.warlonmhite.hempdustry.test.SiftingBoxGameTest",
 			"com.warlonmhite.hempdustry.test.TagBackedBehaviourGameTest",
 			"com.warlonmhite.hempdustry.test.TallPlantLootGameTest",
-			"com.warlonmhite.hempdustry.test.VaporizerGameTest"
+			"com.warlonmhite.hempdustry.test.VaporizerGameTest",
+			"com.warlonmhite.hempdustry.test.ViewerGameTest"
 		]
 	},
 	"depends": {

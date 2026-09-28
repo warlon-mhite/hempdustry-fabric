@@ -14,7 +14,8 @@ import dev.emi.emi.api.stack.EmiStack;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.ItemConvertible;
-import net.minecraft.recipe.Ingredient;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
@@ -43,6 +44,8 @@ public class HempdustryEmiPlugin implements EmiPlugin {
             category(ViewerRecipes.SIFTING, ModBlocks.SIFTING_BOX);
     private static final EmiRecipeCategory ICE_O_LATOR =
             category(ViewerRecipes.ICE_O_LATOR, ModBlocks.SIFTING_BOX);
+    private static final EmiRecipeCategory WORLD =
+            category(ViewerRecipes.WORLD, Items.SHEARS);
 
     /**
      * A category whose name comes from <b>this mod's</b> lang key rather than EMI's.
@@ -77,6 +80,7 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         registry.addCategory(PRESSING);
         registry.addCategory(SIFTING);
         registry.addCategory(ICE_O_LATOR);
+        registry.addCategory(WORLD);
 
         // The block you stand in front of to do the thing. EMI draws these beside the category and
         // lets a player click one to get here from the item.
@@ -110,10 +114,18 @@ public class HempdustryEmiPlugin implements EmiPlugin {
                 List.of(EmiStack.of(item)), List.of(text),
                 ViewerRecipes.synthetic(Identifier.of(Hempdustry.MOD_ID, "info/" + Registries.ITEM.getId(item).getPath())))));
 
+        // In the World and packing both read the strain registry, which only a joined world has.
+        RegistryWrapper.WrapperLookup registries = registries();
+        if (registries != null) {
+            for (ViewerRecipes.Entry entry : ViewerRecipes.world(registries)) {
+                registry.addRecipe(new EntryEmiRecipe(WORLD, entry));
+            }
+        }
+
         // Packing goes in EMI's own crafting category rather than one of ours, which is what makes
         // "move ingredients into the grid" work on it without a line of transfer code. See
-        // ViewerRecipes#packing.
-        RegistryWrapper.WrapperLookup registries = registries();
+        // ViewerRecipes#packing. Each slot is built from stacks, so the moon rock shows its load and
+        // the bong slot every glass.
         if (registries != null) {
             for (ViewerRecipes.Packing packing : ViewerRecipes.packing(registries)) {
                 registry.addRecipe(new EmiCraftingRecipe(
@@ -125,8 +137,8 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         }
     }
 
-    private static EmiIngredient ingredient(Ingredient ingredient) {
-        return EmiIngredient.of(List.of(ingredient.getMatchingStacks()).stream().map(EmiStack::of).toList());
+    private static EmiIngredient ingredient(List<ItemStack> stacks) {
+        return EmiIngredient.of(stacks.stream().map(EmiStack::of).toList());
     }
 
     /**
