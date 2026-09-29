@@ -1,6 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
+  "group": "bed",
   "key": {
     "#": "hempdustry:hemp_wool",
     "X": "#minecraft:planks"
@@ -11,6 +12,6 @@
   ],
   "result": {
     "count": 1,
-    "id": "minecraft:white_bed"
+    "id": "hempdustry:hemp_bed"
   }
 }

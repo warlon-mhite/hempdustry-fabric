@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_shelf_unpowered",
+  "textures": {
+    "all": "hempdustry:block/hemp_planks_shelf",
+    "particle": "hempdustry:block/hemp_planks"
+  }
+}

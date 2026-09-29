@@ -113,6 +113,10 @@ public class HempdustryGameTests implements ModInitializer {
         register("a_bud_with_a_concentrate_reaches_three", RebalanceGameTest::aBudWithAConcentrateReachesThree);
         register("a_broken_config_is_left_alone", ConfigGameTest::aBrokenConfigIsLeftAlone);
         register("a_hemp_boat_does_not_stop_the_data_fixer", DataFixerGameTest::aHempBoatDoesNotStopTheDataFixer);
+        register("a_hemp_bed_is_a_villagers_home", FurnitureGameTest::aHempBedIsAVillagersHome);
+        register("the_bed_burns_the_wood_does_not", FurnitureGameTest::theBedBurnsTheWoodDoesNot);
+        register("a_hemp_shelf_is_a_vanilla_shelf", FurnitureGameTest::aHempShelfIsAVanillaShelf);
+        register("a_hemp_harness_fits_a_happy_ghast", FurnitureGameTest::aHempHarnessFitsAHappyGhast);
     }
 
     private static void register(String name, Consumer<TestContext> test) {

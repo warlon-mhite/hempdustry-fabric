@@ -17,6 +17,7 @@ import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.loot.ModLootEntryTypes;
 import com.warlonmhite.hempdustry.loot.ModLootTableModifiers;
+import com.warlonmhite.hempdustry.mixin.PointOfInterestTypesAccessor;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.particle.ModParticles;
@@ -27,9 +28,15 @@ import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityT
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
+import net.minecraft.block.BedBlock;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.block.enums.BedPart;
+import net.minecraft.registry.Registries;
+import net.minecraft.world.poi.PointOfInterestTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.stream.Collectors;
 
 public class Hempdustry implements ModInitializer {
 	public static final String MOD_ID = "hempdustry";
@@ -133,6 +140,15 @@ public class Hempdustry implements ModInitializer {
 		((FabricBlockEntityType) BlockEntityType.SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_WALL_SIGN);
 		((FabricBlockEntityType) BlockEntityType.HANGING_SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
 		((FabricBlockEntityType) BlockEntityType.HANGING_SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
+		// The shelf is vanilla's block and keeps vanilla's block entity, and so its renderer.
+		((FabricBlockEntityType) BlockEntityType.SHELF).addSupportedBlock(ModBlocks.HEMP_PLANKS_SHELF);
+
+		// A villager's home is any bed head, the way vanilla lists its own sixteen.
+		PointOfInterestTypesAccessor.hempdustry$registerStates(
+				Registries.POINT_OF_INTEREST_TYPE.getOrThrow(PointOfInterestTypes.HOME),
+				ModBlocks.HEMP_BED.getStateManager().getStates().stream()
+						.filter(state -> state.get(BedBlock.PART) == BedPart.HEAD)
+						.collect(Collectors.toUnmodifiableSet()));
 	}
 
 	private static void registerFlammables() {
@@ -163,6 +179,9 @@ public class Hempdustry implements ModInitializer {
 		// to 60 would turn carpets into a fire highway, which is a gameplay change rather than a
 		// material one.
 		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_CARPET, 60, 20);
+		// No vanilla bed burns. This one does, at the rate of the hemp wool it is made from: most of
+		// a bed is its cloth, and hemp cloth is the one hemp material that catches.
+		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_BED, 60, 60);
 	}
 
 }

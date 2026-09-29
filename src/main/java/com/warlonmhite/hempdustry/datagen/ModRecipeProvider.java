@@ -49,6 +49,8 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.registry.tag.TagKey;
+import net.minecraft.item.DyeItem;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 
 import java.util.concurrent.CompletableFuture;
@@ -105,6 +107,12 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         createFenceRecipe(ModBlocks.HEMP_PLANKS_FENCE, Ingredient.ofItems(ModBlocks.HEMP_PLANKS)).criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS)).offerTo(exporter);
         createFenceGateRecipe(ModBlocks.HEMP_PLANKS_FENCE_GATE, Ingredient.ofItems(ModBlocks.HEMP_PLANKS)).criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS)).offerTo(exporter);
         offerPressurePlateRecipe(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE, ModBlocks.HEMP_PLANKS);
+
+        // Parquet is vanilla's mosaic recipe — two slabs stacked — and its stairs and slab are cut
+        // from it the way bamboo mosaic's are.
+        offerMosaicRecipe(RecipeCategory.DECORATIONS, ModBlocks.HEMP_PARQUET, ModBlocks.HEMP_PLANKS_SLAB);
+        createStairsRecipe(ModBlocks.HEMP_PARQUET_STAIRS, Ingredient.ofItems(ModBlocks.HEMP_PARQUET)).criterion(hasItem(ModBlocks.HEMP_PARQUET), conditionsFromItem(ModBlocks.HEMP_PARQUET)).offerTo(exporter);
+        offerSlabRecipe(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_PARQUET_SLAB, ModBlocks.HEMP_PARQUET);
 
         // ---------------------------------------------------------------------
         // Core hemp processing chain (migrated from hand-written JSON).
@@ -371,6 +379,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .input('X', Items.IRON_CHAIN)
                 .criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS))
                 .offerTo(exporter, id("hemp_planks_hanging_sign"));
+
+        // Vanilla's shelf is six stripped logs. Hemp has no log, so the planks take their place,
+        // exactly as they do in the hanging sign above.
+        offerShelfRecipe(ModBlocks.HEMP_PLANKS_SHELF, ModBlocks.HEMP_PLANKS);
 
         // ---------------------------------------------------------------------
         // Wholesome hemp-seed food. No THC in any of this — hemp seed is a food
@@ -1077,18 +1089,49 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
                 .offerTo(exporter, id("paper"));
 
-        // Vanilla's bed, with the sheep's wool swapped for hemp. A second route rather than a
-        // replacement — every coloured bed recipe is keyed on its own specific wool item, so this
-        // adds one and takes nothing away. White because white wool is vanilla's *undyed* wool and
-        // hemp cloth is undyed by definition; a true hemp-coloured bed would need its own block,
-        // and that is a much larger job than a recipe (CLAUDE.md §5b D9).
-        createShaped(RecipeCategory.DECORATIONS, Items.WHITE_BED)
-                .pattern("###")
-                .pattern("XXX")
-                .input('#', ModBlocks.HEMP_WOOL)
-                .input('X', ItemTags.PLANKS)
-                .criterion(hasItem(ModBlocks.HEMP_WOOL), conditionsFromItem(ModBlocks.HEMP_WOOL))
-                .offerTo(exporter, id("white_bed"));
+        // The bed hemp wool makes: vanilla's own bed recipe, with hemp wool where each vanilla bed
+        // has its wool. It takes the grid over from the hemp-wool white bed this used to make —
+        // two recipes on one grid collide, and only one of them could ever be crafted.
+        offerBedRecipe(ModBlocks.HEMP_BED, ModBlocks.HEMP_WOOL);
+
+        // Any vanilla bed dyes into any other colour, but vanilla's sixteen dyeing recipes name the
+        // fifteen other beds one by one rather than a tag, so none of them will ever take a hemp
+        // bed. These are the same recipes with the hemp bed as the ingredient they are missing, and
+        // white dye is now how hemp wool becomes a white bed.
+        for (DyeColor color : ModBlocks.DYE_ORDER) {
+            Item bed = Registries.ITEM.get(Identifier.ofVanilla(color.getId() + "_bed"));
+            createShapeless(RecipeCategory.DECORATIONS, bed)
+                    .input(DyeItem.byColor(color))
+                    .input(ModBlocks.HEMP_BED)
+                    .group("bed_dye")
+                    .criterion(hasItem(ModBlocks.HEMP_BED), conditionsFromItem(ModBlocks.HEMP_BED))
+                    .offerTo(exporter, id(color.getId() + "_bed_from_hemp_bed"));
+        }
+
+        // The harness hemp wool makes: vanilla's own harness recipe — three leather, two glass —
+        // with hemp wool where each vanilla harness has its wool. Vanilla's harness-dyeing recipes
+        // name the other harnesses one by one, as the bed ones do, so the dyeing is ours too.
+        offerHarness(ModItems.HEMP_HARNESS, ModBlocks.HEMP_WOOL);
+        for (DyeColor color : ModBlocks.DYE_ORDER) {
+            Item harness = Registries.ITEM.get(Identifier.ofVanilla(color.getId() + "_harness"));
+            createShapeless(RecipeCategory.TOOLS, harness)
+                    .input(DyeItem.byColor(color))
+                    .input(ModItems.HEMP_HARNESS)
+                    .group("harness_dye")
+                    .criterion(hasItem(ModItems.HEMP_HARNESS), conditionsFromItem(ModItems.HEMP_HARNESS))
+                    .offerTo(exporter, id(color.getId() + "_harness_from_hemp_harness"));
+        }
+
+        // Vanilla's bundle, with canvas where it has leather: a bundle is a sack, and a hemp sack is
+        // the real thing. A second route that takes nothing away, like the book and the item frame,
+        // and it makes vanilla's own bundle, so the dyeing recipes take it as they are.
+        createShaped(RecipeCategory.TOOLS, Items.BUNDLE)
+                .pattern("-")
+                .pattern("#")
+                .input('-', Items.STRING)
+                .input('#', ModItems.HEMP_CANVAS)
+                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
+                .offerTo(exporter, id("bundle"));
 
         // Shapeless, matching vanilla's own book recipe. The leather in a book is the *cover*, and
         // cloth-bound hardbacks are entirely ordinary — so canvas reads right there. Combined with

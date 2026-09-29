@@ -184,7 +184,12 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.HEMP_PLANKS_SIGN)
                 .add(ModBlocks.HEMP_PLANKS_WALL_SIGN)
                 .add(ModBlocks.HEMP_PLANKS_HANGING_SIGN)
-                .add(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
+                .add(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN)
+                // Vanilla lists bamboo mosaic and its stairs and slab by name, since they are in no
+                // wooden tag; the shelf comes in through #minecraft:wooden_shelves below.
+                .add(ModBlocks.HEMP_PARQUET)
+                .add(ModBlocks.HEMP_PARQUET_STAIRS)
+                .add(ModBlocks.HEMP_PARQUET_SLAB);
 
         // What hemp wool gets *instead of* joining #minecraft:wool. That tag is referenced by
         // exactly three things in 1.21.1 — the painting recipe, these two vibration tags, and a
@@ -231,6 +236,13 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         valueLookupBuilder(BlockTags.WOODEN_TRAPDOORS).add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
         valueLookupBuilder(BlockTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
         valueLookupBuilder(BlockTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL);
+        // Parquet is bamboo mosaic's case: the plain stairs and slab tags, never the wooden ones,
+        // which are what the recipes for chests, sticks and the rest ask for.
+        valueLookupBuilder(BlockTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS);
+        valueLookupBuilder(BlockTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB);
+        valueLookupBuilder(BlockTags.WOODEN_SHELVES).add(ModBlocks.HEMP_PLANKS_SHELF);
+        // What a villager's sleep and wake-up tasks check a bed against.
+        valueLookupBuilder(BlockTags.BEDS).add(ModBlocks.HEMP_BED);
 
         valueLookupBuilder(BlockTags.STANDING_SIGNS).add(ModBlocks.HEMP_PLANKS_SIGN);
         valueLookupBuilder(BlockTags.WALL_SIGNS).add(ModBlocks.HEMP_PLANKS_WALL_SIGN);

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "group": "harness_dye",
+  "ingredients": [
+    "minecraft:brown_dye",
+    "hempdustry:hemp_harness"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:brown_harness"
+  }
+}

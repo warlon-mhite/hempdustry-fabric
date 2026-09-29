@@ -1,0 +1,84 @@
+# PLACEHOLDER -- Hemp Shelf: vanilla's oak shelf, retoned to hemp planks.
+#
+# The MATRIX is vanilla `block/oak_shelf.png` (32x32, the shelf's whole UV sheet) taken
+# verbatim, so every shelf model part lands on the texel it expects. Only the colours are
+# ours: each oak tone was moved from oak_planks.png's luminance range (83-161) onto
+# hemp_planks.png's (81-156) and coloured along the hemp planks ramp -- the planks' own
+# seven tones plus the two deepest shadows of hemp_planks_door. So the shelf is the same
+# wood as the planks it is crafted from, down to the recesses that hold the items.
+#
+# To retone: change the ramp and redo the luminance mapping for every entry at once. Do
+# not hand-edit single entries -- they are a monotone ramp and will band if they stop
+# being one. The [note] about the colour count is vanilla's own: oak_shelf.png has 42.
+
+@palette hemp_planks
+. = none
+1 = 4B462E
+2 = 5A5236
+3 = 635C3C
+4 = 6C6541
+5 = 7F764C
+6 = 80774D
+7 = 847B50
+8 = 857C51
+9 = 867D51
+a = 867D52
+b = 877E52
+c = 898054
+d = 8A8155
+e = 8B8256
+f = 8C8256
+g = 8C8357
+h = 8D8357
+j = 8D8458
+k = 93895D
+m = 968C60
+n = 978D61
+p = 978D62
+q = 988E62
+r = 998F63
+s = 9B9165
+t = 9C9266
+u = 9D9367
+v = 9D9368
+w = 9F956A
+x = A1976C
+y = A49A6F
+z = A59B70
+A = A69C71
+B = A79C72
+C = A89D73
+
+@texture block/hemp_planks_shelf 32x32 type=block
+6hwwBqBBBwBBwrwr6hwwBqBBBwBBwrwr
+6hqhBuhAwhBuhrre6hqhBuhAwhBuhrre
+bhq6666wwh666epdbhq6666wwh666epd
+b8qeqrCwwBuCAeprb8qeqrCwwBuCAepr
+f1122B1122u11225f8qeqBuwyBuBBBp5
+61443C1434w134456gwqACuwzCwCBpp5
+61334C1443w1433e67wqBCuyBCwwukpe
+61334B1443A1433967qrBBuzBBAqukp9
+b1433A1433B1444ebgmrCAuCwCBquBke
+62333x2433B243396qukAxuCwuBAuBe9
+52444w2334C244495gukswwBqwCAtwe9
+a4tCCw4tCCC4tCCcavuuswwBqqCqwppc
+aneuxwBAwquqpe8eaneuxwBAwquqpe8e
+5jhhBuhwwhBuhe8h5jhhBuhwwhBuhe8h
+58r6666Bwh666pp858r6666Bwh666pp8
+6hBBwwBBwBBwwBp86hBBwwBBwBBwwBp8
+f1112222222222222222222222221115
+61443334343334443344333434333415
+6133433443444333443344344344431e
+61334433344333344333334433333319
+b144344344333344334444434433331e
+62433334334444443443333433444429
+52333444333343333333344433334329
+a4ttCCCCCCCCCCCttCCCCCCCCCCCtt4c
+2222222222222222f111222222221115
+33443334343334446144333434333415
+4433433443444333613343344344431e
+43334433433333346133443343333319
+3344344344333344b14434434433331e
+34433334334444446243333433444429
+33333444333343335233344433334329
+tCCCCCCCCCCCCCCta4ttCCCCCCCCtt4c

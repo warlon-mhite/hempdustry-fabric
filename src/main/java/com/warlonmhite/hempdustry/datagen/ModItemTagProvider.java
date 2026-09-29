@@ -253,7 +253,21 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModBlocks.HEMP_PLANKS_BUTTON.asItem())
                 .add(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE.asItem())
                 .add(ModItems.HEMP_PLANKS_SIGN)
-                .add(ModItems.HEMP_PLANKS_HANGING_SIGN);
+                .add(ModItems.HEMP_PLANKS_HANGING_SIGN)
+                // The shelf needs it: #minecraft:wooden_shelves is 300-tick fuel, and this tag is
+                // how vanilla's crimson and warped shelves opt out. The parquet is in no fuel tag,
+                // and joins so the rule stays "the whole family", not a list to keep checking.
+                .add(ModBlocks.HEMP_PLANKS_SHELF.asItem())
+                .add(ModBlocks.HEMP_PARQUET.asItem())
+                .add(ModBlocks.HEMP_PARQUET_STAIRS.asItem())
+                .add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
+
+        valueLookupBuilder(ItemTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem());
+        valueLookupBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
+        valueLookupBuilder(ItemTags.WOODEN_SHELVES).add(ModBlocks.HEMP_PLANKS_SHELF.asItem());
+        valueLookupBuilder(ItemTags.BEDS).add(ModBlocks.HEMP_BED.asItem());
+        // Not decoration: a happy ghast's ropes are drawn only for a harness in this tag.
+        valueLookupBuilder(ItemTags.HARNESSES).add(ModItems.HEMP_HARNESS);
 
         // Empty pipe/bong accept Unbreaking/Mending (and enchant at the table). Packed variants
         // inherit any enchantment through the component copy, so they don't need listing here.

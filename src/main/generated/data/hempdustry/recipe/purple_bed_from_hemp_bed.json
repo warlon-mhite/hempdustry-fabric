@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "bed_dye",
+  "ingredients": [
+    "minecraft:purple_dye",
+    "hempdustry:hemp_bed"
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:purple_bed"
+  }
+}

@@ -19,6 +19,11 @@ import com.warlonmhite.hempdustry.util.ModTags;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ConsumableComponents;
+import net.minecraft.component.type.EquippableComponent;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.equipment.EquipmentAssetKeys;
+import net.minecraft.registry.tag.EntityTypeTags;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.HangingSignItem;
 import net.minecraft.item.equipment.EquipmentType;
@@ -215,6 +220,25 @@ public class ModItems {
 
     public static final Item HEMP_BOAT = registerItem("hemp_boat", settings -> new HempBoatItem(false, settings.maxCount(1)));
     public static final Item HEMP_CHEST_BOAT = registerItem("hemp_chest_boat", settings -> new HempBoatItem(true, settings.maxCount(1)));
+
+    /**
+     * A happy ghast's harness in undyed hemp cloth — the seventeenth, as the Hemp Bed is the
+     * seventeenth bed. Vanilla's {@code EquippableComponent.ofHarness} call for call, except the
+     * equipment asset: vanilla looks its sixteen up by {@code DyeColor}, and this one is
+     * {@code equipment/hemp_harness.json}. It also sits in {@code #minecraft:harnesses}, which is not
+     * decoration: the ghast's ropes are only drawn for a harness in that tag.
+     */
+    public static final Item HEMP_HARNESS = registerItem("hemp_harness", settings -> new Item(settings
+            .maxCount(1)
+            .component(DataComponentTypes.EQUIPPABLE, EquippableComponent.builder(EquipmentSlot.BODY)
+                    .equipSound(SoundEvents.ENTITY_HAPPY_GHAST_EQUIP)
+                    .model(RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, Identifier.of(Hempdustry.MOD_ID, "hemp_harness")))
+                    .allowedEntities(Registries.createEntryLookup(Registries.ENTITY_TYPE)
+                            .getOrThrow(EntityTypeTags.CAN_EQUIP_HARNESS))
+                    .equipOnInteract(true)
+                    .canBeSheared(true)
+                    .shearingSound(Registries.SOUND_EVENT.getEntry(SoundEvents.ENTITY_HAPPY_GHAST_UNEQUIP))
+                    .build())));
 
     public static final Item HEMP_FLOUR = registerItem("hemp_flour", settings -> new Item(settings));
     public static final Item HEMP_FIBER = registerItem("hemp_fiber", settings -> new Item(settings));
