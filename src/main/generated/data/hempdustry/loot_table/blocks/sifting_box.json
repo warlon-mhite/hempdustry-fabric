@@ -15,6 +15,77 @@
         }
       ],
       "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "hempdustry:sifting_box",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "level": "8"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:sifting_box",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "content": "kief"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 9.0,
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:filtered_kief"
+            },
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "block": "hempdustry:sifting_box",
+                  "condition": "minecraft:block_state_property",
+                  "properties": {
+                    "filled": "true"
+                  }
+                }
+              ],
+              "functions": [
+                {
+                  "add": false,
+                  "count": 9.0,
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:bubble_hash"
+            },
+            {
+              "type": "minecraft:item",
+              "functions": [
+                {
+                  "add": false,
+                  "count": 9.0,
+                  "function": "minecraft:set_count"
+                }
+              ],
+              "name": "hempdustry:kief"
+            }
+          ]
+        }
+      ],
+      "rolls": 1.0
     }
   ]
 }
