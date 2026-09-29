@@ -59,6 +59,8 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMP_PLANKS_BUTTON);
         addDrop(ModBlocks.HEMP_PLANKS_DOOR, doorDrops((ModBlocks.HEMP_PLANKS_DOOR)));
         addDrop(ModBlocks.HEMP_PLANKS_FENCE);
+        // Missing until 2.0.2: a block with no table of its own drops nothing at all.
+        addDrop(ModBlocks.HEMP_PLANKS_TRAPDOOR);
         addDrop(ModBlocks.HEMP_PLANKS_FENCE_GATE);
         addDrop(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
         addDrop(ModBlocks.HEMPCRETE_BLOCK);
@@ -85,6 +87,11 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
 
         addDrop(ModBlocks.SATIVA_CROP, sativaCropDrops());
         addDrop(ModBlocks.SATIVA_FLOWER, sativaFlowerDrops());
+        // The pot and the plant back, as every vanilla potted plant gives. Copying a potted allium's
+        // settings does not bring its table along -- a block reads the table under its own id -- so
+        // both pots dropped nothing until 2.0.2.
+        addPottedPlantDrops(ModBlocks.POTTED_INDICA_FLOWER);
+        addPottedPlantDrops(ModBlocks.POTTED_SATIVA_FLOWER);
     }
 
     /**

@@ -7,12 +7,14 @@ All notable changes to Hempdustry are recorded here. The format follows
 same place: `2.0.0-beta+1.21.1` sorts *before* `2.0.0+1.21.1`, which is what lets a player on the
 beta be told when the release lands.
 
-## [Unreleased]
+## [2.0.2] — unreleased
 
 ### Fixed
 
 - **A llama wearing hemp carpet shows it.** It took the carpet but drew nothing — a trader llama drew
   its own cloth instead. It now wears it in hemp cloth, like any other carpet.
+- **Hemp trapdoors and potted hemp flowers drop when broken.** Breaking either gave back nothing
+  at all; a trapdoor now drops itself, and a pot gives back the pot and the plant, as vanilla's do.
 
 ## [2.0.1-beta] — 2026-09-23
 
@@ -328,6 +330,6 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.1-beta%2B1.21.1...1.21.1
+[2.0.2]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.1-beta%2B1.21.1...1.21.1
 [2.0.1-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.1-beta
 [2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/beta
