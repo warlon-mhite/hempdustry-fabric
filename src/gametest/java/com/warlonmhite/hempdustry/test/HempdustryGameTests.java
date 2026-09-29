@@ -123,6 +123,8 @@ public class HempdustryGameTests implements ModInitializer {
         register("the_bed_burns_the_wood_does_not", FurnitureGameTest::theBedBurnsTheWoodDoesNot);
         register("a_hemp_shelf_is_a_vanilla_shelf", FurnitureGameTest::aHempShelfIsAVanillaShelf);
         register("a_hemp_harness_fits_a_happy_ghast", FurnitureGameTest::aHempHarnessFitsAHappyGhast);
+        register("a_ready_box_gives_its_batch", LootGameTest::aReadyBoxGivesItsBatch);
+        register("a_named_machine_keeps_its_name", LootGameTest::aNamedMachineKeepsItsName);
     }
 
     private static void register(String name, Consumer<TestContext> test) {

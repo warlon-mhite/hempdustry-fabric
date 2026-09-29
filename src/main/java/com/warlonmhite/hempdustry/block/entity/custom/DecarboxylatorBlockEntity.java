@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block.entity.custom;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
+import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
@@ -54,7 +55,7 @@ import java.util.Map;
  * {@code decarboxylated_hemp}: strain identity is carried by the smoking system, not by the edibles
  * chain, so the pipeline downstream of here stays a single line of items.
  */
-public class DecarboxylatorBlockEntity extends BlockEntity
+public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
 
     public static final int FUEL_SLOT = 0;
@@ -359,7 +360,7 @@ public class DecarboxylatorBlockEntity extends BlockEntity
     }
 
     @Override
-    public Text getDisplayName() {
+    protected Text getContainerName() {
         return Text.translatable("block.hempdustry.decarboxylator");
     }
 

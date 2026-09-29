@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block.entity.custom;
 import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
+import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreenHandler;
@@ -55,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
  * has nothing for that to land on. Until it does, the ladder is read as a boolean here exactly as
  * the Infuser reads it. See {@code concentrates.md} §8.
  */
-public class HempPressBlockEntity extends BlockEntity
+public class HempPressBlockEntity extends NamedMachineBlockEntity
         implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
 
     public static final int INPUT_SLOT = 0;
@@ -295,7 +296,7 @@ public class HempPressBlockEntity extends BlockEntity
     }
 
     @Override
-    public Text getDisplayName() {
+    protected Text getContainerName() {
         return Text.translatable("block.hempdustry.hemp_press");
     }
 
