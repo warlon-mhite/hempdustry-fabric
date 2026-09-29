@@ -5,12 +5,17 @@ import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ComposterBlock;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * Features whose whole behaviour is one entry in a tag file or one call into a registry, and which
@@ -103,6 +108,30 @@ public final class TagBackedBehaviourGameTest implements FabricGameTest {
                 "a diamond pickaxe (" + pickaxe + "x) matches or beats shears (" + shears
                         + "x) on hemp_leaves, which is not how any leaf block behaves");
 
+        context.complete();
+    }
+
+    /**
+     * A tamed llama takes the hemp carpet, it belongs in the body slot, and a horse does not take it.
+     *
+     * <p>Two separate things on this line, both silent when missing. A llama's own check is
+     * {@code #minecraft:wool_carpets} ({@code LlamaEntity#isHorseArmor}); but {@code /item replace}, a
+     * dispenser and everything else that asks {@code Equipment.fromStack} want the carpet to <em>be</em>
+     * body equipment, which a plain carpet is not — {@code HempCarpetBlock} makes it one, as
+     * {@code DyedCarpetBlock} does for vanilla's. <b>Drawing it is the client's job and is not tested
+     * here</b> — {@code LlamaDecorFeatureRendererMixin} does that, and it was checked in a real client.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void aLlamaWearsHempCarpet(TestContext context) {
+        ItemStack carpet = new ItemStack(ModBlocks.HEMP_CARPET);
+        LlamaEntity llama = context.spawnEntity(EntityType.LLAMA, new BlockPos(1, 1, 1));
+        llama.setTame(true);
+        context.assertTrue(llama.isHorseArmor(carpet), "a tamed llama will not wear hemp carpet");
+        context.assertTrue(llama.getPreferredEquipmentSlot(carpet) == EquipmentSlot.BODY,
+                "hemp carpet is not body equipment, so /item replace and a dispenser cannot put it on a llama");
+        HorseEntity horse = context.spawnEntity(EntityType.HORSE, new BlockPos(4, 1, 1));
+        horse.setTame(true);
+        context.assertFalse(horse.isHorseArmor(carpet), "a horse will wear hemp carpet");
         context.complete();
     }
 }

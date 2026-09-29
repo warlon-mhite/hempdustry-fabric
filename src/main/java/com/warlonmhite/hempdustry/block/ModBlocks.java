@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
+import com.warlonmhite.hempdustry.block.custom.HempCarpetBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaFlower;
@@ -156,14 +157,17 @@ public class ModBlocks {
                     .burnable()));
 
     /**
-     * Hemp carpet. A plain {@link CarpetBlock}, not vanilla's {@code DyedCarpetBlock} — the dyed
-     * subclass exists only to report a {@code DyeColor} to llama decoration, and ours has no dye
-     * colour to report (moss carpet is plain for the same reason).
+     * Hemp carpet. Not vanilla's {@code DyedCarpetBlock}, which carries a {@code DyeColor} ours does
+     * not have (moss carpet is plain for the same reason).
      * <p>
      * It shares the wool block's texture, exactly as every vanilla carpet shares its wool's.
+     * <p>
+     * A llama takes it through {@code #minecraft:wool_carpets}, and {@link HempCarpetBlock} makes it
+     * equipment the way a dyed carpet is; vanilla draws a llama's carpet from its {@code DyeColor}, so
+     * {@code LlamaDecorFeatureRendererMixin} draws this one.
      */
     public static final Block HEMP_CARPET = registerBlock("hemp_carpet",
-            new CarpetBlock(AbstractBlock.Settings.create()
+            new HempCarpetBlock(AbstractBlock.Settings.create()
                     .mapColor(MapColor.TERRACOTTA_WHITE)
                     .strength(0.1F)
                     .sounds(BlockSoundGroup.WOOL)

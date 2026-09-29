@@ -9,7 +9,10 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.0.1-beta.
+### Fixed
+
+- **A llama wearing hemp carpet shows it.** It took the carpet but drew nothing — a trader llama drew
+  its own cloth instead. It now wears it in hemp cloth, like any other carpet.
 
 ## [2.0.1-beta] — 2026-09-23
 
