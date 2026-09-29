@@ -3,18 +3,15 @@
   "category": "misc",
   "key": {
     "#": {
-      "item": "hempdustry:hemp_wool"
-    },
-    "X": {
-      "tag": "minecraft:planks"
+      "item": "hempdustry:hemp_planks_slab"
     }
   },
   "pattern": [
-    "###",
-    "XXX"
+    "#",
+    "#"
   ],
   "result": {
     "count": 1,
-    "id": "minecraft:white_bed"
+    "id": "hempdustry:hemp_parquet"
   }
 }

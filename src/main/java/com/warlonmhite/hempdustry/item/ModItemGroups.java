@@ -217,19 +217,27 @@ public class ModItemGroups {
                         entries.add(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
                         entries.add(ModBlocks.HEMP_PLANKS_BUTTON);
 
+                        // --- Building: parquet, the planks' decorative cut ------------
+                        // After the family rather than woven through it the way vanilla weaves
+                        // bamboo mosaic, so the planks keep vanilla's shape order unbroken.
+                        entries.add(ModBlocks.HEMP_PARQUET);
+                        entries.add(ModBlocks.HEMP_PARQUET_STAIRS);
+                        entries.add(ModBlocks.HEMP_PARQUET_SLAB);
+
                         // --- Building: the brick family, in vanilla's order -------------
                         entries.add(ModBlocks.HEMP_BRICKS_BLOCK);
                         entries.add(ModBlocks.HEMP_BRICKS_STAIRS);
                         entries.add(ModBlocks.HEMP_BRICKS_SLAB);
                         entries.add(ModBlocks.HEMP_BRICKS_WALL);
 
-                        // --- Building: hempcrete, then cloth ----------------------------
+                        // --- Building: hempcrete, then cloth and the bed it makes -------
                         // Set block before powder, the way Colored Blocks lists concrete
                         // before concrete powder. Colour variants extend this run.
                         entries.add(ModBlocks.HEMPCRETE_BLOCK);
                         entries.add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
                         entries.add(ModBlocks.HEMP_WOOL);
                         entries.add(ModBlocks.HEMP_CARPET);
+                        entries.add(ModBlocks.HEMP_BED);
 
                         // --- What the wood set carries, then the discs ------------------
                         // Vanilla's own tab order: signs are Functional, boats and discs Tools.

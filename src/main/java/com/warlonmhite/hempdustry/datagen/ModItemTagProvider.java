@@ -253,7 +253,16 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModBlocks.HEMP_PLANKS_BUTTON.asItem())
                 .add(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE.asItem())
                 .add(ModItems.HEMP_PLANKS_SIGN)
-                .add(ModItems.HEMP_PLANKS_HANGING_SIGN);
+                .add(ModItems.HEMP_PLANKS_HANGING_SIGN)
+                // The parquet is in no fuel tag, and joins so the rule stays "the whole family",
+                // not a list to keep checking.
+                .add(ModBlocks.HEMP_PARQUET.asItem())
+                .add(ModBlocks.HEMP_PARQUET_STAIRS.asItem())
+                .add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
+
+        getOrCreateTagBuilder(ItemTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem());
+        getOrCreateTagBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
+        getOrCreateTagBuilder(ItemTags.BEDS).add(ModBlocks.HEMP_BED.asItem());
 
         // Empty pipe/bong accept Unbreaking/Mending (and enchant at the table). Packed variants
         // inherit any enchantment through the component copy, so they don't need listing here.

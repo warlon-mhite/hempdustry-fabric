@@ -1,0 +1,39 @@
+# PLACEHOLDER -- Hemp Parquet: hemp_planks.png laid as a basket weave.
+#
+# The four 8x8 squares are cut straight out of hemp_planks.png: the top-left and
+# bottom-right squares as they are, the other two turned on their side (the texture's own
+# transpose). So every board is a real hemp plank with its grain and its seam, and the
+# weave is vanilla bamboo mosaic's -- square cells, boards alternating direction -- which
+# is the one decorative plank pattern the game already has. It tiles by construction:
+# each square keeps the planks' seam on one side only, so no seam doubles across a join.
+#
+# If hemp_planks.png is ever redrawn, rebuild this from it the same way rather than
+# retouching it: the point is that the floor is the same wood as the planks.
+
+@palette hemp_planks
+. = none
+1 = 5A5236
+2 = 67603E
+3 = 82794E
+4 = 8A8155
+5 = 948A5E
+6 = A1976C
+7 = A89D73
+
+@texture block/hemp_parquet 16x16 type=block
+6567777766427461
+6655345676427561
+5666565475417562
+3223321175526652
+6747777476515652
+5665454376615643
+4456555364624642
+1122321134316541
+6671755177777764
+7561454244545443
+7652664255554464
+6653765112322111
+5643746177747677
+5642645246656555
+7541654366544444
+7441443332121111

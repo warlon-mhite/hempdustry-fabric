@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "hempdustry:block/hemp_parquet",
+    "side": "hempdustry:block/hemp_parquet",
+    "top": "hempdustry:block/hemp_parquet"
+  }
+}

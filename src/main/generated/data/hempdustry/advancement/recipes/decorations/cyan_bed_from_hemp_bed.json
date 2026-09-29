@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_hemp_bed": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:hemp_bed"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:cyan_bed_from_hemp_bed"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_hemp_bed"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:cyan_bed_from_hemp_bed"
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+# PLACEHOLDER -- Hemp Bed: a seventeenth bed, in undyed hemp cloth.
+#
+# The MATRIX is vanilla `entity/bed/white.png` (64x64, the bed's UV sheet) taken verbatim.
+# The pillow and the oak frame and legs are left exactly as vanilla draws them, because
+# every vanilla coloured bed keeps a white pillow and an oak frame whatever planks made it.
+# Only the blanket changes -- the pixels vanilla's own red bed dyes -- and it is retoned
+# exactly the way hemp_wool.mctex retones white_wool: the white bed's luminance, scaled over
+# white_wool.png's range (212-254), onto hemp_fiber's C4A985 (mid) to E0CBB3 (highlight),
+# and continued past the mid end for the blanket's shaded edges.
+#
+# The linter reads this sheet as an item and raises item findings (outline, light
+# direction, pieces). They are accepted: vanilla's white.png raises the same three.
+
+@palette hemp_bed
+. = none
+1 = 000000
+2 = 67502C
+3 = 695433
+4 = 7E6237
+5 = 7C623E
+6 = 967441
+7 = 9B7742
+8 = 9F844D
+9 = AA8A5A
+a = B38C51
+b = AF8F55
+c = B8945F
+d = BC9862
+e = B89A71
+f = C29D62
+g = C1A580
+h = A8B0B1
+j = CEB596
+k = C2C2C2
+m = D6BFA2
+n = DCC6AC
+p = C7D3D3
+q = E1CCB4
+r = E0E5E5
+s = F8F8F8
+t = FFFFFF
+
+@texture entity/bed/hemp 64x64
+......d75533333333557d...............................333877....1
+......a77aaa7a77aaa77a...............................333a37....1
+......hhhhhhhhhhhhhhhh...............................333877....1
+......ppprrrrrrrrrrppp............................37aa73778877.1
+......prrrssssssssrrrp............................57dd73578875.1
+......rrssssssssssssrr............................37aa73333333.1
+87hpprrrssrrpppprrssrrrpph78cbcfffffcfffffc6.........333877....1
+7ahprrrspkkkkkkkkkkpsrrrpha7ccbb68bcccbbcc88.........333a37....1
+5dhpsssskprssssssrpkssssphd5bcccbcb8888bbcc6.........333877....1
+3dhpsssskrsttttttsrkssssphd36446642244242242......37aa73778877.1
+3dhpsssrksttttttttskrsssphd3cf8ffff8fffcbb8c......57dd73578875.1
+3ahprsrrksttttttttskrrsrpha3bccb8b868bbccccb......37aa73333333.1
+3ahpprrpkprssssssrpkprrppha388bcbbb6cccbb888.........333877....1
+37hhhhhhhhhhhhhhhhhhhhhhhh732244642222444642.........333a37....1
+3799999999999999999999999973cffcbbffffffffc8.........333877....1
+3a9egggggggggeeeeegjjgeeg9a3cbccccb888b8b886......37aa73778877.1
+3d9gjjjjjjgggggggjqqjjgeg9d3fcbb8888bbbb88c8......57dd73578875.1
+3a9gjjnqqqqnjjjjjjjgggjjg9a32246642224644222......37aa73333333.1
+379jjnnqqqqqqqnjggggggggg973f8cffcc8fff8fcff.........333877....1
+3a9999eeggggeeeeeeeeee9999a3bbcc88b88ccbcbbb.........333a37....1
+379ejjmmjjjjmmmjjjjmmmjgg973b88bcb86ccb88888.........333877....1
+379egjmmmmnnnmmmjjmnqnjjg9732442246664242222......37aa73778877.1
+......................d75533333333557d............57dd73578875.1
+......................a77aaa7a77aaa77a............37aa73333333.1
+......................9999999999999999.........................1
+......................eeeeeeeeeeeeeeee.........................1
+......................eeeeggggggggeeee.........................1
+......................eegjjjjjjggggeee.........................1
+379eegmnmnnnnnjjmnqqqjegg973cbcfffffcfffffc6...................1
+379geemnmmmjjmmnnqqqqjeeg973ccbb68bcccbbcc88...................1
+3a9gegmnnnmnnnqqqqqqqneeg9a3bcccbcb8888bbcc6...................1
+379gegmmnqqqqqqqnnnqnmgeg9736446642244242242...................1
+3a9eegjmnnnnnnnnnnnnnmgeg9a3cf8ffff8fffcbb8c...................1
+3d9eegjmnnnnnnnnmmmnnmjeg9d3bccb8b868bbccccb...................1
+3a9eejjjmnnnnnnnnnmmnqjeg9a388bcbbb6cccbb888...................1
+379egjmjmnnnnnnnnjmmnqjeg9732244642222444642...................1
+379egjnmjmnnnnnnnmjmnqjeg973cffcbbffffffffc8...................1
+3a9egjqmmmmnnnnnnnmmqqjeg9a3cbccccb888b8b886...................1
+3a9egjqnmnmmmnnnnnmnqqjeg9a3fcbb8888bbbb88c8...................1
+3d9egjqqjmnnnnnnnmmqqnjge9d32246642224644222...................1
+3d9egjnqnjmnnnnmmmjnnmjge9d3f8cffcc8fff8fcff...................1
+5d9eggmqqqqqqqnnmjjmmmgee9d5bbcc88b88ccbcbbb...................1
+7a9eegjmnnnmmmmnmmnnmjgee9a7b88bcb86ccb88888...................1
+879eeejjjmnnnnmmnnmjjjeee9782442246664242222...................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+...............................................................1
+1111111111111111111111111111111111111111111111111111111111111111

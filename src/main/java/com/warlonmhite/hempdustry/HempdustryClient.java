@@ -29,6 +29,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
+import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
@@ -46,6 +47,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.render.RenderLayer;
+import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
+import net.minecraft.util.math.BlockPos;
 
 public class HempdustryClient implements ClientModInitializer {
     @Override

@@ -4,7 +4,8 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"BeeGrowCropsGoalMixin",
-		"CreeperEntityMixin"
+		"CreeperEntityMixin",
+		"PointOfInterestTypesAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

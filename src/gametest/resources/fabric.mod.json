@@ -20,6 +20,7 @@
 			"com.warlonmhite.hempdustry.test.CropGrowthGameTest",
 			"com.warlonmhite.hempdustry.test.DatapackStrainGameTest",
 			"com.warlonmhite.hempdustry.test.DefoliationGameTest",
+			"com.warlonmhite.hempdustry.test.FurnitureGameTest",
 			"com.warlonmhite.hempdustry.test.GlassBongGameTest",
 			"com.warlonmhite.hempdustry.test.HashishBarGameTest",
 			"com.warlonmhite.hempdustry.test.IndoorGrowGameTest",

@@ -74,6 +74,13 @@ public class ModModelProvider extends FabricModelProvider {
 
         blockStateModelGenerator.registerDoor(ModBlocks.HEMP_PLANKS_DOOR);
         blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+        // Vanilla's shelf helper; the planks stand in for the stripped log it takes its break
+        // particles from, as they do in the recipe.
+        blockStateModelGenerator.registerCubeAllModelTexturePool(ModBlocks.HEMP_PARQUET)
+                .stairs(ModBlocks.HEMP_PARQUET_STAIRS)
+                .slab(ModBlocks.HEMP_PARQUET_SLAB);
+
+        registerHempBed(blockStateModelGenerator);
 
         blockStateModelGenerator.registerLog(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
         // TexturedModel.LEAVES, not registerSimpleCubeAll: it parents to minecraft:block/leaves,
@@ -441,6 +448,20 @@ public class ModModelProvider extends FabricModelProvider {
      * The vanilla {@link Models} helpers can't express "parent plus textures", so these go straight
      * to the generator's model collector, same as the smoking-gear overrides above.
      */
+    /**
+     * Vanilla's {@code registerBed}, which only takes a {@code DyeColor}. The block points at
+     * vanilla's own particle-only {@code block/bed} model, as all sixteen beds do (the renderer draws
+     * the bed); the item is vanilla's {@code template_bed}, a {@code builtin/entity} model, with hemp
+     * wool for its particle the way each vanilla bed item uses its wool. What draws that item is the
+     * builtin renderer {@code HempdustryClient} registers for it.
+     */
+    private static void registerHempBed(BlockStateModelGenerator generator) {
+        generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(ModBlocks.HEMP_BED,
+                BlockStateVariant.create().put(VariantSettings.MODEL, ModelIds.getMinecraftNamespacedBlock("bed"))));
+        Models.TEMPLATE_BED.upload(ModelIds.getItemModelId(ModBlocks.HEMP_BED.asItem()),
+                TextureMap.particle(ModBlocks.HEMP_WOOL), generator.modelCollector);
+    }
+
     private static void registerSpaceCake(BlockStateModelGenerator generator) {
         BlockStateVariantMap.SingleProperty<Integer> variants = BlockStateVariantMap.create(CakeBlock.BITES);
         for (int bites = 0; bites <= CakeBlock.MAX_BITES; bites++) {

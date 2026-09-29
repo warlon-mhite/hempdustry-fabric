@@ -11,6 +11,7 @@ import com.warlonmhite.hempdustry.block.custom.FilteredHashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.GrowLampBlock;
 import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
+import com.warlonmhite.hempdustry.block.custom.HempBedBlock;
 import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
 import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.HempCarpetBlock;
@@ -24,10 +25,13 @@ import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
+import net.minecraft.block.enums.BedPart;
 import net.minecraft.block.enums.NoteBlockInstrument;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.item.BedItem;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -101,6 +105,15 @@ public class ModBlocks {
             new HangingSignBlock(HEMP_WOOD_TYPE, AbstractBlock.Settings.create().strength(1.0F).sounds(BlockSoundGroup.HANGING_SIGN).noCollision()));
     public static final Block HEMP_PLANKS_WALL_HANGING_SIGN = registerBlockWithoutItem("hemp_planks_wall_hanging_sign",
             new WallHangingSignBlock(HEMP_WOOD_TYPE, AbstractBlock.Settings.create().strength(1.0F).sounds(BlockSoundGroup.HANGING_SIGN).noCollision().dropsLike(HEMP_PLANKS_HANGING_SIGN)));
+
+    /**
+     * Hemp laid as a floor — the plank set's decorative block, the way bamboo mosaic is bamboo's.
+     * Same wood as the planks, so the same settings; the stairs and slab copy the parquet, as
+     * vanilla's copy the block they are cut from.
+     */
+    public static final Block HEMP_PARQUET = registerBlock("hemp_parquet", new Block(AbstractBlock.Settings.copy(HEMP_PLANKS)));
+    public static final Block HEMP_PARQUET_STAIRS = registerBlock("hemp_parquet_stairs", new StairsBlock(ModBlocks.HEMP_PARQUET.getDefaultState(), AbstractBlock.Settings.copy(HEMP_PARQUET)));
+    public static final Block HEMP_PARQUET_SLAB = registerBlock("hemp_parquet_slab", new SlabBlock(AbstractBlock.Settings.copy(HEMP_PARQUET)));
 
     public static final Block HEMPCRETE_BLOCK = registerBlock("hempcrete_block",
             new Block(AbstractBlock.Settings.create().strength(1.8F).sounds(BlockSoundGroup.STONE)));
@@ -190,6 +203,23 @@ public class ModBlocks {
                     .sounds(BlockSoundGroup.WOOL)
                     .burnable()));
 
+    /**
+     * The bed hemp wool makes — see {@link HempBedBlock}. Vanilla's bed settings to the letter
+     * (0.2 hardness, wood sounds, a piston breaks it), with hemp wool's map colour on the blanket
+     * half where vanilla puts the dye's. It also <em>burns</em>, which no vanilla bed does: it is
+     * registered flammable at hemp wool's own rate, because it is a bed made of cloth that burns.
+     */
+    public static final Block HEMP_BED = registerBlockWithItem("hemp_bed",
+            new HempBedBlock(AbstractBlock.Settings.create()
+                    .mapColor(state -> state.get(BedBlock.PART) == BedPart.FOOT
+                            ? MapColor.TERRACOTTA_WHITE : MapColor.WHITE_GRAY)
+                    .sounds(BlockSoundGroup.WOOD)
+                    .strength(0.2F)
+                    .nonOpaque()
+                    .burnable()
+                    .pistonBehavior(PistonBehavior.DESTROY)),
+            BedItem::new,
+            new Item.Settings().maxCount(1));
 
     // NO BLOCK ITEM, on both crops, exactly as vanilla WHEAT has none: the seeds are the item, and
     // ModItems.INDICA_SEEDS / SATIVA_SEEDS are the BlockItems that plant these. A BlockItem here
