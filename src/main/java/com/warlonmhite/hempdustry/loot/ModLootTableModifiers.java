@@ -53,14 +53,17 @@ import java.util.Set;
  *       wheat-seeds rule (not sheared, small chance, Fortune-boosted, explosion decay).</li>
  *   <li>A few exploration chests (shipwreck / dungeon / mineshaft / mansion / outpost) hold a small
  *       stash — vanilla already seeds crops into most of these, and the rest fit the theme.</li>
+ *   <li>Plains and taiga village houses hold a few, as each vanilla village house holds its biome's
+ *       crop ({@link #VILLAGE_HOUSE_SEED_CHANCE}); desert houses and the desert temple hold Beldía's.</li>
  * </ul>
  * <b>A tall plant rolls its loot table twice per break</b> — once for the half that was hit, once
  * more as the orphan pops off — so the grass pool carries vanilla's own two-halves guard. See
  * {@link #onlyTheHalfThatWasBroken}; without it the seed drops at double the shipped rate.
  *
- * <p>Hemp fibre in shipwreck supply chests, as cordage rather than as an on-ramp — see
- * {@link #SHIPWRECK_FIBER_CHANCE} — and a little schwag beside vanilla's poisonous potatoes, see
- * {@link #SHIPWRECK_SCHWAG_CHANCE}.
+ * <p>Hemp fibre and canvas in shipwreck supply chests, as cordage and sailcloth rather than as an
+ * on-ramp — see {@link #SHIPWRECK_FIBER_CHANCE} — and a little schwag beside vanilla's poisonous
+ * potatoes, see {@link #SHIPWRECK_SCHWAG_CHANCE}. Toasted hemp seed in a village fisher's chest, as
+ * bait ({@link #FISHER_BAIT_WEIGHT}), and hemp fibre among fishing junk.
  *
  * <p>And the mod's music discs in the two chests vanilla stocks its common discs in. Their creeper drop is
  * <em>not</em> here — that comes free from joining {@code #minecraft:creeper_drop_music_discs}
@@ -115,6 +118,37 @@ public class ModLootTableModifiers {
      * item: {@code BrushableBlockEntity} logs "Expected max 1 loot from loot table" and drops the rest.
      */
     private static final int DESERT_ARCHAEOLOGY_SEED_WEIGHT = 1;
+    /**
+     * Chance a plains or taiga village house chest holds 1-3 hemp seeds. Vanilla stocks each village
+     * house with its biome's crop — wheat seeds in a savanna house (10 of 46), pumpkin seeds in a taiga
+     * one (5 of 54), beetroot seeds in a snowy one — and hemp was grown beside European villages for
+     * its fibre, worked by village trades like the hemp comber; Marseille's Canebière is named for a
+     * hemp field. <b>But kept rare</b> (Warlon Mhite): seeds are meant to be a find, so this is pitched
+     * at a house's rare tier — what weight 1 of its main pool comes to over three to eight rolls, the
+     * book's and the emerald's share — not at a common crop's. A roll of its own rather than a weight,
+     * because both chests keep a second pool (the bundle) that an edit to every pool would reach.
+     */
+    private static final float VILLAGE_HOUSE_SEED_CHANCE = 0.10f;
+    private static final Set<RegistryKey<LootTable>> VILLAGE_HOUSE_SOURCES = Set.of(
+            LootTables.VILLAGE_PLAINS_CHEST,
+            LootTables.VILLAGE_TAIGA_HOUSE_CHEST);
+    /** Beldía seeds in a desert village house, where the desert's farmers live — as rare as the others. */
+    private static final float DESERT_HOUSE_SEED_CHANCE = 0.10f;
+    /**
+     * Weight of toasted hemp seeds (1-3) in a village fisher's chest, beside vanilla's wheat seeds at 3
+     * of 11 — vanilla's own nod to bait. Cooked hemp seed, <i>chènevis</i>, is the classic European
+     * coarse-fishing bait, soaked and cooked for roach and bream: the toasted seed is that bait. The
+     * chest has one pool, so it goes in as a weight.
+     */
+    private static final int FISHER_BAIT_WEIGHT = 2;
+    /** Weight of hemp fibre in fishing junk, at string's own 5 of 110: an old line, a scrap of net. */
+    private static final int FISHING_JUNK_FIBER_WEIGHT = 5;
+    /**
+     * Hemp canvas against hemp fibre inside the shipwreck's cordage roll, 1 to 3: sailcloth beside the
+     * rope, both from the same stores, and still one roll so a wreck holds no more hemp than it did.
+     */
+    private static final int SHIPWRECK_FIBER_WEIGHT = 3;
+    private static final int SHIPWRECK_CANVAS_WEIGHT = 1;
 
     private static final Set<RegistryKey<LootTable>> DESERT_ARCHAEOLOGY_SOURCES = Set.of(
             LootTables.DESERT_WELL_ARCHAEOLOGY,
@@ -209,6 +243,25 @@ public class ModLootTableModifiers {
         return seeds instanceof BlockItem item && item.getBlock() instanceof BeldiaCropBlock;
     }
 
+    /**
+     * One roll at {@code base} for 1-3 seeds of one plant strain: every strain with seeds at equal
+     * weight, so the chance stays {@code base} however many strains exist and which you get is a coin
+     * flip. {@code desert} picks Beldía's seeds alone, and otherwise every strain but Beldía's — the
+     * desert plant is found in the desert. Driven off the loaded strain registry, so a datapack strain
+     * appears here without touching this file.
+     */
+    private static LootPool.Builder seedStash(RegistryWrapper.WrapperLookup registries, float base, boolean desert) {
+        LootPool.Builder pool = LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1))
+                .conditionally(RandomChanceLootCondition.builder(chance(base)));
+        for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
+            strain.value().seeds().filter(seeds -> isDesertSeed(seeds) == desert)
+                    .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
+                            .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
+        }
+        return pool;
+    }
+
     /** A shipped chance after {@code loot.chanceMultiplier}, kept inside 0..1 whatever is configured. */
     private static float chance(float base) {
         return MathHelper.clamp((float) (base * HempdustryConfig.get().loot().chanceMultiplier()), 0.0F, 1.0F);
@@ -263,26 +316,13 @@ public class ModLootTableModifiers {
                 }
                 tableBuilder.pool(pool);
             } else if (CHEST_SOURCES.contains(key)) {
-                LootPool.Builder pool = LootPool.builder()
-                        .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(chance(CHEST_SEED_CHANCE)));
-                for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seeds().filter(seeds -> !isDesertSeed(seeds))
-                            .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
-                            .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
-                }
-                tableBuilder.pool(pool);
+                tableBuilder.pool(seedStash(registries, CHEST_SEED_CHANCE, false));
+            } else if (VILLAGE_HOUSE_SOURCES.contains(key)) {
+                tableBuilder.pool(seedStash(registries, VILLAGE_HOUSE_SEED_CHANCE, false));
             } else if (key.equals(LootTables.DESERT_PYRAMID_CHEST)) {
-                // The overworld chest pool's shape, for the desert's seeds only.
-                LootPool.Builder pool = LootPool.builder()
-                        .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(chance(DESERT_TEMPLE_SEED_CHANCE)));
-                for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seeds().filter(ModLootTableModifiers::isDesertSeed)
-                            .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
-                            .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
-                }
-                tableBuilder.pool(pool);
+                tableBuilder.pool(seedStash(registries, DESERT_TEMPLE_SEED_CHANCE, true));
+            } else if (key.equals(LootTables.VILLAGE_DESERT_HOUSE_CHEST)) {
+                tableBuilder.pool(seedStash(registries, DESERT_HOUSE_SEED_CHANCE, true));
             } else if (DESERT_ARCHAEOLOGY_SOURCES.contains(key)) {
                 // Into vanilla's one brushing pool, as a weighted entry beside the sherds.
                 tableBuilder.modifyPools(pool -> {
@@ -301,7 +341,11 @@ public class ModLootTableModifiers {
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(RandomChanceLootCondition.builder(chance(SHIPWRECK_FIBER_CHANCE)))
                         .with(ItemEntry.builder(ModItems.HEMP_FIBER)
-                                .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 4)))));
+                                .weight(SHIPWRECK_FIBER_WEIGHT)
+                                .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 4))))
+                        .with(ItemEntry.builder(ModItems.HEMP_CANVAS)
+                                .weight(SHIPWRECK_CANVAS_WEIGHT)
+                                .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
                 tableBuilder.pool(LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
                         .conditionally(RandomChanceLootCondition.builder(chance(SHIPWRECK_SCHWAG_CHANCE)))
@@ -309,6 +353,17 @@ public class ModLootTableModifiers {
                                 .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 4)))));
             }
 
+            // Both of these have exactly one pool, so the hemp goes in beside vanilla's own entries
+            // as a weight, the way the desert brushing tables take Beldía.
+            if (key.equals(LootTables.VILLAGE_FISHER_CHEST)) {
+                tableBuilder.modifyPools(pool -> pool.with(ItemEntry.builder(ModItems.TOASTED_HEMP_SEEDS)
+                        .weight(FISHER_BAIT_WEIGHT)
+                        .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
+            }
+            if (key.equals(LootTables.FISHING_JUNK_GAMEPLAY)) {
+                tableBuilder.modifyPools(pool -> pool.with(ItemEntry.builder(ModItems.HEMP_FIBER)
+                        .weight(FISHING_JUNK_FIBER_WEIGHT)));
+            }
             // Independent of the seed branch above — the two disc chests are also seed chests.
             // One entry per disc at equal weight inside a single roll, the same shape as the seed
             // pool above: the *chance* of finding one of our discs stays CHEST_DISC_CHANCE however

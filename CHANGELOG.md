@@ -156,6 +156,10 @@ beta be told when the release lands.
   1.21.11 only — there are no shelves before 1.21.9.*
 - **A Hemp Harness** for the happy ghast: three leather, two glass and hemp wool, like the sixteen
   vanilla harnesses, in undyed hemp cloth. Dye it to turn it into that vanilla harness.
+- **Hemp turns up where people kept it.** Now and then a few hemp seeds in a plains or taiga village
+  house — a rare find, as a book or an emerald is there; as rarely, Beldía seeds in a desert house; toasted hemp seed in a
+  fisher's chest, the old coarse-fishing bait; hemp canvas beside the rope in a shipwreck's stores —
+  sailcloth; and now and then a length of hemp fibre on your line when you fish up junk.
 - **Bundles from canvas.** String over hemp canvas makes a bundle, where vanilla uses leather — a
   bundle is a sack, and hemp is what sacks were made of.
 - **Hemp Parquet**, with stairs and a slab: two hemp plank slabs stacked make a block of it, laid as a
