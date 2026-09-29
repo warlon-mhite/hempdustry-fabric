@@ -151,6 +151,10 @@ beta be told when the release lands.
   pillow. It works like every other bed — sleep in it, set your spawn, and villagers take it as
   their home — with one difference: **it burns**, at the rate of the hemp wool it is made of. Dye
   it any colour to turn it into that vanilla bed.
+- **Hemp turns up where people kept it.** Now and then a few hemp seeds in a plains or taiga village
+  house — a rare find, as a book or an emerald is there; as rarely, Beldía seeds in a desert house; toasted hemp seed in a
+  fisher's chest, the old coarse-fishing bait; hemp canvas beside the rope in a shipwreck's stores —
+  sailcloth; and now and then a length of hemp fibre on your line when you fish up junk.
 - *The Hemp Shelf, the Hemp Harness and canvas bundles of the Minecraft 1.21.11 build are not in this
   one:* Minecraft 1.21.1 has no shelves and no happy ghast, and its bundle is still an experiment. A
   world taken on to 1.21.11 gains them; nothing goes missing.
