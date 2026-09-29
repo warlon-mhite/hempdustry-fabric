@@ -11,8 +11,8 @@
     "See https://docs.neoforged.net/docs/misc/updatechecker/",
     "",
     "MAINTAINING IT: a key per Minecraft version. `-latest` is the newest build of any kind and is",
-    "what the in-game checker reads; `-recommended` is the newest *stable* one, and stays absent",
-    "until a stable exists. Both are read by NeoForge. Version strings are compared as semver with",
+    "what the in-game checker reads; `-recommended` is the newest *stable* one, present since",
+    "2.0.2, the first stable. Both are read by NeoForge. Version strings are compared as semver with",
     "build metadata ignored, so `2.0.0-beta+1.21.11` and `2.0.0-beta` compare equal -- the full jar",
     "version is written here because it is what a player sees on the file they downloaded.",
     "",
@@ -21,7 +21,9 @@
   ],
   "homepage": "https://github.com/warlon-mhite/hempdustry-fabric/releases",
   "promos": {
-    "1.21.1-latest": "2.0.1-beta+1.21.1",
-    "1.21.11-latest": "2.0.1-beta+1.21.11"
+    "1.21.1-latest": "2.0.2+1.21.1",
+    "1.21.1-recommended": "2.0.2+1.21.1",
+    "1.21.11-latest": "2.0.2+1.21.11",
+    "1.21.11-recommended": "2.0.2+1.21.11"
   }
 }
