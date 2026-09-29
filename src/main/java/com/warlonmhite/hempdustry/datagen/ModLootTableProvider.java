@@ -8,6 +8,7 @@ import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.loot.ModLootEntryTypes;
@@ -68,6 +69,36 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * <p>Parameterised because the two bars want the identical table with a different piece in it —
      * which is the same reason they are the same block class with one method overridden.
      */
+    /**
+     * The box, and — when a batch is ready to take — the batch, as a full composter drops its bone
+     * meal. Without it, breaking a ready box threw away nine pieces. What the batch is follows from
+     * the state alone, exactly as {@code SiftingBoxBlock#collect} reads it: kief on the screen makes
+     * filtered kief, a wash makes bubble hash, and a dry sift of plant matter makes kief. A box that is
+     * still filling drops only itself, as a composter below full does.
+     */
+    private LootTable.Builder siftingBoxDrops() {
+        return drops(ModBlocks.SIFTING_BOX).pool(LootPool.builder()
+                .rolls(ConstantLootNumberProvider.create(1))
+                .conditionally(siftingBox(StatePredicate.Builder.create()
+                        .exactMatch(SiftingBoxBlock.LEVEL, SiftingBoxBlock.READY_LEVEL)))
+                .with(batch(ModItems.FILTERED_KIEF, StatePredicate.Builder.create()
+                        .exactMatch(SiftingBoxBlock.CONTENT, SiftingBoxBlock.Content.KIEF))
+                        .alternatively(batch(ModItems.BUBBLE_HASH, StatePredicate.Builder.create()
+                                .exactMatch(SiftingBoxBlock.FILLED, true)))
+                        .alternatively(ItemEntry.builder(ModItems.KIEF)
+                                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(SiftingBoxBlock.YIELD))))));
+    }
+
+    private static BlockStatePropertyLootCondition.Builder siftingBox(StatePredicate.Builder state) {
+        return BlockStatePropertyLootCondition.builder(ModBlocks.SIFTING_BOX).properties(state);
+    }
+
+    private static LeafEntry.Builder<?> batch(Item item, StatePredicate.Builder when) {
+        return ItemEntry.builder(item)
+                .conditionally(siftingBox(when))
+                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(SiftingBoxBlock.YIELD)));
+    }
+
     private LootTable.Builder hashishBarDrops(Block bar, Item piece) {
         LootTable.Builder table = LootTable.builder().pool(LootPool.builder()
                 .rolls(ConstantLootNumberProvider.create(1))
@@ -170,10 +201,12 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.SPACE_CAKE, LootTable.builder());
         // The block entity's contents are scattered by DecarboxylatorBlock#onStateReplaced, so the
         // loot table only has to hand back the machine itself.
-        addDrop(ModBlocks.DECARBOXYLATOR);
-        addDrop(ModBlocks.INFUSER);
-        addDrop(ModBlocks.SIFTING_BOX);
-        addDrop(ModBlocks.HEMP_PRESS);
+        // Vanilla's furnace drop: the machine, carrying the name an anvil gave it
+        // (NamedMachineBlockEntity keeps it while the machine stands).
+        addDrop(ModBlocks.DECARBOXYLATOR, nameableContainerDrops(ModBlocks.DECARBOXYLATOR));
+        addDrop(ModBlocks.INFUSER, nameableContainerDrops(ModBlocks.INFUSER));
+        addDrop(ModBlocks.SIFTING_BOX, siftingBoxDrops());
+        addDrop(ModBlocks.HEMP_PRESS, nameableContainerDrops(ModBlocks.HEMP_PRESS));
         addDrop(ModBlocks.GROW_LAMP);
         addDrop(ModBlocks.GROW_POT, growPotDrops());
         // The tray drops empty — you drain a reservoir before you move it — so it needs no

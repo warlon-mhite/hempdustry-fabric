@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
+import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.item.custom.Quality;
@@ -100,7 +101,7 @@ import org.jetbrains.annotations.Nullable;
  * at all; dedicating one slot per type would have meant a batch could never be half-and-half without
  * the player micromanaging which slot held what.
  */
-public class InfuserBlockEntity extends BlockEntity
+public class InfuserBlockEntity extends NamedMachineBlockEntity
         implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
 
     /**
@@ -1079,7 +1080,7 @@ public class InfuserBlockEntity extends BlockEntity
     }
 
     @Override
-    public Text getDisplayName() {
+    protected Text getContainerName() {
         return Text.translatable("block.hempdustry.infuser");
     }
 

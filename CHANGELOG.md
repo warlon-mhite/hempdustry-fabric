@@ -19,7 +19,8 @@ beta be told when the release lands.
     slabs, with iron bars over hemp canvas in the middle. Fill it the way you fill a composter:
     seven buds, or about forty-seven fan leaves, and it hands back **nine kief**. Sift kief a second
     time for **filtered kief**, at about three kief to one. Plant matter and powder never share a
-    screen.
+    screen. Break a box with a batch ready in it and the batch comes out with it, the way a full
+    composter gives up its bone meal.
   - **Wash it instead.** Fill a Sifting Box with a water bucket and put ice against all four of its
     sides, and it washes plant matter into **bubble hash**, with frost rising off it while it
     works. The ice sets the price: blue ice makes nine bubble hash from seven buds, packed ice from
@@ -173,6 +174,8 @@ beta be told when the release lands.
 
 ### Changed
 
+- **The Decarboxylator, the Infuser and the Hemp Press keep an anvil name**, like a furnace: it
+  titles the machine's screen, and a broken machine drops with it.
 - **Three hemp wool over three planks makes a Hemp Bed now, not a white bed.** Dye the Hemp Bed white
   for the white bed.
 - **A bong hit is drawn, not clicked.** Hold use with a packed bong and it comes up to your mouth
