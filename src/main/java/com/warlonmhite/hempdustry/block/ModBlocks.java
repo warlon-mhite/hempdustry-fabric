@@ -196,7 +196,8 @@ public class ModBlocks {
     // Note the *block* tags in ModBlockTagProvider are a separate question and are joined.
     public static final Block INDICA_FLOWER = registerBlock("indica_flower",
             new IndicaFlower(StatusEffects.MINING_FATIGUE, 1, AbstractBlock.Settings.copy(Blocks.ALLIUM)));
-    public static final Block POTTED_INDICA_FLOWER = registerBlock("potted_indica_flower",
+    // No block item on either pot, as vanilla's potted plants have none: the flower is the item.
+    public static final Block POTTED_INDICA_FLOWER = registerBlockWithoutItem("potted_indica_flower",
             new FlowerPotBlock(INDICA_FLOWER, AbstractBlock.Settings.copy(Blocks.POTTED_ALLIUM)));
 
 
@@ -214,7 +215,7 @@ public class ModBlocks {
     // duplicate it — see that class for both.
     public static final Block SATIVA_FLOWER = registerBlock("sativa_flower",
             new SativaFlower(AbstractBlock.Settings.copy(Blocks.ROSE_BUSH)));
-    public static final Block POTTED_SATIVA_FLOWER = registerBlock("potted_sativa_flower",
+    public static final Block POTTED_SATIVA_FLOWER = registerBlockWithoutItem("potted_sativa_flower",
             new FlowerPotBlock(SATIVA_FLOWER, AbstractBlock.Settings.copy(Blocks.POTTED_DANDELION)));
 
 
