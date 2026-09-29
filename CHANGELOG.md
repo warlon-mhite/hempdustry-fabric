@@ -9,6 +9,16 @@ beta be told when the release lands.
 
 ## [2.0.2] — unreleased
 
+### Breaking
+
+- **The two potted hemp flowers no longer register an item.** `hempdustry:potted_indica_flower` and
+  `hempdustry:potted_sativa_flower` were items absent from the creative tab and obtainable only with
+  `/give`, though they showed in recipe viewers' item lists — vanilla has no item for any potted
+  plant, because the plant is the item. If you gave yourself one it is gone. **Potted hemp flowers
+  already placed in your world are untouched**, planting a wild flower in a pot works as before, and
+  middle-clicking one still hands you the flower. Done now because 2.0.2 is the first stable release,
+  after which no id can be removed.
+
 ### Fixed
 
 - **Llamas wear hemp carpet.** On Minecraft 1.21.11 a llama refused it: the carpet was missing

@@ -6,6 +6,8 @@ import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ComposterBlock;
+import net.minecraft.block.CropBlock;
+import net.minecraft.block.FlowerPotBlock;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.HorseEntity;
@@ -17,6 +19,7 @@ import net.minecraft.loot.LootTable;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.test.TestContext;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
@@ -158,6 +161,29 @@ public final class TagBackedBehaviourGameTest {
             }
         }
         context.assertTrue(missing.isEmpty(), "these blocks have no loot table and drop nothing: " + missing);
+        context.complete();
+    }
+
+    /**
+     * No potted plant or crop of ours is an item, as none of vanilla's is.
+     *
+     * <p>Vanilla's potted plants and crops are blocks only: the flower, the sapling or the seeds are
+     * the item, and pick-block on a potted plant hands back the plant. A block registered with a
+     * {@code BlockItem} anyway gets one silently, named and modelled, in every recipe viewer's list
+     * — the crops had one until 2.0.1-beta and the potted flowers until 2.0.2 — and an item id cannot
+     * be taken back once a stable release has shipped it.
+     */
+    public static void pottedPlantsAndCropsHaveNoItem(TestContext context) {
+        List<String> items = new ArrayList<>();
+        for (Block block : Registries.BLOCK) {
+            Identifier id = Registries.BLOCK.getId(block);
+            if (id.getNamespace().equals(Hempdustry.MOD_ID)
+                    && (block instanceof FlowerPotBlock || block instanceof CropBlock)
+                    && Registries.ITEM.containsId(id)) {
+                items.add(id.getPath());
+            }
+        }
+        context.assertTrue(items.isEmpty(), "these potted plants or crops have an item, which vanilla's never do: " + items);
         context.complete();
     }
 }
