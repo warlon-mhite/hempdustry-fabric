@@ -7,7 +7,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ComposterBlock;
 import net.minecraft.block.CropBlock;
+import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.FlowerPotBlock;
+import net.minecraft.block.entity.DispenserBlockEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.HorseEntity;
@@ -21,6 +23,7 @@ import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
@@ -124,11 +127,12 @@ public final class TagBackedBehaviourGameTest implements FabricGameTest {
      * A tamed llama takes the hemp carpet, it belongs in the body slot, and a horse does not take it.
      *
      * <p>Two separate things on this line, both silent when missing. A llama's own check is
-     * {@code #minecraft:wool_carpets} ({@code LlamaEntity#isHorseArmor}); but {@code /item replace}, a
-     * dispenser and everything else that asks {@code Equipment.fromStack} want the carpet to <em>be</em>
-     * body equipment, which a plain carpet is not — {@code HempCarpetBlock} makes it one, as
-     * {@code DyedCarpetBlock} does for vanilla's. <b>Drawing it is the client's job and is not tested
-     * here</b> — {@code LlamaDecorFeatureRendererMixin} does that, and it was checked in a real client.
+     * {@code #minecraft:wool_carpets} ({@code LlamaEntity#isHorseArmor}); but {@code /item replace} and
+     * everything else that asks {@code Equipment.fromStack} want the carpet to <em>be</em> body
+     * equipment, which a plain carpet is not — {@code HempCarpetBlock} makes it one, as
+     * {@code DyedCarpetBlock} does for vanilla's. A dispenser asks neither: see the next test.
+     * <b>Drawing it is the client's job and is not tested here</b> —
+     * {@code LlamaDecorFeatureRendererMixin} does that, and it was checked in a real client.
      */
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
     public void aLlamaWearsHempCarpet(TestContext context) {
@@ -137,11 +141,40 @@ public final class TagBackedBehaviourGameTest implements FabricGameTest {
         llama.setTame(true);
         context.assertTrue(llama.isHorseArmor(carpet), "a tamed llama will not wear hemp carpet");
         context.assertTrue(llama.getPreferredEquipmentSlot(carpet) == EquipmentSlot.BODY,
-                "hemp carpet is not body equipment, so /item replace and a dispenser cannot put it on a llama");
+                "hemp carpet is not body equipment, so /item replace cannot put it on a llama");
         HorseEntity horse = context.spawnEntity(EntityType.HORSE, new BlockPos(4, 1, 1));
         horse.setTame(true);
         context.assertFalse(horse.isHorseArmor(carpet), "a horse will wear hemp carpet");
         context.complete();
+    }
+
+    /**
+     * A dispenser puts the hemp carpet on a tamed llama in front of it, as it does any vanilla carpet.
+     *
+     * <p>On this line a dispenser looks its behaviour up by item, and vanilla hands its "equip a horse
+     * or a llama" behaviour to its sixteen carpets by name — neither the carpet tag nor
+     * {@code Equipment} has a say — so a carpet without that entry is thrown out in front of the
+     * llama instead. This also proves vanilla's behaviours are registered before ours borrows one.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void aDispenserPutsHempCarpetOnALlama(TestContext context) {
+        BlockPos dispenserPos = new BlockPos(0, 1, 1);
+        context.setBlockState(dispenserPos, Blocks.DISPENSER.getDefaultState().with(DispenserBlock.FACING, Direction.EAST));
+        LlamaEntity llama = context.spawnEntity(EntityType.LLAMA, new BlockPos(1, 1, 1));
+        llama.setTame(true);
+        llama.setAiDisabled(true);
+        DispenserBlockEntity dispenser = (DispenserBlockEntity) context.getBlockEntity(dispenserPos);
+        dispenser.setStack(0, new ItemStack(ModBlocks.HEMP_CARPET));
+        // Above the dispenser, as in InfuserPourGameTest. Beside it at (0, 1, 0) the redstone block
+        // powers the test's own structure block, which reloads the empty structure over the dispenser.
+        context.putAndRemoveRedstoneBlock(new BlockPos(0, 2, 1), 1);
+
+        context.runAtTick(10, () -> {
+            context.assertTrue(llama.getBodyArmor().isOf(ModBlocks.HEMP_CARPET.asItem()),
+                    "the dispenser did not put the hemp carpet on the llama, which wears " + llama.getBodyArmor());
+            context.assertTrue(dispenser.getStack(0).isEmpty(), "the dispenser kept the carpet: " + dispenser.getStack(0));
+            context.complete();
+        });
     }
 
     /**

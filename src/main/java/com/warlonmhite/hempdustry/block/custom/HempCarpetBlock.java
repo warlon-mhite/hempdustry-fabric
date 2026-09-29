@@ -10,8 +10,9 @@ import net.minecraft.sound.SoundEvents;
 /**
  * The hemp carpet, as something a llama wears. Vanilla's {@code DyedCarpetBlock} is a carpet that is
  * also {@link Equipment} — body slot, the llama's swag sound — and that, not the carpet tag, is what
- * {@code /item replace}, a dispenser and anything else asking {@code Equipment.fromStack} go by. This is
- * that block without the {@code DyeColor}, which ours does not have; the drawing is
+ * {@code /item replace} and anything else asking {@code Equipment.fromStack} go by. A dispenser asks
+ * neither: {@code ModDispenserBehaviors} gives ours the behaviour vanilla gives its carpets by name.
+ * This is that block without the {@code DyeColor}, which ours does not have; the drawing is
  * {@code LlamaDecorFeatureRendererMixin}'s.
  */
 public class HempCarpetBlock extends CarpetBlock implements Equipment {

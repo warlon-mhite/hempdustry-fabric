@@ -23,6 +23,8 @@ beta be told when the release lands.
 
 - **A llama wearing hemp carpet shows it.** It took the carpet but drew nothing — a trader llama drew
   its own cloth instead. It now wears it in hemp cloth, like any other carpet.
+- **A dispenser puts hemp carpet on a llama.** It threw the carpet out in front of a tamed llama
+  instead of putting it on, as it does with any other carpet.
 - **Hemp trapdoors and potted hemp flowers drop when broken.** Breaking either gave back nothing
   at all; a trapdoor now drops itself, and a pot gives back the pot and the plant, as vanilla's do.
 

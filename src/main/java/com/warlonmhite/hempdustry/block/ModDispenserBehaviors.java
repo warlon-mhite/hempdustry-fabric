@@ -14,7 +14,8 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A dispenser pours milk into an Infuser in front of it, and keeps the empty bucket.
+ * A dispenser pours milk into an Infuser in front of it, and keeps the empty bucket; and it puts the
+ * hemp carpet on a llama.
  *
  * <p>This is the Infuser's milk automation. Milk used to go in through a slot a hopper could feed;
  * it is poured by hand now, and the vanilla way to automate "use this item on that block" is a
@@ -48,6 +49,9 @@ public final class ModDispenserBehaviors {
     public static void registerDispenserBehaviors() {
         pourIntoInfusers(Items.MILK_BUCKET);
         pourIntoInfusers(ModItems.HEMP_MILK_BUCKET);
+        // Vanilla gives the behaviour that puts a carpet on a tamed llama to its sixteen carpets by
+        // name; the carpet tag and Equipment decide nothing here. Ours borrows the white carpet's.
+        DispenserBlock.registerBehavior(ModBlocks.HEMP_CARPET, DispenserBlock.BEHAVIORS.get(Items.WHITE_CARPET));
     }
 
     private static void pourIntoInfusers(Item milk) {
