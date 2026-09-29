@@ -146,6 +146,20 @@ beta be told when the release lands.
   - *Bong Voyage* and *Burnout* count a bong of any colour.
 - **A cannabis leaf banner pattern.** Put a hemp leaf in the loom's pattern slot — you keep it — and
   paint a seven-leaflet leaf onto a banner or a shield, in any of the sixteen colours.
+- **A Hemp Bed.** Three hemp wool over three planks, like any bed, in undyed hemp cloth with a white
+  pillow. It works like every other bed — sleep in it, set your spawn, and villagers take it as
+  their home — with one difference: **it burns**, at the rate of the hemp wool it is made of. Dye
+  it any colour to turn it into that vanilla bed.
+- **A Hemp Shelf**, the shelf every vanilla wood got in 1.21.9: six hemp planks make six, and it holds
+  and swaps items exactly like an oak one. Fireproof, like the rest of the hemp planks. *Minecraft
+  1.21.11 only — there are no shelves before 1.21.9.*
+- **A Hemp Harness** for the happy ghast: three leather, two glass and hemp wool, like the sixteen
+  vanilla harnesses, in undyed hemp cloth. Dye it to turn it into that vanilla harness.
+- **Bundles from canvas.** String over hemp canvas makes a bundle, where vanilla uses leather — a
+  bundle is a sack, and hemp is what sacks were made of.
+- **Hemp Parquet**, with stairs and a slab: two hemp plank slabs stacked make a block of it, laid as a
+  basket weave. Decoration only, the way bamboo mosaic is — it makes no chests or sticks — and
+  fireproof.
 - **Seventeen new advancements**, so every 2.1 feature has a place in the tree. The tree has 42
   now.
   - **Growing:** *Kif Country* for Beldía, *Sticky Fingers* for charas, *Well Done* for scorched
@@ -159,6 +173,8 @@ beta be told when the release lands.
 
 ### Changed
 
+- **Three hemp wool over three planks makes a Hemp Bed now, not a white bed.** Dye the Hemp Bed white
+  for the white bed.
 - **A bong hit is drawn, not clicked.** Hold use with a packed bong and it comes up to your mouth
   for a second and a half: the water bubbles, smoke gathers in the chamber and climbs the neck, a
   wisp rises from the bowl, and the hit lands when the draw is done. Let go early and nothing is

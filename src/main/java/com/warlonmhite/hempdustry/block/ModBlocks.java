@@ -11,6 +11,7 @@ import com.warlonmhite.hempdustry.block.custom.FilteredHashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.GrowLampBlock;
 import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
+import com.warlonmhite.hempdustry.block.custom.HempBedBlock;
 import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
 import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
@@ -23,6 +24,7 @@ import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
+import net.minecraft.block.enums.BedPart;
 import net.minecraft.block.enums.NoteBlockInstrument;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.component.DataComponentTypes;
@@ -32,6 +34,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.equipment.EquipmentAssetKeys;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.item.BedItem;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -106,6 +109,32 @@ public class ModBlocks {
             AbstractBlock.Settings.create().strength(1.0F).sounds(BlockSoundGroup.HANGING_SIGN).noCollision());
     public static final Block HEMP_PLANKS_WALL_HANGING_SIGN = registerBlockWithoutItem("hemp_planks_wall_hanging_sign", settings -> new WallHangingSignBlock(HEMP_WOOD_TYPE, settings),
             AbstractBlock.Settings.create().strength(1.0F).sounds(BlockSoundGroup.HANGING_SIGN).noCollision().lootTable(HEMP_PLANKS_HANGING_SIGN.getLootTableKey()));
+
+    /**
+     * The shelf every vanilla wood got in 1.21.9: vanilla's own {@link ShelfBlock}, with vanilla's
+     * settings for it (bass under a note block, the shelf sound group, planks' 2.0/3.0) — except
+     * {@code burnable()}, which the rest of this fireproof set leaves out too. <b>1.21.11 only</b>:
+     * the class does not exist before 1.21.9, so a backport of this set to the 1.21.1 line leaves the
+     * shelf behind rather than copying it.
+     */
+    public static final Block HEMP_PLANKS_SHELF = registerBlock("hemp_planks_shelf", ShelfBlock::new,
+            AbstractBlock.Settings.create()
+                    .instrument(NoteBlockInstrument.BASS)
+                    .sounds(BlockSoundGroup.SHELF)
+                    .strength(2.0F, 3.0F));
+
+    /**
+     * Hemp laid as a floor — the plank set's decorative block, the way bamboo mosaic is bamboo's.
+     * Same wood as the planks, so the same settings; the stairs and slab copy the parquet, as
+     * vanilla's copy the block they are cut from.
+     */
+    public static final Block HEMP_PARQUET = registerBlock("hemp_parquet", Block::new,
+            AbstractBlock.Settings.copy(HEMP_PLANKS));
+    public static final Block HEMP_PARQUET_STAIRS = registerBlock("hemp_parquet_stairs",
+            settings -> new StairsBlock(ModBlocks.HEMP_PARQUET.getDefaultState(), settings),
+            AbstractBlock.Settings.copy(HEMP_PARQUET));
+    public static final Block HEMP_PARQUET_SLAB = registerBlock("hemp_parquet_slab", SlabBlock::new,
+            AbstractBlock.Settings.copy(HEMP_PARQUET));
 
     public static final Block HEMPCRETE_BLOCK = registerBlock("hempcrete_block", Block::new,
             AbstractBlock.Settings.create().strength(1.8F).sounds(BlockSoundGroup.STONE));
@@ -201,6 +230,24 @@ public class ModBlocks {
                             .canBeSheared(true)
                             .shearingSound(SoundEvents.ITEM_LLAMA_CARPET_UNEQUIP)
                             .build()));
+
+    /**
+     * The bed hemp wool makes — see {@link HempBedBlock}. Vanilla's bed settings to the letter
+     * (0.2 hardness, wood sounds, a piston breaks it), with hemp wool's map colour on the blanket
+     * half where vanilla puts the dye's. It also <em>burns</em>, which no vanilla bed does: it is
+     * registered flammable at hemp wool's own rate, because it is a bed made of cloth that burns.
+     */
+    public static final Block HEMP_BED = registerBlockWithItem("hemp_bed", HempBedBlock::new,
+            AbstractBlock.Settings.create()
+                    .mapColor(state -> state.get(BedBlock.PART) == BedPart.FOOT
+                            ? MapColor.TERRACOTTA_WHITE : MapColor.WHITE_GRAY)
+                    .sounds(BlockSoundGroup.WOOD)
+                    .strength(0.2F)
+                    .nonOpaque()
+                    .burnable()
+                    .pistonBehavior(PistonBehavior.DESTROY),
+            BedItem::new,
+            new Item.Settings().maxCount(1));
 
 
     // NO BLOCK ITEM, on both crops, exactly as vanilla WHEAT has none: the seeds are the item, and

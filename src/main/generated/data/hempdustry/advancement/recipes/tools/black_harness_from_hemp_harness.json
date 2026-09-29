@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_hemp_wool": {
+    "has_hemp_harness": {
       "conditions": {
         "items": [
           {
-            "items": "hempdustry:hemp_wool"
+            "items": "hempdustry:hemp_harness"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:white_bed"
+        "recipe": "hempdustry:black_harness_from_hemp_harness"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_hemp_wool"
+      "has_hemp_harness"
     ]
   ],
   "rewards": {
     "recipes": [
-      "hempdustry:white_bed"
+      "hempdustry:black_harness_from_hemp_harness"
     ]
   }
 }

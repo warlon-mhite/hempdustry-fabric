@@ -20,6 +20,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.client.data.*;
 import net.minecraft.client.render.item.model.ItemModel;
 import net.minecraft.client.render.item.model.RangeDispatchItemModel;
+import net.minecraft.client.render.item.model.special.BedModelRenderer;
 import net.minecraft.client.render.item.property.numeric.UseDurationProperty;
 import net.minecraft.client.render.model.json.WeightedVariant;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
@@ -80,6 +81,15 @@ public class ModModelProvider extends FabricModelProvider {
 
         blockStateModelGenerator.registerDoor(ModBlocks.HEMP_PLANKS_DOOR);
         blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+        // Vanilla's shelf helper; the planks stand in for the stripped log it takes its break
+        // particles from, as they do in the recipe.
+        blockStateModelGenerator.registerShelf(ModBlocks.HEMP_PLANKS_SHELF, ModBlocks.HEMP_PLANKS);
+
+        blockStateModelGenerator.registerCubeAllModelTexturePool(ModBlocks.HEMP_PARQUET)
+                .stairs(ModBlocks.HEMP_PARQUET_STAIRS)
+                .slab(ModBlocks.HEMP_PARQUET_SLAB);
+
+        registerHempBed(blockStateModelGenerator);
 
         blockStateModelGenerator.createLogTexturePool(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
         // TexturedModel.LEAVES, not registerSimpleCubeAll: it parents to minecraft:block/leaves,
@@ -226,6 +236,7 @@ public class ModModelProvider extends FabricModelProvider {
 
         itemModelGenerator.register(ModItems.HEMP_PLANKS_SIGN, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_PLANKS_HANGING_SIGN, Models.GENERATED);
+        itemModelGenerator.register(ModItems.HEMP_HARNESS, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_BOAT, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_CHEST_BOAT, Models.GENERATED);
 
@@ -379,6 +390,22 @@ public class ModModelProvider extends FabricModelProvider {
      * The vanilla {@link Models} helpers can't express "parent plus textures", so these go straight
      * to the generator's model collector.
      */
+    /**
+     * Vanilla's {@code registerBed}, which only takes a {@code DyeColor}. The block points at
+     * vanilla's own particle-only {@code block/bed} model, as all sixteen beds do (the renderer draws
+     * the bed); the item is vanilla's {@code minecraft:bed} special model given the hemp texture by
+     * id, with hemp wool for its particle the way each vanilla bed item uses its wool.
+     */
+    private static void registerHempBed(BlockStateModelGenerator generator) {
+        generator.blockStateCollector.accept(BlockStateModelGenerator.createSingletonBlockState(ModBlocks.HEMP_BED,
+                BlockStateModelGenerator.createWeightedVariant(ModelIds.getMinecraftNamespacedBlock("bed"))));
+        Item bed = ModBlocks.HEMP_BED.asItem();
+        Identifier model = Models.TEMPLATE_BED.upload(ModelIds.getItemModelId(bed),
+                TextureMap.particle(ModBlocks.HEMP_WOOL), generator.modelCollector);
+        generator.itemModelOutput.accept(bed, ItemModels.special(model,
+                new BedModelRenderer.Unbaked(Identifier.of(Hempdustry.MOD_ID, "hemp"))));
+    }
+
     private static void registerSpaceCake(BlockStateModelGenerator generator) {
         BlockStateVariantMap.SingleProperty<WeightedVariant, Integer> variants =
                 BlockStateVariantMap.models(CakeBlock.BITES);

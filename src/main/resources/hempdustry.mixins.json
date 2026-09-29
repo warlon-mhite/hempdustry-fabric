@@ -5,6 +5,7 @@
 	"mixins": [
 		"BeeGrowCropsGoalMixin",
 		"CreeperEntityMixin",
+		"PointOfInterestTypesAccessor",
 		"Schema1460Mixin"
 	],
 	"injectors": {

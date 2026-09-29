@@ -13,8 +13,10 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.loot.ModLootEntryTypes;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+import net.minecraft.block.BedBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.TallPlantBlock;
+import net.minecraft.block.enums.BedPart;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.Enchantments;
@@ -151,12 +153,18 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(ModBlocks.HEMP_PLANKS_TRAPDOOR);
         addDrop(ModBlocks.HEMP_PLANKS_FENCE_GATE);
         addDrop(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
+        addDrop(ModBlocks.HEMP_PLANKS_SHELF);
+        addDrop(ModBlocks.HEMP_PARQUET);
+        addDrop(ModBlocks.HEMP_PARQUET_STAIRS);
+        addDrop(ModBlocks.HEMP_PARQUET_SLAB, slabDrops(ModBlocks.HEMP_PARQUET_SLAB));
         addDrop(ModBlocks.HEMPCRETE_BLOCK);
         addDrop(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         addDrop(ModBlocks.HEMP_BALE);
         addDrop(ModBlocks.HEMP_LEAVES);
         addDrop(ModBlocks.HEMP_WOOL);
         addDrop(ModBlocks.HEMP_CARPET);
+        // Two halves, one bed: vanilla's beds drop from the head half only, and so does this one.
+        addDrop(ModBlocks.HEMP_BED, dropsWithProperty(ModBlocks.HEMP_BED, BedBlock.PART, BedPart.HEAD));
         // Empty, exactly like vanilla's cake: you cannot pick a cake back up once it is placed.
         // Vanilla still ships a loot table file for it rather than omitting one, so we do too.
         addDrop(ModBlocks.SPACE_CAKE, LootTable.builder());

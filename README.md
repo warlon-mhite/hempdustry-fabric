@@ -113,10 +113,12 @@ Hemp is a fibre crop first, and the mod treats it that way.
 
 - **Cloth chain:** stems → fibre → canvas → hemp wool → hemp carpet, reversible one step at a time.
   Canvas stands in for leather where vanilla uses leather; hemp wool stands in for wool where vanilla
-  uses wool. Between them you get books, item frames, paintings and a bed without a cow or a sheep.
+  uses wool. Between them you get books, item frames, bundles and paintings without a cow or a sheep,
+  a **hemp bed** — which, unlike any other bed, will burn — and a hemp **harness** for a happy ghast.
 - **Hempcrete**, including a powder form that sets on contact with water like concrete does.
 - **Hemp bricks** and a full **hemp plank set** — stairs, slabs, doors, trapdoors, fences, signs,
-  hanging signs, boats — which is fireproof, the way Crimson and Warped are.
+  hanging signs, shelves, boats, and a basket-weave **parquet** — which is fireproof, the way Crimson
+  and Warped are.
 - A hemp **armour set**: beanie, shirt, harem pants and flip-flops. It is not good armour.
 
 ### Odds and ends

@@ -19,6 +19,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
+import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
@@ -82,6 +83,8 @@ public class HempdustryClient implements ClientModInitializer {
 
         // The press's platen and capstan move, so a renderer draws them rather than the block model.
         BlockEntityRendererFactories.register(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
+        // A bed has no block model: its block entity draws it, like every vanilla bed.
+        BlockEntityRendererFactories.register(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
 
         registerItemModelHooks();
         registerBlockColors();
