@@ -41,6 +41,7 @@ public class HempdustryGameTests implements ModInitializer {
         register("shears_mine_hemp_leaves_fast", TagBackedBehaviourGameTest::shearsMineHempLeavesFast);
         register("storage_blocks_compost", TagBackedBehaviourGameTest::storageBlocksCompost);
         register("a_llama_wears_hemp_carpet", TagBackedBehaviourGameTest::aLlamaWearsHempCarpet);
+        register("every_block_has_a_loot_table", TagBackedBehaviourGameTest::everyBlockHasALootTable);
         register("milk_is_poured_in_by_hand", InfuserPourGameTest::milkIsPouredInByHand);
         register("dispenser_pours_milk_and_keeps_the_bucket",
                 InfuserPourGameTest::dispenserPoursMilkAndKeepsTheBucket);

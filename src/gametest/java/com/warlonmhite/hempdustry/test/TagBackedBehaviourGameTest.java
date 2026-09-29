@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import net.minecraft.block.Block;
@@ -12,9 +13,14 @@ import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.passive.TraderLlamaEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.loot.LootTable;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Features whose whole behaviour is one entry in a tag file or one call into a registry, and which
@@ -128,6 +134,30 @@ public final class TagBackedBehaviourGameTest {
         horse.setTame(true);
         context.assertFalse(horse.canEquip(carpet, EquipmentSlot.BODY),
                 "a horse will wear hemp carpet, so its equip data lets in more than llamas");
+        context.complete();
+    }
+
+    /**
+     * Every block of ours drops by a loot table that exists.
+     *
+     * <p>A block with no table of its own drops nothing, with nothing in any log: the game looks the
+     * table up under the block's id, finds none and uses the empty one. That is how the hemp trapdoor
+     * and both potted hemp flowers shipped in 2.0.1 — breaking one gave back nothing. Copying a vanilla
+     * block's settings does not help, because the table is looked up under the copy's own id. Wall
+     * signs pass because they point at their standing sign's table on purpose.
+     */
+    public static void everyBlockHasALootTable(TestContext context) {
+        var loot = context.getWorld().getServer().getReloadableRegistries();
+        List<String> missing = new ArrayList<>();
+        for (Block block : Registries.BLOCK) {
+            if (!Registries.BLOCK.getId(block).getNamespace().equals(Hempdustry.MOD_ID)) {
+                continue;
+            }
+            if (block.getLootTableKey().map(loot::getLootTable).orElse(LootTable.EMPTY) == LootTable.EMPTY) {
+                missing.add(Registries.BLOCK.getId(block).getPath());
+            }
+        }
+        context.assertTrue(missing.isEmpty(), "these blocks have no loot table and drop nothing: " + missing);
         context.complete();
     }
 }
