@@ -14,14 +14,15 @@ actually been for over the last five thousand years.
 
 **Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-fabric/releases)
 
-> **Status: version 2.0.1-beta**
+> **Status: version 2.0.2, the first stable release**
 > This is a rewrite for Fabric 1.21.11 of an older Forge 1.16 mod (GanjaCraft) that was built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
 >
-> It is a **beta** because most of the mod has never been played, not because it is known to be
-> broken: it builds, it loads on a dedicated server without a warning, and its data all validates.
-> What has not happened is somebody playing through it. Bug reports are the point.
+> **Stable** is a promise about your worlds, not a claim that nothing is left to find: from 2.0.2 on,
+> a world made with any version of Hempdustry 2 opens on every later one, with nothing for you to do.
+> It builds, it loads on a dedicated server without a warning, its data all validates, and it has
+> been through a real client on both Minecraft versions. Bug reports are still welcome.
 
 ---
 
