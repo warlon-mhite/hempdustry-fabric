@@ -5,10 +5,16 @@ import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ComposterBlock;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.passive.HorseEntity;
+import net.minecraft.entity.passive.LlamaEntity;
+import net.minecraft.entity.passive.TraderLlamaEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.test.TestContext;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * Features whose whole behaviour is one entry in a tag file or one call into a registry, and which
@@ -98,6 +104,30 @@ public final class TagBackedBehaviourGameTest {
                 "a diamond pickaxe (" + pickaxe + "x) matches or beats shears (" + shears
                         + "x) on hemp_leaves, which is not how any leaf block behaves");
 
+        context.complete();
+    }
+
+    /**
+     * A tamed llama wears the hemp carpet, and so does a trader's; a horse does not.
+     *
+     * <p>On 1.21.11 a llama asks the carpet's own equip data whether it may wear it — the
+     * {@code #minecraft:wool_carpets} tag the carpet is in no longer decides anything there — so
+     * a carpet without that data is simply refused, with nothing in any log. That is how the hemp
+     * carpet shipped in 2.0.1-beta. The horse is the negative, so this cannot pass against equip data
+     * that lets anything wear it.
+     */
+    public static void aLlamaWearsHempCarpet(TestContext context) {
+        ItemStack carpet = new ItemStack(ModBlocks.HEMP_CARPET);
+        LlamaEntity llama = context.spawnEntity(EntityType.LLAMA, new BlockPos(1, 1, 1));
+        llama.setTame(true);
+        context.assertTrue(llama.canEquip(carpet, EquipmentSlot.BODY), "a tamed llama will not wear hemp carpet");
+        TraderLlamaEntity trader = context.spawnEntity(EntityType.TRADER_LLAMA, new BlockPos(3, 1, 1));
+        trader.setTame(true);
+        context.assertTrue(trader.canEquip(carpet, EquipmentSlot.BODY), "a trader llama will not wear hemp carpet");
+        HorseEntity horse = context.spawnEntity(EntityType.HORSE, new BlockPos(5, 1, 1));
+        horse.setTame(true);
+        context.assertFalse(horse.canEquip(carpet, EquipmentSlot.BODY),
+                "a horse will wear hemp carpet, so its equip data lets in more than llamas");
         context.complete();
     }
 }

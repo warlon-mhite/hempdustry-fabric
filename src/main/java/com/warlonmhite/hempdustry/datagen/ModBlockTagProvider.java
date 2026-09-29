@@ -179,9 +179,10 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         valueLookupBuilder(BlockTags.OCCLUDES_VIBRATION_SIGNALS).add(ModBlocks.HEMP_WOOL);
 
         // The carpet joins #minecraft:wool_carpets instead, and that tag is safe where
-        // #minecraft:wool is not: it gates only vibration damping, the step-sound blend, llama
-        // decoration and a 67-tick fuel entry — no recipe. Damping and fuel therefore come for free
-        // via the tag, which is why the carpet is absent from the two tags above.
+        // #minecraft:wool is not: it gates only vibration damping, the step-sound blend and a
+        // 67-tick fuel entry — no recipe. Damping and fuel therefore come for free via the tag, which
+        // is why the carpet is absent from the two tags above. (It gated llama decoration too on
+        // 1.21.1; on 1.21.11 a llama reads the item's equip data instead — see ModBlocks.HEMP_CARPET.)
         //
         // Deliberately NOT in OCCLUDES_VIBRATION_SIGNALS: vanilla's carpets dampen but do not
         // occlude (a carpet is too thin to block a signal outright), and we mirror that exactly.

@@ -40,6 +40,7 @@ public class HempdustryGameTests implements ModInitializer {
         register("lava_heats_the_infuser", TagBackedBehaviourGameTest::lavaHeatsTheInfuser);
         register("shears_mine_hemp_leaves_fast", TagBackedBehaviourGameTest::shearsMineHempLeavesFast);
         register("storage_blocks_compost", TagBackedBehaviourGameTest::storageBlocksCompost);
+        register("a_llama_wears_hemp_carpet", TagBackedBehaviourGameTest::aLlamaWearsHempCarpet);
         register("milk_is_poured_in_by_hand", InfuserPourGameTest::milkIsPouredInByHand);
         register("dispenser_pours_milk_and_keeps_the_bucket",
                 InfuserPourGameTest::dispenserPoursMilkAndKeepsTheBucket);

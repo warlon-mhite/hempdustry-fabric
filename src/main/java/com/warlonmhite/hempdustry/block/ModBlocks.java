@@ -15,7 +15,13 @@ import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.NoteBlockInstrument;
 import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.EquippableComponent;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.item.equipment.EquipmentAssetKeys;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -151,18 +157,33 @@ public class ModBlocks {
                     .burnable());
 
     /**
-     * Hemp carpet. A plain {@link CarpetBlock}, not vanilla's {@code DyedCarpetBlock} — the dyed
-     * subclass exists only to report a {@code DyeColor} to llama decoration, and ours has no dye
-     * colour to report (moss carpet is plain for the same reason).
+     * Hemp carpet. A plain {@link CarpetBlock}, not vanilla's {@code DyedCarpetBlock}, which only
+     * carries a {@code DyeColor} ours does not have (moss carpet is plain for the same reason).
      * <p>
      * It shares the wool block's texture, exactly as every vanilla carpet shares its wool's.
+     * <p>
+     * <b>A llama wears it because of the item's equip data, not a tag.</b> On 1.21.11 a carpet goes
+     * on a llama through the {@code equippable} component vanilla gives each of its sixteen
+     * ({@code EquippableComponent.ofCarpet}), and {@code #minecraft:wool_carpets} decides nothing
+     * about it — 1.21.1 still asked the tag, which is why this went unnoticed through the port. This is that call, call for call, with our own equipment asset where
+     * vanilla looks one up by colour: {@code equipment/hemp_carpet.json}, drawn from
+     * {@code entity/equipment/llama_body/hemp.png}.
      */
     public static final Block HEMP_CARPET = registerBlock("hemp_carpet", CarpetBlock::new,
             AbstractBlock.Settings.create()
                     .mapColor(MapColor.TERRACOTTA_WHITE)
                     .strength(0.1F)
                     .sounds(BlockSoundGroup.WOOL)
-                    .burnable());
+                    .burnable(),
+            new Item.Settings().component(DataComponentTypes.EQUIPPABLE,
+                    EquippableComponent.builder(EquipmentSlot.BODY)
+                            .equipSound(SoundEvents.ENTITY_LLAMA_SWAG)
+                            .model(RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY,
+                                    Identifier.of(Hempdustry.MOD_ID, "hemp_carpet")))
+                            .allowedEntities(EntityType.LLAMA, EntityType.TRADER_LLAMA)
+                            .canBeSheared(true)
+                            .shearingSound(SoundEvents.ITEM_LLAMA_CARPET_UNEQUIP)
+                            .build()));
 
 
     // NO BLOCK ITEM, on both crops, exactly as vanilla WHEAT has none: the seeds are the item, and

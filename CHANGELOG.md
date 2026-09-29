@@ -9,7 +9,11 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.0.1-beta.
+### Fixed
+
+- **Llamas wear hemp carpet.** On Minecraft 1.21.11 a llama refused it: the carpet was missing
+  what the game now asks a carpet before a llama may wear it. It goes on a llama or a trader llama
+  like any other carpet, and draws in hemp cloth.
 
 ## [2.0.1-beta] — 2026-09-23
 
