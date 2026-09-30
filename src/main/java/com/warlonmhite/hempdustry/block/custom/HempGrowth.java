@@ -24,8 +24,14 @@ public final class HempGrowth {
 
     /**
      * The odds that one random tick advances the plant, before any cap: above 1.0 means every tick.
+     * Dry ground (Beldía's sand with no water in reach) never grows: without the early return,
+     * {@code resistance / 0} casts to {@code Integer.MAX_VALUE}, the {@code + 1} wraps it negative,
+     * and the odds come out a tiny negative number that is right only by accident.
      */
     public static float chance(float resistance, float moisture, double multiplier) {
+        if (moisture <= 0.0F) {
+            return 0.0F;
+        }
         return (float) (multiplier / ((int) (resistance / moisture) + 1));
     }
 

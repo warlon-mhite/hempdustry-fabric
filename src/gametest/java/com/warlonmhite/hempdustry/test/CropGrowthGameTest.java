@@ -24,6 +24,9 @@ public final class CropGrowthGameTest {
         expect(context, 35.0F, 10.0F, 1.2, 0.3F);
         // A crowded field halves the moisture; the multiplier still scales whatever odds are left.
         expect(context, 25.0F, 5.0F, 2.0, 2.0F / 6.0F);
+        // Dry ground: exactly nothing. The overflow gave about -1e-9, inside expect's tolerance.
+        float dry = HempGrowth.chance(25.0F, 0.0F, 2.0);
+        context.assertTrue(dry == 0.0F, "moisture 0: odds " + dry + ", expected exactly 0");
         context.complete();
     }
 
