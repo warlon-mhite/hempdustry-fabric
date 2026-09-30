@@ -34,6 +34,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -259,6 +260,19 @@ public final class ViewerRecipes {
                 new ItemStack(output),
                 List.of(Text.translatable("hempdustry.category.cauldron.info", perLevel)),
                 true);
+    }
+
+    /**
+     * What a viewer can only say in a paragraph, handed to each viewer's own information page. A
+     * packed bong sets down only while sneaking, because a plain right-click is how it is smoked,
+     * and no crafting row can say so.
+     */
+    public static Map<Item, Text> info() {
+        Map<Item, Text> out = new LinkedHashMap<>();
+        for (Item bong : ModItems.bongs()) {
+            out.put(bong, Text.translatable("hempdustry.info.bong"));
+        }
+        return out;
     }
 
     /**

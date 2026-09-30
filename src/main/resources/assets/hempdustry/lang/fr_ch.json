@@ -68,6 +68,8 @@
   "hempdustry.sifting_box.needs_ice": "Le lavage demande de la glace sur les quatre côtés du bac",
   "hempdustry.sifting_box.no_plant_in_kief": "Impossible de mélanger feuilles ou fleurs avec du kief",
   "hempdustry.sifting_box.no_kief_in_plant": "Impossible de mélanger du kief avec des fleurs ou des feuilles",
+  "hempdustry.bong.set_down": "Accroupissez-vous pour le poser",
+  "hempdustry.info.bong": "Maintenez le clic droit pour tirer une bouffée. Accroupi, un clic droit pose un bang chargé : il garde sa charge, et la rend une fois cassé. Un bang vide se pose sans s'accroupir.",
   "item.hempdustry.wooden_pipe": "Pipe en Bois",
   "item.hempdustry.wooden_pipe.packed": "Pipe de %s",
   "item.hempdustry.bong": "Bang",

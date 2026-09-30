@@ -68,6 +68,8 @@
   "hempdustry.sifting_box.needs_ice": "The wash needs ice on all four sides of the box",
   "hempdustry.sifting_box.no_plant_in_kief": "You can't mix leaves or buds with kief",
   "hempdustry.sifting_box.no_kief_in_plant": "You can't mix kief with buds or leaves",
+  "hempdustry.bong.set_down": "Sneak to set it down",
+  "hempdustry.info.bong": "Hold right-click to draw a hit. Sneak and right-click to set down a packed bong: it keeps its load, and gives it back when broken. An empty one sets down without sneaking.",
   "item.hempdustry.wooden_pipe": "Wooden Pipe",
   "item.hempdustry.wooden_pipe.packed": "%s Pipe",
   "item.hempdustry.bong": "Bong",

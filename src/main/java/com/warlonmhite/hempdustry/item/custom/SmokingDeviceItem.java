@@ -11,6 +11,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.consume.UseAction;
@@ -19,12 +20,14 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.Arm;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.event.GameEvent;
@@ -96,6 +99,20 @@ public class SmokingDeviceItem extends Item {
         return contents.isEmpty()
                 ? super.getName(stack)
                 : SmokeContents.packedName("item." + Hempdustry.MOD_ID + "." + device.baseName() + ".packed", contents);
+    }
+
+    /**
+     * Says how to set a packed bong down, which nothing else in the game does: a plain right-click
+     * smokes it, so it places only while sneaking ({@link #useOnBlock}). An empty one places on a
+     * plain click and needs no line.
+     */
+    @Override
+    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent,
+                              Consumer<Text> textConsumer, TooltipType type) {
+        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+        if (placed != null && !contentsOf(stack).isEmpty()) {
+            textConsumer.accept(Text.translatable("hempdustry.bong.set_down").formatted(Formatting.GRAY));
+        }
     }
 
     @Override

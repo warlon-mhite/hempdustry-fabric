@@ -8,6 +8,7 @@ import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.api.common.util.EntryStacks;
+import me.shedaniel.rei.plugin.client.BuiltinClientPlugin;
 import me.shedaniel.rei.plugin.common.displays.crafting.DefaultCustomShapelessDisplay;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -83,6 +84,11 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         for (ViewerRecipes.Entry entry : ViewerRecipes.cauldron()) {
             registry.add(new EntryReiDisplay(CAULDRON, entry));
         }
+        ViewerRecipes.info().forEach((item, text) -> BuiltinClientPlugin.getInstance()
+                .registerInformation(EntryStacks.of(item), item.getName(), lines -> {
+                    lines.add(text);
+                    return lines;
+                }));
 
         // Packing goes into REI's own crafting category rather than one of ours, which is what
         // makes REI's built-in "move ingredients into the grid" work on it without a transfer

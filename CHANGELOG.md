@@ -138,7 +138,8 @@ beta be told when the release lands.
 - **Set a bong down.** Right-click a block with an empty bong and it stands there, like a flower
   pot; sneak and right-click to put down a packed one, bowl and all. It breaks in one hit and always
   drops back exactly as it went down — packed, worn, enchanted or named. It is for show: to smoke
-  it, pick it back up.
+  it, pick it back up. A packed bong's tooltip says to sneak, and JEI and REI give every bong an
+  information page.
 - **The bong is 3D in your hand**, and stays the familiar flat icon in your inventory, on the ground
   and in item frames — the way the trident and the spyglass do it.
   - For resource packs: every glass has its own item sprite (`textures/item/<colour>_bong.png`) and
