@@ -85,10 +85,14 @@ public final class PlantStress {
     /**
      * Rolls {@code chance} against the plant whose LOWER is at {@code lower}, outside any growth step,
      * and on a hit writes the record up every segment at once, so the plant shows it straight away.
+     * A ripe plant is past it: stress is a growth failure, a ripe plant grows no more, and a real
+     * plant cut at maturity has no weeks left to go seedy. Vanilla never costs a finished crop its
+     * yield either.
      */
     public static void roll(World world, BlockPos lower, float chance, Random random) {
         BlockState plant = world.getBlockState(lower);
         if (!isFlowering(plant) || plant.get(GrowLight.PROPERTY) == GrowLight.STRESSED
+                || plant.getBlock() instanceof CropBlock crop && crop.isMature(plant)
                 || random.nextFloat() >= chance) {
             return;
         }

@@ -65,14 +65,18 @@ public final class IndoorGrowGameTest {
         // The path carryOver guards. A growth step re-derives the record, so it survives a broken
         // carryOver untouched; the random tick that re-sprouts a missing top half at the SAME age
         // does not. (Watched green against a carryOver that dropped the record until this was added.)
+        // The lamp goes too: that same-age reconcile must not read the light, or a ripe plant would
+        // be stressed for a lamp taken away after it had finished growing.
         ServerWorld tickWorld = context.getWorld();
         BlockPos ripe = context.getAbsolutePos(CROP);
+        context.setBlockState(LIGHT, Blocks.AIR);
         context.setBlockState(CROP.up(), Blocks.AIR);
         tickWorld.getBlockState(ripe).randomTick(tickWorld, ripe, tickWorld.getRandom());
         context.assertTrue(context.getBlockState(CROP.up()).isOf(ModBlocks.INDICA_CROP),
                 "the random tick did not re-sprout the missing top half, so this probe proves nothing");
         context.assertTrue(record(context) == GrowLight.GROW_LAMP, "re-sprouting a ripe plant's top half"
-                + " wiped its light record to " + record(context) + " — carryOver has to copy it");
+                + " with its lamp gone changed its light record to " + record(context)
+                + " — carryOver has to copy it, and a same-age reconcile must not read the light");
 
         // The cheat the record exists to stop: a lamp moved over a plant that grew without one.
         plant(context, Blocks.AIR.getDefaultState());

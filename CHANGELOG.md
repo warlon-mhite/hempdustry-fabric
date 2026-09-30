@@ -102,7 +102,7 @@ beta be told when the release lands.
     flowers, which is where the seeds come from.
 - **More than the light can stress a flowering plant**, and the beds carry most of the risk — it is
   what indoor growing pays for its extra buds. Each of these is a chance, never a certainty, and
-  only while the plant flowers:
+  only while the plant flowers: a ripe plant waiting for the shears is past all of them.
   - **Bone meal on a flowering plant in a fed bed** overfeeds it: one in nine. Feed the soil, not
     the plant. The bone meal still grows it.
   - **A second bottle into a pot that is still wet** drowns the roots: one in four. Water a pot when

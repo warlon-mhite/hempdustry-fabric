@@ -238,6 +238,10 @@ public final class PlantStressGameTest {
         GrowPotBlock.water(world, soil, world.getBlockState(soil), HIT);
         context.assertTrue(context.getBlockState(CROP).get(GrowLight.PROPERTY) == GrowLight.NATURAL,
                 "overwatering stressed a plant that was not yet flowering");
+        plant(context, ModBlocks.INDICA_CROP, wet, 7, GrowLight.NATURAL);
+        GrowPotBlock.water(world, soil, world.getBlockState(soil), HIT);
+        context.assertTrue(context.getBlockState(CROP).get(GrowLight.PROPERTY) == GrowLight.NATURAL,
+                "overwatering stressed a ripe plant, which has finished growing");
         plant(context, ModBlocks.INDICA_CROP, fresh, 5, GrowLight.NATURAL);
         GrowPotBlock.water(world, soil, world.getBlockState(soil), HIT);
         context.assertTrue(context.getBlockState(SOIL).get(GrowPotBlock.WATERED)
