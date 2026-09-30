@@ -1,10 +1,12 @@
 package com.warlonmhite.hempdustry.compat.emi;
 
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.recipe.EmiCraftingRecipe;
+import dev.emi.emi.api.recipe.EmiInfoRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.Comparison;
@@ -13,6 +15,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -103,6 +106,9 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         for (ViewerRecipes.Entry entry : ViewerRecipes.iceOLator()) {
             registry.addRecipe(new EntryEmiRecipe(ICE_O_LATOR, entry));
         }
+        ViewerRecipes.info().forEach((item, text) -> registry.addRecipe(new EmiInfoRecipe(
+                List.of(EmiStack.of(item)), List.of(text),
+                ViewerRecipes.synthetic(Identifier.of(Hempdustry.MOD_ID, "info/" + Registries.ITEM.getId(item).getPath())))));
 
         // Packing goes in EMI's own crafting category rather than one of ours, which is what makes
         // "move ingredients into the grid" work on it without a line of transfer code. See

@@ -22,12 +22,14 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.util.Arm;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.event.GameEvent;
@@ -39,6 +41,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import java.util.List;
 
 /**
  * A smoking device — wooden pipe, bong or vaporizer — in <em>either</em> state. Empty and packed are the same
@@ -130,6 +133,19 @@ public class SmokingDeviceItem extends Item {
         return contents.isEmpty()
                 ? super.getName(stack)
                 : SmokeContents.packedName("item." + Hempdustry.MOD_ID + "." + device.baseName() + ".packed", contents);
+    }
+
+    /**
+     * Says how to set a packed bong down, which nothing else in the game does: a plain right-click
+     * smokes it, so it places only while sneaking ({@link #useOnBlock}). An empty one places on a
+     * plain click and needs no line.
+     */
+    @Override
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+        super.appendTooltip(stack, context, tooltip, type);
+        if (placed != null && !contentsOf(stack).isEmpty()) {
+            tooltip.add(Text.translatable("hempdustry.bong.set_down").formatted(Formatting.GRAY));
+        }
     }
 
     @Override
