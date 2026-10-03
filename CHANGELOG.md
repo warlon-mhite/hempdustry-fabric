@@ -83,10 +83,10 @@ beta be told when the release lands.
     is left. It takes no bucket — that is the Hydro Tray's. A potted plant grows one stem short: its
     roots are boxed in. Picking the pot up keeps its food, not its water. Water bottles work in the
     Nether, so a pot still grows hemp there.
-  - The **Grow Lamp** is an LED panel in copper, hung from the ceiling on copper chains, with
-    amethyst-lensed diodes. It switches on like a redstone lamp — power the ceiling, or put a lever
+  - The **Grow Lamp** is a redstone lamp behind an amethyst lens, in a copper panel hung from the
+    ceiling on copper chains. It switches on like a redstone lamp — power the ceiling, or put a lever
     on it. A lit lamp sheds a faint violet haze, and shader packs that read LabPBR materials make
-    its diodes glow. Hang it one to three blocks above your plants: every plant in the 3×3 below that grows up
+    its face glow. Hang it one to three blocks above your plants: every plant in the 3×3 below that grows up
     under it harvests **two extra buds** and an extra leaf, gives a second leaf every time you trim
     it, and grows a little faster while young.
   - **Other lights help too, less.** A lit redstone lamp, copper bulb or modded lamp directly above
