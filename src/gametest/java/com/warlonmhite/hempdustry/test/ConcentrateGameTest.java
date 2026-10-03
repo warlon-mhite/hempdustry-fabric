@@ -56,7 +56,7 @@ public final class ConcentrateGameTest implements FabricGameTest {
                 "one rosin did not pack as dose 3 — dose_per_item is not being read");
         context.assertEquals(3, load.primaryCount(),
                 "the load's level is not III, so the item's name would lie about what it does");
-        context.assertEquals(DeviceType.BONG.bowlSize(),
+        context.assertEquals(DeviceType.BONG.builtInBowl().hits(),
                 packed.getOrDefault(ModComponents.CHARGES, 0), "packing did not load a full bowl");
 
         // Two rosin is dose 6, over the bong's cap. A dab is THE dose, not a step on a ladder.
@@ -117,7 +117,7 @@ public final class ConcentrateGameTest implements FabricGameTest {
                 "the load has no hash additive, so the tooltip would not name the coat");
         context.assertTrue(load.primaryStrain() == indica,
                 "the moon rock packed as something other than its own plant strain");
-        context.assertEquals(DeviceType.BONG.bowlSize(),
+        context.assertEquals(DeviceType.BONG.builtInBowl().hits(),
                 packed.getOrDefault(ModComponents.CHARGES, 0), "packing did not load a full bowl");
 
         // A pipe is maxDose 2 against the plant entry's 3. No rule was written for this; the cap

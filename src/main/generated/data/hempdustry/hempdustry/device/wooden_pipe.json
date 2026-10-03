@@ -1,0 +1,12 @@
+{
+  "bowl": {
+    "hits": 2,
+    "max_dose": 2,
+    "spent_yield": 0
+  },
+  "cooldown_ticks": 60,
+  "cough_one_in": 4,
+  "duration_ticks": 700,
+  "green_out_factor": 1.0,
+  "nausea_one_in": 50
+}

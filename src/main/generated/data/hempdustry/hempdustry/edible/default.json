@@ -1,0 +1,97 @@
+{
+  "effects": [
+    {
+      "amplifier_by_quality": {
+        "perfect": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "amplifier_by_tier": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "arrives_ticks": 0,
+      "effect": "minecraft:slowness"
+    },
+    {
+      "amplifier_by_tier": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "arrives_ticks": 160,
+      "effect": "minecraft:absorption"
+    },
+    {
+      "amplifier_by_tier": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "arrives_ticks": 160,
+      "effect": "minecraft:resistance"
+    },
+    {
+      "amplifier_by_tier": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "arrives_ticks": 400,
+      "effect": "minecraft:hunger"
+    },
+    {
+      "amplifier_by_tier": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "arrives_ticks": 600,
+      "duration_by_tier": [
+        100,
+        200,
+        300,
+        400
+      ],
+      "effect": "minecraft:regeneration"
+    }
+  ],
+  "onset": {
+    "centre_ticks": 1800,
+    "earliest_ticks": 600,
+    "latest_ticks": 3600
+  },
+  "qualities": {
+    "clean": {
+      "duration_ticks": 7200,
+      "onset_spread_ticks": 600
+    },
+    "perfect": {
+      "duration_ticks": 9600,
+      "onset_spread_ticks": 60
+    },
+    "rough": {
+      "duration_ticks": 3600,
+      "onset_spread_ticks": 1500
+    },
+    "standard": {
+      "duration_ticks": 5400,
+      "onset_spread_ticks": 1050
+    }
+  },
+  "tier_share": [
+    0.625,
+    0.75,
+    0.875,
+    1.0
+  ]
+}

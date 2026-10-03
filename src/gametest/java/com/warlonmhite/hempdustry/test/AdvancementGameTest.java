@@ -255,7 +255,7 @@ public final class AdvancementGameTest implements FabricGameTest {
     private static ItemStack packed(Item device, RegistryEntry<Strain> strain, DeviceType type) {
         ItemStack stack = new ItemStack(device);
         stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, 1));
-        stack.set(ModComponents.CHARGES, type.bowlSize());
+        stack.set(ModComponents.CHARGES, type.builtInBowl().hits());
         return stack;
     }
 

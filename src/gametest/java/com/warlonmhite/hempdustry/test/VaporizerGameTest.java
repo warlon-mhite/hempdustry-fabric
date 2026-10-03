@@ -88,7 +88,7 @@ public final class VaporizerGameTest implements FabricGameTest {
         // device with no yield must finish its bowl and hand back nothing.
         ItemStack pipe = packed(ModItems.WOODEN_PIPE, strain, DeviceType.PIPE);
         player.setStackInHand(Hand.MAIN_HAND, pipe);
-        for (int i = 0; i < DeviceType.PIPE.bowlSize(); i++) {
+        for (int i = 0; i < DeviceType.PIPE.builtInBowl().hits(); i++) {
             hit(player, world, Hand.MAIN_HAND);
         }
         context.assertTrue(!player.getStackInHand(Hand.MAIN_HAND).contains(ModComponents.CHARGES),
@@ -101,9 +101,9 @@ public final class VaporizerGameTest implements FabricGameTest {
         // life of every one ever crafted. Yielding from inside an isEmpty() guard would eat that
         // last AVB every single time, and the player would never know it had happened.
         ItemStack worn = packed(ModItems.VAPORIZER, strain, DeviceType.VAPORIZER);
-        worn.setDamage(DeviceType.VAPORIZER.maxDamage() - DeviceType.VAPORIZER.bowlSize());
+        worn.setDamage(DeviceType.VAPORIZER.maxDamage() - DeviceType.VAPORIZER.builtInBowl().hits());
         player.setStackInHand(Hand.MAIN_HAND, worn);
-        for (int i = 0; i < DeviceType.VAPORIZER.bowlSize(); i++) {
+        for (int i = 0; i < DeviceType.VAPORIZER.builtInBowl().hits(); i++) {
             hit(player, world, Hand.MAIN_HAND);
         }
         context.assertTrue(player.getStackInHand(Hand.MAIN_HAND).isEmpty(),
@@ -154,7 +154,7 @@ public final class VaporizerGameTest implements FabricGameTest {
 
     private static void smokeABowl(ServerPlayerEntity player, ServerWorld world, RegistryEntry<Strain> strain) {
         player.setStackInHand(Hand.MAIN_HAND, packed(ModItems.VAPORIZER, strain, DeviceType.VAPORIZER));
-        for (int i = 0; i < DeviceType.VAPORIZER.bowlSize(); i++) {
+        for (int i = 0; i < DeviceType.VAPORIZER.builtInBowl().hits(); i++) {
             hit(player, world, Hand.MAIN_HAND);
         }
     }
@@ -169,8 +169,8 @@ public final class VaporizerGameTest implements FabricGameTest {
      * can never green you out.
      *
      * <p>Asserted against the real {@link PackingRecipe} rather than against
-     * {@link DeviceType#maxDose()}, because the number is only worth anything if the recipe reads
-     * it: a packing recipe that had hard-coded a ceiling would agree with the enum and still let a
+     * the vaporizer's {@code max_dose}, because the number is only worth anything if the recipe reads
+     * it: a packing recipe that had hard-coded a ceiling would agree with the data and still let a
      * dose-2 vaporizer be crafted. The bong's dose 2 is asserted in the same breath so that a
      * refusal caused by the recipe being broken outright cannot pass as a fix.
      */
@@ -184,7 +184,7 @@ public final class VaporizerGameTest implements FabricGameTest {
         context.assertTrue(recipe.matches(one, world),
                 "a vaporizer and one bud is not a packing recipe at all");
         ItemStack packed = recipe.craft(one, world.getRegistryManager());
-        context.assertEquals(DeviceType.VAPORIZER.bowlSize(),
+        context.assertEquals(DeviceType.VAPORIZER.builtInBowl().hits(),
                 packed.getOrDefault(ModComponents.CHARGES, 0), "packing did not load a full bowl");
         context.assertEquals(1, packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY)
                 .dose(), "packing a vaporizer with one bud did not give dose 1");
@@ -206,7 +206,7 @@ public final class VaporizerGameTest implements FabricGameTest {
     private static ItemStack packed(Item device, RegistryEntry<Strain> strain, DeviceType type) {
         ItemStack stack = new ItemStack(device);
         stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, 1));
-        stack.set(ModComponents.CHARGES, type.bowlSize());
+        stack.set(ModComponents.CHARGES, type.builtInBowl().hits());
         return stack;
     }
 

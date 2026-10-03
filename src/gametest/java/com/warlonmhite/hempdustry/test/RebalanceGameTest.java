@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.balance.EdibleBundle;
+import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -51,7 +53,7 @@ public final class RebalanceGameTest implements FabricGameTest {
             } else {
                 sawGreenOut = true;
                 long lockout = spliff.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L) - context.getWorld().getTime();
-                context.assertEquals((long) EffectPolicy.cooldown(Smoking.GREEN_OUT_LOCKOUT_TICKS), lockout,
+                context.assertEquals((long) EffectPolicy.cooldown(GreenOut.BUILT_IN.lockoutTicks()), lockout,
                         "a full green-out locks smoking out for its minute, not the spliff's own cooldown");
                 context.assertEquals(0f, player.getHungerManager().getSaturationLevel(),
                         "a full green-out empties the saturation");
@@ -159,8 +161,8 @@ public final class RebalanceGameTest implements FabricGameTest {
 
     @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
     public void ediblesBuyTimeNotLevel(TestContext context) {
-        List<StatusEffectInstance> perfect = allowed(EdibleEffects.bundle(4, Quality.PERFECT, 0));
-        int full = EdibleEffects.durationTicks(Quality.PERFECT);
+        List<StatusEffectInstance> perfect = allowed(EdibleEffects.bundle(EdibleBundle.BUILT_IN, 4, Quality.PERFECT, 0));
+        int full = EdibleEffects.durationTicks(EdibleBundle.BUILT_IN, Quality.PERFECT);
         context.assertEquals(1, find(perfect, StatusEffects.ABSORPTION).getAmplifier(), "Absorption stops at II");
         context.assertEquals(0, find(perfect, StatusEffects.RESISTANCE).getAmplifier(), "Resistance I at tier IV");
         context.assertEquals(0, find(perfect, StatusEffects.REGENERATION).getAmplifier(), "Regeneration I");
@@ -169,10 +171,10 @@ public final class RebalanceGameTest implements FabricGameTest {
         context.assertTrue(find(perfect, StatusEffects.HUNGER).getDuration() > full / 2,
                 "the munchies last the high, not a minute");
 
-        List<StatusEffectInstance> rough = allowed(EdibleEffects.bundle(4, Quality.ROUGH, 0));
+        List<StatusEffectInstance> rough = allowed(EdibleEffects.bundle(EdibleBundle.BUILT_IN, 4, Quality.ROUGH, 0));
         context.assertEquals(1, find(rough, StatusEffects.SLOWNESS).getAmplifier(), "a Rough tier IV is Slowness II");
 
-        List<StatusEffectInstance> weak = allowed(EdibleEffects.bundle(1, Quality.PERFECT, 0));
+        List<StatusEffectInstance> weak = allowed(EdibleEffects.bundle(EdibleBundle.BUILT_IN, 1, Quality.PERFECT, 0));
         context.assertEquals(full * 5 / 8, find(weak, StatusEffects.SLOWNESS).getDuration(),
                 "tier I lasts five eighths of tier IV");
         context.assertEquals(0, find(weak, StatusEffects.ABSORPTION).getAmplifier(), "tier I is Absorption I");

@@ -1,0 +1,59 @@
+{
+  "full": [
+    {
+      "duration": 700,
+      "id": "minecraft:nausea",
+      "show_icon": true
+    },
+    {
+      "amplifier": 1,
+      "duration": 600,
+      "id": "minecraft:slowness",
+      "show_icon": true
+    },
+    {
+      "amplifier": 1,
+      "duration": 600,
+      "id": "minecraft:weakness",
+      "show_icon": true
+    },
+    {
+      "amplifier": 1,
+      "duration": 600,
+      "id": "minecraft:mining_fatigue",
+      "show_icon": true
+    }
+  ],
+  "full_from_dose": 3,
+  "lockout_ticks": 1200,
+  "one_in_by_dose": [
+    0,
+    12,
+    4
+  ],
+  "spins": [
+    {
+      "duration": 400,
+      "id": "minecraft:nausea",
+      "show_icon": true
+    },
+    {
+      "amplifier": 1,
+      "duration": 300,
+      "id": "minecraft:slowness",
+      "show_icon": true
+    },
+    {
+      "amplifier": 1,
+      "duration": 300,
+      "id": "minecraft:weakness",
+      "show_icon": true
+    },
+    {
+      "amplifier": 1,
+      "duration": 300,
+      "id": "minecraft:mining_fatigue",
+      "show_icon": true
+    }
+  ]
+}

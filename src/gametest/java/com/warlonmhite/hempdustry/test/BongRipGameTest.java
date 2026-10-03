@@ -39,10 +39,10 @@ public final class BongRipGameTest implements FabricGameTest {
         context.assertTrue(player.isUsingItem(), "clicking a packed bong did not start a draw");
         context.assertTrue(player.getActiveItem().getUseAction() == UseAction.TOOT_HORN,
                 "a bong draw is not raised to the mouth");
-        context.assertEquals(DeviceType.BONG.bowlSize(), charges(player), "the click alone took a hit");
+        context.assertEquals(DeviceType.BONG.builtInBowl().hits(), charges(player), "the click alone took a hit");
 
         player.stopUsingItem();
-        context.assertEquals(DeviceType.BONG.bowlSize(), charges(player), "letting go early spent a charge");
+        context.assertEquals(DeviceType.BONG.builtInBowl().hits(), charges(player), "letting go early spent a charge");
         context.assertTrue(player.getStackInHand(Hand.MAIN_HAND).getDamage() == 0,
                 "letting go early cost durability");
 
@@ -52,7 +52,7 @@ public final class BongRipGameTest implements FabricGameTest {
         ItemStack after = player.getActiveItem().finishUsing(world, player);
         player.clearActiveItem();
         player.setStackInHand(Hand.MAIN_HAND, after);
-        context.assertEquals(DeviceType.BONG.bowlSize() - 1, charges(player), "a finished draw did not take one hit");
+        context.assertEquals(DeviceType.BONG.builtInBowl().hits() - 1, charges(player), "a finished draw did not take one hit");
         context.assertTrue(player.getItemCooldownManager().isCoolingDown(after.getItem()),
                 "a finished draw started no cooldown");
 
@@ -64,7 +64,7 @@ public final class BongRipGameTest implements FabricGameTest {
         other.setStackInHand(Hand.MAIN_HAND, pipe);
         other.interactionManager.interactItem(other, world, pipe, Hand.MAIN_HAND);
         context.assertTrue(!other.isUsingItem(), "the pipe started a draw");
-        context.assertEquals(DeviceType.PIPE.bowlSize() - 1, charges(other), "the pipe no longer hits on the click");
+        context.assertEquals(DeviceType.PIPE.builtInBowl().hits() - 1, charges(other), "the pipe no longer hits on the click");
         context.complete();
     }
 
@@ -76,7 +76,7 @@ public final class BongRipGameTest implements FabricGameTest {
         ItemStack stack = new ItemStack(device);
         stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(world.getRegistryManager()
                 .getWrapperOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
-        stack.set(ModComponents.CHARGES, type.bowlSize());
+        stack.set(ModComponents.CHARGES, type.builtInBowl().hits());
         return stack;
     }
 }

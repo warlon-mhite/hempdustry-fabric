@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.advancement.ModCriteria;
+import com.warlonmhite.hempdustry.balance.ModBalance;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
 import com.warlonmhite.hempdustry.block.ModDispenserBehaviors;
@@ -49,6 +50,7 @@ public class Hempdustry implements ModInitializer {
 		ModCommands.registerCommands();
 		ModComponents.registerModComponents();
 		ModStrains.registerStrains();
+		ModBalance.registerBalance();
 		ModCriteria.registerCriteria();
 		ModRecipes.registerRecipes();
 		SmokeScheduler.init();

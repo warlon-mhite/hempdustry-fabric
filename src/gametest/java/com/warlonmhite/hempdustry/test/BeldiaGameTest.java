@@ -202,7 +202,7 @@ public final class BeldiaGameTest implements FabricGameTest {
         ServerWorld world = context.getWorld();
         RegistryEntry<Strain> beldia = world.getRegistryManager().getWrapperOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.BELDIA);
         context.assertTrue(beldia.value().coughFactor() == 0.5F, "Beldía does not cough at twice the odds");
-        int length = DeviceType.PIPE.durationTicks();
+        int length = DeviceType.PIPE.builtInStats().durationTicks();
 
         ServerPlayerEntity smoker = context.createMockCreativeServerPlayerInWorld();
         smoker.changeGameMode(GameMode.SURVIVAL);
@@ -346,7 +346,7 @@ public final class BeldiaGameTest implements FabricGameTest {
     private static void smoke(ServerPlayerEntity player, ServerWorld world, RegistryEntry<Strain> strain) {
         ItemStack pipe = new ItemStack(ModItems.WOODEN_PIPE);
         pipe.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, 1));
-        pipe.set(ModComponents.CHARGES, DeviceType.PIPE.bowlSize());
+        pipe.set(ModComponents.CHARGES, DeviceType.PIPE.builtInBowl().hits());
         player.setStackInHand(Hand.MAIN_HAND, pipe);
         player.getItemCooldownManager().remove(ModItems.WOODEN_PIPE);
         player.interactionManager.interactItem(player, world, pipe, Hand.MAIN_HAND);
