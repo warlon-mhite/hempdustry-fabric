@@ -1,6 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "hempdustry:item/hemp_shirt"
+    "layer0": "hempdustry:item/hemp_shirt_dyeable",
+    "layer1": "hempdustry:item/hemp_shirt"
   }
 }

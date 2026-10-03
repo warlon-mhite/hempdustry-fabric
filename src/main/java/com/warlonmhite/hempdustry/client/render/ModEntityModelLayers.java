@@ -15,6 +15,9 @@ public final class ModEntityModelLayers {
             new EntityModelLayer(Identifier.of(Hempdustry.MOD_ID, "boat/hemp"), "main");
     public static final EntityModelLayer HEMP_CHEST_BOAT =
             new EntityModelLayer(Identifier.of(Hempdustry.MOD_ID, "chest_boat/hemp"), "main");
+    /** The flip-flops' soles and straps, drawn in place of boots (FlipFlopsRenderer). */
+    public static final EntityModelLayer FLIP_FLOPS =
+            new EntityModelLayer(Identifier.of(Hempdustry.MOD_ID, "flip_flops"), "main");
 
     private ModEntityModelLayers() {
     }

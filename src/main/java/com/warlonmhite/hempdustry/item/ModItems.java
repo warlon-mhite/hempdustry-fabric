@@ -442,8 +442,14 @@ public class ModItems {
      */
     public static final List<Item> MUSIC_DISCS = List.of(MUSIC_DISC_MOONLIGHT, MUSIC_DISC_ROBADOB);
 
+    // The beanie is armour in every way but how it is drawn. With no equipment model, vanilla draws a
+    // head-slot item as its own item model, the way a carved pumpkin is worn, and the beanie's model
+    // is a slouchy tam (items/hemp_beanie.json, the "head" case). So the equippable component is
+    // armor()'s minus the model.
     public static final Item HEMP_BEANIE = registerItem("hemp_beanie", settings -> new Item(settings
-            .armor(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentType.HELMET)));
+            .armor(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentType.HELMET)
+            .component(DataComponentTypes.EQUIPPABLE, EquippableComponent.builder(EquipmentSlot.HEAD)
+                    .equipSound(SoundEvents.ITEM_ARMOR_EQUIP_LEATHER).build())));
     public static final Item HEMP_SHIRT = registerItem("hemp_shirt", settings -> new Item(settings
             .armor(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentType.CHESTPLATE)));
     public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", settings -> new Item(settings

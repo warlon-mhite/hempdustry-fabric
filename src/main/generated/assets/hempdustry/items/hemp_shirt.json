@@ -5,84 +5,156 @@
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_quartz_trim"
+          "model": "hempdustry:item/hemp_shirt_quartz_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:quartz"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_iron_trim"
+          "model": "hempdustry:item/hemp_shirt_iron_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:iron"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_netherite_trim"
+          "model": "hempdustry:item/hemp_shirt_netherite_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:netherite"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_redstone_trim"
+          "model": "hempdustry:item/hemp_shirt_redstone_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:redstone"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_copper_trim"
+          "model": "hempdustry:item/hemp_shirt_copper_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:copper"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_gold_trim"
+          "model": "hempdustry:item/hemp_shirt_gold_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:gold"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_emerald_trim"
+          "model": "hempdustry:item/hemp_shirt_emerald_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:emerald"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_diamond_trim"
+          "model": "hempdustry:item/hemp_shirt_diamond_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:diamond"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_lapis_trim"
+          "model": "hempdustry:item/hemp_shirt_lapis_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:lapis"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_amethyst_trim"
+          "model": "hempdustry:item/hemp_shirt_amethyst_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:amethyst"
       },
       {
         "model": {
           "type": "minecraft:model",
-          "model": "hempdustry:item/hemp_shirt_resin_trim"
+          "model": "hempdustry:item/hemp_shirt_resin_trim",
+          "tints": [
+            {
+              "type": "minecraft:dye",
+              "default": -8265
+            }
+          ]
         },
         "when": "minecraft:resin"
       }
     ],
     "fallback": {
       "type": "minecraft:model",
-      "model": "hempdustry:item/hemp_shirt"
+      "model": "hempdustry:item/hemp_shirt",
+      "tints": [
+        {
+          "type": "minecraft:dye",
+          "default": -8265
+        }
+      ]
     },
     "property": "minecraft:trim_material"
   }

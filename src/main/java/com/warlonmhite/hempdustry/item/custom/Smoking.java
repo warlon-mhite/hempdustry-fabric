@@ -6,8 +6,10 @@ import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
+import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -209,7 +211,7 @@ public final class Smoking {
             SmokeScheduler.schedule(player, exhaleParticle, EXHALE_DELAY_TICKS + soundDelayTicks);
         }
 
-        int coughOdds = harshened(coughChanceOneIn, contents);
+        int coughOdds = easedByOutfit(player, harshened(coughChanceOneIn, contents));
         if (coughOdds > 0 && ThreadLocalRandom.current().nextInt(coughOdds) == 0) {
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
                     ModSounds.COUGHING, SoundCategory.PLAYERS, 1f, 1f);
@@ -217,7 +219,7 @@ public final class Smoking {
 
         // Nausea is its own roll and stays per-device, dose-independent — it is the "harsh smoke"
         // cost, not the "too much" cost. A green-out already brings its own, longer nausea.
-        int nauseaOdds = EffectPolicy.nauseaChanceOneIn(nauseaChanceOneIn);
+        int nauseaOdds = easedByOutfit(player, EffectPolicy.nauseaChanceOneIn(nauseaChanceOneIn));
         if (!greenedOut && nauseaOdds > 0 && ThreadLocalRandom.current().nextInt(nauseaOdds) == 0) {
             apply(player, new StatusEffectInstance(StatusEffects.NAUSEA, NAUSEA_DURATION_TICKS, 0));
         }
@@ -275,6 +277,26 @@ public final class Smoking {
             return 0;
         }
         return Math.max(1, Math.round(coughChanceOneIn * factor));
+    }
+
+    /**
+     * The whole hemp outfit — beanie, shirt, harem pants and flip-flops — doubles a harsh-smoke
+     * 1-in-N: half the coughs, half the nausea. <i>The Chill Set</i> made literal. Green-outs are
+     * left alone on purpose: the full one is the price of a big hit, and cheap cloth does not buy it
+     * off. Zero still means "never", and the doubling saturates rather than overflowing into a
+     * negative bound for {@code nextInt}.
+     *
+     * <p>Silent, as leather's freeze immunity is: no tooltip says so.
+     */
+    public static int easedByOutfit(PlayerEntity player, int oneIn) {
+        if (oneIn <= 0
+                || !player.getEquippedStack(EquipmentSlot.HEAD).isOf(ModItems.HEMP_BEANIE)
+                || !player.getEquippedStack(EquipmentSlot.CHEST).isOf(ModItems.HEMP_SHIRT)
+                || !player.getEquippedStack(EquipmentSlot.LEGS).isOf(ModItems.HEMP_HAREM_PANTS)
+                || !player.getEquippedStack(EquipmentSlot.FEET).isOf(ModItems.FLIP_FLOPS)) {
+            return oneIn;
+        }
+        return (int) Math.min(Integer.MAX_VALUE, 2L * oneIn);
     }
 
     /**

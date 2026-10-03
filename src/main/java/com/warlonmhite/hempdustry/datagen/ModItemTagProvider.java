@@ -109,11 +109,11 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         valueLookupBuilder(ConventionalItemTags.STRINGS)
                 .add(ModItems.HEMP_FIBER);
 
+        // Only the two garments: the beanie and the flip-flops have models of their own, and vanilla's
+        // trim textures are painted for the armour shape, so a trim on either would never be drawn.
         valueLookupBuilder(ItemTags.TRIMMABLE_ARMOR)
-            .add(ModItems.HEMP_BEANIE)
             .add(ModItems.HEMP_SHIRT)
-            .add(ModItems.HEMP_HAREM_PANTS)
-            .add(ModItems.FLIP_FLOPS);
+            .add(ModItems.HEMP_HAREM_PANTS);
 
         // The four base armour tags, and they are the whole enchantment story: every
         // #minecraft:enchantable/* tag is built on top of these four, so a modded armour item that
@@ -134,6 +134,21 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // nothing wrote this one, so nothing repaired the set at all.
         valueLookupBuilder(ModTags.Items.HEMP_ARMOR_REPAIR)
                 .add(ModItems.HEMP_FIBER);
+
+        // The beanie is the warm piece: knitted, a winter hat. Hemp cloth itself is no warmer than
+        // cotton, so the shirt, the pants and above all the flip-flops stay out. One piece in this tag
+        // is full immunity (LivingEntity#canFreeze returns false on the first one it finds), and
+        // armour points never help in powder snow: freeze damage is in #minecraft:bypasses_armor.
+        // Walking on powder snow is a different check, leather boots by name, so flip-flops sink.
+        valueLookupBuilder(ItemTags.FREEZE_IMMUNE_WEARABLES).add(ModItems.HEMP_BEANIE);
+
+        // The two garments take dye, through vanilla's own armour-dye recipe, which reads this tag.
+        // The beanie keeps its stripes and the flip-flops their soles: a single tint over them would
+        // flatten the one and muddy the other. The cauldron wash is registered item by item, as
+        // vanilla registers leather's (ModCauldronBehaviors).
+        valueLookupBuilder(ItemTags.DYEABLE)
+                .add(ModItems.HEMP_SHIRT)
+                .add(ModItems.HEMP_HAREM_PANTS);
 
         // Canvas is leather-tier by the mod's own standing rule — it substitutes wherever vanilla
         // uses leather, and the cloth chain's balance anchors are set at leather parity — so the

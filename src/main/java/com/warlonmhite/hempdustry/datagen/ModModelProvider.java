@@ -22,6 +22,12 @@ import net.minecraft.client.render.item.model.ItemModel;
 import net.minecraft.client.render.item.model.RangeDispatchItemModel;
 import net.minecraft.client.render.item.model.special.BedModelRenderer;
 import net.minecraft.client.render.item.property.numeric.UseDurationProperty;
+import net.minecraft.client.render.item.property.select.DisplayContextProperty;
+import net.minecraft.client.render.item.property.select.TrimMaterialProperty;
+import net.minecraft.item.ItemDisplayContext;
+import net.minecraft.client.render.item.tint.DyeTintSource;
+import net.minecraft.client.render.item.model.SelectItemModel;
+import net.minecraft.item.equipment.trim.ArmorTrimMaterial;
 import net.minecraft.client.render.model.json.WeightedVariant;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
 import com.warlonmhite.hempdustry.client.item.StrainTintSource;
@@ -240,16 +246,45 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.HEMP_BOAT, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_CHEST_BOAT, Models.GENERATED);
 
-        // Armour models name the equipment asset now, and the trim prefix that goes with the slot.
-        // false = "no trim overlays", which is right: the mod ships no trimmed hemp textures.
-        itemModelGenerator.registerArmor(ModItems.HEMP_BEANIE, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
-                ItemModelGenerator.HELMET_TRIM_ID_PREFIX, false);
-        itemModelGenerator.registerArmor(ModItems.HEMP_SHIRT, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
-                ItemModelGenerator.CHESTPLATE_TRIM_ID_PREFIX, false);
-        itemModelGenerator.registerArmor(ModItems.HEMP_HAREM_PANTS, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
-                ItemModelGenerator.LEGGINGS_TRIM_ID_PREFIX, false);
-        itemModelGenerator.registerArmor(ModItems.FLIP_FLOPS, ModArmorMaterials.HEMP_EQUIPMENT_ASSET,
-                ItemModelGenerator.BOOTS_TRIM_ID_PREFIX, false);
+        // The beanie's icon is the flat sprite everywhere but on a head, where it is the slouchy tam:
+        // a hand-written model (models/item/hemp_beanie_worn.json), since it is made of cubes. A head
+        // item with no equipment model is drawn in the HEAD display context, as a carved pumpkin is.
+        Identifier beanieIcon = Models.GENERATED.upload(ModItems.HEMP_BEANIE,
+                TextureMap.layer0(ModItems.HEMP_BEANIE), itemModelGenerator.modelCollector);
+        itemModelGenerator.output.accept(ModItems.HEMP_BEANIE, ItemModels.select(new DisplayContextProperty(),
+                ItemModels.basic(beanieIcon), ItemModels.switchCase(ItemDisplayContext.HEAD,
+                        ItemModels.basic(Identifier.of(Hempdustry.MOD_ID, "item/hemp_beanie_worn")))));
+        registerDyeableArmor(itemModelGenerator, ModItems.HEMP_SHIRT, ItemModelGenerator.CHESTPLATE_TRIM_ID_PREFIX);
+        registerDyeableArmor(itemModelGenerator, ModItems.HEMP_HAREM_PANTS, ItemModelGenerator.LEGGINGS_TRIM_ID_PREFIX);
+        // Worn, the flip-flops are FlipFlopsRenderer's; the icon is a plain sprite, untrimmable.
+        itemModelGenerator.register(ModItems.FLIP_FLOPS, Models.GENERATED);
+    }
+
+    /**
+     * {@code registerArmor(…, true)}, the way leather is drawn, with two differences. Vanilla's
+     * hard-codes leather's brown as the undyed tint, so an undyed shirt would come out brown; this
+     * takes {@link ModArmorMaterials#HEMP_UNDYED_COLOR}. And the layers are named the other way
+     * round: vanilla tints {@code item/<id>} and lays {@code item/<id>_overlay} on top, while here the
+     * grey cloth is the new {@code item/<id>_dyeable} and {@code item/<id>} — the name a resource
+     * pack already redraws — stays the untinted layer on top. A pack that redrew the whole garment
+     * then still shows its own art, undyed, instead of having it tinted beige.
+     */
+    private static void registerDyeableArmor(ItemModelGenerator generator, Item item, Identifier trimPrefix) {
+        Identifier model = ModelIds.getItemModelId(item);
+        Identifier cloth = TextureMap.getSubId(item, "_dyeable");
+        Identifier drawn = TextureMap.getId(item);
+        DyeTintSource dye = new DyeTintSource(ModArmorMaterials.HEMP_UNDYED_COLOR);
+        List<SelectItemModel.SwitchCase<RegistryKey<ArmorTrimMaterial>>> trims = new ArrayList<>();
+        for (ItemModelGenerator.TrimMaterial trim : ItemModelGenerator.TRIM_MATERIALS) {
+            Identifier trimmed = model.withSuffixedPath("_" + trim.assets().base().suffix() + "_trim");
+            Identifier trimTexture = trimPrefix.withSuffixedPath(
+                    "_" + trim.assets().getAssetId(ModArmorMaterials.HEMP_EQUIPMENT_ASSET).suffix());
+            generator.uploadArmor(trimmed, cloth, drawn, trimTexture);
+            trims.add(ItemModels.switchCase(trim.materialKey(), ItemModels.tinted(trimmed, dye)));
+        }
+        Identifier plain = Models.GENERATED_TWO_LAYERS.upload(model, TextureMap.layered(cloth, drawn),
+                generator.modelCollector);
+        generator.output.accept(item, ItemModels.select(new TrimMaterialProperty(), ItemModels.tinted(plain, dye), trims));
     }
 
     /**

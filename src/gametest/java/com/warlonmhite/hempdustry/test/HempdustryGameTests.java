@@ -128,6 +128,9 @@ public class HempdustryGameTests implements ModInitializer {
         register("hemp_turns_up_where_it_was_kept", LootGameTest::hempTurnsUpWhereItWasKept);
         register("a_ready_box_gives_its_batch", LootGameTest::aReadyBoxGivesItsBatch);
         register("a_named_machine_keeps_its_name", LootGameTest::aNamedMachineKeepsItsName);
+        register("only_the_beanie_keeps_out_the_cold", HempOutfitGameTest::onlyTheBeanieKeepsOutTheCold);
+        register("the_garments_take_dye_and_wash_out", HempOutfitGameTest::theGarmentsTakeDyeAndWashOut);
+        register("a_full_outfit_eases_the_harsh_smoke", HempOutfitGameTest::aFullOutfitEasesTheHarshSmoke);
     }
 
     private static void register(String name, Consumer<TestContext> test) {

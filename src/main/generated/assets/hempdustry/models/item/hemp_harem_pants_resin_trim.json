@@ -1,7 +1,8 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "hempdustry:item/hemp_harem_pants",
-    "layer1": "minecraft:trims/items/leggings_trim_resin"
+    "layer0": "hempdustry:item/hemp_harem_pants_dyeable",
+    "layer1": "hempdustry:item/hemp_harem_pants",
+    "layer2": "minecraft:trims/items/leggings_trim_resin"
   }
 }

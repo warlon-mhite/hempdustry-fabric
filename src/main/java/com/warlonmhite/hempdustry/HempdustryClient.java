@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
+import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
 import com.warlonmhite.hempdustry.client.item.StrainTintSource;
 import net.minecraft.client.render.item.property.numeric.NumericProperties;
@@ -22,6 +23,7 @@ import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
+import com.warlonmhite.hempdustry.client.render.FlipFlopsRenderer;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.particle.ModParticles;
@@ -31,6 +33,7 @@ import com.warlonmhite.hempdustry.screen.custom.HempPressScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -74,6 +77,12 @@ public class HempdustryClient implements ClientModInitializer {
                 BoatEntityModel::getChestTexturedModelData);
         EntityRendererRegistry.register(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
         EntityRendererRegistry.register(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
+
+        // Flip-flops are drawn by a model of their own rather than as boots (the beanie needs no
+        // code: vanilla draws a head item with no equipment model as its item model).
+        EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.FLIP_FLOPS,
+                FlipFlopsRenderer::getTexturedModelData);
+        ArmorRenderer.register(FlipFlopsRenderer::new, ModItems.FLIP_FLOPS);
 
         HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);

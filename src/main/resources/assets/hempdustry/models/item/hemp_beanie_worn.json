@@ -1,0 +1,35 @@
+{
+  "textures": {
+    "tam": "hempdustry:item/hemp_beanie_worn",
+    "particle": "hempdustry:item/hemp_beanie_worn"
+  },
+  "elements": [
+    {
+      "from": [3.5, 9, 3.5],
+      "to": [12.5, 12, 12.5],
+      "faces": {
+        "north": {"uv": [12, 12, 16, 15], "texture": "#tam"},
+        "south": {"uv": [12, 12, 16, 15], "texture": "#tam"},
+        "east": {"uv": [12, 12, 16, 15], "texture": "#tam"},
+        "west": {"uv": [12, 12, 16, 15], "texture": "#tam"},
+        "down": {"uv": [12, 0, 14, 2], "texture": "#tam"}
+      }
+    },
+    {
+      "from": [2.5, 11.5, 2.5],
+      "to": [13.5, 15, 15],
+      "rotation": {"origin": [8, 12, 3], "axis": "x", "angle": 12},
+      "faces": {
+        "up": {"uv": [0, 0, 12, 12], "texture": "#tam"},
+        "north": {"uv": [0, 12, 12, 15.5], "texture": "#tam"},
+        "south": {"uv": [0, 12, 12, 15.5], "texture": "#tam"},
+        "east": {"uv": [0, 12, 12, 15.5], "texture": "#tam"},
+        "west": {"uv": [0, 12, 12, 15.5], "texture": "#tam"},
+        "down": {"uv": [0, 14, 12, 15], "texture": "#tam"}
+      }
+    }
+  ],
+  "display": {
+    "head": {"scale": [1.6, 1.6, 1.6]}
+  }
+}

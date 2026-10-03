@@ -2,10 +2,22 @@
   "layers": {
     "humanoid": [
       {
+        "dyeable": {
+          "color_when_undyed": -8265
+        },
+        "texture": "hempdustry:hemp_fiber_dyeable"
+      },
+      {
         "texture": "hempdustry:hemp_fiber"
       }
     ],
     "humanoid_leggings": [
+      {
+        "dyeable": {
+          "color_when_undyed": -8265
+        },
+        "texture": "hempdustry:hemp_fiber_dyeable"
+      },
       {
         "texture": "hempdustry:hemp_fiber"
       }

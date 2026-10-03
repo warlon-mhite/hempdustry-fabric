@@ -27,9 +27,10 @@ public class ModArmorMaterials {
     public static final RegistryKey<EquipmentAsset> HEMP_EQUIPMENT_ASSET =
             RegistryKey.of(EQUIPMENT_ASSET_REGISTRY, Identifier.of(Hempdustry.MOD_ID, "hemp_fiber"));
 
-    // Durability 3 is the same base the old ArmorItem.Type.getMaxDamage(3) calls carried, and the
-    // defence values are unchanged. Repair is a tag now, not an Ingredient.
-    public static final ArmorMaterial HEMP_ARMOR_MATERIAL = new ArmorMaterial(3,
+    // Durability 5 is leather's: hemp is the hard-wearing cloth (sailcloth, canvas), so it wears as
+    // long as leather does, and only leather's protection stays out of reach. It was 3 until 2.1,
+    // the base the old ArmorItem.Type.getMaxDamage(3) calls carried. Repair is a tag, not an Ingredient.
+    public static final ArmorMaterial HEMP_ARMOR_MATERIAL = new ArmorMaterial(5,
             Util.make(new EnumMap<>(EquipmentType.class), map -> {
                 map.put(EquipmentType.BOOTS, 1);
                 map.put(EquipmentType.LEGGINGS, 1);
@@ -38,4 +39,12 @@ public class ModArmorMaterials {
                 map.put(EquipmentType.BODY, 2);
             }), 20, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, 0, 0,
             ModTags.Items.HEMP_ARMOR_REPAIR, HEMP_EQUIPMENT_ASSET);
+
+    /**
+     * The colour an undyed shirt or pair of harem pants is drawn in: unbleached hemp, the one tint
+     * that best gives back the shirt as it was drawn before it took dye. The dyeable textures are
+     * grey and this tints them, as leather's brown tints leather's. The equipment asset
+     * ({@code equipment/hemp_fiber.json}) spells the same number as its {@code color_when_undyed}.
+     */
+    public static final int HEMP_UNDYED_COLOR = 0xFFFFDFB7;
 }

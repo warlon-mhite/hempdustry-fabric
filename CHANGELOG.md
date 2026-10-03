@@ -166,6 +166,17 @@ beta be told when the release lands.
 - **Hemp Parquet**, with stairs and a slab: two hemp plank slabs stacked make a block of it, laid as a
   basket weave. Decoration only, the way bamboo mosaic is — it makes no chests or sticks — and
   fireproof.
+- **The hemp outfit is worth wearing.**
+  - **The Hemp Beanie keeps you from freezing** in powder snow, as any piece of leather armour
+    does. It is the one warm piece of the outfit; the flip-flops still sink.
+  - **The Hemp Shirt and the Hemp Harem Pants take dye**, in the crafting grid like leather armour,
+    and a water cauldron washes it back out. The beanie keeps its stripes and the flip-flops stay
+    as they are.
+  - **The beanie and the flip-flops look like what they are.** Worn, the beanie is a slouchy striped
+    tam that hangs at the back of your head, and the flip-flops are a sole under each foot with a
+    strap between the toes — no longer armour-shaped boxes.
+  - **All four pieces worn together halve your chances of coughing and of nausea** when you smoke.
+    Not of greening out.
 - **Seventeen new advancements**, so every 2.1 feature has a place in the tree. The tree has 42
   now.
   - **Growing:** *Kif Country* for Beldía, *Sticky Fingers* for charas, *Well Done* for scorched
@@ -185,6 +196,13 @@ beta be told when the release lands.
 
 ### Changed
 
+- **Hemp armour lasts as long as leather armour.** It still protects less than leather, and still
+  enchants better.
+- **The Hemp Harem Pants are undyed hemp now**, the colour of the shirt, so they can take dye. For
+  the olive they were before, dye them with green and light grey dye together.
+- **The Hemp Beanie and the Flip-Flops can no longer be trimmed**, now that they have shapes of their
+  own. A trim already on one stays on the item but is not drawn. The shirt and the harem pants still
+  take trims.
 - **The Decarboxylator, the Infuser and the Hemp Press keep an anvil name**, like a furnace: it
   titles the machine's screen, and a broken machine drops with it.
 - **Three hemp wool over three planks makes a Hemp Bed now, not a white bed.** Dye the Hemp Bed white
@@ -214,6 +232,17 @@ beta be told when the release lands.
 
 ### Notes for pack makers
 
+- **The Hemp Shirt and Hemp Harem Pants are drawn in two layers**, as leather is: a grey
+  `textures/item/<id>_dyeable.png` that takes the dye, under `textures/item/<id>.png`, which is drawn
+  as it is. The worn armour does the same with `entity/equipment/humanoid/hemp_fiber_dyeable.png` and
+  `humanoid_leggings/hemp_fiber_dyeable.png` under the `hemp_fiber.png` it always had. A pack that
+  redrew the old textures still works and shows its own art, undyed. The beanie joins
+  `#minecraft:freeze_immune_wearables`, and the shirt and harem pants `#minecraft:dyeable`.
+- **The worn beanie and flip-flops have new art files.** The beanie is drawn by an item model,
+  `models/item/hemp_beanie_worn.json` with `textures/item/hemp_beanie_worn.png`; the flip-flops by
+  `textures/entity/equipment/flip_flops.png`. Their areas of `humanoid/hemp_fiber.png` are no longer
+  drawn, so a pack that redrew them there needs to move that art. Both leave
+  `#minecraft:trimmable_armor`.
 - **The level-III cap is a knob.** `maxBuffLevel` in the config's `effects` section (default 2) is
   the plain cap; pairing a bud with a concentrate goes one past it. Raise it for a stronger mod.
 - **How each smokeable smokes, what an edible does and what a green-out costs are data.**
