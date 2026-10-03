@@ -24,6 +24,7 @@
 			"com.warlonmhite.hempdustry.test.FurnitureGameTest",
 			"com.warlonmhite.hempdustry.test.GlassBongGameTest",
 			"com.warlonmhite.hempdustry.test.HashishBarGameTest",
+			"com.warlonmhite.hempdustry.test.HempOutfitGameTest",
 			"com.warlonmhite.hempdustry.test.IndoorGrowGameTest",
 			"com.warlonmhite.hempdustry.test.InfuserPourGameTest",
 			"com.warlonmhite.hempdustry.test.LootGameTest",

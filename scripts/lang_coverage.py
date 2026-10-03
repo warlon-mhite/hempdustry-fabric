@@ -45,9 +45,9 @@ def ids(folder):
 def item_ids():
     # Client item definitions arrived in 1.21.4; before them (the 1.21.1 line) every item has a model
     # of its own instead, beside models that are not items: the variants its overrides switch to
-    # (trims, a packed device), the templates other models inherit from, and a bong's in-hand
-    # model, which the item renderer swaps in by name as vanilla does trident_in_hand. Finding none
-    # either way means the format moved again, not that all is well.
+    # (trims, a packed device), the templates other models inherit from, and the models a renderer
+    # asks for by name: a bong's in-hand model, swapped in as vanilla does trident_in_hand, and the
+    # beanie's worn tam. Finding none either way means the format moved again, not that all is well.
     found = ids("items")
     if not found:
         models = [p for root in SOURCES for p in (root / "assets/hempdustry/models/item").glob("*.json")]
@@ -56,7 +56,8 @@ def item_ids():
         parents = {json.loads(p.read_text()).get("parent", "")
                    for root in SOURCES for p in (root / "assets/hempdustry/models").rglob("*.json")}
         parents = {p.rsplit("/", 1)[1] for p in parents if p.startswith("hempdustry:item/")}
-        found = {p.stem for p in models if not p.stem.endswith("_in_hand")} - variants - parents
+        drawn_by_name = ("_in_hand", "_worn_band", "_worn_crown")
+        found = {p.stem for p in models if not p.stem.endswith(drawn_by_name)} - variants - parents
     if not found:
         sys.exit("No items found in items/ or models/item/: this script no longer reads the format.")
     return found

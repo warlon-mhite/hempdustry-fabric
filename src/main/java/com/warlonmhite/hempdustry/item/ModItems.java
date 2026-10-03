@@ -427,14 +427,19 @@ public class ModItems {
      */
     public static final List<Item> MUSIC_DISCS = List.of(MUSIC_DISC_MOONLIGHT, MUSIC_DISC_ROBADOB);
 
+    // The beanie and the flip-flops are armour in every way but how they are drawn: worn, each is
+    // drawn by its own ArmorRenderer (HempdustryClient) -- the beanie as a slouchy tam, the
+    // flip-flops as a sole and a strap -- and the material's layers draw nothing for them.
+    // Durability 5 is leather's: hemp is the hard-wearing cloth (sailcloth, canvas), so it wears as
+    // long as leather does, and only leather's protection stays out of reach. It was 3 until 2.1.
     public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Settings()
-            .maxDamage(ArmorItem.Type.HELMET.getMaxDamage(3))));
+            .maxDamage(ArmorItem.Type.HELMET.getMaxDamage(5))));
     public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Settings()
-            .maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(3))));
+            .maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(5))));
     public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Settings()
-            .maxDamage(ArmorItem.Type.LEGGINGS.getMaxDamage(3))));
+            .maxDamage(ArmorItem.Type.LEGGINGS.getMaxDamage(5))));
     public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Settings()
-            .maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(3))));
+            .maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(5))));
 
     private static Item registerDevice(DeviceType device) {
         Item item = registerItem(device.baseName(),

@@ -18,7 +18,6 @@ import net.minecraft.registry.RegistryKey;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.data.client.*;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 
@@ -231,10 +230,54 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.register(ModItems.HEMP_BOAT, Models.GENERATED);
         itemModelGenerator.register(ModItems.HEMP_CHEST_BOAT, Models.GENERATED);
 
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.FLIP_FLOPS));
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_BEANIE));
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_HAREM_PANTS));
-        itemModelGenerator.registerArmor(((ArmorItem) ModItems.HEMP_SHIRT));
+        // The beanie's icon is the flat sprite; worn, it is the slouchy tam HempBeanieRenderer draws.
+        // Worn, the flip-flops are FlipFlopsRenderer's. Both icons are plain sprites, untrimmable.
+        itemModelGenerator.register(ModItems.HEMP_BEANIE, Models.GENERATED);
+        itemModelGenerator.register(ModItems.FLIP_FLOPS, Models.GENERATED);
+        registerDyeableArmor(itemModelGenerator, ModItems.HEMP_SHIRT, "chestplate");
+        registerDyeableArmor(itemModelGenerator, ModItems.HEMP_HAREM_PANTS, "leggings");
+    }
+
+    /**
+     * Vanilla's trim materials in the order {@code ItemModelGenerator.TRIM_MATERIALS} lists them, each
+     * at {@code trim_type} (its index + 1) / 10 — the list is private, and these are the overrides
+     * {@code registerArmor} wrote for the garments before they took dye. Hemp is no vanilla material,
+     * so none takes its darker variant.
+     */
+    private static final List<String> TRIM_MATERIALS = List.of(
+            "quartz", "iron", "netherite", "redstone", "copper", "gold", "emerald", "diamond", "lapis", "amethyst");
+
+    /**
+     * {@code registerArmor} for leather, the way leather is drawn, with two differences. Vanilla's
+     * colour provider hard-codes leather's brown as the undyed tint, so the garments have their own
+     * ({@code HempdustryClient}), and the layers are named the other way round: vanilla tints
+     * {@code item/<id>} and lays {@code item/<id>_overlay} on top, while here the grey cloth is the
+     * new {@code item/<id>_dyeable} and {@code item/<id>} — the name a resource pack already redraws —
+     * stays the untinted layer on top. A pack that redrew the whole garment then still shows its own
+     * art, undyed, instead of having it tinted beige. Layer 0 is the one the colour provider tints.
+     */
+    private static void registerDyeableArmor(ItemModelGenerator generator, Item item, String trimSlot) {
+        Identifier model = ModelIds.getItemModelId(item);
+        Identifier cloth = TextureMap.getSubId(item, "_dyeable");
+        Identifier drawn = TextureMap.getId(item);
+        List<ModelOverride> trims = new ArrayList<>();
+        for (int i = 0; i < TRIM_MATERIALS.size(); i++) {
+            String material = TRIM_MATERIALS.get(i);
+            Identifier trimmed = model.withSuffixedPath("_" + material + "_trim");
+            generator.uploadArmor(trimmed, cloth, drawn,
+                    Identifier.ofVanilla("trims/items/" + trimSlot + "_trim_" + material));
+            trims.add(new ModelOverride(Map.of(ItemModelGenerator.TRIM_TYPE, (i + 1) / 10.0F), trimmed));
+        }
+        generator.writer.accept(model, () -> {
+            JsonObject json = new JsonObject();
+            json.addProperty("parent", "minecraft:item/generated");
+            JsonObject textures = new JsonObject();
+            textures.addProperty("layer0", cloth.toString());
+            textures.addProperty("layer1", drawn.toString());
+            json.add("textures", textures);
+            json.add("overrides", overridesJson(trims));
+            return (JsonElement) json;
+        });
     }
 
     /** @see ModItemProperties#STRAIN */
@@ -380,17 +423,7 @@ public class ModModelProvider extends FabricModelProvider {
             }
             json.add("textures", textures);
 
-            JsonArray array = new JsonArray();
-            for (ModelOverride override : overrides) {
-                JsonObject predicate = new JsonObject();
-                override.predicates().forEach((property, threshold) ->
-                        predicate.addProperty(property.toString(), threshold));
-                JsonObject entry = new JsonObject();
-                entry.add("predicate", predicate);
-                entry.addProperty("model", override.model().toString());
-                array.add(entry);
-            }
-            json.add("overrides", array);
+            json.add("overrides", overridesJson(overrides));
             return (JsonElement) json;
         });
     }
@@ -404,19 +437,25 @@ public class ModModelProvider extends FabricModelProvider {
         generator.writer.accept(modelId, () -> {
             JsonObject json = new JsonObject();
             json.addProperty("parent", parent.toString());
-            JsonArray array = new JsonArray();
-            for (ModelOverride override : overrides) {
-                JsonObject predicate = new JsonObject();
-                override.predicates().forEach((property, threshold) ->
-                        predicate.addProperty(property.toString(), threshold));
-                JsonObject entry = new JsonObject();
-                entry.add("predicate", predicate);
-                entry.addProperty("model", override.model().toString());
-                array.add(entry);
-            }
-            json.add("overrides", array);
+            json.add("overrides", overridesJson(overrides));
             return (JsonElement) json;
         });
+    }
+
+    private static JsonArray overridesJson(List<ModelOverride> overrides) {
+        JsonArray array = new JsonArray();
+        for (ModelOverride override : overrides) {
+            JsonObject predicate = new JsonObject();
+            // Vanilla writes its own properties bare (trim_type), as it reads them.
+            override.predicates().forEach((property, threshold) -> predicate.addProperty(
+                    property.getNamespace().equals(Identifier.DEFAULT_NAMESPACE) ? property.getPath() : property.toString(),
+                    threshold));
+            JsonObject entry = new JsonObject();
+            entry.add("predicate", predicate);
+            entry.addProperty("model", override.model().toString());
+            array.add(entry);
+        }
+        return array;
     }
 
     /**

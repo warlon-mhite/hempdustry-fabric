@@ -71,6 +71,12 @@ public final class ModCauldronBehaviors {
                 .put(ModItems.DECARBOXYLATED_HEMP, (state, world, pos, player, hand, stack) ->
                         soak(state, world, pos, player, stack,
                                 ModItems.WASHED_DECARBOXYLATED_HEMP, WASH_PER_LEVEL));
+
+        // A dyed shirt or pair of harem pants washes out as leather does. Vanilla lists its dyeable
+        // armour one item at a time, so ours go in the same way, with vanilla's own wash: it reads
+        // #minecraft:dyeable and the dyed_color component, nothing else.
+        CauldronBehavior.WATER_CAULDRON_BEHAVIOR.map().put(ModItems.HEMP_SHIRT, CauldronBehavior.CLEAN_DYEABLE_ITEM);
+        CauldronBehavior.WATER_CAULDRON_BEHAVIOR.map().put(ModItems.HEMP_HAREM_PANTS, CauldronBehavior.CLEAN_DYEABLE_ITEM);
     }
 
     /**

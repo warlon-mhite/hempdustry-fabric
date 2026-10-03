@@ -34,6 +34,10 @@ import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import com.warlonmhite.hempdustry.client.render.CompositeItemModel;
+import com.warlonmhite.hempdustry.client.render.FlipFlopsRenderer;
+import com.warlonmhite.hempdustry.client.render.HempBeanieRenderer;
+import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
+import com.warlonmhite.hempdustry.item.ModArmorMaterials;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.particle.ModParticles;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
@@ -43,6 +47,9 @@ import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.minecraft.component.type.DyedColorComponent;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
@@ -83,6 +90,13 @@ public class HempdustryClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
         EntityRendererRegistry.register(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
 
+        // Flip-flops are drawn by a model of their own rather than as boots, and the beanie as a
+        // slouchy tam rather than a helmet.
+        EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.FLIP_FLOPS,
+                FlipFlopsRenderer::getTexturedModelData);
+        ArmorRenderer.register(new FlipFlopsRenderer(), ModItems.FLIP_FLOPS);
+        ArmorRenderer.register(new HempBeanieRenderer(), ModItems.HEMP_BEANIE);
+
         HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
         HandledScreens.register(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
@@ -96,6 +110,7 @@ public class HempdustryClient implements ClientModInitializer {
         ModelLoadingPlugin.register(context -> {
             context.addModels(HempPressBlockEntityRenderer.PARTS);
             context.addModels(ModItems.bongs().stream().map(ModItemProperties::inHandModel).toList());
+            context.addModels(HempBeanieRenderer.BAND, HempBeanieRenderer.CROWN);
             // The press's icon is its four part models at rest, put together as it bakes -- the
             // composite item model the 1.21.11 build names in data. Its own model, which parents the
             // frame's, gives the display transforms.
@@ -242,6 +257,11 @@ public class HempdustryClient implements ClientModInitializer {
             // error anywhere. Every vanilla tint does the same wrap: potions, spawn eggs, maps.
             return contents.isEmpty() ? -1 : ColorHelper.Argb.fullAlpha(contents.color());
         }, tinted());
+        // The two garments' icons, as leather's are tinted: the grey cloth (layer 0) takes the dye,
+        // or unbleached hemp undyed, and the drawn layer on top stays as drawn.
+        ColorProviderRegistry.ITEM.register((stack, tintIndex) -> tintIndex != 0 ? -1
+                        : DyedColorComponent.getColor(stack, ModArmorMaterials.HEMP_UNDYED_COLOR),
+                ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS);
     }
 
     /**
