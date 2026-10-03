@@ -1,11 +1,11 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.api.HempdustryEvents;
+import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -65,52 +65,8 @@ public final class EdibleEffects {
     /** Cannabutter's {@code strength} cap, mirrored from the Infuser so the quartiles line up. */
     private static final int STRENGTH_CAP = 24;
 
-    // ---------------------------------------------------------------------
-    // Onset — quality decides how predictable, never how strong
-    // ---------------------------------------------------------------------
-
-    /** Earliest and latest an edible can ever kick in, in ticks (30 s and 3 min). */
-    private static final int ONSET_MIN = 600;
-    private static final int ONSET_MAX = 3600;
-
-    /**
-     * Half-widths of each quality's onset window, in ticks, around a common ~90 s centre. Rough is
-     * the full spread and Perfect is nearly exact — what a good batch buys is certainty, not power.
-     */
-    private static final int[] ONSET_SPREAD = {1500, 1050, 600, 60};
-
-    /** The window's centre: 90 s. Every grade is uncertain about the same moment. */
-    private static final int ONSET_CENTRE = 1800;
-
-    // ---------------------------------------------------------------------
-    // Duration — anchored on vanilla potions, not on a real-world ratio
-    // ---------------------------------------------------------------------
-
-    /** Rough is a plain vanilla potion (3:00); Perfect is an extended one (8:00). */
-    private static final int[] DURATION = {3600, 5400, 7200, 9600};
-
-    // ---------------------------------------------------------------------
-    // The ramp — offsets from the moment it kicks in, not from eating
-    // ---------------------------------------------------------------------
-
-    private static final int RAMP_BODY = 160;   // +8s  — absorption and resistance
-    private static final int RAMP_HUNGER = 400; // +20s — the munchies genuinely lag
-    private static final int RAMP_PEAK = 600;   // +30s — the restorative peak
-
-    /**
-     * Each tier's share of the quality's duration, in eighths: 62.5, 75, 87.5 and 100%. This is what
-     * a stronger butter buys now that the levels mostly stay put.
-     */
-    private static final int[] TIER_EIGHTHS = {5, 6, 7, 8};
-
-    /** Slowness per tier, 0-indexed by tier-1 -- except Perfect, whose Slowness never passes I. */
-    private static final int[] SLOW_STEP = {0, 0, 1, 1};  // Slowness I, I, II, II
-    /** Regeneration I always; only its length grows. 5 s at tier I is vanilla's golden apple. */
-    private static final int[] REGEN_DURATION = {100, 200, 300, 400};
-
-    /** The buffs an edible grants, which a full green-out ends along with the smoked ones. */
-    public static final List<RegistryEntry<StatusEffect>> BUFFS =
-            List.of(StatusEffects.ABSORPTION, StatusEffects.RESISTANCE, StatusEffects.REGENERATION);
+    // The numbers -- the onset window, the durations, the ramp and the bundle itself -- are data
+    // since 2.1: EdibleBundle, whose built-in value carries the reasoning behind each of them.
 
     /** One effect of the bundle and how many ticks after eating it lands. */
     public record Dose(int delay, StatusEffectInstance effect) {
@@ -138,21 +94,23 @@ public final class EdibleEffects {
         return quality == null ? Quality.ROUGH : quality;
     }
 
-    /** How long the persistent effects last, in ticks. */
-    public static int durationTicks(Quality quality) {
-        return EffectPolicy.duration(DURATION[quality.ordinal()]);
+    /** How long a tier-IV high of this quality lasts, in ticks, after the server's multiplier. */
+    public static int durationTicks(EdibleBundle bundle, Quality quality) {
+        return EffectPolicy.duration(bundle.qualities().of(quality).durationTicks());
     }
 
     /**
      * A random onset delay for this quality, in ticks. Rough can land anywhere in the full window;
-     * Perfect is near-exact. All four are uncertain about the same ~90 s centre.
+     * Perfect is near-exact. All four are uncertain about the same centre.
      */
-    public static int rollOnsetTicks(Quality quality) {
-        int spread = ONSET_SPREAD[quality.ordinal()];
-        int roll = ONSET_CENTRE + ThreadLocalRandom.current().nextInt(-spread, spread + 1);
+    public static int rollOnsetTicks(EdibleBundle bundle, Quality quality) {
+        EdibleBundle.Onset window = bundle.onset();
+        int spread = bundle.qualities().of(quality).onsetSpreadTicks();
+        int roll = window.centreTicks() + ThreadLocalRandom.current().nextInt(-spread, spread + 1);
         // Scaled by the server's onset multiplier, window and all: a server that wants a 15-second
         // come-up gets a proportionally tighter spread rather than a squashed one.
-        return EffectPolicy.onset(MathHelper.clamp(roll, ONSET_MIN, ONSET_MAX), ONSET_MIN, ONSET_MAX);
+        return EffectPolicy.onset(MathHelper.clamp(roll, window.earliestTicks(), window.latestTicks()),
+                window.earliestTicks(), window.latestTicks());
     }
 
     /**
@@ -172,7 +130,8 @@ public final class EdibleEffects {
             // about, and no event fires.
             return;
         }
-        for (Dose dose : bundle(tier, quality, rollOnsetTicks(quality))) {
+        EdibleBundle data = EdibleBundle.of(player.getRegistryManager());
+        for (Dose dose : bundle(data, tier, quality, rollOnsetTicks(data, quality))) {
             queue(player, dose.delay(), dose.effect());
         }
 
@@ -185,28 +144,21 @@ public final class EdibleEffects {
      * The whole staggered sequence for one edible, before the config has had its say, with
      * {@code onset} as the moment it kicks in. Split out of {@link #consume} so the bundle can be read
      * without waiting out a random come-up.
+     *
+     * <p>Each effect lands its {@code arrives_ticks} after the onset and, unless it has a length of
+     * its own per tier, ends with the high rather than outlasting it: the heaviness is what lingers,
+     * which is the right way round. A per-tier length is not scaled by the server's duration
+     * multiplier, as Regeneration's never was.
      */
-    public static List<Dose> bundle(int tier, Quality quality, int onset) {
+    public static List<Dose> bundle(EdibleBundle data, int tier, Quality quality, int onset) {
         int index = MathHelper.clamp(tier, 1, MAX_TIER) - 1;
-        int duration = durationTicks(quality) * TIER_EIGHTHS[index] / 8;
-        int slowness = quality == Quality.PERFECT ? 0 : SLOW_STEP[index];
+        int duration = (int) (durationTicks(data, quality) * (double) data.tierShare().get(index));
         List<Dose> out = new ArrayList<>();
-
-        // The body drop, alone and first. This is what tells the player it has started.
-        add(out, onset, StatusEffects.SLOWNESS, slowness, duration);
-
-        // The padded, pain-dulled body. Ends with the slowness rather than outlasting it, so the
-        // heaviness is what lingers -- which is the right way round. Absorption asks for the tier
-        // and EffectPolicy stops it at maxBuffLevel.
-        add(out, onset + RAMP_BODY, StatusEffects.ABSORPTION, index, duration - RAMP_BODY);
-        add(out, onset + RAMP_BODY, StatusEffects.RESISTANCE, 0, duration - RAMP_BODY);
-
-        // Munchies, which genuinely arrive later than the rest, and stay to the end: a minute of
-        // Hunger I was a point and a half of saturation, a cost nobody could see.
-        add(out, onset + RAMP_HUNGER, StatusEffects.HUNGER, 0, duration - RAMP_HUNGER);
-
-        // The restorative peak, last.
-        add(out, onset + RAMP_PEAK, StatusEffects.REGENERATION, 0, REGEN_DURATION[index]);
+        for (EdibleBundle.Effect effect : data.effects()) {
+            int length = effect.durationByTier().map(ticks -> ticks.get(index))
+                    .orElse(duration - effect.arrivesTicks());
+            add(out, onset + effect.arrivesTicks(), effect.effect(), effect.amplifier(index, quality), length);
+        }
         return out;
     }
 

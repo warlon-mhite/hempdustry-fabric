@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.balance.DeviceStats;
+import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import net.minecraft.entity.Entity;
@@ -32,16 +34,11 @@ import net.minecraft.world.World;
  * the same three buds.
  *
  * <p>It is also the mildest thing in the mod by a distance: 1-in-500 nausea against the pipe's 1-in-50
- * and the bong's 1-in-5, and {@link Smoking#greenOutChanceOneIn} halves its green-out odds on top —
- * you pace a joint, you don't pace a bong rip. At dose 1 it cannot green you out at all.
+ * and the bong's 1-in-5, and its {@code green_out_factor} of 2 halves its green-out odds on top —
+ * you pace a joint, you don't pace a bong rip. At dose 1 it cannot green you out at all. Its numbers
+ * are the {@code spliff} entry of {@link DeviceStats}.
  */
 public class SpliffItem extends Item {
-    private static final int COOLDOWN_TICKS = 80;
-    private static final int COUGH_CHANCE_ONE_IN = 6;
-    private static final int NAUSEA_CHANCE_ONE_IN = 500; // 0.2%
-    /** 45s — between the pipe's 35 and the bong's 50. Duration is the device's axis, not dose's. */
-    private static final int DURATION_TICKS = 900;
-
     public SpliffItem(Settings settings) {
         super(settings);
         Smoking.registerSmokeable(this);
@@ -97,14 +94,16 @@ public class SpliffItem extends Item {
             if (!Smoking.allowed(player, stack, contents)) {
                 return ActionResult.PASS;
             }
-            boolean lockedOut = Smoking.takeHit(world, player, stack, contents, DURATION_TICKS,
-                    COUGH_CHANCE_ONE_IN, NAUSEA_CHANCE_ONE_IN,
-                    Smoking.greenOutChanceOneIn(contents.dose(), true),
+            DeviceStats stats = DeviceStats.spliff(world.getRegistryManager());
+            GreenOut greenOut = GreenOut.of(world.getRegistryManager());
+            boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
+                    stats.coughOneIn(), stats.nauseaOneIn(),
+                    Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
                     ParticleTypes.CAMPFIRE_COSY_SMOKE);
             // Marks the stack before it shrinks: what is left of it is what the player smoked
             // from, and that is what the cooldown swipe should sit on.
             Smoking.startCooldown(player, stack,
-                    EffectPolicy.cooldown(lockedOut ? Smoking.GREEN_OUT_LOCKOUT_TICKS : COOLDOWN_TICKS));
+                    EffectPolicy.cooldown(lockedOut ? greenOut.lockoutTicks() : stats.cooldownTicks()));
             if (!player.getAbilities().creativeMode) {
                 stack.decrement(1);
             }

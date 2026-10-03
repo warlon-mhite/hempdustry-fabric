@@ -50,7 +50,7 @@ public final class GlassBongGameTest {
             context.assertTrue(packing.matches(grid, world), name + " refused a dose-3 bowl");
             ItemStack packed = packing.craft(grid, world.getRegistryManager());
             context.assertTrue(packed.isOf(bong), name + " packed into a different item");
-            context.assertEquals(packed.getOrDefault(ModComponents.CHARGES, 0), DeviceType.BONG.bowlSize(),
+            context.assertEquals(packed.getOrDefault(ModComponents.CHARGES, 0), DeviceType.BONG.builtInBowl().hits(),
                     name + " did not load a bong's bowl");
             context.assertEquals(packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).dose(), 3,
                     name + " did not load three buds");

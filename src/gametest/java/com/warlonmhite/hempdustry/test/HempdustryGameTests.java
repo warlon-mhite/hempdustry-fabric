@@ -76,6 +76,7 @@ public class HempdustryGameTests implements ModInitializer {
         register("retired_slots_hand_back_their_items", InfuserPourGameTest::retiredSlotsHandBackTheirItems);
         register("every_coloured_bong_is_a_bong", GlassBongGameTest::everyColouredBongIsABong);
         register("every_packing_row_is_a_real_craft", ViewerGameTest::everyPackingRowIsARealCraft);
+        register("the_shipped_balance_is_the_built_in_one", BalanceGameTest::theShippedBalanceIsTheBuiltInOne);
         register("bong_stands_and_comes_back_whole", BongPlacementGameTest::bongStandsAndComesBackWhole);
         register("bong_is_drawn_not_clicked", BongRipGameTest::bongIsDrawnNotClicked);
         register("growth_multiplier_scales_the_odds", CropGrowthGameTest::growthMultiplierScalesTheOdds);

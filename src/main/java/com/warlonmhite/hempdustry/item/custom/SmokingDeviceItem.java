@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.balance.DeviceStats;
+import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -262,12 +264,14 @@ public class SmokingDeviceItem extends Item {
     /** One hit, spent: effects, cooldown, a charge and a point of durability, and the bowl's end. */
     private void hit(World world, PlayerEntity player, ItemStack stack, SmokeContents contents,
                      Hand hand, int soundDelayTicks) {
-        boolean lockedOut = Smoking.takeHit(world, player, stack, contents, device.durationTicks(),
-                device.coughChanceOneIn(), device.nauseaChanceOneIn(),
-                Smoking.greenOutChanceOneIn(contents.dose(), false), device.exhaleParticle(),
-                soundDelayTicks);
+        DeviceStats stats = DeviceStats.of(world.getRegistryManager(), device);
+        GreenOut greenOut = GreenOut.of(world.getRegistryManager());
+        boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
+                stats.coughOneIn(), stats.nauseaOneIn(),
+                Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
+                device.exhaleParticle(), soundDelayTicks);
         Smoking.startCooldown(player, stack,
-                EffectPolicy.cooldown(lockedOut ? Smoking.GREEN_OUT_LOCKOUT_TICKS : device.cooldownTicks()));
+                EffectPolicy.cooldown(lockedOut ? greenOut.lockoutTicks() : stats.cooldownTicks()));
 
         if (player.getAbilities().creativeMode) {
             return;
@@ -296,7 +300,7 @@ public class SmokingDeviceItem extends Item {
     /**
      * Hands back what the finished bowl left behind — <b>AVB</b>, "already vaped bud", as
      * {@code scorched_hemp}. A no-op for every device that burns its load; see
-     * {@link DeviceType#spentYield()} for why only the vaporizer has any and why it is 1.
+     * {@link DeviceType#builtInStats()} for why only the vaporizer has any and why it is 1.
      *
      * <p><b>Only a bowl of plant matter leaves anything</b>, and every entry has to be one. What
      * else a vaporizer can hold is resin — hashish, charas, filtered hashish, all dose 1 — or
@@ -311,7 +315,7 @@ public class SmokingDeviceItem extends Item {
      * spilling — the yield can never be lost to a full hotbar.
      */
     private void yieldSpent(PlayerEntity player, SmokeContents contents) {
-        int yield = device.spentYield();
+        int yield = DeviceStats.bowl(player.getRegistryManager(), device).spentYield();
         if (yield > 0 && contents.entries().stream()
                 .allMatch(entry -> ModStrains.isPlantMatter(entry.strain()))) {
             player.giveItemStack(new ItemStack(ModItems.SCORCHED_HEMP, yield));

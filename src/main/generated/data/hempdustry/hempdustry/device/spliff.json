@@ -1,0 +1,7 @@
+{
+  "cooldown_ticks": 80,
+  "cough_one_in": 6,
+  "duration_ticks": 900,
+  "green_out_factor": 2.0,
+  "nausea_one_in": 500
+}

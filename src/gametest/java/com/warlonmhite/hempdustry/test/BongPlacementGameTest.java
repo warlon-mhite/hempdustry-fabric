@@ -84,7 +84,7 @@ public final class BongPlacementGameTest {
         ItemStack packed = new ItemStack(ModItems.BONG);
         packed.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(world.getRegistryManager()
                 .getOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
-        packed.set(ModComponents.CHARGES, DeviceType.BONG.bowlSize());
+        packed.set(ModComponents.CHARGES, DeviceType.BONG.builtInBowl().hits());
         click(player, world, context.getAbsolutePos(otherFloor), packed);
         context.assertTrue(world.getBlockState(context.getAbsolutePos(otherFloor.up())).isAir(),
                 "a packed bong was set down, bowl and all");

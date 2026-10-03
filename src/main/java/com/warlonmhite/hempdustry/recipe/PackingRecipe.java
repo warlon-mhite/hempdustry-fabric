@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.recipe;
 
+import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.MoonRockItem;
@@ -18,7 +19,7 @@ import net.minecraft.world.World;
 /**
  * Packs an empty pipe/bong with buds in the crafting grid. The number of buds is the <b>dose</b>,
  * which becomes the effect level of every hit from that bowl — 1 bud is level I, up to the device's
- * {@link DeviceType#maxDose()}. See CLAUDE.md §5b D10.
+ * {@code max_dose}, which is its bowl in this world's {@link DeviceStats}. See CLAUDE.md §5b D10.
  *
  * <h2>Why this stays a special recipe</h2>
  *
@@ -69,7 +70,7 @@ public class PackingRecipe extends SpecialCraftingRecipe {
         // enchantments through. Packing is now just two components being set on the same item.
         ItemStack packed = match.device.copyWithCount(1);
         packed.set(ModComponents.SMOKE_CONTENTS, match.contents);
-        packed.set(ModComponents.CHARGES, device.bowlSize());
+        packed.set(ModComponents.CHARGES, DeviceStats.bowl(lookup, device).hits());
         return packed;
     }
 
@@ -145,7 +146,7 @@ public class PackingRecipe extends SpecialCraftingRecipe {
         for (SmokeContents.Entry entry : contents.entries()) {
             level = Math.max(level, entry.count());
         }
-        return level >= 1 && level <= type.maxDose() ? new Match(device, contents) : null;
+        return level >= 1 && level <= DeviceStats.bowl(registries, type).maxDose() ? new Match(device, contents) : null;
     }
 
     private record Match(ItemStack device, SmokeContents contents) {

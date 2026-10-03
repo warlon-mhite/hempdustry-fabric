@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry;
 
+import com.warlonmhite.hempdustry.balance.DeviceStats;
+import com.warlonmhite.hempdustry.balance.EdibleBundle;
+import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.datagen.*;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -22,12 +25,16 @@ public class HempdustryDataGenerator implements DataGeneratorEntrypoint {
 		pack.addProvider(ModRecipeProvider::new);
 		pack.addProvider(ModWorldGenerator::new);
 		pack.addProvider(ModStrainProvider::new);
+		pack.addProvider(ModBalanceProvider::new);
 		pack.addProvider(ModAdvancementProvider::new);
 	}
 
 	@Override
 	public void buildRegistry(RegistryBuilder registryBuilder) {
 		registryBuilder.addRegistry(Strain.REGISTRY_KEY, ModStrains::bootstrap);
+		registryBuilder.addRegistry(DeviceStats.REGISTRY_KEY, DeviceStats::bootstrap);
+		registryBuilder.addRegistry(EdibleBundle.REGISTRY_KEY, EdibleBundle::bootstrap);
+		registryBuilder.addRegistry(GreenOut.REGISTRY_KEY, GreenOut::bootstrap);
 		registryBuilder.addRegistry(RegistryKeys.CONFIGURED_FEATURE, ModConfiguredFeatures::bootstrap);
 		registryBuilder.addRegistry(RegistryKeys.PLACED_FEATURE, ModPlacedFeatures::bootstrap);
 	}

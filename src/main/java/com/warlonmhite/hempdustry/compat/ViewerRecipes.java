@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.compat;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
@@ -310,7 +311,8 @@ public final class ViewerRecipes {
         if (!spendable.isEmpty()) {
             out.add(inWorld("vaporizer",
                     List.of(Ingredient.ofItems(ModItems.VAPORIZER), Ingredient.ofItems(spendable.stream())),
-                    new ItemStack(ModItems.SCORCHED_HEMP, DeviceType.VAPORIZER.spentYield()),
+                    new ItemStack(ModItems.SCORCHED_HEMP,
+                            DeviceStats.bowl(world.getRegistryManager(), DeviceType.VAPORIZER).spentYield()),
                     Text.translatable("hempdustry.category.world.vaporizer"),
                     Text.translatable("hempdustry.category.world.vaporizer.plant")));
         }
@@ -387,21 +389,22 @@ public final class ViewerRecipes {
             for (Map.Entry<DeviceType, Item> entry : ModItems.devices().entrySet()) {
                 DeviceType type = entry.getKey();
                 Item device = entry.getValue();
+                DeviceStats.Bowl bowl = DeviceStats.bowl(registries, type);
                 // Rows climb one ITEM at a time, not one dose point at a time, and a row that the
                 // real recipe would refuse is never drawn. Identical for every strain but rosin,
                 // whose one piece is worth three -- so it gets a bong row and no others, which is
                 // the whole of "concentrates are bong-only" showing up in a viewer for free.
                 int step = Math.max(1, strain.value().dosePerItem());
-                for (int dose = step; dose <= type.maxDose(); dose += step) {
-                    out.add(packed(strain, device, type, dose));
+                for (int dose = step; dose <= bowl.maxDose(); dose += step) {
+                    out.add(packed(strain, device, type, dose, bowl.hits()));
                 }
                 // The moon rock: one item, one bowl, and the only row here whose load is two
                 // entries -- one row per coat, since the coat is half of what it carries. Skipped
                 // where a device's maxDose refuses it, which is a pipe and a vaporizer, and skipped
                 // for strains that never grew on a plant.
-                if (strain.value().flower().isPresent() && ModItems.MOON_ROCK_DOSE <= type.maxDose()) {
+                if (strain.value().flower().isPresent() && ModItems.MOON_ROCK_DOSE <= bowl.maxDose()) {
                     for (RegistryEntry.Reference<Strain> coat : coats) {
-                        out.add(packedMoonRock(strain, coat, device, type));
+                        out.add(packedMoonRock(strain, coat, device, type, bowl.hits()));
                     }
                 }
             }
@@ -410,10 +413,10 @@ public final class ViewerRecipes {
     }
 
     private static Packing packed(RegistryEntry.Reference<Strain> strain, Item device,
-                                  DeviceType type, int dose) {
+                                  DeviceType type, int dose, int hits) {
         ItemStack result = new ItemStack(device);
         result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
-        result.set(ModComponents.CHARGES, type.bowlSize());
+        result.set(ModComponents.CHARGES, hits);
 
         List<List<ItemStack>> inputs = new ArrayList<>();
         inputs.add(anyOf(type, device));
@@ -434,12 +437,13 @@ public final class ViewerRecipes {
      * than a bare nug, and a viewer's "move ingredients into the grid" looks for that one.
      */
     private static Packing packedMoonRock(RegistryEntry.Reference<Strain> strain,
-                                          RegistryEntry.Reference<Strain> coat, Item device, DeviceType type) {
+                                          RegistryEntry.Reference<Strain> coat, Item device, DeviceType type,
+                                          int hits) {
         ItemStack moonRock = ModItems.moonRock(strain, coat);
         ItemStack result = new ItemStack(device);
         result.set(ModComponents.SMOKE_CONTENTS,
                 moonRock.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY));
-        result.set(ModComponents.CHARGES, type.bowlSize());
+        result.set(ModComponents.CHARGES, hits);
         Identifier id = Identifier.of(Hempdustry.MOD_ID,
                 "packing/" + strain.registryKey().getValue().getPath() + "/"
                         + type.name().toLowerCase(java.util.Locale.ROOT) + "_moon_rock_"

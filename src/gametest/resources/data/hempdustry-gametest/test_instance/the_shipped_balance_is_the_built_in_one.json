@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:the_shipped_balance_is_the_built_in_one",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 200,
+  "setup_ticks": 0,
+  "required": true
+}

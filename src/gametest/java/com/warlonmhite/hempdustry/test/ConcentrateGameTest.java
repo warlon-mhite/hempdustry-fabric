@@ -54,7 +54,7 @@ public final class ConcentrateGameTest {
         context.assertEquals(load.primaryCount(), 3,
                 "the load's level is not III, so the item's name would lie about what it does");
         context.assertEquals(packed.getOrDefault(ModComponents.CHARGES, 0),
-                DeviceType.BONG.bowlSize(), "packing did not load a full bowl");
+                DeviceType.BONG.builtInBowl().hits(), "packing did not load a full bowl");
 
         // Two rosin is dose 6, over the bong's cap. A dab is THE dose, not a step on a ladder.
         context.assertTrue(!recipe.matches(grid(new ItemStack(ModItems.BONG), rosin, rosin), world),
@@ -114,7 +114,7 @@ public final class ConcentrateGameTest {
         context.assertTrue(load.primaryStrain() == indica,
                 "the moon rock packed as something other than its own plant strain");
         context.assertEquals(packed.getOrDefault(ModComponents.CHARGES, 0),
-                DeviceType.BONG.bowlSize(), "packing did not load a full bowl");
+                DeviceType.BONG.builtInBowl().hits(), "packing did not load a full bowl");
 
         // A pipe is maxDose 2 against the plant entry's 3. No rule was written for this; the cap
         // being on the largest entry rather than the total is what does it.

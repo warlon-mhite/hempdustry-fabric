@@ -216,6 +216,17 @@ beta be told when the release lands.
 
 - **The level-III cap is a knob.** `maxBuffLevel` in the config's `effects` section (default 2) is
   the plain cap; pairing a bud with a concentrate goes one past it. Raise it for a stronger mod.
+- **How each smokeable smokes, what an edible does and what a green-out costs are data.**
+  `data/<namespace>/hempdustry/device/` has a file per smokeable — `wooden_pipe`, `bong` (all
+  seventeen bongs), `vaporizer` and `spliff` — with the length of its high, its cooldown, its cough
+  and nausea odds (1 in N, 0 for never), a `green_out_factor`, and for the three you pack, a `bowl`:
+  `hits`, `max_dose` and `spent_yield`. The spliff has no bowl; how big one rolls is its crafting
+  recipes. `edible/default.json` is the one bundle every edible gives: the onset window, each
+  quality's spread and length, each tier's share of it, and the effects with an amplifier per tier
+  and the moment each lands. `green_out/default.json` is the odds per dose, the spins, the full
+  green-out and the lockout. The mod's own files are the numbers it played with before, to the tick,
+  so copy one into your datapack and edit it. The config's multipliers, caps and switches still have
+  the last word, and durability and enchantability stay with the item, as for vanilla's tools.
 - **Hash is data.** Hashish, filtered hashish, charas and rosin are strains with no seeds and no
   flower, so a datapack rebalances them — or adds a resin of its own — in
   `data/<namespace>/hempdustry/strain/` like any other strain. Strains gain three optional fields,

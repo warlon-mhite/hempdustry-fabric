@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.custom.BhangItem;
 import com.warlonmhite.hempdustry.item.custom.CannabutterItem;
@@ -548,13 +549,14 @@ public class ModItems {
             DeviceType device = entry.getKey();
             Item item = entry.getValue();
             out.add(new ItemStack(item));
+            DeviceStats.Bowl bowl = DeviceStats.bowl(registries, device);
             for (RegistryEntry<Strain> strain : strains) {
                 // The smallest load that strain can actually make in that device -- one item's
                 // worth. For everything but rosin that is dose 1, exactly as before; for rosin it is
                 // dose 3, and in the two devices that cannot hold it there is nothing to show.
                 int dose = strain.value().dosePerItem();
-                if (dose <= device.maxDose()) {
-                    out.add(loaded(item, strain, dose, device.bowlSize()));
+                if (dose <= bowl.maxDose()) {
+                    out.add(loaded(item, strain, dose, bowl.hits()));
                 }
             }
         }
@@ -580,13 +582,14 @@ public class ModItems {
             DeviceType device = entry.getKey();
             Item item = entry.getValue();
             out.add(new ItemStack(item));
+            DeviceStats.Bowl bowl = DeviceStats.bowl(registries, device);
             for (RegistryEntry<Strain> strain : strains) {
                 // Dose climbs one ITEM at a time, not one point at a time. They are the same thing
                 // for every strain but rosin, whose one piece is worth three -- so a rosin bong at
                 // dose 1 or 2 is a state no recipe can reach and does not belong in the search tab.
                 int step = Math.max(1, strain.value().dosePerItem());
-                for (int dose = step; dose <= device.maxDose(); dose += step) {
-                    out.add(loaded(item, strain, dose, device.bowlSize()));
+                for (int dose = step; dose <= bowl.maxDose(); dose += step) {
+                    out.add(loaded(item, strain, dose, bowl.hits()));
                 }
             }
         }

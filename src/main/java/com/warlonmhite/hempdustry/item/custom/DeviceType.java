@@ -1,11 +1,15 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.balance.DeviceStats;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 
+import java.util.Optional;
+
 /**
- * A reusable smoking device (pipe, bong, vaporizer, …). One enum entry fully describes a device's
- * balance, so the item classes stay strain- and device-agnostic.
+ * A reusable smoking device (pipe, bong, vaporizer, …). One enum entry fully describes a device as
+ * it ships, so the item classes stay strain- and device-agnostic; a datapack can change how it smokes
+ * through its {@link DeviceStats} file, but not its durability or its enchantability.
  *
  * <p>Durability is measured in <em>hits</em>: a device takes 1 damage per hit and is repaired with
  * the material it's built from. The numbers below keep the original 1:3 pipe:bong fragility ratio
@@ -43,17 +47,11 @@ public enum DeviceType {
     private final String baseName;
     private final String packedModel;
     private final int maxDamage;
-    private final int bowlSize;
-    private final int maxDose;
-    private final int durationTicks;
     private final int enchantability;
-    private final int cooldownTicks;
-    private final int coughChanceOneIn;
-    private final int nauseaChanceOneIn;
     private final int soundDelayTicks;
     private final int drawTicks;
-    private final int spentYield;
     private final ParticleEffect exhaleParticle;
+    private final DeviceStats builtInStats;
 
     DeviceType(String baseName, String packedModel, int maxDamage, int bowlSize, int maxDose,
                int durationTicks, int enchantability, int cooldownTicks, int coughChanceOneIn,
@@ -62,17 +60,12 @@ public enum DeviceType {
         this.baseName = baseName;
         this.packedModel = packedModel;
         this.maxDamage = maxDamage;
-        this.bowlSize = bowlSize;
-        this.maxDose = maxDose;
-        this.durationTicks = durationTicks;
         this.enchantability = enchantability;
-        this.cooldownTicks = cooldownTicks;
-        this.coughChanceOneIn = coughChanceOneIn;
-        this.nauseaChanceOneIn = nauseaChanceOneIn;
         this.soundDelayTicks = soundDelayTicks;
         this.drawTicks = drawTicks;
-        this.spentYield = spentYield;
         this.exhaleParticle = exhaleParticle;
+        this.builtInStats = new DeviceStats(durationTicks, cooldownTicks, coughChanceOneIn, nauseaChanceOneIn,
+                1.0F, Optional.of(new DeviceStats.Bowl(bowlSize, maxDose, spentYield)));
     }
 
     /** Registry id of the empty device; packed variants are {@code baseName + "_" + strainId}. */
@@ -98,45 +91,43 @@ public enum DeviceType {
         return maxDamage;
     }
 
-    /** Hits granted by packing one bowl. */
-    public int bowlSize() {
-        return bowlSize;
-    }
-
     public int enchantability() {
         return enchantability;
     }
 
-    public int cooldownTicks() {
-        return cooldownTicks;
-    }
-
-    public int coughChanceOneIn() {
-        return coughChanceOneIn;
-    }
-
     /**
-     * Most buds this device's bowl will take, i.e. the highest effect level it can reach.
+     * The numbers this device ships with, which datagen writes out as its file under
+     * {@code hempdustry/device/}. <b>The game reads the world's {@link DeviceStats}, never these</b>:
+     * a datapack may have changed them, and a call site reading the table instead would quietly
+     * ignore it.
      *
-     * <p>This is what gives the bong its identity honestly — not "stronger", but <em>capable of a
-     * bigger hit</em>. A bong at dose 1 is exactly as strong as a pipe at dose 1.
+     * <ul>
+     *   <li><b>Bowl and max dose.</b> The bowl is the hits one packing gives; the max dose is the
+     *       most buds it takes, i.e. the highest level the device reaches. That is what gives the
+     *       bong its identity honestly — not "stronger", but <em>capable of a bigger hit</em>. A bong
+     *       at dose 1 is exactly as strong as a pipe at dose 1.</li>
+     *   <li><b>Duration is purely the device and amplifier is purely the dose</b> — see
+     *       {@link com.warlonmhite.hempdustry.strain.Strain#effects} for why the two stay orthogonal
+     *       rather than trading off the way vanilla's glowstone does.</li>
+     *   <li><b>Nausea</b> is per hit and dose-independent, the "harsh smoke" cost: pipe 1-in-50,
+     *       bong 1-in-5.</li>
+     *   <li><b>Spent yield</b> is the scorched hemp a finished <em>bowl</em> of plant matter hands
+     *       back — AVB, "already vaped bud". A vaporizer runs under the temperature where plant
+     *       matter burns, so what comes out is spent but decarboxylated: the "heat activates" rule
+     *       arriving through a second door, not an exception to it. Only the vaporizer yields any,
+     *       one per bowl so it cannot be farmed by taking more hits. Scorched hemp is worth a quarter
+     *       of a decarboxylated one in the Infuser, so the depletion lives in the item rather than in
+     *       this count, which makes 2 a safe knob if the vaporizer ever needs more reason to be
+     *       built.</li>
+     * </ul>
      */
-    public int maxDose() {
-        return maxDose;
+    public DeviceStats builtInStats() {
+        return builtInStats;
     }
 
-    /**
-     * How long this device's effects last. <b>Duration is purely the device and amplifier is purely
-     * the dose</b> — see {@link Strain#effects} for why the two must stay orthogonal here rather
-     * than trading off the way vanilla's glowstone does.
-     */
-    public int durationTicks() {
-        return durationTicks;
-    }
-
-    /** Odds of nausea per hit, as 1-in-N (pipe 1-in-50 = 2%, bong 1-in-5 = 20%). */
-    public int nauseaChanceOneIn() {
-        return nauseaChanceOneIn;
+    /** The bowl this device ships with; see {@link #builtInStats()}. */
+    public DeviceStats.Bowl builtInBowl() {
+        return builtInStats.bowl().orElseThrow();
     }
 
     /**
@@ -164,34 +155,6 @@ public enum DeviceType {
      */
     public int drawTicks() {
         return drawTicks;
-    }
-
-    /**
-     * Scorched hemp handed back when a <em>bowl</em> of plant matter is finished, or {@code 0} for a
-     * device that leaves nothing usable behind. Only the vaporizer yields any.
-     *
-     * <p>This is <b>AVB</b> — "already vaped bud". A vaporizer runs at roughly 185–210 °C, under the
-     * ~230 °C where plant matter starts to burn, so what comes out is spent but decarboxylated, and
-     * saving it for edibles is standard practice precisely because that step is already done. It is
-     * therefore the "heat activates" rule arriving through a second door, <b>not</b> an exception to
-     * it: nothing raw is ever handed back.
-     *
-     * <p><b>Scorched, not decarboxylated, since 2026-09-14.</b> AVB keeps only 10–30% of what the
-     * bud had, and oven-decarboxylated hemp keeps nearly all of it; they were one item, which made a
-     * re-vape of the oven's output a 4× multiplier on every bud and a way to smoke leaves. Scorched
-     * hemp is worth a quarter of a decarboxylated one in the Infuser, so the depletion lives in the
-     * item rather than in this count — and it re-vapes once more, for side effects only, then is
-     * gone ({@code SmokingDeviceItem#yieldSpent} yields nothing from anything that did not grow on a
-     * plant).
-     *
-     * <p><b>1 today, and now safe to raise.</b> It was held at 1 because 2 decarboxylated hemp would
-     * have read as an alternative bud → decarb route. Two scorched are worth half a decarboxylated
-     * hemp — about 12% of the bud, inside the real AVB range — so if play-test says the vaporizer
-     * needs more reason to be built, this is the knob and it no longer eats the oven's niche.
-     * Per <em>bowl</em>, so it cannot be farmed by taking more hits.
-     */
-    public int spentYield() {
-        return spentYield;
     }
 
     /**

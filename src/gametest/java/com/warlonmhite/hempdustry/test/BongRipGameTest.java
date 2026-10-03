@@ -36,10 +36,10 @@ public final class BongRipGameTest {
         context.assertTrue(player.isUsingItem(), "clicking a packed bong did not start a draw");
         context.assertTrue(player.getActiveItem().getUseAction() == UseAction.TOOT_HORN,
                 "a bong draw is not raised to the mouth");
-        context.assertEquals(charges(player), DeviceType.BONG.bowlSize(), "the click alone took a hit");
+        context.assertEquals(charges(player), DeviceType.BONG.builtInBowl().hits(), "the click alone took a hit");
 
         player.stopUsingItem();
-        context.assertEquals(charges(player), DeviceType.BONG.bowlSize(), "letting go early spent a charge");
+        context.assertEquals(charges(player), DeviceType.BONG.builtInBowl().hits(), "letting go early spent a charge");
         context.assertTrue(player.getStackInHand(Hand.MAIN_HAND).getDamage() == 0,
                 "letting go early cost durability");
 
@@ -49,7 +49,7 @@ public final class BongRipGameTest {
         ItemStack after = player.getActiveItem().finishUsing(world, player);
         player.clearActiveItem();
         player.setStackInHand(Hand.MAIN_HAND, after);
-        context.assertEquals(charges(player), DeviceType.BONG.bowlSize() - 1, "a finished draw did not take one hit");
+        context.assertEquals(charges(player), DeviceType.BONG.builtInBowl().hits() - 1, "a finished draw did not take one hit");
         context.assertTrue(player.getItemCooldownManager().isCoolingDown(after),
                 "a finished draw started no cooldown");
 
@@ -61,7 +61,7 @@ public final class BongRipGameTest {
         other.setStackInHand(Hand.MAIN_HAND, pipe);
         other.interactionManager.interactItem(other, world, pipe, Hand.MAIN_HAND);
         context.assertTrue(!other.isUsingItem(), "the pipe started a draw");
-        context.assertEquals(charges(other), DeviceType.PIPE.bowlSize() - 1, "the pipe no longer hits on the click");
+        context.assertEquals(charges(other), DeviceType.PIPE.builtInBowl().hits() - 1, "the pipe no longer hits on the click");
         context.complete();
     }
 
@@ -73,7 +73,7 @@ public final class BongRipGameTest {
         ItemStack stack = new ItemStack(device);
         stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(world.getRegistryManager()
                 .getOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
-        stack.set(ModComponents.CHARGES, type.bowlSize());
+        stack.set(ModComponents.CHARGES, type.builtInBowl().hits());
         return stack;
     }
 }
