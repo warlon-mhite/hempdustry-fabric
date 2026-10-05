@@ -4,6 +4,8 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -12,7 +14,10 @@ import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * The mod's single creative tab.
@@ -79,9 +84,17 @@ public class ModItemGroups {
                         // this file. The tab reads displayContext.lookup() for that, exactly as
                         // vanilla's Food & Drinks reads the potion registry.
                         List<RegistryEntry.Reference<Strain>> strains = Strain.all(displayContext.lookup());
-                        strains.forEach(strain -> entries.add(strain.value().seeds()));
-                        strains.forEach(strain -> entries.add(strain.value().buds()));
-                        strains.forEach(strain -> entries.add(strain.value().flower()));
+                        // A datapack strain may name another strain's items, and the tab throws on
+                        // a second identical stack, so each item goes in once, where it first comes.
+                        Set<Item> plant = new HashSet<>();
+                        Consumer<ItemConvertible> addOnce = item -> {
+                            if (plant.add(item.asItem())) {
+                                entries.add(item);
+                            }
+                        };
+                        strains.forEach(strain -> addOnce.accept(strain.value().seeds()));
+                        strains.forEach(strain -> addOnce.accept(strain.value().buds()));
+                        strains.forEach(strain -> addOnce.accept(strain.value().flower()));
                         entries.add(ModItems.HEMP_STEM);
                         entries.add(ModItems.RETTED_HEMP_STEM);
                         entries.add(ModItems.HEMP_LEAF);
