@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.test;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
+import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ComposterBlock;
@@ -13,6 +14,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.HorseEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.passive.TraderLlamaEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.loot.LootTable;
@@ -184,6 +186,25 @@ public final class TagBackedBehaviourGameTest {
             }
         }
         context.assertTrue(items.isEmpty(), "these potted plants or crops have an item, which vanilla's never do: " + items);
+        context.complete();
+    }
+
+    /**
+     * Hemp fibre repairs every piece of the hemp set on an anvil, and string does not.
+     *
+     * <p>Since 1.21.4 an armour material names its repair material as a tag. The set named
+     * {@code #hempdustry:hemp_armor_repair} from the 1.21.11 port onwards, but no file ever filled it,
+     * so the anvil refused everything and nothing said why.
+     */
+    public static void hempFiberRepairsTheOutfit(TestContext context) {
+        ItemStack fiber = new ItemStack(ModItems.HEMP_FIBER);
+        for (Item piece : List.of(ModItems.HEMP_BEANIE, ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS,
+                ModItems.FLIP_FLOPS)) {
+            context.assertTrue(new ItemStack(piece).canRepairWith(fiber),
+                    "hemp fibre does not repair " + piece + " — #hempdustry:hemp_armor_repair is empty or gone");
+            context.assertFalse(new ItemStack(piece).canRepairWith(new ItemStack(Items.STRING)),
+                    "string repairs " + piece + ", so the repair tag has grown past hemp fibre");
+        }
         context.complete();
     }
 }

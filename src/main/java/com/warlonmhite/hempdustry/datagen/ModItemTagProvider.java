@@ -125,6 +125,12 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         valueLookupBuilder(ItemTags.LEG_ARMOR).add(ModItems.HEMP_HAREM_PANTS);
         valueLookupBuilder(ItemTags.FOOT_ARMOR).add(ModItems.FLIP_FLOPS);
 
+        // What mends the set on an anvil: the fibre it is woven from, as on the 1.21.1 line, where
+        // repair is an Ingredient. Since 1.21.4 the material names a tag instead, and until 2.0.3
+        // nothing wrote this one, so nothing repaired the set at all.
+        valueLookupBuilder(ModTags.Items.HEMP_ARMOR_REPAIR)
+                .add(ModItems.HEMP_FIBER);
+
         // Canvas is leather-tier by the mod's own standing rule — it substitutes wherever vanilla
         // uses leather, and the cloth chain's balance anchors are set at leather parity — so the
         // convention tag is that rule extended to the mods that asked for it. Nothing in vanilla
