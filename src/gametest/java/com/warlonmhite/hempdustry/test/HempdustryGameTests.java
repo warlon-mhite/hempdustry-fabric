@@ -56,6 +56,8 @@ public class HempdustryGameTests implements ModInitializer {
         register("a_broken_config_is_left_alone", ConfigGameTest::aBrokenConfigIsLeftAlone);
         register("a_hemp_boat_does_not_stop_the_data_fixer", DataFixerGameTest::aHempBoatDoesNotStopTheDataFixer);
         register("one_bud_per_slot_is_the_dose", PackingGameTest::oneBudPerSlotIsTheDose);
+        register("a_strain_reusing_items_keeps_the_tab_whole",
+                DatapackStrainGameTest::aStrainReusingItemsKeepsTheTabWhole);
     }
 
     private static void register(String name, Consumer<TestContext> test) {
