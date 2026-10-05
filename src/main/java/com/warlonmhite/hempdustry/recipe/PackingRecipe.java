@@ -89,7 +89,9 @@ public class PackingRecipe extends SpecialCraftingRecipe {
                     return null; // a foreign item, or a second strain (no mixing yet)
                 }
                 strain = budStrain;
-                dose += stack.getCount();
+                // One per slot, never the stack's count: crafting takes one item from each slot,
+                // so counting the stack packed three buds' worth out of one.
+                dose++;
             }
         }
         if (device.isEmpty() || strain == null) {
