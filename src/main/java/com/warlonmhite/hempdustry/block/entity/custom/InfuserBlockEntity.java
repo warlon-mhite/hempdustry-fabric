@@ -877,17 +877,35 @@ public class InfuserBlockEntity extends BlockEntity
     }
 
     /**
-     * Throws away an uncollected preview. Called just before the block spills its contents, because
-     * the preview is not a real item yet: without this, breaking a tub at {@link #minTime()} would
-     * drop the cannabutter <em>and</em> refund every hemp that went into it, which is free
-     * cannabutter on repeat. Spilling a batch returns the ingredients, never the product.
+     * Spills the tub when its block goes. Since 1.21.5 the world calls this before it removes the
+     * block entity, and only then the block's {@code onStateReplaced} — which by then finds nothing,
+     * so the spilling has to live here. Until 2.0.3 it lived on the block, and breaking a simmering
+     * tub on 1.21.11 destroyed its batch.
+     *
+     * <p>Order matters: the preview goes in the bin first, then {@code super} scatters the slots as
+     * it does for any inventory, then the hemp already drawn into the batch follows.
      */
-    public void discardPreview() {
+    @Override
+    public void onBlockReplaced(BlockPos pos, BlockState oldState) {
+        discardPreview();
+        super.onBlockReplaced(pos, oldState);
+        if (this.world != null) {
+            ItemScatterer.spawn(this.world, pos, getBatchItems());
+        }
+    }
+
+    /**
+     * Throws away an uncollected preview before the tub spills, because the preview is not a real
+     * item yet: without this, breaking a tub at {@link #minTime()} would drop the cannabutter
+     * <em>and</em> refund every hemp that went into it, which is free cannabutter on repeat.
+     * Spilling a batch returns the ingredients, never the product.
+     */
+    private void discardPreview() {
         setStack(OUTPUT_SLOT, ItemStack.EMPTY);
     }
 
     /**
-     * The hemp currently committed to a batch, as items, so the block can spill it when broken.
+     * The hemp currently committed to a batch, as items, so a broken tub can spill it.
      * Without this, breaking a simmering Infuser would silently destroy up to {@link #BATCH_CAP}
      * hemp — it has already left the slots that {@code ItemScatterer} walks.
      *
@@ -897,7 +915,7 @@ public class InfuserBlockEntity extends BlockEntity
      * dupe-free and the physically obvious outcome. At most one milk is ever at stake, since the tub
      * holds one at a time.
      */
-    public DefaultedList<ItemStack> getBatchItems() {
+    private DefaultedList<ItemStack> getBatchItems() {
         DefaultedList<ItemStack> spill = DefaultedList.of();
         InfusingRecipe recipe = recipe(this.world);
         if (recipe == null) {

@@ -198,19 +198,9 @@ public class InfuserBlock extends BlockWithEntity {
 
     @Override
     protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
-        // Since 1.21.5 this only fires when the block actually changed, so the old
-        // state.isOf(newState) guard is gone along with the newState parameter.
-        if (world.getBlockEntity(pos) instanceof InfuserBlockEntity be) {
-            // Order matters. The preview is not a real item, so it goes in the bin first —
-            // otherwise breaking a ready tub would drop the cannabutter *and* refund the hemp
-            // below. What a spilled batch gives back is its ingredients.
-            be.discardPreview();
-            ItemScatterer.spawn(world, pos, be);
-            // Hemp already drawn into a running batch has left the slots, so it has to be
-            // spilled separately or breaking a simmering tub would destroy it.
-            ItemScatterer.spawn(world, pos, be.getBatchItems());
-            world.updateComparators(pos, this);
-        }
+        // The tub has already spilled by now (InfuserBlockEntity#onBlockReplaced): since 1.21.5 the
+        // block entity is removed before this runs. What is left is telling the comparators.
+        ItemScatterer.onStateReplaced(state, world, pos);
         super.onStateReplaced(state, world, pos, moved);
     }
 

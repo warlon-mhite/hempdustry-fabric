@@ -125,15 +125,14 @@ public class DecarboxylatorBlock extends BlockWithEntity {
         return world.getBlockEntity(pos) instanceof DecarboxylatorBlockEntity be ? be : null;
     }
 
-    /** Spills the trays, the fuel and the collected hemp when the oven is broken. */
+    /**
+     * Tells the comparators the oven is gone. The trays, the fuel and the collected hemp have spilled
+     * already: since 1.21.5 the world calls {@code BlockEntity#onBlockReplaced} first, which scatters
+     * any inventory, and removes the block entity before this runs.
+     */
     @Override
     protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
-        // Since 1.21.5 this only fires when the block actually changed, so the old
-        // state.isOf(newState) guard is gone along with the newState parameter.
-        if (world.getBlockEntity(pos) instanceof DecarboxylatorBlockEntity be) {
-            ItemScatterer.spawn(world, pos, be);
-            world.updateComparators(pos, this);
-        }
+        ItemScatterer.onStateReplaced(state, world, pos);
         super.onStateReplaced(state, world, pos, moved);
     }
 
