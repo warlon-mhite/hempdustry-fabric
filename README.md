@@ -14,6 +14,10 @@ actually been for over the last five thousand years.
 
 **Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-fabric/releases)
 
+**Needs:** [Fabric Loader](https://fabricmc.net/use/) and [Fabric API](https://modrinth.com/mod/fabric-api).
+JEI, EMI or REI is optional, and with any of them the mod adds pages for its machines, for packing a
+pipe or bong, and for the cauldron steps.
+
 > **Status: version 2.0.2, the first stable release**
 > This is a rewrite for Fabric 1.21.1 of an older Forge 1.16 mod (GanjaCraft) that was built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
@@ -185,7 +189,7 @@ for source, not a share.
 
 Large Language Models (LLM) chiefly Anthropic's **Claude Opus** and **Claude Sonnet**, used through
 Claude Code, have been used in the making of this mod. Their role is assisting with more complex
-features, helping for cross-mod compatibility, helping debug, documenting the code, update locale with local slangs (fr_ca or en_uk for example) generating placeholder textures, balancing mechanics,
+features, helping for cross-mod compatibility, helping debug, documenting the code, update locale with local slangs (fr_ca or en_gb for example) generating placeholder textures, balancing mechanics,
 and challenging and improving ideas.
 
 ---

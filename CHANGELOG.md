@@ -7,9 +7,25 @@ All notable changes to Hempdustry are recorded here. The format follows
 same place: `2.0.0-beta+1.21.1` sorts *before* `2.0.0+1.21.1`, which is what lets a player on the
 beta be told when the release lands.
 
-## [Unreleased]
+## [2.0.3] — unreleased
 
-Nothing yet — everything below shipped in 2.0.2.
+### Fixed
+
+- **Packing counts one bud per slot.** Crafting takes one item from each slot, but packing counted
+  the whole stack: three buds stacked in one slot beside an empty bong packed a level-III bowl and
+  used up one bud, in a crafting table or a Crafter alike. A bowl's level is now the number of slots
+  holding buds.
+- **A datapack strain that reuses another strain's items no longer crashes the creative
+  inventory.** The tab added those seeds, buds and flower a second time, which the game refuses:
+  pressing E crashed the client, and the whole Hempdustry tab vanished from JEI. Each shows once now.
+- **The bong and the smoke come from the smoker.** Both sounds were stereo, which Minecraft plays at
+  full volume with no position, so everyone within 16 blocks heard every hit as if it were their
+  own. They are mono now, and fade with distance like any other sound.
+- **A very small `greenOutChanceMultiplier` no longer makes every hit a green-out.** A value just
+  above 0 overflowed into certainty; it now means almost never, as it should.
+- **`/hempdustry reload` no longer sends you to `/reload` for strains**, which never re-read them:
+  strains are read once, when the world opens, so changing one takes a restart. The 2.0.0 notes below
+  said `/reload` applies an edited strain; it does not.
 
 ## [2.0.2] — 2026-09-29
 
@@ -350,7 +366,7 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.2%2B1.21.1...1.21.1
+[2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.2%2B1.21.1...1.21.1
 [2.0.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.2
 [2.0.1-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.1-beta
 [2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/beta
