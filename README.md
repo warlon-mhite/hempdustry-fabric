@@ -18,7 +18,7 @@ actually been for over the last five thousand years.
 JEI, EMI or REI is optional, and with any of them the mod adds pages for its machines, for packing a
 pipe or bong, and for the cauldron steps.
 
-> **Status: version 2.0.2, the first stable release**
+> **Status: version 2.0.3, stable**
 > This is a rewrite for Fabric 1.21.1 of an older Forge 1.16 mod (GanjaCraft) that was built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
