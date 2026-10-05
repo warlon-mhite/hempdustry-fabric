@@ -166,13 +166,14 @@ public class HempPressBlock extends BlockWithEntity {
         return world.getBlockEntity(pos) instanceof HempPressBlockEntity be ? be : null;
     }
 
-    /** Spills whatever is in the press when it is broken. */
+    /**
+     * Tells the comparators the press is gone. What was in it has spilled already: since 1.21.5 the
+     * world calls {@code BlockEntity#onBlockReplaced} first, which scatters any inventory, and removes
+     * the block entity before this runs — so the spill that used to live here never found anything.
+     */
     @Override
     protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
-        if (world.getBlockEntity(pos) instanceof HempPressBlockEntity be) {
-            ItemScatterer.spawn(world, pos, be);
-            world.updateComparators(pos, this);
-        }
+        ItemScatterer.onStateReplaced(state, world, pos);
         super.onStateReplaced(state, world, pos, moved);
     }
 
