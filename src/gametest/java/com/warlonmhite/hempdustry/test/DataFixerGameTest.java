@@ -8,7 +8,8 @@ import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.test.TestContext;
 
 /**
- * A hemp boat must not stop vanilla's data fixer from upgrading the entities beside it.
+ * A hemp boat must not stop vanilla's data fixer from upgrading the entities beside it, and the items
+ * inside the mod's machines must be upgraded like the items in a chest.
  *
  * <p>An entity chunk as 1.21.1 saved it, run through the real fixer to this version: a hemp boat, a
  * hemp chest boat carrying an enchanted sword, and a vanilla armour stand wearing boots. Before the
@@ -50,6 +51,40 @@ public final class DataFixerGameTest {
 
         context.assertTrue("hempdustry:hemp_boat".equals(entities.getCompoundOrEmpty(0).getString("id", "")),
                 "the hemp boat itself did not come through: " + entities.getCompoundOrEmpty(0));
+        context.complete();
+    }
+
+    /**
+     * A block chunk as 1.21.1 saved it: a Decarboxylator and an Infuser each holding an enchanted
+     * bow, and a vanilla chest holding the same as the control. Until 2.0.3 the fixer did not know
+     * the machines, so their bows kept the {@code levels} wrapper 1.21.11 cannot read, and lost their
+     * enchantments on load.
+     */
+    private static final String BLOCK_CHUNK = "{DataVersion:3955,xPos:0,zPos:0,yPos:-4,"
+            + "Status:\"minecraft:full\",sections:[],block_entities:["
+            + machine("hempdustry:decarboxylator", 0, 4) + "," + machine("hempdustry:infuser", 1, 1) + ","
+            + machine("minecraft:chest", 2, 0) + "]}";
+
+    private static String machine(String id, int x, int slot) {
+        return "{id:\"" + id + "\",x:" + x + ",y:-60,z:0,Items:[{Slot:" + slot + "b,id:\"minecraft:bow\","
+                + "count:1,components:{\"minecraft:enchantments\":{levels:{\"minecraft:power\":3}}}}]}";
+    }
+
+    public static void theMachinesContentsAreUpgraded(TestContext context) {
+        NbtCompound fixed = DataFixTypes.CHUNK.update(
+                context.getWorld().getServer().getDataFixer(), read(BLOCK_CHUNK), MINECRAFT_1_21_1);
+        NbtList blockEntities = fixed.getListOrEmpty("block_entities");
+        context.assertEquals(3, blockEntities.size(), "the block entities through the fixer: " + fixed);
+
+        // The chest first: if it was not converted, the chunk itself did not go through.
+        for (int i = 2; i >= 0; i--) {
+            NbtCompound blockEntity = blockEntities.getCompoundOrEmpty(i);
+            NbtCompound enchantments = blockEntity.getListOrEmpty("Items").getCompoundOrEmpty(0)
+                    .getCompoundOrEmpty("components").getCompoundOrEmpty("minecraft:enchantments");
+            context.assertTrue(!enchantments.contains("levels") && enchantments.contains("minecraft:power"),
+                    "the bow in " + blockEntity.getString("id", "?") + " kept its 1.21.1 enchantments: "
+                            + enchantments);
+        }
         context.complete();
     }
 
