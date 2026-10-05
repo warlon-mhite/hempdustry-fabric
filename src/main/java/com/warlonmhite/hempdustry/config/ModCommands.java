@@ -16,10 +16,10 @@ import net.minecraft.text.Text;
  * <p>Permission level 2, the same bar vanilla puts on {@code /reload} and {@code /gamerule}: this
  * changes how the mod behaves for everyone on the server.
  *
- * <p><b>It does not reload strains</b>, and that is deliberate rather than an omission. Strains are a
- * datapack registry, so vanilla's own {@code /reload} is what re-reads them — telling an admin to run
- * two different reload commands for two halves of the same tuning session would be worse than
- * telling them which one does what. The chat reply says so.
+ * <p><b>It does not reload strains, and nothing can short of a restart.</b> Strains are a dynamic
+ * registry, which the server reads once, when the world opens; vanilla's {@code /reload} keeps the
+ * registries it has and only re-reads their tags. Until 2.0.3 the chat reply sent admins to
+ * {@code /reload} for strains, which did nothing.
  */
 public class ModCommands {
 
