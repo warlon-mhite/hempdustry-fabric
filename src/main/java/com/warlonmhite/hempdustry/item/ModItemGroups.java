@@ -98,9 +98,9 @@ public class ModItemGroups {
                                 entries.add(item);
                             }
                         };
-                        strains.forEach(strain -> strain.value().seeds().ifPresent(addOnce));
+                        strains.forEach(strain -> strain.value().seedItem().ifPresent(addOnce));
                         strains.forEach(strain -> {
-                            if (strain.value().flower().isPresent()) {
+                            if (strain.value().wildFlower().isPresent()) {
                                 addOnce.accept(strain.value().buds());
                             }
                         });
@@ -110,7 +110,7 @@ public class ModItemGroups {
                         // Beldía's wild flower is its own crop, and a crop block's item IS its
                         // seeds -- already in the run above, which addOnce remembers. A flower with
                         // no item at all is skipped: the tab refuses an empty stack.
-                        strains.forEach(strain -> strain.value().flower().map(Block::asItem)
+                        strains.forEach(strain -> strain.value().wildFlower().map(Block::asItem)
                                 .filter(item -> item != Items.AIR)
                                 .ifPresent(addOnce));
                         entries.add(ModItems.HEMP_STEM);

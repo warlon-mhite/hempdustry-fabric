@@ -163,7 +163,7 @@ public class ModStrains {
     /**
      * Whether a strain is plant matter — grown on a plant and never made into resin.
      *
-     * <p>{@code flower().isPresent()} is the narrower question, "a strain with a plant of its own",
+     * <p>{@code wildFlower().isPresent()} is the narrower question, "a strain with a plant of its own",
      * and it stays the predicate for everything that needs one: the seed pools, the creative tab's
      * runs, the Sifting Box, moon rocks. Schwag answers no to that and yes to this, because it grew
      * on a plant that was never its own. So it burns in a furnace, rolls into a spliff and leaves a
@@ -171,7 +171,7 @@ public class ModStrains {
      * none of them.
      */
     public static boolean isPlantMatter(RegistryEntry<Strain> strain) {
-        return strain.value().flower().isPresent() || strain.matchesKey(SCHWAG);
+        return strain.value().wildFlower().isPresent() || strain.matchesKey(SCHWAG);
     }
 
     /** The art index a built-in strain gets. Datagen and the bootstrap both read this. */

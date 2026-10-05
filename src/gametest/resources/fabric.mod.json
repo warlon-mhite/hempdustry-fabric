@@ -8,6 +8,7 @@
 	"entrypoints": {
 		"fabric-gametest": [
 			"com.warlonmhite.hempdustry.test.AdvancementGameTest",
+			"com.warlonmhite.hempdustry.test.ApiBridgeGameTest",
 			"com.warlonmhite.hempdustry.test.BalanceGameTest",
 			"com.warlonmhite.hempdustry.test.BannerPatternGameTest",
 			"com.warlonmhite.hempdustry.test.BeldiaGameTest",

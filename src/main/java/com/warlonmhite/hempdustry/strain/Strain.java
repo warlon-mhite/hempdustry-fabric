@@ -4,10 +4,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -123,17 +125,22 @@ import java.util.random.RandomGenerator;
  * trichome head whichever plant grew it. Their identity is the product's, which is how hash is
  * actually named and sold — by region and method, never by cultivar.
  *
- * <p><b>{@code flower().isPresent()} is therefore the predicate for "this grew on a plant"</b>, and
+ * <p><b>{@code wildFlower().isPresent()} is therefore the predicate for "this grew on a plant"</b>, and
  * it is the one every guard in the mod keys on: the creative tab's seed and flower runs, the grass
  * seed pools, {@code #hempdustry:siftable/flower}, and the plain spliff recipes. One predicate, and
  * anything hash-shaped added later is covered by it for free.
  *
+ * <p>The two fields are {@code seedItem} and {@code wildFlower} in code, though their JSON keys are
+ * still {@code seeds} and {@code flower}: 2.0 shipped {@code seeds()} and {@code flower()} returning
+ * a plain item and block, and an addon compiled against 2.0 links against exactly those. They are
+ * kept below as deprecated bridges, beside 2.0's constructor and {@link #effects(int, int)}.
+ *
  * @param translationKey  lang key for the display name, e.g. {@code hempdustry.strain.indica}
  * @param color           packed device / spliff tint, the way a potion tints its liquid layer
  * @param modelIndex      stable art index; {@code 0} means "no art of its own"
- * @param seeds           the seed item that plants this strain's crop, if it is a plant at all
+ * @param seedItem        the seed item that plants this strain's crop, if it is a plant at all
  * @param buds            the item that packs into a spliff, pipe or bong. Every strain has one
- * @param flower          the wild flower that drops this strain's seeds, if it is a plant at all
+ * @param wildFlower      the wild flower that drops this strain's seeds, if it is a plant at all
  * @param greenOutFactor  divides the green-out odds; {@code 2.0} halves the risk. Purity buys
  *                        smoothness, never power — see {@code hashish.md} §4
  * @param dosePerItem     how much dose <em>one</em> of {@link #buds} is worth when packed. Almost
@@ -148,15 +155,47 @@ import java.util.random.RandomGenerator;
  *                        flavour rather than balance
  */
 public record Strain(String translationKey, int color, int modelIndex,
-                     Optional<Item> seeds, Item buds, Optional<Block> flower,
+                     Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                      float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
                      float coughFactor) {
 
     /** Every strain written before {@code cough_factor} existed coughs like the device does. */
     public Strain(String translationKey, int color, int modelIndex,
-                  Optional<Item> seeds, Item buds, Optional<Block> flower,
+                  Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                   float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects) {
-        this(translationKey, color, modelIndex, seeds, buds, flower, greenOutFactor, dosePerItem, smokeEffects, 1.0F);
+        this(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem, smokeEffects, 1.0F);
+    }
+
+    /**
+     * 2.0's constructor: a plant strain, smoothing and coughing like its device, one dose a bud.
+     *
+     * @deprecated kept so an addon built against 2.0 still links; use the canonical constructor
+     */
+    @Deprecated
+    public Strain(String translationKey, int color, int modelIndex,
+                  Item seeds, Item buds, Block flower, List<SmokeEffect> smokeEffects) {
+        this(translationKey, color, modelIndex, Optional.ofNullable(seeds), buds, Optional.ofNullable(flower),
+                1.0F, 1, smokeEffects);
+    }
+
+    /**
+     * 2.0's accessor. Air for a strain that never grew on a plant, which 2.0 never had.
+     *
+     * @deprecated kept so an addon built against 2.0 still links; use {@link #seedItem()}
+     */
+    @Deprecated
+    public Item seeds() {
+        return seedItem.orElse(Items.AIR);
+    }
+
+    /**
+     * 2.0's accessor. Air for a strain that never grew on a plant, which 2.0 never had.
+     *
+     * @deprecated kept so an addon built against 2.0 still links; use {@link #wildFlower()}
+     */
+    @Deprecated
+    public Block flower() {
+        return wildFlower.orElse(Blocks.AIR);
     }
 
     /** The dynamic registry itself. Entries load from {@code data/<namespace>/hempdustry/strain/<id>.json}. */
@@ -170,9 +209,9 @@ public record Strain(String translationKey, int color, int modelIndex,
             // seeds and flower are optional because a hash entry has neither -- see the class
             // javadoc. Widening a required field to optional is the one schema change compat.md
             // permits: every strain JSON already written keeps parsing unchanged.
-            Registries.ITEM.getCodec().optionalFieldOf("seeds").forGetter(Strain::seeds),
+            Registries.ITEM.getCodec().optionalFieldOf("seeds").forGetter(Strain::seedItem),
             Registries.ITEM.getCodec().fieldOf("buds").forGetter(Strain::buds),
-            Registries.BLOCK.getCodec().optionalFieldOf("flower").forGetter(Strain::flower),
+            Registries.BLOCK.getCodec().optionalFieldOf("flower").forGetter(Strain::wildFlower),
             Codec.FLOAT.optionalFieldOf("green_out_factor", 1.0F).forGetter(Strain::greenOutFactor),
             Codec.INT.optionalFieldOf("dose_per_item", 1).forGetter(Strain::dosePerItem),
             SmokeEffect.CODEC.listOf().optionalFieldOf("effects", List.of()).forGetter(Strain::smokeEffects),
@@ -237,6 +276,23 @@ public record Strain(String translationKey, int color, int modelIndex,
      */
     public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale, RandomGenerator random) {
         return effects(dose, durationTicks, onExhale, 0, random);
+    }
+
+    /**
+     * 2.0's question: everything one hit at {@code dose} applies, the hit's effects and the exhale's
+     * together, and every effect with a {@link SmokeEffect#chance} taken as landing (a chance of
+     * zero still never does). 2.0 had neither timing nor chance, so this is the whole list it meant.
+     *
+     * @deprecated kept so an addon built against 2.0 still links; use
+     *             {@link #effects(int, int, boolean, RandomGenerator)}
+     */
+    @Deprecated
+    public List<StatusEffectInstance> effects(int dose, int durationTicks) {
+        // A generator whose every draw is zero: nextFloat() is 0.0, under any chance above zero.
+        RandomGenerator lands = () -> 0L;
+        List<StatusEffectInstance> out = new ArrayList<>(effects(dose, durationTicks, false, lands));
+        out.addAll(effects(dose, durationTicks, true, lands));
+        return out;
     }
 
     /**

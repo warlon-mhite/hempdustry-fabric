@@ -279,8 +279,8 @@ public final class ViewerRecipes {
      */
     public static List<Entry> world(RegistryWrapper.WrapperLookup registries) {
         List<RegistryEntry.Reference<Strain>> strains = Strain.all(registries);
-        List<Item> seeds = strains.stream().filter(strain -> strain.value().flower().isPresent())
-                .flatMap(strain -> strain.value().seeds().stream()).toList();
+        List<Item> seeds = strains.stream().filter(strain -> strain.value().wildFlower().isPresent())
+                .flatMap(strain -> strain.value().seedItem().stream()).toList();
         List<Item> spendable = strains.stream().filter(ModStrains::isPlantMatter)
                 .map(strain -> strain.value().buds()).toList();
         Ingredient shears = ofTag(ConventionalItemTags.SHEAR_TOOLS);
@@ -398,7 +398,7 @@ public final class ViewerRecipes {
                 // entries -- one row per coat, since the coat is half of what it carries. Skipped
                 // where a device's maxDose refuses it, which is a pipe and a vaporizer, and skipped
                 // for strains that never grew on a plant.
-                if (strain.value().flower().isPresent() && ModItems.MOON_ROCK_DOSE <= bowl.maxDose()) {
+                if (strain.value().wildFlower().isPresent() && ModItems.MOON_ROCK_DOSE <= bowl.maxDose()) {
                     for (RegistryEntry.Reference<Strain> coat : coats) {
                         out.add(packedMoonRock(strain, coat, device, type, bowl.hits()));
                     }

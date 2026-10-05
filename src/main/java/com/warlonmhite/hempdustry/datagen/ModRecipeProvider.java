@@ -547,7 +547,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // bud, and both are priced explicitly below.
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
-            if (strain.flower().isEmpty()) {
+            if (strain.wildFlower().isEmpty()) {
                 continue;
             }
             offerDecarboxylating(exporter, Ingredient.ofItems(strain.buds()),
@@ -588,7 +588,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         scorchable.add(ModItems.SCHWAG);
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
-            if (strain.flower().isPresent()) {
+            if (strain.wildFlower().isPresent()) {
                 scorchable.add(strain.buds());
             }
         }
@@ -830,7 +830,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // for a long while, and the rosin is the piece that was missing.
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             RegistryEntry.Reference<Strain> strain = strains.getOrThrow(key);
-            if (strain.value().flower().isEmpty()) {
+            if (strain.value().wildFlower().isEmpty()) {
                 continue;
             }
             offerMoonRock(exporter, strain, strains.getOrThrow(ModStrains.HASHISH), "hashish",
@@ -861,7 +861,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // instead, which is the six hand-built recipes further down.
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             RegistryEntry.Reference<Strain> strain = strains.getOrThrow(key);
-            if (strain.value().flower().isEmpty()) {
+            if (strain.value().wildFlower().isEmpty()) {
                 continue;
             }
             for (int dose = 1; dose <= ModItems.SPLIFF_MAX_DOSE; dose++) {
@@ -891,7 +891,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             // quietly undercut the bong exclusive that is the entire reason the Press exists.
             for (RegistryKey<Strain> hashKey : ModStrains.BUILT_IN) {
                 RegistryEntry.Reference<Strain> hash = strains.getOrThrow(hashKey);
-                if (hash.value().flower().isPresent() || hash.value().dosePerItem() > 1) {
+                if (hash.value().wildFlower().isPresent() || hash.value().dosePerItem() > 1) {
                     continue;
                 }
                 offerHashSpliff(exporter, strain, hash, 1);
