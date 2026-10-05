@@ -36,13 +36,15 @@ its recipes. The machine and packing pages show either way.
 
 ### The plant
 
-Two strains, **Purple Kush** and **Lemon Haze**, each with its own crop, seeds, buds and wild flower.
-They differ in shape and in what they give you rather than in some claimed difference of feeling:
-Purple Kush is a short, leafy two-block plant, Lemon Haze is a three-block one that grows slower,
-wants headroom, and pays out in stems instead of leaves.
+Three strains, **Purple Kush**, **Lemon Haze** and **Beldía**, each with its own crop, seeds, buds
+and wild flower. They differ in shape and in what they give you rather than in some claimed
+difference of feeling: Purple Kush is a short, leafy two-block plant, Lemon Haze is a three-block one
+that grows slower, wants headroom, and pays out in stems instead of leaves, and Beldía, the old
+landrace of Morocco's Rif, grows on watered sand rather than farmland.
 
 Wild flowers generate across a curated set of biomes — jungle, swamp and lush caves for Purple Kush,
-savanna through to badlands for Lemon Haze — and can be sheared up intact for a flower pot. Hemp
+savanna through to badlands for Lemon Haze, desert riverbanks for Beldía — and the first two can be
+sheared up intact for a flower pot. Hemp
 seeds also turn up in tall grass and in a handful of exploration chests, so you can stumble into the
 mod without looking for it.
 
@@ -53,15 +55,21 @@ just finishes leaf-heavy instead of bud-heavy.
 
 Bees will pollinate hemp. Parrots and chickens eat the seeds; goats eat the leaves.
 
+**Growing indoors.** A **Grow Pot** you water with a bottle and feed with bone meal, a **Hydro Tray**
+that grows hemp twice as fast while its pump runs, and a **Grow Lamp** to hang over them for extra
+buds. A plant remembers the light it grew under, and one that loses it while flowering, or is
+neglected in its bed, *stresses*: it looks it, it seeds, and its buds can come off as schwag.
+
 ### Smoking
 
-Three things to smoke with — a **spliff**, a **wooden pipe** and a **bong** — and what's loaded is
-data on the item rather than a separate item per combination, the same way a potion carries its
-contents.
+Four things to smoke with — a **spliff**, a **wooden pipe**, a **bong** and a **Redstone
+Vaporizer**, which never greens you out and hands the spent bud back — and what's loaded is data on
+the item rather than a separate item per combination, the same way a potion carries its contents.
 
 - **The device sets the duration, the dose sets the strength.** Pack more buds for a stronger hit;
   the bong's bowl simply takes more of them than the pipe's. A helpful effect stops at level II,
-  where a beacon stops, so a third bud makes the high last longer instead.
+  where a beacon stops, so a third bud makes the high last longer instead — unless the bud is
+  smoked with hash, which lifts it one level more.
 - **Every strain is a bundle of good and bad.** Purple Kush trades mining speed for damage
   resistance; Lemon Haze trades melee damage for movement and mining speed. Dosing raises both halves.
 - **Green out.** Big doses carry a real chance of losing the hit entirely and spending a while
@@ -73,6 +81,15 @@ contents.
   draw is done. Let go early and it costs nothing.
 - **Put your bong down.** Empty, a right-click stands it on the table; packed, sneak and right-click.
   Break it and it comes back exactly as it went down.
+
+### Hash
+
+The resin, taken off the plant the three ways the trade does it. Shake buds or trim over the
+**Sifting Box** for **kief**, or fill it with water, pack ice around it and wash out **bubble hash**;
+rub **charas** off a living plant with shears. The **Hemp Press**, heated from below, presses kief
+into **hashish**, cleaner powder into **filtered hashish** and that into **rosin**, the strongest and
+plainest thing in the mod. Hash is for smoking only: packed into a pipe or a bong, rolled into a
+spliff with a bud, or as the coat on a **moon rock**.
 
 ### From crop to cannabutter
 
@@ -123,13 +140,13 @@ Hemp is a fibre crop first, and the mod treats it that way.
 
 ### Odds and ends
 
-Six paintings, two music discs with original tracks by **Nefuß**, forty-two advancements, **recipe
-pages in both JEI and REI** (including the cauldron steps, which are not recipes and which nothing
-else can show you), and full
-translations in twelve locales
-(five English variants and three French, with regional vocabulary rather than copy-paste — Quebec
-gets *gougounes* and its own slang — plus Russian, translated by **MargoxaTheGamer**, and German,
-Swiss German and Austrian German, translated by **Gülps'sch420**).
+Six paintings, a cannabis-leaf banner pattern, two music discs with original tracks by **Nefuß**,
+forty-two advancements, **recipe pages in both JEI and REI** (including the cauldron steps, which
+are not recipes and which nothing else can show you), and translations in twelve locales (five
+English variants and three French, with regional vocabulary rather than copy-paste — Quebec gets
+*gougounes* and its own slang — plus Russian, translated by **MargoxaTheGamer**, and German, Swiss
+German and Austrian German, translated by **Gülps'sch420**; the Russian and German are still
+catching up with what 2.1 adds).
 
 ---
 

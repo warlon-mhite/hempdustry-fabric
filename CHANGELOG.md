@@ -26,10 +26,10 @@ beta be told when the release lands.
     works. The ice sets the price: blue ice makes nine bubble hash from seven buds, packed ice from
     about nine, plain ice from about fourteen — and plain ice melts if you light the room, which
     stops the wash without a word. Build it in the dark, or buy packed ice.
-  - The **Hemp Press** — eight hemp bricks around a piston — is a screw press heated from below,
-    like the Infuser. It presses kief into **hashish**, bubble hash or filtered kief into **filtered
-    hashish**, and filtered hashish into **rosin**, one piece at a time. It also presses a retted
-    hemp stem into eight hemp fibre.
+  - The **Hemp Press** — eight blocks of hemp bricks around a piston — is a screw press heated from
+    below, like the Infuser. It presses kief into **hashish**, bubble hash or filtered kief into
+    **filtered hashish**, and filtered hashish into **rosin**, one piece at a time. It also presses
+    a retted hemp stem into eight hemp fibre.
   - **Hashish** smokes for Night Vision, with Resistance, Slowness and Hunger. **Filtered hashish**
     gives the same high with half the chance of greening out — smoother, never stronger. Nine pieces
     pack into a **bar** you can set down on a shelf, and you cut pieces back off it with a sword or
@@ -43,8 +43,9 @@ beta be told when the release lands.
     it.
   - **Moon rocks** are a bud, a rosin and a coat — hashish, kief, filtered hashish, bubble hash,
     filtered kief or charas — crafted together. A moon rock packs a bong with a full bowl of the
-    bud's strain and the coat's effect on top: Night Vision from a brown coat, Night Vision with
-    less chance of greening out from a blonde one, Slow Falling from charas. Bong only.
+    bud's strain and the coat's effect on top: Night Vision from hash of any colour, Slow Falling
+    from charas. The bud decides the rest, the odds of greening out included, so a blonde coat is
+    no gentler than a brown one. Bong only.
   - **Hash rolls into spliffs.** A pinch of hashish, filtered hashish or charas goes in with one or
     two buds. The spliff keeps the strain's name, and a line underneath says what else is in it.
 - **The Redstone Vaporizer**, a fourth way to smoke. It heats the bud rather than burning it, which
@@ -84,32 +85,39 @@ beta be told when the release lands.
     roots are boxed in. Picking the pot up keeps its food, not its water. Water bottles work in the
     Nether, so a pot still grows hemp there.
   - The **Grow Lamp** is a redstone lamp behind an amethyst lens, in a copper panel hung from the
-    ceiling on copper chains. It switches on like a redstone lamp — power the ceiling, or put a lever
-    on it. A lit lamp sheds a faint violet haze, and shader packs that read LabPBR materials make
-    its face glow. Hang it one to three blocks above your plants: every plant in the 3×3 below that grows up
-    under it harvests **two extra buds** and an extra leaf, gives a second leaf every time you trim
-    it, and grows a little faster while young.
+    ceiling on copper chains. It switches on like a redstone lamp: power the block it hangs from (a
+    lever on the ceiling beside it will do) or run redstone to it. A lit lamp sheds a faint violet
+    haze, and shader packs that read LabPBR materials make its face glow. Hang it one to three
+    blocks above your plants: every plant in the 3×3 below that grows up under it harvests **two
+    extra buds** and an extra leaf, gives a second leaf every time you trim it, and grows a little
+    faster while young.
   - **Other lights help too, less.** A lit redstone lamp, copper bulb or modded lamp directly above
     a plant is worth one extra bud and a leaf; glowstone, sea lanterns, lanterns and other full-
     brightness blocks, an even chance of one. Torches and campfires do nothing.
-  - **The plant remembers its light.** What counts is the light it grew under the whole way, and
-    the weakest of it — hanging a lamp over a finished plant does nothing, and one lamp cannot be
+  - **The plant remembers its light.** What counts is the light it grew under the whole way, and the
+    weakest of it — hanging a lamp over a finished plant does nothing, and one lamp cannot be
     carried from plant to plant. **Lose the light while a plant is flowering and it stresses**: a
-    bud short at harvest, and two seeds in its place. Plants grown under any lamp give charas
-    half as often; charas is a field craft, and a stressed plant gives it half as often too. A lamp-grown plant looks a shade deeper green, and a
-    **stressed one is drawn differently**: its colour drains — Purple Kush's purple fades to a
-    sickly green — the oldest leaves yellow and die back brown, and yellow anthers show in the
-    flowers, which is where the seeds come from.
+    bud short at harvest, and two seeds in its place; a lamp-grown plant that stresses, for any
+    reason, loses the lamp's extra buds as well. Plants grown under any lamp give charas half as
+    often; charas is a field craft, and a stressed plant gives it half as often too. A lamp-grown
+    plant looks a shade deeper green, and a **stressed one is drawn differently**: its colour drains
+    — Purple Kush's purple fades to a sickly green — the oldest leaves yellow and die back brown,
+    and yellow anthers show in the flowers, which is where the seeds come from.
 - **More than the light can stress a flowering plant**, and the beds carry most of the risk — it is
   what indoor growing pays for its extra buds. Each of these is a chance, never a certainty, and
-  only while the plant flowers: a ripe plant waiting for the shears is past all of them.
+  only while the plant flowers, which is its last four growth steps: a ripe plant waiting for the
+  shears is past all of them. The odds for the ground are rolled at every one of those steps, so
+  they add up over a flowering.
   - **Bone meal on a flowering plant in a fed bed** overfeeds it: one in nine. Feed the soil, not
     the plant. The bone meal still grows it.
   - **A second bottle into a pot that is still wet** drowns the roots: one in four. Water a pot when
     its soil looks dry.
-  - **A dry bed** — a pot with no water, a tray run dry: one in three each time the plant grows.
-  - **A tray with water in it and the pump off**: the water goes stale round the roots, one in six.
-  - **Bone-dry farmland**: one in twenty. Rain or water within reach keeps a field safe.
+  - **A dry bed** — a pot with no water, a tray run dry: one in three each time the plant grows, so
+    four plants in five that flower in one.
+  - **A tray with water in it and the pump off**: the water goes stale round the roots, one in six
+    each time the plant grows — about half the plants.
+  - **Bone-dry farmland**: one in twenty each time the plant grows — about one plant in five. Rain
+    or water within reach keeps a field safe.
   - A bee's pollination counts as the plant growing, so it reads the light and takes the same
     chances — and a plant a bee ripens in a pot or a tray drinks and eats from it like any other.
 - **A Hydro Tray, for growing at twice the pace.** Craft it from a Grow Pot, four copper ingots and
@@ -177,13 +185,14 @@ beta be told when the release lands.
     strap between the toes — no longer armour-shaped boxes.
   - **All four pieces worn together halve your chances of coughing and of nausea** when you smoke.
     Not of greening out.
-- **Seventeen new advancements**, so every 2.1 feature has a place in the tree. The tree has 42
+- **Eighteen new advancements**, so every 2.1 feature has a place in the tree. The tree has 42
   now.
   - **Growing:** *Kif Country* for Beldía, *Sticky Fingers* for charas, *Well Done* for scorched
     hemp, and an indoor chain under *Hemp Builder* — *Pothead* (a Grow Pot), *Sea of Green* (a
     harvest from a Hydro Tray), *Midnight Sun* (a harvest grown under a Grow Lamp) and ***Top
     Shelf***, a goal: a plant trimmed twice, under a Grow Lamp it never lost, in a Hydro Tray.
-  - **Smoking:** *Vapor Trail* for the Vaporizer, and a hidden one for smoking schwag.
+  - **Smoking:** *Vapor Trail* for the Vaporizer, and *Down to Seeds and Stems* for getting hold of
+    schwag, with a hidden one under it for smoking it.
   - **Extraction**, a branch of its own under *Green Threads*: kief, the hashish bar, cutting it,
     filtered hashish, rosin, the moon rock and bubble hash each get a node, and ***Around the
     World in 80 Grams*** is a challenge for holding all five resins — not at once.
@@ -210,8 +219,8 @@ beta be told when the release lands.
 - **A bong hit is drawn, not clicked.** Hold use with a packed bong and it comes up to your mouth
   for a second and a half: the water bubbles, smoke gathers in the chamber and climbs the neck, a
   wisp rises from the bowl, and the hit lands when the draw is done. Let go early and nothing is
-  spent — no charge, no durability — and the bubbling stops when you do. The pipe and the vaporizer
-  still hit on a single click.
+  spent — no charge, no durability — and the bubbling stops when you do. You walk slowly while you
+  draw, as you do while eating. The pipe and the vaporizer still hit on a single click.
 - **Creepers are drawn to hemp.** Now and then a creeper wanders into a grown field under open sky,
   prowls it for a while and moves on — only some creepers ever do, and only one to a field at a
   time. A creeper standing in a grown field is very hard to see, so a big farm is worth walling and
@@ -220,10 +229,18 @@ beta be told when the release lands.
 - **Purple Kush's colour is a brighter violet**, so a packed Purple Kush load shows up on every
   device.
 - **Level III is back, but only by pairing.** 2.0.1 stopped every helpful effect at level II. In
-  2.1.0 a bud smoked together with a concentrate — hashish, charas, filtered hashish or rosin, in a
-  spliff, a device or a moon rock — lifts that bud's helpful effects one level past the cap, to III.
-  Only once: two concentrates do not make IV, and the concentrate's own effects stay at II. The price
-  is a full green-out at a dose of three, which a bud-and-hash load easily is.
+  2.1.0 a bud smoked together with a concentrate — a pinch of hashish, filtered hashish or charas in
+  a spliff, or a moon rock — lifts that bud's helpful effects one level, and the cap with them: two
+  buds and a pinch, or any moon rock, reach III; one bud and a pinch, II. A pipe or a bong packed by
+  hand holds one material only. Only once: two concentrates do not make IV, and the concentrate's
+  own effects are not lifted. The price is the green-out: a load of three is at the top of its odds,
+  and a green-out at three is the full one, not the spins.
+- **Fields you already have can stress, and spoil.** A flowering plant on bone-dry farmland can
+  stress, one growth step in twenty; one ripe plant in fifty gives one of its buds as schwag; and a
+  bee's pollination is a growth step like any other, so it takes the same chances.
+- **A full green-out also ends Night Vision, Invisibility and Slow Falling**, whatever gave them, a
+  potion included, now that hash and Beldía grant them. As in 2.0 it ends every helpful effect the
+  mod can give, and only those.
 - **The munchies scale on hash too.** Every hash, rosin, Beldía and scorched hemp now gives Hunger
   that grows with the dose, as the plants do since 2.0.1.
 - **The Sifting Box says why it refused something.** A filled box with no ice around it tells you
@@ -242,31 +259,41 @@ beta be told when the release lands.
   `models/item/hemp_beanie_worn.json` with `textures/item/hemp_beanie_worn.png`; the flip-flops by
   `textures/entity/equipment/flip_flops.png`. Their areas of `humanoid/hemp_fiber.png` are no longer
   drawn, so a pack that redrew them there needs to move that art. Both leave
-  `#minecraft:trimmable_armor`.
+  `#minecraft:trimmable_armor`, and with it `#minecraft:head_armor` and `#minecraft:foot_armor`,
+  which vanilla builds trimmable armour from; they take armour's enchantments through the
+  `#minecraft:enchantable/*` tags directly.
+- **The crops' blockstates are multipart now**, with two new properties beside `age` and `half`:
+  `light` (`natural`, `ambient`, `lamp`, `grow_lamp` or `stressed`) and `rubbed`. A stressed
+  flowering plant is drawn from `textures/block/<crop>_stage<N>_stressed.png`, Lemon Haze's per
+  segment (`_bottom_stressed`, `_middle_stressed`, `_top_stressed`).
 - **The level-III cap is a knob.** `maxBuffLevel` in the config's `effects` section (default 2) is
   the plain cap; pairing a bud with a concentrate goes one past it. Raise it for a stronger mod.
 - **How each smokeable smokes, what an edible does and what a green-out costs are data.**
-  `data/<namespace>/hempdustry/device/` has a file per smokeable — `wooden_pipe`, `bong` (all
-  seventeen bongs), `vaporizer` and `spliff` — with the length of its high, its cooldown, its cough
+  `data/hempdustry/hempdustry/device/` has a file per smokeable — `wooden_pipe`, `bong` (all
+  eighteen bongs), `vaporizer` and `spliff` — with the length of its high, its cooldown, its cough
   and nausea odds (1 in N, 0 for never), a `green_out_factor`, and for the three you pack, a `bowl`:
   `hits`, `max_dose` and `spent_yield`. The spliff has no bowl; how big one rolls is its crafting
   recipes. `edible/default.json` is the one bundle every edible gives: the onset window, each
   quality's spread and length, each tier's share of it, and the effects with an amplifier per tier
   and the moment each lands. `green_out/default.json` is the odds per dose, the spins, the full
   green-out and the lockout. The mod's own files are the numbers it played with before, to the tick,
-  so copy one into your datapack and edit it. The config's multipliers, caps and switches still have
-  the last word, and durability and enchantability stay with the item, as for vanilla's tools.
+  so copy one into your datapack and edit it. Only the `hempdustry` namespace is read, so a
+  datapack overrides a file by writing to the same path. A missing file falls back to the built-in
+  numbers; a malformed one stops the world loading, as any broken datapack entry does. They are
+  read when the world opens, like strains, so a change needs a restart: `/reload` does not re-read
+  them. The config's multipliers, caps and switches still have the last word, and durability and
+  enchantability stay with the item, as for vanilla's tools.
 - **Hash is data.** Hashish, filtered hashish, charas and rosin are strains with no seeds and no
   flower, so a datapack rebalances them — or adds a resin of its own — in
   `data/<namespace>/hempdustry/strain/` like any other strain. Strains gain three optional fields,
-  `dose_per_item`, `green_out_factor` and `cough_factor`, and each effect three more,
+  `dose_per_item`, `green_out_factor` and `cough_factor`, and each effect four more,
   `duration_factor`, `on_exhale`, `chance` and `max_amplifier`; `seeds` and `flower` are optional now. Every strain
   file written for 2.0 loads unchanged.
 - **A loot entry type, `hempdustry:spoiling`**, turns some of what another entry drops into a
   different item — it is how a crop's buds become schwag, and every number is in the crop's loot
-  table: `into`, an optional `enchantment`, and `one_item_chances` (one item, once) and
-  `each_item_chances` (every item, each) listed per level of that enchantment, the way vanilla's
-  `table_bonus` lists its `chances`. What comes out always adds up to what the wrapped entry made.
+  table: `child`, the entry it wraps; `into`; an optional `enchantment`; and `one_item_chances`
+  (one item, once) and `each_item_chances` (every item, each) listed per level of that enchantment,
+  the way vanilla's `table_bonus` lists its `chances`. What comes out always adds up to what the wrapped entry made.
 - **A new recipe type, `hempdustry:pressing`**: one item in, one out. All five Hemp Press recipes
   are ordinary JSON. The Infuser's `infusing` recipe gains an optional `scorched_hemp` field, and a
   recipe written for 2.0 still loads.
@@ -284,6 +311,17 @@ beta be told when the release lands.
   `hempdustry:harvest_hemp` takes `light` — the record the plant kept (`natural`, `ambient`, `lamp`,
   `grow_lamp` or `stressed`) — and `bed`, a vanilla block predicate tested against the block under
   the plant. `hempdustry:smoke` takes `strain`, a strain id matched against every strain in the load.
+- **For addon authors:** a strain's optional seeds and flower are `Strain.seedItem()` and
+  `Strain.wildFlower()`. 2.0's `seeds()` and `flower()` (air for a strain with no plant), its
+  seven-argument constructor, `Strain.effects(int, int)` and `SmokeContents.effects(int)` are still
+  there, deprecated, so an addon built against 2.0 keeps working.
+
+### Known issues
+
+- **This beta is for Minecraft 1.21.11 only.** The 1.21.1 build comes with the stable release.
+- **German and Russian are not finished**: most of 2.1's new text shows in English there for now.
+- **A hash spliff's name reads one level low**: a spliff of two buds and a pinch says II and gives
+  III.
 
 ## [2.0.3] — 2026-10-05
 

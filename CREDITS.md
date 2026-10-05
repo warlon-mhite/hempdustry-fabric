@@ -91,8 +91,11 @@ or contact the author through the repository.
 A few textures are vanilla Minecraft textures with their palettes changed — `hemp_wool` from
 `white_wool`, the Space Cake set from the cake, the hemp milk bucket and siemieniotka from the milk
 bucket and mushroom stew, the bhang bucket from the milk bucket, the Block of Hemp Leaves from
-`oak_leaves`, the hemp carpet a llama wears from vanilla's white llama carpet, and the
-decarboxylated-hemp heap (both the toasted and the washed one) from `brown_dye`. **These are
+`oak_leaves`, the hemp carpet a llama wears from vanilla's white llama carpet, the Hemp Bed from
+the white bed, the Hemp Harness (the item and the one a happy ghast wears) from the white harness,
+the Hemp Shelf from the oak shelf, the Grow Lamp's face from the redstone lamp, and the
+decarboxylated-hemp heap (both the toasted and the washed one) and the scorched hemp retoned from
+it from `brown_dye`. **These are
 excluded from the licence above and are not the author's to licence.** Minecraft's Usage Guidelines
 are explicit that all rights in Mojang's assets *"and any derivatives"* remain Mojang's and
 Microsoft's.
