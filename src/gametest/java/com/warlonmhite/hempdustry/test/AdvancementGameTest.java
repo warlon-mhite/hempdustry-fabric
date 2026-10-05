@@ -228,6 +228,38 @@ public final class AdvancementGameTest {
         context.complete();
     }
 
+    /**
+     * Breaking the bed under a ripe plant harvests the plant first, as the player, while the bed is
+     * still under it. Any other way, the plant pops off after its bed has gone: Sea of Green and
+     * Midnight Sun silently never fire, and the loot, which reads the same bed, pays the full stem.
+     * Sea of Green is the proof the bed was there at the harvest; the stem count itself carries a
+     * bonus roll, so it cannot be asserted exactly.
+     */
+    public static void breakingTheBedHarvestsThePlantFirst(TestContext context) {
+        AdvancementEntry seaOfGreen = loaded(context, "sea_of_green", "pothead");
+        AdvancementEntry midnightSun = loaded(context, "midnight_sun", "pothead");
+        Block[] beds = {ModBlocks.GROW_POT, ModBlocks.HYDRO_TRAY};
+        for (int i = 0; i < beds.length; i++) {
+            BlockPos bed = new BlockPos(1 + 3 * i, 1, 1);
+            context.setBlockState(bed, beds[i]);
+            BlockState ripe = Defoliation.unworked(ModBlocks.INDICA_CROP.getDefaultState())
+                    .with(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE)
+                    .with(GrowLight.PROPERTY, GrowLight.GROW_LAMP);
+            context.setBlockState(bed.up(), ripe.with(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER));
+            context.setBlockState(bed.up(2), ripe.with(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER));
+            ServerPlayerEntity player = freshPlayer(context);
+            player.interactionManager.tryBreakBlock(context.getAbsolutePos(bed));
+
+            String what = "breaking a " + beds[i].getTranslationKey() + " under a ripe, lamp-grown plant";
+            context.assertTrue(context.getBlockState(bed.up()).isAir(), what + " left the plant standing");
+            assertDone(context, player, midnightSun, what);
+            if (beds[i] == ModBlocks.HYDRO_TRAY) {
+                assertDone(context, player, seaOfGreen, what);
+            }
+        }
+        context.complete();
+    }
+
     /** A ripe Purple Kush on {@code bed}, harvested by a fresh survival player; returns the player. */
     private static ServerPlayerEntity harvestIndica(TestContext context, Block bed, GrowLight light,
                                                     boolean early, boolean late, boolean fromTop) {

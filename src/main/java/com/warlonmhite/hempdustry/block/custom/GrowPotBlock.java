@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
-import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -216,17 +215,10 @@ public class GrowPotBlock extends Block implements GrowMedium {
         world.setBlockState(pos, state.with(FERTILITY, state.get(FERTILITY) + 1), Block.NOTIFY_LISTENERS);
     }
 
-    /**
-     * Breaking the pot under a plant harvests the plant first, while the pot is still there.
-     * Otherwise the plant pops off after the pot has gone, its loot table no longer sees a pot under
-     * it, and breaking the pot becomes the way round the root-bound stem.
-     */
+    /** Harvests the plant above first, as the player — see {@link GrowMedium#harvestAbove}. */
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        BlockPos above = pos.up();
-        if (!world.isClient() && world.getBlockState(above).isIn(ModTags.Blocks.HEMP_CROPS)) {
-            world.breakBlock(above, !player.isCreative(), player);
-        }
+        GrowMedium.harvestAbove(world, pos, player);
         return super.onBreak(world, pos, state, player);
     }
 

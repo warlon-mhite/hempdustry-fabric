@@ -1,10 +1,12 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Fertilizable;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
@@ -73,5 +75,19 @@ public interface GrowMedium extends Fertilizable {
             server.syncWorldEvent(WorldEvents.BONE_MEAL_USED, pos, 0);
         }
         return ActionResult.SUCCESS;
+    }
+
+    /**
+     * Breaking a bed under a plant harvests the plant first, while the bed is still under it, and as
+     * the player's own break: the loot table sees the bed and the tool in hand, and the plant's
+     * {@code onBreak} feeds the harvest advancements. Otherwise the plant pops off after the bed has
+     * gone, its loot no longer sees a bed, and breaking the bed becomes the way round the root-bound
+     * stem — and round Sea of Green and Midnight Sun, which never fire.
+     */
+    static void harvestAbove(World world, BlockPos pos, PlayerEntity player) {
+        if (player instanceof ServerPlayerEntity serverPlayer
+                && world.getBlockState(pos.up()).isIn(ModTags.Blocks.HEMP_CROPS)) {
+            serverPlayer.interactionManager.tryBreakBlock(pos.up());
+        }
     }
 }

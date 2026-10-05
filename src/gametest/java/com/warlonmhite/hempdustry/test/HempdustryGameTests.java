@@ -108,6 +108,8 @@ public class HempdustryGameTests implements ModInitializer {
         register("schwag_is_half_a_bud", SchwagGameTest::schwagIsHalfABud);
         register("eating_grants_the_food_nodes", AdvancementGameTest::eatingGrantsTheFoodNodes);
         register("harvest_nodes_read_the_plant", AdvancementGameTest::harvestNodesReadThePlant);
+        register("breaking_the_bed_harvests_the_plant_first",
+                AdvancementGameTest::breakingTheBedHarvestsThePlantFirst);
         register("smoke_nodes_read_the_load", AdvancementGameTest::smokeNodesReadTheLoad);
         register("obtaining_grants_the_extraction_nodes", AdvancementGameTest::obtainingGrantsTheExtractionNodes);
         register("advancement_criteria_keep_their_names", AdvancementGameTest::advancementCriteriaKeepTheirNames);

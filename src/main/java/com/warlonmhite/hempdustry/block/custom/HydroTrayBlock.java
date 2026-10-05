@@ -208,6 +208,13 @@ public class HydroTrayBlock extends Block implements GrowMedium {
         return fed != null ? fed : super.onUseWithItem(stack, state, world, pos, player, hand, hit);
     }
 
+    /** Harvests the plant above first, as the player — see {@link GrowMedium#harvestAbove}. */
+    @Override
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        GrowMedium.harvestAbove(world, pos, player);
+        return super.onBreak(world, pos, state, player);
+    }
+
     // ----- the pump -----
 
     @Override
