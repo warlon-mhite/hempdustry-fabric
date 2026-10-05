@@ -7,7 +7,11 @@ All notable changes to Hempdustry are recorded here. The format follows
 same place: `2.0.0-beta+1.21.11` sorts *before* `2.0.0+1.21.11`, which is what lets a player on the
 beta be told when the release lands.
 
-## [2.0.3] — unreleased
+## [Unreleased]
+
+Nothing yet — everything below shipped in 2.0.3.
+
+## [2.0.3] — 2026-10-05
 
 ### Fixed
 
@@ -404,7 +408,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.2...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.0.3...HEAD
+[2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.3
 [2.0.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.2
 [2.0.1-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.1-beta
 [2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/beta

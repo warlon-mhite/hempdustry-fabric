@@ -20,7 +20,7 @@ or bong, and for the cauldron steps. On a dedicated server, JEI shows Hempdustry
 only if JEI is installed on the server too: since Minecraft 1.21.2 a server no longer sends players
 its recipes. The machine and packing pages show either way.
 
-> **Status: version 2.0.2, the first stable release**
+> **Status: version 2.0.3, stable**
 > This is a rewrite for Fabric 1.21.11 of an older Forge 1.16 mod (GanjaCraft) that was built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
