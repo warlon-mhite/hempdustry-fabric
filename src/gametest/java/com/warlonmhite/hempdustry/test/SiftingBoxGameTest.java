@@ -73,7 +73,7 @@ public final class SiftingBoxGameTest implements FabricGameTest {
         // is vanilla behaviour and would be measuring the wrong thing.
         ItemStack notPlantMatter = new ItemStack(Items.IRON_PICKAXE);
         rightClick(context, notPlantMatter);
-        context.assertEquals(0, context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL),
+        context.assertEquals(context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL), 0,
                 "the screen took something that is not plant matter");
 
         ItemStack buds = new ItemStack(ModItems.INDICA_BUDS, 64);
@@ -100,7 +100,7 @@ public final class SiftingBoxGameTest implements FabricGameTest {
             // something the screen will not take. Empty-handed works too, but this is the case that
             // was broken — and the case a player is in, since they arrive holding trim.
             rightClick(context, new ItemStack(Items.IRON_PICKAXE));
-            context.assertEquals(0, context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL),
+            context.assertEquals(context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL), 0,
                     "collecting the lump did not empty the screen");
 
             // And it is empty for real: a second collection must produce nothing.
@@ -149,7 +149,7 @@ public final class SiftingBoxGameTest implements FabricGameTest {
         ItemActionResult bare = world.getBlockState(pos).onUseWithItem(buds, world, player, Hand.MAIN_HAND, hit);
         context.assertTrue(bare == ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
                 "an unjacketed wash swallowed the click instead of passing it on");
-        context.assertEquals(0, context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL),
+        context.assertEquals(context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL), 0,
                 "a filled box with no ice around it washed a bud");
         context.assertEquals(64, buds.getCount(), "an unjacketed box charged for a bud it refused");
 
@@ -267,7 +267,7 @@ public final class SiftingBoxGameTest implements FabricGameTest {
                 .onUseWithItem(washKief, world, player, Hand.MAIN_HAND, hit);
         context.assertTrue(wet == ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
                 "a wash refusing kief swallowed the click");
-        context.assertEquals(0, context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL),
+        context.assertEquals(context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL), 0,
                 "the ice wash accepted kief — that is a third road to filtered hashish");
         context.assertEquals(64, washKief.getCount(), "the wash charged for kief it refused");
 
@@ -291,7 +291,7 @@ public final class SiftingBoxGameTest implements FabricGameTest {
                 .with(SiftingBoxBlock.LEVEL, SiftingBoxBlock.READY_LEVEL)
                 .with(SiftingBoxBlock.CONTENT, SiftingBoxBlock.Content.KIEF));
         rightClick(context, ItemStack.EMPTY);
-        context.assertEquals(0, context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL),
+        context.assertEquals(context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL), 0,
                 "collecting the re-sift did not empty the screen");
         // ...and the screen goes back to taking plant matter, so a powder batch does not strand it.
         context.assertEquals(SiftingBoxBlock.Content.PLANT,
@@ -304,6 +304,48 @@ public final class SiftingBoxGameTest implements FabricGameTest {
             // a dry screen cannot make that however fine its mesh, because "bubble" IS the water.
             context.dontExpectItemAt(ModItems.KIEF, BOX, 3.0);
             context.dontExpectItemAt(ModItems.BUBBLE_HASH, BOX, 3.0);
+            context.complete();
+        });
+    }
+
+    /**
+     * A water bucket the box will not take is turned down with an accepted result, so the click ends
+     * there; a ready box still hands its batch to whoever holds one.
+     *
+     * <p>The pour itself happens on the client, which goes on to the bucket's own use after any
+     * result that is not accepted — so the result is what this asserts. Two refusals: a box that
+     * already holds water, and a dry screen part-way through a batch.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void aRefusedBucketIsNotPoured(TestContext context) {
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.FILLED, true));
+        ActionResult full = rightClick(context, new ItemStack(Items.WATER_BUCKET));
+        context.assertTrue(full.isAccepted(), "a box already holding water passed a water bucket on, so it pours: " + full);
+
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.LEVEL, 3));
+        ActionResult midBatch = rightClick(context, new ItemStack(Items.WATER_BUCKET));
+        context.assertTrue(midBatch.isAccepted(), "a part-sifted dry screen passed a water bucket on, so it pours: " + midBatch);
+        context.assertFalse(context.getBlockState(BOX).get(SiftingBoxBlock.FILLED),
+                "a part-sifted dry screen took water");
+
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.LEVEL, SiftingBoxBlock.READY_LEVEL));
+        rightClick(context, new ItemStack(Items.WATER_BUCKET));
+        context.assertEquals(context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL), 0,
+                "a ready box kept its batch from a player holding a water bucket");
+        context.complete();
+    }
+
+    /**
+     * A box that becomes full by any road but a sift still settles. A piston push drops the tick the
+     * last sift scheduled, and the box then sat full for ever; a command or a structure leaves it the
+     * same way. Placed full here, which is the same road a pushed block takes back into the world.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void aFullBoxSettlesHoweverItArrived(TestContext context) {
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.LEVEL, SiftingBoxBlock.FULL_LEVEL));
+        context.runAtTick(READY_BY_TICK, () -> {
+            context.assertEquals(context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL), SiftingBoxBlock.READY_LEVEL,
+                    "a box placed full never settled");
             context.complete();
         });
     }
