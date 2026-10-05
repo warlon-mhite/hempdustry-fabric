@@ -80,6 +80,20 @@ public final class CreativeTabGameTest {
             }
             context.assertTrue(found, "the creative tab is missing " + item);
         }
+
+        // Everything the tab shows can be found by searching for it. PARENT_TAB_ONLY keeps a stack
+        // out of the search tab, and is meant for a showcase whose full run is listed search-only;
+        // the moon rocks had no such run, so search never found one.
+        for (ItemStack shown : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayStacks()) {
+            boolean searchable = false;
+            for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks()) {
+                if (stack.isOf(shown.getItem())) {
+                    searchable = true;
+                    break;
+                }
+            }
+            context.assertTrue(searchable, shown.getItem() + " is in the creative tab but creative search never finds it");
+        }
         context.complete();
     }
 }
