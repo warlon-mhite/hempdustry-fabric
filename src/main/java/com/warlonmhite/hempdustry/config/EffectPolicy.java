@@ -143,7 +143,11 @@ public final class EffectPolicy {
                 || config.greenOutChanceMultiplier() <= 0) {
             return 0;
         }
-        return Math.max(1, (int) Math.round(oneIn / config.greenOutChanceMultiplier()));
+        // Capped before the cast: a multiplier just above 0 makes the odds astronomical, and a long
+        // that big narrowed to an int wraps — often negative, which the max(1, …) then turned into
+        // a green-out on every hit.
+        return Math.max(1, (int) Math.min(Integer.MAX_VALUE,
+                Math.round(oneIn / config.greenOutChanceMultiplier())));
     }
 
     /**
