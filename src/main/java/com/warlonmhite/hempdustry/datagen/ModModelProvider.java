@@ -290,14 +290,14 @@ public class ModModelProvider extends FabricModelProvider {
     /**
      * The built-in strains that grew on a plant, in {@link ModStrains#BUILT_IN} order.
      *
-     * <p>{@code flower().isPresent()} is the mod-wide predicate for "this grew on a plant" — the
+     * <p>{@code wildFlower().isPresent()} is the mod-wide predicate for "this grew on a plant" — the
      * same one the creative tab, the seed pools, the siftable tag and the spliff recipes key on —
      * so anything hash-shaped added later is excluded here for free.
      */
     private List<RegistryKey<Strain>> plantStrains() {
         RegistryWrapper.Impl<Strain> strains = Strain.registry(registryLookup.join());
         return ModStrains.BUILT_IN.stream()
-                .filter(key -> strains.getOrThrow(key).value().flower().isPresent())
+                .filter(key -> strains.getOrThrow(key).value().wildFlower().isPresent())
                 .toList();
     }
 

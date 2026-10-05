@@ -606,7 +606,7 @@ public class ModItems {
      * The strains a spliff can be rolled from on its own — the ones that grew on a plant.
      *
      * <p>A joint needs something to burn and this mod has no tobacco, so pure hash never rolls;
-     * it goes in <em>alongside</em> two buds instead. {@code flower().isPresent()} is the mod-wide
+     * it goes in <em>alongside</em> two buds instead. {@code wildFlower().isPresent()} is the mod-wide
      * predicate for "this grew on a plant" and covers anything hash-shaped added later for free.
      */
     /**
@@ -651,7 +651,7 @@ public class ModItems {
     public static final int MOON_ROCK_HASH_DOSE = 1;
 
     private static List<RegistryEntry.Reference<Strain>> rollable(List<RegistryEntry.Reference<Strain>> strains) {
-        return strains.stream().filter(strain -> strain.value().flower().isPresent()).toList();
+        return strains.stream().filter(strain -> strain.value().wildFlower().isPresent()).toList();
     }
 
     /** Highest dose a spliff can be rolled at. Devices carry their own ceiling on {@link DeviceType}. */

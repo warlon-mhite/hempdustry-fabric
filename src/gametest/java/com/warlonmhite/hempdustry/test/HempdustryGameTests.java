@@ -128,6 +128,7 @@ public class HempdustryGameTests implements ModInitializer {
         register("hemp_fiber_repairs_the_outfit", TagBackedBehaviourGameTest::hempFiberRepairsTheOutfit);
         register("only_the_garments_take_a_trim", TagBackedBehaviourGameTest::onlyTheGarmentsTakeATrim);
         register("every_device_takes_unbreaking", TagBackedBehaviourGameTest::everyDeviceTakesUnbreaking);
+        register("the_two_zero_api_still_answers", ApiBridgeGameTest::theTwoZeroApiStillAnswers);
         register("a_hemp_bed_is_a_villagers_home", FurnitureGameTest::aHempBedIsAVillagersHome);
         register("the_bed_burns_the_wood_does_not", FurnitureGameTest::theBedBurnsTheWoodDoesNot);
         register("a_hemp_shelf_is_a_vanilla_shelf", FurnitureGameTest::aHempShelfIsAVanillaShelf);

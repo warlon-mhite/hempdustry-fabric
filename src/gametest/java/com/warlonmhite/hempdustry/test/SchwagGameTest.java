@@ -230,7 +230,7 @@ public final class SchwagGameTest {
                     dose + " schwag over " + dose + " paper did not roll a dose-" + dose + " schwag spliff");
         }
         context.assertTrue(ModStrains.isPlantMatter(schwag), "schwag is not plant matter");
-        context.assertTrue(schwag.value().flower().isEmpty(), "schwag has a plant of its own");
+        context.assertTrue(schwag.value().wildFlower().isEmpty(), "schwag has a plant of its own");
 
         context.assertEquals(ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.getFloat(ModItems.SCHWAG),
                 ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.getFloat(ModItems.INDICA_BUDS),

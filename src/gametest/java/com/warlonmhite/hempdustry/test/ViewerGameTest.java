@@ -63,12 +63,12 @@ public final class ViewerGameTest {
 
         // One row per plant strain per coat: the coat is half of what a moon rock carries.
         long plants = Strain.all(world.getRegistryManager()).stream()
-                .filter(strain -> strain.value().flower().isPresent()).count();
+                .filter(strain -> strain.value().wildFlower().isPresent()).count();
         context.assertEquals(moonRockRows, (int) plants * 3, "moon rock rows, one per plant and coat");
         context.assertTrue(rows.stream().anyMatch(row -> row.inputs().getFirst().size() == ModItems.bongs().size()),
                 "no bong row offers every glass");
         context.assertFalse(rows.getFirst().output().getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY)
-                        .entries().getFirst().strain().value().flower().isEmpty(),
+                        .entries().getFirst().strain().value().wildFlower().isEmpty(),
                 "the packing rows open on a strain that never grew on a plant");
         context.complete();
     }

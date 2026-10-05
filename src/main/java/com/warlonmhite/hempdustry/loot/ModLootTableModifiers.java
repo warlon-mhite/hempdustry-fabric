@@ -255,7 +255,7 @@ public class ModLootTableModifiers {
                 .rolls(ConstantLootNumberProvider.create(1))
                 .conditionally(RandomChanceLootCondition.builder(chance(base)));
         for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-            strain.value().seeds().filter(seeds -> isDesertSeed(seeds) == desert)
+            strain.value().seedItem().filter(seeds -> isDesertSeed(seeds) == desert)
                     .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
                             .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1, 3)))));
         }
@@ -309,7 +309,7 @@ public class ModLootTableModifiers {
                 // Nor is the desert's: Beldía is found where it grows, and leaving it out keeps the
                 // other strains' share of this roll what it was.
                 for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seeds().filter(seeds -> !isDesertSeed(seeds))
+                    strain.value().seedItem().filter(seeds -> !isDesertSeed(seeds))
                             .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
                             .apply(ApplyBonusLootFunction.uniformBonusCount(fortune, 2))
                             .apply(ExplosionDecayLootFunction.builder())));
@@ -327,7 +327,7 @@ public class ModLootTableModifiers {
                 // Into vanilla's one brushing pool, as a weighted entry beside the sherds.
                 tableBuilder.modifyPools(pool -> {
                     for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
-                        strain.value().seeds().filter(ModLootTableModifiers::isDesertSeed)
+                        strain.value().seedItem().filter(ModLootTableModifiers::isDesertSeed)
                                 .ifPresent(seeds -> pool.with(ItemEntry.builder(seeds)
                                         .weight(DESERT_ARCHAEOLOGY_SEED_WEIGHT)));
                     }

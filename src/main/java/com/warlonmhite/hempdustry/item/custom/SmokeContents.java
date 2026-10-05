@@ -197,8 +197,8 @@ public record SmokeContents(List<Entry> entries) {
         for (Entry entry : entries) {
             if (best == null || entry.count() > best.count()
                     || (entry.count() == best.count()
-                        && entry.strain().value().flower().isPresent()
-                        && best.strain().value().flower().isEmpty())) {
+                        && entry.strain().value().wildFlower().isPresent()
+                        && best.strain().value().wildFlower().isEmpty())) {
                 best = entry;
             }
         }
@@ -228,7 +228,7 @@ public record SmokeContents(List<Entry> entries) {
     /**
      * The hash-family entry riding along with a plant strain, if there is one.
      *
-     * <p>"Hash-family" is spelled {@code flower().isEmpty()} — the mod-wide predicate for "this did
+     * <p>"Hash-family" is spelled {@code wildFlower().isEmpty()} — the mod-wide predicate for "this did
      * not grow on a plant" — so charas and filtered hashish are covered without being named, and so
      * is anything hash-shaped a datapack adds. Empty for a plain single-strain load, and empty for a
      * genuine multi-plant blend, which is a different case that keeps the "Mixed" name.
@@ -241,11 +241,11 @@ public record SmokeContents(List<Entry> entries) {
         // Hoisted: this does not vary with the entry being examined, and reading it inside the loop
         // suggests it does. A load whose primary is itself strainless (two hash entries, which only
         // an edited stack produces) has no plant to name, so it stays a plain "Mixed" blend.
-        if (primary.strain().value().flower().isEmpty()) {
+        if (primary.strain().value().wildFlower().isEmpty()) {
             return Optional.empty();
         }
         for (Entry entry : entries) {
-            if (entry != primary && entry.strain().value().flower().isEmpty()) {
+            if (entry != primary && entry.strain().value().wildFlower().isEmpty()) {
                 return Optional.of(entry.strain());
             }
         }
@@ -337,7 +337,7 @@ public record SmokeContents(List<Entry> entries) {
         int load = buffBonus();
         List<StatusEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
-            int bonus = entry.strain().value().flower().isPresent() ? load : 0;
+            int bonus = entry.strain().value().wildFlower().isPresent() ? load : 0;
             int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel(bonus));
             for (StatusEffectInstance effect : entry.strain().value().effects(entry.count(),
                     durationTicks + durationTicks * past / 2, onExhale, bonus, random)) {
@@ -345,6 +345,22 @@ public record SmokeContents(List<Entry> entries) {
                         EffectPolicy.amplifier(effect.getEffectType(), effect.getAmplifier(), bonus)));
             }
         }
+        return out;
+    }
+
+    /**
+     * 2.0's question: everything one hit of this load applies, the hit's effects and the exhale's
+     * together, and every effect with a chance taken as landing (a chance of zero still never does).
+     *
+     * @deprecated kept so an addon built against 2.0 still links; use
+     *             {@link #effects(int, boolean, RandomGenerator)}
+     */
+    @Deprecated
+    public List<StatusEffectInstance> effects(int durationTicks) {
+        // A generator whose every draw is zero: nextFloat() is 0.0, under any chance above zero.
+        RandomGenerator lands = () -> 0L;
+        List<StatusEffectInstance> out = effects(durationTicks, false, lands);
+        out.addAll(effects(durationTicks, true, lands));
         return out;
     }
 
@@ -362,7 +378,7 @@ public record SmokeContents(List<Entry> entries) {
         boolean concentrate = false;
         for (Entry entry : entries) {
             Strain strain = entry.strain().value();
-            if (strain.flower().isPresent()) {
+            if (strain.wildFlower().isPresent()) {
                 bud = true;
             } else if (strain.smokeEffects().stream().anyMatch(effect ->
                     effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL)) {

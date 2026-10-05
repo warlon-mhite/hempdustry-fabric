@@ -210,7 +210,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
             // Only things that grew on a plant are plant matter. Hashish is a strain entry too, but
             // its "buds" are resin: it goes back into the screen as CONTENT = HASH, never as flower.
             // Beldía's buds sit in their own tag below, at their own rate.
-            if (strain.flower().isPresent() && strain.buds() != ModItems.BELDIA_BUDS) {
+            if (strain.wildFlower().isPresent() && strain.buds() != ModItems.BELDIA_BUDS) {
                 flower.add(strain.buds());
             }
         }
