@@ -30,8 +30,9 @@ import java.util.Optional;
  *
  * Strains live in {@code data/<namespace>/hempdustry/strain/<id>.json} and load into the synced
  * dynamic registry {@link #REGISTRY_KEY}. A server owner rebalances what a strain does by shipping a
- * datapack and running {@code /reload}; no config file, no restart, and <b>the definitions reach
- * clients for free</b> because the registry is registered with {@code DynamicRegistries.registerSynced}.
+ * datapack and restarting — a dynamic registry is read once, when the world opens, and
+ * {@code /reload} does not touch it — with no config file, and <b>the definitions reach clients for
+ * free</b> because the registry is registered with {@code DynamicRegistries.registerSynced}.
  *
  * <p><b>That path has {@code hempdustry} in it twice for the mod's own strains, and that is correct.</b>
  * {@code RegistryLoader} builds a dynamic registry's directory from the registry id: a vanilla

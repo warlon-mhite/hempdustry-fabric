@@ -82,15 +82,10 @@ public class ModStrains {
      */
     public static void registerStrains() {
         DynamicRegistries.registerSynced(Strain.REGISTRY_KEY, Strain.CODEC);
-        // Checked once at startup and again on every /reload, because a datapack is exactly where a
-        // clashing index comes from and a reload is when it would arrive.
+        // Checked once, at startup: a datapack is exactly where a clashing index comes from, and the
+        // registry is read only when the world opens — /reload keeps the strains it has.
         ServerLifecycleEvents.SERVER_STARTED.register(server ->
                 validateModelIndices(server.getRegistryManager()));
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
-            if (success) {
-                validateModelIndices(server.getRegistryManager());
-            }
-        });
         Hempdustry.LOGGER.info("Registering Strains for " + Hempdustry.MOD_ID);
     }
 
