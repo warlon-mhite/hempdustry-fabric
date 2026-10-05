@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
+import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
@@ -200,7 +201,6 @@ public final class AdvancementGameTest {
                 new Node("well_done", "trim_season", ModItems.SCORCHED_HEMP),
                 new Node("its_not_pollen", "green_threads", ModItems.KIEF),
                 new Node("hot_off_the_press", "its_not_pollen", ModBlocks.HASHISH_BAR.asItem()),
-                new Node("cloud_nine", "hot_off_the_press", ModItems.HASHISH),
                 new Node("one_small_step", "cloud_nine", ModItems.MOON_ROCK),
                 new Node("double_zero", "hot_off_the_press", ModItems.FILTERED_HASHISH),
                 new Node("under_pressure", "double_zero", ModItems.ROSIN),
@@ -213,6 +213,20 @@ public final class AdvancementGameTest {
             obtain(player, new ItemStack(node.item()));
             assertDone(context, player, entry, "obtaining " + node.item());
         }
+
+        // Cloud Nine is the cut, not the hashish: the press makes hashish before any bar exists.
+        AdvancementEntry cloudNine = loaded(context, "cloud_nine", "hot_off_the_press");
+        ServerPlayerEntity cutter = freshPlayer(context);
+        obtain(cutter, new ItemStack(ModItems.HASHISH));
+        assertNotDone(context, cutter, cloudNine, "holding hashish, with no bar ever cut");
+        context.setBlockState(BED, ModBlocks.HASHISH_BAR);
+        ItemStack sword = new ItemStack(Items.IRON_SWORD);
+        cutter.setStackInHand(Hand.MAIN_HAND, sword);
+        BlockPos bar = context.getAbsolutePos(BED);
+        cutter.interactionManager.interactBlock(cutter, context.getWorld(), sword, Hand.MAIN_HAND,
+                new BlockHitResult(Vec3d.ofCenter(bar), Direction.UP, bar, false));
+        context.assertTrue(context.getBlockState(BED).get(HashishBarBlock.CUTS) == 1, "the sword did not cut the bar, so this proves nothing");
+        assertDone(context, cutter, cloudNine, "cutting a Hashish Bar with a sword");
 
         AdvancementEntry aroundTheWorld = loaded(context, "around_the_world_in_80_grams", "its_not_pollen");
         ServerPlayerEntity collector = freshPlayer(context);

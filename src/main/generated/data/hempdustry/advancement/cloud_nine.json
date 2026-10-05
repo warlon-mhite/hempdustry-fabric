@@ -1,15 +1,26 @@
 {
   "parent": "hempdustry:hot_off_the_press",
   "criteria": {
-    "has_hashish": {
+    "cut_a_hashish_bar": {
       "conditions": {
-        "items": [
+        "location": [
           {
-            "items": "hempdustry:hashish"
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": "hempdustry:hashish_bar"
+              }
+            }
+          },
+          {
+            "condition": "minecraft:match_tool",
+            "predicate": {
+              "items": "#hempdustry:hash_cutters"
+            }
           }
         ]
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:item_used_on_block"
     }
   },
   "display": {
@@ -27,7 +38,7 @@
   },
   "requirements": [
     [
-      "has_hashish"
+      "cut_a_hashish_bar"
     ]
   ],
   "sends_telemetry_event": true

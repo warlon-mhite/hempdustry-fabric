@@ -523,9 +523,15 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .parent(itsNotPollen)
                 .build(consumer, Hempdustry.MOD_ID + ":hot_off_the_press");
 
+        // Keyed on the cut itself, as its description says, and not on holding hashish: the press
+        // makes hashish before there is any bar, so holding it fired on the first pressing, ahead of
+        // Hot Off the Press, its parent.
         AdvancementEntry cloudNine = Advancement.Builder.create()
                 .display(display(ModItems.HASHISH, "cloud_nine", AdvancementFrame.TASK))
-                .criterion("has_hashish", InventoryChangedCriterion.Conditions.items(ModItems.HASHISH))
+                .criterion("cut_a_hashish_bar", ItemCriterion.Conditions.createItemUsedOnBlock(
+                        LocationPredicate.Builder.create().block(BlockPredicate.Builder.create()
+                                .blocks(registryLookup.getOrThrow(RegistryKeys.BLOCK), ModBlocks.HASHISH_BAR)),
+                        ItemPredicate.Builder.create().tag(items(registryLookup), ModTags.Items.HASH_CUTTERS)))
                 .parent(hotOffThePress)
                 .build(consumer, Hempdustry.MOD_ID + ":cloud_nine");
 
