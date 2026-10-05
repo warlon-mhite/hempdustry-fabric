@@ -21,7 +21,7 @@
 # It was a full copper cube until 2026-09-15, whose only lit face was the underside: a powered lamp
 # looked unpowered from every other angle, and in daylight that read as "gives no light".
 #
-#   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+#   python3 mctex.py render \
 #     textures-src/grow_lamp.mctex -o src/main/resources/assets/hempdustry/textures --preview
 
 @palette default

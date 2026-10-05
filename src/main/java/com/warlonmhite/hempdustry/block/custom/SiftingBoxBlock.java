@@ -238,7 +238,7 @@ public class SiftingBoxBlock extends Block {
         super(settings);
         // Both named explicitly. A BooleanProperty left out of the default state comes back TRUE,
         // because its values are ImmutableSet.of(true, false) -- the trap that shipped pre-trimmed
-        // seeds for two days (CLAUDE.md §5). A box that starts full of water is the same bug.
+        // seeds for two days. A box that starts full of water is the same bug.
         setDefaultState(getDefaultState().with(LEVEL, 0).with(FILLED, false).with(CONTENT, Content.PLANT));
     }
 

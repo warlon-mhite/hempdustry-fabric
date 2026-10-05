@@ -42,7 +42,7 @@ public class BongBlock extends BlockWithEntity {
     /**
      * A bowl is loaded — only the model reads it; the load itself is in the block entity with
      * everything else. Set false in the default state below: a {@code BooleanProperty} left out of
-     * it defaults to <em>true</em> (CLAUDE.md §5).
+     * it defaults to <em>true</em>, the first of its two values.
      */
     public static final BooleanProperty PACKED = BooleanProperty.of("packed");
 

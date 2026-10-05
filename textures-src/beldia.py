@@ -2,7 +2,7 @@
 """Writes textures-src/beldia.mctex: Beldía's crop, all eight ages, and its buds and seeds.
 
     python3 textures-src/beldia.py textures-src/beldia.mctex
-    python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+    python3 mctex.py render \
       textures-src/beldia.mctex -o src/main/resources/assets/hempdustry/textures
 
 The crop is composed from parts rather than typed as grids, so the stalk and every leaf stay put

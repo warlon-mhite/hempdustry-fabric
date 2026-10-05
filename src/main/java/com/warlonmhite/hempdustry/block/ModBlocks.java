@@ -364,7 +364,7 @@ public class ModBlocks {
      * piston cannot move, which is what vanilla does to cake for the same reason.
      *
      * <p><b>Deliberately not in {@code #minecraft:enderman_holdable}</b>, same reasoning as the
-     * two-block plant (CLAUDE.md §5): an enderman would put the bar back with its cut count reset.
+     * two-block plant: an enderman would put the bar back with its cut count reset.
      *
      * <p><b>And deliberately not in {@code #c:storage_blocks}</b>, despite being a 9↔9 block — this
      * is the one worth saying out loud. That convention tag means "nine of an item, and you can get

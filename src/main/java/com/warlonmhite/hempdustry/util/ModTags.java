@@ -100,7 +100,7 @@ public class ModTags {
          * <b>one unresolvable required entry drops the whole tag</b>, taking {@code #minecraft:swords}
          * with it and leaving the bar uncuttable with nothing but a server-log line to say why. Both
          * entries are therefore {@code "required": false}. This is exactly how {@code #c:is_lush}
-         * stopped wild indica generating in caves (CLAUDE.md §5).
+         * stopped wild indica generating in caves.
          *
          * <p>Hand-written rather than datagen'd because there is no {@code KNIFE_TOOLS} constant on
          * Fabric — checked against {@code fabric-convention-tags-v2} 2.8.0, which has

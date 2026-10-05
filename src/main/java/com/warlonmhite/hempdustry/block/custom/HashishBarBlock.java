@@ -67,7 +67,7 @@ import net.minecraft.world.World;
  * <h2>No block entity, and no components on the item</h2>
  *
  * Everything the bar knows is in the blockstate, which is what makes it safe: <b>a {@code BlockItem}
- * only preserves components into a block that has a block entity</b> (CLAUDE.md §5), so a bar
+ * only preserves components into a block that has a block entity</b>, so a bar
  * carrying its cut count as a component would lose it the moment it was placed. The count is
  * {@link #CUTS}, and the item has no components at all. Cake has neither a block entity nor a
  * comparator output either.
@@ -127,7 +127,8 @@ public class HashishBarBlock extends Block {
     public HashishBarBlock(Settings settings) {
         super(settings);
         // CUTS spelled out even though an IntProperty has no BooleanProperty's first-value trap
-        // (CLAUDE.md §5): writing it means the next person does not have to go and check.
+        // (left out of the default state, a boolean comes back true): writing it means the next
+        // person does not have to go and check.
         setDefaultState(getDefaultState().with(CUTS, 0).with(FACING, Direction.NORTH));
     }
 

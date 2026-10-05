@@ -26,7 +26,7 @@ public enum DeviceType {
     BONG     ("bong",        "packed_bong",      24,    4,    3,     1000,   10,   100,      3,     5,   10,   30,    0,   ParticleTypes.CAMPFIRE_COSY_SMOKE),
     /**
      * The dry-herb vaporizer. Heat below combustion, so it is the mildest device in the mod and the
-     * only one that hands the bud back — see {@code .claude/docs/vaporizer.md} for the full design.
+     * only one that hands the bud back.
      *
      * <p>Three of its numbers are load-bearing rather than tuned:
      * <ul>

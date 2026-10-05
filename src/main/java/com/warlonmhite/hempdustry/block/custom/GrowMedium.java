@@ -55,7 +55,8 @@ public interface GrowMedium extends Fertilizable {
      *
      * <p>Returns {@code null} when this click is not a feed (not a fertiliser, or the bed is full or
      * refusing), leaving the caller to fall through to {@code super.onUseWithItem} — never a bare
-     * {@code PASS}, which would swallow the click (CLAUDE.md §5).
+     * {@code PASS}, which would swallow the click: only {@code PASS_TO_DEFAULT_BLOCK_ACTION} goes on
+     * to {@code onUse}.
      *
      * <p>The effect is one charge whatever was used: a pack's fancier fertiliser is an alternative,
      * never an upgrade, so pack content cannot power-creep a hemp farm.

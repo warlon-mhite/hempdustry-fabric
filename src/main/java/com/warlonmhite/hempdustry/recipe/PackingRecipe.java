@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 /**
  * Packs an empty pipe/bong with buds in the crafting grid. The number of buds is the <b>dose</b>,
  * which becomes the effect level of every hit from that bowl — 1 bud is level I, up to the device's
- * {@code max_dose}, which is its bowl in this world's {@link DeviceStats}. See CLAUDE.md §5b D10.
+ * {@code max_dose}, which is its bowl in this world's {@link DeviceStats}.
  *
  * <h2>Why this stays a special recipe</h2>
  *

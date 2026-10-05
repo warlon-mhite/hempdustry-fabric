@@ -125,8 +125,8 @@ public class ModItems {
      *
      * <p><b>Inert in the hand, like the rest of the raw plant.</b> Sifting concentrates THCA; it
      * does not decarboxylate it. Eating a lump of hash does close to nothing, so this has no food
-     * component and no effects — it goes through the Decarboxylator like everything else. See
-     * CLAUDE.md, <i>heat activates</i>.
+     * component and no effects — it goes through the Decarboxylator like everything else: heat
+     * activates, and raw plant does nothing.
      */
     /**
      * What falls through the screen when plant matter is shaken over it dry. <b>Not smokeable</b> —
@@ -171,8 +171,8 @@ public class ModItems {
      * come out black and soft and keep the monoterpenes that drying destroys.
      *
      * <p><b>Strain-agnostic and inert in the hand</b>, exactly like {@link #HASHISH}: resin carries
-     * no memory of which plant it came off, and it never decarboxylates — see CLAUDE.md,
-     * <i>heat activates</i>, and {@code hashish.md} §5.
+     * no memory of which plant it came off, and it never decarboxylates: only heat does that, and
+     * resin in the hand is as raw as the plant it came off.
      */
     public static final Item CHARAS = registerItem("charas", settings -> new Item(settings));
 
