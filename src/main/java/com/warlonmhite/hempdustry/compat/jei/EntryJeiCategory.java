@@ -141,12 +141,16 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     }
 
     /**
-     * JEI uses this to name a recipe in its own bookkeeping — the "show recipe id" debug line and
-     * the hidden-recipe config both key on it. The entries already carry a unique identifier, so
-     * handing it over costs nothing and makes them addressable.
+     * JEI uses this to name a recipe in its own bookkeeping — recipe bookmarks, the "show recipe id"
+     * debug line and the hidden-recipe config all key on it. The entries already carry a unique
+     * identifier, so handing it over costs nothing and makes them addressable.
+     *
+     * <p>{@code getIdentifier}, not {@code getRegistryName}: on JEI 27 the latter is only a default
+     * that forwards here and nothing in JEI calls it, so overriding it left every page unnamed and
+     * a bookmarked page did nothing.
      */
     @Override
-    public Identifier getRegistryName(ViewerRecipes.Entry entry) {
+    public Identifier getIdentifier(ViewerRecipes.Entry entry) {
         return entry.id();
     }
 }
