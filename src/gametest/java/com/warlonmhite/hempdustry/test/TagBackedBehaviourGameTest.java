@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.test;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
+import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ComposterBlock;
@@ -10,17 +11,25 @@ import net.minecraft.block.CropBlock;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.FlowerPotBlock;
 import net.minecraft.block.entity.DispenserBlockEntity;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.passive.HorseEntity;
 import net.minecraft.entity.passive.LlamaEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.loot.LootTable;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.BlockTags;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.test.GameTest;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -223,6 +232,58 @@ public final class TagBackedBehaviourGameTest implements FabricGameTest {
             }
         }
         context.assertTrue(items.isEmpty(), "these potted plants or crops have an item, which vanilla's never do: " + items);
+        context.complete();
+    }
+
+    /**
+     * Only the shirt and the harem pants take a trim, and all four pieces still take armour's
+     * enchantments, on an anvil and at the table.
+     *
+     * <p>The beanie and the flip-flops are drawn by models of their own, so a trim on either would
+     * never show. Vanilla builds {@code #trimmable_armor} from {@code #head_armor} and
+     * {@code #foot_armor}, which is why those two reach the enchantable tags one by one instead of
+     * through the base tags; putting them back there would put them back on the smithing table.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void onlyTheGarmentsTakeATrim(TestContext context) {
+        RegistryWrapper.Impl<Enchantment> enchantments = context.getWorld().getRegistryManager().getWrapperOrThrow(RegistryKeys.ENCHANTMENT);
+        Enchantment protection = enchantments.getOrThrow(Enchantments.PROTECTION).value();
+        for (Item piece : List.of(ModItems.HEMP_BEANIE, ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS,
+                ModItems.FLIP_FLOPS)) {
+            ItemStack stack = new ItemStack(piece);
+            boolean garment = piece == ModItems.HEMP_SHIRT || piece == ModItems.HEMP_HAREM_PANTS;
+            context.assertTrue(stack.isIn(ItemTags.TRIMMABLE_ARMOR) == garment, garment
+                    ? piece + " is no longer in #minecraft:trimmable_armor"
+                    : piece + " takes a trim at the smithing table, which its own model never draws");
+            for (RegistryKey<Enchantment> key : List.of(Enchantments.PROTECTION, Enchantments.UNBREAKING,
+                    Enchantments.MENDING, Enchantments.BINDING_CURSE, Enchantments.VANISHING_CURSE)) {
+                context.assertTrue(enchantments.getOrThrow(key).value().isAcceptableItem(stack),
+                        piece + " refuses " + key.getValue() + " on an anvil");
+            }
+            context.assertTrue(protection.isPrimaryItem(stack), piece + " is offered no Protection at the enchanting table");
+        }
+        context.assertTrue(enchantments.getOrThrow(Enchantments.RESPIRATION).value()
+                .isAcceptableItem(new ItemStack(ModItems.HEMP_BEANIE)), "the beanie refuses Respiration");
+        context.assertTrue(enchantments.getOrThrow(Enchantments.FEATHER_FALLING).value()
+                .isAcceptableItem(new ItemStack(ModItems.FLIP_FLOPS)), "the flip-flops refuse Feather Falling");
+        context.complete();
+    }
+
+    /**
+     * Every damageable smokeable takes Unbreaking and Mending: each device and each coloured bong.
+     * The tag was once listed by hand, and the vaporizer, added later, was never in it.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void everyDeviceTakesUnbreaking(TestContext context) {
+        RegistryWrapper.Impl<Enchantment> enchantments = context.getWorld().getRegistryManager().getWrapperOrThrow(RegistryKeys.ENCHANTMENT);
+        List<Item> devices = new ArrayList<>(ModItems.devices().values());
+        devices.addAll(ModItems.COLORED_BONGS);
+        for (Item device : devices) {
+            for (RegistryKey<Enchantment> key : List.of(Enchantments.UNBREAKING, Enchantments.MENDING)) {
+                context.assertTrue(enchantments.getOrThrow(key).value().isAcceptableItem(new ItemStack(device)),
+                        device + " refuses " + key.getValue() + " — it is missing from #minecraft:enchantable/durability");
+            }
+        }
         context.complete();
     }
 }
