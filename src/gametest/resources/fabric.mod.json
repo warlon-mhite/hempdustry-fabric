@@ -12,6 +12,7 @@
 			"com.warlonmhite.hempdustry.test.CropGrowthGameTest",
 			"com.warlonmhite.hempdustry.test.DefoliationGameTest",
 			"com.warlonmhite.hempdustry.test.InfuserPourGameTest",
+			"com.warlonmhite.hempdustry.test.PackingGameTest",
 			"com.warlonmhite.hempdustry.test.RebalanceGameTest",
 			"com.warlonmhite.hempdustry.test.TagBackedBehaviourGameTest",
 			"com.warlonmhite.hempdustry.test.TallPlantLootGameTest"
