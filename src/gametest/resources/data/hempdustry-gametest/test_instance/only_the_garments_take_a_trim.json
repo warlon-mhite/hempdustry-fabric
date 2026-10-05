@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:only_the_garments_take_a_trim",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 200,
+  "setup_ticks": 0,
+  "required": true
+}

@@ -115,19 +115,27 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
             .add(ModItems.HEMP_SHIRT)
             .add(ModItems.HEMP_HAREM_PANTS);
 
-        // The four base armour tags, and they are the whole enchantment story: every
-        // #minecraft:enchantable/* tag is built on top of these four, so a modded armour item that
-        // joins none of them can be enchanted with *nothing* — not Protection, not Unbreaking, not
-        // even a curse. The set shipped that way, which made `enchantability 20` on the material a
-        // dead letter and, because #minecraft:trimmable_armor *was* joined, made it look deliberate.
+        // The base armour tags, and they are the whole enchantment story: every
+        // #minecraft:enchantable/* tag is built on top of them, so a modded armour item that joins
+        // none of them can be enchanted with *nothing* — not Protection, not Unbreaking, not even a
+        // curse. The set shipped that way, which made `enchantability 20` on the material a dead
+        // letter and, because #minecraft:trimmable_armor *was* joined, made it look deliberate.
         // Joining these grants enchantable/armor, /durability, /equippable, /vanishing and the
-        // per-slot tags transitively; nothing else needs adding.
+        // per-slot tags transitively.
         //
         // It stays bad armour (1/2/1/1) — this buys the *right* to enchant, not protection.
-        valueLookupBuilder(ItemTags.HEAD_ARMOR).add(ModItems.HEMP_BEANIE);
         valueLookupBuilder(ItemTags.CHEST_ARMOR).add(ModItems.HEMP_SHIRT);
         valueLookupBuilder(ItemTags.LEG_ARMOR).add(ModItems.HEMP_HAREM_PANTS);
-        valueLookupBuilder(ItemTags.FOOT_ARMOR).add(ModItems.FLIP_FLOPS);
+
+        // The beanie and the flip-flops stay out of #head_armor and #foot_armor, because vanilla
+        // builds #trimmable_armor from those two tags as well, and a tag cannot take an entry back
+        // out of another: joining them would put both on the smithing table again, with a trim that
+        // is never drawn. So they join, one by one, the four enchantable tags that read the base
+        // tags; enchantable/armor and /vanishing are built on these, and follow by themselves.
+        valueLookupBuilder(ItemTags.HEAD_ARMOR_ENCHANTABLE).add(ModItems.HEMP_BEANIE);
+        valueLookupBuilder(ItemTags.FOOT_ARMOR_ENCHANTABLE).add(ModItems.FLIP_FLOPS);
+        valueLookupBuilder(ItemTags.DURABILITY_ENCHANTABLE).add(ModItems.HEMP_BEANIE).add(ModItems.FLIP_FLOPS);
+        valueLookupBuilder(ItemTags.EQUIPPABLE_ENCHANTABLE).add(ModItems.HEMP_BEANIE).add(ModItems.FLIP_FLOPS);
 
         // What mends the set on an anvil: the fibre it is woven from, as on the 1.21.1 line, where
         // repair is an Ingredient. Since 1.21.4 the material names a tag instead, and until 2.0.3
@@ -290,11 +298,13 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // Not decoration: a happy ghast's ropes are drawn only for a harness in this tag.
         valueLookupBuilder(ItemTags.HARNESSES).add(ModItems.HEMP_HARNESS);
 
-        // Empty pipe/bong accept Unbreaking/Mending (and enchant at the table). Packed variants
+        // Every empty device accepts Unbreaking/Mending (and enchants at the table). Packed variants
         // inherit any enchantment through the component copy, so they don't need listing here.
-        var durabilityEnchantable = valueLookupBuilder(ItemTags.DURABILITY_ENCHANTABLE)
-                .add(ModItems.WOODEN_PIPE);
-        ModItems.bongs().forEach(durabilityEnchantable::add);
+        // Built from devices() so a device added later cannot be left out, as the vaporizer was;
+        // the coloured bongs are not in devices(), which keeps one canonical item per device.
+        var durabilityEnchantable = valueLookupBuilder(ItemTags.DURABILITY_ENCHANTABLE);
+        ModItems.devices().values().forEach(durabilityEnchantable::add);
+        ModItems.COLORED_BONGS.forEach(durabilityEnchantable::add);
 
         // Puts our discs on exactly the same footing as vanilla's twelve common discs: the
         // creeper loot table rolls this tag (expand:true, one entry each) when a skeleton lands
