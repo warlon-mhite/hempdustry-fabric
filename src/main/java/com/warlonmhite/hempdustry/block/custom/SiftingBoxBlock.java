@@ -295,6 +295,12 @@ public class SiftingBoxBlock extends Block {
             }
             return ActionResult.SUCCESS;
         }
+        // Any other water bucket is turned down with CONSUME, not super: past a refusal the client
+        // goes on to the bucket's own use and pours it out on top of the box, which looks as if the
+        // box took it. A ready box still falls through, so the bucket's holder can empty it.
+        if (stack.isOf(Items.WATER_BUCKET) && level != READY_LEVEL) {
+            return ActionResult.CONSUME;
+        }
 
         Content content = contentOf(stack);
         float chance = sieveChance(stack) * rate(world, pos, state);
@@ -358,6 +364,19 @@ public class SiftingBoxBlock extends Block {
             collect(serverWorld, pos, state);
         }
         return ActionResult.SUCCESS;
+    }
+
+    /**
+     * A full box settles {@value #SETTLE_DELAY} ticks after it becomes full, however it got there: a
+     * sift, a piston push (which drops the tick a sift scheduled) or a command. Vanilla's composter
+     * does the same at its own full level. The server calls this on every state change, the same
+     * block's included, and a second schedule for a queued tick is ignored.
+     */
+    @Override
+    protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+        if (state.get(LEVEL) == FULL_LEVEL) {
+            world.scheduleBlockTick(pos, this, SETTLE_DELAY);
+        }
     }
 
     /** {@link #FULL_LEVEL} → {@link #READY_LEVEL}: the powder settles and is ready to take. */
@@ -490,10 +509,8 @@ public class SiftingBoxBlock extends Block {
         int steps = (int) chance + (world.random.nextFloat() < chance - (int) chance ? 1 : 0);
         if (steps > 0) {
             int next = Math.min(FULL_LEVEL, level + steps);
+            // Reaching FULL_LEVEL schedules the settle in onBlockAdded, which this call runs.
             world.setBlockState(pos, state.with(LEVEL, next), Block.NOTIFY_ALL);
-            if (next == FULL_LEVEL) {
-                world.scheduleBlockTick(pos, state.getBlock(), SETTLE_DELAY);
-            }
             world.playSound(null, pos, SoundEvents.BLOCK_COMPOSTER_FILL_SUCCESS, SoundCategory.BLOCKS, 1.0F, 1.0F);
         } else if (state.get(FILLED)) {
             world.playSound(null, pos, SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 0.6F, 1.4F);

@@ -51,6 +51,8 @@ public class HempdustryGameTests implements ModInitializer {
                 CharasGameTest::rubbingDoesNotGrantTheTrimAdvancement);
         register("ice_wash_needs_its_jacket", SiftingBoxGameTest::iceWashNeedsItsJacket);
         register("screen_refuses_a_mixed_load", SiftingBoxGameTest::screenRefusesAMixedLoad);
+        register("a_refused_bucket_is_not_poured", SiftingBoxGameTest::aRefusedBucketIsNotPoured);
+        register("a_full_box_settles_however_it_arrived", SiftingBoxGameTest::aFullBoxSettlesHoweverItArrived);
         register("vaporizer_bowl_returns_one_avb", VaporizerGameTest::vaporizerBowlReturnsOneAvb);
         register("vaporizer_refuses_two_buds", VaporizerGameTest::vaporizerRefusesTwoBuds);
         register("vaporizer_only_returns_what_grew_on_a_plant",

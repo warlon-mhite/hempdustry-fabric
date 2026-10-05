@@ -301,4 +301,44 @@ public final class SiftingBoxGameTest {
             context.complete();
         });
     }
+
+    /**
+     * A water bucket the box will not take is turned down with an accepted result, so the click ends
+     * there; a ready box still hands its batch to whoever holds one.
+     *
+     * <p>The pour itself happens on the client, which goes on to the bucket's own use after any
+     * result that is not accepted — so the result is what this asserts. Two refusals: a box that
+     * already holds water, and a dry screen part-way through a batch.
+     */
+    public static void aRefusedBucketIsNotPoured(TestContext context) {
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.FILLED, true));
+        ActionResult full = rightClick(context, new ItemStack(Items.WATER_BUCKET));
+        context.assertTrue(full.isAccepted(), "a box already holding water passed a water bucket on, so it pours: " + full);
+
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.LEVEL, 3));
+        ActionResult midBatch = rightClick(context, new ItemStack(Items.WATER_BUCKET));
+        context.assertTrue(midBatch.isAccepted(), "a part-sifted dry screen passed a water bucket on, so it pours: " + midBatch);
+        context.assertFalse(context.getBlockState(BOX).get(SiftingBoxBlock.FILLED),
+                "a part-sifted dry screen took water");
+
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.LEVEL, SiftingBoxBlock.READY_LEVEL));
+        rightClick(context, new ItemStack(Items.WATER_BUCKET));
+        context.assertEquals(0, context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL),
+                "a ready box kept its batch from a player holding a water bucket");
+        context.complete();
+    }
+
+    /**
+     * A box that becomes full by any road but a sift still settles. A piston push drops the tick the
+     * last sift scheduled, and the box then sat full for ever; a command or a structure leaves it the
+     * same way. Placed full here, which is the same road a pushed block takes back into the world.
+     */
+    public static void aFullBoxSettlesHoweverItArrived(TestContext context) {
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.LEVEL, SiftingBoxBlock.FULL_LEVEL));
+        context.runAtTick(READY_BY_TICK, () -> {
+            context.assertEquals(SiftingBoxBlock.READY_LEVEL, context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL),
+                    "a box placed full never settled");
+            context.complete();
+        });
+    }
 }

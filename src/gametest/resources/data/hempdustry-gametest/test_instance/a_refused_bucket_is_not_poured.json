@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:a_refused_bucket_is_not_poured",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 200,
+  "setup_ticks": 0,
+  "required": true
+}
