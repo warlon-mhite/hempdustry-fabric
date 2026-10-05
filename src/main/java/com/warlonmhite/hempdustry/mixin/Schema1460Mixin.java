@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Tells vanilla's data fixer what the two hemp boats and the two machines are, so a world moved to a
+ * Tells vanilla's data fixer what the two hemp boats, the three machines and a placed bong are, so a world moved to a
  * newer Minecraft is upgraded around them instead of stopping at them, and what they hold is upgraded
  * too.
  *
@@ -68,9 +68,12 @@ public class Schema1460Mixin {
     private void hempdustry$registerMachines(Schema schema,
                                              CallbackInfoReturnable<Map<String, Supplier<TypeTemplate>>> cir) {
         Map<String, Supplier<TypeTemplate>> blockEntities = cir.getReturnValue();
-        for (String machine : new String[] {"hempdustry:decarboxylator", "hempdustry:infuser"}) {
+        for (String machine : new String[] {"hempdustry:decarboxylator", "hempdustry:infuser", "hempdustry:hemp_press"}) {
             schema.register(blockEntities, machine,
                     name -> DSL.optionalFields("Items", DSL.list(TypeReferences.ITEM_STACK.in(schema))));
         }
+        // A placed bong is the device item itself, kept as the block entity's own components
+        // (BongBlockEntity); being in the table is what lets the fixer reach them.
+        schema.registerSimple(blockEntities, "hempdustry:bong");
     }
 }

@@ -55,14 +55,18 @@ public final class DataFixerGameTest {
     }
 
     /**
-     * A block chunk as 1.21.1 saved it: a Decarboxylator and an Infuser each holding an enchanted
-     * bow, and a vanilla chest holding the same as the control. Until 2.0.3 the fixer did not know
+     * A block chunk as 1.21.1 saved it: a Decarboxylator, an Infuser and a Hemp Press each holding an
+     * enchanted bow, a placed bong that is itself enchanted, and a vanilla chest holding the bow as the
+     * control. Until 2.0.3 the fixer did not know
      * the machines, so their bows kept the {@code levels} wrapper 1.21.11 cannot read, and lost their
      * enchantments on load.
      */
     private static final String BLOCK_CHUNK = "{DataVersion:3955,xPos:0,zPos:0,yPos:-4,"
             + "Status:\"minecraft:full\",sections:[],block_entities:["
             + machine("hempdustry:decarboxylator", 0, 4) + "," + machine("hempdustry:infuser", 1, 1) + ","
+            + machine("hempdustry:hemp_press", 3, 0) + ","
+            + "{id:\"hempdustry:bong\",x:4,y:-60,z:0,"
+            + "components:{\"minecraft:enchantments\":{levels:{\"minecraft:unbreaking\":3}}}},"
             + machine("minecraft:chest", 2, 0) + "]}";
 
     private static String machine(String id, int x, int slot) {
@@ -74,10 +78,10 @@ public final class DataFixerGameTest {
         NbtCompound fixed = DataFixTypes.CHUNK.update(
                 context.getWorld().getServer().getDataFixer(), read(BLOCK_CHUNK), MINECRAFT_1_21_1);
         NbtList blockEntities = fixed.getListOrEmpty("block_entities");
-        context.assertEquals(3, blockEntities.size(), "the block entities through the fixer: " + fixed);
+        context.assertEquals(5, blockEntities.size(), "the block entities through the fixer: " + fixed);
 
         // The chest first: if it was not converted, the chunk itself did not go through.
-        for (int i = 2; i >= 0; i--) {
+        for (int i : new int[] {4, 0, 1, 2}) {
             NbtCompound blockEntity = blockEntities.getCompoundOrEmpty(i);
             NbtCompound enchantments = blockEntity.getListOrEmpty("Items").getCompoundOrEmpty(0)
                     .getCompoundOrEmpty("components").getCompoundOrEmpty("minecraft:enchantments");
@@ -85,6 +89,11 @@ public final class DataFixerGameTest {
                     "the bow in " + blockEntity.getString("id", "?") + " kept its 1.21.1 enchantments: "
                             + enchantments);
         }
+        // A placed bong keeps the whole device as its own components, not in an Items list.
+        NbtCompound bong = blockEntities.getCompoundOrEmpty(3).getCompoundOrEmpty("components")
+                .getCompoundOrEmpty("minecraft:enchantments");
+        context.assertTrue(!bong.contains("levels") && bong.contains("minecraft:unbreaking"),
+                "the placed bong kept its 1.21.1 enchantments: " + bong);
         context.complete();
     }
 
