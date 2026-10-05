@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
@@ -36,6 +37,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -304,5 +306,54 @@ public final class AdvancementGameTest {
                                       String what) {
         context.assertFalse(player.getAdvancementTracker().getProgress(entry).isDone(),
                 what + " granted " + entry.id() + ", so its criterion matches more than it should");
+    }
+
+    /**
+     * Every advancement 2.0.x shipped, with the criterion names a player's file stores its progress
+     * under. The game drops a saved criterion the advancement no longer has, so renaming or removing
+     * one of these silently un-earns the advancement for everyone who had it: 2.1 renamed Trim
+     * Season's {@code sheared_hemp_crop} into one criterion per trim age and revoked it for every 2.0.x
+     * player (the 2.1.0-beta review, #1). Copied from the 2.0.2 jar's advancement files; 2.0.3 has the
+     * same. New advancements and new criteria are free; these names are frozen (compat.md).
+     */
+    private static final Map<String, List<String>> SHIPPED_CRITERIA = Map.ofEntries(
+            Map.entry("activation_energy", List.of("has_decarboxylator")),
+            Map.entry("blaze_it", List.of("smoked_at_420")),
+            Map.entry("bong_voyage", List.of("smoked_a_bong")),
+            Map.entry("burnout", List.of("smoked_a_device_to_death")),
+            Map.entry("butter_late_than_never", List.of("has_cannabutter")),
+            Map.entry("chill_set", List.of("full_hemp_armor")),
+            Map.entry("club_des_hashischins", List.of("ate_dawamesk")),
+            Map.entry("first_contact", List.of("took_a_hit")),
+            Map.entry("give_it_an_hour", List.of("ate_an_edible")),
+            Map.entry("got_bhang", List.of("drank_bhang")),
+            Map.entry("green_threads", List.of("has_hemp_fiber")),
+            Map.entry("hemp_builder", List.of("has_hemp_brick")),
+            Map.entry("hemp_hearts", List.of("ate_a_hemp_seed_food")),
+            Map.entry("hempdustry", List.of("has_hemp_seeds")),
+            Map.entry("hemprepreneurs", List.of("has_hemp_stem")),
+            Map.entry("indica_strain", List.of("has_indica_buds")),
+            Map.entry("parrot_tamer", List.of("fed_a_parrot_hemp_seeds", "tamed_a_parrot")),
+            Map.entry("perfect_batch", List.of("has_perfect_cannabutter")),
+            Map.entry("perfect_cut", List.of("harvested_fully_trimmed")),
+            Map.entry("pipe_dream", List.of("smoked_a_pipe")),
+            Map.entry("rinse_cycle", List.of("has_washed_hemp")),
+            Map.entry("sativa_strain", List.of("has_sativa_buds")),
+            Map.entry("trim_season", List.of("sheared_hemp_crop")),
+            Map.entry("wake_and_bake", List.of("smoked_at_dawn")));
+
+    /** Every advancement 2.0.x shipped still exists, and still has every criterion name it had. */
+    public static void advancementCriteriaKeepTheirNames(TestContext context) {
+        var loader = context.getWorld().getServer().getAdvancementLoader();
+        for (Map.Entry<String, List<String>> shipped : SHIPPED_CRITERIA.entrySet()) {
+            AdvancementEntry entry = loader.get(Identifier.of(Hempdustry.MOD_ID, shipped.getKey()));
+            context.assertTrue(entry != null, "the 2.0.x advancement " + shipped.getKey() + " is gone");
+            for (String criterion : shipped.getValue()) {
+                context.assertTrue(entry.value().criteria().containsKey(criterion),
+                        shipped.getKey() + " lost its 2.0.x criterion " + criterion + ", so every player who"
+                                + " earned it loses it; it has " + entry.value().criteria().keySet());
+            }
+        }
+        context.complete();
     }
 }

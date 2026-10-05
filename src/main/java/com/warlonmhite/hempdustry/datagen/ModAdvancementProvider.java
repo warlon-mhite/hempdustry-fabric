@@ -197,8 +197,14 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         Advancement.Builder trimSeasonBuilder = Advancement.Builder.create()
                 .display(display(Items.SHEARS, "trim_season", AdvancementFrame.TASK))
                 .parent(rootAdvancement);
-        for (int age : trimAges()) {
-            trimSeasonBuilder.criterion("sheared_hemp_crop_age_" + age,
+        List<Integer> trimAges = trimAges();
+        for (int age : trimAges) {
+            // The first window keeps 2.0.x's name, sheared_hemp_crop. Progress is saved per criterion
+            // name and the game drops a name the advancement no longer has, so renaming it un-earned
+            // Trim Season for every player who had it; with the criteria OR-merged, the old name
+            // alone keeps it earned. advancement_criteria_keep_their_names holds every 2.0.x name.
+            String criterion = age == trimAges.getFirst() ? "sheared_hemp_crop" : "sheared_hemp_crop_age_" + age;
+            trimSeasonBuilder.criterion(criterion,
                     ItemCriterion.Conditions.createItemUsedOnBlock(
                             LocationPredicate.Builder.create().block(BlockPredicate.Builder.create()
                                     .tag(registryLookup.getOrThrow(RegistryKeys.BLOCK), ModTags.Blocks.HEMP_CROPS)
