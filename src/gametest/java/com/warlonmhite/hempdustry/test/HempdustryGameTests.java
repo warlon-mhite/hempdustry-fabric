@@ -72,6 +72,7 @@ public class HempdustryGameTests implements ModInitializer {
         register("every_block_has_a_loot_table", TagBackedBehaviourGameTest::everyBlockHasALootTable);
         register("potted_plants_and_crops_have_no_item", TagBackedBehaviourGameTest::pottedPlantsAndCropsHaveNoItem);
         register("creative_tab_populates", CreativeTabGameTest::creativeTabPopulates);
+        register("every_string_is_read_by_the_game", LangGameTest::everyStringIsReadByTheGame);
         register("milk_is_poured_in_by_hand", InfuserPourGameTest::milkIsPouredInByHand);
         register("dispenser_pours_milk_and_keeps_the_bucket",
                 InfuserPourGameTest::dispenserPoursMilkAndKeepsTheBucket);

@@ -1,5 +1,13 @@
 {
   "asset_id": "hempdustry:b_rappaz",
+  "author": {
+    "color": "gray",
+    "translate": "painting.hempdustry.b_rappaz.author"
+  },
   "height": 4,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.hempdustry.b_rappaz.title"
+  },
   "width": 4
 }

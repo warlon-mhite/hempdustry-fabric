@@ -1,5 +1,13 @@
 {
   "asset_id": "hempdustry:hendrix",
+  "author": {
+    "color": "gray",
+    "translate": "painting.hempdustry.hendrix.author"
+  },
   "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.hempdustry.hendrix.title"
+  },
   "width": 2
 }

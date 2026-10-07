@@ -1,5 +1,13 @@
 {
   "asset_id": "hempdustry:rihanna",
+  "author": {
+    "color": "gray",
+    "translate": "painting.hempdustry.rihanna.author"
+  },
   "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.hempdustry.rihanna.title"
+  },
   "width": 1
 }

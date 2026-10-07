@@ -1,5 +1,13 @@
 {
   "asset_id": "hempdustry:pineapple_express",
+  "author": {
+    "color": "gray",
+    "translate": "painting.hempdustry.pineapple_express.author"
+  },
   "height": 3,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.hempdustry.pineapple_express.title"
+  },
   "width": 2
 }

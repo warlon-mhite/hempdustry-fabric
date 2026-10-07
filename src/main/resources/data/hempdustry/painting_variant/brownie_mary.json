@@ -1,5 +1,13 @@
 {
   "asset_id": "hempdustry:brownie_mary",
+  "author": {
+    "color": "gray",
+    "translate": "painting.hempdustry.brownie_mary.author"
+  },
   "height": 4,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.hempdustry.brownie_mary.title"
+  },
   "width": 4
 }

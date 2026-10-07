@@ -247,6 +247,12 @@ beta be told when the release lands.
   the wash needs ice on all four sides, and a dry screen tells you it will not mix plant matter with
   kief. Shears on a plant already rubbed for charas say so.
 
+### Fixed
+
+- **Paintings show their title and author again.** On Minecraft 1.21.11 a painting's name lives in
+  its own data, and ours had been carried over from 1.21.1 without it, so all six hung with no title
+  and no author on their tooltip.
+
 ### Notes for pack makers
 
 - **The Hemp Shirt and Hemp Harem Pants are drawn in two layers**, as leather is: a grey
