@@ -15,6 +15,7 @@ import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.item.custom.SpliffItem;
+import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
 import com.warlonmhite.hempdustry.sound.ModSounds;
@@ -583,6 +584,22 @@ public class ModItems {
             for (int dose = 1; dose <= SPLIFF_MAX_DOSE; dose++) {
                 out.add(loaded(SPLIFF, strain, dose, 0));
             }
+            // The hash spliffs, exactly as ModRecipeProvider rolls them: a plant strain's one or two
+            // buds with a pinch of a built-in resin. Schwag is never rolled with hash, and a
+            // concentrate (dose per item above one) is no pinch.
+            if (strain.value().wildFlower().isEmpty()) {
+                continue;
+            }
+            for (RegistryEntry.Reference<Strain> hash : strains) {
+                if (ModStrains.BUILT_IN.contains(hash.registryKey()) && hash.value().wildFlower().isEmpty()
+                        && hash.value().dosePerItem() <= 1) {
+                    for (int buds = 1; buds < SPLIFF_MAX_DOSE; buds++) {
+                        ItemStack stack = new ItemStack(SPLIFF);
+                        stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, buds, hash, 1));
+                        out.add(stack);
+                    }
+                }
+            }
         }
         for (Map.Entry<DeviceType, Item> entry : DEVICES.entrySet()) {
             DeviceType device = entry.getKey();
@@ -603,30 +620,39 @@ public class ModItems {
     }
 
     /**
-     * The strains a spliff can be rolled from on its own — the ones that grew on a plant.
+     * One moon rock per plant strain, hashish-coated — the grid's half. A charas or filtered-hashish
+     * coat differs from it by the coat alone, so those live in search, the way the coloured bongs
+     * list empty only.
      *
-     * <p>A joint needs something to burn and this mod has no tobacco, so pure hash never rolls;
-     * it goes in <em>alongside</em> two buds instead. {@code wildFlower().isPresent()} is the mod-wide
-     * predicate for "this grew on a plant" and covers anything hash-shaped added later for free.
+     * @see #moonRocks
      */
+    public static List<ItemStack> showcaseMoonRocks(RegistryWrapper.WrapperLookup registries) {
+        return moonRocks(registries, List.of(ModStrains.HASHISH));
+    }
+
     /**
-     * One moon rock per plant strain, loaded exactly as its recipe loads it — the plant at 3 with a
-     * pinch of hashish riding along.
+     * Every moon rock a recipe makes: each plant strain under each of its three coats — hashish,
+     * charas, filtered hashish — loaded exactly as its recipe loads it, the plant at 3 with the coat
+     * riding along. The search half; a superset of {@link #showcaseMoonRocks}.
      *
-     * <p>Built from the registry rather than listed, so a third strain gets a creative-tab entry the
-     * day it exists. The hashish entry is looked up rather than named for the same reason a datapack
-     * that renames or replaces it keeps working; if it is gone, so are the moon rocks, which is the
+     * <p>Built from the registry rather than listed, so a new strain gets its entries the day it
+     * exists. The coats are looked up rather than named for the same reason a datapack that renames
+     * or replaces one keeps working; a coat that is gone takes its moon rocks with it, which is the
      * honest answer.
      */
     public static List<ItemStack> moonRocks(RegistryWrapper.WrapperLookup registries) {
-        RegistryEntry<Strain> hashish = Strain.registry(registries)
-                .getOptional(com.warlonmhite.hempdustry.strain.ModStrains.HASHISH).orElse(null);
-        if (hashish == null) {
-            return List.of();
-        }
+        return moonRocks(registries, List.of(ModStrains.HASHISH, ModStrains.CHARAS, ModStrains.FILTERED_HASHISH));
+    }
+
+    private static List<ItemStack> moonRocks(RegistryWrapper.WrapperLookup registries, List<RegistryKey<Strain>> coats) {
         List<ItemStack> out = new ArrayList<>();
-        for (RegistryEntry.Reference<Strain> strain : rollable(Strain.all(registries))) {
-            out.add(moonRock(strain, hashish));
+        for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
+            if (strain.value().wildFlower().isEmpty()) {
+                continue;
+            }
+            for (RegistryKey<Strain> coat : coats) {
+                Strain.registry(registries).getOptional(coat).ifPresent(hash -> out.add(moonRock(strain, hash)));
+            }
         }
         return out;
     }
@@ -650,8 +676,15 @@ public class ModItems {
     public static final int MOON_ROCK_DOSE = 3;
     public static final int MOON_ROCK_HASH_DOSE = 1;
 
+    /**
+     * The strains a spliff can be rolled from on its own — plant matter, schwag included.
+     *
+     * <p>A joint needs something to burn and this mod has no tobacco, so pure hash never rolls;
+     * it goes in <em>alongside</em> the buds instead. Schwag has no plant of its own but is still a
+     * bud, and the schwag joint is the archetype.
+     */
     private static List<RegistryEntry.Reference<Strain>> rollable(List<RegistryEntry.Reference<Strain>> strains) {
-        return strains.stream().filter(strain -> strain.value().wildFlower().isPresent()).toList();
+        return strains.stream().filter(ModStrains::isPlantMatter).toList();
     }
 
     /** Highest dose a spliff can be rolled at. Devices carry their own ceiling on {@link DeviceType}. */

@@ -5,6 +5,9 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.recipe.display.RecipeDisplay;
+import net.minecraft.recipe.display.SlotDisplay;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.TestContext;
 
@@ -93,6 +96,27 @@ public final class CreativeTabGameTest {
                 }
             }
             context.assertTrue(searchable, shown.getItem() + " is in the creative tab but creative search never finds it");
+        }
+
+        // Every loaded spliff and moon rock a recipe makes can be found by searching for it, down to
+        // its contents. The tab builds those stacks from the registry and the recipes build their
+        // own, so the two drifted: the schwag spliffs, the hash spliffs and two of the three moon
+        // rock coats were craftable and in no list.
+        for (RecipeEntry<?> entry : world.getServer().getRecipeManager().values()) {
+            for (RecipeDisplay shown : entry.value().getDisplays()) {
+                if (!(shown.result() instanceof SlotDisplay.StackSlotDisplay(ItemStack made))
+                        || !(made.isOf(ModItems.SPLIFF) || made.isOf(ModItems.MOON_ROCK))) {
+                    continue;
+                }
+                boolean listed = false;
+                for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks()) {
+                    if (ItemStack.areItemsAndComponentsEqual(stack, made)) {
+                        listed = true;
+                        break;
+                    }
+                }
+                context.assertTrue(listed, entry.id().getValue() + " makes a stack creative search never finds");
+            }
         }
         context.complete();
     }
