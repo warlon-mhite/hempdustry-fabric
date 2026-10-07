@@ -158,10 +158,12 @@ public class ModItemGroups {
                         entries.add(ModItems.ROSIN);
                         // One per plant strain, each already loaded the way its recipe loads it --
                         // a moon rock with no smoke_contents is an inert nug and would be a lie in
-                        // the tab, so the bare item is deliberately not listed. Searchable too:
-                        // unlike the smokeables and edibles, no search-only run lists them.
+                        // the tab, so the bare item is deliberately not listed. The grid shows the
+                        // hashish coat; search lists every coat, as it does every dose.
+                        ModItems.showcaseMoonRocks(displayContext.lookup())
+                                .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.PARENT_TAB_ONLY));
                         ModItems.moonRocks(displayContext.lookup())
-                                .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.PARENT_AND_SEARCH_TABS));
+                                .forEach(stack -> entries.add(stack, ItemGroup.StackVisibility.SEARCH_TAB_ONLY));
                         entries.add(ModItems.showcaseCannabutter(), ItemGroup.StackVisibility.PARENT_TAB_ONLY);
 
                         // --- Fibre and building materials ------------------------------
