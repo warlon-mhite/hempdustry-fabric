@@ -14,13 +14,13 @@ import java.util.function.Consumer;
  * <p>Since 1.21.5 a game test is <b>not</b> an annotated method any more: {@code @GameTest} is gone
  * and a test is a {@code Consumer<TestContext>} in {@link Registries#TEST_FUNCTION} paired with a
  * {@code test_instance} JSON in the test mod's datapack, which is what names the structure, the
- * environment and the tick budget. Fabric's {@code fabric-gametest} entrypoint still exists, but it
- * only records which mod a test class belongs to.
+ * environment and the tick budget. (Fabric's {@code fabric-gametest} entrypoint is its own
+ * {@code @GameTest} annotation scanner, which this suite does not use, so it lists nothing.)
  *
  * <p>So the wiring is: one entry here, one file under
- * {@code src/gametest/resources/data/hempdustry-gametest/test_instance/}. A test registered here
- * with no JSON beside it does not run, and a JSON naming a function nobody registered is a hard
- * startup failure -- so the two are added and removed together.
+ * {@code src/gametest/resources/data/hempdustry-gametest/test_instance/}. A JSON naming a function
+ * nobody registered is a hard startup failure, and so, since {@link #register}, is a test registered
+ * with no JSON beside it -- which used to be a test that silently never ran.
  *
  * <p><b>This list is branch-specific, and that is deliberate.</b> A feature branch adds its own
  * tests here and brings them along when it merges; nothing on this branch may reference a class
@@ -143,9 +143,24 @@ public class HempdustryGameTests implements ModInitializer {
         register("the_press_pours_out_of_its_back", HempPressGameTest::thePressPoursOutOfItsBack);
         register("a_press_behind_another_presses_what_it_pours",
                 HempPressGameTest::aPressBehindAnotherPressesWhatItPours);
+        register("no_two_recipes_take_the_same_ingredients",
+                SweepGameTest::noTwoRecipesTakeTheSameIngredients);
+        register("no_recipe_reads_a_stack_size", SweepGameTest::noRecipeReadsAStackSize);
+        register("every_container_spills_when_broken", SweepGameTest::everyContainerSpillsWhenBroken);
+        register("every_block_entity_survives_a_save", SweepGameTest::everyBlockEntitySurvivesASave);
+        register("every_stack_survives_a_save_and_the_wire",
+                SweepGameTest::everyStackSurvivesASaveAndTheWire);
+        register("every_tag_we_name_has_something_in_it",
+                SweepGameTest::everyTagWeNameHasSomethingInIt);
+        register("every_enchantable_item_takes_an_enchantment",
+                SweepGameTest::everyEnchantableItemTakesAnEnchantment);
+        register("every_sound_is_mono_and_on_disk", SweepGameTest::everySoundIsMonoAndOnDisk);
     }
 
     private static void register(String name, Consumer<TestContext> test) {
+        if (HempdustryGameTests.class.getResource("/data/" + NAMESPACE + "/test_instance/" + name + ".json") == null) {
+            throw new IllegalStateException("game test " + name + " has no test_instance JSON, so it would never run");
+        }
         Registry.register(Registries.TEST_FUNCTION, Identifier.of(NAMESPACE, name), test);
     }
 }

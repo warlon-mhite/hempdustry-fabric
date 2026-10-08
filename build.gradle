@@ -141,6 +141,33 @@ loom {
 	}
 }
 
+// The game test server's own log, read after every run. A datapack file the game refuses, a tag
+// that resolves to nothing and a loot table vanilla calls unreachable each say so only there, as a
+// WARN, while every test passes -- the crop tables logged "Unreachable entry!" at every world load
+// for days that way. So a run that logs a warning or an error nobody listed below fails.
+def expectedGametestLog = [
+	// the first batch starts every test in one tick, and on a slower machine that tick runs long --
+	// the server's own timing, not anything the mod logged
+	~/\(Minecraft\) Can't keep up! Is the server overloaded\?/,
+	// a fresh checkout's first run: build/gametest holds no server files yet, and the server says so
+	~/\(Minecraft\) Failed to load properties from file: server\.properties/,
+	~/\(Minecraft\) Failed to load eula\.txt/,
+	// a_broken_config_is_left_alone feeds the loader four broken files on purpose
+	~/\(hempdustry\) .*config\/hempdustry\.json/,
+]
+tasks.matching { it.name == "runGametest" }.configureEach {
+	doLast {
+		def log = file("build/gametest/logs/latest.log")
+		def unexpected = log.readLines().findAll { line ->
+			(line.contains("/WARN]") || line.contains("/ERROR]")) && !expectedGametestLog.any { line =~ it }
+		}
+		if (unexpected) {
+			throw new GradleException("Every game test passed, but the server logged " + unexpected.size()
+					+ " warning(s) nobody expected (${log}):\n" + unexpected.join("\n"))
+		}
+	}
+}
+
 processResources {
 	inputs.property "version", project.version
 

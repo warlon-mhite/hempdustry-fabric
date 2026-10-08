@@ -1,12 +1,9 @@
 package com.warlonmhite.hempdustry.test;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityType;
@@ -24,18 +21,12 @@ import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * Every string in every lang file is one the game actually asks for — <b>and this test exists
@@ -73,13 +64,13 @@ public final class LangGameTest {
         Set<String> read = new HashSet<>();
 
         for (Item item : Registries.ITEM) {
-            if (ours(Registries.ITEM.getId(item))) keys(new ItemStack(item).getName(), read);
+            if (Sweep.ours(Registries.ITEM.getId(item))) keys(new ItemStack(item).getName(), read);
         }
         for (Block block : Registries.BLOCK) {
-            if (ours(Registries.BLOCK.getId(block))) keys(block.getName(), read);
+            if (Sweep.ours(Registries.BLOCK.getId(block))) keys(block.getName(), read);
         }
         for (EntityType<?> type : Registries.ENTITY_TYPE) {
-            if (ours(Registries.ENTITY_TYPE.getId(type))) keys(type.getName(), read);
+            if (Sweep.ours(Registries.ENTITY_TYPE.getId(type))) keys(type.getName(), read);
         }
         // A loaded spliff, device or moon rock names itself from what is in it, so the stacks the
         // creative tab builds are named too, not just each item fresh.
@@ -112,32 +103,22 @@ public final class LangGameTest {
 
         Set<String> literals = new HashSet<>();
         Set<String> langKeys = new TreeSet<>();
-        // In a dev run the classes are a classpath entry of their own, beside the mod's resources.
-        Set<Path> roots = new HashSet<>(FabricLoader.getInstance().getModContainer(Hempdustry.MOD_ID).orElseThrow().getRootPaths());
-        try {
-            roots.add(Path.of(Hempdustry.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
-        for (Path root : roots) {
-            for (Path file : files(root)) {
-                String name = file.toString();
-                if (name.endsWith(".class")) {
-                    Matcher m = LITERAL.matcher(new String(bytes(file), StandardCharsets.ISO_8859_1));
-                    while (m.find()) literals.add(m.group());
-                } else if (name.contains("assets/hempdustry/lang/") && name.endsWith(".json")) {
-                    langKeys.addAll(json(file).keySet());
-                } else if (name.endsWith("assets/hempdustry/sounds.json")) {
-                    // The client reads a subtitle only for a sound event the server registered.
-                    json(file).entrySet().forEach(e -> {
-                        if (Registries.SOUND_EVENT.containsId(Identifier.of(Hempdustry.MOD_ID, e.getKey()))
-                                && e.getValue().getAsJsonObject().has("subtitle")) {
-                            read.add(e.getValue().getAsJsonObject().get("subtitle").getAsString());
-                        }
-                    });
-                }
+        Sweep.modFiles().forEach((name, file) -> {
+            if (name.endsWith(".class")) {
+                Matcher m = LITERAL.matcher(new String(Sweep.bytes(file), StandardCharsets.ISO_8859_1));
+                while (m.find()) literals.add(m.group());
+            } else if (name.startsWith("assets/hempdustry/lang/") && name.endsWith(".json")) {
+                langKeys.addAll(Sweep.json(file).getAsJsonObject().keySet());
+            } else if (name.equals("assets/hempdustry/sounds.json")) {
+                // The client reads a subtitle only for a sound event the server registered.
+                Sweep.json(file).getAsJsonObject().entrySet().forEach(e -> {
+                    if (Registries.SOUND_EVENT.containsId(Identifier.of(Hempdustry.MOD_ID, e.getKey()))
+                            && e.getValue().getAsJsonObject().has("subtitle")) {
+                        read.add(e.getValue().getAsJsonObject().get("subtitle").getAsString());
+                    }
+                });
             }
-        }
+        });
         context.assertTrue(literals.size() > 30, "found only " + literals.size() + " strings in the classes: the scan missed them");
         context.assertTrue(langKeys.size() > 100, "found only " + langKeys.size() + " lang keys: the lang files moved");
 
@@ -162,10 +143,6 @@ public final class LangGameTest {
         return dot > 0 && literals.contains(key.substring(0, dot + 1));
     }
 
-    private static boolean ours(Identifier id) {
-        return id.getNamespace().equals(Hempdustry.MOD_ID);
-    }
-
     private static void keys(Text text, Set<String> into) {
         if (text.getContent() instanceof TranslatableTextContent translatable) {
             into.add(translatable.getKey());
@@ -174,25 +151,5 @@ public final class LangGameTest {
             }
         }
         for (Text sibling : text.getSiblings()) keys(sibling, into);
-    }
-
-    private static Iterable<Path> files(Path root) {
-        try (Stream<Path> walk = Files.walk(root)) {
-            return walk.filter(Files::isRegularFile).toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static byte[] bytes(Path file) {
-        try {
-            return Files.readAllBytes(file);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static JsonObject json(Path file) {
-        return JsonParser.parseString(new String(bytes(file), StandardCharsets.UTF_8)).getAsJsonObject();
     }
 }

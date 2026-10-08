@@ -8,11 +8,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.display.RecipeDisplay;
 import net.minecraft.recipe.display.SlotDisplay;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.TestContext;
+import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * The creative tab is built without throwing — <b>and this test exists because it once did.</b>
@@ -46,16 +50,6 @@ import java.util.List;
  */
 public final class CreativeTabGameTest {
 
-    /**
-     * Items whose presence is asserted by name. Not the whole registry — a few registered items are
-     * deliberately absent from the tab (potted flowers, wall signs) — but every material the
-     * extraction bench added, because "add every new item to {@code ModItemGroups}" is a rule, and a
-     * rule with no check is a suggestion.
-     */
-    private static final List<Item> MUST_APPEAR = List.of(
-            ModItems.KIEF, ModItems.BUBBLE_HASH, ModItems.HASHISH, ModItems.FILTERED_HASHISH,
-            ModItems.CHARAS, ModItems.ROSIN, ModItems.MOON_ROCK);
-
     public static void creativeTabPopulates(TestContext context) {
         ServerWorld world = context.getWorld();
 
@@ -73,16 +67,17 @@ public final class CreativeTabGameTest {
         context.assertTrue(all.size() > 50,
                 "the creative tab built only " + all.size() + " stacks — it did not populate");
 
-        for (Item item : MUST_APPEAR) {
-            boolean found = false;
-            for (ItemStack stack : all) {
-                if (stack.isOf(item)) {
-                    found = true;
-                    break;
-                }
+        // Every item of ours is in the tab. "Add every new item to ModItemGroups" is a rule, and a rule
+        // with no check is a suggestion: until 2026-10-08 this named seven items by hand, so an item
+        // added since was checked by nothing.
+        Map<String, String> missing = new TreeMap<>();
+        for (Item item : Registries.ITEM) {
+            Identifier id = Registries.ITEM.getId(item);
+            if (Sweep.ours(id) && all.stream().noneMatch(stack -> stack.isOf(item))) {
+                missing.put(id.toString(), "is in no stack the tab or creative search shows");
             }
-            context.assertTrue(found, "the creative tab is missing " + item);
         }
+        Sweep.report(context, "Every item of ours is in the creative tab", missing, Map.of());
 
         // Everything the tab shows can be found by searching for it. PARENT_TAB_ONLY keeps a stack
         // out of the search tab, and is meant for a showcase whose full run is listed search-only;
