@@ -20,7 +20,8 @@ import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The Grow Lamp: an LED panel hung from the ceiling by two copper chains, purple diodes underneath.
+ * The Grow Lamp: an LED panel hung from the ceiling by two copper chains, a violet redstone lamp's
+ * face underneath.
  *
  * <p>It is vanilla's redstone lamp in everything that matters — lit by a signal the same way, off
  * four ticks after the signal goes — so a redstone torch <em>on</em> it does nothing, exactly as on a

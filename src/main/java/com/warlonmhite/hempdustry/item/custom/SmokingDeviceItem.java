@@ -57,7 +57,8 @@ import net.minecraft.world.World;
  *   <li><b>Repair works in either state.</b> Deliberate, and vanilla-consistent: a loaded crossbow
  *       carrying {@code charged_projectiles} is anvil-repairable too.</li>
  *   <li><b>The cooldown is shared across strains</b>, because {@code ItemCooldownManager} is keyed
- *       by {@code Item}. This closes an exploit — carrying one bong per strain used to give
+ *       by a cooldown group, which is the item's id when it carries no {@code use_cooldown}
+ *       component. This closes an exploit — carrying one bong per strain used to give
  *       independent cooldowns and double the smoke rate. {@link Smoking#startCooldown} now widens
  *       it further, to every smokeable at once, so a spliff in the other hand is no way round it
  *       either.</li>

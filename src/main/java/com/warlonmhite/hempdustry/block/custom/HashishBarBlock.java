@@ -34,9 +34,9 @@ import net.minecraft.world.World;
  * exist — brown {@code hashish_bar} and blonde {@link FilteredHashishBarBlock} — and they differ by
  * exactly one method, {@link #piece()}.
  *
- * <p><b>Both come out of the Dry Sifter, because pressing is what that block does.</b> Charas is the
- * only hash with no bar, and now for a reason rather than a quantity: it is the only one that is
- * never pressed. Hand-rubbed resin is rolled between the palms, not squeezed in a screen.
+ * <p><b>Both are made of what the Hemp Press makes, because a bar is pressed hash.</b> Charas is the
+ * only hash with no bar, and for a reason rather than a quantity: it is the only one that is never
+ * pressed. Hand-rubbed resin is rolled between the palms, which is why it gets a ball instead.
  *
  * <h2>Why the bar is a block at all</h2>
  *
@@ -217,7 +217,7 @@ public class HashishBarBlock extends Block {
      * included, and only falls through to {@link #onUse} when the result is
      * {@code instanceof ActionResult.PassToDefaultBlockAction} — which is exactly what
      * {@code AbstractBlock#onUseWithItem}'s default is. A plain {@code PASS} swallows the click.
-     * This shipped wrong in the Dry Sifter and was found by a player, not by the game test.
+     * This shipped wrong in the Sifting Box and was found by a player, not by the game test.
      */
     @Override
     protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,

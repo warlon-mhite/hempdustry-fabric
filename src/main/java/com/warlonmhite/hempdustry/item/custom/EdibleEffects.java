@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * What an edible does. See CLAUDE.md §5b D13 for the full design and the reasoning behind every
- * number; this class is the design made executable.
+ * What an edible does: the full design, and the reasoning behind every number, made executable.
  *
  * <h2>Two axes, carried from the cannabutter</h2>
  *

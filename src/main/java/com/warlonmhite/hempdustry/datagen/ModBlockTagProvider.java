@@ -165,7 +165,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.HEMP_BALE);
 
         valueLookupBuilder(BlockTags.AXE_MINEABLE)
-                // The Dry Sifter is a wooden crate and vanilla's composter — the block it copies —
+                // The Sifting Box is a wooden crate and vanilla's composter — the block it copies —
                 // is axe-mineable, so leaving it out meant no tool sped it up at all.
                 .add(ModBlocks.SIFTING_BOX)
                 .add(ModBlocks.HEMP_BRICKS_BLOCK)

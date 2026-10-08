@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
  *       slot: the tub holds one milk or none, and a two-state vessel is what vanilla fills in the
  *       world, like a cauldron. <b>One milk buys one cannabutter:</b> the tub stays full for the
  *       whole batch and takes the next bucket only once the result has been collected.</li>
- *   <li><b>Hemp dissolves gradually</b>, one item per {@link #ABSORB_INTERVAL}, and only until
+ *   <li><b>Hemp dissolves gradually</b>, one item per {@link #absorbInterval()}, and only until
  *       {@link #minTime()}. That is what locks a batch: past the loading window the absorber has had
  *       all its turns, so nothing more goes in however much room is left.</li>
  * </ul>
@@ -155,7 +155,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
 
     /**
      * Most hemp one batch can hold. <b>Derived, not chosen:</b> it is exactly how many
-     * {@link #ABSORB_INTERVAL}s fit in {@link #minTime()}, so the cap is a consequence of the
+     * {@link #absorbInterval()}s fit in {@link #minTime()}, so the cap is a consequence of the
      * dissolve rate rather than an independent number that has to be justified on its own.
      */
     public static final int BATCH_CAP = 24;
@@ -167,7 +167,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * all the turns it is going to get, so nothing more can go in whatever room is left.
      *
      * <p><b>Exactly one per interval, never catching up.</b> Backfilling from
-     * {@code progress / ABSORB_INTERVAL} would let hemp dropped in at tick 5999 be absorbed 23 at a
+     * {@code progress / absorbInterval()} would let hemp dropped in at tick 5999 be absorbed 23 at a
      * time, which throws away the point: reaching a full-strength batch should require the hemp to
      * have been <em>present</em> for the whole loading window. Load halfway through and you can only
      * reach 12.
@@ -387,7 +387,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
             // not a disaster. A batch that has run out of hemp entirely pauses the same way, and
             // resumes if more arrives before minTime().
             progress++;
-            // Exactly one hemp per interval, and only during the loading window. See ABSORB_INTERVAL.
+            // Exactly one hemp per interval, and only during the loading window. See absorbInterval().
             if (progress <= minTime() && progress % absorbInterval() == 0) {
                 absorbOne();
             }

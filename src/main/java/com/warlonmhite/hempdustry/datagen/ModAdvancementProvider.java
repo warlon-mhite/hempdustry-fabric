@@ -58,9 +58,8 @@ import java.util.function.Consumer;
 public class ModAdvancementProvider extends FabricAdvancementProvider {
 
     /**
-     * Background for every advancement in the tree. A placeholder — it is a plain block texture
-     * rather than a tiled advancement background, which is why the tab tiles oddly (CLAUDE.md §5
-     * #3). Kept in one constant so the real art is a one-line change.
+     * Background for every advancement in the tree: the hempcrete powder block, tiled the way
+     * vanilla tiles its own block-like tab backgrounds. Kept in one constant so a change is one line.
      *
      * <p><b>This is an asset id, not a file path.</b> Since 1.21.9 the field is a
      * {@link AssetInfo.TextureAssetInfo}, which expands what it is given to

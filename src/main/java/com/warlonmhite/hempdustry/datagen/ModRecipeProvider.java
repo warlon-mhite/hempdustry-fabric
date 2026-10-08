@@ -553,8 +553,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Buds come from the built-in strains rather than being named, exactly as the spliff recipes
         // do, so strain #3 is decarboxylatable the moment it exists.
         //
-        // Plant strains only: a hash entry's "buds" are resin, worth a bar or a pinch rather than a
-        // bud, and both are priced explicitly below.
+        // Plant strains only: a hash entry's "buds" are resin, and the oven takes plant matter,
+        // never resin -- hash is a smoking material and nothing else.
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
             if (strain.wildFlower().isEmpty()) {
@@ -666,7 +666,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .criterion(hasItem(ModItems.FILTERED_HASHISH), conditionsFromItem(ModItems.FILTERED_HASHISH))
                 .offerTo(exporter, id("filtered_hashish_bar"));
 
-        // The Dry Sifter: vanilla's composter with its two holes filled in. The composter is seven
+        // The Sifting Box: vanilla's composter with its two holes filled in. The composter is seven
         // wooden slabs in a U; a sift box is that same slatted box with a screen in it, so filling
         // the U's empty cells with the screen is a deliberate echo rather than a near miss -- and it
         // only lands because these are slabs, not planks.
@@ -892,8 +892,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             // the plain recipes, whose rows are all buds.
             //
             // Deliberately NOT a full dose ladder: there is no 1 bud + 2 hash. Hash's sweet spot is
-            // one piece, since Resistance is the only effect in the family that scales, so a second
-            // pinch would buy almost nothing and double the recipe count again.
+            // one piece, since Resistance is the only buff in the family that scales (Hunger does
+            // too, but it is a cost), so a second pinch would buy almost nothing and double the recipe count again.
             //
             // A CONCENTRATE IS NOT A PINCH, so rosin is excluded and anything like it will be too.
             // dosePerItem > 1 is the mod-wide spelling of "one of these is a whole bowl": a paper

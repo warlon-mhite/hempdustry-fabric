@@ -334,7 +334,7 @@ public class ModBlocks {
 
 
     /**
-     * The Dry Sifter. A screened wooden box, so it is wood rather than the two machines' stone —
+     * The Sifting Box. A screened wooden box, so it is wood rather than the two machines' stone —
      * it is a sieve on a frame, not a furnace, and it should read as something a farmer built.
      *
      * <p><b>{@code nonOpaque()} for the same reason the Infuser needs it:</b> the model is an open
@@ -354,24 +354,6 @@ public class ModBlocks {
                     .sounds(BlockSoundGroup.WOOD));
 
 
-    /**
-     * The pressed slab of hashish, and the hash family's storage block. Cut with a blade, nine
-     * pieces to a bar — see {@link HashishBarBlock}.
-     *
-     * <p>{@code BlockSoundGroup.HONEY} is the reuse: sticky, soft, resinous, and a sound group that
-     * already exists. {@code nonOpaque} because the bar is 4 px tall and must not cull whatever it
-     * sits next to. {@code PistonBehavior.DESTROY} because a partially-cut bar carries state a
-     * piston cannot move, which is what vanilla does to cake for the same reason.
-     *
-     * <p><b>Deliberately not in {@code #minecraft:enderman_holdable}</b>, same reasoning as the
-     * two-block plant: an enderman would put the bar back with its cut count reset.
-     *
-     * <p><b>And deliberately not in {@code #c:storage_blocks}</b>, despite being a 9↔9 block — this
-     * is the one worth saying out loud. That convention tag means "nine of an item, and you can get
-     * them back out", so another mod generating uncrafting recipes from it would mint exactly the
-     * shapeless unpack this block exists to refuse. A bar unpacks <em>by being cut</em>, with a blade
-     * and a durability cost; a tag that quietly undoes that is worse than no tag at all.
-     */
     /**
      * Heated from below, and emitting no light of its own — the heat is the neighbour's, and a block
      * that glowed would be claiming otherwise. Stone-hard and tool-gated like the other two machines.
@@ -422,6 +404,24 @@ public class ModBlocks {
                     .nonOpaque()
                     .sounds(BlockSoundGroup.COPPER));
 
+    /**
+     * The pressed slab of hashish, and the hash family's storage block. Cut with a blade, nine
+     * pieces to a bar — see {@link HashishBarBlock}.
+     *
+     * <p>{@code BlockSoundGroup.HONEY} is the reuse: sticky, soft, resinous, and a sound group that
+     * already exists. {@code nonOpaque} because the bar is 4 px tall and must not cull whatever it
+     * sits next to. {@code PistonBehavior.DESTROY} because a partially-cut bar carries state a
+     * piston cannot move, which is what vanilla does to cake for the same reason.
+     *
+     * <p><b>Deliberately not in {@code #minecraft:enderman_holdable}</b>, same reasoning as the
+     * two-block plant: an enderman would put the bar back with its cut count reset.
+     *
+     * <p><b>And deliberately not in {@code #c:storage_blocks}</b>, despite being a 9↔9 block — this
+     * is the one worth saying out loud. That convention tag means "nine of an item, and you can get
+     * them back out", so another mod generating uncrafting recipes from it would mint exactly the
+     * shapeless unpack this block exists to refuse. A bar unpacks <em>by being cut</em>, with a blade
+     * and a durability cost; a tag that quietly undoes that is worse than no tag at all.
+     */
     public static final Block HASHISH_BAR = registerBlock("hashish_bar", HashishBarBlock::new,
             AbstractBlock.Settings.create()
                     .strength(0.5F)
@@ -430,7 +430,7 @@ public class ModBlocks {
                     .pistonBehavior(PistonBehavior.DESTROY));
 
     /**
-     * The blonde bar — the Dry Sifter's resin pass, pressed. Settings copied from
+     * The blonde bar — nine filtered hashish, crafted together. Settings copied from
      * {@link #HASHISH_BAR} because it <em>is</em> that block in a different colour; see
      * {@link FilteredHashishBarBlock} for why the symmetry is deliberate.
      */
@@ -442,11 +442,6 @@ public class ModBlocks {
                     .nonOpaque()
                     .pistonBehavior(PistonBehavior.DESTROY));
 
-    /**
-     * Space Cake — vanilla's cake, baked with cannabutter. Copies {@code Blocks.CAKE}'s settings
-     * wholesale (0.5 hardness, wool sounds, no occlusion) so it behaves identically to the block
-     * players already know; the {@code maxCount(1)} on its item is vanilla's cake too.
-     */
     /**
      * Nine charas, rolled together. <b>A ball and not a bar, and that is the whole point.</b>
      *
@@ -469,6 +464,11 @@ public class ModBlocks {
                     .nonOpaque()
                     .pistonBehavior(PistonBehavior.DESTROY));
 
+    /**
+     * Space Cake — vanilla's cake, baked with cannabutter. Copies {@code Blocks.CAKE}'s settings
+     * wholesale (0.5 hardness, wool sounds, no occlusion) so it behaves identically to the block
+     * players already know; the {@code maxCount(1)} on its item is vanilla's cake too.
+     */
     public static final Block SPACE_CAKE = registerBlockWithItem("space_cake", SpaceCakeBlock::new,
             AbstractBlock.Settings.copy(Blocks.CAKE),
             EdibleBlockItem::new,

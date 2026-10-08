@@ -196,7 +196,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.DAWAMESK)
                 .add(ModItems.BHANG_BUCKET);
 
-        // What the Dry Sifter will shake resin out of, split by how much resin there is to shake.
+        // What the Sifting Box will shake resin out of, split by how much resin there is to shake.
         // Flower is where the trichomes actually are, so a bud fills a level every time; leaf is
         // bulk with a thin dusting on it and takes about three. The two rates *are* the balance of
         // the block, which is why they are two tags rather than one — see SiftingBoxBlock.
@@ -208,7 +208,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
             // Only things that grew on a plant are plant matter. Hashish is a strain entry too, but
-            // its "buds" are resin: it goes back into the screen as CONTENT = HASH, never as flower.
+            // its "buds" are resin, and resin never goes back into the screen: only kief re-sifts.
             // Beldía's buds sit in their own tag below, at their own rate.
             if (strain.wildFlower().isPresent() && strain.buds() != ModItems.BELDIA_BUDS) {
                 flower.add(strain.buds());

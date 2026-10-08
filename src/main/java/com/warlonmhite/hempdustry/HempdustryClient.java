@@ -126,7 +126,7 @@ public class HempdustryClient implements ClientModInitializer {
      *
      * <p>The tint is applied by the <em>model</em>, not here: only faces carrying
      * {@code "tintindex": 0} ask, which is why the crop stage models parent
-     * {@code minecraft:block/tinted_cross} and the flowers are datagen'd {@code TintType.TINTED}.
+     * {@code hempdustry:block/tinted_crop} and the flowers are datagen'd {@code TintType.TINTED}.
      * The bud, seed and flower <b>items</b> are untouched — their models declare no tint index, so
      * an item in a hand or a slot looks exactly as drawn, with no biome to ask about anyway.
      *

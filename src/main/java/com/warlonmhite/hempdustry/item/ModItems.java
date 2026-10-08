@@ -116,30 +116,11 @@ public class ModItems {
     public static final Item SCORCHED_HEMP = registerItem("scorched_hemp", settings -> new Item(settings));
 
     /**
-     * Pressed dry-sift hashish — resin separated from the plant and squeezed into a slab.
-     *
-     * <p><b>Strain-agnostic</b>, like everything else this far down the chain. Sifting is a
-     * mechanical separation, not a chemical one: it keeps the trichome heads and throws the leaf
-     * away, and a trichome head is a trichome head whichever plant grew it. That also means it can
-     * never carry a strain the way a spliff does, which is why it is here beside the oven's two
-     * intermediates rather than in the smoking run.
-     *
-     * <p><b>Inert in the hand, like the rest of the raw plant.</b> Sifting concentrates THCA; it
-     * does not decarboxylate it. Eating a lump of hash does close to nothing, so this has no food
-     * component and no effects — it goes through the Decarboxylator like everything else: heat
-     * activates, and raw plant does nothing.
-     */
-    /**
      * What falls through the screen when plant matter is shaken over it dry. <b>Not smokeable</b> —
      * loose powder falls straight through a bowl's screen, which is exactly why the trade presses it.
      * Press it into {@link #HASHISH}, or stick it to a bud as a moon rock's coat.
      */
     public static final Item KIEF = registerItem("kief", settings -> new Item(settings));
-    /**
-     * The same trichome heads, washed out in ice water instead of screened out dry: cleaner, with
-     * almost no leaf in it. Presses into {@link #FILTERED_HASHISH}, which is where the smoothness
-     * shows up. Not smokeable, for the same reason kief is not.
-     */
     /**
      * Kief put over the screen a second time at a finer mesh — the trade's <i>3× filtré</i>, at two
      * passes rather than three. <b>The dry road to a blonde product</b>, and the expensive one: each
@@ -150,21 +131,42 @@ public class ModItems {
      * the price: see {@code SiftingBoxBlock.KIEF_CHANCE}.
      */
     public static final Item FILTERED_KIEF = registerItem("filtered_kief", settings -> new Item(settings));
+    /**
+     * The same trichome heads, washed out in ice water instead of screened out dry: cleaner, with
+     * almost no leaf in it. Presses into {@link #FILTERED_HASHISH}, which is where the smoothness
+     * shows up. Not smokeable, for the same reason kief is not.
+     */
     public static final Item BUBBLE_HASH = registerItem("bubble_hash", settings -> new Item(settings));
+    /**
+     * Hashish — {@link #KIEF} pressed in the Hemp Press, one for one: resin separated from the
+     * plant and squeezed together.
+     *
+     * <p><b>Strain-agnostic</b>, like everything else this far down the chain. Sifting is a
+     * mechanical separation, not a chemical one: it keeps the trichome heads and throws the leaf
+     * away, and a trichome head is a trichome head whichever plant grew it. That also means it can
+     * never carry a strain the way a spliff does, which is why it is here beside the oven's two
+     * intermediates rather than in the smoking run.
+     *
+     * <p><b>Inert in the hand, like the rest of the raw plant.</b> Sifting concentrates THCA and
+     * pressing does not decarboxylate it. Eating a lump of hash does close to nothing, so this has
+     * no food component and no effects — and it never goes through the Decarboxylator either: the
+     * oven takes plant matter and the bowl takes resin, so hash is a smoking material only, and the
+     * flame is its heat.
+     */
     public static final Item HASHISH = registerItem("hashish", settings -> new Item(settings));
 
     /**
      * Charas — soft black resin rubbed off a <b>living</b> plant, and the only hash you can have
      * before you own a single block.
      *
-     * <p>It comes off the shears while trimming ({@link com.warlonmhite.hempdustry.block.custom.Defoliation#tryCut},
-     * 1-in-8 per cut) and <b>the plant survives</b>, which is what makes it a different verb from
+     * <p>It comes off the shears when a ripe plant is rubbed ({@link com.warlonmhite.hempdustry.block.custom.Defoliation#tryCut},
+     * a 1-in-4 roll, once per plant) and <b>the plant survives</b>, which is what makes it a different verb from
      * everything else in the mod: every other material comes from killing a plant or feeding a
      * block, and this one comes from looking after one.
      *
-     * <p><b>No bar and no block, ever.</b> Only pressed hash gets a bar, because pressing is what a
-     * bar <em>is</em>. Charas is soft, unpressed and scarce enough that you will rarely hold nine at
-     * once, so a storage block would be one nobody fills.
+     * <p><b>No bar, ever.</b> Only pressed hash gets a bar, because pressing is what a bar
+     * <em>is</em>, and charas never goes through the Press. Nine of it roll into a
+     * {@code charas_ball} instead — rolled between the palms, which is how charas is actually sold.
      *
      * <p><b>It really is scissor hash.</b> The resin that gums up a trimmer's blades, scraped off
      * and smoked, is a known trimmer's perk with its own name; charas proper is rubbed from living
@@ -182,28 +184,28 @@ public class ModItems {
      *
      * <p><b>Filtering is real and it is about purity, not power.</b> Successive sieve passes at
      * shrinking mesh — 160 → 90 → 70 µm in the trade — with the plant matter pulled out between
-     * each. Trichome heads run 25–200 µm, so every pass drops more leaf and keeps less. Seven
-     * hashish in, four out: a 43% yield loss, which is the honest cost of a pass.
+     * each. Trichome heads run 25–200 µm, so every pass drops more leaf and keeps less: the dry
+     * re-sift takes about three kief for each {@link #FILTERED_KIEF}, which is the honest cost of a
+     * pass. The Hemp Press makes this from that or from {@link #BUBBLE_HASH}, one for one.
      *
      * <p><b>What that buys is smoothness, not strength.</b> Same effects at the same amplifiers, and
      * <em>half</em> the green-out odds via {@code green_out_factor = 2.0}. That is the honest
      * version: less leaf means less chlorophyll and less coughing, which is the entire reason anyone
-     * filters. It is a true sidegrade — 43% of your hash for a gentler ride.
+     * filters. It is a true sidegrade — two thirds of your kief, or an ice wash, for a gentler ride.
      *
-     * <p><b>Loose, and there is no bar.</b> The Dry Sifter presses <em>plant-derived</em> powder into
-     * a slab because there is enough of it to press; re-sifting resin leaves a small quantity of very
-     * fine powder and there is not. Bubble hash comes out of the bags the same way, and it is what
-     * gives the block's two content kinds two different shapes of output rather than two numbers.
+     * <p><b>It has a bar, like hashish.</b> Nine in the grid make the blonde
+     * {@code filtered_hashish_bar}, the brown bar in another colour, and only a blade gets them back
+     * out.
      *
      * <p><b>Deliberately not named for a pass count.</b> It was "Triple-Filtered" until 2026-09-09
-     * and that was simply wrong arithmetic: the block runs <em>two</em> passes, the bar and the
-     * re-sift. But the fix is not "Double-Filtered" — <b>a number in the name promises a ladder</b>,
+     * and that was simply wrong arithmetic: the dry road runs <em>two</em> passes, the sift and
+     * the re-sift. But the fix is not "Double-Filtered" — <b>a number in the name promises a ladder</b>,
      * and this mod made purity a single sidegrade rather than a grade ladder on purpose (the family's
      * axis is <em>method</em>, not grade). The registered id never carried a number either.
      *
      * <p><b>It is not siftable again</b>, so the mod's one filtering step stands for the trade's
      * whole 1×–3× range. A third pass would be a second near-identical blonde for no mechanic, and
-     * the 43% loss already says what a pass costs.
+     * the re-sift's three to one already says what a pass costs.
      */
     public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", settings -> new Item(settings));
     /**
@@ -212,7 +214,8 @@ public class ModItems {
      */
     public static final Item ROSIN = registerItem("rosin", settings -> new Item(settings));
     /**
-     * A bud dipped in rosin and rolled in hashish. One item for every strain: the strain rides in
+     * A bud dipped in rosin and rolled in a hash coat — hashish, charas or filtered hashish. One
+     * item for every strain and every coat: the strain rides in
      * the {@code smoke_contents} component, exactly as it does on a spliff. See {@link MoonRockItem}.
      */
     public static final Item MOON_ROCK = registerItem("moon_rock", settings -> new MoonRockItem(settings));
@@ -439,7 +442,7 @@ public class ModItems {
     /**
      * Every disc the mod ships, in one place — the creative tab, the two disc tags and the chest
      * loot pool all read this, so a new disc is one entry here plus its item, song and sounds.json
-     * lines. Same "one list, no per-item plumbing" shape as {@link Strain#ACTIVE}.
+     * lines. Same "one list, no per-item plumbing" shape as {@link ModStrains#BUILT_IN}.
      */
     public static final List<Item> MUSIC_DISCS = List.of(MUSIC_DISC_MOONLIGHT, MUSIC_DISC_ROBADOB);
 
