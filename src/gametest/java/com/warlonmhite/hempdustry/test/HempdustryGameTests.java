@@ -113,7 +113,6 @@ public class HempdustryGameTests implements ModInitializer {
                 AdvancementGameTest::breakingTheBedHarvestsThePlantFirst);
         register("smoke_nodes_read_the_load", AdvancementGameTest::smokeNodesReadTheLoad);
         register("obtaining_grants_the_extraction_nodes", AdvancementGameTest::obtainingGrantsTheExtractionNodes);
-        register("advancement_criteria_keep_their_names", AdvancementGameTest::advancementCriteriaKeepTheirNames);
         register("a_big_dose_buys_time_not_level", RebalanceGameTest::aBigDoseBuysTimeNotLevel);
         register("a_full_green_out_ends_the_high", RebalanceGameTest::aFullGreenOutEndsTheHigh);
         register("a_lowered_level_cap_still_buys_time", RebalanceGameTest::aLoweredLevelCapStillBuysTime);
@@ -155,6 +154,8 @@ public class HempdustryGameTests implements ModInitializer {
         register("every_enchantable_item_takes_an_enchantment",
                 SweepGameTest::everyEnchantableItemTakesAnEnchantment);
         register("every_sound_is_mono_and_on_disk", SweepGameTest::everySoundIsMonoAndOnDisk);
+        register("the_frozen_surface_holds", FrozenSurfaceGameTest::theFrozenSurfaceHolds);
+        register("old_data_still_loads", FrozenSurfaceGameTest::oldDataStillLoads);
     }
 
     private static void register(String name, Consumer<TestContext> test) {

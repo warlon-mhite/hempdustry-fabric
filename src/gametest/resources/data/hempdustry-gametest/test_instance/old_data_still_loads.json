@@ -1,7 +1,7 @@
 {
   "type": "minecraft:function",
   "environment": "minecraft:default",
-  "function": "hempdustry-gametest:advancement_criteria_keep_their_names",
+  "function": "hempdustry-gametest:old_data_still_loads",
   "structure": "fabric-gametest-api-v1:empty",
   "max_ticks": 200,
   "setup_ticks": 0,
