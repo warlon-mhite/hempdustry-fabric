@@ -156,6 +156,15 @@ public class HempdustryGameTests implements ModInitializer {
         register("every_sound_is_mono_and_on_disk", SweepGameTest::everySoundIsMonoAndOnDisk);
         register("the_frozen_surface_holds", FrozenSurfaceGameTest::theFrozenSurfaceHolds);
         register("old_data_still_loads", FrozenSurfaceGameTest::oldDataStillLoads);
+        register("every_block_state_survives_a_tick_and_a_break",
+                SweepGameTest::everyBlockStateSurvivesATickAndABreak);
+        register("every_config_extreme_keeps_the_numbers_sane",
+                SweepGameTest::everyConfigExtremeKeepsTheNumbersSane);
+        register("the_written_rules_hold", SweepGameTest::theWrittenRulesHold);
+        register("every_item_can_be_had_in_survival", SweepGameTest::everyItemCanBeHadInSurvival);
+        register("every_tooltip_names_a_real_key", LangGameTest::everyTooltipNamesARealKey);
+        register("every_translation_keeps_its_placeholders",
+                LangGameTest::everyTranslationKeepsItsPlaceholders);
     }
 
     private static void register(String name, Consumer<TestContext> test) {

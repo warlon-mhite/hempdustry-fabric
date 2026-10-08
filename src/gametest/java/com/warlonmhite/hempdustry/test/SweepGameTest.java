@@ -2,32 +2,47 @@ package com.warlonmhite.hempdustry.test;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
+import com.warlonmhite.hempdustry.balance.EdibleBundle;
+import com.warlonmhite.hempdustry.block.custom.HempGrowth;
+import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
+import com.warlonmhite.hempdustry.config.EffectPolicy;
+import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
+import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
+import com.warlonmhite.hempdustry.item.custom.Quality;
+import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.recipe.DecarboxylatingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.recipe.PressingRecipe;
+import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
+
 import io.netty.buffer.Unpooled;
+
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.RepairableComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.loot.LootTable;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
@@ -49,23 +64,35 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryLoader;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Property;
 import net.minecraft.test.TestContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.world.gen.feature.ConfiguredFeature;
+import net.minecraft.world.gen.feature.Feature;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Rules every piece of content must keep, checked across the whole registry.
@@ -80,6 +107,9 @@ public final class SweepGameTest {
 
     /** Where the block sweeps put each block, one at a time. */
     private static final BlockPos AT = new BlockPos(1, 1, 1);
+
+    /** Where the state sweep works, clear of the test's own structure block. */
+    private static final BlockPos FUZZ_AT = new BlockPos(4, 1, 4);
 
     /** How many of an ingredient's items the recipe sweeps try, so a wide tag does not run away. */
     private static final int CHOICES = 32;
@@ -416,6 +446,223 @@ public final class SweepGameTest {
         context.complete();
     }
 
+    /**
+     * Every state of every block of ours survives what the world does to a block — a random tick, a
+     * scheduled tick, a neighbour update, its shapes, its comparator, pick-block, its loot by hand,
+     * with a pickaxe and with shears — and a break, without throwing.
+     *
+     * <p>An exception in a block's tick takes the server down with it, and one in its loot, shape or
+     * pick-block code reaches a player the first time they meet that state. The crops alone have
+     * hundreds of states, most of which no test of their own ever builds.
+     */
+    public static void everyBlockStateSurvivesATickAndABreak(TestContext context) {
+        ServerWorld world = context.getWorld();
+        BlockPos pos = context.getAbsolutePos(FUZZ_AT);
+        Random random = Random.create(20261008L);
+        List<ItemStack> tools = List.of(ItemStack.EMPTY, new ItemStack(Items.NETHERITE_PICKAXE), new ItemStack(Items.SHEARS));
+        Map<String, String> findings = new TreeMap<>();
+        int states = 0;
+        for (Block block : Registries.BLOCK) {
+            Identifier id = Registries.BLOCK.getId(block);
+            if (!Sweep.ours(id)) continue;
+            for (BlockState state : block.getStateManager().getStates()) {
+                states++;
+                try {
+                    world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
+                    if (world.getBlockState(pos).hasRandomTicks()) world.getBlockState(pos).randomTick(world, pos, random);
+                    world.getBlockState(pos).scheduledTick(world, pos, random);
+                    world.getBlockState(pos).neighborUpdate(world, pos, Blocks.STONE, null, false);
+                    BlockState now = world.getBlockState(pos);
+                    now.getOutlineShape(world, pos);
+                    now.getCollisionShape(world, pos);
+                    if (now.hasComparatorOutput()) now.getComparatorOutput(world, pos, Direction.NORTH);
+                    now.getPickStack(world, pos, true);
+                    for (ItemStack tool : tools) Block.getDroppedStacks(now, world, pos, world.getBlockEntity(pos), null, tool);
+                    world.breakBlock(pos, true);
+                } catch (RuntimeException | LinkageError | AssertionError e) {
+                    findings.putIfAbsent(id.toString(), state + " threw " + e);
+                } finally {
+                    for (BlockPos near : BlockPos.iterate(pos.add(-1, 0, -1), pos.add(1, 3, 1))) {
+                        world.setBlockState(near, Blocks.AIR.getDefaultState(), Block.FORCE_STATE_AND_SKIP_CALLBACKS_AND_DROPS);
+                    }
+                    take(world, pos);
+                }
+            }
+        }
+        Sweep.atLeast(context, "block states", states, 500);
+        Sweep.report(context, "Every state of every block of ours survives a tick and a break", findings, Map.of());
+        context.complete();
+    }
+
+    /**
+     * Every config setting at the bottom of its range, every multiplier a hair above zero, and every
+     * setting at the top of its range still give numbers that make sense — effects that last, odds
+     * that are odds, machine times in order — and a setting turned down never makes anything
+     * stronger than the default does.
+     *
+     * <p>A {@code greenOutChanceMultiplier} just above 0 made the odds so long that, narrowed to an
+     * int, they wrapped negative, and {@code max(1, …)} turned that into a green-out on every hit
+     * (until 2.0.3). "At least one" was true of the broken number too, so the test asks which way it
+     * moved.
+     */
+    public static void everyConfigExtremeKeepsTheNumbersSane(TestContext context) {
+        ServerWorld world = context.getWorld();
+        JsonObject defaults = HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT)
+                .getOrThrow().getAsJsonObject();
+        Numbers normal = Numbers.now(world);
+        Map<String, String> findings = new TreeMap<>();
+        for (Extreme extreme : Extreme.values()) {
+            ConfigGameTest.withConfig(extreme.over(defaults).toString(), () -> {
+                Numbers at = Numbers.now(world);
+                String where = "every setting " + extreme.description;
+                for (StatusEffectInstance effect : at.effects()) {
+                    if (effect.getDuration() < 1 || effect.getAmplifier() < 0 || effect.getAmplifier() > 255) {
+                        findings.putIfAbsent(where, effect + " is not an effect a player can have");
+                    }
+                }
+                boolean down = extreme != Extreme.TOP;
+                checkWay(findings, where, "a 900-tick effect's length", normal.duration(), at.duration(), down);
+                checkWay(findings, where, "a 100-tick cooldown", normal.cooldown(), at.cooldown(), down);
+                checkWay(findings, where, "a crop's growth odds", normal.growth(), at.growth(), down);
+                checkWay(findings, where, "an edible's onset", normal.onset(), at.onset(), down);
+                // Green-out odds are one-in-n: turned down, n grows (or 0, never); turned up, n shrinks.
+                boolean longer = at.greenOutOneIn() == 0 || at.greenOutOneIn() >= normal.greenOutOneIn();
+                if (down != longer || at.greenOutOneIn() < 0) {
+                    findings.putIfAbsent(where + " green-out", "one-in-" + normal.greenOutOneIn() + " became one-in-" + at.greenOutOneIn());
+                }
+                if (at.infuserMin() < 1 || at.infuserFull() <= at.infuserMin()) {
+                    findings.putIfAbsent(where + " infuser", "the batch's times are " + at.infuserMin() + " and " + at.infuserFull());
+                }
+            });
+        }
+        Sweep.atLeast(context, "effects measured", normal.effects().size(), 50);
+        Sweep.report(context, "Every config extreme keeps the numbers sane", findings, Map.of());
+        context.complete();
+    }
+
+    /**
+     * Rules the mod is built on, written down beside the code, held as checks.
+     * <ul>
+     *   <li><b>Heat activates; raw plant does nothing.</b> No raw bud, leaf or seed can be eaten or
+     *   drunk at all: every edible goes through the Decarboxylator.</li>
+     *   <li><b>A {@code Feature.FLOWER} patch is a bone-meal recipe</b> — bone-mealed grass grows any
+     *   flower feature of its biome, so a wild plant placed by one was free seeds wherever it spawned.</li>
+     *   <li><b>No two-block plant may be held by an enderman</b>: lifting one half orphans the other,
+     *   which pops off and rolls the loot.</li>
+     *   <li><b>No boolean property of ours defaults to true</b>: one left out of
+     *   {@code setDefaultState} does, and two days of seeds were planted pre-trimmed that way.</li>
+     * </ul>
+     */
+    public static void theWrittenRulesHold(TestContext context) {
+        DynamicRegistryManager registries = context.getWorld().getRegistryManager();
+        Map<String, String> findings = new TreeMap<>();
+        for (TagKey<Item> raw : List.of(ModTags.Conventional.HEMP_CROPS, ModTags.Items.HEMP_SEEDS)) {
+            for (RegistryEntry<Item> item : registries.getOrThrow(RegistryKeys.ITEM).getOrThrow(raw)) {
+                if (item.value().getComponents().contains(DataComponentTypes.CONSUMABLE)) {
+                    findings.put("heat activates: " + item.getIdAsString(), "is raw plant and can be eaten or drunk");
+                }
+            }
+        }
+        registries.getOrThrow(RegistryKeys.CONFIGURED_FEATURE).getEntrySet().forEach(entry -> {
+            if (Sweep.ours(entry.getKey().getValue())
+                    && entry.getValue().getDecoratedFeatures().anyMatch(feature -> feature.feature() == Feature.FLOWER)) {
+                findings.put("flower feature: " + entry.getKey().getValue(), "is or holds a Feature.FLOWER — use RANDOM_PATCH");
+            }
+        });
+        for (Block block : Registries.BLOCK) {
+            Identifier id = Registries.BLOCK.getId(block);
+            if (!Sweep.ours(id)) continue;
+            BlockState state = block.getDefaultState();
+            boolean twoHigh = state.getProperties().stream().anyMatch(property -> property.getName().equals("half")
+                    || property.getName().equals("segment"));
+            if (twoHigh && state.isIn(BlockTags.ENDERMAN_HOLDABLE)) {
+                findings.put("enderman: " + id, "is a plant of more than one block, in #minecraft:enderman_holdable");
+            }
+            for (Property<?> property : state.getProperties()) {
+                if (property instanceof BooleanProperty flag && state.get(flag)) {
+                    findings.put("default false: " + id + " " + flag.getName(), "defaults to true");
+                }
+            }
+        }
+        Sweep.report(context, "The rules written down beside the code hold", findings, Map.of(
+                "default false: hempdustry:hemp_bricks_wall up", "vanilla's WallBlock: a wall on its own stands as a post"));
+        context.complete();
+    }
+
+    /**
+     * Every item of ours can be had in survival, starting from nothing a player did not find: what
+     * chests, mobs, fishing, brushing and vanilla's own blocks drop (with what we add to them), and
+     * what worldgen places; then anything a recipe makes from what can be had, and anything one of
+     * our blocks drops once its item can be had and placed. A block dropping itself is no source, so
+     * a block whose recipe is gone is a finding. What only code hands out is listed with the code.
+     */
+    public static void everyItemCanBeHadInSurvival(TestContext context) {
+        ServerWorld world = context.getWorld();
+        DynamicOps<JsonElement> json = world.getRegistryManager().getOps(JsonOps.INSTANCE);
+        Map<String, String> byCode = Map.of(
+                "hempdustry:retted_hemp_stem", "a water cauldron rets hemp stems (ModCauldronBehaviors)",
+                "hempdustry:washed_decarboxylated_hemp", "a water cauldron washes decarboxylated hemp (ModCauldronBehaviors)",
+                "hempdustry:charas", "shears rubbing a ripe plant drop it (Defoliation)",
+                "hempdustry:hempcrete_block", "hempcrete powder hardens into it in water (CustomConcreteBlock)");
+        Set<String> had = new HashSet<>(byCode.keySet());
+        Map<Block, Set<String>> ourBlockDrops = new HashMap<>();
+        world.getServer().getReloadableRegistries().createRegistryLookup().getOrThrow(RegistryKeys.LOOT_TABLE)
+                .streamEntries().forEach(table -> {
+                    Set<String> drops = ids(LootTable.CODEC.encodeStart(json, table.value()).getOrThrow().toString());
+                    Identifier id = table.registryKey().getValue();
+                    Block block = Sweep.ours(id) && id.getPath().startsWith("blocks/")
+                            ? Registries.BLOCK.getOptionalValue(Identifier.of(id.getNamespace(), id.getPath().substring(7))).orElse(null)
+                            : null;
+                    if (block == null) had.addAll(drops);
+                    else ourBlockDrops.put(block, drops);
+                });
+        // A block worldgen places can be broken where it stands.
+        world.getRegistryManager().getOrThrow(RegistryKeys.CONFIGURED_FEATURE).getEntrySet().forEach(feature -> {
+            if (!Sweep.ours(feature.getKey().getValue())) return;
+            for (String placed : ids(ConfiguredFeature.CODEC.encodeStart(json, feature.getValue()).getOrThrow().toString())) {
+                Registries.BLOCK.getOptionalValue(Identifier.of(placed)).map(ourBlockDrops::get).ifPresent(had::addAll);
+            }
+        });
+        List<Sample> samples = samples(world, true, new HashMap<>());
+        for (boolean grew = true; grew; ) {
+            grew = false;
+            for (Map.Entry<Block, Set<String>> block : ourBlockDrops.entrySet()) {
+                if (had.contains(Registries.ITEM.getId(block.getKey().asItem()).toString())) grew |= had.addAll(block.getValue());
+            }
+            for (Sample sample : samples) {
+                boolean supplied = true;
+                for (int i = 0; i < sample.input().size(); i++) {
+                    Identifier needed = Registries.ITEM.getId(sample.input().getStackInSlot(i).getItem());
+                    supplied &= sample.input().getStackInSlot(i).isEmpty() || !Sweep.ours(needed) || had.contains(needed.toString());
+                }
+                if (supplied) {
+                    grew |= had.add(Registries.ITEM.getId(craft(sample.recipe().value(), sample.input(), world).getItem()).toString());
+                }
+            }
+        }
+        Map<String, String> findings = new TreeMap<>();
+        int items = 0;
+        for (Item item : Registries.ITEM) {
+            Identifier id = Registries.ITEM.getId(item);
+            if (!Sweep.ours(id)) continue;
+            items++;
+            if (!had.contains(id.toString()) || byCode.containsKey(id.toString())) {
+                findings.put(id.toString(), "nothing a player can find or make leads to it");
+            }
+        }
+        Sweep.atLeast(context, "items", items, 100);
+        Sweep.report(context, "Every item of ours can be had in survival", findings, byCode);
+        context.complete();
+    }
+
+    /** Every id of ours named anywhere in {@code text}. */
+    private static Set<String> ids(String text) {
+        Set<String> found = new HashSet<>();
+        Matcher named = Pattern.compile("hempdustry:[a-z0-9_/.]+").matcher(text);
+        while (named.find()) found.add(named.group());
+        return found;
+    }
+
     // ----- recipes -----
 
     private record Sample(RecipeEntry<?> recipe, RecipeInput input) {
@@ -528,6 +775,69 @@ public final class SweepGameTest {
         if (a.size() != b.size()) return false;
         for (int i = 0; i < a.size(); i++) if (!ItemStack.areEqual(a.get(i), b.get(i))) return false;
         return true;
+    }
+
+    // ----- config -----
+
+    /** Where {@link #everyConfigExtremeKeepsTheNumbersSane} puts every setting. */
+    private enum Extreme {
+        // The sentinels are what the log gate in build.gradle lets through as a clamp warning.
+        BOTTOM("at the bottom of its range", -1_000_000_000, -1.0E9),
+        HAIR("a hair above zero", null, 1.0E-9),
+        TOP("at the top of its range", 1_000_000_000, 1.0E9);
+
+        private final String description;
+        private final Integer whole;
+        private final double fraction;
+
+        Extreme(String description, Integer whole, double fraction) {
+            this.description = description;
+            this.whole = whole;
+            this.fraction = fraction;
+        }
+
+        /** The default config with every number replaced; whole-number settings keep theirs at {@link #HAIR}. */
+        JsonElement over(JsonElement json) {
+            if (json.isJsonObject()) {
+                JsonObject out = new JsonObject();
+                json.getAsJsonObject().entrySet().forEach(e -> out.add(e.getKey(), over(e.getValue())));
+                return out;
+            }
+            if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isNumber()) return json;
+            if (json.getAsNumber() instanceof Integer) return whole == null ? json : new JsonPrimitive(whole);
+            return new JsonPrimitive(fraction);
+        }
+    }
+
+    /** The numbers the settings feed, read from the config the game is running. */
+    private record Numbers(List<StatusEffectInstance> effects, int duration, int cooldown, double growth,
+                           int onset, int greenOutOneIn, int infuserMin, int infuserFull) {
+        static Numbers now(ServerWorld world) {
+            List<StatusEffectInstance> effects = new ArrayList<>();
+            java.util.Random random = new java.util.Random(20261008L);
+            for (RegistryEntry.Reference<Strain> strain : Strain.all(world.getRegistryManager())) {
+                for (int dose = 1; dose <= 3; dose++) {
+                    SmokeContents load = SmokeContents.of(strain, dose);
+                    effects.addAll(EffectPolicy.filter(load.effects(900, false, random), load.buffBonus()));
+                }
+            }
+            for (int tier = 1; tier <= EdibleEffects.MAX_TIER; tier++) {
+                for (Quality quality : Quality.values()) {
+                    EdibleEffects.bundle(EdibleBundle.BUILT_IN, tier, quality, 0).forEach(dose -> effects.add(dose.effect()));
+                }
+            }
+            return new Numbers(effects, EffectPolicy.duration(900), EffectPolicy.cooldown(100),
+                    HempGrowth.chance(25.0F, 3.0F, HempdustryConfig.get().world().cropGrowthMultiplier()),
+                    EffectPolicy.onset(600, 200, 1200), EffectPolicy.greenOutChanceOneIn(20),
+                    InfuserBlockEntity.minTime(), InfuserBlockEntity.fullTime());
+        }
+    }
+
+    /** A setting turned down may weaken what it feeds, or leave it; never strengthen it — and up, the reverse. */
+    private static void checkWay(Map<String, String> findings, String where, String what, double normal, double at, boolean down) {
+        if (at < 0 || (down ? at > normal : at < normal)) {
+            findings.putIfAbsent(where + " " + what, "was " + normal + " at the defaults and is " + at);
+        }
     }
 
     // ----- blocks -----
