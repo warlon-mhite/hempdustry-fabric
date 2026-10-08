@@ -1,0 +1,903 @@
+asset assets/hempdustry/blockstates/decarboxylator.json
+asset assets/hempdustry/blockstates/hemp_bale.json
+asset assets/hempdustry/blockstates/hemp_bricks_block.json
+asset assets/hempdustry/blockstates/hemp_bricks_slab.json
+asset assets/hempdustry/blockstates/hemp_bricks_stairs.json
+asset assets/hempdustry/blockstates/hemp_bricks_wall.json
+asset assets/hempdustry/blockstates/hemp_carpet.json
+asset assets/hempdustry/blockstates/hemp_leaves.json
+asset assets/hempdustry/blockstates/hemp_planks.json
+asset assets/hempdustry/blockstates/hemp_planks_button.json
+asset assets/hempdustry/blockstates/hemp_planks_door.json
+asset assets/hempdustry/blockstates/hemp_planks_fence.json
+asset assets/hempdustry/blockstates/hemp_planks_fence_gate.json
+asset assets/hempdustry/blockstates/hemp_planks_hanging_sign.json
+asset assets/hempdustry/blockstates/hemp_planks_pressure_plate.json
+asset assets/hempdustry/blockstates/hemp_planks_sign.json
+asset assets/hempdustry/blockstates/hemp_planks_slab.json
+asset assets/hempdustry/blockstates/hemp_planks_stairs.json
+asset assets/hempdustry/blockstates/hemp_planks_trapdoor.json
+asset assets/hempdustry/blockstates/hemp_planks_wall_hanging_sign.json
+asset assets/hempdustry/blockstates/hemp_planks_wall_sign.json
+asset assets/hempdustry/blockstates/hemp_wool.json
+asset assets/hempdustry/blockstates/hempcrete_block.json
+asset assets/hempdustry/blockstates/hempcrete_powder_block.json
+asset assets/hempdustry/blockstates/indica_crop.json
+asset assets/hempdustry/blockstates/indica_flower.json
+asset assets/hempdustry/blockstates/infuser.json
+asset assets/hempdustry/blockstates/potted_indica_flower.json
+asset assets/hempdustry/blockstates/potted_sativa_flower.json
+asset assets/hempdustry/blockstates/sativa_crop.json
+asset assets/hempdustry/blockstates/sativa_flower.json
+asset assets/hempdustry/blockstates/space_cake.json
+asset assets/hempdustry/icon.png
+asset assets/hempdustry/models/block/decarboxylator.json
+asset assets/hempdustry/models/block/decarboxylator_on.json
+asset assets/hempdustry/models/block/hemp_bale.json
+asset assets/hempdustry/models/block/hemp_bale_horizontal.json
+asset assets/hempdustry/models/block/hemp_bricks_block.json
+asset assets/hempdustry/models/block/hemp_bricks_slab.json
+asset assets/hempdustry/models/block/hemp_bricks_slab_top.json
+asset assets/hempdustry/models/block/hemp_bricks_stairs.json
+asset assets/hempdustry/models/block/hemp_bricks_stairs_inner.json
+asset assets/hempdustry/models/block/hemp_bricks_stairs_outer.json
+asset assets/hempdustry/models/block/hemp_bricks_wall_inventory.json
+asset assets/hempdustry/models/block/hemp_bricks_wall_post.json
+asset assets/hempdustry/models/block/hemp_bricks_wall_side.json
+asset assets/hempdustry/models/block/hemp_bricks_wall_side_tall.json
+asset assets/hempdustry/models/block/hemp_carpet.json
+asset assets/hempdustry/models/block/hemp_leaves.json
+asset assets/hempdustry/models/block/hemp_planks.json
+asset assets/hempdustry/models/block/hemp_planks_button.json
+asset assets/hempdustry/models/block/hemp_planks_button_inventory.json
+asset assets/hempdustry/models/block/hemp_planks_button_pressed.json
+asset assets/hempdustry/models/block/hemp_planks_door_bottom_left.json
+asset assets/hempdustry/models/block/hemp_planks_door_bottom_left_open.json
+asset assets/hempdustry/models/block/hemp_planks_door_bottom_right.json
+asset assets/hempdustry/models/block/hemp_planks_door_bottom_right_open.json
+asset assets/hempdustry/models/block/hemp_planks_door_top_left.json
+asset assets/hempdustry/models/block/hemp_planks_door_top_left_open.json
+asset assets/hempdustry/models/block/hemp_planks_door_top_right.json
+asset assets/hempdustry/models/block/hemp_planks_door_top_right_open.json
+asset assets/hempdustry/models/block/hemp_planks_fence_gate.json
+asset assets/hempdustry/models/block/hemp_planks_fence_gate_open.json
+asset assets/hempdustry/models/block/hemp_planks_fence_gate_wall.json
+asset assets/hempdustry/models/block/hemp_planks_fence_gate_wall_open.json
+asset assets/hempdustry/models/block/hemp_planks_fence_inventory.json
+asset assets/hempdustry/models/block/hemp_planks_fence_post.json
+asset assets/hempdustry/models/block/hemp_planks_fence_side.json
+asset assets/hempdustry/models/block/hemp_planks_hanging_sign.json
+asset assets/hempdustry/models/block/hemp_planks_pressure_plate.json
+asset assets/hempdustry/models/block/hemp_planks_pressure_plate_down.json
+asset assets/hempdustry/models/block/hemp_planks_sign.json
+asset assets/hempdustry/models/block/hemp_planks_slab.json
+asset assets/hempdustry/models/block/hemp_planks_slab_top.json
+asset assets/hempdustry/models/block/hemp_planks_stairs.json
+asset assets/hempdustry/models/block/hemp_planks_stairs_inner.json
+asset assets/hempdustry/models/block/hemp_planks_stairs_outer.json
+asset assets/hempdustry/models/block/hemp_planks_trapdoor_bottom.json
+asset assets/hempdustry/models/block/hemp_planks_trapdoor_open.json
+asset assets/hempdustry/models/block/hemp_planks_trapdoor_top.json
+asset assets/hempdustry/models/block/hemp_wool.json
+asset assets/hempdustry/models/block/hempcrete_block.json
+asset assets/hempdustry/models/block/hempcrete_powder_block.json
+asset assets/hempdustry/models/block/indica_crop_stage0.json
+asset assets/hempdustry/models/block/indica_crop_stage1.json
+asset assets/hempdustry/models/block/indica_crop_stage10.json
+asset assets/hempdustry/models/block/indica_crop_stage11.json
+asset assets/hempdustry/models/block/indica_crop_stage2.json
+asset assets/hempdustry/models/block/indica_crop_stage3.json
+asset assets/hempdustry/models/block/indica_crop_stage4.json
+asset assets/hempdustry/models/block/indica_crop_stage5.json
+asset assets/hempdustry/models/block/indica_crop_stage6.json
+asset assets/hempdustry/models/block/indica_crop_stage7.json
+asset assets/hempdustry/models/block/indica_crop_stage8.json
+asset assets/hempdustry/models/block/indica_crop_stage9.json
+asset assets/hempdustry/models/block/indica_flower.json
+asset assets/hempdustry/models/block/infuser.json
+asset assets/hempdustry/models/block/infuser_milk.json
+asset assets/hempdustry/models/block/potted_indica_flower.json
+asset assets/hempdustry/models/block/potted_sativa_flower.json
+asset assets/hempdustry/models/block/sativa_crop_stage0.json
+asset assets/hempdustry/models/block/sativa_crop_stage1.json
+asset assets/hempdustry/models/block/sativa_crop_stage2.json
+asset assets/hempdustry/models/block/sativa_crop_stage3.json
+asset assets/hempdustry/models/block/sativa_crop_stage4_bottom.json
+asset assets/hempdustry/models/block/sativa_crop_stage4_top.json
+asset assets/hempdustry/models/block/sativa_crop_stage5_bottom.json
+asset assets/hempdustry/models/block/sativa_crop_stage5_top.json
+asset assets/hempdustry/models/block/sativa_crop_stage6_bottom.json
+asset assets/hempdustry/models/block/sativa_crop_stage6_middle.json
+asset assets/hempdustry/models/block/sativa_crop_stage6_top.json
+asset assets/hempdustry/models/block/sativa_crop_stage7_bottom.json
+asset assets/hempdustry/models/block/sativa_crop_stage7_middle.json
+asset assets/hempdustry/models/block/sativa_crop_stage7_top.json
+asset assets/hempdustry/models/block/sativa_flower_bottom.json
+asset assets/hempdustry/models/block/sativa_flower_top.json
+asset assets/hempdustry/models/block/space_cake.json
+asset assets/hempdustry/models/block/space_cake_slice1.json
+asset assets/hempdustry/models/block/space_cake_slice2.json
+asset assets/hempdustry/models/block/space_cake_slice3.json
+asset assets/hempdustry/models/block/space_cake_slice4.json
+asset assets/hempdustry/models/block/space_cake_slice5.json
+asset assets/hempdustry/models/block/space_cake_slice6.json
+asset assets/hempdustry/models/block/tinted_crop.json
+asset assets/hempdustry/models/item/bhang_bucket.json
+asset assets/hempdustry/models/item/bong.json
+asset assets/hempdustry/models/item/cannabutter.json
+asset assets/hempdustry/models/item/cannabutter_toast.json
+asset assets/hempdustry/models/item/dawamesk.json
+asset assets/hempdustry/models/item/decarboxylated_hemp.json
+asset assets/hempdustry/models/item/decarboxylator.json
+asset assets/hempdustry/models/item/flip_flops.json
+asset assets/hempdustry/models/item/flip_flops_amethyst_trim.json
+asset assets/hempdustry/models/item/flip_flops_copper_trim.json
+asset assets/hempdustry/models/item/flip_flops_diamond_trim.json
+asset assets/hempdustry/models/item/flip_flops_emerald_trim.json
+asset assets/hempdustry/models/item/flip_flops_gold_trim.json
+asset assets/hempdustry/models/item/flip_flops_iron_trim.json
+asset assets/hempdustry/models/item/flip_flops_lapis_trim.json
+asset assets/hempdustry/models/item/flip_flops_netherite_trim.json
+asset assets/hempdustry/models/item/flip_flops_quartz_trim.json
+asset assets/hempdustry/models/item/flip_flops_redstone_trim.json
+asset assets/hempdustry/models/item/hemp_bale.json
+asset assets/hempdustry/models/item/hemp_beanie.json
+asset assets/hempdustry/models/item/hemp_beanie_amethyst_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_copper_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_diamond_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_emerald_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_gold_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_iron_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_lapis_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_netherite_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_quartz_trim.json
+asset assets/hempdustry/models/item/hemp_beanie_redstone_trim.json
+asset assets/hempdustry/models/item/hemp_boat.json
+asset assets/hempdustry/models/item/hemp_brick.json
+asset assets/hempdustry/models/item/hemp_bricks_block.json
+asset assets/hempdustry/models/item/hemp_bricks_slab.json
+asset assets/hempdustry/models/item/hemp_bricks_stairs.json
+asset assets/hempdustry/models/item/hemp_bricks_wall.json
+asset assets/hempdustry/models/item/hemp_canvas.json
+asset assets/hempdustry/models/item/hemp_carpet.json
+asset assets/hempdustry/models/item/hemp_chest_boat.json
+asset assets/hempdustry/models/item/hemp_fiber.json
+asset assets/hempdustry/models/item/hemp_flapjack.json
+asset assets/hempdustry/models/item/hemp_flour.json
+asset assets/hempdustry/models/item/hemp_harem_pants.json
+asset assets/hempdustry/models/item/hemp_harem_pants_amethyst_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_copper_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_diamond_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_emerald_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_gold_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_iron_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_lapis_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_netherite_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_quartz_trim.json
+asset assets/hempdustry/models/item/hemp_harem_pants_redstone_trim.json
+asset assets/hempdustry/models/item/hemp_leaf.json
+asset assets/hempdustry/models/item/hemp_leaves.json
+asset assets/hempdustry/models/item/hemp_milk_bucket.json
+asset assets/hempdustry/models/item/hemp_planks.json
+asset assets/hempdustry/models/item/hemp_planks_button.json
+asset assets/hempdustry/models/item/hemp_planks_door.json
+asset assets/hempdustry/models/item/hemp_planks_fence.json
+asset assets/hempdustry/models/item/hemp_planks_fence_gate.json
+asset assets/hempdustry/models/item/hemp_planks_hanging_sign.json
+asset assets/hempdustry/models/item/hemp_planks_pressure_plate.json
+asset assets/hempdustry/models/item/hemp_planks_sign.json
+asset assets/hempdustry/models/item/hemp_planks_slab.json
+asset assets/hempdustry/models/item/hemp_planks_stairs.json
+asset assets/hempdustry/models/item/hemp_planks_trapdoor.json
+asset assets/hempdustry/models/item/hemp_shirt.json
+asset assets/hempdustry/models/item/hemp_shirt_amethyst_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_copper_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_diamond_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_emerald_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_gold_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_iron_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_lapis_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_netherite_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_quartz_trim.json
+asset assets/hempdustry/models/item/hemp_shirt_redstone_trim.json
+asset assets/hempdustry/models/item/hemp_stem.json
+asset assets/hempdustry/models/item/hemp_wool.json
+asset assets/hempdustry/models/item/hempcrete.json
+asset assets/hempdustry/models/item/hempcrete_block.json
+asset assets/hempdustry/models/item/hempcrete_powder_block.json
+asset assets/hempdustry/models/item/indica_buds.json
+asset assets/hempdustry/models/item/indica_flower.json
+asset assets/hempdustry/models/item/indica_seeds.json
+asset assets/hempdustry/models/item/infuser.json
+asset assets/hempdustry/models/item/music_disc_moonlight.json
+asset assets/hempdustry/models/item/music_disc_robadob.json
+asset assets/hempdustry/models/item/packed_bong.json
+asset assets/hempdustry/models/item/packed_pipe.json
+asset assets/hempdustry/models/item/retted_hemp_stem.json
+asset assets/hempdustry/models/item/sativa_buds.json
+asset assets/hempdustry/models/item/sativa_flower.json
+asset assets/hempdustry/models/item/sativa_seeds.json
+asset assets/hempdustry/models/item/siemieniotka.json
+asset assets/hempdustry/models/item/space_brownie.json
+asset assets/hempdustry/models/item/space_cake.json
+asset assets/hempdustry/models/item/space_cookie.json
+asset assets/hempdustry/models/item/spliff.json
+asset assets/hempdustry/models/item/spliff_indica.json
+asset assets/hempdustry/models/item/spliff_sativa.json
+asset assets/hempdustry/models/item/toasted_hemp_seeds.json
+asset assets/hempdustry/models/item/washed_decarboxylated_hemp.json
+asset assets/hempdustry/models/item/wooden_pipe.json
+asset assets/hempdustry/particles/aroma.json
+asset assets/hempdustry/sounds.json
+asset assets/hempdustry/sounds/bonghit.ogg
+asset assets/hempdustry/sounds/butter.ogg
+asset assets/hempdustry/sounds/coughing.ogg
+asset assets/hempdustry/sounds/records/moonlight.ogg
+asset assets/hempdustry/sounds/records/robadob.ogg
+asset assets/hempdustry/sounds/smoking.ogg
+asset assets/hempdustry/textures/block/decarboxylator_front.png
+asset assets/hempdustry/textures/block/decarboxylator_front_on.png
+asset assets/hempdustry/textures/block/decarboxylator_top.png
+asset assets/hempdustry/textures/block/hemp_bale.png
+asset assets/hempdustry/textures/block/hemp_bale_top.png
+asset assets/hempdustry/textures/block/hemp_bricks_block.png
+asset assets/hempdustry/textures/block/hemp_leaves.png
+asset assets/hempdustry/textures/block/hemp_planks.png
+asset assets/hempdustry/textures/block/hemp_planks_door_bottom.png
+asset assets/hempdustry/textures/block/hemp_planks_door_top.png
+asset assets/hempdustry/textures/block/hemp_planks_trapdoor.png
+asset assets/hempdustry/textures/block/hemp_wool.png
+asset assets/hempdustry/textures/block/hempcrete_block.png
+asset assets/hempdustry/textures/block/hempcrete_powder_block.png
+asset assets/hempdustry/textures/block/indica_crop_stage0.png
+asset assets/hempdustry/textures/block/indica_crop_stage1.png
+asset assets/hempdustry/textures/block/indica_crop_stage10.png
+asset assets/hempdustry/textures/block/indica_crop_stage11.png
+asset assets/hempdustry/textures/block/indica_crop_stage2.png
+asset assets/hempdustry/textures/block/indica_crop_stage3.png
+asset assets/hempdustry/textures/block/indica_crop_stage4.png
+asset assets/hempdustry/textures/block/indica_crop_stage5.png
+asset assets/hempdustry/textures/block/indica_crop_stage6.png
+asset assets/hempdustry/textures/block/indica_crop_stage7.png
+asset assets/hempdustry/textures/block/indica_crop_stage8.png
+asset assets/hempdustry/textures/block/indica_crop_stage9.png
+asset assets/hempdustry/textures/block/indica_flower.png
+asset assets/hempdustry/textures/block/infuser_butter.png
+asset assets/hempdustry/textures/block/infuser_front.png
+asset assets/hempdustry/textures/block/infuser_inner.png
+asset assets/hempdustry/textures/block/infuser_milk.png
+asset assets/hempdustry/textures/block/infuser_side.png
+asset assets/hempdustry/textures/block/infuser_spout.png
+asset assets/hempdustry/textures/block/infuser_top.png
+asset assets/hempdustry/textures/block/sativa_crop_stage0.png
+asset assets/hempdustry/textures/block/sativa_crop_stage1.png
+asset assets/hempdustry/textures/block/sativa_crop_stage2.png
+asset assets/hempdustry/textures/block/sativa_crop_stage3.png
+asset assets/hempdustry/textures/block/sativa_crop_stage4_bottom.png
+asset assets/hempdustry/textures/block/sativa_crop_stage4_top.png
+asset assets/hempdustry/textures/block/sativa_crop_stage5_bottom.png
+asset assets/hempdustry/textures/block/sativa_crop_stage5_top.png
+asset assets/hempdustry/textures/block/sativa_crop_stage6_bottom.png
+asset assets/hempdustry/textures/block/sativa_crop_stage6_middle.png
+asset assets/hempdustry/textures/block/sativa_crop_stage6_top.png
+asset assets/hempdustry/textures/block/sativa_crop_stage7_bottom.png
+asset assets/hempdustry/textures/block/sativa_crop_stage7_middle.png
+asset assets/hempdustry/textures/block/sativa_crop_stage7_top.png
+asset assets/hempdustry/textures/block/sativa_flower_bottom.png
+asset assets/hempdustry/textures/block/sativa_flower_top.png
+asset assets/hempdustry/textures/block/space_cake_bottom.png
+asset assets/hempdustry/textures/block/space_cake_inner.png
+asset assets/hempdustry/textures/block/space_cake_side.png
+asset assets/hempdustry/textures/block/space_cake_top.png
+asset assets/hempdustry/textures/entity/boat/hemp.png
+asset assets/hempdustry/textures/entity/chest_boat/hemp.png
+asset assets/hempdustry/textures/entity/llama/decor/hemp.png
+asset assets/hempdustry/textures/entity/signs/hanging/hemp.png
+asset assets/hempdustry/textures/entity/signs/hemp.png
+asset assets/hempdustry/textures/gui/container/decarboxylator.png
+asset assets/hempdustry/textures/gui/container/infuser.png
+asset assets/hempdustry/textures/gui/hanging_signs/hemp.png
+asset assets/hempdustry/textures/item/bhang_bucket.png
+asset assets/hempdustry/textures/item/bong.png
+asset assets/hempdustry/textures/item/cannabutter.png
+asset assets/hempdustry/textures/item/cannabutter_toast.png
+asset assets/hempdustry/textures/item/dawamesk.png
+asset assets/hempdustry/textures/item/decarboxylated_hemp.png
+asset assets/hempdustry/textures/item/flip_flops.png
+asset assets/hempdustry/textures/item/hemp_beanie.png
+asset assets/hempdustry/textures/item/hemp_boat.png
+asset assets/hempdustry/textures/item/hemp_brick.png
+asset assets/hempdustry/textures/item/hemp_canvas.png
+asset assets/hempdustry/textures/item/hemp_chest_boat.png
+asset assets/hempdustry/textures/item/hemp_fiber.png
+asset assets/hempdustry/textures/item/hemp_flapjack.png
+asset assets/hempdustry/textures/item/hemp_flour.png
+asset assets/hempdustry/textures/item/hemp_harem_pants.png
+asset assets/hempdustry/textures/item/hemp_leaf.png
+asset assets/hempdustry/textures/item/hemp_milk_bucket.png
+asset assets/hempdustry/textures/item/hemp_planks_door.png
+asset assets/hempdustry/textures/item/hemp_planks_hanging_sign.png
+asset assets/hempdustry/textures/item/hemp_planks_sign.png
+asset assets/hempdustry/textures/item/hemp_shirt.png
+asset assets/hempdustry/textures/item/hemp_stem.png
+asset assets/hempdustry/textures/item/hempcrete.png
+asset assets/hempdustry/textures/item/indica_buds.png
+asset assets/hempdustry/textures/item/indica_seeds.png
+asset assets/hempdustry/textures/item/indica_spliff.png
+asset assets/hempdustry/textures/item/music_disc_moonlight.png
+asset assets/hempdustry/textures/item/music_disc_robadob.png
+asset assets/hempdustry/textures/item/packed_bong_load.png
+asset assets/hempdustry/textures/item/packed_pipe_load.png
+asset assets/hempdustry/textures/item/retted_hemp_stem.png
+asset assets/hempdustry/textures/item/sativa_buds.png
+asset assets/hempdustry/textures/item/sativa_seeds.png
+asset assets/hempdustry/textures/item/sativa_spliff.png
+asset assets/hempdustry/textures/item/siemieniotka.png
+asset assets/hempdustry/textures/item/space_brownie.png
+asset assets/hempdustry/textures/item/space_cake.png
+asset assets/hempdustry/textures/item/space_cookie.png
+asset assets/hempdustry/textures/item/spliff_load.png
+asset assets/hempdustry/textures/item/toasted_hemp_seeds.png
+asset assets/hempdustry/textures/item/washed_decarboxylated_hemp.png
+asset assets/hempdustry/textures/item/wooden_pipe.png
+asset assets/hempdustry/textures/models/armor/hemp_fiber_layer_1.png
+asset assets/hempdustry/textures/models/armor/hemp_fiber_layer_2.png
+asset assets/hempdustry/textures/painting/b_rappaz.png
+asset assets/hempdustry/textures/painting/brownie_mary.png
+asset assets/hempdustry/textures/painting/hendrix.png
+asset assets/hempdustry/textures/painting/pineapple_express.png
+asset assets/hempdustry/textures/painting/rihanna.png
+asset assets/hempdustry/textures/painting/snoop.png
+asset assets/hempdustry/textures/particle/aroma_0.png
+asset assets/hempdustry/textures/particle/aroma_1.png
+asset assets/hempdustry/textures/particle/aroma_2.png
+asset assets/hempdustry/textures/particle/aroma_3.png
+config client.biomeTintStrength
+config client.ripeAroma
+config client.updateCheck
+config effects.cooldownMultiplier
+config effects.debuffs
+config effects.durationMultiplier
+config effects.enabled
+config effects.greenOut
+config effects.greenOutChanceMultiplier
+config effects.maxBuffLevel
+config effects.maxLevel
+config effects.munchies
+config effects.nausea
+config effects.onsetMultiplier
+config infuser.fullTimeTicks
+config infuser.minTimeTicks
+config loot.chanceMultiplier
+config loot.enabled
+config world.cropGrowthMultiplier
+config world.machineSpeedMultiplier
+criterion hempdustry:activation_energy has_decarboxylator
+criterion hempdustry:blaze_it smoked_at_420
+criterion hempdustry:bong_voyage smoked_a_bong
+criterion hempdustry:burnout smoked_a_device_to_death
+criterion hempdustry:butter_late_than_never has_cannabutter
+criterion hempdustry:chill_set full_hemp_armor
+criterion hempdustry:club_des_hashischins ate_dawamesk
+criterion hempdustry:first_contact took_a_hit
+criterion hempdustry:give_it_an_hour ate_an_edible
+criterion hempdustry:got_bhang drank_bhang
+criterion hempdustry:green_threads has_hemp_fiber
+criterion hempdustry:hemp_builder has_hemp_brick
+criterion hempdustry:hemp_hearts ate_a_hemp_seed_food
+criterion hempdustry:hempdustry has_hemp_seeds
+criterion hempdustry:hemprepreneurs has_hemp_stem
+criterion hempdustry:indica_strain has_indica_buds
+criterion hempdustry:parrot_tamer fed_a_parrot_hemp_seeds
+criterion hempdustry:parrot_tamer tamed_a_parrot
+criterion hempdustry:perfect_batch has_perfect_cannabutter
+criterion hempdustry:perfect_cut harvested_fully_trimmed
+criterion hempdustry:pipe_dream smoked_a_pipe
+criterion hempdustry:rinse_cycle has_washed_hemp
+criterion hempdustry:sativa_strain has_sativa_buds
+criterion hempdustry:trim_season sheared_hemp_crop
+criterion hempdustry:wake_and_bake smoked_at_dawn
+entry hempdustry:strain hempdustry:indica
+entry hempdustry:strain hempdustry:sativa
+entry minecraft:armor_material hempdustry:hemp_fiber
+entry minecraft:block hempdustry:decarboxylator
+entry minecraft:block hempdustry:hemp_bale
+entry minecraft:block hempdustry:hemp_bricks_block
+entry minecraft:block hempdustry:hemp_bricks_slab
+entry minecraft:block hempdustry:hemp_bricks_stairs
+entry minecraft:block hempdustry:hemp_bricks_wall
+entry minecraft:block hempdustry:hemp_carpet
+entry minecraft:block hempdustry:hemp_leaves
+entry minecraft:block hempdustry:hemp_planks
+entry minecraft:block hempdustry:hemp_planks_button
+entry minecraft:block hempdustry:hemp_planks_door
+entry minecraft:block hempdustry:hemp_planks_fence
+entry minecraft:block hempdustry:hemp_planks_fence_gate
+entry minecraft:block hempdustry:hemp_planks_hanging_sign
+entry minecraft:block hempdustry:hemp_planks_pressure_plate
+entry minecraft:block hempdustry:hemp_planks_sign
+entry minecraft:block hempdustry:hemp_planks_slab
+entry minecraft:block hempdustry:hemp_planks_stairs
+entry minecraft:block hempdustry:hemp_planks_trapdoor
+entry minecraft:block hempdustry:hemp_planks_wall_hanging_sign
+entry minecraft:block hempdustry:hemp_planks_wall_sign
+entry minecraft:block hempdustry:hemp_wool
+entry minecraft:block hempdustry:hempcrete_block
+entry minecraft:block hempdustry:hempcrete_powder_block
+entry minecraft:block hempdustry:indica_crop
+entry minecraft:block hempdustry:indica_flower
+entry minecraft:block hempdustry:infuser
+entry minecraft:block hempdustry:potted_indica_flower
+entry minecraft:block hempdustry:potted_sativa_flower
+entry minecraft:block hempdustry:sativa_crop
+entry minecraft:block hempdustry:sativa_flower
+entry minecraft:block hempdustry:space_cake
+entry minecraft:block_entity_type hempdustry:decarboxylator
+entry minecraft:block_entity_type hempdustry:infuser
+entry minecraft:creative_mode_tab hempdustry:hempdustry_items
+entry minecraft:data_component_type hempdustry:charges
+entry minecraft:data_component_type hempdustry:cooldown_until
+entry minecraft:data_component_type hempdustry:potency
+entry minecraft:data_component_type hempdustry:quality
+entry minecraft:data_component_type hempdustry:smoke_contents
+entry minecraft:data_component_type hempdustry:strength
+entry minecraft:entity_type hempdustry:hemp_boat
+entry minecraft:entity_type hempdustry:hemp_chest_boat
+entry minecraft:item hempdustry:bhang_bucket
+entry minecraft:item hempdustry:bong
+entry minecraft:item hempdustry:cannabutter
+entry minecraft:item hempdustry:cannabutter_toast
+entry minecraft:item hempdustry:dawamesk
+entry minecraft:item hempdustry:decarboxylated_hemp
+entry minecraft:item hempdustry:decarboxylator
+entry minecraft:item hempdustry:flip_flops
+entry minecraft:item hempdustry:hemp_bale
+entry minecraft:item hempdustry:hemp_beanie
+entry minecraft:item hempdustry:hemp_boat
+entry minecraft:item hempdustry:hemp_brick
+entry minecraft:item hempdustry:hemp_bricks_block
+entry minecraft:item hempdustry:hemp_bricks_slab
+entry minecraft:item hempdustry:hemp_bricks_stairs
+entry minecraft:item hempdustry:hemp_bricks_wall
+entry minecraft:item hempdustry:hemp_canvas
+entry minecraft:item hempdustry:hemp_carpet
+entry minecraft:item hempdustry:hemp_chest_boat
+entry minecraft:item hempdustry:hemp_fiber
+entry minecraft:item hempdustry:hemp_flapjack
+entry minecraft:item hempdustry:hemp_flour
+entry minecraft:item hempdustry:hemp_harem_pants
+entry minecraft:item hempdustry:hemp_leaf
+entry minecraft:item hempdustry:hemp_leaves
+entry minecraft:item hempdustry:hemp_milk_bucket
+entry minecraft:item hempdustry:hemp_planks
+entry minecraft:item hempdustry:hemp_planks_button
+entry minecraft:item hempdustry:hemp_planks_door
+entry minecraft:item hempdustry:hemp_planks_fence
+entry minecraft:item hempdustry:hemp_planks_fence_gate
+entry minecraft:item hempdustry:hemp_planks_hanging_sign
+entry minecraft:item hempdustry:hemp_planks_pressure_plate
+entry minecraft:item hempdustry:hemp_planks_sign
+entry minecraft:item hempdustry:hemp_planks_slab
+entry minecraft:item hempdustry:hemp_planks_stairs
+entry minecraft:item hempdustry:hemp_planks_trapdoor
+entry minecraft:item hempdustry:hemp_shirt
+entry minecraft:item hempdustry:hemp_stem
+entry minecraft:item hempdustry:hemp_wool
+entry minecraft:item hempdustry:hempcrete
+entry minecraft:item hempdustry:hempcrete_block
+entry minecraft:item hempdustry:hempcrete_powder_block
+entry minecraft:item hempdustry:indica_buds
+entry minecraft:item hempdustry:indica_flower
+entry minecraft:item hempdustry:indica_seeds
+entry minecraft:item hempdustry:infuser
+entry minecraft:item hempdustry:music_disc_moonlight
+entry minecraft:item hempdustry:music_disc_robadob
+entry minecraft:item hempdustry:retted_hemp_stem
+entry minecraft:item hempdustry:sativa_buds
+entry minecraft:item hempdustry:sativa_flower
+entry minecraft:item hempdustry:sativa_seeds
+entry minecraft:item hempdustry:siemieniotka
+entry minecraft:item hempdustry:space_brownie
+entry minecraft:item hempdustry:space_cake
+entry minecraft:item hempdustry:space_cookie
+entry minecraft:item hempdustry:spliff
+entry minecraft:item hempdustry:toasted_hemp_seeds
+entry minecraft:item hempdustry:washed_decarboxylated_hemp
+entry minecraft:item hempdustry:wooden_pipe
+entry minecraft:jukebox_song hempdustry:moonlight
+entry minecraft:jukebox_song hempdustry:robadob
+entry minecraft:menu hempdustry:decarboxylator
+entry minecraft:menu hempdustry:infuser
+entry minecraft:painting_variant hempdustry:b_rappaz
+entry minecraft:painting_variant hempdustry:brownie_mary
+entry minecraft:painting_variant hempdustry:hendrix
+entry minecraft:painting_variant hempdustry:pineapple_express
+entry minecraft:painting_variant hempdustry:rihanna
+entry minecraft:painting_variant hempdustry:snoop
+entry minecraft:particle_type hempdustry:aroma
+entry minecraft:recipe_serializer hempdustry:container_carried
+entry minecraft:recipe_serializer hempdustry:decarboxylating
+entry minecraft:recipe_serializer hempdustry:infused_shaped
+entry minecraft:recipe_serializer hempdustry:infused_shapeless
+entry minecraft:recipe_serializer hempdustry:infusing
+entry minecraft:recipe_serializer hempdustry:packing
+entry minecraft:recipe_type hempdustry:decarboxylating
+entry minecraft:recipe_type hempdustry:infusing
+entry minecraft:sound_event hempdustry:bonghit
+entry minecraft:sound_event hempdustry:coughing
+entry minecraft:sound_event hempdustry:infuser_simmer
+entry minecraft:sound_event hempdustry:music_disc.moonlight
+entry minecraft:sound_event hempdustry:music_disc.robadob
+entry minecraft:sound_event hempdustry:smoking
+entry minecraft:trigger_type hempdustry:harvest_hemp
+entry minecraft:trigger_type hempdustry:smoke
+entry minecraft:worldgen/configured_feature hempdustry:indica
+entry minecraft:worldgen/configured_feature hempdustry:indica_cave
+entry minecraft:worldgen/configured_feature hempdustry:sativa
+entry minecraft:worldgen/configured_feature hempdustry:sativa_rare
+entry minecraft:worldgen/configured_feature hempdustry:sativa_sparse
+entry minecraft:worldgen/placed_feature hempdustry:indica_cave_placed
+entry minecraft:worldgen/placed_feature hempdustry:indica_placed
+entry minecraft:worldgen/placed_feature hempdustry:sativa_placed
+entry minecraft:worldgen/placed_feature hempdustry:sativa_rare_placed
+entry minecraft:worldgen/placed_feature hempdustry:sativa_sparse_placed
+loot_table hempdustry:blocks/decarboxylator
+loot_table hempdustry:blocks/hemp_bale
+loot_table hempdustry:blocks/hemp_bricks_block
+loot_table hempdustry:blocks/hemp_bricks_slab
+loot_table hempdustry:blocks/hemp_bricks_stairs
+loot_table hempdustry:blocks/hemp_bricks_wall
+loot_table hempdustry:blocks/hemp_carpet
+loot_table hempdustry:blocks/hemp_leaves
+loot_table hempdustry:blocks/hemp_planks
+loot_table hempdustry:blocks/hemp_planks_button
+loot_table hempdustry:blocks/hemp_planks_door
+loot_table hempdustry:blocks/hemp_planks_fence
+loot_table hempdustry:blocks/hemp_planks_fence_gate
+loot_table hempdustry:blocks/hemp_planks_hanging_sign
+loot_table hempdustry:blocks/hemp_planks_pressure_plate
+loot_table hempdustry:blocks/hemp_planks_sign
+loot_table hempdustry:blocks/hemp_planks_slab
+loot_table hempdustry:blocks/hemp_planks_stairs
+loot_table hempdustry:blocks/hemp_planks_trapdoor
+loot_table hempdustry:blocks/hemp_wool
+loot_table hempdustry:blocks/hempcrete_block
+loot_table hempdustry:blocks/hempcrete_powder_block
+loot_table hempdustry:blocks/indica_crop
+loot_table hempdustry:blocks/indica_flower
+loot_table hempdustry:blocks/infuser
+loot_table hempdustry:blocks/potted_indica_flower
+loot_table hempdustry:blocks/potted_sativa_flower
+loot_table hempdustry:blocks/sativa_crop
+loot_table hempdustry:blocks/sativa_flower
+loot_table hempdustry:blocks/space_cake
+model_index hempdustry:indica 1
+model_index hempdustry:sativa 2
+recipe hempdustry:bhang_bucket
+recipe hempdustry:black_concrete_powder
+recipe hempdustry:blue_concrete_powder
+recipe hempdustry:bong
+recipe hempdustry:book
+recipe hempdustry:bread
+recipe hempdustry:brown_concrete_powder
+recipe hempdustry:cake
+recipe hempdustry:cannabutter_toast
+recipe hempdustry:cookie
+recipe hempdustry:cyan_concrete_powder
+recipe hempdustry:dawamesk
+recipe hempdustry:decarboxylating/hemp_leaf
+recipe hempdustry:decarboxylating/indica_buds
+recipe hempdustry:decarboxylating/sativa_buds
+recipe hempdustry:decarboxylator
+recipe hempdustry:flip_flops
+recipe hempdustry:flower_pot
+recipe hempdustry:gray_concrete_powder
+recipe hempdustry:green_concrete_powder
+recipe hempdustry:green_dye
+recipe hempdustry:hemp_bale
+recipe hempdustry:hemp_beanie
+recipe hempdustry:hemp_boat
+recipe hempdustry:hemp_brick
+recipe hempdustry:hemp_bricks_block
+recipe hempdustry:hemp_bricks_slab
+recipe hempdustry:hemp_bricks_stairs
+recipe hempdustry:hemp_bricks_wall
+recipe hempdustry:hemp_canvas
+recipe hempdustry:hemp_canvas_from_hemp_wool
+recipe hempdustry:hemp_carpet
+recipe hempdustry:hemp_chest_boat
+recipe hempdustry:hemp_fiber
+recipe hempdustry:hemp_fiber_from_hemp_canvas
+recipe hempdustry:hemp_fiber_from_retted_hemp_stem
+recipe hempdustry:hemp_flapjack
+recipe hempdustry:hemp_flour
+recipe hempdustry:hemp_harem_pants
+recipe hempdustry:hemp_leaf_from_leaves
+recipe hempdustry:hemp_leaves
+recipe hempdustry:hemp_milk_bucket
+recipe hempdustry:hemp_planks
+recipe hempdustry:hemp_planks_button
+recipe hempdustry:hemp_planks_door
+recipe hempdustry:hemp_planks_fence
+recipe hempdustry:hemp_planks_fence_gate
+recipe hempdustry:hemp_planks_hanging_sign
+recipe hempdustry:hemp_planks_pressure_plate
+recipe hempdustry:hemp_planks_sign
+recipe hempdustry:hemp_planks_slab
+recipe hempdustry:hemp_planks_stairs
+recipe hempdustry:hemp_planks_trapdoor
+recipe hempdustry:hemp_shirt
+recipe hempdustry:hemp_stem_from_bale
+recipe hempdustry:hemp_wool
+recipe hempdustry:hempcrete
+recipe hempdustry:hempcrete_powder_block
+recipe hempdustry:infuser
+recipe hempdustry:infusing
+recipe hempdustry:item_frame
+recipe hempdustry:light_blue_concrete_powder
+recipe hempdustry:light_gray_concrete_powder
+recipe hempdustry:lime_concrete_powder
+recipe hempdustry:magenta_concrete_powder
+recipe hempdustry:orange_concrete_powder
+recipe hempdustry:packing
+recipe hempdustry:painting
+recipe hempdustry:paper
+recipe hempdustry:pink_concrete_powder
+recipe hempdustry:purple_concrete_powder
+recipe hempdustry:red_concrete_powder
+recipe hempdustry:siemieniotka
+recipe hempdustry:space_brownie
+recipe hempdustry:space_cake
+recipe hempdustry:space_cookie
+recipe hempdustry:spliff_indica_1
+recipe hempdustry:spliff_indica_2
+recipe hempdustry:spliff_indica_3
+recipe hempdustry:spliff_sativa_1
+recipe hempdustry:spliff_sativa_2
+recipe hempdustry:spliff_sativa_3
+recipe hempdustry:stick_from_stem
+recipe hempdustry:string
+recipe hempdustry:toasted_hemp_seeds
+recipe hempdustry:toasted_hemp_seeds_from_campfire_cooking
+recipe hempdustry:toasted_hemp_seeds_from_smoking
+recipe hempdustry:white_bed
+recipe hempdustry:white_concrete_powder
+recipe hempdustry:wooden_pipe
+recipe hempdustry:yellow_concrete_powder
+registry hempdustry:strain
+state hempdustry:decarboxylator facing=east
+state hempdustry:decarboxylator facing=north
+state hempdustry:decarboxylator facing=south
+state hempdustry:decarboxylator facing=west
+state hempdustry:decarboxylator lit=false
+state hempdustry:decarboxylator lit=true
+state hempdustry:hemp_bale axis=x
+state hempdustry:hemp_bale axis=y
+state hempdustry:hemp_bale axis=z
+state hempdustry:hemp_bricks_slab type=bottom
+state hempdustry:hemp_bricks_slab type=double
+state hempdustry:hemp_bricks_slab type=top
+state hempdustry:hemp_bricks_slab waterlogged=false
+state hempdustry:hemp_bricks_slab waterlogged=true
+state hempdustry:hemp_bricks_stairs facing=east
+state hempdustry:hemp_bricks_stairs facing=north
+state hempdustry:hemp_bricks_stairs facing=south
+state hempdustry:hemp_bricks_stairs facing=west
+state hempdustry:hemp_bricks_stairs half=bottom
+state hempdustry:hemp_bricks_stairs half=top
+state hempdustry:hemp_bricks_stairs shape=inner_left
+state hempdustry:hemp_bricks_stairs shape=inner_right
+state hempdustry:hemp_bricks_stairs shape=outer_left
+state hempdustry:hemp_bricks_stairs shape=outer_right
+state hempdustry:hemp_bricks_stairs shape=straight
+state hempdustry:hemp_bricks_stairs waterlogged=false
+state hempdustry:hemp_bricks_stairs waterlogged=true
+state hempdustry:hemp_bricks_wall east=low
+state hempdustry:hemp_bricks_wall east=none
+state hempdustry:hemp_bricks_wall east=tall
+state hempdustry:hemp_bricks_wall north=low
+state hempdustry:hemp_bricks_wall north=none
+state hempdustry:hemp_bricks_wall north=tall
+state hempdustry:hemp_bricks_wall south=low
+state hempdustry:hemp_bricks_wall south=none
+state hempdustry:hemp_bricks_wall south=tall
+state hempdustry:hemp_bricks_wall up=false
+state hempdustry:hemp_bricks_wall up=true
+state hempdustry:hemp_bricks_wall waterlogged=false
+state hempdustry:hemp_bricks_wall waterlogged=true
+state hempdustry:hemp_bricks_wall west=low
+state hempdustry:hemp_bricks_wall west=none
+state hempdustry:hemp_bricks_wall west=tall
+state hempdustry:hemp_planks_button face=ceiling
+state hempdustry:hemp_planks_button face=floor
+state hempdustry:hemp_planks_button face=wall
+state hempdustry:hemp_planks_button facing=east
+state hempdustry:hemp_planks_button facing=north
+state hempdustry:hemp_planks_button facing=south
+state hempdustry:hemp_planks_button facing=west
+state hempdustry:hemp_planks_button powered=false
+state hempdustry:hemp_planks_button powered=true
+state hempdustry:hemp_planks_door facing=east
+state hempdustry:hemp_planks_door facing=north
+state hempdustry:hemp_planks_door facing=south
+state hempdustry:hemp_planks_door facing=west
+state hempdustry:hemp_planks_door half=lower
+state hempdustry:hemp_planks_door half=upper
+state hempdustry:hemp_planks_door hinge=left
+state hempdustry:hemp_planks_door hinge=right
+state hempdustry:hemp_planks_door open=false
+state hempdustry:hemp_planks_door open=true
+state hempdustry:hemp_planks_door powered=false
+state hempdustry:hemp_planks_door powered=true
+state hempdustry:hemp_planks_fence east=false
+state hempdustry:hemp_planks_fence east=true
+state hempdustry:hemp_planks_fence north=false
+state hempdustry:hemp_planks_fence north=true
+state hempdustry:hemp_planks_fence south=false
+state hempdustry:hemp_planks_fence south=true
+state hempdustry:hemp_planks_fence waterlogged=false
+state hempdustry:hemp_planks_fence waterlogged=true
+state hempdustry:hemp_planks_fence west=false
+state hempdustry:hemp_planks_fence west=true
+state hempdustry:hemp_planks_fence_gate facing=east
+state hempdustry:hemp_planks_fence_gate facing=north
+state hempdustry:hemp_planks_fence_gate facing=south
+state hempdustry:hemp_planks_fence_gate facing=west
+state hempdustry:hemp_planks_fence_gate in_wall=false
+state hempdustry:hemp_planks_fence_gate in_wall=true
+state hempdustry:hemp_planks_fence_gate open=false
+state hempdustry:hemp_planks_fence_gate open=true
+state hempdustry:hemp_planks_fence_gate powered=false
+state hempdustry:hemp_planks_fence_gate powered=true
+state hempdustry:hemp_planks_hanging_sign attached=false
+state hempdustry:hemp_planks_hanging_sign attached=true
+state hempdustry:hemp_planks_hanging_sign rotation=0
+state hempdustry:hemp_planks_hanging_sign rotation=1
+state hempdustry:hemp_planks_hanging_sign rotation=10
+state hempdustry:hemp_planks_hanging_sign rotation=11
+state hempdustry:hemp_planks_hanging_sign rotation=12
+state hempdustry:hemp_planks_hanging_sign rotation=13
+state hempdustry:hemp_planks_hanging_sign rotation=14
+state hempdustry:hemp_planks_hanging_sign rotation=15
+state hempdustry:hemp_planks_hanging_sign rotation=2
+state hempdustry:hemp_planks_hanging_sign rotation=3
+state hempdustry:hemp_planks_hanging_sign rotation=4
+state hempdustry:hemp_planks_hanging_sign rotation=5
+state hempdustry:hemp_planks_hanging_sign rotation=6
+state hempdustry:hemp_planks_hanging_sign rotation=7
+state hempdustry:hemp_planks_hanging_sign rotation=8
+state hempdustry:hemp_planks_hanging_sign rotation=9
+state hempdustry:hemp_planks_hanging_sign waterlogged=false
+state hempdustry:hemp_planks_hanging_sign waterlogged=true
+state hempdustry:hemp_planks_pressure_plate powered=false
+state hempdustry:hemp_planks_pressure_plate powered=true
+state hempdustry:hemp_planks_sign rotation=0
+state hempdustry:hemp_planks_sign rotation=1
+state hempdustry:hemp_planks_sign rotation=10
+state hempdustry:hemp_planks_sign rotation=11
+state hempdustry:hemp_planks_sign rotation=12
+state hempdustry:hemp_planks_sign rotation=13
+state hempdustry:hemp_planks_sign rotation=14
+state hempdustry:hemp_planks_sign rotation=15
+state hempdustry:hemp_planks_sign rotation=2
+state hempdustry:hemp_planks_sign rotation=3
+state hempdustry:hemp_planks_sign rotation=4
+state hempdustry:hemp_planks_sign rotation=5
+state hempdustry:hemp_planks_sign rotation=6
+state hempdustry:hemp_planks_sign rotation=7
+state hempdustry:hemp_planks_sign rotation=8
+state hempdustry:hemp_planks_sign rotation=9
+state hempdustry:hemp_planks_sign waterlogged=false
+state hempdustry:hemp_planks_sign waterlogged=true
+state hempdustry:hemp_planks_slab type=bottom
+state hempdustry:hemp_planks_slab type=double
+state hempdustry:hemp_planks_slab type=top
+state hempdustry:hemp_planks_slab waterlogged=false
+state hempdustry:hemp_planks_slab waterlogged=true
+state hempdustry:hemp_planks_stairs facing=east
+state hempdustry:hemp_planks_stairs facing=north
+state hempdustry:hemp_planks_stairs facing=south
+state hempdustry:hemp_planks_stairs facing=west
+state hempdustry:hemp_planks_stairs half=bottom
+state hempdustry:hemp_planks_stairs half=top
+state hempdustry:hemp_planks_stairs shape=inner_left
+state hempdustry:hemp_planks_stairs shape=inner_right
+state hempdustry:hemp_planks_stairs shape=outer_left
+state hempdustry:hemp_planks_stairs shape=outer_right
+state hempdustry:hemp_planks_stairs shape=straight
+state hempdustry:hemp_planks_stairs waterlogged=false
+state hempdustry:hemp_planks_stairs waterlogged=true
+state hempdustry:hemp_planks_trapdoor facing=east
+state hempdustry:hemp_planks_trapdoor facing=north
+state hempdustry:hemp_planks_trapdoor facing=south
+state hempdustry:hemp_planks_trapdoor facing=west
+state hempdustry:hemp_planks_trapdoor half=bottom
+state hempdustry:hemp_planks_trapdoor half=top
+state hempdustry:hemp_planks_trapdoor open=false
+state hempdustry:hemp_planks_trapdoor open=true
+state hempdustry:hemp_planks_trapdoor powered=false
+state hempdustry:hemp_planks_trapdoor powered=true
+state hempdustry:hemp_planks_trapdoor waterlogged=false
+state hempdustry:hemp_planks_trapdoor waterlogged=true
+state hempdustry:hemp_planks_wall_hanging_sign facing=east
+state hempdustry:hemp_planks_wall_hanging_sign facing=north
+state hempdustry:hemp_planks_wall_hanging_sign facing=south
+state hempdustry:hemp_planks_wall_hanging_sign facing=west
+state hempdustry:hemp_planks_wall_hanging_sign waterlogged=false
+state hempdustry:hemp_planks_wall_hanging_sign waterlogged=true
+state hempdustry:hemp_planks_wall_sign facing=east
+state hempdustry:hemp_planks_wall_sign facing=north
+state hempdustry:hemp_planks_wall_sign facing=south
+state hempdustry:hemp_planks_wall_sign facing=west
+state hempdustry:hemp_planks_wall_sign waterlogged=false
+state hempdustry:hemp_planks_wall_sign waterlogged=true
+state hempdustry:indica_crop age=0
+state hempdustry:indica_crop age=1
+state hempdustry:indica_crop age=2
+state hempdustry:indica_crop age=3
+state hempdustry:indica_crop age=4
+state hempdustry:indica_crop age=5
+state hempdustry:indica_crop age=6
+state hempdustry:indica_crop age=7
+state hempdustry:indica_crop half=lower
+state hempdustry:indica_crop half=upper
+state hempdustry:indica_crop trimmed_early=false
+state hempdustry:indica_crop trimmed_early=true
+state hempdustry:indica_crop trimmed_late=false
+state hempdustry:indica_crop trimmed_late=true
+state hempdustry:infuser facing=east
+state hempdustry:infuser facing=north
+state hempdustry:infuser facing=south
+state hempdustry:infuser facing=west
+state hempdustry:infuser filled=false
+state hempdustry:infuser filled=true
+state hempdustry:infuser infusing=false
+state hempdustry:infuser infusing=true
+state hempdustry:sativa_crop age=0
+state hempdustry:sativa_crop age=1
+state hempdustry:sativa_crop age=2
+state hempdustry:sativa_crop age=3
+state hempdustry:sativa_crop age=4
+state hempdustry:sativa_crop age=5
+state hempdustry:sativa_crop age=6
+state hempdustry:sativa_crop age=7
+state hempdustry:sativa_crop segment=lower
+state hempdustry:sativa_crop segment=middle
+state hempdustry:sativa_crop segment=upper
+state hempdustry:sativa_crop trimmed_early=false
+state hempdustry:sativa_crop trimmed_early=true
+state hempdustry:sativa_crop trimmed_late=false
+state hempdustry:sativa_crop trimmed_late=true
+state hempdustry:sativa_flower half=lower
+state hempdustry:sativa_flower half=upper
+state hempdustry:space_cake bites=0
+state hempdustry:space_cake bites=1
+state hempdustry:space_cake bites=2
+state hempdustry:space_cake bites=3
+state hempdustry:space_cake bites=4
+state hempdustry:space_cake bites=5
+state hempdustry:space_cake bites=6
+state hempdustry:space_cake potency=0
+state hempdustry:space_cake potency=1
+state hempdustry:space_cake potency=2
+state hempdustry:space_cake potency=3
+state hempdustry:space_cake potency=4
+state hempdustry:space_cake quality=clean
+state hempdustry:space_cake quality=perfect
+state hempdustry:space_cake quality=rough
+state hempdustry:space_cake quality=standard
+tag minecraft:block #c:storage_blocks/hemp
+tag minecraft:block #hempdustry:heat_sources
+tag minecraft:block #hempdustry:hemp_crops
+tag minecraft:item #c:bricks/hemp
+tag minecraft:item #c:crops/hemp
+tag minecraft:item #c:storage_blocks/hemp
+tag minecraft:item #hempdustry:edibles
+tag minecraft:item #hempdustry:hemp_seed_foods
+tag minecraft:item #hempdustry:hemp_seeds
+tag minecraft:item #hempdustry:milk_buckets
+tag minecraft:worldgen/biome #hempdustry:indica_flower_gen
+tag minecraft:worldgen/biome #hempdustry:indica_flower_gen_cave
+tag minecraft:worldgen/biome #hempdustry:sativa_flower_gen
+tag minecraft:worldgen/biome #hempdustry:sativa_flower_gen_rare
+tag minecraft:worldgen/biome #hempdustry:sativa_flower_gen_sparse

@@ -1,0 +1,418 @@
+package com.warlonmhite.hempdustry.test;
+
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
+import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.config.HempdustryConfig;
+import com.warlonmhite.hempdustry.item.ModItemGroups;
+import com.warlonmhite.hempdustry.strain.Strain;
+import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementEntry;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.loot.LootTable;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.StringNbtReader;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryLoader;
+import net.minecraft.registry.tag.TagFile;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Property;
+import net.minecraft.test.TestContext;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Stream;
+import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.minecraft.test.GameTest;
+
+/**
+ * Every public release is non-breaking: a world, a datapack or an addon that worked on one public
+ * build works on the next. These two tests hold the mod to that against what each release actually
+ * shipped, instead of against a list someone keeps by hand.
+ *
+ * <p><b>How a release is frozen.</b> Every run writes what this build freezes to
+ * {@code build/gametest/frozen/<version>.txt} (every id, state value, criterion name, asset path and
+ * config key — one per line) and {@code <version>.json} (every data file, every stack the creative tab
+ * builds, every block entity's save, the default config). Cutting a release copies the two into
+ * {@code src/gametest/resources/frozen/}, and from then on every later build is checked against them.
+ * This line's 2.0.3 files were captured from its own release tag, v2.0.3+1.21.1: what a 1.21.1
+ * build shipped, which is not what the 1.21.11 one did.
+ *
+ * <p><b>Additions are free; removals fail.</b> Something that has to go anyway goes into
+ * {@code frozen/retired.txt} with how old worlds and packs survive it — and a retirement that excuses
+ * nothing any more fails as well.
+ */
+public final class FrozenSurfaceGameTest implements FabricGameTest {
+
+    private static final BlockPos AT = new BlockPos(1, 1, 1);
+
+    /**
+     * Every line a released build froze is still true of this one: its items, blocks, entities, block
+     * entities, components, sounds and the rest of its registry ids; every value of every blockstate
+     * property; every criterion name of every advancement; every recipe, loot table and tag id; every
+     * asset path a resource pack can replace; every config key; every strain's {@code model_index}.
+     *
+     * <p>Trim Season's only criterion was renamed during 2.1 and vanilla drops a criterion an
+     * advancement no longer has, so every 2.0.x player who had earned it lost it on joining — found by
+     * a review, not a test. The recipe-unlock advancements under {@code recipes/} are left out: one
+     * lost there fires again the next time the item is picked up, and the recipe line beside it is
+     * what is frozen.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void theFrozenSurfaceHolds(TestContext context) {
+        ServerWorld world = context.getWorld();
+        SortedSet<String> surface = surface(world);
+        String version = version();
+        write("frozen/" + version + ".txt", String.join("\n", surface) + "\n");
+        write("frozen/" + version + ".json", new GsonBuilder().disableHtmlEscaping().create().toJson(capture(context)));
+
+        Map<String, String> findings = new TreeMap<>();
+        int baselines = 0;
+        for (Map.Entry<String, Path> file : frozenFiles().entrySet()) {
+            if (!file.getKey().endsWith(".txt") || file.getKey().equals("retired.txt")) continue;
+            baselines++;
+            for (String line : text(file.getValue()).lines().filter(line -> !line.isBlank()).toList()) {
+                if (!surface.contains(line)) findings.putIfAbsent(line, "frozen by " + file.getKey() + ", gone from this build");
+            }
+        }
+        Sweep.atLeast(context, "release baselines in frozen/", baselines, 1);
+        Sweep.atLeast(context, "frozen lines in this build", surface.size(), 1000);
+        Sweep.report(context, "Everything a public release froze is still here", findings, retired());
+        context.complete();
+    }
+
+    /**
+     * Every data file a release shipped still decodes with this build's codecs — so a datapack that
+     * copied one and changed it still loads — and every stack, block entity save and config file a
+     * release wrote reads back with nothing it held lost.
+     *
+     * <p>A codec field that turns from optional to required, a serializer that renames a field, a
+     * block entity that stops reading a key: each makes a world or a pack written for the release
+     * fail to load or quietly lose data, and nothing in the build itself notices. This is the cheap,
+     * every-run half of the upgrade play-test, which stays the end-to-end proof at a release.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void oldDataStillLoads(TestContext context) {
+        ServerWorld world = context.getWorld();
+        DynamicRegistryManager registries = world.getRegistryManager();
+        DynamicOps<JsonElement> json = registries.getOps(JsonOps.INSTANCE);
+        Map<String, String> findings = new TreeMap<>();
+        int files = 0;
+        int releases = 0;
+        for (Map.Entry<String, Path> file : frozenFiles().entrySet()) {
+            if (!file.getKey().endsWith(".json")) continue;
+            releases++;
+            String release = file.getKey().replace(".json", "");
+            JsonObject old = Sweep.json(file.getValue()).getAsJsonObject();
+
+            for (Map.Entry<String, JsonElement> data : old.getAsJsonObject("data").entrySet()) {
+                files++;
+                Codec<?> codec = codecFor(data.getKey());
+                if (codec == null) {
+                    findings.put(release + " " + data.getKey(), "the test cannot tell what this file is: teach codecFor() its folder");
+                    continue;
+                }
+                DataResult<?> decoded = codec.parse(json, data.getValue());
+                if (decoded.isError()) {
+                    findings.put(release + " " + data.getKey(), "no longer decodes: " + decoded.error().orElseThrow().message());
+                }
+            }
+
+            for (JsonElement saved : old.getAsJsonArray("stacks")) {
+                DataResult<ItemStack> stack = ItemStack.CODEC.parse(json, saved);
+                String key = release + " stack " + saved.getAsJsonObject().get("id").getAsString();
+                if (stack.isError()) {
+                    findings.putIfAbsent(key, "no longer loads: " + stack.error().orElseThrow().message() + " — " + saved);
+                } else if (!contains(ItemStack.CODEC.encodeStart(json, stack.getOrThrow()).getOrThrow(), saved)) {
+                    findings.putIfAbsent(key, "loads as " + ItemStack.CODEC.encodeStart(json, stack.getOrThrow()).getOrThrow()
+                            + ", losing part of " + saved);
+                }
+            }
+
+            BlockPos pos = context.getAbsolutePos(AT);
+            for (Map.Entry<String, JsonElement> save : old.getAsJsonObject("blockEntities").entrySet()) {
+                String key = release + " " + save.getKey();
+                Block block = Registries.BLOCK.getOrEmpty(Identifier.of(save.getKey())).orElse(null);
+                if (block == null) {
+                    findings.put(key, "the block is gone");
+                    continue;
+                }
+                NbtCompound before = nbt(save.getValue().getAsString());
+                BlockEntity loaded = BlockEntity.createFromNbt(pos, block.getDefaultState(), before.copy(), registries);
+                if (loaded == null) {
+                    findings.put(key, "its block entity no longer loads from " + before);
+                } else if (!contains(placeless(loaded.createNbtWithIdentifyingData(registries)), placeless(before))) {
+                    findings.put(key, "saved " + before + " and loads as " + loaded.createNbtWithIdentifyingData(registries));
+                }
+            }
+
+            // The file as the release wrote it, every key in it: each must still be read and kept.
+            JsonElement config = old.get("config");
+            ConfigGameTest.withConfig(config.toString(), () -> {
+                JsonElement now = HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.get()).getOrThrow();
+                if (!contains(now, config)) {
+                    findings.put(release + " config", "a config file it wrote now reads as " + now + ", not " + config);
+                }
+            });
+        }
+        Sweep.atLeast(context, "released data files", files, 300);
+        Sweep.atLeast(context, "releases in frozen/", releases, 1);
+        Sweep.report(context, "What a public release wrote still loads", findings, Map.of());
+        context.complete();
+    }
+
+    // ----- what this build freezes -----
+
+    private static SortedSet<String> surface(ServerWorld world) {
+        DynamicRegistryManager registries = world.getRegistryManager();
+        SortedSet<String> lines = new TreeSet<>();
+        registries.streamAllRegistries().forEach(entry -> {
+            Identifier registry = entry.key().getValue();
+            if (Sweep.ours(registry)) lines.add("registry " + registry);
+            for (Identifier id : entry.value().getIds()) {
+                if (Sweep.ours(id)) lines.add("entry " + registry + " " + id);
+            }
+            entry.value().streamTags().forEach(tag -> {
+                Identifier id = tag.id();
+                // Ours, and the c: subtags we mint; a tag we only add to is vanilla's or another mod's.
+                if (Sweep.ours(id) || id.getNamespace().equals("c") && id.getPath().endsWith("/hemp")) {
+                    lines.add("tag " + registry + " #" + id);
+                }
+            });
+        });
+        for (Block block : Registries.BLOCK) {
+            Identifier id = Registries.BLOCK.getId(block);
+            if (!Sweep.ours(id)) continue;
+            for (Property<?> property : block.getStateManager().getProperties()) states(id, property, lines);
+        }
+        for (AdvancementEntry advancement : world.getServer().getAdvancementLoader().getAdvancements()) {
+            Identifier id = advancement.id();
+            if (!Sweep.ours(id) || id.getPath().startsWith("recipes/")) continue;
+            for (String criterion : advancement.value().criteria().keySet()) lines.add("criterion " + id + " " + criterion);
+        }
+        for (RecipeEntry<?> recipe : world.getServer().getRecipeManager().values()) {
+            if (Sweep.ours(recipe.id())) lines.add("recipe " + recipe.id());
+        }
+        world.getServer().getReloadableRegistries().getIds(RegistryKeys.LOOT_TABLE).stream()
+                .filter(Sweep::ours).forEach(id -> lines.add("loot_table " + id));
+        for (String file : Sweep.modFiles().keySet()) {
+            if (file.startsWith("assets/" + Hempdustry.MOD_ID + "/") && !file.startsWith("assets/" + Hempdustry.MOD_ID + "/lang/")) {
+                lines.add("asset " + file);
+            }
+        }
+        keys("", HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT).getOrThrow(), lines);
+        registries.get(Strain.REGISTRY_KEY).getEntrySet().forEach(strain -> {
+            if (Sweep.ours(strain.getKey().getValue())) {
+                lines.add("model_index " + strain.getKey().getValue() + " " + strain.getValue().modelIndex());
+            }
+        });
+        return lines;
+    }
+
+    private static <T extends Comparable<T>> void states(Identifier block, Property<T> property, SortedSet<String> into) {
+        for (T value : property.getValues()) into.add("state " + block + " " + property.getName() + "=" + property.name(value));
+    }
+
+    private static void keys(String prefix, JsonElement json, SortedSet<String> into) {
+        if (json.isJsonObject()) {
+            json.getAsJsonObject().entrySet().forEach(e -> keys(prefix.isEmpty() ? e.getKey() : prefix + "." + e.getKey(), e.getValue(), into));
+        } else {
+            into.add("config " + prefix);
+        }
+    }
+
+    /**
+     * What this build wrote, for {@link #oldDataStillLoads} to read back once it is a release: every
+     * data file it ships, every stack its creative tab builds, a filled and named block entity of
+     * every block that has one, and its default config.
+     */
+    private static JsonObject capture(TestContext context) {
+        ServerWorld world = context.getWorld();
+        DynamicRegistryManager registries = world.getRegistryManager();
+        JsonObject out = new JsonObject();
+
+        JsonObject data = new JsonObject();
+        Sweep.modFiles().forEach((file, path) -> {
+            if (file.startsWith("data/") && file.endsWith(".json")) data.add(file, Sweep.json(path));
+        });
+        out.add("data", data);
+
+        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.updateEntries(new ItemGroup.DisplayContext(
+                world.getEnabledFeatures(), true, registries));
+        JsonArray stacks = new JsonArray();
+        Stream.concat(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayStacks().stream(),
+                        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks().stream())
+                .map(stack -> ItemStack.CODEC.encodeStart(registries.getOps(JsonOps.INSTANCE), stack).getOrThrow())
+                .distinct().forEach(stacks::add);
+        out.add("stacks", stacks);
+
+        JsonObject blockEntities = new JsonObject();
+        BlockPos pos = context.getAbsolutePos(AT);
+        for (Block block : Registries.BLOCK) {
+            Identifier id = Registries.BLOCK.getId(block);
+            BlockState state = block.getDefaultState();
+            if (!Sweep.ours(id) || !state.hasBlockEntity()) continue;
+            world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
+            BlockEntity entity = world.getBlockEntity(pos);
+            if (entity == null) continue;
+            if (entity instanceof Inventory inventory) {
+                for (int slot = 0; slot < inventory.size(); slot++) inventory.setStack(slot, new ItemStack(Items.DIAMOND, slot + 1));
+            }
+            ItemStack named = new ItemStack(block.asItem());
+            if (!named.isEmpty()) {
+                named.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Frozen"));
+                entity.readComponents(named);
+            }
+            blockEntities.addProperty(id.toString(), entity.createNbtWithIdentifyingData(registries).toString());
+            if (entity instanceof Inventory inventory) inventory.clear();
+            world.removeBlock(pos, false);
+        }
+        out.add("blockEntities", blockEntities);
+
+        out.add("config", HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT).getOrThrow());
+        return out;
+    }
+
+    // ----- reading what a release froze -----
+
+    /** The codec a data file at {@code path} is read with, by its folder; null for a folder nobody taught it. */
+    private static Codec<?> codecFor(String path) {
+        String inside = path.substring(path.indexOf('/', "data/".length()) + 1);
+        if (inside.startsWith("tags/")) return TagFile.CODEC;
+        if (inside.startsWith("recipe/")) return Recipe.CODEC;
+        if (inside.startsWith("advancement/")) return Advancement.CODEC;
+        if (inside.startsWith("loot_table/")) return LootTable.CODEC;
+        // Fabric's list, not vanilla's: a mod's dynamic registry is in Fabric's alone. Its files live
+        // under <namespace>/<path>, data/<pack>/hempdustry/strain/ for strains.
+        for (RegistryLoader.Entry<?> registry : DynamicRegistries.getDynamicRegistries()) {
+            Identifier id = registry.key().getValue();
+            String folder = id.getNamespace().equals(Identifier.DEFAULT_NAMESPACE) ? id.getPath() : id.getNamespace() + "/" + id.getPath();
+            if (inside.startsWith(folder + "/")) return registry.elementCodec();
+        }
+        return null;
+    }
+
+    /** Whether {@code now} still holds everything {@code then} held: every key of every object, every other value equal. */
+    private static boolean contains(JsonElement now, JsonElement then) {
+        if (then.isJsonObject() && now.isJsonObject()) {
+            JsonObject object = now.getAsJsonObject();
+            return then.getAsJsonObject().entrySet().stream().allMatch(
+                    e -> object.has(e.getKey()) && contains(object.get(e.getKey()), e.getValue()));
+        }
+        return now.equals(then);
+    }
+
+    private static boolean contains(NbtCompound now, NbtCompound then) {
+        for (String key : then.getKeys()) {
+            NbtElement had = then.get(key);
+            NbtElement has = now.get(key);
+            if (has == null) return false;
+            if (had instanceof NbtCompound hadCompound && has instanceof NbtCompound hasCompound) {
+                if (!contains(hasCompound, hadCompound)) return false;
+            } else if (!had.equals(has)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** A save without its position, so one loaded somewhere else compares equal. */
+    private static NbtCompound placeless(NbtCompound save) {
+        NbtCompound copy = save.copy();
+        copy.remove("x");
+        copy.remove("y");
+        copy.remove("z");
+        return copy;
+    }
+
+    /** {@code frozen/retired.txt}: a line each, then two spaces, a {@code #} and how old worlds survive it. */
+    private static Map<String, String> retired() {
+        Map<String, String> retired = new TreeMap<>();
+        Path file = frozenFiles().get("retired.txt");
+        if (file == null) return retired;
+        for (String line : text(file).lines().toList()) {
+            int reason = line.indexOf("  # ");
+            if (!line.isBlank() && !line.startsWith("#")) {
+                retired.put(reason < 0 ? line.strip() : line.substring(0, reason).strip(),
+                        reason < 0 ? "(no reason given)" : line.substring(reason + 4).strip());
+            }
+        }
+        return retired;
+    }
+
+    /** The release baselines this test mod ships, by name inside {@code frozen/}. */
+    private static Map<String, Path> frozenFiles() {
+        Map<String, Path> files = new TreeMap<>();
+        for (Path root : FabricLoader.getInstance().getModContainer("hempdustry-gametest").orElseThrow().getRootPaths()) {
+            Path frozen = root.resolve("frozen");
+            if (!Files.isDirectory(frozen)) continue;
+            try (Stream<Path> walk = Files.list(frozen)) {
+                walk.filter(Files::isRegularFile).forEach(file -> files.put(file.getFileName().toString(), file));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return files;
+    }
+
+    /** The release this build would be: {@code 2.1.0-beta} out of {@code 2.1.0-beta+1.21.11}. */
+    private static String version() {
+        String full = FabricLoader.getInstance().getModContainer(Hempdustry.MOD_ID).orElseThrow()
+                .getMetadata().getVersion().getFriendlyString();
+        return full.contains("+") ? full.substring(0, full.indexOf('+')) : full;
+    }
+
+    private static void write(String file, String content) {
+        try {
+            Path path = Path.of(file);
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, content, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static String text(Path file) {
+        return new String(Sweep.bytes(file), StandardCharsets.UTF_8);
+    }
+
+    private static NbtCompound nbt(String snbt) {
+        try {
+            return StringNbtReader.parse(snbt);
+        } catch (CommandSyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+}

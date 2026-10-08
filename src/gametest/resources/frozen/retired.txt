@@ -1,0 +1,25 @@
+# Lines a public release froze that a later build removed on purpose, each followed by two spaces,
+# a # and how worlds and packs written for that release survive it. A line here that is back in the
+# build fails the test, so delete it then.
+
+asset assets/hempdustry/models/item/flip_flops_amethyst_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_copper_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_diamond_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_emerald_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_gold_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_iron_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_lapis_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_netherite_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_quartz_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/flip_flops_redstone_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_amethyst_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_copper_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_diamond_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_emerald_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_gold_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_iron_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_lapis_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_netherite_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_quartz_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+asset assets/hempdustry/models/item/hemp_beanie_redstone_trim.json  # 2.1: the beanie and the flip-flops have models of their own and take no trim, so no trim model of theirs is asked for; a trim already on one stays in its data, undrawn
+recipe hempdustry:white_bed  # 2.1: the Hemp Bed took its grid, and white dye on a hemp bed makes the white bed now; a recipe book that held it drops it on joining, logging one error
