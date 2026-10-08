@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.test;
 
-import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
@@ -35,10 +34,8 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -338,9 +335,7 @@ public final class AdvancementGameTest {
 
     /** Survival, so the stack is really spent and the player is not treated as a creative tester. */
     private static ServerPlayerEntity freshPlayer(TestContext context) {
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
-        player.changeGameMode(GameMode.SURVIVAL);
-        return player;
+        return Players.survival(context);
     }
 
     private static void consume(TestContext context, ServerPlayerEntity player, Item item) {

@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.test.TestContext;
@@ -49,12 +50,7 @@ public final class SiftingBoxGameTest {
      * were perfectly happy with the broken block while a player could not get the bar out.
      */
     private static ActionResult rightClick(TestContext context, ItemStack held) {
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
-        player.changeGameMode(GameMode.SURVIVAL);
-        player.setStackInHand(Hand.MAIN_HAND, held);
-        BlockPos pos = context.getAbsolutePos(BOX);
-        return player.interactionManager.interactBlock(player, context.getWorld(), held, Hand.MAIN_HAND,
-                new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));
+        return Players.click(context, Players.survival(context), BOX, held);
     }
 
     public static void dryScreenFillsAndYieldsKief(TestContext context) {
@@ -325,6 +321,16 @@ public final class SiftingBoxGameTest {
         rightClick(context, new ItemStack(Items.WATER_BUCKET));
         context.assertEquals(0, context.getBlockState(BOX).get(SiftingBoxBlock.LEVEL),
                 "a ready box kept its batch from a player holding a water bucket");
+
+        // And played out the way the client plays it, by a player looking down at the box: the water
+        // a full box turned down is not then poured on top of it.
+        context.setBlockState(BOX, ModBlocks.SIFTING_BOX.getDefaultState().with(SiftingBoxBlock.FILLED, true));
+        BlockPos above = context.getAbsolutePos(BOX).up();
+        ServerPlayerEntity player = Players.survival(context);
+        player.refreshPositionAndAngles(above.getX() + 0.5, above.getY(), above.getZ() + 0.5, 0, 90);
+        Players.clickLikeAClient(context, player, BOX, new ItemStack(Items.WATER_BUCKET));
+        context.assertFalse(context.getWorld().getFluidState(above).isIn(FluidTags.WATER),
+                "a full box turned a water bucket down and the bucket poured on top of it");
         context.complete();
     }
 
