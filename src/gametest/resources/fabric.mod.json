@@ -37,6 +37,7 @@
 			"com.warlonmhite.hempdustry.test.SchwagGameTest",
 			"com.warlonmhite.hempdustry.test.ScorchedHempGameTest",
 			"com.warlonmhite.hempdustry.test.SiftingBoxGameTest",
+			"com.warlonmhite.hempdustry.test.SweepGameTest",
 			"com.warlonmhite.hempdustry.test.TagBackedBehaviourGameTest",
 			"com.warlonmhite.hempdustry.test.TallPlantLootGameTest",
 			"com.warlonmhite.hempdustry.test.VaporizerGameTest",
