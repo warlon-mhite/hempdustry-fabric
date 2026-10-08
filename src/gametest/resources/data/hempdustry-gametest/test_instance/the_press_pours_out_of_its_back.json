@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:the_press_pours_out_of_its_back",
+  "structure": "fabric-gametest-api-v1:empty",
+  "max_ticks": 100,
+  "setup_ticks": 0,
+  "required": true
+}

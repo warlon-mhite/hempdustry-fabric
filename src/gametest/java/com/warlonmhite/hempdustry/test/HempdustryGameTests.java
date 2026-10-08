@@ -140,6 +140,9 @@ public class HempdustryGameTests implements ModInitializer {
         register("only_the_beanie_keeps_out_the_cold", HempOutfitGameTest::onlyTheBeanieKeepsOutTheCold);
         register("the_garments_take_dye_and_wash_out", HempOutfitGameTest::theGarmentsTakeDyeAndWashOut);
         register("a_full_outfit_eases_the_harsh_smoke", HempOutfitGameTest::aFullOutfitEasesTheHarshSmoke);
+        register("the_press_pours_out_of_its_back", HempPressGameTest::thePressPoursOutOfItsBack);
+        register("a_press_behind_another_presses_what_it_pours",
+                HempPressGameTest::aPressBehindAnotherPressesWhatItPours);
     }
 
     private static void register(String name, Consumer<TestContext> test) {

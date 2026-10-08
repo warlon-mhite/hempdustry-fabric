@@ -8,12 +8,18 @@ import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreenHandler;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.HopperBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.screen.PropertyDelegate;
@@ -100,6 +106,8 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
     private int progress;
     /** Recomputed every tick from the block below; synced so the screen's flame is truthful. */
     private boolean heated;
+    /** Throttles {@link #pushOutput}. Not persisted — a few ticks of timer is not worth a save field. */
+    private int pushCooldown;
 
     private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
         @Override
@@ -181,6 +189,10 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             dirty = true;
         }
 
+        if (pushOutput(world, pos, state)) {
+            dirty = true;
+        }
+
         BlockState shown = state.with(HempPressBlock.LIT, heated).with(HempPressBlock.PRESSING, pressing);
         if (shown != state) {
             state = shown;
@@ -220,6 +232,72 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             output.increment(result.getCount());
         }
         input.decrement(1);
+    }
+
+    /**
+     * Passes one item of the output to whatever is behind the press, over the pour lip on its back.
+     * Returns whether one went.
+     *
+     * <p><b>Pushed, because the heat claimed the extraction face.</b> A hopper pulls only from the
+     * block above it, through that block's down face — and the block under the press is its heat.
+     * So, like the Infuser, the press pushes instead of being pulled from.
+     *
+     * <p><b>Out of the back</b>, the face opposite the grate. Not the front, where a chest would hide
+     * the heat the grate shows; and not a side, where presses standing in a row would pour into each
+     * other, each pressing its neighbour's output. A row stands side by side with its chests behind
+     * it. A press set <em>behind</em> another takes what the first one pours as input, so filtered
+     * kief or bubble hash goes to rosin unattended — a layout somebody chose, never an accident.
+     *
+     * <p><b>One item every {@link InfuserBlockEntity#PUSH_COOLDOWN} ticks</b>, which is what a hopper
+     * under a furnace takes: the press empties exactly as fast as it would if the heat were not in
+     * the way, and a pour is never split between a neighbour and the slot. The neighbour is found the
+     * Infuser's two ways, in its order — the Transfer API for pipes and storage-only blocks, then
+     * {@code getInventoryAt} for an inventory minecart — and the Infuser's {@code pushOutput} says why
+     * each is there.
+     *
+     * <p><b>With nothing behind it the output stays put.</b> A Dropper with no container in front
+     * throws its item out, but a Dropper fires on a pulse; a press runs all day, and one worked by
+     * hand would strew rosin over its own floor.
+     */
+    private boolean pushOutput(World world, BlockPos pos, BlockState state) {
+        ItemStack output = getStack(OUTPUT_SLOT);
+        if (output.isEmpty()) {
+            return false;
+        }
+        if (pushCooldown > 0) {
+            pushCooldown--;
+            return false;
+        }
+        pushCooldown = InfuserBlockEntity.PUSH_COOLDOWN;
+
+        // The neighbour's face against the press's back points the way the press does.
+        Direction facing = state.get(HempPressBlock.FACING);
+        BlockPos behind = pos.offset(facing.getOpposite());
+
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, behind, facing);
+        if (storage != null) {
+            try (Transaction transaction = Transaction.openOuter()) {
+                if (storage.insert(ItemVariant.of(output), 1, transaction) == 1) {
+                    transaction.commit();
+                    removeStack(OUTPUT_SLOT, 1);
+                    return true;
+                }
+            }
+            // A real neighbour with no room. Keep the hopper cadence: it may have room in 8 ticks.
+            return false;
+        }
+
+        Inventory target = HopperBlockEntity.getInventoryAt(world, behind);
+        if (target == null) {
+            pushCooldown = InfuserBlockEntity.PUSH_IDLE_COOLDOWN;
+            return false;
+        }
+        // transfer() only fills the destination, so it is handed a copy and the press takes its own.
+        if (HopperBlockEntity.transfer(this, target, output.copyWithCount(1), facing).isEmpty()) {
+            removeStack(OUTPUT_SLOT, 1);
+            return true;
+        }
+        return false;
     }
 
     public boolean isHeated() {
@@ -265,7 +343,8 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         return slot == INPUT_SLOT && isInput(this.world, stack);
     }
 
-    // Furnace-shaped hopper access: in from above or the sides, out through the bottom.
+    // Furnace-shaped hopper access: in from above or the sides, out through the bottom. The bottom
+    // is where the heat sits, though, so automation gets the output from pushOutput instead.
     @Override
     public int[] getAvailableSlots(Direction side) {
         return side == Direction.DOWN ? new int[]{OUTPUT_SLOT} : new int[]{INPUT_SLOT};

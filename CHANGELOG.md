@@ -29,7 +29,10 @@ beta be told when the release lands.
   - The **Hemp Press** — eight blocks of hemp bricks around a piston — is a screw press heated from
     below, like the Infuser. It presses kief into **hashish**, bubble hash or filtered kief into
     **filtered hashish**, and filtered hashish into **rosin**, one piece at a time. It also presses
-    a retted hemp stem into eight hemp fibre.
+    a retted hemp stem into eight hemp fibre. With the heat underneath it, no hopper can reach its
+    bottom, so it pours what it makes over a lip on its back into whatever stands there — a chest,
+    a hopper, or a second press, which turns bubble hash into rosin with nobody touching either.
+    With nothing behind it, what it makes stays inside.
   - **Hashish** smokes for Night Vision, with Resistance, Slowness and Hunger. **Filtered hashish**
     gives the same high with half the chance of greening out — smoother, never stronger. Nine pieces
     pack into a **bar** you can set down on a shelf, and you cut pieces back off it with a sword or
