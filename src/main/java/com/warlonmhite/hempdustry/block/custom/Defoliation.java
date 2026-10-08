@@ -129,7 +129,7 @@ public final class Defoliation {
      * block state, so there is no hopper for it and there never will be. A drop on breaking a ripe
      * plant would instead be trivially automated by any of the block breakers a kitchen-sink pack
      * ships — and Slow Falling is vanilla's "do not sleep for three nights" effect, so farmable
-     * charas would collapse the rarity match the whole signature rests on. The Dry Sifter is only
+     * charas would collapse the rarity match the whole signature rests on. The Sifting Box is only
      * <em>not</em> automated yet; this cannot be, ever.
      *
      * <p>The realism and the mechanic agree exactly here, which is rare — hand-rubbed charas is

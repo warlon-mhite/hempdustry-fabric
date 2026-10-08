@@ -35,7 +35,6 @@ import java.util.UUID;
  * deferral rather than an oversight — the persistent version is a custom "Digesting" status effect
  * whose remaining duration <em>is</em> the clock, with its tick handler firing each stage as the
  * thresholds pass, which gets persistence for free because effects live on the player entity.
- * See CLAUDE.md §5b D13.
  */
 public final class EdibleScheduler {
     private EdibleScheduler() {

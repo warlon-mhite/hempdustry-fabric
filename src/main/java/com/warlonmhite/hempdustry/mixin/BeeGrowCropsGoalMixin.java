@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * {@code getDefaultState().with(AGE, n)} — it rebuilds the state from scratch and drops every other
  * property back to its default. Our crops already dodge the half of this that would behead a tall
  * plant, by overriding {@code getAge} so only the LOWER segment is ever a bee's target (see
- * CLAUDE.md's bee/{@code withAge} note). But the LOWER is exactly where
+ * {@code IndicaCropBlock#getAge}). But the LOWER is exactly where
  * {@link Defoliation#TRIMMED_EARLY}/{@link Defoliation#TRIMMED_LATE} live, so a bee flying over a
  * plant the player had just sheared would silently reset it to untrimmed — no message, no particle,
  * nothing to tell them the trip was wasted.
@@ -53,7 +53,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * instruction and they compose, each seeing the previous one's arguments. Passing the amended state
  * to {@link Operation#call} rather than calling {@code world.setBlockState} directly is what keeps
  * that chain intact — a direct call would jump the queue and skip every wrapper underneath. Ships
- * inside Fabric Loader (0.15+; this mod requires 0.16.5), so it costs no new dependency.
+ * inside Fabric Loader (0.15 and later), so it costs no new dependency.
  */
 @Mixin(targets = "net.minecraft.entity.passive.BeeEntity$GrowCropsGoal")
 public class BeeGrowCropsGoalMixin {

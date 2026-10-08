@@ -63,11 +63,11 @@ public class ModStrains {
 
     public static final RegistryKey<Strain> INDICA = key("indica");
     public static final RegistryKey<Strain> SATIVA = key("sativa");
-    /** Not a plant: the Dry Sifter's product, strainless by construction. No seeds, no flower. */
+    /** Not a plant: kief from the Sifting Box, pressed. Strainless by construction; no seeds, no flower. */
     public static final RegistryKey<Strain> HASHISH = key("hashish");
-    /** Not a plant either: resin rubbed off a living plant while trimming it. */
+    /** Not a plant either: resin rubbed off a ripe living plant with the shears. */
     public static final RegistryKey<Strain> CHARAS = key("charas");
-    /** Not a plant either: hashish put back through the screen at a finer mesh. */
+    /** Not a plant either: kief re-sifted at a finer mesh, or bubble hash, pressed. */
     public static final RegistryKey<Strain> FILTERED_HASHISH = key("filtered_hashish");
     public static final RegistryKey<Strain> ROSIN = key("rosin");
     /** The Rif's landrace, grown on sand beside water for the sieve. Its wild flower is its own crop. */
@@ -252,8 +252,8 @@ public class ModStrains {
         //
         // Neither Night Vision nor Slowness scales: Night Vision has no meaningful amplifier in
         // vanilla (level II is identical to level I), so flat is forced there rather than chosen.
-        // Resistance is the one scaling effect, which is what stops dosing hash being a pure
-        // downside -- but one piece is usually the right answer, which is a genuinely different
+        // Resistance is the one scaling buff (Hunger scales too, as in every strain, but it is a
+        // cost), which is what stops dosing hash being a pure downside -- but one piece is usually the right answer, which is a genuinely different
         // dose curve from the plants' and is also how hash is used.
         context.register(HASHISH, new Strain("hempdustry.strain.hashish", 0x6B4A2F, modelIndex(HASHISH),
                 Optional.empty(), ModItems.HASHISH, Optional.empty(), 1.0F, 1,
@@ -300,12 +300,12 @@ public class ModStrains {
         // as grading three colours weak-to-strong.
         //
         // Not named for a pass count. It was "Triple-Filtered" until 2026-09-09, which was wrong
-        // arithmetic -- the block runs two passes -- but the fix is a plain name rather than
+        // arithmetic -- the dry road runs two passes -- but the fix is a plain name rather than
         // "Double", because a number in the name promises a ladder and purity here is one sidegrade.
         //
-        // green_out_factor 2.0 doubles the 1-in-N, i.e. halves the risk. Seven hashish in and four
-        // out is a 43% yield loss, so this is a true sidegrade: you pay nearly half your hash for a
-        // gentler ride, and the effects you get are identical.
+        // green_out_factor 2.0 doubles the 1-in-N, i.e. halves the risk. The dry re-sift takes about
+        // three kief for each filtered kief, so this is a true sidegrade: you pay two thirds of your
+        // kief, or an ice wash, for a gentler ride, and the effects you get are identical.
         //
         // Paler than hashish because less oxidation and less leaf really is blonder -- colour
         // follows process here as everywhere else in the family, and claims nothing about strength.
@@ -346,8 +346,8 @@ public class ModStrains {
         // it keeps the family's side effects and drops every buff. NOTHING HERE MAY EVER BE A BUFF:
         // a furnace turns any leaf into this, and a buff would make leaves a smoking material.
         //
-        // Neither effect scales, so a pipe or bong of it is the same level I as a vaporizer's -- more
-        // of it is just more of nothing. greenOutFactor 0 is the codec's own spelling of "never
+        // Slowness does not scale, so a pipe or bong of it is the same level I as a vaporizer's --
+        // more of it is just more of nothing, and more Hunger, which scales as in every strain. greenOutFactor 0 is the codec's own spelling of "never
         // greens you out" (Smoking#smoothed), and it is the honest one: there is nothing left in it
         // to overdo.
         //
@@ -363,8 +363,9 @@ public class ModStrains {
         // a gamble with nothing to win. POISON on 60% of hits, the potato's odds, for a seventh of
         // the device's duration -- 100 ticks from a pipe, the potato's number again -- and no buff at
         // all. Poison scales like any effect but STOPS AT II, the highest survival vanilla ever
-        // gives (the strong potion, the pufferfish): a bong of two or three is about 12 damage over
-        // seven seconds. Uncapped, a bong of three was Poison III and took a full-health player to
+        // gives (the strong potion, the pufferfish): a bong of two is about 12 damage over seven
+        // seconds, and a bong of three, whose dose past the cap buys half as long again, about 17
+        // over eleven. Uncapped, a bong of three was Poison III and took a full-health player to
         // half a heart -- one arrow from dead in Hardcore, for smoking the worst thing in the mod.
         //
         // green_out_factor 0: there is nothing in it to overdo. cough_factor 0.5: stems and popping

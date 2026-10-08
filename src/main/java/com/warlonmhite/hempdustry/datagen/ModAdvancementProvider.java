@@ -55,9 +55,13 @@ import java.util.function.Consumer;
 public class ModAdvancementProvider extends FabricAdvancementProvider {
 
     /**
-     * Background for every advancement in the tree. A placeholder — it is a plain block texture
-     * rather than a tiled advancement background, which is why the tab tiles oddly (CLAUDE.md §5
-     * #3). Kept in one constant so the real art is a one-line change.
+     * Background for every advancement in the tree: the hempcrete powder block, tiled the way
+     * vanilla tiles its own block-like tab backgrounds. Kept in one constant so a change is one line.
+     *
+     * <p><b>On this version the field is a texture path</b>, {@code textures/block/….png} in full.
+     * From 1.21.9 it is an asset id that the game expands to {@code textures/<path>.png} itself, so
+     * the 1.21.11 build names {@code hempdustry:block/hempcrete_powder_block} instead; a missing
+     * background is drawn as the magenta-and-black missing texture rather than logged.
      */
     private static final Identifier BACKGROUND =
             Identifier.of(Hempdustry.MOD_ID, "textures/block/hempcrete_powder_block.png");

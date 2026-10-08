@@ -190,7 +190,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
                     + "Raise maxBuffLevel for a stronger mod in a modded pack. Multipliers are 0.05-10; "
                     + "greenOutChanceMultiplier 0 disables green-outs, as does greenOut=false.");
             comment(root, "world", "cropGrowthMultiplier and machineSpeedMultiplier are speeds: 2.0 is twice as fast. "
-                    + "machineSpeed drives the Decarboxylator; the Infuser has its own section. "
+                    + "machineSpeed drives the Decarboxylator and the Hemp Press; the Infuser has its own section. "
                     + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here. "
                     + "creepersSeekHemp=false stops creepers now and then wandering into grown, open-sky hemp fields; the goal is still "
                     + "added to them, it simply never starts, so it takes effect on the next /hempdustry reload.");
@@ -350,7 +350,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * rather than inherit.
      *
      * @param cropGrowthMultiplier     growth speed for both crops; 2.0 grows twice as fast
-     * @param machineSpeedMultiplier   the Decarboxylator's speed (the Infuser has its own section)
+     * @param machineSpeedMultiplier   the Decarboxylator's and the Hemp Press's speed (the Infuser has its own section)
      * @param creepersSeekHemp         whether creepers now and then wander into open hemp fields
      */
     public record World(double cropGrowthMultiplier, double machineSpeedMultiplier, boolean creepersSeekHemp) {

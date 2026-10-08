@@ -15,7 +15,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
@@ -29,15 +28,16 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.state.property.DirectionProperty;
 
 /**
  * A pressed slab of hash, sitting on the floor, that you cut pieces off with a blade. Two of these
  * exist — brown {@code hashish_bar} and blonde {@link FilteredHashishBarBlock} — and they differ by
  * exactly one method, {@link #piece()}.
  *
- * <p><b>Both come out of the Dry Sifter, because pressing is what that block does.</b> Charas is the
- * only hash with no bar, and now for a reason rather than a quantity: it is the only one that is
- * never pressed. Hand-rubbed resin is rolled between the palms, not squeezed in a screen.
+ * <p><b>Both are made of what the Hemp Press makes, because a bar is pressed hash.</b> Charas is the
+ * only hash with no bar, and for a reason rather than a quantity: it is the only one that is never
+ * pressed. Hand-rubbed resin is rolled between the palms, which is why it gets a ball instead.
  *
  * <h2>Why the bar is a block at all</h2>
  *
@@ -79,7 +79,7 @@ public class HashishBarBlock extends Block {
 
     /** How many cuts have been taken out of this bar, 0–4. At 4 the next cut removes the block. */
     public static final IntProperty CUTS = IntProperty.of("cuts", 0, 4);
-    public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
+    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
 
     /** Pieces the next cut yields — 2, 2, 2, 2, then 1. Nine to a bar, so 9↔9 is lossless. */
     private static final int[] YIELD = {2, 2, 2, 2, 1};
@@ -216,9 +216,9 @@ public class HashishBarBlock extends Block {
      * <p><b>A refusal hands back {@code super}, never {@code SKIP_DEFAULT_BLOCK_INTERACTION}.</b>
      * {@code ServerPlayerInteractionManager} calls {@code onUseWithItem} on every click, empty hand
      * included, and only falls through to {@link #onUse} when the result is
-     * exactly {@code PASS_TO_DEFAULT_BLOCK_INTERACTION} — which is what
+     * exactly {@code PASS_TO_DEFAULT_BLOCK_INTERACTION} — which is exactly what
      * {@code AbstractBlock#onUseWithItem}'s default is. Anything else swallows the click.
-     * This shipped wrong in the Dry Sifter and was found by a player, not by the game test.
+     * This shipped wrong in the Sifting Box and was found by a player, not by the game test.
      */
     @Override
     protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
