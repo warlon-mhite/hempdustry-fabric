@@ -18,11 +18,8 @@ import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 
 /**
@@ -54,10 +51,7 @@ public final class InfuserPourGameTest implements FabricGameTest {
      * more forgiving than a player's click — see SiftingBoxGameTest for the bug that taught this.
      */
     private static ActionResult rightClick(TestContext context, ServerPlayerEntity player, ItemStack held) {
-        player.setStackInHand(Hand.MAIN_HAND, held);
-        BlockPos pos = context.getAbsolutePos(TUB);
-        return player.interactionManager.interactBlock(player, context.getWorld(), held, Hand.MAIN_HAND,
-                new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));
+        return Players.click(context, player, TUB, held);
     }
 
     private static boolean screenOpen(ServerPlayerEntity player) {

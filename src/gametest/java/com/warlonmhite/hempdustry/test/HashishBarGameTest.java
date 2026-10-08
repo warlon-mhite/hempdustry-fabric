@@ -12,10 +12,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.test.GameTest;
@@ -45,12 +42,7 @@ public final class HashishBarGameTest implements FabricGameTest {
      * found by a player rather than by a test.
      */
     private static ActionResult rightClick(TestContext context, ItemStack held) {
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
-        player.changeGameMode(GameMode.SURVIVAL);
-        player.setStackInHand(Hand.MAIN_HAND, held);
-        BlockPos pos = context.getAbsolutePos(BAR);
-        return player.interactionManager.interactBlock(player, context.getWorld(), held, Hand.MAIN_HAND,
-                new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));
+        return Players.click(context, Players.survival(context), BAR, held);
     }
 
     /** Five cuts give 2 + 2 + 2 + 2 + 1 = nine pieces, and the fifth takes the block with it. */
