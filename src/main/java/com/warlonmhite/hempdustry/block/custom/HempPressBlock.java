@@ -75,12 +75,14 @@ public class HempPressBlock extends BlockWithEntity {
     public static final BooleanProperty PRESSING = BooleanProperty.of("pressing");
 
     /**
-     * Bed, plate, pillars and crossbeam, drawn facing north. The platen and the capstan are left out
-     * because they move; a click in the gap lands on the plate below it.
+     * Bed, plate, pour lip, pillars and crossbeam, drawn facing north. The platen and the capstan are
+     * left out because they move; a click in the gap lands on the plate below it. So are the lip's
+     * last two pixels, which reach into the block behind it as the Infuser's spout does.
      */
     private static final double[][] FRAME = {
             {0, 0, 0, 16, 3, 16},
             {2, 3, 2, 14, 4, 14},
+            {6, 3, 14, 10, 5, 16},
             {0, 3, 5, 3, 13, 11},
             {13, 3, 5, 16, 13, 11},
             {0, 13, 5, 16, 16, 11}};

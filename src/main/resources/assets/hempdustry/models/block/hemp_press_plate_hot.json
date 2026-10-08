@@ -32,6 +32,45 @@
         "north": {"uv": [0, 13, 6, 15], "texture": "#plate"},
         "up": {"uv": [0, 15, 6, 16], "texture": "#plate"}
       }
+    },
+    {
+      "name": "lip_floor",
+      "from": [6, 3, 14],
+      "to": [10, 4, 18],
+      "light_emission": 12,
+      "faces": {
+        "east": {"uv": [0, 12, 4, 13], "texture": "#plate"},
+        "south": {"uv": [0, 12, 4, 13], "texture": "#plate"},
+        "west": {"uv": [0, 12, 4, 13], "texture": "#plate"},
+        "up": {"uv": [12, 0, 16, 4], "texture": "#plate"},
+        "down": {"uv": [12, 0, 16, 4], "texture": "#plate"}
+      }
+    },
+    {
+      "name": "lip_rail_west",
+      "from": [6, 4, 14],
+      "to": [7, 5, 18],
+      "light_emission": 12,
+      "faces": {
+        "north": {"uv": [0, 12, 1, 13], "texture": "#plate"},
+        "east": {"uv": [0, 12, 4, 13], "texture": "#plate"},
+        "south": {"uv": [0, 12, 1, 13], "texture": "#plate"},
+        "west": {"uv": [0, 12, 4, 13], "texture": "#plate"},
+        "up": {"uv": [12, 4, 13, 8], "texture": "#plate"}
+      }
+    },
+    {
+      "name": "lip_rail_east",
+      "from": [9, 4, 14],
+      "to": [10, 5, 18],
+      "light_emission": 12,
+      "faces": {
+        "north": {"uv": [0, 12, 1, 13], "texture": "#plate"},
+        "east": {"uv": [0, 12, 4, 13], "texture": "#plate"},
+        "south": {"uv": [0, 12, 1, 13], "texture": "#plate"},
+        "west": {"uv": [0, 12, 4, 13], "texture": "#plate"},
+        "up": {"uv": [15, 4, 16, 8], "texture": "#plate"}
+      }
     }
   ]
 }
