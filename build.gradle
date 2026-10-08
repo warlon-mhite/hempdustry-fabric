@@ -166,6 +166,9 @@ def expectedGametestLog = [
 	~/\(Minecraft\) Failed to load eula\.txt/,
 	// a_broken_config_is_left_alone feeds the loader four broken files on purpose
 	~/\(hempdustry\) .*config\/hempdustry\.json/,
+	// every_config_extreme_keeps_the_numbers_sane pushes every setting past its range, with values
+	// no real config holds -- a shipped default the loader has to clamp still fails the run
+	~/\(hempdustry\) Config \S+ was (-?1000000000|-?1\.0E9|1\.0E-9), clamped to/,
 ]
 tasks.matching { it.name == "runGametest" }.configureEach {
 	doLast {
