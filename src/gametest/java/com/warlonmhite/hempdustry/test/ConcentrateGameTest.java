@@ -132,9 +132,11 @@ public final class ConcentrateGameTest implements FabricGameTest {
         context.assertTrue(!recipe.matches(
                         grid(new ItemStack(ModItems.BONG), moonRock, moonRock.copy()), world),
                 "two moon rocks packed together");
-        context.assertTrue(!recipe.matches(
+        // A stack of them packs one, as a stack of buds does: crafting takes one item from a slot,
+        // whatever the stack, so the second stays in the grid (2.0.3's rule).
+        context.assertTrue(recipe.matches(
                         grid(new ItemStack(ModItems.BONG), moonRock.copyWithCount(2)), world),
-                "a stack of two moon rocks packed as one");
+                "a stack of two moon rocks refused, though crafting takes only one of them");
         context.complete();
     }
 
