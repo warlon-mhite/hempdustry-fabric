@@ -73,7 +73,9 @@ public class Schema1460Mixin {
                     name -> DSL.optionalFields("Items", DSL.list(TypeReferences.ITEM_STACK.in(schema))));
         }
         // A placed bong is the device item itself, kept as the block entity's own components
-        // (BongBlockEntity); being in the table is what lets the fixer reach them.
+        // (BongBlockEntity); being in the table is what lets the fixer reach them. A placed hemp bed
+        // keeps whatever its item carried that the bed does not read, an anvil name among them.
         schema.registerSimple(blockEntities, "hempdustry:bong");
+        schema.registerSimple(blockEntities, "hempdustry:hemp_bed");
     }
 }

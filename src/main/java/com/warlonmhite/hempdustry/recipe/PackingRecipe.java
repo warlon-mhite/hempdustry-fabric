@@ -106,8 +106,9 @@ public class PackingRecipe extends SpecialCraftingRecipe {
                 device = stack;
             } else if (stack.getItem() instanceof MoonRockItem) {
                 SmokeContents load = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-                if (preloaded != null || stack.getCount() != 1 || load.isEmpty()) {
-                    return null; // two of them, a whole stack of them, or one that carries nothing
+                // A stack of them packs one, like a stack of buds: crafting takes one from the slot.
+                if (preloaded != null || load.isEmpty()) {
+                    return null; // two of them, or one that carries nothing
                 }
                 preloaded = load;
             } else {
