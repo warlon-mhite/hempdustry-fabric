@@ -311,7 +311,9 @@ beta be told when the release lands.
   `#hempdustry:hash_cutters` is what cuts a bar — swords, and `#c:tools/knife` for modded knives.
   `#hempdustry:grow_lamps` (a block tag) is what counts as a Grow Lamp, and
   `#hempdustry:not_grow_lights` is what is bright but never lights a plant — fire, campfires and
-  lava. The biome tag `#hempdustry:beldia_gen` is where wild Beldía grows, and the leaf's banner
+  lava. The biome tag `#hempdustry:beldia_gen` is where wild Beldía grows, and the block tag
+  `#hempdustry:beldia_soil` is the ground it grows on, planted or wild — sand, red sand and any
+  mod's `#c:sands`, never suspicious sand. The leaf's banner
   pattern hangs off `#hempdustry:pattern_item/hemp_leaf`, so a datapack can add another. Both beds
   are fed from `#c:fertilizers`.
 - **A placement modifier, `hempdustry:in_beldia_biome`**, checks every plant of a patch rather than

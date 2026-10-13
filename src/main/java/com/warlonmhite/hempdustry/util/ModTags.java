@@ -192,6 +192,13 @@ public class ModTags {
         public static final TagKey<Block> GROW_LAMPS = createTag("grow_lamps");
         /** Bright, but not a light over a plant: never counted, whatever its light level. */
         public static final TagKey<Block> NOT_GROW_LIGHTS = createTag("not_grow_lights");
+        /**
+         * The ground Beldía grows on, and generates on, outside a bed of ours. A tag of our own
+         * rather than {@code #c:sands}, which not every Fabric API has, or {@code #minecraft:sand},
+         * which holds suspicious sand. It takes {@code #c:sands} in optionally, so another mod's sand
+         * joins wherever that tag exists, and a datapack can widen or narrow it here.
+         */
+        public static final TagKey<Block> BELDIA_SOIL = createTag("beldia_soil");
         private static TagKey<Block> createTag(String name) {
             return TagKey.of(RegistryKeys.BLOCK, Identifier.of(Hempdustry.MOD_ID, name));
         }

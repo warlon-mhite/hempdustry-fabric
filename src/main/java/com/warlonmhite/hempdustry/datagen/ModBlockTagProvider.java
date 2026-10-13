@@ -48,6 +48,15 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.SATIVA_CROP)
                 .add(ModBlocks.BELDIA_CROP);
 
+        // Beldía's ground, read by the crop and by its worldgen feature alike. Sand and red sand by
+        // name, because #c:sands is not on every Fabric API and #minecraft:sand carries suspicious
+        // sand, which Beldía must never take; #c:sands optionally, so another mod's sand joins
+        // wherever that tag exists and nothing breaks where it does not.
+        valueLookupBuilder(ModTags.Blocks.BELDIA_SOIL)
+                .add(Blocks.SAND)
+                .add(Blocks.RED_SAND)
+                .addOptionalTag(ConventionalBlockTags.SANDS);
+
         // The wild flowers were in no tag at all, so a sword took as long over one as a fist did and
         // an enderman walked past them. Both of these are joined DIRECTLY rather than by way of
         // #minecraft:small_flowers, and that is the whole point of the entry:

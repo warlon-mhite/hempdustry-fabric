@@ -291,6 +291,30 @@ public final class BeldiaGameTest {
         context.setBlockState(new BlockPos(2, 2, 3), Blocks.AIR);
         context.setBlockState(new BlockPos(2, 3, 3), Blocks.AIR);
 
+        // One ground for the plant and the wild patch alike: #hempdustry:beldia_soil, which holds sand
+        // of both colours and never suspicious sand, and which both of them read, whatever the tag
+        // ends up holding in a pack.
+        context.assertTrue(Blocks.SAND.getDefaultState().isIn(ModTags.Blocks.BELDIA_SOIL)
+                        && Blocks.RED_SAND.getDefaultState().isIn(ModTags.Blocks.BELDIA_SOIL),
+                "#hempdustry:beldia_soil lost sand or red sand");
+        context.assertTrue(!Blocks.SUSPICIOUS_SAND.getDefaultState().isIn(ModTags.Blocks.BELDIA_SOIL),
+                "#hempdustry:beldia_soil holds suspicious sand");
+        BlockState seedling = ModBlocks.BELDIA_CROP.getDefaultState();
+        for (Block ground : new Block[]{Blocks.SAND, Blocks.RED_SAND, Blocks.SUSPICIOUS_SAND, Blocks.SANDSTONE,
+                Blocks.GRAVEL, Blocks.DIRT, Blocks.FARMLAND}) {
+            boolean soil = ground.getDefaultState().isIn(ModTags.Blocks.BELDIA_SOIL);
+            context.setBlockState(new BlockPos(2, 1, 3), ground);
+            context.assertTrue(seedling.canPlaceAt(world, context.getAbsolutePos(new BlockPos(2, 2, 3))) == soil,
+                    "Beldía " + (soil ? "refuses " : "stands on ") + ground + ", which #hempdustry:beldia_soil "
+                            + (soil ? "holds" : "does not hold"));
+            context.assertTrue(plant.generateUnregistered(world, generator, random, context.getAbsolutePos(new BlockPos(2, 2, 3))) == soil,
+                    "the wild Beldía feature " + (soil ? "refused " : "accepted ") + ground + " beside water, which "
+                            + "#hempdustry:beldia_soil " + (soil ? "holds" : "does not hold"));
+            context.setBlockState(new BlockPos(2, 2, 3), Blocks.AIR);
+            context.setBlockState(new BlockPos(2, 3, 3), Blocks.AIR);
+        }
+        context.setBlockState(new BlockPos(2, 1, 3), Blocks.SAND);
+
         for (int i = 0; i < 20; i++) {
             feature.generate(world, generator, random, context.getAbsolutePos(new BlockPos(4, 2, 4)));
         }

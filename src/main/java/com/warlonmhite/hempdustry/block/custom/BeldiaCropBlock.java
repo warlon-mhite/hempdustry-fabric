@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemPlacementContext;
@@ -49,10 +49,10 @@ public class BeldiaCropBlock extends IndicaCropBlock {
         super(settings);
     }
 
-    /** Any sand a mod calls sand ({@code #c:sands}, which leaves suspicious sand out), or a bed of ours. */
+    /** Anything in {@code #hempdustry:beldia_soil} (sand, red sand, any mod's {@code #c:sands}), or a bed of ours. */
     @Override
     protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
-        return floor.isIn(ConventionalBlockTags.SANDS) || floor.getBlock() instanceof GrowMedium;
+        return floor.isIn(ModTags.Blocks.BELDIA_SOIL) || floor.getBlock() instanceof GrowMedium;
     }
 
     @Override
