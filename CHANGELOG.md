@@ -265,7 +265,8 @@ beta be told when the release lands.
   which vanilla builds trimmable armour from; they take armour's enchantments through the
   `#minecraft:enchantable/*` tags directly.
 - **The crops' blockstates are multipart now**, with two new properties beside `age` and `half`:
-  `light` (`natural`, `ambient`, `lamp`, `grow_lamp` or `stressed`) and `rubbed`. A stressed
+  `condition` (`natural`, `ambient`, `lamp`, `grow_lamp` or `stressed` — how the plant grew: the
+  light it kept, or stressed by any cause) and `rubbed`. A stressed
   flowering plant is drawn from `textures/block/<crop>_stage<N>_stressed.png`, Lemon Haze's per
   segment (`_bottom_stressed`, `_middle_stressed`, `_top_stressed`).
 - **The level-III cap is a knob.** `maxBuffLevel` in the config's `effects` section (default 2) is
@@ -312,7 +313,7 @@ beta be told when the release lands.
 - **A placement modifier, `hempdustry:in_beldia_biome`**, checks every plant of a patch rather than
   the patch's centre, because a patch spreads past the edge of its biome.
 - **Two advancement triggers learn new filters**, all optional, so a 2.0 advancement still loads.
-  `hempdustry:harvest_hemp` takes `light` — the record the plant kept (`natural`, `ambient`, `lamp`,
+  `hempdustry:harvest_hemp` takes `condition` — the record the plant kept (`natural`, `ambient`, `lamp`,
   `grow_lamp` or `stressed`) — and `bed`, a vanilla block predicate tested against the block under
   the plant. `hempdustry:smoke` takes `strain`, a strain id matched against every strain in the load.
 - **For addon authors:** a strain's optional seeds and flower are `Strain.seedItem()` and

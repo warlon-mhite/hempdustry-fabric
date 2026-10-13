@@ -76,7 +76,7 @@
       "when": {
         "half": "lower",
         "age": "4",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage4"
@@ -86,7 +86,7 @@
       "when": {
         "half": "lower",
         "age": "4",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage4_stressed"
@@ -96,7 +96,7 @@
       "when": {
         "half": "upper",
         "age": "4",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage8"
@@ -106,7 +106,7 @@
       "when": {
         "half": "upper",
         "age": "4",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage8_stressed"
@@ -116,7 +116,7 @@
       "when": {
         "half": "lower",
         "age": "5",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage5"
@@ -126,7 +126,7 @@
       "when": {
         "half": "lower",
         "age": "5",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage5_stressed"
@@ -136,7 +136,7 @@
       "when": {
         "half": "upper",
         "age": "5",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage9"
@@ -146,7 +146,7 @@
       "when": {
         "half": "upper",
         "age": "5",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage9_stressed"
@@ -156,7 +156,7 @@
       "when": {
         "half": "lower",
         "age": "6",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage6"
@@ -166,7 +166,7 @@
       "when": {
         "half": "lower",
         "age": "6",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage6_stressed"
@@ -176,7 +176,7 @@
       "when": {
         "half": "upper",
         "age": "6",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage10"
@@ -186,7 +186,7 @@
       "when": {
         "half": "upper",
         "age": "6",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage10_stressed"
@@ -196,7 +196,7 @@
       "when": {
         "half": "lower",
         "age": "7",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage7"
@@ -206,7 +206,7 @@
       "when": {
         "half": "lower",
         "age": "7",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage7_stressed"
@@ -216,7 +216,7 @@
       "when": {
         "half": "upper",
         "age": "7",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage11"
@@ -226,7 +226,7 @@
       "when": {
         "half": "upper",
         "age": "7",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/indica_crop_stage11_stressed"

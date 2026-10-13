@@ -112,7 +112,7 @@
       "when": {
         "segment": "lower",
         "age": "4",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage4_bottom"
@@ -122,7 +122,7 @@
       "when": {
         "segment": "lower",
         "age": "4",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage4_bottom_stressed"
@@ -132,7 +132,7 @@
       "when": {
         "segment": "middle",
         "age": "4",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_middle"
@@ -142,7 +142,7 @@
       "when": {
         "segment": "middle",
         "age": "4",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_middle_stressed"
@@ -152,7 +152,7 @@
       "when": {
         "segment": "upper",
         "age": "4",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage4_top"
@@ -162,7 +162,7 @@
       "when": {
         "segment": "upper",
         "age": "4",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage4_top_stressed"
@@ -172,7 +172,7 @@
       "when": {
         "segment": "lower",
         "age": "5",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage5_bottom"
@@ -182,7 +182,7 @@
       "when": {
         "segment": "lower",
         "age": "5",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage5_bottom_stressed"
@@ -192,7 +192,7 @@
       "when": {
         "segment": "middle",
         "age": "5",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_middle"
@@ -202,7 +202,7 @@
       "when": {
         "segment": "middle",
         "age": "5",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_middle_stressed"
@@ -212,7 +212,7 @@
       "when": {
         "segment": "upper",
         "age": "5",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage5_top"
@@ -222,7 +222,7 @@
       "when": {
         "segment": "upper",
         "age": "5",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage5_top_stressed"
@@ -232,7 +232,7 @@
       "when": {
         "segment": "lower",
         "age": "6",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_bottom"
@@ -242,7 +242,7 @@
       "when": {
         "segment": "lower",
         "age": "6",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_bottom_stressed"
@@ -252,7 +252,7 @@
       "when": {
         "segment": "middle",
         "age": "6",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_middle"
@@ -262,7 +262,7 @@
       "when": {
         "segment": "middle",
         "age": "6",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_middle_stressed"
@@ -272,7 +272,7 @@
       "when": {
         "segment": "upper",
         "age": "6",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_top"
@@ -282,7 +282,7 @@
       "when": {
         "segment": "upper",
         "age": "6",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage6_top_stressed"
@@ -292,7 +292,7 @@
       "when": {
         "segment": "lower",
         "age": "7",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage7_bottom"
@@ -302,7 +302,7 @@
       "when": {
         "segment": "lower",
         "age": "7",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage7_bottom_stressed"
@@ -312,7 +312,7 @@
       "when": {
         "segment": "middle",
         "age": "7",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage7_middle"
@@ -322,7 +322,7 @@
       "when": {
         "segment": "middle",
         "age": "7",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage7_middle_stressed"
@@ -332,7 +332,7 @@
       "when": {
         "segment": "upper",
         "age": "7",
-        "light": "!stressed"
+        "condition": "!stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage7_top"
@@ -342,7 +342,7 @@
       "when": {
         "segment": "upper",
         "age": "7",
-        "light": "stressed"
+        "condition": "stressed"
       },
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage7_top_stressed"

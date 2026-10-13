@@ -6,8 +6,8 @@
         "bed": {
           "blocks": "hempdustry:hydro_tray"
         },
-        "cuts": 2,
-        "light": "grow_lamp"
+        "condition": "grow_lamp",
+        "cuts": 2
       },
       "trigger": "hempdustry:harvest_hemp"
     }

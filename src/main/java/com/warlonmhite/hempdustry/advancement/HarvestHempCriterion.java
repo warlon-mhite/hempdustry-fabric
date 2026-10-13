@@ -36,7 +36,7 @@ import java.util.Optional;
  * all, so a state predicate on the trim booleans would only fire when the player happened to shear
  * the bottom block.
  *
- * <p><b>What it can filter on</b>, each optional: the number of {@code cuts}; the {@code light} the
+ * <p><b>What it can filter on</b>, each optional: the number of {@code cuts}; the {@code condition} the
  * plant kept a record of (read off the plant, never off the lamp, so it cannot be cheated at the
  * last moment); and the {@code bed} it grew in, a vanilla {@link BlockPredicate} tested against the
  * block under the LOWER segment — so a datapack can ask for a Hydro Tray, a Grow Pot, or a tray that
@@ -73,7 +73,7 @@ public class HarvestHempCriterion extends AbstractCriterion<HarvestHempCriterion
     private static final Codec<GrowLight> LIGHT_CODEC = StringIdentifiable.createCodec(GrowLight::values);
 
     /**
-     * The optional fields are additive: a criterion written before {@code light} and {@code bed}
+     * The optional fields are additive: a criterion written before {@code condition} and {@code bed}
      * existed decodes with both empty and means exactly what it meant.
      */
     public record Conditions(Optional<LootContextPredicate> player, NumberRange.IntRange cuts,
@@ -82,7 +82,7 @@ public class HarvestHempCriterion extends AbstractCriterion<HarvestHempCriterion
         public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 EntityPredicate.LOOT_CONTEXT_PREDICATE_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
                 NumberRange.IntRange.CODEC.optionalFieldOf("cuts", NumberRange.IntRange.ANY).forGetter(Conditions::cuts),
-                LIGHT_CODEC.optionalFieldOf("light").forGetter(Conditions::light),
+                LIGHT_CODEC.optionalFieldOf("condition").forGetter(Conditions::light),
                 BlockPredicate.CODEC.optionalFieldOf("bed").forGetter(Conditions::bed)
         ).apply(instance, Conditions::new));
 
@@ -98,7 +98,7 @@ public class HarvestHempCriterion extends AbstractCriterion<HarvestHempCriterion
             return create(NumberRange.IntRange.exactly(2), Optional.empty(), Optional.empty());
         }
 
-        /** Only counts a plant that kept {@code light} as its record all the way to harvest. */
+        /** Only counts a plant that kept {@code light} as its {@code condition} all the way to harvest. */
         public static AdvancementCriterion<Conditions> grownUnder(GrowLight light) {
             return create(NumberRange.IntRange.ANY, Optional.of(light), Optional.empty());
         }
