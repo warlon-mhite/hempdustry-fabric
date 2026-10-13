@@ -1,101 +1,96 @@
 package com.warlonmhite.hempdustry.item.custom;
 
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.warlonmhite.hempdustry.Hempdustry;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.dynamic.Codecs;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * Applies an edible's effects late, and in sequence. Same shape as {@link SmokeScheduler} — one
- * server-thread queue, players resolved by UUID at fire time. Where the smoke scheduler waits 38
- * ticks for one particle puff, this one holds a whole staggered bundle for anywhere from 45 seconds
- * to nearly five minutes -- a Rough onset of up to 4:20, and the 30-second ramp after it.
+ * Applies an edible's effects late, and in sequence. Where {@link SmokeScheduler} waits 38 ticks for
+ * one particle puff, this one holds a whole staggered bundle for anywhere from 45 seconds to nearly
+ * five minutes -- a Rough onset of up to 4:20, and the 30-second ramp after it.
  *
- * <h2>The player is found on the server, not in a world</h2>
+ * <h2>The doses wait on the player, and are saved with them</h2>
  *
- * <b>A queue entry stores a UUID and nothing else.</b> The obvious shape — holding the
- * {@code ServerWorld} the edible was eaten in and calling {@code world.getPlayerByUuid} — scopes the
- * lookup to <em>one dimension</em>, because {@code ServerWorld.getPlayers()} is that dimension's list
- * alone. Over a window this long a nether trip is entirely ordinary, and the failure is silent: the
- * player eats a Space Cake, walks through a portal, and nothing ever happens. Resolving through
- * {@link net.minecraft.server.PlayerManager#getPlayer(UUID)} instead finds them wherever they are.
+ * What is still to land is a list of {@link Pending} doses attached to the player
+ * ({@code hempdustry:pending_edibles}), and written into the player's save with everything else. So
+ * an edible eaten just before a logout lands after the login, and a dedicated server's restart voids
+ * nothing. Over a wait this long a logout is ordinary, and until 2.1 it lost the edible. The clock
+ * stops while the player is away, as a status effect's does.
  *
- * <p>Not holding a world is also what stops this static queue from pinning a whole
- * {@code MinecraftServer} in memory — see {@link #init()}.
+ * <p>A status effect was the other way to hold the clock, but a player carries one instance of each
+ * effect: a second edible eaten during the first one's wait would replace it or hide behind it, where
+ * here both land, as they always have. Milk and a totem, which clear every effect, do not touch an
+ * edible still on its way down either.
  *
- * <p><b>Known gap: this does not survive a logout.</b> An edible eaten and then disconnected on is
- * lost, and on a dedicated server a restart voids every queued bundle at once. That is a deliberate
- * deferral rather than an oversight — the persistent version is a custom "Digesting" status effect
- * whose remaining duration <em>is</em> the clock, with its tick handler firing each stage as the
- * thresholds pass, which gets persistence for free because effects live on the player entity.
+ * <p><b>Dying drops what you have eaten.</b> The attachment is not copied to the player who respawns
+ * after a death; it is copied through the End portal's return, which is not one. A nether trip keeps
+ * it too: it is the same player, wherever they are.
  */
 public final class EdibleScheduler {
     private EdibleScheduler() {
     }
 
-    private static final class Pending {
-        final UUID player;
-        final StatusEffectInstance effect;
-        int ticksLeft;
-
-        Pending(UUID player, int ticksLeft, StatusEffectInstance effect) {
-            this.player = player;
-            this.ticksLeft = ticksLeft;
-            this.effect = effect;
-        }
+    /** One effect waiting to land, and how many ticks it has left. */
+    public record Pending(int ticksLeft, StatusEffectInstance effect) {
+        public static final Codec<Pending> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codecs.POSITIVE_INT.fieldOf("ticks_left").forGetter(Pending::ticksLeft),
+                StatusEffectInstance.CODEC.fieldOf("effect").forGetter(Pending::effect)
+        ).apply(instance, Pending::new));
     }
 
-    private static final List<Pending> PENDING = new ArrayList<>();
+    /** Everything a player has eaten that has not landed yet, oldest first. Saved with the player. */
+    public static final AttachmentType<List<Pending>> PENDING = AttachmentRegistry.createPersistent(
+            Identifier.of(Hempdustry.MOD_ID, "pending_edibles"), Pending.CODEC.listOf());
 
-    /**
-     * Registers the tick pump and the two things that empty the queue. Call once from mod init.
-     *
-     * <p><b>Clearing on server stop is not housekeeping.</b> Nothing drains this queue while no
-     * server is ticking, so an integrated server quit to the title screen with entries still pending
-     * leaves them there for the rest of the process — and a stale entry would then fire against
-     * whatever world is opened next. Clearing on stop bounds the queue to one server's lifetime.
-     *
-     * <p><b>Dying drops what you have eaten</b>, which the {@code isAlive} check alone does not
-     * achieve: a respawn hands back a <em>new</em> player entity with the same UUID, very much alive,
-     * so a bundle queued before death would otherwise land on the fresh spawn. Purging on respawn is
-     * what makes "you lose it if you die" true.
-     */
+    /** Registers the tick pump. Call once from mod init. */
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(EdibleScheduler::tick);
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> PENDING.clear());
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            // `alive` is true for the End-portal return, which is not a death and keeps the bundle.
-            if (!alive) {
-                PENDING.removeIf(pending -> pending.player.equals(newPlayer.getUuid()));
-            }
-        });
     }
 
     /** Applies {@code effect} to {@code player} in {@code delayTicks} ticks. */
     public static void schedule(PlayerEntity player, int delayTicks, StatusEffectInstance effect) {
-        PENDING.add(new Pending(player.getUuid(), Math.max(1, delayTicks), effect));
+        List<Pending> waiting = new ArrayList<>(player.getAttachedOrElse(PENDING, List.of()));
+        waiting.add(new Pending(Math.max(1, delayTicks), new StatusEffectInstance(effect)));
+        player.setAttached(PENDING, List.copyOf(waiting));
+    }
+
+    /** What {@code player} still has on its way, oldest first. */
+    public static List<Pending> pending(PlayerEntity player) {
+        return player.getAttachedOrElse(PENDING, List.of());
     }
 
     private static void tick(MinecraftServer server) {
-        if (PENDING.isEmpty()) {
-            return;
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            List<Pending> waiting = player.getAttached(PENDING);
+            // A player lying dead waits for the respawn screen, which drops the list; nothing lands on a corpse.
+            if (waiting == null || !player.isAlive()) {
+                continue;
+            }
+            List<Pending> still = new ArrayList<>(waiting.size());
+            for (Pending pending : waiting) {
+                if (pending.ticksLeft() > 1) {
+                    still.add(new Pending(pending.ticksLeft() - 1, pending.effect()));
+                } else {
+                    player.addStatusEffect(new StatusEffectInstance(pending.effect()));
+                }
+            }
+            if (still.isEmpty()) {
+                player.removeAttached(PENDING);
+            } else {
+                player.setAttached(PENDING, List.copyOf(still));
+            }
         }
-        PENDING.removeIf(pending -> {
-            if (--pending.ticksLeft > 0) {
-                return false;
-            }
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
-            if (player != null && player.isAlive()) {
-                player.addStatusEffect(new StatusEffectInstance(pending.effect));
-            }
-            return true;
-        });
     }
 }

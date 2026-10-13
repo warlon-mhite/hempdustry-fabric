@@ -253,6 +253,12 @@ beta be told when the release lands.
   the wash needs ice on all four sides, and a dry screen tells you it will not mix plant matter with
   kief. Shears on a plant already rubbed for charas say so.
 
+### Fixed
+
+- **An edible eaten just before leaving still hits.** What is still on its way is saved with the
+  player now, so logging out, or a server restarting, during the wait no longer loses it; the wait
+  picks up where it left off when you come back. Dying still loses it, as it always did.
+
 ### Notes for pack makers
 
 - **The Hemp Shirt and Hemp Harem Pants are drawn in two layers**, as leather is: a grey
