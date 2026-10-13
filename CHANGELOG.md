@@ -262,6 +262,9 @@ beta be told when the release lands.
 - **Paintings show their title and author again.** On Minecraft 1.21.11 a painting's name lives in
   its own data, and ours had been carried over from 1.21.1 without it, so all six hung with no title
   and no author on their tooltip.
+- **An edible eaten just before leaving still hits.** What is still on its way is saved with the
+  player now, so logging out, or a server restarting, during the wait no longer loses it; the wait
+  picks up where it left off when you come back. Dying still loses it, as it always did.
 
 ### Notes for pack makers
 

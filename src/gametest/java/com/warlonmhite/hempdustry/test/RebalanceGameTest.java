@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
+import com.warlonmhite.hempdustry.item.custom.EdibleScheduler;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.Smoking;
@@ -20,8 +21,11 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.storage.NbtReadView;
+import net.minecraft.storage.NbtWriteView;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.Hand;
+import net.minecraft.util.ErrorReporter;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -215,6 +219,41 @@ public final class RebalanceGameTest {
             previous = window;
         }
         context.complete();
+    }
+
+    /**
+     * An edible still on its way down is part of the player's save: written out and read back into
+     * another player it is the same doses, to the tick, so a logout or a server restart loses nothing.
+     * Until 2.1 it was a static queue that neither knew about.
+     */
+    public static void aPendingEdibleIsSavedWithThePlayer(TestContext context) {
+        ServerPlayerEntity eater = freshPlayer(context);
+        EdibleEffects.consume(eater, 4, Quality.PERFECT);
+        List<EdibleScheduler.Pending> waiting = EdibleScheduler.pending(eater);
+        context.assertEquals(EdibleBundle.BUILT_IN.effects().size(), waiting.size(), "doses waiting after eating a tier-IV edible");
+        context.assertTrue(eater.getStatusEffects().isEmpty(), "an edible landed the moment it was eaten");
+
+        var registries = context.getWorld().getRegistryManager();
+        NbtWriteView saved = NbtWriteView.create(ErrorReporter.EMPTY, registries);
+        eater.writeData(saved);
+        ServerPlayerEntity back = freshPlayer(context);
+        context.assertTrue(EdibleScheduler.pending(back).isEmpty(), "a fresh player already has doses waiting");
+        back.readData(NbtReadView.create(ErrorReporter.EMPTY, registries, saved.getNbt()));
+        context.assertEquals(waiting, EdibleScheduler.pending(back), "the doses read back from the save");
+        context.complete();
+    }
+
+    /** A dose lands on the tick its wait runs out, and leaves nothing behind on the player. */
+    public static void aPendingDoseLandsOnTime(TestContext context) {
+        ServerPlayerEntity eater = freshPlayer(context);
+        EdibleScheduler.schedule(eater, 5, new StatusEffectInstance(StatusEffects.SLOWNESS, 200, 0));
+        context.runAtTick(4, () -> context.assertTrue(!eater.hasStatusEffect(StatusEffects.SLOWNESS),
+                "a dose due in five ticks landed early"));
+        context.runAtTick(8, () -> {
+            context.assertTrue(eater.hasStatusEffect(StatusEffects.SLOWNESS), "a dose due in five ticks never landed");
+            context.assertTrue(EdibleScheduler.pending(eater).isEmpty(), "a landed dose is still waiting on the player");
+            context.complete();
+        });
     }
 
     // ---------------------------------------------------------------------
