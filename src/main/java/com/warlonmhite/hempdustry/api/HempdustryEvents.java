@@ -99,7 +99,7 @@ public final class HempdustryEvents {
      * they are four tiers into a cake.
      *
      * <p>It fires at the <b>moment of eating</b>, not at onset. An edible's effects are queued
-     * behind a 30 s–3 min come-up and then ramp in stages, so there is no single later instant that
+     * behind a come-up of up to 4:20 and then ramp in stages, so there is no single later instant that
      * means "this happened"; the swallow is the event. A listener wanting to act when the high
      * actually lands should schedule its own delay.
      *

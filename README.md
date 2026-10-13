@@ -113,10 +113,10 @@ A four-step chain, and each step is a thing you can see happening:
 One batch of butter spreads across eight cookies or concentrates into a single dawamesk, and that
 dilution is what sets the tiers apart.
 
-They do not hit straight away. There's a delay of anywhere from thirty seconds to three minutes
-before anything happens, the first thing you feel is your legs getting heavy, and the good part
-arrives after that. A better batch of butter narrows how unpredictable the wait is and makes the
-effects last longer. Eating a second one because the first "isn't working" is a mistake the game
+They do not hit straight away. There's a delay — about a minute and a half from a perfect batch,
+anything from 45 seconds to 4:20 from a rough one — before anything happens, the first thing you
+feel is your legs getting heavy, and the good part arrives after that. A better batch of butter
+narrows how unpredictable the wait is, brings it sooner and makes the effects last longer. Eating a second one because the first "isn't working" is a mistake the game
 will let you make.
 
 Separately, and with nothing psychoactive in it at all: **toasted hemp seeds**, a **hemp seed bar**,

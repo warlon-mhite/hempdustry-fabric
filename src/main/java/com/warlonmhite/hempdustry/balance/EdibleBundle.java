@@ -19,6 +19,7 @@ import net.minecraft.util.dynamic.Codecs;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.random.RandomGenerator;
 
 /**
  * What an edible does, as data: {@code data/<namespace>/hempdustry/edible/default.json}. One bundle
@@ -29,23 +30,43 @@ import java.util.Optional;
  * a block state on the Space Cake, so it is the one thing here a datapack cannot widen.
  * {@link EdibleEffects} turns this into effects, and keeps the reasoning behind the built-in numbers.
  */
-public record EdibleBundle(Onset onset, Qualities qualities, List<Float> tierShare, List<Effect> effects) {
+public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effect> effects) {
 
-    /** When an edible kicks in: around {@code centre}, never before {@code earliest} nor after {@code latest}. */
-    public record Onset(int earliestTicks, int latestTicks, int centreTicks) {
+    /**
+     * When an edible of one quality kicks in: never before {@code min}, never after {@code max}, and
+     * most often at {@code mode}. The roll is a triangle over the three, so every tick of the window
+     * can come up and the odds thin out evenly towards both ends -- a mode well short of {@code max}
+     * is the long late tail an edible is known for.
+     */
+    public record Onset(int minTicks, int modeTicks, int maxTicks) {
         public static final Codec<Onset> CODEC = RecordCodecBuilder.<Onset>create(instance -> instance.group(
-                Codecs.POSITIVE_INT.fieldOf("earliest_ticks").forGetter(Onset::earliestTicks),
-                Codecs.POSITIVE_INT.fieldOf("latest_ticks").forGetter(Onset::latestTicks),
-                Codecs.POSITIVE_INT.fieldOf("centre_ticks").forGetter(Onset::centreTicks)
-        ).apply(instance, Onset::new)).validate(onset -> onset.earliestTicks() <= onset.latestTicks()
+                Codecs.POSITIVE_INT.fieldOf("min").forGetter(Onset::minTicks),
+                Codecs.POSITIVE_INT.fieldOf("mode").forGetter(Onset::modeTicks),
+                Codecs.POSITIVE_INT.fieldOf("max").forGetter(Onset::maxTicks)
+        ).apply(instance, Onset::new)).validate(onset -> onset.minTicks() <= onset.modeTicks()
+                && onset.modeTicks() <= onset.maxTicks()
                 ? DataResult.success(onset)
-                : DataResult.error(() -> "earliest_ticks is after latest_ticks"));
+                : DataResult.error(() -> "onset_ticks wants min <= mode <= max"));
+
+        /** One roll of the triangle, in ticks. */
+        public int roll(RandomGenerator random) {
+            if (maxTicks == minTicks) {
+                return minTicks;
+            }
+            double width = maxTicks - minTicks;
+            double u = random.nextDouble();
+            double rising = (modeTicks - minTicks) / width;
+            double ticks = u < rising
+                    ? minTicks + Math.sqrt(u * width * (modeTicks - minTicks))
+                    : maxTicks - Math.sqrt((1 - u) * width * (maxTicks - modeTicks));
+            return Math.clamp(Math.round(ticks), minTicks, maxTicks);
+        }
     }
 
-    /** One quality's come-up, as a spread either side of the centre, and how long a tier-IV high lasts. */
-    public record Grade(int onsetSpreadTicks, int durationTicks) {
+    /** One quality: when it kicks in, and how long a tier-IV high lasts. */
+    public record Grade(Onset onset, int durationTicks) {
         public static final Codec<Grade> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codecs.NON_NEGATIVE_INT.fieldOf("onset_spread_ticks").forGetter(Grade::onsetSpreadTicks),
+                Onset.CODEC.fieldOf("onset_ticks").forGetter(Grade::onset),
                 Codecs.POSITIVE_INT.fieldOf("duration_ticks").forGetter(Grade::durationTicks)
         ).apply(instance, Grade::new));
     }
@@ -103,7 +124,6 @@ public record EdibleBundle(Onset onset, Qualities qualities, List<Float> tierSha
             RegistryKey.of(REGISTRY_KEY, Identifier.of(Hempdustry.MOD_ID, "default"));
 
     public static final Codec<EdibleBundle> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Onset.CODEC.fieldOf("onset").forGetter(EdibleBundle::onset),
             Qualities.CODEC.fieldOf("qualities").forGetter(EdibleBundle::qualities),
             Codecs.POSITIVE_FLOAT.listOf(EdibleEffects.MAX_TIER, EdibleEffects.MAX_TIER)
                     .fieldOf("tier_share").forGetter(EdibleBundle::tierShare),
@@ -111,12 +131,16 @@ public record EdibleBundle(Onset onset, Qualities qualities, List<Float> tierSha
     ).apply(instance, EdibleBundle::new));
 
     /**
-     * The 2.0.1 bundle.
+     * The built-in bundle: 2.0.1's effects and durations, 2.1's onsets.
      *
      * <ul>
-     *   <li><b>Onset</b> anywhere from 30 s to 3 min, every quality uncertain about the same ~90 s
-     *       centre. What narrows with quality is the spread: Rough is the whole window, Perfect is
-     *       nearly exact. A good batch buys certainty, not power.</li>
+     *   <li><b>Onset</b> (2.1): the worse the batch, the wider the window and the later it most
+     *       likely lands. Perfect is 87 to 93 s, around 90; Clean 1:05 to 2:15, most likely 1:30;
+     *       Standard 0:55 to 3:15, most likely 1:40; Rough 0:45 to 4:20, most likely 2:00 -- it can
+     *       catch you early or keep you waiting, which is the edible's own trap. A good batch buys
+     *       certainty and an earlier come-up, never a stronger one. Until 2.1 every quality shared
+     *       one centre and a clamp, which piled a tenth of Rough's rolls onto the window's first
+     *       tick and never reached its last fifteen seconds.</li>
      *   <li><b>Duration</b> is anchored on vanilla's potions, not on a real-world ratio: Rough lasts a
      *       plain potion's 3:00, Perfect an extended one's 8:00. Tiers I to IV take 62.5, 75, 87.5
      *       and 100% of it — what a stronger butter buys, now that the levels mostly stay put.</li>
@@ -128,8 +152,8 @@ public record EdibleBundle(Onset onset, Qualities qualities, List<Float> tierSha
      * </ul>
      */
     public static final EdibleBundle BUILT_IN = new EdibleBundle(
-            new Onset(600, 3600, 1800),
-            new Qualities(new Grade(1500, 3600), new Grade(1050, 5400), new Grade(600, 7200), new Grade(60, 9600)),
+            new Qualities(new Grade(new Onset(900, 2400, 5200), 3600), new Grade(new Onset(1100, 2000, 3900), 5400),
+                    new Grade(new Onset(1300, 1800, 2700), 7200), new Grade(new Onset(1740, 1800, 1860), 9600)),
             List.of(0.625F, 0.75F, 0.875F, 1.0F),
             List.of(
                     new Effect(StatusEffects.SLOWNESS, List.of(0, 0, 1, 1), 0, Optional.empty(),

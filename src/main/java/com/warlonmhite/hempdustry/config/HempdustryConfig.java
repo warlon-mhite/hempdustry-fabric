@@ -297,7 +297,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @param durationMultiplier       scales every effect's duration, smoking and edibles alike
      * @param cooldownMultiplier       scales the per-device use cooldowns
      * @param greenOutChanceMultiplier scales green-out odds; {@code 0} disables them
-     * @param onsetMultiplier          scales an edible's 30 s–3 min come-up window
+     * @param onsetMultiplier          scales every quality's come-up window (45 s–4:20 built in)
      * @param greenOut                 whether a bad hit can replace its effects entirely
      * @param nausea                   whether nausea is ever applied — an accessibility switch
      * @param munchies                 whether Hunger is applied

@@ -208,6 +208,13 @@ beta be told when the release lands.
 
 ### Changed
 
+- **When an edible hits depends far more on the batch.** The worse the butter, the wider the wait
+  and the later it most likely ends: Perfect still hits at about a minute and a half, give or take
+  three seconds; Clean between 1:05 and 2:15, most often around 1:30; Standard between 0:55 and
+  3:15, most often around 1:40; Rough anywhere from 0:45 to 4:20, most often around two minutes —
+  early enough to catch you out, late enough to make you think it is not working. Every moment of
+  each window can come up now; before, a tenth of rough edibles hit at exactly thirty seconds and
+  none in the last fifteen of their window.
 - **Hemp armour lasts as long as leather armour.** It still protects less than leather, and still
   enchants better.
 - **The Hemp Harem Pants are undyed hemp now**, the colour of the shirt, so they can take dye. For
@@ -283,11 +290,12 @@ beta be told when the release lands.
   eighteen bongs), `vaporizer` and `spliff` — with the length of its high, its cooldown, its cough
   and nausea odds (1 in N, 0 for never), a `green_out_factor`, and for the three you pack, a `bowl`:
   `hits`, `max_dose` and `spent_yield`. The spliff has no bowl; how big one rolls is its crafting
-  recipes. `edible/default.json` is the one bundle every edible gives: the onset window, each
-  quality's spread and length, each tier's share of it, and the effects with an amplifier per tier
+  recipes. `edible/default.json` is the one bundle every edible gives: each quality's onset — the
+  earliest, likeliest and latest tick it can hit, `onset_ticks` `min`, `mode` and `max` — and its
+  length, each tier's share of it, and the effects with an amplifier per tier
   and the moment each lands. `green_out/default.json` is the odds per dose, the spins, the full
-  green-out and the lockout. The mod's own files are the numbers it played with before, to the tick,
-  so copy one into your datapack and edit it. Only the `hempdustry` namespace is read, so a
+  green-out and the lockout. The mod's own files are the numbers it played with before, to the tick
+  (bar the edible onsets above), so copy one into your datapack and edit it. Only the `hempdustry` namespace is read, so a
   datapack overrides a file by writing to the same path. A missing file falls back to the built-in
   numbers; a malformed one stops the world loading, as any broken datapack entry does. They are
   read when the world opens, like strains, so a change needs a restart: `/reload` does not re-read
