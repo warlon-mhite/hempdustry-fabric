@@ -19,8 +19,8 @@
                   "Name": "hempdustry:beldia_crop",
                   "Properties": {
                     "age": "7",
+                    "condition": "natural",
                     "half": "lower",
-                    "light": "natural",
                     "rubbed": "false",
                     "trimmed_early": "false",
                     "trimmed_late": "false"
@@ -36,8 +36,8 @@
                   "Name": "hempdustry:beldia_crop",
                   "Properties": {
                     "age": "7",
+                    "condition": "natural",
                     "half": "upper",
-                    "light": "natural",
                     "rubbed": "false",
                     "trimmed_early": "false",
                     "trimmed_late": "false"

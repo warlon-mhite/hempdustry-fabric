@@ -3,7 +3,7 @@
   "criteria": {
     "harvested_under_a_grow_lamp": {
       "conditions": {
-        "light": "grow_lamp"
+        "condition": "grow_lamp"
       },
       "trigger": "hempdustry:harvest_hemp"
     }

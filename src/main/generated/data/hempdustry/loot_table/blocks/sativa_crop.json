@@ -62,7 +62,7 @@
                       "condition": "minecraft:block_state_property",
                       "properties": {
                         "age": "7",
-                        "light": "stressed",
+                        "condition": "stressed",
                         "segment": "lower"
                       }
                     }
@@ -134,7 +134,7 @@
                       "condition": "minecraft:block_state_property",
                       "properties": {
                         "age": "7",
-                        "light": "stressed",
+                        "condition": "stressed",
                         "segment": "lower"
                       }
                     }
@@ -191,7 +191,7 @@
                       "condition": "minecraft:block_state_property",
                       "properties": {
                         "age": "7",
-                        "light": "stressed",
+                        "condition": "stressed",
                         "segment": "lower"
                       }
                     }
@@ -585,7 +585,7 @@
                   "condition": "minecraft:block_state_property",
                   "properties": {
                     "age": "7",
-                    "light": "grow_lamp",
+                    "condition": "grow_lamp",
                     "segment": "lower"
                   }
                 }
@@ -607,7 +607,7 @@
                   "condition": "minecraft:block_state_property",
                   "properties": {
                     "age": "7",
-                    "light": "lamp",
+                    "condition": "lamp",
                     "segment": "lower"
                   }
                 }
@@ -629,7 +629,7 @@
                   "condition": "minecraft:block_state_property",
                   "properties": {
                     "age": "7",
-                    "light": "ambient",
+                    "condition": "ambient",
                     "segment": "lower"
                   }
                 },
@@ -671,7 +671,7 @@
               "condition": "minecraft:block_state_property",
               "properties": {
                 "age": "7",
-                "light": "grow_lamp",
+                "condition": "grow_lamp",
                 "segment": "lower"
               }
             },
@@ -680,7 +680,7 @@
               "condition": "minecraft:block_state_property",
               "properties": {
                 "age": "7",
-                "light": "lamp",
+                "condition": "lamp",
                 "segment": "lower"
               }
             }
@@ -703,7 +703,7 @@
           "condition": "minecraft:block_state_property",
           "properties": {
             "age": "7",
-            "light": "stressed",
+            "condition": "stressed",
             "segment": "lower"
           }
         }

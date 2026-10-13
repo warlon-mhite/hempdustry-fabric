@@ -25,6 +25,10 @@ import net.minecraft.world.BlockView;
  * <p>Losing the light is one way to {@link #STRESSED} and the only certain one; the rest — a dry bed,
  * a dead pump, overfeeding, overwatering, a bone-dry field — are rolls, in {@link PlantStress}.
  *
+ * <p>The block-state property is {@code condition}, not {@code light}: the record began as the
+ * light alone, and {@link #STRESSED} now comes of any of those causes, so the name a resource pack
+ * or a datapack reads says what the value means.
+ *
  * <p>The constants are in tier order, weakest first, and {@link #afterStep} relies on it.
  */
 public enum GrowLight implements StringIdentifiable {
@@ -39,7 +43,7 @@ public enum GrowLight implements StringIdentifiable {
     /** Lost its lamp while flowering, or stressed some other way ({@link PlantStress}). Harvests a bud short and seeded. */
     STRESSED("stressed");
 
-    public static final EnumProperty<GrowLight> PROPERTY = EnumProperty.of("light", GrowLight.class);
+    public static final EnumProperty<GrowLight> PROPERTY = EnumProperty.of("condition", GrowLight.class);
 
     /** The age the plant starts flowering at — the age both crops first stand two blocks tall. */
     public static final int FLOWERING_AGE = 4;
