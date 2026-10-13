@@ -49,10 +49,10 @@ public class BeldiaCropBlock extends IndicaCropBlock {
         super(settings);
     }
 
-    /** Any sand a mod calls sand ({@code #c:sands}, which leaves suspicious sand out), or a bed of ours. */
+    /** Anything in {@code #hempdustry:beldia_soil} (sand, red sand, any mod's {@code #c:sands}), or a bed of ours. */
     @Override
     protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
-        return floor.isIn(ModTags.Blocks.SANDS) || floor.getBlock() instanceof GrowMedium;
+        return floor.isIn(ModTags.Blocks.BELDIA_SOIL) || floor.getBlock() instanceof GrowMedium;
     }
 
     @Override

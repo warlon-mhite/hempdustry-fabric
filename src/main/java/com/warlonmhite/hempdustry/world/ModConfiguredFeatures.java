@@ -81,9 +81,9 @@ public class ModConfiguredFeatures {
         // right beside it, so a desert riverbank. BLOCK_COLUMN puts the LOWER and the UPPER down
         // together, and the filter wants air for both, so a plant is never cut short to a lone half.
         //
-        // The ground test is #c:sands -- the plant's own survival rule, so a modded desert's sands
-        // work -- and it is asked directly rather than through wouldSurvive, because a crop's
-        // canPlaceAt also reads light and worldgen has none yet. The water is vanilla's own four
+        // The ground test is #hempdustry:beldia_soil -- the plant's own survival rule, so a modded
+        // desert's sands work -- and it is asked directly rather than through wouldSurvive, because a
+        // crop's canPlaceAt also reads light and worldgen has none yet. The water is vanilla's own four
         // offsets from wouldSurviveNearWaterModifier. InBeldiaBiome then checks each plant's own biome,
         // since the patch spreads past its centre's -- see that class. A desert shore grows it too.
         BlockState ripe = ModBlocks.BELDIA_CROP.getDefaultState().with(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
@@ -98,7 +98,7 @@ public class ModConfiguredFeatures {
                         BlockFilterPlacementModifier.of(BlockPredicate.allOf(
                                 BlockPredicate.IS_AIR,
                                 BlockPredicate.matchingBlocks(new Vec3i(0, 1, 0), Blocks.AIR),
-                                BlockPredicate.matchingBlockTag(new Vec3i(0, -1, 0), ModTags.Blocks.SANDS),
+                                BlockPredicate.matchingBlockTag(new Vec3i(0, -1, 0), ModTags.Blocks.BELDIA_SOIL),
                                 BlockPredicate.anyOf(
                                         BlockPredicate.matchingFluids(new Vec3i(1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
                                         BlockPredicate.matchingFluids(new Vec3i(-1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
