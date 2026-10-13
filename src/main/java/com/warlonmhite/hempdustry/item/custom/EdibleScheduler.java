@@ -15,8 +15,8 @@ import java.util.UUID;
 /**
  * Applies an edible's effects late, and in sequence. Same shape as {@link SmokeScheduler} — one
  * server-thread queue, players resolved by UUID at fire time. Where the smoke scheduler waits 38
- * ticks for one particle puff, this one holds a whole staggered bundle for anywhere from 30 seconds
- * to three and a half minutes.
+ * ticks for one particle puff, this one holds a whole staggered bundle for anywhere from 45 seconds
+ * to nearly five minutes -- a Rough onset of up to 4:20, and the 30-second ramp after it.
  *
  * <h2>The player is found on the server, not in a world</h2>
  *

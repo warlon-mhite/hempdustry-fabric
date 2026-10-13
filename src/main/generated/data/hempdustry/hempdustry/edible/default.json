@@ -65,27 +65,38 @@
       "effect": "minecraft:regeneration"
     }
   ],
-  "onset": {
-    "centre_ticks": 1800,
-    "earliest_ticks": 600,
-    "latest_ticks": 3600
-  },
   "qualities": {
     "clean": {
       "duration_ticks": 7200,
-      "onset_spread_ticks": 600
+      "onset_ticks": {
+        "max": 2700,
+        "min": 1300,
+        "mode": 1800
+      }
     },
     "perfect": {
       "duration_ticks": 9600,
-      "onset_spread_ticks": 60
+      "onset_ticks": {
+        "max": 1860,
+        "min": 1740,
+        "mode": 1800
+      }
     },
     "rough": {
       "duration_ticks": 3600,
-      "onset_spread_ticks": 1500
+      "onset_ticks": {
+        "max": 5200,
+        "min": 900,
+        "mode": 2400
+      }
     },
     "standard": {
       "duration_ticks": 5400,
-      "onset_spread_ticks": 1050
+      "onset_ticks": {
+        "max": 3900,
+        "min": 1100,
+        "mode": 2000
+      }
     }
   },
   "tier_share": [

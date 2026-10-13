@@ -181,6 +181,49 @@ public final class RebalanceGameTest implements FabricGameTest {
         context.complete();
     }
 
+    /**
+     * Every quality's onset can land anywhere in its window, nowhere else, and with no pile-up at an
+     * edge -- the old centre-and-clamp roll put a tenth of Rough's onsets on exactly its first tick
+     * and none in its last fifteen seconds. And the windows keep their order: a worse batch waits
+     * longer and less predictably, never the other way round.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void everyEdibleOnsetFillsItsWindow(TestContext context) {
+        java.util.Random random = new java.util.Random(48L);
+        int rolls = 20000;
+        EdibleBundle.Onset previous = null;
+        for (Quality quality : List.of(Quality.ROUGH, Quality.STANDARD, Quality.CLEAN, Quality.PERFECT)) {
+            EdibleBundle.Onset window = EdibleBundle.BUILT_IN.qualities().of(quality).onset();
+            int width = window.maxTicks() - window.minTicks();
+            int atMin = 0, atMax = 0, early = 0, late = 0;
+            long sum = 0;
+            for (int i = 0; i < rolls; i++) {
+                int onset = EdibleEffects.rollOnsetTicks(EdibleBundle.BUILT_IN, quality, random);
+                context.assertTrue(onset >= window.minTicks() && onset <= window.maxTicks(),
+                        quality + " rolled an onset of " + onset + " outside " + window.minTicks() + ".." + window.maxTicks());
+                atMin += onset == window.minTicks() ? 1 : 0;
+                atMax += onset == window.maxTicks() ? 1 : 0;
+                early += onset < window.minTicks() + width / 20 ? 1 : 0;
+                late += onset > window.maxTicks() - width / 20 ? 1 : 0;
+                sum += onset;
+            }
+            context.assertTrue(atMin < rolls / 100 && atMax < rolls / 100,
+                    quality + " piles onsets on an edge of its window: " + atMin + " on the first tick, " + atMax + " on the last");
+            context.assertTrue(early > 0 && late > 0,
+                    quality + " never reaches an end of its window: " + early + " in the first twentieth, " + late + " in the last");
+            double mean = (window.minTicks() + window.modeTicks() + window.maxTicks()) / 3.0;
+            context.assertTrue(Math.abs(sum / (double) rolls - mean) < Math.max(2, width / 50.0),
+                    quality + "'s onsets average " + sum / rolls + " ticks, not the window's " + (int) mean);
+            if (previous != null) {
+                context.assertTrue(window.maxTicks() - window.minTicks() < previous.maxTicks() - previous.minTicks()
+                                && window.modeTicks() <= previous.modeTicks(),
+                        quality + " is no surer or sooner than the quality below it");
+            }
+            previous = window;
+        }
+        context.complete();
+    }
+
     // ---------------------------------------------------------------------
 
     private static ServerPlayerEntity freshPlayer(TestContext context) {

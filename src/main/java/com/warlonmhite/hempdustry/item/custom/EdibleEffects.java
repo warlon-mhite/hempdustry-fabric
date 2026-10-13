@@ -16,6 +16,7 @@ import net.minecraft.util.math.MathHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
 
 /**
  * What an edible does: the full design, and the reasoning behind every number, made executable.
@@ -49,7 +50,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * The effects land over a 30-second ramp in the order a real edible presents: the body drop first,
  * then the padded analgesic body, then the munchies, then the restorative peak. <b>Slowness arriving
- * alone and first is the tell</b> — with an onset anywhere in a 30 s – 3 min window a player has no
+ * alone and first is the tell</b> — with an onset anywhere from 45 s to 4:20 a player has no
  * other way to know it has started, and feeling heavy is the honest signal rather than a status bar.
  */
 public final class EdibleEffects {
@@ -97,17 +98,14 @@ public final class EdibleEffects {
     }
 
     /**
-     * A random onset delay for this quality, in ticks. Rough can land anywhere in the full window;
-     * Perfect is near-exact. All four are uncertain about the same centre.
+     * A random onset delay for this quality, in ticks: one roll of its window, after the server's
+     * multiplier. Rough's window is the widest and latest, Perfect's nearly a point.
      */
-    public static int rollOnsetTicks(EdibleBundle bundle, Quality quality) {
-        EdibleBundle.Onset window = bundle.onset();
-        int spread = bundle.qualities().of(quality).onsetSpreadTicks();
-        int roll = window.centreTicks() + ThreadLocalRandom.current().nextInt(-spread, spread + 1);
+    public static int rollOnsetTicks(EdibleBundle bundle, Quality quality, RandomGenerator random) {
+        EdibleBundle.Onset window = bundle.qualities().of(quality).onset();
         // Scaled by the server's onset multiplier, window and all: a server that wants a 15-second
-        // come-up gets a proportionally tighter spread rather than a squashed one.
-        return EffectPolicy.onset(MathHelper.clamp(roll, window.earliestTicks(), window.latestTicks()),
-                window.earliestTicks(), window.latestTicks());
+        // come-up gets a proportionally tighter window rather than a squashed one.
+        return EffectPolicy.onset(window.roll(random), window.minTicks(), window.maxTicks());
     }
 
     /**
@@ -128,7 +126,7 @@ public final class EdibleEffects {
             return;
         }
         EdibleBundle data = EdibleBundle.of(player.getRegistryManager());
-        for (Dose dose : bundle(data, tier, quality, rollOnsetTicks(data, quality))) {
+        for (Dose dose : bundle(data, tier, quality, rollOnsetTicks(data, quality, ThreadLocalRandom.current()))) {
             queue(player, dose.delay(), dose.effect());
         }
 
