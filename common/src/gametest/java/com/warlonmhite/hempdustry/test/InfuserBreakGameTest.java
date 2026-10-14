@@ -45,7 +45,7 @@ public final class InfuserBreakGameTest {
     }
 
     /** A tub with milk in and five unwashed hemp absorbed, as a save would hold it. */
-    private static InfuserBlockEntity place(GameTestHelper context, BlockPos pos, int progress) {
+    static InfuserBlockEntity place(GameTestHelper context, BlockPos pos, int progress) {
         context.setBlock(pos, ModBlocks.INFUSER);
         InfuserBlockEntity infuser = context.getBlockEntity(pos, InfuserBlockEntity.class);
         try {
