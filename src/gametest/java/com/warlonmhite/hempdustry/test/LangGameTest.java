@@ -111,12 +111,16 @@ public final class LangGameTest {
 
         Set<String> literals = new HashSet<>();
         Set<String> langKeys = new TreeSet<>();
+        Set<String> english = new HashSet<>();
         Sweep.modFiles().forEach((name, file) -> {
             if (name.endsWith(".class")) {
                 Matcher m = LITERAL.matcher(new String(Sweep.bytes(file), StandardCharsets.ISO_8859_1));
                 while (m.find()) literals.add(m.group());
             } else if (name.startsWith("assets/hempdustry/lang/") && name.endsWith(".json")) {
-                langKeys.addAll(Sweep.json(file).getAsJsonObject().keySet());
+                Set<String> keys = Sweep.json(file).getAsJsonObject().keySet();
+                langKeys.addAll(keys);
+                // English is the fallback every other locale shows a missing string in.
+                if (name.endsWith("/en_us.json")) english.addAll(keys);
             } else if (name.equals("assets/hempdustry/sounds.json")) {
                 // The client reads a subtitle only for a sound event the server registered.
                 Sweep.json(file).getAsJsonObject().entrySet().forEach(e -> {
@@ -129,6 +133,7 @@ public final class LangGameTest {
         });
         context.assertTrue(literals.size() > 30, "found only " + literals.size() + " strings in the classes: the scan missed them");
         context.assertTrue(langKeys.size() > 100, "found only " + langKeys.size() + " lang keys: the lang files moved");
+        context.assertTrue(english.size() > 100, "found only " + english.size() + " en_us keys: en_us.json moved");
 
         Set<String> unread = new TreeSet<>();
         for (String key : langKeys) {
@@ -137,10 +142,10 @@ public final class LangGameTest {
 
         Set<String> missing = new TreeSet<>();
         for (String key : read) {
-            if (key.contains(Hempdustry.MOD_ID) && !langKeys.contains(key)) missing.add(key);
+            if (key.contains(Hempdustry.MOD_ID) && !english.contains(key)) missing.add(key);
         }
         context.assertTrue(unread.isEmpty() && missing.isEmpty(), "nothing in the game reads these lang keys: "
-                + unread + "; the game asks for these and no lang file has them: " + missing);
+                + unread + "; the game asks for these and en_us does not have them: " + missing);
         context.complete();
     }
 
@@ -223,11 +228,20 @@ public final class LangGameTest {
         return found;
     }
 
+    /**
+     * The names of items, blocks and entities, whose every key the registries above already ask for.
+     * {@code "item." + MOD_ID + "." + name} compiles to the literal {@code item.hempdustry.}, which
+     * would otherwise stand for every item key there is, a dead one included.
+     */
+    private static final Set<String> REGISTRY_PREFIXES = Set.of(
+            "item." + Hempdustry.MOD_ID + ".", "block." + Hempdustry.MOD_ID + ".", "entity." + Hempdustry.MOD_ID + ".");
+
     // ponytail: a literal like "hempdustry.category." stands for every key one segment below it, so
     // a stale key under a built prefix goes unseen; list the ids the code appends if that ever bites.
     private static boolean builtFromPrefix(String key, Set<String> literals) {
         int dot = key.lastIndexOf('.');
-        return dot > 0 && literals.contains(key.substring(0, dot + 1));
+        String prefix = dot > 0 ? key.substring(0, dot + 1) : null;
+        return prefix != null && !REGISTRY_PREFIXES.contains(prefix) && literals.contains(prefix);
     }
 
     private static void keys(Text text, Set<String> into) {
