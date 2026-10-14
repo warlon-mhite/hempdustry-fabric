@@ -159,11 +159,11 @@ tasks.matching { it.name == "runGametest" }.configureEach {
 	}
 }
 
-def jarVersion = version
+def manifest = [version: version, name: mod_name, description: mod_description]
 tasks.named('processResources', ProcessResources) {
-	inputs.property "version", jarVersion
+	inputs.properties manifest
 	filesMatching("fabric.mod.json") {
-		expand "version": jarVersion
+		expand manifest
 	}
 	// NeoForge's form of the access widener, which Fabric never reads.
 	exclude 'META-INF/accesstransformer.cfg'

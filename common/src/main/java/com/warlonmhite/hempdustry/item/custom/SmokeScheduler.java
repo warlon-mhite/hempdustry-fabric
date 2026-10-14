@@ -98,9 +98,9 @@ public final class SmokeScheduler {
         // with the hit's effects: the respawn is a new, living entity with the same UUID, so the
         // isAlive check below cannot tell. Same fix as EdibleScheduler. `alive` is the End-portal
         // return, which is not a death.
-        Services.EVENTS.onPlayerRespawn((oldPlayer, newPlayer, alive) -> {
+        Services.EVENTS.onPlayerRespawn((player, alive) -> {
             if (!alive) {
-                PENDING_EFFECTS.removeIf(pending -> pending.player.equals(newPlayer.getUUID()));
+                PENDING_EFFECTS.removeIf(pending -> pending.player.equals(player.getUUID()));
             }
         });
     }

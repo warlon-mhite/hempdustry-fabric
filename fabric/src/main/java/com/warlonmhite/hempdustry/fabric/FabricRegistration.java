@@ -20,6 +20,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
@@ -65,7 +66,7 @@ public final class FabricRegistration implements Registration {
     }
 
     @Override
-    public void syncRecipeSerializer(RecipeSerializer<?> serializer) {
+    public void syncRecipes(RecipeType<?> type, RecipeSerializer<?> serializer) {
         RecipeSynchronization.synchronizeRecipeSerializer(serializer);
     }
 

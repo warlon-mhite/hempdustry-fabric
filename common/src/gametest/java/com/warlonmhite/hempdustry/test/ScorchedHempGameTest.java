@@ -17,7 +17,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
-import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.storage.TagValueInput;
 
 /**
@@ -144,7 +143,7 @@ public final class ScorchedHempGameTest {
         }
         context.assertFalse(CauldronInteraction.WATER.map().containsKey(ModItems.SCORCHED_HEMP),
                 "scorched hemp can be washed, which makes it a route to Clean and Perfect butter");
-        context.assertValueEqual(ComposterBlock.COMPOSTABLES.getFloat(ModItems.SCORCHED_HEMP), 0.3F,
+        context.assertValueEqual(TestPlatform.INSTANCE.compostChance(ModItems.SCORCHED_HEMP), 0.3F,
                 "scorched hemp does not compost at the leaf's 0.3");
         context.succeed();
     }

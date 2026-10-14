@@ -126,8 +126,8 @@ public class ModRecipes {
         Hempdustry.LOGGER.info("Registering Recipe Serializers for " + Hempdustry.MOD_ID);
         // Without this a recipe viewer on a client sees neither machine: only serializers that ask
         // are sent over the wire.
-        Services.REGISTRATION.syncRecipeSerializer(DECARBOXYLATING);
-        Services.REGISTRATION.syncRecipeSerializer(INFUSING);
-        Services.REGISTRATION.syncRecipeSerializer(PRESSING);
+        Services.REGISTRATION.syncRecipes(DECARBOXYLATING_TYPE, DECARBOXYLATING);
+        Services.REGISTRATION.syncRecipes(INFUSING_TYPE, INFUSING);
+        Services.REGISTRATION.syncRecipes(PRESSING_TYPE, PRESSING);
     }
 }

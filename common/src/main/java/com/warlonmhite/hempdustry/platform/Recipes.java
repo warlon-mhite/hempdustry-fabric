@@ -13,7 +13,7 @@ import java.util.Optional;
  * The recipes of the mod's own types, the same on a server and on a client.
  *
  * <p>Since 1.21.2 a client is not handed the recipe list wholesale, so the machine types opt in to
- * being synced ({@link Registration#syncRecipeSerializer}) and are read back here. Vanilla's own
+ * being synced ({@link Registration#syncRecipes}) and are read back here. Vanilla's own
  * lookup works on a server and quietly finds nothing on a client, which is exactly the split a
  * machine's screen and a recipe viewer land on.
  */

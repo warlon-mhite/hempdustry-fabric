@@ -8,8 +8,10 @@
 Cheapest first, so a failure shows early:
   - the script checks: lang_coverage, use_with_item_pass, biome_tint_pairing, tall_plant_loot, and
     recipe_collisions against vanilla's own recipes, read out of the game jar in the Gradle cache;
-  - runGametest, which also fails on any WARN or ERROR in the server's log nobody listed;
-  - a cold runDatagen, which has to leave the generated data exactly as it is committed;
+  - runGametest, which also fails on any WARN or ERROR in the server's log nobody listed -- on
+    Fabric, and on NeoForge when the branch has it;
+  - a cold runDatagen, which has to leave the generated data exactly as it is committed, and the
+    same for NeoForge's own data run;
   - the build;
   - api_additive.py against a released jar, when one is given.
 
@@ -32,6 +34,7 @@ LAYOUT = layout.of(ROOT)
 LOGS = ROOT / "build/gates"
 # The generated data, as git and the shell see it: relative to the checkout.
 GENERATED = str(LAYOUT.generated.relative_to(ROOT))
+NEOFORGE_GENERATED = str(LAYOUT.neoforge_generated.relative_to(ROOT)) if LAYOUT.neoforge else None
 
 
 def minecraft_version():
@@ -61,6 +64,16 @@ def last(pattern):
     return pick
 
 
+def cold(task, generated):
+    """A data run from scratch, then what git sees changed in its output."""
+    return ["sh", "-c", f"rm -rf {generated}/.cache && ./gradlew {task} --console=plain"
+                        f" && git status --porcelain -- {generated} | head -20"]
+
+
+#: Each cold data run and the folder it writes.
+COLD = {"cold datagen": GENERATED, "NeoForge cold datagen": NEOFORGE_GENERATED}
+
+
 def gates(args):
     py = [sys.executable]
     script = lambda name: ROOT / "scripts" / name
@@ -70,11 +83,14 @@ def gates(args):
     yield "tall plant loot", py + [script("tall_plant_loot.py")], last(r"OK|pool")
     yield "recipe collisions", py + [script("recipe_collisions.py"), GENERATED, str(vanilla_data())], \
         last(r"scanned|collision")
-    yield "game tests", ["./gradlew", LAYOUT.fabric + "runGametest", "--console=plain"], \
-        lambda output: last(r"nobody expected")(output) or last(r"required tests")(output) or last(r"BUILD")(output)
+    tests_verdict = lambda output: last(r"nobody expected")(output) or last(r"required tests")(output) or last(r"BUILD")(output)
+    yield "game tests", ["./gradlew", LAYOUT.fabric + "runGametest", "--console=plain"], tests_verdict
+    if LAYOUT.neoforge:
+        yield "NeoForge game tests", ["./gradlew", LAYOUT.neoforge + "runGameTestServer", "--console=plain"], tests_verdict
     if not args.quick:
-        yield "cold datagen", ["sh", "-c", f"rm -rf {GENERATED}/.cache && ./gradlew {LAYOUT.fabric}runDatagen"
-                               f" --console=plain && git status --porcelain -- {GENERATED} | head -20"], last(r"\S")
+        yield "cold datagen", cold(LAYOUT.fabric + "runDatagen", GENERATED), last(r"\S")
+        if LAYOUT.neoforge:
+            yield "NeoForge cold datagen", cold(LAYOUT.neoforge + "runData", NEOFORGE_GENERATED), last(r"\S")
         yield "build", ["./gradlew", "build", "--console=plain"], last(r"BUILD")
     if args.released:
         jars = sorted(LAYOUT.fabric_libs.glob("*.jar"), key=lambda p: p.stat().st_mtime)
@@ -101,10 +117,10 @@ def main():
         (LOGS / (name.replace(" ", "_") + ".log")).write_text(output)
         ok = run.returncode == 0
         detail = verdict(output)
-        if name == "cold datagen" and ok:
+        if name in COLD and ok:
             # The porcelain lines follow the build's own: anything listed is a file datagen changed.
             changed = [line for line in output.splitlines() if re.match(r"^( M|M |\?\?| D|D ) ", line)]
-            ok, detail = not changed, ("changed " + ", ".join(changed[:5])) if changed else GENERATED + " unchanged"
+            ok, detail = not changed, ("changed " + ", ".join(changed[:5])) if changed else COLD[name] + " unchanged"
         results.append((name, "ok" if ok else "FAIL", f"{detail} ({time.time() - started:.0f} s)"))
     width = max(len(name) for name, _, _ in results)
     print()

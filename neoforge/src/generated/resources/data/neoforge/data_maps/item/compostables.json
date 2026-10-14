@@ -1,0 +1,82 @@
+{
+  "values": {
+    "hempdustry:beldia_buds": {
+      "chance": 0.5
+    },
+    "hempdustry:beldia_seeds": {
+      "chance": 0.3
+    },
+    "hempdustry:decarboxylated_hemp": {
+      "chance": 0.5
+    },
+    "hempdustry:flip_flops": {
+      "chance": 0.5
+    },
+    "hempdustry:hemp_bale": {
+      "chance": 0.85
+    },
+    "hempdustry:hemp_beanie": {
+      "chance": 0.5
+    },
+    "hempdustry:hemp_brick": {
+      "chance": 0.05
+    },
+    "hempdustry:hemp_canvas": {
+      "chance": 0.5
+    },
+    "hempdustry:hemp_fiber": {
+      "chance": 0.3
+    },
+    "hempdustry:hemp_harem_pants": {
+      "chance": 0.5
+    },
+    "hempdustry:hemp_leaf": {
+      "chance": 0.3
+    },
+    "hempdustry:hemp_leaves": {
+      "chance": 0.5
+    },
+    "hempdustry:hemp_shirt": {
+      "chance": 0.5
+    },
+    "hempdustry:hemp_stem": {
+      "chance": 0.5
+    },
+    "hempdustry:hempcrete": {
+      "chance": 0.3
+    },
+    "hempdustry:hempcrete_powder_block": {
+      "chance": 0.85
+    },
+    "hempdustry:indica_buds": {
+      "chance": 0.5
+    },
+    "hempdustry:indica_flower": {
+      "chance": 0.65
+    },
+    "hempdustry:indica_seeds": {
+      "chance": 0.3
+    },
+    "hempdustry:retted_hemp_stem": {
+      "chance": 0.5
+    },
+    "hempdustry:sativa_buds": {
+      "chance": 0.5
+    },
+    "hempdustry:sativa_flower": {
+      "chance": 0.65
+    },
+    "hempdustry:sativa_seeds": {
+      "chance": 0.3
+    },
+    "hempdustry:schwag": {
+      "chance": 0.5
+    },
+    "hempdustry:scorched_hemp": {
+      "chance": 0.3
+    },
+    "hempdustry:washed_decarboxylated_hemp": {
+      "chance": 0.5
+    }
+  }
+}

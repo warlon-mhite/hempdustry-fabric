@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
@@ -47,10 +48,11 @@ public interface Registration {
     <T> void registerSyncedDynamicRegistry(ResourceKey<Registry<T>> key, Codec<T> codec);
 
     /**
-     * Sends recipes of a custom type to the client, which a recipe viewer and the recipe book read.
-     * Since 1.21.2 the server keeps recipes to itself unless asked.
+     * Sends the recipes of {@code type}, all read by {@code serializer}, to the client, which a recipe
+     * viewer and the machine screens read. Since 1.21.2 the server keeps recipes to itself unless
+     * asked; Fabric is asked by serializer, NeoForge by type, so a call names both.
      */
-    void syncRecipeSerializer(RecipeSerializer<?> serializer);
+    void syncRecipes(RecipeType<?> type, RecipeSerializer<?> serializer);
 
     /** A builder for a creative tab of our own, placed and paged by the loader. */
     CreativeModeTab.Builder creativeTabBuilder();

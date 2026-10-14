@@ -155,23 +155,29 @@ catching up with what 2.1 adds).
 Requires **JDK 21**.
 
 ```bash
-./gradlew build          # the mod jar lands in fabric/build/libs/
-./gradlew runClient      # a dev client with the mod loaded
-./gradlew runDatagen     # regenerate models, recipes, loot tables, tags, advancements
-./gradlew runGametest    # boot a headless server and run the game tests
+./gradlew build                        # both jars: fabric/build/libs/ and neoforge/build/libs/
+./gradlew :fabric:runClient            # a dev client with the mod loaded, on Fabric
+./gradlew :neoforge:runClient          # ... or on NeoForge
+./gradlew :fabric:runDatagen           # regenerate models, recipes, loot tables, tags, advancements
+./gradlew :neoforge:runData            # regenerate the few files only NeoForge reads
+./gradlew :fabric:runGametest          # boot a headless server and run the game tests, on Fabric
+./gradlew :neoforge:runGameTestServer  # ... and on NeoForge
 ```
 
 The mod is a `common` project, plain Minecraft with no mod loader, and one project per loader that
-builds that loader's jar from it: `fabric` holds Fabric's entry points and its side of the
-`platform` interfaces. Code that works the same on every loader belongs in `common`; the build
-refuses an import from a loader there.
+builds that loader's jar from it: `fabric` and `neoforge` each hold their loader's entry points and
+its side of the `platform` interfaces. Code that works the same on every loader belongs in `common`;
+the build refuses an import from a loader there.
 
 The game tests live in `common/src/gametest/`, plain Minecraft like the rest of `common`, and each
-loader runs them from a source set of its own, so nothing in them reaches the mod jar. They run real
-server code against the real registry, and `runGametest` exits non-zero if any of them fails.
+loader runs them from a source set of its own, so nothing in them reaches the mod jar and every test
+holds both jars. They run real server code against the real registry, and each run exits non-zero
+if any of them fails.
 
 Most of the mod's data is generated rather than hand-written; if you change a recipe, a loot table,
-a tag or an advancement, run `runDatagen` and commit what it produces.
+a tag or an advancement, run `:fabric:runDatagen` and commit what it produces. Compost chances, fuel
+times and the features added to biomes are data on NeoForge, written by `:neoforge:runData` from the
+same calls Fabric takes in code; run it too when you change one of those.
 
 ## Contributing
 

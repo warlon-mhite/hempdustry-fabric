@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
@@ -235,7 +236,7 @@ public class SativaCropBlock extends CropBlock {
                 moisture = medium.moisture(floor);
                 bed = medium.speed(floor);
             } else {
-                moisture = getGrowthSpeed(this, world, pos);
+                moisture = Services.PLATFORM.cropGrowthSpeed(state, world, pos);
             }
             if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture,
                     bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {

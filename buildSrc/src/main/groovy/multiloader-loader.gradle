@@ -50,6 +50,8 @@ tasks.named('compileJava', JavaCompile) {
 tasks.named('processResources', ProcessResources) {
 	dependsOn(configurations.commonResources)
 	from(configurations.commonResources)
+	// The data generators' record of what they last wrote, beside their output: not part of the mod.
+	exclude '.cache/**'
 }
 
 tasks.named('sourcesJar', Jar) {

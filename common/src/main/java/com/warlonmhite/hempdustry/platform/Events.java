@@ -24,7 +24,7 @@ public interface Events {
     /** Once the server has stopped. An integrated server stops whenever a world is closed. */
     void onServerStopped(Consumer<MinecraftServer> listener);
 
-    /** After a player respawns. {@code alive} is the End portal's return home, which is not a death. */
+    /** After a player respawns, as the new player. {@code alive} is the End portal's return home, which is not a death. */
     void onPlayerRespawn(RespawnListener listener);
 
     /** Whenever the server builds its commands, at start and on every {@code /reload}. */
@@ -35,7 +35,7 @@ public interface Events {
 
     @FunctionalInterface
     interface RespawnListener {
-        void onRespawn(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive);
+        void onRespawn(ServerPlayer player, boolean alive);
     }
 
     @FunctionalInterface

@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "hempdustry",
 	"version": "${version}",
-	"name": "Hempdustry",
-	"description": "Minecraft for stoners and hemprepreneurs. Grow hemp, harvest it, smoke it, cook with it or build with it, because that is most of what hemp has actually been for over the last five thousand years.",
+	"name": "${name}",
+	"description": "${description}",
 	"authors": [
 		"Warlon Mhite"
 	],

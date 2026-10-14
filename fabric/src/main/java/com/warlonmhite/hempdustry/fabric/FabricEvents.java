@@ -33,7 +33,7 @@ public final class FabricEvents implements Events {
 
     @Override
     public void onPlayerRespawn(RespawnListener listener) {
-        ServerPlayerEvents.AFTER_RESPAWN.register(listener::onRespawn);
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> listener.onRespawn(newPlayer, alive));
     }
 
     @Override

@@ -7,7 +7,9 @@ import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ComposterBlock;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -26,6 +28,12 @@ public final class FabricTestPlatform implements TestPlatform {
     @Override
     public List<Path> testModRoots() {
         return roots(HempdustryGameTests.NAMESPACE);
+    }
+
+    @Override
+    public float compostChance(ItemLike item) {
+        // Fabric's composting registry writes into vanilla's table, whose missing value is -1.
+        return ComposterBlock.COMPOSTABLES.getFloat(item.asItem());
     }
 
     @Override

@@ -32,7 +32,6 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
@@ -231,8 +230,8 @@ public final class SchwagGameTest {
         context.assertTrue(ModStrains.isPlantMatter(schwag), "schwag is not plant matter");
         context.assertTrue(schwag.value().wildFlower().isEmpty(), "schwag has a plant of its own");
 
-        context.assertValueEqual(ComposterBlock.COMPOSTABLES.getFloat(ModItems.SCHWAG),
-                ComposterBlock.COMPOSTABLES.getFloat(ModItems.INDICA_BUDS),
+        context.assertValueEqual(TestPlatform.INSTANCE.compostChance(ModItems.SCHWAG),
+                TestPlatform.INSTANCE.compostChance(ModItems.INDICA_BUDS),
                 "schwag does not compost at a bud's rate");
         ItemStack stack = new ItemStack(ModItems.SCHWAG);
         context.assertFalse(stack.is(ModTags.Items.SIFTABLE_FLOWER) || stack.is(ModTags.Items.SIFTABLE_RESINOUS)

@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.client.render;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.client.model.Model;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartNames;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
@@ -27,7 +28,12 @@ public final class FlipFlopsModel {
     }
 
     public static Model<Unit> create(EntityRendererProvider.Context context) {
-        return new Model<>(context.bakeLayer(ModEntityModelLayers.FLIP_FLOPS), RenderTypes::armorCutoutNoCull) {
+        return create(context.bakeLayer(ModEntityModelLayers.FLIP_FLOPS));
+    }
+
+    /** The model around {@code root}, the {@link ModEntityModelLayers#FLIP_FLOPS} layer once baked. */
+    public static Model<Unit> create(ModelPart root) {
+        return new Model<>(root, RenderTypes::armorCutoutNoCull) {
         };
     }
 

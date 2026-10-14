@@ -17,6 +17,8 @@ import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
+import com.warlonmhite.hempdustry.platform.ItemTransfer;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.DecarboxylatingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
@@ -231,6 +233,36 @@ public final class SweepGameTest {
         Sweep.report(context, "Every block of ours that holds items drops them when broken", findings, Map.of(
                 "hempdustry:infuser slot 3", "the output slot only ever holds a preview of the batch, which is "
                         + "not an item yet; a broken tub hands back the batch's hemp instead (discardPreview)"));
+        context.succeed();
+    }
+
+    /**
+     * Every block of ours that holds items answers a pipe: the loader's item-transfer API finds a
+     * storage there. A hopper reads a container directly, but a pipe, a storage network's interface or
+     * an item duct asks that API alone, and NeoForge's answers for vanilla's containers only unless a
+     * mod lists its own, so without the list no pipe would see a single machine. Asked from above, with
+     * one stick: a machine that refuses sticks still has a storage there.
+     */
+    public static void everyContainerAnswersPipes(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        BlockPos pos = context.absolutePos(AT);
+        Map<String, String> findings = new TreeMap<>();
+        int containers = 0;
+        for (Block block : blocksWithEntities()) {
+            world.setBlock(pos, block.defaultBlockState(), Block.UPDATE_CLIENTS);
+            if (world.getBlockEntity(pos) instanceof Container) {
+                containers++;
+                if (Services.TRANSFER.insertWhole(world, pos, Direction.UP, new ItemStack(Items.STICK))
+                        == ItemTransfer.Result.NO_STORAGE) {
+                    findings.put(BuiltInRegistries.BLOCK.getKey(block).toString(),
+                            "holds items, but the loader's item-transfer API finds no storage there");
+                }
+            }
+            world.removeBlock(pos, false);
+            take(world, pos);
+        }
+        Sweep.atLeast(context, "blocks that hold items", containers, 3);
+        Sweep.report(context, "Every block of ours that holds items answers a pipe", findings, Map.of());
         context.succeed();
     }
 
