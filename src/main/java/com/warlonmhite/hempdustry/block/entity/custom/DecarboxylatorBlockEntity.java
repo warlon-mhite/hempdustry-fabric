@@ -4,16 +4,17 @@ import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -52,7 +53,7 @@ import java.util.Map;
  * chain, so the pipeline downstream of here stays a single line of items.
  */
 public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
-        implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
+        implements MenuProvider, ImplementedInventory {
 
     public static final int FUEL_SLOT = 0;
     /** The three tray slots are contiguous from here. */
@@ -173,8 +174,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         SingleRecipeInput input = new SingleRecipeInput(stack);
         // Through the synchronized view, so this answers on a client too — the screen's tray slots
         // ask the same question. See ModRecipes#allOfType.
-        return world.recipeAccess().getSynchronizedRecipes()
-                .getFirstMatch(ModRecipes.DECARBOXYLATING_TYPE, input, world)
+        return Services.RECIPES.firstMatch(world, ModRecipes.DECARBOXYLATING_TYPE, input)
                 .map(entry -> entry.value().assemble(input, world.registryAccess()))
                 .orElse(ItemStack.EMPTY);
     }
@@ -349,11 +349,6 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     }
 
     // ----- screen -----
-
-    @Override
-    public BlockPos getScreenOpeningData(ServerPlayer player) {
-        return this.worldPosition;
-    }
 
     @Override
     protected Component getContainerName() {

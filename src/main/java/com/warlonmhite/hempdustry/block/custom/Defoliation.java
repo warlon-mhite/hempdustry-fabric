@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -229,7 +229,7 @@ public final class Defoliation {
         // SHEAR_TOOLS is #c:tools/shear, which is the widest of the three: Fabric puts vanilla
         // shears in it AND pulls in the older #c:tools/shears and #c:shears as optional sub-tags,
         // so a mod that joined any of the three matches. Nothing forwards into the older two.
-        if (!stack.is(ConventionalItemTags.SHEAR_TOOLS)) {
+        if (!stack.is(ModTags.Conventional.SHEAR_TOOLS)) {
             return null;
         }
 

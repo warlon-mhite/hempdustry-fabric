@@ -40,6 +40,11 @@ repositories {
 	}
 }
 
+loom {
+	// What the mod reaches in vanilla that vanilla keeps closed; the file says what and why.
+	accessWidenerPath = file("src/main/resources/hempdustry.accesswidener")
+}
+
 fabricApi {
 	// client = true: the model provider is a *client* data provider since 1.21.4 (client items and
 	// equipment assets are client-side resources), so datagen has to run with the client on the

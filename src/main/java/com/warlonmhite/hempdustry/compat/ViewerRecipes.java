@@ -20,7 +20,6 @@ import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -287,7 +286,7 @@ public final class ViewerRecipes {
                 .flatMap(strain -> strain.value().seedItem().stream()).toList();
         List<Item> spendable = strains.stream().filter(ModStrains::isPlantMatter)
                 .map(strain -> strain.value().buds()).toList();
-        Ingredient shears = ofTag(world, ConventionalItemTags.SHEAR_TOOLS, Items.SHEARS);
+        Ingredient shears = ofTag(world, ModTags.Conventional.SHEAR_TOOLS, Items.SHEARS);
 
         List<Entry> out = new ArrayList<>();
         // A datapack can take every plant away; an empty Ingredient throws, so the plant rows go too.

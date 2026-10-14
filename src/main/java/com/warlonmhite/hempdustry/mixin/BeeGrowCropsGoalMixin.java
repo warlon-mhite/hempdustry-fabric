@@ -53,7 +53,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * instruction and they compose, each seeing the previous one's arguments. Passing the amended state
  * to {@link Operation#call} rather than calling {@code world.setBlockAndUpdate} directly is what keeps
  * that chain intact — a direct call would jump the queue and skip every wrapper underneath. Ships
- * inside Fabric Loader (0.15 and later), so it costs no new dependency.
+ * inside Fabric Loader (0.15 and later) and NeoForge alike, so it costs no new dependency.
  */
 @Mixin(targets = "net.minecraft.world.entity.animal.bee.Bee$BeeGrowCropGoal")
 public class BeeGrowCropsGoalMixin {

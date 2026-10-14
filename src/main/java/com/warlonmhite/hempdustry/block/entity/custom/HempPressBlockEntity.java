@@ -5,13 +5,10 @@ import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
+import com.warlonmhite.hempdustry.platform.ItemTransfer;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreenHandler;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -19,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -62,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
  * the Infuser reads it. See {@code concentrates.md} §8.
  */
 public class HempPressBlockEntity extends NamedMachineBlockEntity
-        implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
+        implements MenuProvider, ImplementedInventory {
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -157,8 +155,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             return ItemStack.EMPTY;
         }
         SingleRecipeInput input = new SingleRecipeInput(stack);
-        return world.recipeAccess().getSynchronizedRecipes()
-                .getFirstMatch(ModRecipes.PRESSING_TYPE, input, world)
+        return Services.RECIPES.firstMatch(world, ModRecipes.PRESSING_TYPE, input)
                 .map(entry -> entry.value().assemble(input, world.registryAccess()))
                 .orElse(ItemStack.EMPTY);
     }
@@ -273,15 +270,12 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         Direction facing = state.getValue(HempPressBlock.FACING);
         BlockPos behind = pos.relative(facing.getOpposite());
 
-        Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, behind, facing);
-        if (storage != null) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                if (storage.insert(ItemVariant.of(output), 1, transaction) == 1) {
-                    transaction.commit();
-                    removeItem(OUTPUT_SLOT, 1);
-                    return true;
-                }
-            }
+        ItemTransfer.Result moved = Services.TRANSFER.insertWhole(world, behind, facing, output.copyWithCount(1));
+        if (moved == ItemTransfer.Result.MOVED) {
+            removeItem(OUTPUT_SLOT, 1);
+            return true;
+        }
+        if (moved == ItemTransfer.Result.FULL) {
             // A real neighbour with no room. Keep the hopper cadence: it may have room in 8 ticks.
             return false;
         }
@@ -367,11 +361,6 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
     }
 
     // ----- screen -----
-
-    @Override
-    public BlockPos getScreenOpeningData(ServerPlayer player) {
-        return this.worldPosition;
-    }
 
     @Override
     protected Component getContainerName() {

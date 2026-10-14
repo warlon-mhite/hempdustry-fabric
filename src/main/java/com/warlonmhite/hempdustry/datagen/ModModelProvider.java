@@ -263,7 +263,7 @@ public class ModModelProvider extends FabricModelProvider {
                         ItemModelUtils.plainModel(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/hemp_beanie_worn")))));
         registerDyeableArmor(itemModelGenerator, ModItems.HEMP_SHIRT, ItemModelGenerators.TRIM_PREFIX_CHESTPLATE);
         registerDyeableArmor(itemModelGenerator, ModItems.HEMP_HAREM_PANTS, ItemModelGenerators.TRIM_PREFIX_LEGGINGS);
-        // Worn, the flip-flops are FlipFlopsRenderer's; the icon is a plain sprite, untrimmable.
+        // Worn, the flip-flops are FlipFlopsModel's; the icon is a plain sprite, untrimmable.
         itemModelGenerator.generateFlatItem(ModItems.FLIP_FLOPS, ModelTemplates.FLAT_ITEM);
     }
 

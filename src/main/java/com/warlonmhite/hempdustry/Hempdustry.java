@@ -9,6 +9,8 @@ import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.config.ModCommands;
+import com.warlonmhite.hempdustry.platform.Registration;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -24,11 +26,6 @@ import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.particle.ModParticles;
 import com.warlonmhite.hempdustry.world.ModPlacementModifiers;
 import com.warlonmhite.hempdustry.world.gen.ModWorldGeneration;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
-import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
-import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.level.block.BedBlock;
@@ -39,12 +36,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.stream.Collectors;
 
-public class Hempdustry implements ModInitializer {
+public class Hempdustry {
 	public static final String MOD_ID = "hempdustry";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	@Override
-	public void onInitialize() {
+	/** Registers everything, in order; each loader's entry point calls it once. */
+	public static void init() {
+		Registration registration = Services.REGISTRATION;
 		// The config first: everything below can read it, and a broken file must not stop the mod.
 		HempdustryConfig.load();
 		ModCommands.registerCommands();
@@ -70,42 +68,42 @@ public class Hempdustry implements ModInitializer {
 		ModLootEntryTypes.registerLootEntryTypes();
 		ModWorldGeneration.generateModWorldGeneration();
 
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BRICK, 0.05f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_SEEDS, 0.3f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_SEEDS, 0.3f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.BELDIA_SEEDS, 0.3f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_FIBER, 0.3f);
+		registration.compostable(ModItems.HEMP_BRICK, 0.05f);
+		registration.compostable(ModItems.INDICA_SEEDS, 0.3f);
+		registration.compostable(ModItems.SATIVA_SEEDS, 0.3f);
+		registration.compostable(ModItems.BELDIA_SEEDS, 0.3f);
+		registration.compostable(ModItems.HEMP_FIBER, 0.3f);
 		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_CANVAS, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMPCRETE, 0.3f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_LEAF, 0.3f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_STEM, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.RETTED_HEMP_STEM, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.INDICA_BUDS, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.SATIVA_BUDS, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.BELDIA_BUDS, 0.5f);
+		registration.compostable(ModItems.HEMP_CANVAS, 0.5f);
+		registration.compostable(ModItems.HEMPCRETE, 0.3f);
+		registration.compostable(ModItems.HEMP_LEAF, 0.3f);
+		registration.compostable(ModItems.HEMP_STEM, 0.5f);
+		registration.compostable(ModItems.RETTED_HEMP_STEM, 0.5f);
+		registration.compostable(ModItems.INDICA_BUDS, 0.5f);
+		registration.compostable(ModItems.SATIVA_BUDS, 0.5f);
+		registration.compostable(ModItems.BELDIA_BUDS, 0.5f);
 		// The two cannabutter-chain intermediates. Composting them is a ridiculous use of a fuelled
 		// oven, which is exactly why it should be allowed: everything else organic in the mod goes in
 		// the composter, and a lone pair of items that bounce off it reads as an oversight. They sit
 		// at the same 0.5 as the buds and leaf they are made from — dried plant matter, like vanilla's
 		// dried kelp block.
-		CompostingChanceRegistry.INSTANCE.add(ModItems.DECARBOXYLATED_HEMP, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.WASHED_DECARBOXYLATED_HEMP, 0.5f);
+		registration.compostable(ModItems.DECARBOXYLATED_HEMP, 0.5f);
+		registration.compostable(ModItems.WASHED_DECARBOXYLATED_HEMP, 0.5f);
 		// Burnt down to less than it was, so it drops to the loose leaf's 0.3 -- vanilla's dried kelp
 		// item rate. This is also its vanilla-shaped way out: nothing else consumes it but the tub.
-		CompostingChanceRegistry.INSTANCE.add(ModItems.SCORCHED_HEMP, 0.3f);
+		registration.compostable(ModItems.SCORCHED_HEMP, 0.3f);
 		// A bud's rate: vanilla prices compost by what a thing physically is, never by what it is
 		// worth, and schwag is a bud. Vanilla's poisonous potato does not compost at all, which reads
 		// as an oversight rather than a rule -- every plant thing in this mod composts.
-		CompostingChanceRegistry.INSTANCE.add(ModItems.SCHWAG, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_BEANIE, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_SHIRT, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.HEMP_HAREM_PANTS, 0.5f);
-		CompostingChanceRegistry.INSTANCE.add(ModItems.FLIP_FLOPS, 0.5f);
+		registration.compostable(ModItems.SCHWAG, 0.5f);
+		registration.compostable(ModItems.HEMP_BEANIE, 0.5f);
+		registration.compostable(ModItems.HEMP_SHIRT, 0.5f);
+		registration.compostable(ModItems.HEMP_HAREM_PANTS, 0.5f);
+		registration.compostable(ModItems.FLIP_FLOPS, 0.5f);
 		// 0.65 is what vanilla gives every small flower; ours are plants too and had been missed.
-		CompostingChanceRegistry.INSTANCE.add(ModBlocks.INDICA_FLOWER, 0.65f);
-		CompostingChanceRegistry.INSTANCE.add(ModBlocks.SATIVA_FLOWER, 0.65f);
-		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
+		registration.compostable(ModBlocks.INDICA_FLOWER, 0.65f);
+		registration.compostable(ModBlocks.SATIVA_FLOWER, 0.65f);
+		registration.compostable(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
 		// The two storage blocks. Vanilla puts every compacted plant block a tier above the item it
 		// is made from -- dried kelp 0.3 to the dried kelp block's 0.5, wheat 0.65 to hay's 0.85 --
 		// so the bale sits at hay's 0.85 and the leaf block at the dried kelp block's 0.5. The leaf
@@ -117,33 +115,32 @@ public class Hempdustry implements ModInitializer {
 		// vanilla. Composting nine stems at 0.5 each is worth far more than one bale at 0.85, and
 		// nine leaves at 0.3 each far more than one leaf block at 0.5 -- exactly as nine wheat beat
 		// a hay bale in vanilla. Compacting to compost is always the worse trade.
-		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMP_BALE, 0.85f);
-		CompostingChanceRegistry.INSTANCE.add(ModBlocks.HEMP_LEAVES, 0.5f);
+		registration.compostable(ModBlocks.HEMP_BALE, 0.85f);
+		registration.compostable(ModBlocks.HEMP_LEAVES, 0.5f);
 
-		// Fuel is a build-time event since 1.21.2 rather than a registry you push entries into.
-		FuelRegistryEvents.BUILD.register((builder, context) -> {
-			builder.add(ModItems.HEMP_STEM, 50);
-			builder.add(ModItems.RETTED_HEMP_STEM, 50);
-			builder.add(ModItems.HEMPCRETE, 200);
-			builder.add(ModItems.HEMP_HAREM_PANTS, 350);
-			builder.add(ModItems.HEMP_BEANIE, 250);
-			builder.add(ModItems.HEMP_SHIRT, 400);
-			builder.add(ModItems.FLIP_FLOPS, 200);
-			builder.add(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
-			builder.add(ModBlocks.HEMP_BALE, 450);
-			// 100 ticks, vanilla's rate for #minecraft:wool. Granted directly because hemp wool
-			// deliberately stays out of that tag — see ModBlocks.HEMP_WOOL.
-			builder.add(ModBlocks.HEMP_WOOL, 100);
-		});
+		// Fuel is a build-time event since 1.21.2 rather than a registry you push entries into, so
+		// each loader hands these over whenever it builds the fuel table.
+		registration.fuel(ModItems.HEMP_STEM, 50);
+		registration.fuel(ModItems.RETTED_HEMP_STEM, 50);
+		registration.fuel(ModItems.HEMPCRETE, 200);
+		registration.fuel(ModItems.HEMP_HAREM_PANTS, 350);
+		registration.fuel(ModItems.HEMP_BEANIE, 250);
+		registration.fuel(ModItems.HEMP_SHIRT, 400);
+		registration.fuel(ModItems.FLIP_FLOPS, 200);
+		registration.fuel(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
+		registration.fuel(ModBlocks.HEMP_BALE, 450);
+		// 100 ticks, vanilla's rate for #minecraft:wool. Granted directly because hemp wool
+		// deliberately stays out of that tag — see ModBlocks.HEMP_WOOL.
+		registration.fuel(ModBlocks.HEMP_WOOL, 100);
 
-		registerFlammables();
+		registerFlammables(registration);
 
-		((FabricBlockEntityType) BlockEntityType.SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_SIGN);
-		((FabricBlockEntityType) BlockEntityType.SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_WALL_SIGN);
-		((FabricBlockEntityType) BlockEntityType.HANGING_SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
-		((FabricBlockEntityType) BlockEntityType.HANGING_SIGN).addSupportedBlock(ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
+		registration.addValidBlocks(BlockEntityType.SIGN, ModBlocks.HEMP_PLANKS_SIGN);
+		registration.addValidBlocks(BlockEntityType.SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN);
+		registration.addValidBlocks(BlockEntityType.HANGING_SIGN, ModBlocks.HEMP_PLANKS_HANGING_SIGN);
+		registration.addValidBlocks(BlockEntityType.HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
 		// The shelf is vanilla's block and keeps vanilla's block entity, and so its renderer.
-		((FabricBlockEntityType) BlockEntityType.SHELF).addSupportedBlock(ModBlocks.HEMP_PLANKS_SHELF);
+		registration.addValidBlocks(BlockEntityType.SHELF, ModBlocks.HEMP_PLANKS_SHELF);
 
 		// A villager's home is any bed head, the way vanilla lists its own sixteen.
 		PointOfInterestTypesAccessor.hempdustry$registerStates(
@@ -153,17 +150,17 @@ public class Hempdustry implements ModInitializer {
 						.collect(Collectors.toUnmodifiableSet()));
 	}
 
-	private static void registerFlammables() {
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDICA_CROP, 10, 25);
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.INDICA_FLOWER, 20, 40);
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_CROP, 10, 25);
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.BELDIA_CROP, 10, 25);
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.SATIVA_FLOWER, 20, 40);
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_BALE, 50, 10);
+	private static void registerFlammables(Registration registration) {
+		registration.flammable(ModBlocks.INDICA_CROP, 10, 25);
+		registration.flammable(ModBlocks.INDICA_FLOWER, 20, 40);
+		registration.flammable(ModBlocks.SATIVA_CROP, 10, 25);
+		registration.flammable(ModBlocks.BELDIA_CROP, 10, 25);
+		registration.flammable(ModBlocks.SATIVA_FLOWER, 20, 40);
+		registration.flammable(ModBlocks.HEMP_BALE, 50, 10);
 		// Vanilla leaves parity, exactly (30/60). Nothing about hemp foliage argues for a
 		// different number than oak foliage, and a leaf block that burns unlike every other
 		// leaf block would read as a bug.
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_LEAVES, 30, 60);
+		registration.flammable(ModBlocks.HEMP_LEAVES, 30, 60);
 		// Hemp cloth burns *more* readily than the sheep wool it stands in for, not less. Sheep
 		// wool is the outlier among natural fibres — high nitrogen and moisture content, LOI ~25%,
 		// self-extinguishing, which is why it is what firefighter base layers and aircraft carpet
@@ -175,15 +172,15 @@ public class Hempdustry implements ModInitializer {
 		// scaffolding — with wool's own 60 spread. That exact pair is vanilla's (scaffolding,
 		// bamboo), so nothing here is invented. Note hempcrete's real Euroclass B-s1,d0 rating does
 		// NOT transfer: that is hurds in a lime binder, a mineral composite, not a textile.
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_WOOL, 60, 60);
+		registration.flammable(ModBlocks.HEMP_WOOL, 60, 60);
 		// Vanilla carpet parity (60/20), because vanilla already puts carpets at the top burn
 		// chance and there is no headroom left to say "more flammable still" — raising the spread
 		// to 60 would turn carpets into a fire highway, which is a gameplay change rather than a
 		// material one.
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_CARPET, 60, 20);
+		registration.flammable(ModBlocks.HEMP_CARPET, 60, 20);
 		// No vanilla bed burns. This one does, at the rate of the hemp wool it is made from: most of
 		// a bed is its cloth, and hemp cloth is the one hemp material that catches.
-		FlammableBlockRegistry.getDefaultInstance().add(ModBlocks.HEMP_BED, 60, 60);
+		registration.flammable(ModBlocks.HEMP_BED, 60, 60);
 	}
 
 }

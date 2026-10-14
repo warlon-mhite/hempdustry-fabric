@@ -2,8 +2,8 @@ package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -76,7 +76,7 @@ public class ModItemGroups {
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hempdustry_items"),
             // The leaf, not a strain's buds: it is the plant's iconic silhouette, it is the one
             // strain-agnostic part, and it stays right when a third strain lands.
-            FabricItemGroup.builder().icon(() -> new ItemStack(ModItems.HEMP_LEAF))
+            Services.REGISTRATION.creativeTabBuilder().icon(() -> new ItemStack(ModItems.HEMP_LEAF))
                     .title(Component.translatable("itemgroup.hempdustry"))
                     .displayItems((displayContext, entries) -> {
                         // --- The plant -------------------------------------------------

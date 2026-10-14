@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
+import com.warlonmhite.hempdustry.client.render.FlipFlopsModel;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
@@ -16,87 +17,77 @@ import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
-import com.warlonmhite.hempdustry.client.render.FlipFlopsRenderer;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.particle.ModParticles;
+import com.warlonmhite.hempdustry.platform.client.ClientRegistration;
+import com.warlonmhite.hempdustry.platform.client.ClientServices;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.item.ItemTintSources;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.model.object.boat.BoatModel;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
-import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperties;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.Block;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 
-public class HempdustryClient implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
+public class HempdustryClient {
+
+    /** Everything the client registers, in order; each loader's client entry point calls it once. */
+    public static void init() {
+        ClientRegistration client = ClientServices.CLIENT;
         UpdateChecker.init();
 
-        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_PLANKS_DOOR, ChunkSectionLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_PLANKS_TRAPDOOR, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.HEMP_PLANKS_DOOR, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.HEMP_PLANKS_TRAPDOOR, ChunkSectionLayer.CUTOUT);
 
 
         // Vanilla's leaves texture, holes and all — solid would fill them in with black.
-        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_LEAVES, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.HEMP_LEAVES, ChunkSectionLayer.CUTOUT);
 
-        BlockRenderLayerMap.putBlock(ModBlocks.INDICA_CROP, ChunkSectionLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.INDICA_FLOWER, ChunkSectionLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.POTTED_INDICA_FLOWER, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.INDICA_CROP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.INDICA_FLOWER, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.POTTED_INDICA_FLOWER, ChunkSectionLayer.CUTOUT);
 
         // Stained glass is drawn at partial alpha, so the placed bongs need the translucent pass.
-        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> BlockRenderLayerMap.putBlock(bong, ChunkSectionLayer.TRANSLUCENT));
+        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> client.blockLayer(bong, ChunkSectionLayer.TRANSLUCENT));
 
-        BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_CROP, ChunkSectionLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.POTTED_SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.SATIVA_CROP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.POTTED_SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
 
-        BlockRenderLayerMap.putBlock(ModBlocks.BELDIA_CROP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.BELDIA_CROP, ChunkSectionLayer.CUTOUT);
         // The chains the Grow Lamp hangs from are see-through between the links.
-        BlockRenderLayerMap.putBlock(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
         // The compost crumbs over the pot's soil are drawn with see-through pixels.
-        BlockRenderLayerMap.putBlock(ModBlocks.GROW_POT, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.GROW_POT, ChunkSectionLayer.CUTOUT);
 
-        EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.HEMP_BOAT,
+        client.modelLayer(ModEntityModelLayers.HEMP_BOAT,
                 BoatModel::createBoatModel);
-        EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.HEMP_CHEST_BOAT,
+        client.modelLayer(ModEntityModelLayers.HEMP_CHEST_BOAT,
                 BoatModel::createChestBoatModel);
-        EntityRendererRegistry.register(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
-        EntityRendererRegistry.register(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
+        client.entityRenderer(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
+        client.entityRenderer(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
 
         // Flip-flops are drawn by a model of their own rather than as boots (the beanie needs no
         // code: vanilla draws a head item with no equipment model as its item model).
-        EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.FLIP_FLOPS,
-                FlipFlopsRenderer::getTexturedModelData);
-        ArmorRenderer.register(FlipFlopsRenderer::new, ModItems.FLIP_FLOPS);
+        client.modelLayer(ModEntityModelLayers.FLIP_FLOPS, FlipFlopsModel::createLayer);
 
-        MenuScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
-        MenuScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
-        MenuScreens.register(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
+        client.menuScreen(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
+        client.menuScreen(ModScreenHandlers.INFUSER, InfuserScreen::new);
+        client.menuScreen(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
 
-        ParticleFactoryRegistry.getInstance().register(ModParticles.AROMA, AromaParticle.Factory::new);
+        client.particleProvider(ModParticles.AROMA, AromaParticle.Factory::new);
 
         // The press's platen and capstan move, so a renderer draws them rather than the block model.
-        BlockEntityRenderers.register(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
+        client.blockEntityRenderer(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
         // A bed has no block model: its block entity draws it, like every vanilla bed.
-        BlockEntityRenderers.register(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
+        client.blockEntityRenderer(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
 
-        registerItemModelHooks();
-        registerBlockColors();
+        registerItemModelHooks(client);
+        registerBlockColors(client);
 
         // A bong's bubbling is played here, per client, so it can stop when the drawer lets go.
         SmokingDeviceItem.drawSound = drawer -> Minecraft.getInstance().getSoundManager()
@@ -140,8 +131,8 @@ public class HempdustryClient implements ClientModInitializer {
      * block tint. {@link ARGB#srgbLerp} is used for the blend all the same, so the value
      * that leaves this method is a well-formed colour rather than one that only works by luck.
      */
-    private static void registerBlockColors() {
-        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> {
+    private static void registerBlockColors(ClientRegistration client) {
+        client.blockColor((state, view, pos, tintIndex) -> {
             // view/pos are null when a block is coloured outside a world — an inventory render. No
             // biome exists there, so the honest answer is the art as drawn.
             if (tintIndex != 0 || view == null || pos == null) {
@@ -156,7 +147,7 @@ public class HempdustryClient implements ClientModInitializer {
         // blockstate picks those, and a second yellow cue on top would only muddy them.
         // Every segment carries a copy of the record, so this reads the state it was handed and never
         // the world: that is also the broken state a break particle is coloured with.
-        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> {
+        client.blockColor((state, view, pos, tintIndex) -> {
             if (tintIndex != 0 || view == null || pos == null) {
                 return NO_TINT;
             }
@@ -172,7 +163,7 @@ public class HempdustryClient implements ClientModInitializer {
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
         // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour
         // is the hand's, where the item definition has the stack to read.
-        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) ->
+        client.blockColor((state, view, pos, tintIndex) ->
                         tintIndex == 1 ? PLACED_LOAD : NO_TINT,
                 ModBlocks.DEVICE_BLOCKS.values().toArray(Block[]::new));
     }
@@ -204,8 +195,8 @@ public class HempdustryClient implements ClientModInitializer {
      * <p>{@code hempdustry:packed} is gone with no replacement needed: vanilla's own
      * {@code minecraft:has_component} answers "is anything loaded" exactly.
      */
-    private static void registerItemModelHooks() {
-        RangeSelectItemModelProperties.ID_MAPPER.put(ModItemProperties.STRAIN, StrainModelIndexProperty.CODEC);
-        ItemTintSources.ID_MAPPER.put(ModItemProperties.STRAIN_TINT, StrainTintSource.CODEC);
+    private static void registerItemModelHooks(ClientRegistration client) {
+        client.rangeSelectProperty(ModItemProperties.STRAIN, StrainModelIndexProperty.CODEC);
+        client.itemTintSource(ModItemProperties.STRAIN_TINT, StrainTintSource.CODEC);
     }
 }

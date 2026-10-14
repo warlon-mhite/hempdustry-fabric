@@ -21,8 +21,8 @@ import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import com.warlonmhite.hempdustry.block.custom.SpaceCakeBlock;
 import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
-import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
-import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
+import com.warlonmhite.hempdustry.platform.Services;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -39,6 +39,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.Equippable;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -63,6 +64,8 @@ import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.WallHangingSignBlock;
 import net.minecraft.world.level.block.WallSignBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
@@ -77,14 +80,32 @@ import java.util.Map;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 
 public class ModBlocks {
 
-    public static final BlockSetType HEMP_BLOCK_SET_TYPE = BlockSetTypeBuilder.copyOf(BlockSetType.OAK)
-            .register(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"));
-    public static final WoodType HEMP_WOOD_TYPE = WoodTypeBuilder.copyOf(WoodType.OAK)
-            .register(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"), HEMP_BLOCK_SET_TYPE);
+    /** Vanilla's leaves rule, which vanilla keeps private: only ocelots and parrots spawn on leaves. */
+    private static boolean ocelotOrParrot(BlockState state, BlockGetter level, BlockPos pos, EntityType<?> type) {
+        return type == EntityType.OCELOT || type == EntityType.PARROT;
+    }
+
+    /** Vanilla's "no" for a block's state, which vanilla keeps private: leaves never suffocate, block the view or conduct redstone. */
+    private static boolean never(BlockState state, BlockGetter level, BlockPos pos) {
+        return false;
+    }
+
+    /** Vanilla's lamp light, which vanilla keeps private: {@code light} while lit, dark otherwise. */
+    private static ToIntFunction<BlockState> litBlockEmission(int light) {
+        return state -> state.getValue(BlockStateProperties.LIT) ? light : 0;
+    }
+
+    // Oak's sounds and behaviour under hemp's name. Registered through the loader: vanilla keeps
+    // both registrations private.
+    public static final BlockSetType HEMP_BLOCK_SET_TYPE = Services.REGISTRATION.registerBlockSetType(
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"), BlockSetType.OAK);
+    public static final WoodType HEMP_WOOD_TYPE = Services.REGISTRATION.registerWoodType(
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"), WoodType.OAK, HEMP_BLOCK_SET_TYPE);
 
     public static final Block HEMP_BRICKS_BLOCK = registerBlock("hemp_bricks_block", Block::new,
             BlockBehaviour.Properties.of().strength(2.0F, 10.0F).sound(SoundType.WOOD));
@@ -198,10 +219,10 @@ public class ModBlocks {
                     .sound(SoundType.GRASS)
                     .noOcclusion()
                     .ignitedByLava()
-                    .isValidSpawn(Blocks::ocelotOrParrot)
-                    .isSuffocating(Blocks::never)
-                    .isViewBlocking(Blocks::never)
-                    .isRedstoneConductor(Blocks::never)
+                    .isValidSpawn(ModBlocks::ocelotOrParrot)
+                    .isSuffocating(ModBlocks::never)
+                    .isViewBlocking(ModBlocks::never)
+                    .isRedstoneConductor(ModBlocks::never)
                     .pushReaction(PushReaction.DESTROY));
 
 
@@ -398,7 +419,7 @@ public class ModBlocks {
             BlockBehaviour.Properties.of()
                     .noOcclusion()
                     .mapColor(MapColor.COLOR_ORANGE)
-                    .lightLevel(Blocks.litBlockEmission(15))
+                    .lightLevel(ModBlocks.litBlockEmission(15))
                     .strength(3.0F, 6.0F)
                     .requiresCorrectToolForDrops()
                     .sound(SoundType.COPPER_BULB));

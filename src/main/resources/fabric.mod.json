@@ -23,13 +23,13 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.warlonmhite.hempdustry.Hempdustry"
+			"com.warlonmhite.hempdustry.fabric.HempdustryFabric"
 		],
 		"fabric-datagen": [
 			"com.warlonmhite.hempdustry.HempdustryDataGenerator"
 		],
 		"client": [
-			"com.warlonmhite.hempdustry.HempdustryClient"
+			"com.warlonmhite.hempdustry.fabric.client.HempdustryFabricClient"
 		],
 		"jei_mod_plugin": [
 			"com.warlonmhite.hempdustry.compat.jei.HempdustryJeiPlugin"
@@ -41,6 +41,7 @@
 			"com.warlonmhite.hempdustry.compat.rei.HempdustryReiCommonPlugin"
 		]
 	},
+	"accessWidener": "hempdustry.accesswidener",
 	"mixins": [
 		"hempdustry.mixins.json",
 		{

@@ -8,7 +8,7 @@ import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
-import net.fabricmc.loader.api.FabricLoader;
+import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.util.Mth;
 import java.io.IOException;
 import java.io.Reader;
@@ -105,7 +105,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @return whether the file was read and applied; {@code false} means it was left alone
      */
     public static boolean load() {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve(Hempdustry.MOD_ID + ".json");
+        Path path = Services.PLATFORM.configDir().resolve(Hempdustry.MOD_ID + ".json");
         HempdustryConfig loaded = DEFAULT;
         if (Files.exists(path)) {
             try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {

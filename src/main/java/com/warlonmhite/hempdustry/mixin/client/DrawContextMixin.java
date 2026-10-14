@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.At;
  *
  * It composes. {@code @Redirect} would replace the call outright and collide with any other mod
  * touching the same instruction (CLAUDE.md §5); this only adjusts the value that came back, so
- * several mods can stack on it. MixinExtras ships inside Fabric Loader, so it costs no dependency —
+ * several mods can stack on it. MixinExtras ships inside both loaders, so it costs no dependency —
  * same reasoning as {@code BeeGrowCropsGoalMixin}.
  */
 @Mixin(GuiGraphics.class)

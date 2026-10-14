@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block.custom;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
+import com.warlonmhite.hempdustry.platform.Services;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -10,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
@@ -155,8 +157,9 @@ public class HempPressBlock extends BaseEntityBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         if (!world.isClientSide()) {
             MenuProvider factory = state.getMenuProvider(world, pos);
-            if (factory != null) {
-                player.openMenu(factory);
+            if (factory != null && player instanceof ServerPlayer serverPlayer) {
+                // The position rides along, so the client's screen can find this block entity.
+                Services.MENUS.open(serverPlayer, factory, pos);
             }
         }
         return InteractionResult.SUCCESS;

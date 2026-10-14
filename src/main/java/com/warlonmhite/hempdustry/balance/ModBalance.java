@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.balance;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
+import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
@@ -34,9 +34,9 @@ public final class ModBalance {
      * actually packs.
      */
     public static void registerBalance() {
-        DynamicRegistries.registerSynced(DeviceStats.REGISTRY_KEY, DeviceStats.CODEC);
-        DynamicRegistries.registerSynced(EdibleBundle.REGISTRY_KEY, EdibleBundle.CODEC);
-        DynamicRegistries.registerSynced(GreenOut.REGISTRY_KEY, GreenOut.CODEC);
+        Services.REGISTRATION.registerSyncedDynamicRegistry(DeviceStats.REGISTRY_KEY, DeviceStats.CODEC);
+        Services.REGISTRATION.registerSyncedDynamicRegistry(EdibleBundle.REGISTRY_KEY, EdibleBundle.CODEC);
+        Services.REGISTRATION.registerSyncedDynamicRegistry(GreenOut.REGISTRY_KEY, GreenOut.CODEC);
         Hempdustry.LOGGER.info("Registering Balance for " + Hempdustry.MOD_ID);
     }
 

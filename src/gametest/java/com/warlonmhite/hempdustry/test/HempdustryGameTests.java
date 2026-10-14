@@ -165,6 +165,7 @@ public class HempdustryGameTests implements ModInitializer {
         register("the_written_rules_hold", SweepGameTest::theWrittenRulesHold);
         register("every_item_can_be_had_in_survival", SweepGameTest::everyItemCanBeHadInSurvival);
         register("every_tooltip_names_a_real_key", LangGameTest::everyTooltipNamesARealKey);
+        register("the_update_checker_orders_versions_like_fabric", SemVerGameTest::semVerOrdersLikeFabric);
         register("every_translation_keeps_its_placeholders",
                 LangGameTest::everyTranslationKeepsItsPlaceholders);
     }
