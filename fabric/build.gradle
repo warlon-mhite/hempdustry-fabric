@@ -98,6 +98,10 @@ dependencies {
 // was unavailable on the two branches that actually ship. A source set in here gives each branch
 // exactly its own tests, and merging a feature branch brings its tests with it.
 //
+// The tests themselves are common's (common/src/gametest), written against plain Minecraft and run
+// by every loader; this set compiles them in (multiloader-loader) beside Fabric's test entry point,
+// its TestPlatform and the one test only Fabric can answer.
+//
 // **Nothing here reaches the shipped jar.** `jar` and loom's `remapJar` package sourceSets.main and
 // nothing else; this set is never added to either, and never sits on main's compile classpath, so
 // the mod cannot accidentally compile against a test. Its fabric.mod.json declares a separate mod

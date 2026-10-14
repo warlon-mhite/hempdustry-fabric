@@ -20,6 +20,14 @@ neoForge {
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
+// The game tests: plain Minecraft too, so they hold every loader's jar to the same rules. Compiled
+// here only to keep them loader-free; each loader's own game-test source set compiles and runs them.
+sourceSets {
+	gametest {
+		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+	}
+}
+
 dependencies {
 	// The mixins target vanilla, so they live here; both loaders ship Mixin and MixinExtras.
 	compileOnly "org.spongepowered:mixin:${mixin_version}"
@@ -29,7 +37,7 @@ dependencies {
 }
 
 // What the loaders' projects take from here: the sources, and the resources -- hand-written and
-// generated -- that ship inside their jars.
+// generated -- that ship inside their jars; and the game tests, which ship in nothing.
 configurations {
 	commonJava {
 		canBeResolved = false
@@ -39,10 +47,20 @@ configurations {
 		canBeResolved = false
 		canBeConsumed = true
 	}
+	commonGametestJava {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+	commonGametestResources {
+		canBeResolved = false
+		canBeConsumed = true
+	}
 }
 
 artifacts {
 	commonJava file('src/main/java')
 	commonResources file('src/main/resources')
 	commonResources file('src/generated/resources')
+	commonGametestJava file('src/gametest/java')
+	commonGametestResources file('src/gametest/resources')
 }

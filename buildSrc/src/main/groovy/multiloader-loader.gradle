@@ -12,6 +12,12 @@ configurations {
 	commonResources {
 		canBeResolved = true
 	}
+	commonGametestJava {
+		canBeResolved = true
+	}
+	commonGametestResources {
+		canBeResolved = true
+	}
 }
 
 // common's sources, compiled here against this loader's Minecraft -- not common's jar, which would put
@@ -19,6 +25,21 @@ configurations {
 dependencies {
 	commonJava project(path: ':common', configuration: 'commonJava')
 	commonResources project(path: ':common', configuration: 'commonResources')
+	commonGametestJava project(path: ':common', configuration: 'commonGametestJava')
+	commonGametestResources project(path: ':common', configuration: 'commonGametestResources')
+}
+
+// The same for the game tests, once the loader's build declares its `gametest` source set: the shared
+// tests run beside whatever the loader adds of its own.
+sourceSets.matching { it.name == 'gametest' }.configureEach { gametest ->
+	tasks.named(gametest.compileJavaTaskName, JavaCompile) {
+		dependsOn(configurations.commonGametestJava)
+		source(configurations.commonGametestJava)
+	}
+	tasks.named(gametest.processResourcesTaskName, ProcessResources) {
+		dependsOn(configurations.commonGametestResources)
+		from(configurations.commonGametestResources)
+	}
 }
 
 tasks.named('compileJava', JavaCompile) {

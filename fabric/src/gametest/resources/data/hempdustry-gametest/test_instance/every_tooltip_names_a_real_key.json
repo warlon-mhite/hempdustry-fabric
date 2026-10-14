@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:function",
-  "environment": "minecraft:default",
-  "function": "hempdustry-gametest:every_tooltip_names_a_real_key",
-  "structure": "fabric-gametest-api-v1:empty",
-  "max_ticks": 200,
-  "setup_ticks": 0,
-  "required": true
-}

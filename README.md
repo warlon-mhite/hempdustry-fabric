@@ -166,9 +166,9 @@ builds that loader's jar from it: `fabric` holds Fabric's entry points and its s
 `platform` interfaces. Code that works the same on every loader belongs in `common`; the build
 refuses an import from a loader there.
 
-The game tests live in `fabric/src/gametest/` — their own source set, so nothing in them reaches the
-mod jar. They run real server code against the real registry, and `runGametest` exits non-zero if
-any of them fails.
+The game tests live in `common/src/gametest/`, plain Minecraft like the rest of `common`, and each
+loader runs them from a source set of its own, so nothing in them reaches the mod jar. They run real
+server code against the real registry, and `runGametest` exits non-zero if any of them fails.
 
 Most of the mod's data is generated rather than hand-written; if you change a recipe, a loot table,
 a tag or an advancement, run `runDatagen` and commit what it produces.
