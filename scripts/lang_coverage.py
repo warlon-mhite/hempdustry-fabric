@@ -29,9 +29,12 @@ import pathlib
 import sys
 import zipfile
 
+import layout
+
 ROOT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).resolve().parent.parent
-SOURCES = [ROOT / "src/main/resources", ROOT / "src/main/generated"]
-LANG = ROOT / "src/main/resources/assets/hempdustry/lang/en_us.json"
+LAYOUT = layout.of(ROOT)
+SOURCES = [LAYOUT.resources, LAYOUT.generated]
+LANG = LAYOUT.resources / "assets/hempdustry/lang/en_us.json"
 
 # Client item definitions with no item behind them: the press renderer draws its platen and screw
 # through them, and nothing ever shows their name.

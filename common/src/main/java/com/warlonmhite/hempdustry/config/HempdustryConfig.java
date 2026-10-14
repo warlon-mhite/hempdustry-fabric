@@ -214,7 +214,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      *
      * <p>Sorting matters more than it looks: a codec encodes into an unordered map, so without this
      * the knobs come out shuffled — and differently between runs — which makes a diff of two servers'
-     * configs unreadable. Alphabetical also matches what the datagen'd JSON in {@code src/main/generated}
+     * configs unreadable. Alphabetical also matches what the datagen'd JSON in {@code src/generated}
      * does, so the whole project's JSON reads the same way. {@code _comment} leads because {@code _}
      * sorts before every lower-case letter.
      */

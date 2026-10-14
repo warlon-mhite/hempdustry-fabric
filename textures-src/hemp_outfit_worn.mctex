@@ -1,6 +1,6 @@
 # The hemp outfit as worn: the beanie's slouchy tam and the flip-flops' soles and straps.
 # Colours are the beanie's and the flip-flops' icons' own. Render with mctex.py render into
-# src/main/resources/assets/hempdustry/textures.
+# common/src/main/resources/assets/hempdustry/textures.
 
 @palette default
 . = none

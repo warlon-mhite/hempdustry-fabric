@@ -155,15 +155,20 @@ catching up with what 2.1 adds).
 Requires **JDK 21**.
 
 ```bash
-./gradlew build          # the mod jar lands in build/libs/
+./gradlew build          # the mod jar lands in fabric/build/libs/
 ./gradlew runClient      # a dev client with the mod loaded
 ./gradlew runDatagen     # regenerate models, recipes, loot tables, tags, advancements
 ./gradlew runGametest    # boot a headless server and run the game tests
 ```
 
-The game tests live in `src/gametest/` — their own source set, so nothing in them reaches the mod
-jar. They run real server code against the real registry, and `runGametest` exits non-zero if any of
-them fails.
+The mod is a `common` project, plain Minecraft with no mod loader, and one project per loader that
+builds that loader's jar from it: `fabric` holds Fabric's entry points and its side of the
+`platform` interfaces. Code that works the same on every loader belongs in `common`; the build
+refuses an import from a loader there.
+
+The game tests live in `fabric/src/gametest/` — their own source set, so nothing in them reaches the
+mod jar. They run real server code against the real registry, and `runGametest` exits non-zero if
+any of them fails.
 
 Most of the mod's data is generated rather than hand-written; if you change a recipe, a loot table,
 a tag or an advancement, run `runDatagen` and commit what it produces.

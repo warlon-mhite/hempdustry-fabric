@@ -262,6 +262,6 @@ class Sheet:
 
 
 def resources(*parts):
-    """A path under src/main/resources/assets/hempdustry/, relative to this file."""
+    """A path under common/src/main/resources/assets/hempdustry/, relative to this file."""
     here = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(here, "..", "src", "main", "resources", "assets", "hempdustry", *parts)
+    return os.path.join(here, "..", "common", "src", "main", "resources", "assets", "hempdustry", *parts)

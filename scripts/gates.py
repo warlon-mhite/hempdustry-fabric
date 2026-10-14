@@ -9,7 +9,7 @@ Cheapest first, so a failure shows early:
   - the script checks: lang_coverage, use_with_item_pass, biome_tint_pairing, tall_plant_loot, and
     recipe_collisions against vanilla's own recipes, read out of the game jar in the Gradle cache;
   - runGametest, which also fails on any WARN or ERROR in the server's log nobody listed;
-  - a cold runDatagen, which has to leave src/main/generated exactly as it is committed;
+  - a cold runDatagen, which has to leave the generated data exactly as it is committed;
   - the build;
   - api_additive.py against a released jar, when one is given.
 
@@ -25,8 +25,13 @@ import sys
 import time
 import zipfile
 
+import layout
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+LAYOUT = layout.of(ROOT)
 LOGS = ROOT / "build/gates"
+# The generated data, as git and the shell see it: relative to the checkout.
+GENERATED = str(LAYOUT.generated.relative_to(ROOT))
 
 
 def minecraft_version():
@@ -63,16 +68,16 @@ def gates(args):
     yield "plain PASS", py + [script("use_with_item_pass.py")], last(r"PASS")
     yield "biome tint pairing", py + [script("biome_tint_pairing.py")], last(r"tinted|OK|offend")
     yield "tall plant loot", py + [script("tall_plant_loot.py")], last(r"OK|pool")
-    yield "recipe collisions", py + [script("recipe_collisions.py"), "src/main/generated", str(vanilla_data())], \
+    yield "recipe collisions", py + [script("recipe_collisions.py"), GENERATED, str(vanilla_data())], \
         last(r"scanned|collision")
-    yield "game tests", ["./gradlew", "runGametest", "--console=plain"], \
+    yield "game tests", ["./gradlew", LAYOUT.fabric + "runGametest", "--console=plain"], \
         lambda output: last(r"nobody expected")(output) or last(r"required tests")(output) or last(r"BUILD")(output)
     if not args.quick:
-        yield "cold datagen", ["sh", "-c", "rm -rf src/main/generated/.cache && ./gradlew runDatagen --console=plain"
-                               " && git status --porcelain -- src/main/generated | head -20"], last(r"\S")
+        yield "cold datagen", ["sh", "-c", f"rm -rf {GENERATED}/.cache && ./gradlew {LAYOUT.fabric}runDatagen"
+                               f" --console=plain && git status --porcelain -- {GENERATED} | head -20"], last(r"\S")
         yield "build", ["./gradlew", "build", "--console=plain"], last(r"BUILD")
     if args.released:
-        jars = sorted((ROOT / "build/libs").glob("*.jar"), key=lambda p: p.stat().st_mtime)
+        jars = sorted(LAYOUT.fabric_libs.glob("*.jar"), key=lambda p: p.stat().st_mtime)
         jars = [j for j in jars if not j.name.endswith(("-sources.jar", "-dev.jar"))]
         yield "API kept", py + [script("api_additive.py"), args.released, str(jars[-1]) if jars else "none"], \
             last(r"missing")
@@ -99,7 +104,7 @@ def main():
         if name == "cold datagen" and ok:
             # The porcelain lines follow the build's own: anything listed is a file datagen changed.
             changed = [line for line in output.splitlines() if re.match(r"^( M|M |\?\?| D|D ) ", line)]
-            ok, detail = not changed, ("changed " + ", ".join(changed[:5])) if changed else "src/main/generated unchanged"
+            ok, detail = not changed, ("changed " + ", ".join(changed[:5])) if changed else GENERATED + " unchanged"
         results.append((name, "ok" if ok else "FAIL", f"{detail} ({time.time() - started:.0f} s)"))
     width = max(len(name) for name, _, _ in results)
     print()

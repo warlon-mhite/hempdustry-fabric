@@ -1,0 +1,74 @@
+// What every project of the mod shares: Java 21, the repositories, the version and the jar's licences.
+plugins {
+	id 'java-library'
+	id 'maven-publish'
+}
+
+// The Minecraft version rides along as semver build metadata, so the jar in a mods folder says
+// which game it is for. Comparison ignores everything after '+', so the update checker still
+// reads 2.0.0+1.21.11 and 2.0.0 as the same release.
+version = "${mod_version}+${minecraft_version}"
+group = maven_group
+
+base {
+	// hempdustry-common, hempdustry-fabric: the loader is in the jar's name, so a server owner can
+	// tell the two downloads apart.
+	archivesName = "${archives_base_name}-${project.name}"
+}
+
+java {
+	toolchain.languageVersion = JavaLanguageVersion.of(21)
+	withSourcesJar()
+}
+
+repositories {
+	// Parchment: parameter names and javadoc over Mojang's names, the mappings NeoForge uses too.
+	maven {
+		name = 'ParchmentMC'
+		url = 'https://maven.parchmentmc.org'
+	}
+	maven {
+		name = 'NeoForged'
+		url = 'https://maven.neoforged.net/releases'
+	}
+	maven {
+		name = 'Sponge'                  // Mixin, which common compiles its mixins against
+		url = 'https://repo.spongepowered.org/repository/maven-public/'
+		content { includeGroupAndSubgroups('org.spongepowered') }
+	}
+	// The recipe viewers. Compile-only -- see the loaders' dependencies.
+	maven {
+		name = 'BlameJared'              // JEI
+		url = 'https://maven.blamejared.com/'
+	}
+	maven {
+		name = 'shedaniel'               // REI, and the cloth-config it pulls in
+		url = 'https://maven.shedaniel.me/'
+	}
+	maven {
+		name = 'architectury'            // REI's other transitive dep, and where me.shedaniel.math lives
+		url = 'https://maven.architectury.dev/'
+	}
+	mavenCentral()
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.release = 21
+	// Pinned rather than inherited: several source files carry non-ASCII characters, and the
+	// platform default differs on a Windows contributor's machine.
+	options.encoding = 'UTF-8'
+}
+
+// Read here, at configuration time: a task that reaches for `project` while it runs is refused by
+// Gradle 10 and by the configuration cache.
+def licenceSuffix = archives_base_name
+tasks.named('jar', Jar) {
+	from(rootProject.file('LICENSE')) {
+		rename { "${it}_${licenceSuffix}" }
+	}
+	// The music is Nefuß's, under CC BY-NC-SA 4.0 rather than the mod's AGPL, and that licence
+	// wants its attribution to travel with the files — so the credits ship inside the jar.
+	from(rootProject.file('CREDITS.md')) {
+		rename { "CREDITS_${licenceSuffix}.md" }
+	}
+}

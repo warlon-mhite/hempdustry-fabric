@@ -3,7 +3,7 @@
 
     python3 textures-src/beldia.py textures-src/beldia.mctex
     python3 mctex.py render \
-      textures-src/beldia.mctex -o src/main/resources/assets/hempdustry/textures
+      textures-src/beldia.mctex -o common/src/main/resources/assets/hempdustry/textures
 
 The crop is composed from parts rather than typed as grids, so the stalk and every leaf stay put
 from seedling to harvest; edit the parts or an age here and re-run, never the .mctex by hand.

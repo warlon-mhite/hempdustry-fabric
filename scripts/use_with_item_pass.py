@@ -21,6 +21,8 @@ import pathlib
 import re
 import sys
 
+import layout
+
 ROOT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).resolve().parent.parent
 
 # Comments and string literals, blanked out with their newlines kept, so line numbers still match.
@@ -30,7 +32,7 @@ PASS = re.compile(r"\bInteractionResult\.PASS\b")
 
 def main():
     methods, findings = 0, []
-    for path in sorted((ROOT / "src/main/java").rglob("*.java")):
+    for path in layout.of(ROOT).java_files():
         code = NOISE.sub(lambda m: re.sub(r"[^\n]", " ", m.group()), path.read_text(encoding="utf-8"))
         for match in re.finditer(r"\bInteractionResult\s+useItemOn\s*\(", code):
             body = code.index("{", match.end())

@@ -7,7 +7,7 @@
 #
 # Re-render with:
 #   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
-#     textures-src/spliff.mctex -o src/main/resources/assets/hempdustry/textures \
+#     textures-src/spliff.mctex -o common/src/main/resources/assets/hempdustry/textures \
 #     --preview --preview-dir /tmp/tex-preview
 #
 # If the drawing is ever redrawn, re-trace the matrix from it AND move item/spliff_load with

@@ -14,7 +14,7 @@
 #
 #   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
 #     textures-src/hemp_planks_trapdoor.mctex \
-#     -o src/main/resources/assets/hempdustry/textures --preview --preview-dir /tmp/tex
+#     -o common/src/main/resources/assets/hempdustry/textures --preview --preview-dir /tmp/tex
 
 @palette hemp
 . = none

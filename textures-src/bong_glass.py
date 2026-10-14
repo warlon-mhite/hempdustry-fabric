@@ -14,7 +14,7 @@ import sys
 import zlib
 from pathlib import Path
 
-ITEM = Path(__file__).resolve().parent.parent / "src/main/resources/assets/hempdustry/textures/item"
+ITEM = Path(__file__).resolve().parent.parent / "common/src/main/resources/assets/hempdustry/textures/item"
 
 # The clear bong's glass, lightest to darkest: highlight, light, mid, outline.
 HIGHLIGHT, LIGHT, MID, OUTLINE = 0xFFFFFF, 0xD4E5F7, 0xB3CFEC, 0x5D8FC2

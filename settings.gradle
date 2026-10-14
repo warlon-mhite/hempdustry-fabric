@@ -4,7 +4,18 @@ pluginManagement {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'
 		}
+		maven {
+			name = 'NeoForged'
+			url = 'https://maven.neoforged.net/releases'
+		}
 		mavenCentral()
 		gradlePluginPortal()
 	}
 }
+
+// Named here rather than after the checkout's folder, so every worktree builds the same projects.
+rootProject.name = 'hempdustry'
+
+// common: plain Minecraft, no loader -- most of the mod. fabric: Fabric's entry points, its side of
+// the platform interfaces, datagen and the game tests.
+include 'common', 'fabric'

@@ -7,7 +7,7 @@ set, but it flips silently when any other recipe is added or removed. The loser 
 generates its unlock advancement, so the recipe book shows something that does nothing.
 
 Usage:
-    python3 scripts/recipe_collisions.py src/main/generated [vanilla-data-dir]
+    python3 scripts/recipe_collisions.py common/src/generated/resources [vanilla-data-dir]
 
 The optional second argument is a directory holding an extracted vanilla `data/` tree,
 which lets the scan catch mod-vs-vanilla collisions as well as mod-vs-mod:
@@ -130,7 +130,7 @@ def main(argv):
               "found this way. Extract vanilla's data and pass the directory holding `data/`:\n"
               "  unzip -q ~/.gradle/caches/fabric-loom/<mcver>/minecraft-client.jar "
               "'data/minecraft/*' -d /tmp/mcdata\n"
-              "  python3 scripts/recipe_collisions.py src/main/generated /tmp/mcdata\n")
+              "  python3 scripts/recipe_collisions.py common/src/generated/resources /tmp/mcdata\n")
     else:
         vanilla = load(argv[2], "minecraft")
         # A wrong path here is silent otherwise: the scan still runs, still says "0 collisions",

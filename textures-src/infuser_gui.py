@@ -6,7 +6,7 @@ being a binary nobody can change. Re-run after editing:
 
     python3 textures-src/infuser_gui.py
 
-Output: src/main/resources/assets/hempdustry/textures/gui/container/infuser.png
+Output: common/src/main/resources/assets/hempdustry/textures/gui/container/infuser.png
 
 Chrome comes from `gui_common` — vanilla's panel, slot and flame art, measured out of the client
 jar and checked by `check_panel.py`.
