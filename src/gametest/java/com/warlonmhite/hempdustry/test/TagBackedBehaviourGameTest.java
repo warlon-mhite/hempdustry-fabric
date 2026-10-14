@@ -236,6 +236,26 @@ public final class TagBackedBehaviourGameTest implements FabricGameTest {
     }
 
     /**
+     * Hemp fibre repairs every piece of the hemp set on an anvil, and string does not.
+     *
+     * <p>On this version the repair material is the armour material's Ingredient; the 1.21.11 build
+     * names a tag instead, and until 2.0.3 no file filled it, so the anvil there refused everything
+     * and nothing said why. The same rule, held on both.
+     */
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
+    public void hempFiberRepairsTheOutfit(TestContext context) {
+        ItemStack fiber = new ItemStack(ModItems.HEMP_FIBER);
+        for (Item piece : List.of(ModItems.HEMP_BEANIE, ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS,
+                ModItems.FLIP_FLOPS)) {
+            context.assertTrue(piece.canRepair(new ItemStack(piece), fiber),
+                    "hemp fibre does not repair " + piece + " — the material's repair ingredient lost it");
+            context.assertFalse(piece.canRepair(new ItemStack(piece), new ItemStack(Items.STRING)),
+                    "string repairs " + piece + ", so the repair ingredient has grown past hemp fibre");
+        }
+        context.complete();
+    }
+
+    /**
      * Only the shirt and the harem pants take a trim, and all four pieces still take armour's
      * enchantments, on an anvil and at the table.
      *
