@@ -3,17 +3,17 @@ package com.warlonmhite.hempdustry.recipe;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.block.ModBlocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.input.SingleStackRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.world.World;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.Level;
 
 /**
  * One tray-load in the Decarboxylator: an ingredient in, a stack of decarboxylated hemp out.
@@ -34,43 +34,43 @@ import net.minecraft.world.World;
  * be an entry the player could not click. Recipe viewers read the type directly.
  */
 public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
-        implements Recipe<SingleStackRecipeInput> {
+        implements Recipe<SingleRecipeInput> {
 
     @Override
-    public boolean matches(SingleStackRecipeInput input, World world) {
+    public boolean matches(SingleRecipeInput input, Level world) {
         return ingredient.test(input.item());
     }
 
     @Override
-    public ItemStack craft(SingleStackRecipeInput input, RegistryWrapper.WrapperLookup lookup) {
+    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider lookup) {
         return result.copy();
     }
 
     /** No grid, so nothing to fit into. */
     @Override
-    public boolean fits(int width, int height) {
+    public boolean canCraftInDimensions(int width, int height) {
         return true;
     }
 
     @Override
-    public ItemStack getResult(RegistryWrapper.WrapperLookup lookup) {
+    public ItemStack getResultItem(HolderLookup.Provider lookup) {
         return result;
     }
 
     @Override
-    public DefaultedList<Ingredient> getIngredients() {
-        DefaultedList<Ingredient> list = DefaultedList.ofSize(1, Ingredient.EMPTY);
+    public NonNullList<Ingredient> getIngredients() {
+        NonNullList<Ingredient> list = NonNullList.withSize(1, Ingredient.EMPTY);
         list.set(0, ingredient);
         return list;
     }
 
     @Override
-    public boolean isIgnoredInRecipeBook() {
+    public boolean isSpecial() {
         return true;
     }
 
     @Override
-    public ItemStack createIcon() {
+    public ItemStack getToastSymbol() {
         return new ItemStack(ModBlocks.DECARBOXYLATOR);
     }
 
@@ -86,13 +86,13 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
 
     public static class Serializer implements RecipeSerializer<DecarboxylatingRecipe> {
         private static final MapCodec<DecarboxylatingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.DISALLOW_EMPTY_CODEC.fieldOf("ingredient").forGetter(DecarboxylatingRecipe::ingredient),
-                ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(DecarboxylatingRecipe::result)
+                Ingredient.CODEC_NONEMPTY.fieldOf("ingredient").forGetter(DecarboxylatingRecipe::ingredient),
+                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(DecarboxylatingRecipe::result)
         ).apply(instance, DecarboxylatingRecipe::new));
 
-        private static final PacketCodec<RegistryByteBuf, DecarboxylatingRecipe> PACKET_CODEC = PacketCodec.tuple(
-                Ingredient.PACKET_CODEC, DecarboxylatingRecipe::ingredient,
-                ItemStack.PACKET_CODEC, DecarboxylatingRecipe::result,
+        private static final StreamCodec<RegistryFriendlyByteBuf, DecarboxylatingRecipe> PACKET_CODEC = StreamCodec.composite(
+                Ingredient.CONTENTS_STREAM_CODEC, DecarboxylatingRecipe::ingredient,
+                ItemStack.STREAM_CODEC, DecarboxylatingRecipe::result,
                 DecarboxylatingRecipe::new);
 
         @Override
@@ -101,7 +101,7 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
         }
 
         @Override
-        public PacketCodec<RegistryByteBuf, DecarboxylatingRecipe> packetCodec() {
+        public StreamCodec<RegistryFriendlyByteBuf, DecarboxylatingRecipe> streamCodec() {
             return PACKET_CODEC;
         }
     }

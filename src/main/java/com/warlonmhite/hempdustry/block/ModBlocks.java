@@ -24,22 +24,43 @@ import com.warlonmhite.hempdustry.block.custom.SpaceCakeBlock;
 import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
-import net.minecraft.block.*;
-import net.minecraft.block.enums.BedPart;
-import net.minecraft.block.enums.NoteBlockInstrument;
-import net.minecraft.block.piston.PistonBehavior;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.item.BedItem;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.BedItem;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ButtonBlock;
+import net.minecraft.world.level.block.CeilingHangingSignBlock;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.FallingBlock;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.PressurePlateBlock;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.StandingSignBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.WallHangingSignBlock;
+import net.minecraft.world.level.block.WallSignBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.block.state.properties.WoodType;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -52,77 +73,77 @@ import java.util.function.BiFunction;
 public class ModBlocks {
 
     public static final BlockSetType HEMP_BLOCK_SET_TYPE = BlockSetTypeBuilder.copyOf(BlockSetType.OAK)
-            .register(Identifier.of(Hempdustry.MOD_ID, "hemp"));
+            .register(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"));
     public static final WoodType HEMP_WOOD_TYPE = WoodTypeBuilder.copyOf(WoodType.OAK)
-            .register(Identifier.of(Hempdustry.MOD_ID, "hemp"), HEMP_BLOCK_SET_TYPE);
+            .register(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"), HEMP_BLOCK_SET_TYPE);
 
     public static final Block HEMP_BRICKS_BLOCK = registerBlock("hemp_bricks_block",
-            new Block(AbstractBlock.Settings.create().strength(2.0F, 10.0F).sounds(BlockSoundGroup.WOOD)));
+            new Block(BlockBehaviour.Properties.of().strength(2.0F, 10.0F).sound(SoundType.WOOD)));
 
     public static final Block HEMP_BRICKS_STAIRS = registerBlock("hemp_bricks_stairs",
-            new StairsBlock(ModBlocks.HEMP_BRICKS_BLOCK.getDefaultState(),
-                    AbstractBlock.Settings.create().strength(2f).sounds(BlockSoundGroup.WOOD)));
+            new StairBlock(ModBlocks.HEMP_BRICKS_BLOCK.defaultBlockState(),
+                    BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
     public static final Block HEMP_BRICKS_SLAB = registerBlock("hemp_bricks_slab",
-            new SlabBlock(AbstractBlock.Settings.create().strength(2f).sounds(BlockSoundGroup.WOOD)));
+            new SlabBlock(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
 
     public static final Block HEMP_BRICKS_WALL = registerBlock("hemp_bricks_wall",
-            new WallBlock(AbstractBlock.Settings.create().strength(2f).sounds(BlockSoundGroup.WOOD)));
+            new WallBlock(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
 
 
     public static final Block HEMP_PLANKS = registerBlock("hemp_planks",
-            new Block(AbstractBlock.Settings.create().strength(2.0F, 3.0F).sounds(BlockSoundGroup.WOOD)));
+            new Block(BlockBehaviour.Properties.of().strength(2.0F, 3.0F).sound(SoundType.WOOD)));
 
     public static final Block HEMP_PLANKS_STAIRS = registerBlock("hemp_planks_stairs",
-            new StairsBlock(ModBlocks.HEMP_PLANKS.getDefaultState(),
-                    AbstractBlock.Settings.create().strength(2f).sounds(BlockSoundGroup.WOOD)));
+            new StairBlock(ModBlocks.HEMP_PLANKS.defaultBlockState(),
+                    BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
     public static final Block HEMP_PLANKS_SLAB = registerBlock("hemp_planks_slab",
-            new SlabBlock(AbstractBlock.Settings.create().strength(2f).sounds(BlockSoundGroup.WOOD)));
+            new SlabBlock(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
 
     public static final Block HEMP_PLANKS_BUTTON = registerBlock("hemp_planks_button",
-            new ButtonBlock(BlockSetType.OAK, 2, AbstractBlock.Settings.create().strength(2f).noCollision()));
+            new ButtonBlock(BlockSetType.OAK, 2, BlockBehaviour.Properties.of().strength(2f).noCollission()));
     public static final Block HEMP_PLANKS_PRESSURE_PLATE = registerBlock("hemp_planks_pressure_plate",
-            new PressurePlateBlock(BlockSetType.OAK, AbstractBlock.Settings.create().strength(2f).noCollision()));
+            new PressurePlateBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().strength(2f).noCollission()));
 
     public static final Block HEMP_PLANKS_FENCE = registerBlock("hemp_planks_fence",
-            new FenceBlock(AbstractBlock.Settings.create().strength(2f).sounds(BlockSoundGroup.WOOD)));
+            new FenceBlock(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
     public static final Block HEMP_PLANKS_FENCE_GATE = registerBlock("hemp_planks_fence_gate",
-            new FenceGateBlock(WoodType.OAK, AbstractBlock.Settings.create().strength(2f)));
+            new FenceGateBlock(WoodType.OAK, BlockBehaviour.Properties.of().strength(2f)));
 
 
     public static final Block HEMP_PLANKS_DOOR = registerBlock("hemp_planks_door",
-            new DoorBlock(BlockSetType.OAK, AbstractBlock.Settings.create().strength(2f).nonOpaque()));
+            new DoorBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().strength(2f).noOcclusion()));
     public static final Block HEMP_PLANKS_TRAPDOOR = registerBlock("hemp_planks_trapdoor",
-            new TrapdoorBlock(BlockSetType.OAK, AbstractBlock.Settings.create().strength(2f).nonOpaque()));
+            new TrapDoorBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().strength(2f).noOcclusion()));
 
     // Signs place their own item specially (SignItem/HangingSignItem reference both the standing and wall
     // block), so these are registered without the usual auto BlockItem.
     public static final Block HEMP_PLANKS_SIGN = registerBlockWithoutItem("hemp_planks_sign",
-            new SignBlock(HEMP_WOOD_TYPE, AbstractBlock.Settings.create().strength(1.0F).sounds(BlockSoundGroup.WOOD).noCollision()));
+            new StandingSignBlock(HEMP_WOOD_TYPE, BlockBehaviour.Properties.of().strength(1.0F).sound(SoundType.WOOD).noCollission()));
     public static final Block HEMP_PLANKS_WALL_SIGN = registerBlockWithoutItem("hemp_planks_wall_sign",
-            new WallSignBlock(HEMP_WOOD_TYPE, AbstractBlock.Settings.create().strength(1.0F).sounds(BlockSoundGroup.WOOD).noCollision().dropsLike(HEMP_PLANKS_SIGN)));
+            new WallSignBlock(HEMP_WOOD_TYPE, BlockBehaviour.Properties.of().strength(1.0F).sound(SoundType.WOOD).noCollission().dropsLike(HEMP_PLANKS_SIGN)));
 
     public static final Block HEMP_PLANKS_HANGING_SIGN = registerBlockWithoutItem("hemp_planks_hanging_sign",
-            new HangingSignBlock(HEMP_WOOD_TYPE, AbstractBlock.Settings.create().strength(1.0F).sounds(BlockSoundGroup.HANGING_SIGN).noCollision()));
+            new CeilingHangingSignBlock(HEMP_WOOD_TYPE, BlockBehaviour.Properties.of().strength(1.0F).sound(SoundType.HANGING_SIGN).noCollission()));
     public static final Block HEMP_PLANKS_WALL_HANGING_SIGN = registerBlockWithoutItem("hemp_planks_wall_hanging_sign",
-            new WallHangingSignBlock(HEMP_WOOD_TYPE, AbstractBlock.Settings.create().strength(1.0F).sounds(BlockSoundGroup.HANGING_SIGN).noCollision().dropsLike(HEMP_PLANKS_HANGING_SIGN)));
+            new WallHangingSignBlock(HEMP_WOOD_TYPE, BlockBehaviour.Properties.of().strength(1.0F).sound(SoundType.HANGING_SIGN).noCollission().dropsLike(HEMP_PLANKS_HANGING_SIGN)));
 
     /**
      * Hemp laid as a floor — the plank set's decorative block, the way bamboo mosaic is bamboo's.
      * Same wood as the planks, so the same settings; the stairs and slab copy the parquet, as
      * vanilla's copy the block they are cut from.
      */
-    public static final Block HEMP_PARQUET = registerBlock("hemp_parquet", new Block(AbstractBlock.Settings.copy(HEMP_PLANKS)));
-    public static final Block HEMP_PARQUET_STAIRS = registerBlock("hemp_parquet_stairs", new StairsBlock(ModBlocks.HEMP_PARQUET.getDefaultState(), AbstractBlock.Settings.copy(HEMP_PARQUET)));
-    public static final Block HEMP_PARQUET_SLAB = registerBlock("hemp_parquet_slab", new SlabBlock(AbstractBlock.Settings.copy(HEMP_PARQUET)));
+    public static final Block HEMP_PARQUET = registerBlock("hemp_parquet", new Block(BlockBehaviour.Properties.ofFullCopy(HEMP_PLANKS)));
+    public static final Block HEMP_PARQUET_STAIRS = registerBlock("hemp_parquet_stairs", new StairBlock(ModBlocks.HEMP_PARQUET.defaultBlockState(), BlockBehaviour.Properties.ofFullCopy(HEMP_PARQUET)));
+    public static final Block HEMP_PARQUET_SLAB = registerBlock("hemp_parquet_slab", new SlabBlock(BlockBehaviour.Properties.ofFullCopy(HEMP_PARQUET)));
 
     public static final Block HEMPCRETE_BLOCK = registerBlock("hempcrete_block",
-            new Block(AbstractBlock.Settings.create().strength(1.8F).sounds(BlockSoundGroup.STONE)));
+            new Block(BlockBehaviour.Properties.of().strength(1.8F).sound(SoundType.STONE)));
     public static final FallingBlock HEMPCRETE_POWDER_BLOCK = (FallingBlock) registerBlock("hempcrete_powder_block",
-            new CustomConcreteBlock(AbstractBlock.Settings.create().strength(0.5f).sounds(BlockSoundGroup.SAND)));
+            new CustomConcreteBlock(BlockBehaviour.Properties.of().strength(0.5f).sound(SoundType.SAND)));
 
 
     public static final Block HEMP_BALE = registerBlock("hemp_bale",
-            new PillarBlock(AbstractBlock.Settings.copy(Blocks.HAY_BLOCK).strength(0.5f).sounds(BlockSoundGroup.GRASS)));
+            new RotatedPillarBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.HAY_BLOCK).strength(0.5f).sound(SoundType.GRASS)));
 
     /**
      * Nine hemp leaves baled into a block, and back again. Vanilla's leaves settings to the pixel —
@@ -141,28 +162,28 @@ public class ModBlocks {
      * Untinted, unlike every vanilla leaf: the texture carries hemp's own green rather than the
      * biome's, which also keeps it out of the tint-pairing trap in {@code crops.md}.
      * <p>
-     * A piston breaks it rather than pushing it, as vanilla's {@code createLeavesBlock} sets for
+     * A piston breaks it rather than pushing it, as vanilla's {@code leaves} sets for
      * every leaf. That line was missed on the way in, and a leaf block that a piston shoves like
-     * stone reads as a bug. {@code ticksRandomly} is the one vanilla setting left out: it only
+     * stone reads as a bug. {@code randomTicks} is the one vanilla setting left out: it only
      * drives decay.
      * <p>
      * The four predicates are spelled out rather than borrowed from {@code Blocks}: vanilla's
-     * {@code never} and {@code canSpawnOnLeaves} helpers are private on this line. The spawning one
+     * {@code never} and {@code ocelotOrParrot} helpers are private on this line. The spawning one
      * is vanilla's own rule verbatim — ocelots and parrots, nothing else.
      */
     public static final Block HEMP_LEAVES = registerBlock("hemp_leaves",
-            new Block(AbstractBlock.Settings.create()
-                    .mapColor(MapColor.DARK_GREEN)
+            new Block(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.PLANT)
                     .strength(0.2F)
-                    .sounds(BlockSoundGroup.GRASS)
-                    .nonOpaque()
-                    .burnable()
-                    .allowsSpawning((state, world, pos, type) ->
+                    .sound(SoundType.GRASS)
+                    .noOcclusion()
+                    .ignitedByLava()
+                    .isValidSpawn((state, world, pos, type) ->
                             type == EntityType.OCELOT || type == EntityType.PARROT)
-                    .suffocates((state, world, pos) -> false)
-                    .blockVision((state, world, pos) -> false)
-                    .solidBlock((state, world, pos) -> false)
-                    .pistonBehavior(PistonBehavior.DESTROY)));
+                    .isSuffocating((state, world, pos) -> false)
+                    .isViewBlocking((state, world, pos) -> false)
+                    .isRedstoneConductor((state, world, pos) -> false)
+                    .pushReaction(PushReaction.DESTROY)));
 
 
     /**
@@ -179,15 +200,15 @@ public class ModBlocks {
      * and hempcrete. Cloth burns.
      */
     public static final Block HEMP_WOOL = registerBlock("hemp_wool",
-            new Block(AbstractBlock.Settings.create()
+            new Block(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.TERRACOTTA_WHITE)
                     .instrument(NoteBlockInstrument.GUITAR)
                     .strength(0.8F)
-                    .sounds(BlockSoundGroup.WOOL)
-                    .burnable()));
+                    .sound(SoundType.WOOL)
+                    .ignitedByLava()));
 
     /**
-     * Hemp carpet. Not vanilla's {@code DyedCarpetBlock}, which carries a {@code DyeColor} ours does
+     * Hemp carpet. Not vanilla's {@code WoolCarpetBlock}, which carries a {@code DyeColor} ours does
      * not have (moss carpet is plain for the same reason).
      * <p>
      * It shares the wool block's texture, exactly as every vanilla carpet shares its wool's.
@@ -197,11 +218,11 @@ public class ModBlocks {
      * {@code LlamaDecorFeatureRendererMixin} draws this one.
      */
     public static final Block HEMP_CARPET = registerBlock("hemp_carpet",
-            new HempCarpetBlock(AbstractBlock.Settings.create()
+            new HempCarpetBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.TERRACOTTA_WHITE)
                     .strength(0.1F)
-                    .sounds(BlockSoundGroup.WOOL)
-                    .burnable()));
+                    .sound(SoundType.WOOL)
+                    .ignitedByLava()));
 
     /**
      * The bed hemp wool makes — see {@link HempBedBlock}. Vanilla's bed settings to the letter
@@ -210,23 +231,23 @@ public class ModBlocks {
      * registered flammable at hemp wool's own rate, because it is a bed made of cloth that burns.
      */
     public static final Block HEMP_BED = registerBlockWithItem("hemp_bed",
-            new HempBedBlock(AbstractBlock.Settings.create()
-                    .mapColor(state -> state.get(BedBlock.PART) == BedPart.FOOT
-                            ? MapColor.TERRACOTTA_WHITE : MapColor.WHITE_GRAY)
-                    .sounds(BlockSoundGroup.WOOD)
+            new HempBedBlock(BlockBehaviour.Properties.of()
+                    .mapColor(state -> state.getValue(BedBlock.PART) == BedPart.FOOT
+                            ? MapColor.TERRACOTTA_WHITE : MapColor.WOOL)
+                    .sound(SoundType.WOOD)
                     .strength(0.2F)
-                    .nonOpaque()
-                    .burnable()
-                    .pistonBehavior(PistonBehavior.DESTROY)),
+                    .noOcclusion()
+                    .ignitedByLava()
+                    .pushReaction(PushReaction.DESTROY)),
             BedItem::new,
-            new Item.Settings().maxCount(1));
+            new Item.Properties().stacksTo(1));
 
     // NO BLOCK ITEM, on both crops, exactly as vanilla WHEAT has none: the seeds are the item, and
     // ModItems.INDICA_SEEDS / SATIVA_SEEDS are the BlockItems that plant these. A BlockItem here
     // would be a registry entry no player can obtain except with /give, with no model to render it
-    // (CropBlock#getPickStack already hands back getSeedsItem, so middle-click is unaffected).
+    // (CropBlock#getCloneItemStack already hands back getBaseSeedId, so middle-click is unaffected).
     public static final Block INDICA_CROP = registerBlockWithoutItem("indica_crop",
-            new IndicaCropBlock(AbstractBlock.Settings.copy(Blocks.WHEAT)));
+            new IndicaCropBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT)));
 
     // Wild Purple Kush. One block, and it takes a suspicious-stew effect because FlowerBlock's
     // constructor demands one — IT CAN NEVER APPLY IT. Both the crafting recipe
@@ -239,36 +260,36 @@ public class ModBlocks {
     // So the argument below is structurally required and functionally dead. It is kept meaningful
     // rather than arbitrary — Mining Fatigue is what the strain does when smoked — purely so that
     // the day the rule is revisited, the answer is already written down. SATIVA_FLOWER no longer
-    // has the problem at all: a TallPlantBlock never asks for a stew effect.
+    // has the problem at all: a DoublePlantBlock never asks for a stew effect.
     // Note the *block* tags in ModBlockTagProvider are a separate question and are joined.
     public static final Block INDICA_FLOWER = registerBlock("indica_flower",
-            new IndicaFlower(StatusEffects.MINING_FATIGUE, 1, AbstractBlock.Settings.copy(Blocks.ALLIUM)));
+            new IndicaFlower(MobEffects.DIG_SLOWDOWN, 1, BlockBehaviour.Properties.ofFullCopy(Blocks.ALLIUM)));
     // No block item on either pot, as vanilla's potted plants have none: the flower is the item.
     public static final Block POTTED_INDICA_FLOWER = registerBlockWithoutItem("potted_indica_flower",
-            new FlowerPotBlock(INDICA_FLOWER, AbstractBlock.Settings.copy(Blocks.POTTED_ALLIUM)));
+            new FlowerPotBlock(INDICA_FLOWER, BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_ALLIUM)));
 
 
     // No block item, for the reason on INDICA_CROP above.
     public static final Block SATIVA_CROP = registerBlockWithoutItem("sativa_crop",
-            new SativaCropBlock(AbstractBlock.Settings.copy(Blocks.WHEAT)));
+            new SativaCropBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT)));
 
     // Wild Lemon Haze — TWO BLOCKS TALL, unlike its Purple Kush counterpart. Both wild flowers wear
     // their strain's mid-growth crop art: indica stage 3, one tile; sativa stage 5, drawn across a
-    // bottom and a top, because Lemon Haze is the lanky strain. Settings therefore copy ROSE_BUSH,
+    // bottom and a top, because Lemon Haze is the lanky strain. Properties therefore copy ROSE_BUSH,
     // vanilla's own two-tall flower, rather than DANDELION.
     //
     // SativaFlower widens the ground it accepts to sand/terracotta so it can actually grow in
-    // badlands, and extends TallPlantBlock rather than TallFlowerBlock so bone meal does NOT
+    // badlands, and extends DoublePlantBlock rather than TallFlowerBlock so bone meal does NOT
     // duplicate it — see that class for both.
     public static final Block SATIVA_FLOWER = registerBlock("sativa_flower",
-            new SativaFlower(AbstractBlock.Settings.copy(Blocks.ROSE_BUSH)));
+            new SativaFlower(BlockBehaviour.Properties.ofFullCopy(Blocks.ROSE_BUSH)));
     public static final Block POTTED_SATIVA_FLOWER = registerBlockWithoutItem("potted_sativa_flower",
-            new FlowerPotBlock(SATIVA_FLOWER, AbstractBlock.Settings.copy(Blocks.POTTED_DANDELION)));
+            new FlowerPotBlock(SATIVA_FLOWER, BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_DANDELION)));
 
 
     // No block item, for the reason on INDICA_CROP above. It is also Beldía's wild plant: the world
     // generates this very block, ripe, on desert riverbanks -- there is no separate wild flower.
-    public static final Block BELDIA_CROP = registerBlockWithoutItem("beldia_crop", new BeldiaCropBlock(AbstractBlock.Settings.copy(Blocks.WHEAT)));
+    public static final Block BELDIA_CROP = registerBlockWithoutItem("beldia_crop", new BeldiaCropBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT)));
 
 
     /**
@@ -277,11 +298,11 @@ public class ModBlocks {
      * flammable — an oven that catches fire reads as a bug, not a feature.
      */
     public static final Block DECARBOXYLATOR = registerBlock("decarboxylator",
-            new DecarboxylatorBlock(AbstractBlock.Settings.create()
+            new DecarboxylatorBlock(BlockBehaviour.Properties.of()
                     .strength(3.5F, 3.5F)
-                    .requiresTool()
-                    .sounds(BlockSoundGroup.STONE)
-                    .luminance(state -> state.get(DecarboxylatorBlock.LIT) ? 13 : 0)));
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.STONE)
+                    .lightLevel(state -> state.getValue(DecarboxylatorBlock.LIT) ? 13 : 0)));
 
 
     /**
@@ -289,28 +310,28 @@ public class ModBlocks {
      * light-emitting: its glow has to come from whatever is heating it from below, or the
      * heat-from-below mechanic would look self-powered.
      *
-     * <p><b>{@code nonOpaque()} is load-bearing, not tidiness.</b> The model is a shaped tub whose
+     * <p><b>{@code noOcclusion()} is load-bearing, not tidiness.</b> The model is a shaped tub whose
      * waist is inset a pixel and whose top is an open pot. A block that reports itself opaque has
      * its neighbours cull the faces they press against it — so an opaque Infuser would leave a 1px
      * see-through band all the way round the waist and a hole where the pot is. It also lets light
      * into the pot, which is what vanilla's cauldron does for the same reason.
      */
     public static final Block INFUSER = registerBlock("infuser",
-            new InfuserBlock(AbstractBlock.Settings.create()
+            new InfuserBlock(BlockBehaviour.Properties.of()
                     .strength(3.5F, 3.5F)
-                    .requiresTool()
-                    .nonOpaque()
-                    .sounds(BlockSoundGroup.STONE)));
+                    .requiresCorrectToolForDrops()
+                    .noOcclusion()
+                    .sound(SoundType.STONE)));
 
 
     /**
      * The Sifting Box. A screened wooden box, so it is wood rather than the two machines' stone —
      * it is a sieve on a frame, not a furnace, and it should read as something a farmer built.
      *
-     * <p><b>{@code nonOpaque()} for the same reason the Infuser needs it:</b> the model is an open
+     * <p><b>{@code noOcclusion()} for the same reason the Infuser needs it:</b> the model is an open
      * box with a hollow middle, and an opaque block has its neighbours cull the faces they press
      * against it, which would show straight through the walls. Vanilla's composter is
-     * {@code notSolid} for exactly this.
+     * {@code forceSolidOff} for exactly this.
      *
      * <p>Deliberately <b>not</b> registered as flammable, even though it is wooden: it is a work
      * block a player leaves standing next to a field, and losing one to a stray lightning strike
@@ -318,10 +339,10 @@ public class ModBlocks {
      * flammable either.
      */
     public static final Block SIFTING_BOX = registerBlock("sifting_box",
-            new SiftingBoxBlock(AbstractBlock.Settings.create()
+            new SiftingBoxBlock(BlockBehaviour.Properties.of()
                     .strength(0.6F)
-                    .nonOpaque()
-                    .sounds(BlockSoundGroup.WOOD)));
+                    .noOcclusion()
+                    .sound(SoundType.WOOD)));
 
 
     /**
@@ -329,58 +350,58 @@ public class ModBlocks {
      * that glowed would be claiming otherwise. Stone-hard and tool-gated like the other two machines.
      */
     public static final Block HEMP_PRESS = registerBlock("hemp_press",
-            new HempPressBlock(AbstractBlock.Settings.create()
+            new HempPressBlock(BlockBehaviour.Properties.of()
                     .strength(3.5F, 3.5F)
-                    .requiresTool()
-                    .nonOpaque()
-                    .sounds(BlockSoundGroup.STONE)));
+                    .requiresCorrectToolForDrops()
+                    .noOcclusion()
+                    .sound(SoundType.STONE)));
 
     /**
      * The Grow Lamp — an LED panel hung on copper chains; see {@link GrowLampBlock}. Copper-bulb
-     * hardness and sounds, for the housing. {@code nonOpaque()} because it is a thin panel and two
+     * hardness and sounds, for the housing. {@code noOcclusion()} because it is a thin panel and two
      * chains, not a cube: an opaque block would cull the faces its neighbours press against it.
      */
     public static final Block GROW_LAMP = registerBlock("grow_lamp",
-            new GrowLampBlock(AbstractBlock.Settings.create()
-                    .nonOpaque()
-                    .mapColor(MapColor.ORANGE)
-                    .luminance(Blocks.createLightLevelFromLitBlockState(15))
+            new GrowLampBlock(BlockBehaviour.Properties.of()
+                    .noOcclusion()
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .lightLevel(Blocks.litBlockEmission(15))
                     .strength(3.0F, 6.0F)
-                    .requiresTool()
-                    .sounds(BlockSoundGroup.COPPER_BULB)));
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.COPPER_BULB)));
 
     /**
-     * The Grow Pot — see {@link GrowPotBlock}. {@code nonOpaque()} because the soil sits below the
+     * The Grow Pot — see {@link GrowPotBlock}. {@code noOcclusion()} because the soil sits below the
      * rim: an opaque block would light that recessed face from inside itself, which is black.
      */
     public static final Block GROW_POT = registerBlock("grow_pot",
-            new GrowPotBlock(AbstractBlock.Settings.create()
+            new GrowPotBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.TERRACOTTA_YELLOW)
                     .strength(1.25F)
-                    .nonOpaque()
-                    .sounds(BlockSoundGroup.DECORATED_POT)));
+                    .noOcclusion()
+                    .sound(SoundType.DECORATED_POT)));
 
     /**
      * The Hydro Tray — see {@link HydroTrayBlock}. Copper, like the plumbing it is: the mod's
-     * electrical metal, and the same hardness as the Grow Lamp's housing. {@code nonOpaque()}
+     * electrical metal, and the same hardness as the Grow Lamp's housing. {@code noOcclusion()}
      * because the solution sits below the lip, and an opaque block would light that recessed face
      * from inside itself.
      */
     public static final Block HYDRO_TRAY = registerBlock("hydro_tray",
-            new HydroTrayBlock(AbstractBlock.Settings.create()
-                    .mapColor(MapColor.ORANGE)
+            new HydroTrayBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_ORANGE)
                     .strength(3.0F, 6.0F)
-                    .requiresTool()
-                    .nonOpaque()
-                    .sounds(BlockSoundGroup.COPPER)));
+                    .requiresCorrectToolForDrops()
+                    .noOcclusion()
+                    .sound(SoundType.COPPER)));
 
     /**
      * The pressed slab of hashish, and the hash family's storage block. Cut with a blade, nine
      * pieces to a bar — see {@link HashishBarBlock}.
      *
-     * <p>{@code BlockSoundGroup.HONEY} is the reuse: sticky, soft, resinous, and a sound group that
-     * already exists. {@code nonOpaque} because the bar is 4 px tall and must not cull whatever it
-     * sits next to. {@code PistonBehavior.DESTROY} because a partially-cut bar carries state a
+     * <p>{@code SoundType.HONEY_BLOCK} is the reuse: sticky, soft, resinous, and a sound group that
+     * already exists. {@code noOcclusion} because the bar is 4 px tall and must not cull whatever it
+     * sits next to. {@code PushReaction.DESTROY} because a partially-cut bar carries state a
      * piston cannot move, which is what vanilla does to cake for the same reason.
      *
      * <p><b>Deliberately not in {@code #minecraft:enderman_holdable}</b>, same reasoning as the
@@ -393,23 +414,23 @@ public class ModBlocks {
      * and a durability cost; a tag that quietly undoes that is worse than no tag at all.
      */
     public static final Block HASHISH_BAR = registerBlock("hashish_bar",
-            new HashishBarBlock(AbstractBlock.Settings.create()
+            new HashishBarBlock(BlockBehaviour.Properties.of()
                     .strength(0.5F)
-                    .sounds(BlockSoundGroup.HONEY)
-                    .nonOpaque()
-                    .pistonBehavior(PistonBehavior.DESTROY)));
+                    .sound(SoundType.HONEY_BLOCK)
+                    .noOcclusion()
+                    .pushReaction(PushReaction.DESTROY)));
 
     /**
-     * The blonde bar — nine filtered hashish, crafted together. Settings copied from
+     * The blonde bar — nine filtered hashish, crafted together. Properties copied from
      * {@link #HASHISH_BAR} because it <em>is</em> that block in a different colour; see
      * {@link FilteredHashishBarBlock} for why the symmetry is deliberate.
      */
     public static final Block FILTERED_HASHISH_BAR = registerBlock("filtered_hashish_bar",
-            new FilteredHashishBarBlock(AbstractBlock.Settings.create()
+            new FilteredHashishBarBlock(BlockBehaviour.Properties.of()
                     .strength(0.5F)
-                    .sounds(BlockSoundGroup.HONEY)
-                    .nonOpaque()
-                    .pistonBehavior(PistonBehavior.DESTROY)));
+                    .sound(SoundType.HONEY_BLOCK)
+                    .noOcclusion()
+                    .pushReaction(PushReaction.DESTROY)));
 
     /**
      * Nine charas, rolled together. <b>A ball and not a bar, and that is the whole point.</b>
@@ -427,11 +448,11 @@ public class ModBlocks {
      * <p>Honey sound group, like the two bars: sticky, soft, resinous.
      */
     public static final Block CHARAS_BALL = registerBlock("charas_ball",
-            new CharasBallBlock(AbstractBlock.Settings.create()
+            new CharasBallBlock(BlockBehaviour.Properties.of()
                     .strength(0.5F)
-                    .sounds(BlockSoundGroup.HONEY)
-                    .nonOpaque()
-                    .pistonBehavior(PistonBehavior.DESTROY)));
+                    .sound(SoundType.HONEY_BLOCK)
+                    .noOcclusion()
+                    .pushReaction(PushReaction.DESTROY)));
 
     /**
      * Space Cake — vanilla's cake, baked with cannabutter. Copies {@code Blocks.CAKE}'s settings
@@ -439,12 +460,12 @@ public class ModBlocks {
      * players already know; the {@code maxCount(1)} on its item is vanilla's cake too.
      */
     public static final Block SPACE_CAKE = registerBlockWithItem("space_cake",
-            new SpaceCakeBlock(AbstractBlock.Settings.copy(Blocks.CAKE)),
+            new SpaceCakeBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CAKE)),
             (block, settings) -> new EdibleBlockItem(block, settings),
-            new Item.Settings().maxCount(1));
+            new Item.Properties().stacksTo(1));
 
     /**
-     * Vanilla's creative-tab colour order. {@code ItemGroups} spells it out once per colour family
+     * Vanilla's creative-tab colour order. {@code CreativeModeTabs} spells it out once per colour family
      * and keeps no list of it, so this is that order written down once. Here rather than in
      * {@code ModItems} because the bong blocks below need it, and this class must never reach into
      * that one during static initialisation — {@code ModItems} reads blocks from here.
@@ -468,37 +489,37 @@ public class ModBlocks {
 
     private static Map<String, Block> registerBongBlocks() {
         List<String> names = new ArrayList<>(List.of("bong", "tinted_bong"));
-        DYE_ORDER.forEach(color -> names.add(color.asString() + "_bong"));
+        DYE_ORDER.forEach(color -> names.add(color.getSerializedName() + "_bong"));
         Map<String, Block> blocks = new LinkedHashMap<>();
         for (String name : names) {
             blocks.put(name, registerBlockWithoutItem(name,
-            new BongBlock(AbstractBlock.Settings.create()
-                    .breakInstantly()
-                    .nonOpaque()
-                    .sounds(BlockSoundGroup.GLASS)
-                    .pistonBehavior(PistonBehavior.DESTROY))));
+            new BongBlock(BlockBehaviour.Properties.of()
+                    .instabreak()
+                    .noOcclusion()
+                    .sound(SoundType.GLASS)
+                    .pushReaction(PushReaction.DESTROY))));
         }
         return Collections.unmodifiableMap(blocks);
     }
 
 
     public static Block registerBlock(String name, Block block){
-        return registerBlock(name, block, new Item.Settings());
+        return registerBlock(name, block, new Item.Properties());
     }
     /** Same, but with explicit item settings — for blocks whose item isn't a plain 64-stack. */
-    public static Block registerBlock(String name, Block block, Item.Settings itemSettings){
+    public static Block registerBlock(String name, Block block, Item.Properties itemSettings){
         return registerBlockWithItem(name, block, BlockItem::new, itemSettings);
     }
     /** Same again, but with a custom BlockItem — the Space Cake needs one for its dose tooltip. */
     public static Block registerBlockWithItem(String name, Block block,
-                                              BiFunction<Block, Item.Settings, BlockItem> itemFactory,
-                                              Item.Settings itemSettings) {
-        Registry.register(Registries.ITEM, Identifier.of(Hempdustry.MOD_ID, name),
+                                              BiFunction<Block, Item.Properties, BlockItem> itemFactory,
+                                              Item.Properties itemSettings) {
+        Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name),
                 itemFactory.apply(block, itemSettings));
-        return Registry.register(Registries.BLOCK, Identifier.of(Hempdustry.MOD_ID, name), block);
+        return Registry.register(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name), block);
     }
     private static Block registerBlockWithoutItem(String name, Block block) {
-        return Registry.register(Registries.BLOCK, Identifier.of(Hempdustry.MOD_ID, name), block);
+        return Registry.register(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name), block);
     }
 
     public static void registerModBlocks() {

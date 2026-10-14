@@ -2,11 +2,11 @@ package com.warlonmhite.hempdustry.mixin.client;
 
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -28,20 +28,20 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public abstract class ItemRendererMixin {
 
     @ModifyVariable(
-            method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ModelTransformationMode;ZLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;IILnet/minecraft/client/render/model/BakedModel;)V",
+            method = "render(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V",
             at = @At("HEAD"), argsOnly = true)
-    private BakedModel hempdustry$holdBongsIn3d(BakedModel model, ItemStack stack, ModelTransformationMode mode) {
-        if (mode == ModelTransformationMode.GUI || mode == ModelTransformationMode.GROUND
-                || mode == ModelTransformationMode.FIXED
+    private BakedModel hempdustry$holdBongsIn3d(BakedModel model, ItemStack stack, ItemDisplayContext mode) {
+        if (mode == ItemDisplayContext.GUI || mode == ItemDisplayContext.GROUND
+                || mode == ItemDisplayContext.FIXED
                 || !(stack.getItem() instanceof SmokingDeviceItem device) || device.placedBlock() == null) {
             return model;
         }
-        BakedModel inHand = MinecraftClient.getInstance().getBakedModelManager()
+        BakedModel inHand = Minecraft.getInstance().getModelManager()
                 .getModel(ModItemProperties.inHandModel(stack.getItem()));
         if (inHand == null) {
             return model;
         }
-        BakedModel resolved = inHand.getOverrides().apply(inHand, stack, null, null, 0);
+        BakedModel resolved = inHand.getOverrides().resolve(inHand, stack, null, null, 0);
         return resolved != null ? resolved : inHand;
     }
 }

@@ -3,14 +3,13 @@ package com.warlonmhite.hempdustry.item.custom;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.particle.ParticleEffect;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,10 +20,10 @@ import java.util.UUID;
  * and the tick callback alike), so no synchronisation is needed.
  *
  * <p><b>The player is resolved off the ticking server, not off a stored world.</b> A queue entry
- * holds a UUID and nothing else: {@link net.minecraft.server.PlayerManager#getPlayer(UUID)} finds
+ * holds a UUID and nothing else: {@link net.minecraft.server.players.PlayerList#getPlayer(UUID)} finds
  * them wherever they are, and the puff is spawned in whatever world they are standing in when it
- * fires. Holding a {@code ServerWorld} instead would have scoped the lookup to one dimension —
- * {@code ServerWorld.getPlayers()} is that dimension's list alone — so a player who stepped through
+ * fires. Holding a {@code ServerLevel} instead would have scoped the lookup to one dimension —
+ * {@code ServerLevel.players()} is that dimension's list alone — so a player who stepped through
  * a portal in the meantime would silently get nothing. Same reason as
  * {@link EdibleScheduler}, where the window is minutes rather than two seconds and the loss is
  * correspondingly worse.
@@ -41,10 +40,10 @@ public final class SmokeScheduler {
          * registry singletons with no world or entity behind them, so parking one here for two
          * seconds keeps nothing else alive.
          */
-        final ParticleEffect particle;
+        final ParticleOptions particle;
         int ticksLeft;
 
-        Pending(UUID player, ParticleEffect particle, int ticksLeft) {
+        Pending(UUID player, ParticleOptions particle, int ticksLeft) {
             this.player = player;
             this.particle = particle;
             this.ticksLeft = ticksLeft;
@@ -73,10 +72,10 @@ public final class SmokeScheduler {
      */
     private static final class PendingEffects {
         final UUID player;
-        final List<StatusEffectInstance> effects;
+        final List<MobEffectInstance> effects;
         int ticksLeft;
 
-        PendingEffects(UUID player, List<StatusEffectInstance> effects, int ticksLeft) {
+        PendingEffects(UUID player, List<MobEffectInstance> effects, int ticksLeft) {
             this.player = player;
             this.effects = effects;
             this.ticksLeft = ticksLeft;
@@ -103,24 +102,24 @@ public final class SmokeScheduler {
         // return, which is not a death.
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             if (!alive) {
-                PENDING_EFFECTS.removeIf(pending -> pending.player.equals(newPlayer.getUuid()));
+                PENDING_EFFECTS.removeIf(pending -> pending.player.equals(newPlayer.getUUID()));
             }
         });
     }
 
     /** Schedules an exhale puff of {@code particle} for {@code player} in {@code delayTicks} ticks. */
-    public static void schedule(PlayerEntity player, ParticleEffect particle, int delayTicks) {
-        PENDING.add(new Pending(player.getUuid(), particle, Math.max(1, delayTicks)));
+    public static void schedule(Player player, ParticleOptions particle, int delayTicks) {
+        PENDING.add(new Pending(player.getUUID(), particle, Math.max(1, delayTicks)));
     }
 
     /** Applies {@code effects} to {@code player} in {@code delayTicks} ticks, if they are still alive. */
-    public static void scheduleEffects(PlayerEntity player, List<StatusEffectInstance> effects, int delayTicks) {
-        PENDING_EFFECTS.add(new PendingEffects(player.getUuid(), List.copyOf(effects), Math.max(1, delayTicks)));
+    public static void scheduleEffects(Player player, List<MobEffectInstance> effects, int delayTicks) {
+        PENDING_EFFECTS.add(new PendingEffects(player.getUUID(), List.copyOf(effects), Math.max(1, delayTicks)));
     }
 
     /** Schedules {@code sound} to play at {@code player}'s position in {@code delayTicks} ticks. */
-    public static void scheduleSound(PlayerEntity player, int delayTicks, SoundEvent sound) {
-        PENDING_SOUNDS.add(new PendingSound(player.getUuid(), Math.max(1, delayTicks), sound));
+    public static void scheduleSound(Player player, int delayTicks, SoundEvent sound) {
+        PENDING_SOUNDS.add(new PendingSound(player.getUUID(), Math.max(1, delayTicks), sound));
     }
 
     private static void tick(MinecraftServer server) {
@@ -129,9 +128,9 @@ public final class SmokeScheduler {
                 if (--pending.ticksLeft > 0) {
                     return false;
                 }
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
+                ServerPlayer player = server.getPlayerList().getPlayer(pending.player);
                 if (player != null && player.isAlive()) {
-                    Smoking.spawnExhale(player.getServerWorld(), player, pending.particle);
+                    Smoking.spawnExhale(player.serverLevel(), player, pending.particle);
                 }
                 return true;
             });
@@ -141,9 +140,9 @@ public final class SmokeScheduler {
                 if (--pending.ticksLeft > 0) {
                     return false;
                 }
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
+                ServerPlayer player = server.getPlayerList().getPlayer(pending.player);
                 if (player != null && player.isAlive()) {
-                    pending.effects.forEach(player::addStatusEffect);
+                    pending.effects.forEach(player::addEffect);
                 }
                 return true;
             });
@@ -153,10 +152,10 @@ public final class SmokeScheduler {
                 if (--pending.ticksLeft > 0) {
                     return false;
                 }
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(pending.player);
+                ServerPlayer player = server.getPlayerList().getPlayer(pending.player);
                 if (player != null && player.isAlive()) {
-                    player.getServerWorld().playSound(null, player.getX(), player.getY(), player.getZ(),
-                            pending.sound, SoundCategory.PLAYERS, 1f, 1f);
+                    player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
+                            pending.sound, SoundSource.PLAYERS, 1f, 1f);
                 }
                 return true;
             });

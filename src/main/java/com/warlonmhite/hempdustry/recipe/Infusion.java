@@ -4,8 +4,8 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.input.CraftingRecipeInput;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
  * Carries cannabutter's two axes onto whatever is baked with it.
@@ -34,7 +34,7 @@ public final class Infusion {
      * {@code result}. Returns the result untouched if there is no butter in the grid, which keeps a
      * malformed match harmless rather than throwing.
      */
-    public static ItemStack transfer(CraftingRecipeInput input, ItemStack result, int offset) {
+    public static ItemStack transfer(CraftingInput input, ItemStack result, int offset) {
         ItemStack butter = findButter(input);
         if (butter.isEmpty()) {
             return result;
@@ -48,10 +48,10 @@ public final class Infusion {
         return result;
     }
 
-    private static ItemStack findButter(CraftingRecipeInput input) {
-        for (int slot = 0; slot < input.getSize(); slot++) {
-            ItemStack stack = input.getStackInSlot(slot);
-            if (stack.isOf(ModItems.CANNABUTTER)) {
+    private static ItemStack findButter(CraftingInput input) {
+        for (int slot = 0; slot < input.size(); slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack.is(ModItems.CANNABUTTER)) {
                 return stack;
             }
         }

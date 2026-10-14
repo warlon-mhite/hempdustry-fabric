@@ -2,16 +2,16 @@ package com.warlonmhite.hempdustry.entity.ai;
 
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.goal.WanderAroundGoal;
-import net.minecraft.entity.mob.CreeperEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.Heightmap;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -26,12 +26,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * <h2>It is a wander, and nothing else</h2>
  *
- * The first version was a {@code MoveToTargetPosGoal}, which walks to the nearest target and then
+ * The first version was a {@code MoveToBlockGoal}, which walks to the nearest target and then
  * <em>holds on for up to a minute</em>; its next search finds the plant it is standing beside, so a
  * creeper that reached a field stayed there for good, and every creeper within 16 blocks of one
  * plant came over. That is a beacon, and a beacon is a mob farm.
  *
- * <p>This is a {@link WanderAroundGoal} instead: the same speed, the same per-tick odds of starting,
+ * <p>This is a {@link RandomStrollGoal} instead: the same speed, the same per-tick odds of starting,
  * the same stop-on-arrival and the same "nobody is near, so stand still" rule as the wandering it
  * sits beside at priority 5. The only thing that differs is <em>where</em> it wanders to, so there is
  * no moment a player could point at. Priority 5 also keeps vanilla's rules: a creeper with a target
@@ -86,9 +86,9 @@ import org.jetbrains.annotations.Nullable;
  * the day it joins the tag, and a datapack can add or remove plants without any code knowing. It is
  * deliberately not {@code #minecraft:crops}: creepers hunting wheat is a different mod.
  */
-public class SeekHempCropGoal extends WanderAroundGoal {
+public class SeekHempCropGoal extends RandomStrollGoal {
 
-    /** {@code WanderAroundFarGoal}'s speed on a creeper. Walking faster towards a field would give it away. */
+    /** {@code WaterAvoidingRandomStrollGoal}'s speed on a creeper. Walking faster towards a field would give it away. */
     private static final double SPEED = 0.8;
     /** One in this many ticks a creeper glances around for a field — half as often as it wanders. */
     private static final int NOTICE_CHANCE = 240;
@@ -118,7 +118,7 @@ public class SeekHempCropGoal extends WanderAroundGoal {
     /** When the current lurk ends; 0 while still walking. */
     private long lurkingUntil;
 
-    public SeekHempCropGoal(PathAwareEntity creeper) {
+    public SeekHempCropGoal(PathfinderMob creeper) {
         super(creeper, SPEED, NOTICE_CHANCE);
     }
 
@@ -127,7 +127,7 @@ public class SeekHempCropGoal extends WanderAroundGoal {
      * already survives saving, so the answer never changes for a given creeper.
      */
     public static boolean caresAboutHemp(Entity creeper) {
-        return (creeper.getUuid().getLeastSignificantBits() & 1L) == 0L;
+        return (creeper.getUUID().getLeastSignificantBits() & 1L) == 0L;
     }
 
     /**
@@ -136,13 +136,13 @@ public class SeekHempCropGoal extends WanderAroundGoal {
      * the entity's constructor; a check at the mixin would freeze the setting at spawn time.
      */
     @Override
-    public boolean canStart() {
+    public boolean canUse() {
         if (!HempdustryConfig.get().world().creepersSeekHemp() || !caresAboutHemp(mob)
-                || mob.getEntityWorld().getTime() < restingUntil) {
+                || mob.getCommandSenderWorld().getGameTime() < restingUntil) {
             return false;
         }
-        setChance(prowlsLeft > 0 ? PROWL_CHANCE : NOTICE_CHANCE);
-        return super.canStart();
+        setInterval(prowlsLeft > 0 ? PROWL_CHANCE : NOTICE_CHANCE);
+        return super.canUse();
     }
 
     /**
@@ -150,16 +150,16 @@ public class SeekHempCropGoal extends WanderAroundGoal {
      * attack goal at priority 4 takes the movement control from this one, lurk or no lurk.
      */
     @Override
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         if (!HempdustryConfig.get().world().creepersSeekHemp() || mob.hasControllingPassenger()) {
             return false;
         }
-        if (!mob.getNavigation().isIdle()) {
+        if (!mob.getNavigation().isDone()) {
             return true;
         }
-        long now = mob.getEntityWorld().getTime();
+        long now = mob.getCommandSenderWorld().getGameTime();
         if (lurkingUntil == 0L) {
-            lurkingUntil = now + mob.getRandom().nextBetween(MIN_LURK, MAX_LURK);
+            lurkingUntil = now + mob.getRandom().nextIntBetweenInclusive(MIN_LURK, MAX_LURK);
         }
         return now < lurkingUntil;
     }
@@ -171,7 +171,7 @@ public class SeekHempCropGoal extends WanderAroundGoal {
     }
 
     @Override
-    protected @Nullable Vec3d getWanderTarget() {
+    protected @Nullable Vec3 getPosition() {
         boolean prowling = prowlsLeft > 0;
         BlockPos plant = prowling
                 ? findCover(mob, PROWL_RANGE, PROWL_SAMPLES)
@@ -184,15 +184,15 @@ public class SeekHempCropGoal extends WanderAroundGoal {
             }
             return null;
         }
-        return Vec3d.ofBottomCenter(plant);
+        return Vec3.atBottomCenterOf(plant);
     }
 
     @Override
     public void start() {
         super.start();
-        Random random = mob.getRandom();
+        RandomSource random = mob.getRandom();
         if (prowlsLeft == 0) {
-            prowlsLeft = random.nextBetween(MIN_PROWLS, MAX_PROWLS);
+            prowlsLeft = random.nextIntBetweenInclusive(MIN_PROWLS, MAX_PROWLS);
         } else if (--prowlsLeft == 0) {
             rest();
         }
@@ -200,35 +200,35 @@ public class SeekHempCropGoal extends WanderAroundGoal {
 
     private void rest() {
         prowlsLeft = 0;
-        restingUntil = mob.getEntityWorld().getTime() + mob.getRandom().nextBetween(MIN_REST, MAX_REST);
+        restingUntil = mob.getCommandSenderWorld().getGameTime() + mob.getRandom().nextIntBetweenInclusive(MIN_REST, MAX_REST);
     }
 
     /**
      * Looks at {@code samples} random columns within {@code range} of the creeper and returns the
      * root of the first grown, open-sky hemp plant no other creeper is standing by, or null.
      */
-    public static @Nullable BlockPos findCover(PathAwareEntity creeper, int range, int samples) {
-        World world = creeper.getEntityWorld();
-        Random random = creeper.getRandom();
-        BlockPos.Mutable pos = new BlockPos.Mutable();
+    public static @Nullable BlockPos findCover(PathfinderMob creeper, int range, int samples) {
+        Level world = creeper.getCommandSenderWorld();
+        RandomSource random = creeper.getRandom();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int i = 0; i < samples; i++) {
-            int x = creeper.getBlockX() + random.nextBetween(-range, range);
-            int z = creeper.getBlockZ() + random.nextBetween(-range, range);
+            int x = creeper.getBlockX() + random.nextIntBetweenInclusive(-range, range);
+            int z = creeper.getBlockZ() + random.nextIntBetweenInclusive(-range, range);
             // Never load a chunk to answer a wandering mob.
             pos.set(x, creeper.getBlockY(), z);
-            if (!world.isPosLoaded(x, z)) {
+            if (!world.hasChunkAt(x, z)) {
                 continue;
             }
-            pos.setY(world.getTopY(Heightmap.Type.WORLD_SURFACE, x, z) - 1);
+            pos.setY(world.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1);
             int height = 0;
-            while (world.getBlockState(pos).isIn(ModTags.Blocks.HEMP_CROPS)) {
+            while (world.getBlockState(pos).is(ModTags.Blocks.HEMP_CROPS)) {
                 pos.move(0, -1, 0);
                 height++;
             }
             if (height < 2) {
                 continue;
             }
-            BlockPos root = pos.up();
+            BlockPos root = pos.above();
             if (Math.abs(root.getY() - creeper.getBlockY()) > MAX_Y_DIFFERENCE
                     || isTaken(world, root, creeper)) {
                 continue;
@@ -238,8 +238,8 @@ public class SeekHempCropGoal extends WanderAroundGoal {
         return null;
     }
 
-    private static boolean isTaken(World world, BlockPos root, Entity self) {
-        return !world.getEntitiesByClass(CreeperEntity.class, new Box(root).expand(TAKEN_RADIUS),
+    private static boolean isTaken(Level world, BlockPos root, Entity self) {
+        return !world.getEntitiesOfClass(Creeper.class, new AABB(root).inflate(TAKEN_RADIUS),
                 other -> other != self).isEmpty();
     }
 }

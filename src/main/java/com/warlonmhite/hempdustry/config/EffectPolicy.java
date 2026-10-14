@@ -1,15 +1,14 @@
 package com.warlonmhite.hempdustry.config;
 
 import com.warlonmhite.hempdustry.config.HempdustryConfig.Effects;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.math.MathHelper;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.Holder;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 
 /**
  * The single gate every status effect this mod applies passes through.
@@ -35,7 +34,7 @@ public final class EffectPolicy {
      * list when effects are switched off entirely, which every caller already handles because an
      * empty strain does the same thing.
      */
-    public static List<StatusEffectInstance> filter(List<StatusEffectInstance> effects) {
+    public static List<MobEffectInstance> filter(List<MobEffectInstance> effects) {
         return filter(effects, true, 0);
     }
 
@@ -44,7 +43,7 @@ public final class EffectPolicy {
      * one when a bud is loaded with a concentrate, else none. The load has already held every entry
      * that did not earn the bonus to the plain cap, so all this does is not clip the one that did.
      */
-    public static List<StatusEffectInstance> filter(List<StatusEffectInstance> effects, int buffBonus) {
+    public static List<MobEffectInstance> filter(List<MobEffectInstance> effects, int buffBonus) {
         return filter(effects, true, buffBonus);
     }
 
@@ -55,41 +54,41 @@ public final class EffectPolicy {
      * because {@code EdibleEffects.durationTicks} is read for the ramp arithmetic long before the
      * effects are built, and scaling twice would square the multiplier.
      */
-    public static List<StatusEffectInstance> filterKeepingDuration(List<StatusEffectInstance> effects) {
+    public static List<MobEffectInstance> filterKeepingDuration(List<MobEffectInstance> effects) {
         return filter(effects, false, 0);
     }
 
-    private static List<StatusEffectInstance> filter(List<StatusEffectInstance> effects, boolean scaleDuration,
+    private static List<MobEffectInstance> filter(List<MobEffectInstance> effects, boolean scaleDuration,
                                                      int buffBonus) {
         Effects config = HempdustryConfig.get().effects();
         if (!config.enabled()) {
             return List.of();
         }
-        List<StatusEffectInstance> out = new ArrayList<>(effects.size());
-        for (StatusEffectInstance instance : effects) {
+        List<MobEffectInstance> out = new ArrayList<>(effects.size());
+        for (MobEffectInstance instance : effects) {
             if (!allowed(instance)) {
                 continue;
             }
-            out.add(new StatusEffectInstance(instance.getEffectType(),
+            out.add(new MobEffectInstance(instance.getEffect(),
                     scaleDuration ? duration(instance.getDuration()) : instance.getDuration(),
-                    amplifier(instance.getEffectType(), instance.getAmplifier(), buffBonus),
-                    instance.isAmbient(), instance.shouldShowParticles(), instance.shouldShowIcon()));
+                    amplifier(instance.getEffect(), instance.getAmplifier(), buffBonus),
+                    instance.isAmbient(), instance.isVisible(), instance.showIcon()));
         }
         return out;
     }
 
     /** Whether a single effect survives the toggles. */
-    private static boolean allowed(StatusEffectInstance instance) {
+    private static boolean allowed(MobEffectInstance instance) {
         Effects config = HempdustryConfig.get().effects();
-        if (!config.munchies() && instance.getEffectType() == StatusEffects.HUNGER) {
+        if (!config.munchies() && instance.getEffect() == MobEffects.HUNGER) {
             return false;
         }
-        if (!config.nausea() && instance.getEffectType() == StatusEffects.NAUSEA) {
+        if (!config.nausea() && instance.getEffect() == MobEffects.CONFUSION) {
             return false;
         }
         // Category rather than a list of ids: a datapack strain handing out Wither or Poison is
         // caught by the same switch as the mod's own Mining Fatigue, with no maintenance.
-        return config.debuffs() || instance.getEffectType().value().getCategory() != StatusEffectCategory.HARMFUL;
+        return config.debuffs() || instance.getEffect().value().getCategory() != MobEffectCategory.HARMFUL;
     }
 
     /** A duration in ticks, scaled. Never rounds to zero — a 1-tick effect is still an effect. */
@@ -99,22 +98,22 @@ public final class EffectPolicy {
     }
 
     /**
-     * An amplifier, capped by {@code maxLevel} and, for a {@link StatusEffectCategory#BENEFICIAL}
+     * An amplifier, capped by {@code maxLevel} and, for a {@link MobEffectCategory#BENEFICIAL}
      * effect, by {@code maxBuffLevel} too. Both are levels, so level II is amplifier 1.
      *
      * <p>By category rather than by a list, for the same reason {@link #allowed} is: a datapack
      * strain's Regeneration is a buff the day it is written. A cost is left to scale with the dose,
      * which is what makes a big dose a real decision now that its buffs stop early.
      */
-    public static int amplifier(RegistryEntry<StatusEffect> effect, int amplifier) {
+    public static int amplifier(Holder<MobEffect> effect, int amplifier) {
         return amplifier(effect, amplifier, 0);
     }
 
     /** As above, with the buff cap raised by {@code buffBonus}; {@code maxLevel} still holds. */
-    public static int amplifier(RegistryEntry<StatusEffect> effect, int amplifier, int buffBonus) {
+    public static int amplifier(Holder<MobEffect> effect, int amplifier, int buffBonus) {
         Effects config = HempdustryConfig.get().effects();
         int cap = config.maxLevel();
-        if (effect.value().getCategory() == StatusEffectCategory.BENEFICIAL) {
+        if (effect.value().getCategory() == MobEffectCategory.BENEFICIAL) {
             cap = Math.min(cap, config.maxBuffLevel() + buffBonus);
         }
         return Math.min(amplifier, cap - 1);
@@ -146,7 +145,7 @@ public final class EffectPolicy {
      *
      * <p><b>{@code debuffs = false} also gives never</b>, and that is not the same knob being read
      * twice. A green-out <em>replaces</em> the hit's effects rather than layering on them, and every
-     * effect it hands out is {@link StatusEffectCategory#HARMFUL} — so with debuffs off,
+     * effect it hands out is {@link MobEffectCategory#HARMFUL} — so with debuffs off,
      * {@link #filter} would strip all four and the roll would resolve into <em>nothing at all</em>:
      * the buffs skipped, no penalty applied, no sound, no explanation for the three buds. Deciding
      * it here rather than at the roll site is what stops that, because this is the one place that
@@ -176,7 +175,7 @@ public final class EffectPolicy {
     /** An edible's onset delay, scaled and kept inside the window the design guarantees. */
     public static int onset(int ticks, int min, int max) {
         double scaled = ticks * HempdustryConfig.get().effects().onsetMultiplier();
-        return MathHelper.clamp((int) Math.round(scaled),
+        return Mth.clamp((int) Math.round(scaled),
                 Math.max(1, (int) Math.round(min * HempdustryConfig.get().effects().onsetMultiplier())),
                 Math.max(1, (int) Math.round(max * HempdustryConfig.get().effects().onsetMultiplier())));
     }

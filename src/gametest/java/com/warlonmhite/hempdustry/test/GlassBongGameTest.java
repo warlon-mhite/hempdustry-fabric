@@ -8,21 +8,18 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.TestContext;
-import net.minecraft.text.TranslatableTextContent;
-import net.minecraft.util.Identifier;
-
 import java.util.List;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.test.GameTest;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
  * A coloured bong is a bong in everything but its glass.
@@ -34,43 +31,43 @@ import net.minecraft.test.GameTest;
  */
 public final class GlassBongGameTest implements FabricGameTest {
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void everyColouredBongIsABong(TestContext context) {
-        ServerWorld world = context.getWorld();
-        PackingRecipe packing = new PackingRecipe(CraftingRecipeCategory.MISC);
-        Item buds = world.getRegistryManager().getWrapperOrThrow(Strain.REGISTRY_KEY)
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void everyColouredBongIsABong(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        PackingRecipe packing = new PackingRecipe(CraftingBookCategory.MISC);
+        Item buds = world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY)
                 .getOrThrow(ModStrains.INDICA).value().buds();
 
-        context.assertEquals(17, ModItems.COLORED_BONGS.size(),
+        context.assertValueEqual(17, ModItems.COLORED_BONGS.size(),
                 "there are not sixteen stained bongs and a tinted one");
         for (Item bong : ModItems.COLORED_BONGS) {
-            String name = Registries.ITEM.getId(bong).getPath();
+            String name = BuiltInRegistries.ITEM.getKey(bong).getPath();
 
             // Dose 3 on purpose: it is the bong's alone, so a coloured bong read as any other
             // device would be refused here rather than passing at dose 1.
-            CraftingRecipeInput grid = CraftingRecipeInput.create(2, 2, List.of(
+            CraftingInput grid = CraftingInput.of(2, 2, List.of(
                     new ItemStack(bong), new ItemStack(buds), new ItemStack(buds), new ItemStack(buds)));
             context.assertTrue(packing.matches(grid, world), name + " refused a dose-3 bowl");
-            ItemStack packed = packing.craft(grid, world.getRegistryManager());
-            context.assertTrue(packed.isOf(bong), name + " packed into a different item");
-            context.assertEquals(DeviceType.BONG.builtInBowl().hits(), packed.getOrDefault(ModComponents.CHARGES, 0),
+            ItemStack packed = packing.assemble(grid, world.registryAccess());
+            context.assertTrue(packed.is(bong), name + " packed into a different item");
+            context.assertValueEqual(DeviceType.BONG.builtInBowl().hits(), packed.getOrDefault(ModComponents.CHARGES, 0),
                     name + " did not load a bong's bowl");
-            context.assertEquals(3, packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).dose(),
+            context.assertValueEqual(3, packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).dose(),
                     name + " did not load three buds");
 
-            String key = packed.getName().getContent() instanceof TranslatableTextContent t ? t.getKey() : "";
+            String key = packed.getHoverName().getContents() instanceof TranslatableContents t ? t.getKey() : "";
             context.assertTrue(key.equals("item.hempdustry.bong.packed"),
                     name + " packed names itself from " + key + ", which no locale defines");
 
-            context.assertTrue(world.getServer().getRecipeManager().get(
-                    Identifier.of(Hempdustry.MOD_ID, name)).isPresent(), "nothing crafts " + name);
+            context.assertTrue(world.getServer().getRecipeManager().byKey(
+                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name)).isPresent(), "nothing crafts " + name);
 
             String color = name.substring(0, name.length() - "_bong".length());
-            Item glass = Registries.ITEM.get(Identifier.ofVanilla(
+            Item glass = BuiltInRegistries.ITEM.get(ResourceLocation.withDefaultNamespace(
                     color.equals("tinted") ? "tinted_glass" : color + "_stained_glass"));
-            context.assertTrue(bong.canRepair(new ItemStack(bong), new ItemStack(glass)),
-                    name + " does not repair with " + Registries.ITEM.getId(glass));
+            context.assertTrue(bong.isValidRepairItem(new ItemStack(bong), new ItemStack(glass)),
+                    name + " does not repair with " + BuiltInRegistries.ITEM.getKey(glass));
         }
-        context.complete();
+        context.succeed();
     }
 }

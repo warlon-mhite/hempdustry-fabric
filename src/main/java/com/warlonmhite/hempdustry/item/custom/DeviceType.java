@@ -1,10 +1,9 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.balance.DeviceStats;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-
 import java.util.Optional;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 
 /**
  * A reusable smoking device (pipe, bong, vaporizer, …). One enum entry fully describes a device as
@@ -50,13 +49,13 @@ public enum DeviceType {
     private final int enchantability;
     private final int soundDelayTicks;
     private final int drawTicks;
-    private final ParticleEffect exhaleParticle;
+    private final ParticleOptions exhaleParticle;
     private final DeviceStats builtInStats;
 
     DeviceType(String baseName, String packedModel, int maxDamage, int bowlSize, int maxDose,
                int durationTicks, int enchantability, int cooldownTicks, int coughChanceOneIn,
                int nauseaChanceOneIn, int soundDelayTicks, int drawTicks, int spentYield,
-               ParticleEffect exhaleParticle) {
+               ParticleOptions exhaleParticle) {
         this.baseName = baseName;
         this.packedModel = packedModel;
         this.maxDamage = maxDamage;
@@ -144,7 +143,7 @@ public enum DeviceType {
     /**
      * How long the use key is held for one hit, or {@code 0} for a hit on the click. Only the bong
      * draws: 30 ticks with the device raised to the mouth in vanilla's goat-horn pose
-     * ({@code UseAction.TOOT_HORN}), its bubbling playing from the first tick and the hit landing
+     * ({@code UseAnim.TOOT_HORN}), its bubbling playing from the first tick and the hit landing
      * on the last. Let go early and nothing is spent, as with a potion put down half-drunk.
      *
      * <p>A draw is a cost as well as a picture — a player ripping a bong is a player standing
@@ -162,7 +161,7 @@ public enum DeviceType {
      * {@code CAMPFIRE_COSY_SMOKE}; the vaporizer puffs {@code CLOUD}, because <b>vapour is not
      * smoke</b> and this is the cheapest honest signal that the device does not combust.
      */
-    public ParticleEffect exhaleParticle() {
+    public ParticleOptions exhaleParticle() {
         return exhaleParticle;
     }
 }

@@ -9,23 +9,31 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
-import net.minecraft.block.Block;
-import net.minecraft.block.CakeBlock;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
-import net.minecraft.data.client.*;
-import net.minecraft.item.Item;
-import net.minecraft.util.Identifier;
-
-import net.minecraft.registry.RegistryWrapper;
-
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.Direction;
-
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.models.BlockModelGenerators;
+import net.minecraft.data.models.ItemModelGenerators;
+import net.minecraft.data.models.blockstates.MultiVariantGenerator;
+import net.minecraft.data.models.blockstates.PropertyDispatch;
+import net.minecraft.data.models.blockstates.Variant;
+import net.minecraft.data.models.blockstates.VariantProperties;
+import net.minecraft.data.models.model.ModelLocationUtils;
+import net.minecraft.data.models.model.ModelTemplate;
+import net.minecraft.data.models.model.ModelTemplates;
+import net.minecraft.data.models.model.TextureMapping;
+import net.minecraft.data.models.model.TextureSlot;
+import net.minecraft.data.models.model.TexturedModel;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CakeBlock;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,22 +49,22 @@ public class ModModelProvider extends FabricModelProvider {
      * {@code Pack.RegistryDependentFactory} and is joined at generate time. Fabric resolves the
      * future before any provider runs, so the join never blocks.
      */
-    private final CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup;
+    private final CompletableFuture<HolderLookup.Provider> registryLookup;
 
-    public ModModelProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
+    public ModModelProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(output);
         this.registryLookup = registryLookup;
     }
 
     @Override
-    public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
-        BlockStateModelGenerator.BlockTexturePool hempBricksPool = blockStateModelGenerator.registerCubeAllModelTexturePool(ModBlocks.HEMP_BRICKS_BLOCK);
-        BlockStateModelGenerator.BlockTexturePool hempPlanksPool = blockStateModelGenerator.registerCubeAllModelTexturePool(ModBlocks.HEMP_PLANKS);
-        blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.HEMPCRETE_BLOCK);
-        blockStateModelGenerator.registerSimpleCubeAll(ModBlocks.HEMPCRETE_POWDER_BLOCK);
+    public void generateBlockStateModels(BlockModelGenerators blockStateModelGenerator) {
+        BlockModelGenerators.BlockFamilyProvider hempBricksPool = blockStateModelGenerator.family(ModBlocks.HEMP_BRICKS_BLOCK);
+        BlockModelGenerators.BlockFamilyProvider hempPlanksPool = blockStateModelGenerator.family(ModBlocks.HEMP_PLANKS);
+        blockStateModelGenerator.createTrivialCube(ModBlocks.HEMPCRETE_BLOCK);
+        blockStateModelGenerator.createTrivialCube(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         // Vanilla's own wool+carpet helper — the carpet model reuses the wool texture, same as
         // every vanilla carpet does, so hemp_carpet needs no art of its own.
-        blockStateModelGenerator.registerWoolAndCarpet(ModBlocks.HEMP_WOOL, ModBlocks.HEMP_CARPET);
+        blockStateModelGenerator.createFullAndCarpetBlocks(ModBlocks.HEMP_WOOL, ModBlocks.HEMP_CARPET);
 
         hempBricksPool.stairs(ModBlocks.HEMP_BRICKS_STAIRS);
         hempBricksPool.slab(ModBlocks.HEMP_BRICKS_SLAB);
@@ -71,29 +79,29 @@ public class ModModelProvider extends FabricModelProvider {
 
         registerBongBlocks(blockStateModelGenerator);
 
-        blockStateModelGenerator.registerDoor(ModBlocks.HEMP_PLANKS_DOOR);
-        blockStateModelGenerator.registerTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+        blockStateModelGenerator.createDoor(ModBlocks.HEMP_PLANKS_DOOR);
+        blockStateModelGenerator.createTrapdoor(ModBlocks.HEMP_PLANKS_TRAPDOOR);
         // Vanilla's shelf helper; the planks stand in for the stripped log it takes its break
         // particles from, as they do in the recipe.
-        blockStateModelGenerator.registerCubeAllModelTexturePool(ModBlocks.HEMP_PARQUET)
+        blockStateModelGenerator.family(ModBlocks.HEMP_PARQUET)
                 .stairs(ModBlocks.HEMP_PARQUET_STAIRS)
                 .slab(ModBlocks.HEMP_PARQUET_SLAB);
 
         registerHempBed(blockStateModelGenerator);
 
-        blockStateModelGenerator.registerLog(ModBlocks.HEMP_BALE).log(ModBlocks.HEMP_BALE);
-        // TexturedModel.LEAVES, not registerSimpleCubeAll: it parents to minecraft:block/leaves,
+        blockStateModelGenerator.woodProvider(ModBlocks.HEMP_BALE).logWithHorizontal(ModBlocks.HEMP_BALE);
+        // TexturedModel.LEAVES, not createTrivialCube: it parents to minecraft:block/leaves,
         // which is cube_all with ambient occlusion off -- the reason vanilla foliage does not
         // shade itself into a dark blob.
-        blockStateModelGenerator.registerSingleton(ModBlocks.HEMP_LEAVES, TexturedModel.LEAVES);
+        blockStateModelGenerator.createTrivialBlock(ModBlocks.HEMP_LEAVES, TexturedModel.LEAVES);
 
         registerSpaceCake(blockStateModelGenerator);
 
         // TINTED, not NOT_TINTED: both wild flowers take the biome tint that HempdustryClient
-        // registers, the same as the crops do. TintType only decides whether the generated models
+        // registers, the same as the crops do. TintState only decides whether the generated models
         // carry "tintindex": 0 — vanilla's own ferns are potted through the tinted pair, so a
         // potted wild flower picking up the room's biome is what a player already expects.
-        blockStateModelGenerator.registerFlowerPotPlant(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockStateModelGenerator.TintType.TINTED);
+        blockStateModelGenerator.createPlant(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockModelGenerators.TintState.TINTED);
         registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
 
         // The crops' blockstates and stage models are hand-written under resources/ — the model
@@ -102,46 +110,46 @@ public class ModModelProvider extends FabricModelProvider {
     }
 
     @Override
-    public void generateItemModels(ItemModelGenerator itemModelGenerator) {
-        itemModelGenerator.register(ModItems.CANNABUTTER, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_BRICK, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_FIBER, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_CANVAS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_FLOUR, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_STEM, Models.GENERATED);
-        itemModelGenerator.register(ModItems.RETTED_HEMP_STEM, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_LEAF, Models.GENERATED);
-        itemModelGenerator.register(ModItems.DECARBOXYLATED_HEMP, Models.GENERATED);
-        itemModelGenerator.register(ModItems.WASHED_DECARBOXYLATED_HEMP, Models.GENERATED);
-        itemModelGenerator.register(ModItems.SCORCHED_HEMP, Models.GENERATED);
-        itemModelGenerator.register(ModItems.SCHWAG, Models.GENERATED);
-        itemModelGenerator.register(ModItems.KIEF, Models.GENERATED);
-        itemModelGenerator.register(ModItems.FILTERED_KIEF, Models.GENERATED);
-        itemModelGenerator.register(ModItems.BUBBLE_HASH, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HASHISH, Models.GENERATED);
-        itemModelGenerator.register(ModItems.CHARAS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.FILTERED_HASHISH, Models.GENERATED);
-        itemModelGenerator.register(ModItems.ROSIN, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMPCRETE, Models.GENERATED);
-        itemModelGenerator.register(ModItems.TOASTED_HEMP_SEEDS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_FLAPJACK, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_MILK_BUCKET, Models.GENERATED);
-        itemModelGenerator.register(ModItems.SIEMIENIOTKA, Models.GENERATED);
-        itemModelGenerator.register(ModItems.CANNABUTTER_TOAST, Models.GENERATED);
-        itemModelGenerator.register(ModItems.SPACE_COOKIE, Models.GENERATED);
-        itemModelGenerator.register(ModItems.SPACE_BROWNIE, Models.GENERATED);
-        itemModelGenerator.register(ModItems.BHANG_BUCKET, Models.GENERATED);
-        itemModelGenerator.register(ModItems.DAWAMESK, Models.GENERATED);
-        itemModelGenerator.register(ModItems.INDICA_SEEDS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.INDICA_BUDS, Models.GENERATED);
+    public void generateItemModels(ItemModelGenerators itemModelGenerator) {
+        itemModelGenerator.generateFlatItem(ModItems.CANNABUTTER, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_BRICK, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_FIBER, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_CANVAS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_FLOUR, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_STEM, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.RETTED_HEMP_STEM, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_LEAF, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.DECARBOXYLATED_HEMP, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.WASHED_DECARBOXYLATED_HEMP, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.SCORCHED_HEMP, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.SCHWAG, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.KIEF, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.FILTERED_KIEF, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.BUBBLE_HASH, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HASHISH, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.CHARAS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.FILTERED_HASHISH, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.ROSIN, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMPCRETE, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.TOASTED_HEMP_SEEDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_FLAPJACK, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_MILK_BUCKET, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.SIEMIENIOTKA, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.CANNABUTTER_TOAST, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.SPACE_COOKIE, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.SPACE_BROWNIE, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.BHANG_BUCKET, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.DAWAMESK, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.INDICA_SEEDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.INDICA_BUDS, ModelTemplates.FLAT_ITEM);
         for (Item disc : ModItems.MUSIC_DISCS) {
-            itemModelGenerator.register(disc, Models.GENERATED);
+            itemModelGenerator.generateFlatItem(disc, ModelTemplates.FLAT_ITEM);
         }
 
-        itemModelGenerator.register(ModItems.SATIVA_BUDS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.SATIVA_SEEDS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.BELDIA_SEEDS, Models.GENERATED);
-        itemModelGenerator.register(ModItems.BELDIA_BUDS, Models.GENERATED);
+        itemModelGenerator.generateFlatItem(ModItems.SATIVA_BUDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.SATIVA_SEEDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.BELDIA_SEEDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.BELDIA_BUDS, ModelTemplates.FLAT_ITEM);
         // Smoking gear. One item per device now carries every strain in a component, so the visual
         // per-strain split moved from separate items to *model overrides* on a shared item —
         // exactly how vanilla varies a bow by "pulling" or a crossbow by "charged". Predicate
@@ -168,12 +176,12 @@ public class ModModelProvider extends FabricModelProvider {
         // the plant's, because the plant is the primary entry. Generating one would upload a model
         // pointing at a texture that does not exist. The devices are unaffected -- their packed art
         // is shared and tinted by the strain's colour, which is exactly what a hash entry wants.
-        List<RegistryKey<Strain>> plantStrains = plantStrains();
-        for (RegistryKey<Strain> strain : plantStrains) {
+        List<ResourceKey<Strain>> plantStrains = plantStrains();
+        for (ResourceKey<Strain> strain : plantStrains) {
             uploadGenerated(itemModelGenerator, spliffModel(strain), texture(ModStrains.id(strain) + "_spliff"));
         }
         List<ModelOverride> spliffOverrides = new ArrayList<>();
-        for (RegistryKey<Strain> strain : plantStrains) {
+        for (ResourceKey<Strain> strain : plantStrains) {
             spliffOverrides.add(new ModelOverride(STRAIN_PREDICATE, ModStrains.modelIndex(strain), spliffModel(strain)));
         }
         // The spliff's BASE model is the one a strain with no bespoke art falls back to — which is
@@ -189,7 +197,7 @@ public class ModModelProvider extends FabricModelProvider {
         // The per-strain overrides above still win for indica and sativa, which keep their own art
         // untinted. Dropping those overrides would put every strain on this tinted base instead;
         // that is a texture decision, not a code one, and it costs one line here when wanted.
-        uploadTintable(itemModelGenerator, ModelIds.getItemModelId(ModItems.SPLIFF),
+        uploadTintable(itemModelGenerator, ModelLocationUtils.getModelLocation(ModItems.SPLIFF),
                 texture(ModStrains.id(plantStrains.get(0)) + "_spliff"),
                 texture("spliff_load"), spliffOverrides);
 
@@ -212,7 +220,7 @@ public class ModModelProvider extends FabricModelProvider {
         // The coloured bongs: the clear bong's art in other glass (textures-src/bong_glass.py), and
         // the clear bong's load mask, since what sits in the bowl does not care what it is blown from.
         for (Item bong : ModItems.COLORED_BONGS) {
-            String name = Registries.ITEM.getId(bong).getPath();
+            String name = BuiltInRegistries.ITEM.getKey(bong).getPath();
             registerDevice(itemModelGenerator, bong, name, "packed_" + name,
                     DeviceType.BONG.packedModel() + "_load");
         }
@@ -220,20 +228,20 @@ public class ModModelProvider extends FabricModelProvider {
         // The moon rock: one item for every strain, tinted by whichever one is stuck to it. Two
         // layers, exactly as a packed device is -- the hashish crust is the same on all of them and
         // the bud showing through it is not.
-        Models.GENERATED_TWO_LAYERS.upload(
-                ModelIds.getItemModelId(ModItems.MOON_ROCK),
-                TextureMap.layered(texture("moon_rock"), texture("moon_rock_load")),
-                itemModelGenerator.writer);
+        ModelTemplates.TWO_LAYERED_ITEM.create(
+                ModelLocationUtils.getModelLocation(ModItems.MOON_ROCK),
+                TextureMapping.layered(texture("moon_rock"), texture("moon_rock_load")),
+                itemModelGenerator.output);
 
-        itemModelGenerator.register(ModItems.HEMP_PLANKS_SIGN, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_PLANKS_HANGING_SIGN, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_BOAT, Models.GENERATED);
-        itemModelGenerator.register(ModItems.HEMP_CHEST_BOAT, Models.GENERATED);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_PLANKS_SIGN, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_PLANKS_HANGING_SIGN, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_BOAT, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_CHEST_BOAT, ModelTemplates.FLAT_ITEM);
 
         // The beanie's icon is the flat sprite; worn, it is the slouchy tam HempBeanieRenderer draws.
         // Worn, the flip-flops are FlipFlopsRenderer's. Both icons are plain sprites, untrimmable.
-        itemModelGenerator.register(ModItems.HEMP_BEANIE, Models.GENERATED);
-        itemModelGenerator.register(ModItems.FLIP_FLOPS, Models.GENERATED);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_BEANIE, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.FLIP_FLOPS, ModelTemplates.FLAT_ITEM);
         registerDyeableArmor(itemModelGenerator, ModItems.HEMP_SHIRT, "chestplate");
         registerDyeableArmor(itemModelGenerator, ModItems.HEMP_HAREM_PANTS, "leggings");
     }
@@ -241,14 +249,14 @@ public class ModModelProvider extends FabricModelProvider {
     /**
      * Vanilla's trim materials in the order {@code ItemModelGenerator.TRIM_MATERIALS} lists them, each
      * at {@code trim_type} (its index + 1) / 10 — the list is private, and these are the overrides
-     * {@code registerArmor} wrote for the garments before they took dye. Hemp is no vanilla material,
+     * {@code generateArmorTrims} wrote for the garments before they took dye. Hemp is no vanilla material,
      * so none takes its darker variant.
      */
     private static final List<String> TRIM_MATERIALS = List.of(
             "quartz", "iron", "netherite", "redstone", "copper", "gold", "emerald", "diamond", "lapis", "amethyst");
 
     /**
-     * {@code registerArmor} for leather, the way leather is drawn, with two differences. Vanilla's
+     * {@code generateArmorTrims} for leather, the way leather is drawn, with two differences. Vanilla's
      * colour provider hard-codes leather's brown as the undyed tint, so the garments have their own
      * ({@code HempdustryClient}), and the layers are named the other way round: vanilla tints
      * {@code item/<id>} and lays {@code item/<id>_overlay} on top, while here the grey cloth is the
@@ -256,19 +264,19 @@ public class ModModelProvider extends FabricModelProvider {
      * stays the untinted layer on top. A pack that redrew the whole garment then still shows its own
      * art, undyed, instead of having it tinted beige. Layer 0 is the one the colour provider tints.
      */
-    private static void registerDyeableArmor(ItemModelGenerator generator, Item item, String trimSlot) {
-        Identifier model = ModelIds.getItemModelId(item);
-        Identifier cloth = TextureMap.getSubId(item, "_dyeable");
-        Identifier drawn = TextureMap.getId(item);
+    private static void registerDyeableArmor(ItemModelGenerators generator, Item item, String trimSlot) {
+        ResourceLocation model = ModelLocationUtils.getModelLocation(item);
+        ResourceLocation cloth = TextureMapping.getItemTexture(item, "_dyeable");
+        ResourceLocation drawn = TextureMapping.getItemTexture(item);
         List<ModelOverride> trims = new ArrayList<>();
         for (int i = 0; i < TRIM_MATERIALS.size(); i++) {
             String material = TRIM_MATERIALS.get(i);
-            Identifier trimmed = model.withSuffixedPath("_" + material + "_trim");
-            generator.uploadArmor(trimmed, cloth, drawn,
-                    Identifier.ofVanilla("trims/items/" + trimSlot + "_trim_" + material));
-            trims.add(new ModelOverride(Map.of(ItemModelGenerator.TRIM_TYPE, (i + 1) / 10.0F), trimmed));
+            ResourceLocation trimmed = model.withSuffix("_" + material + "_trim");
+            generator.generateLayeredItem(trimmed, cloth, drawn,
+                    ResourceLocation.withDefaultNamespace("trims/items/" + trimSlot + "_trim_" + material));
+            trims.add(new ModelOverride(Map.of(ItemModelGenerators.TRIM_TYPE_PREDICATE_ID, (i + 1) / 10.0F), trimmed));
         }
-        generator.writer.accept(model, () -> {
+        generator.output.accept(model, () -> {
             JsonObject json = new JsonObject();
             json.addProperty("parent", "minecraft:item/generated");
             JsonObject textures = new JsonObject();
@@ -281,7 +289,7 @@ public class ModModelProvider extends FabricModelProvider {
     }
 
     /** @see ModItemProperties#STRAIN */
-    private static final Identifier STRAIN_PREDICATE = ModItemProperties.STRAIN;
+    private static final ResourceLocation STRAIN_PREDICATE = ModItemProperties.STRAIN;
 
     /**
      * The built-in strains that grew on a plant, in {@link ModStrains#BUILT_IN} order.
@@ -290,15 +298,15 @@ public class ModModelProvider extends FabricModelProvider {
      * same one the creative tab, the seed pools, the siftable tag and the spliff recipes key on —
      * so anything hash-shaped added later is excluded here for free.
      */
-    private List<RegistryKey<Strain>> plantStrains() {
-        RegistryWrapper.Impl<Strain> strains = Strain.registry(registryLookup.join());
+    private List<ResourceKey<Strain>> plantStrains() {
+        HolderLookup.RegistryLookup<Strain> strains = Strain.registry(registryLookup.join());
         return ModStrains.BUILT_IN.stream()
                 .filter(key -> strains.getOrThrow(key).value().wildFlower().isPresent())
                 .toList();
     }
 
     /** @see ModItemProperties#PACKED */
-    private static final Identifier PACKED_PREDICATE = ModItemProperties.PACKED;
+    private static final ResourceLocation PACKED_PREDICATE = ModItemProperties.PACKED;
 
     /**
      * A device's empty model, its packed one (the art plus a strain-tinted load), and the switch.
@@ -311,20 +319,20 @@ public class ModModelProvider extends FabricModelProvider {
      * override, and the client's {@code ItemRendererMixin} chooses it the way vanilla chooses
      * {@code trident_in_hand}.
      */
-    private static void registerDevice(ItemModelGenerator generator, Item item, String art,
+    private static void registerDevice(ItemModelGenerators generator, Item item, String art,
                                        String packedModelName, String loadTexture) {
-        Identifier packedModel = Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName);
-        Models.GENERATED_TWO_LAYERS.upload(packedModel,
-                TextureMap.layered(texture(art), texture(loadTexture)), generator.writer);
-        uploadWithOverrides(generator, ModelIds.getItemModelId(item),
+        ResourceLocation packedModel = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/" + packedModelName);
+        ModelTemplates.TWO_LAYERED_ITEM.create(packedModel,
+                TextureMapping.layered(texture(art), texture(loadTexture)), generator.output);
+        uploadWithOverrides(generator, ModelLocationUtils.getModelLocation(item),
                 texture(art), List.of(new ModelOverride(PACKED_PREDICATE, 1, packedModel)));
-        String name = Registries.ITEM.getId(item).getPath();
+        String name = BuiltInRegistries.ITEM.getKey(item).getPath();
         if (!ModBlocks.DEVICE_BLOCKS.containsKey(name)) {
             return;
         }
         // The placed packed bong's own model (registerBongBlocks), so the hand and the table show
         // the same bowl -- tinted by the strain here, where there is a stack to ask.
-        Identifier packedInHand = Identifier.of(Hempdustry.MOD_ID, "block/" + name + "_packed");
+        ResourceLocation packedInHand = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/" + name + "_packed");
         // The draw, in the bow's grammar: while it is being used, the bong steps through the
         // stages on how far into the draw it is -- smoke gathering over the water, then climbing
         // the neck -- exactly as a bow steps through pulling_0..2. Thresholds at a quarter, a half
@@ -332,74 +340,74 @@ public class ModModelProvider extends FabricModelProvider {
         List<ModelOverride> overrides = new ArrayList<>();
         overrides.add(ModelOverride.of(packedInHand, PACKED_PREDICATE, 1));
         for (int stage = 1; stage <= BONG_DRAW_TEMPLATES.size(); stage++) {
-            Identifier model = BONG_DRAW_TEMPLATES.get(stage - 1).upload(
-                    Identifier.of(Hempdustry.MOD_ID, "item/" + packedModelName + "_drawing_" + stage),
-                    bongTextures(name), generator.writer);
+            ResourceLocation model = BONG_DRAW_TEMPLATES.get(stage - 1).create(
+                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/" + packedModelName + "_drawing_" + stage),
+                    bongTextures(name), generator.output);
             overrides.add(ModelOverride.of(model, PACKED_PREDICATE, 1, ModItemProperties.DRAWING, 1,
                     ModItemProperties.DRAW, stage / (BONG_DRAW_TEMPLATES.size() + 1f)));
         }
         uploadParented(generator, ModItemProperties.inHandModel(item),
-                Identifier.of(Hempdustry.MOD_ID, "block/" + name), overrides);
+                ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/" + name), overrides);
     }
 
     // The placed bong, hand-written once as block/bong_template.json and re-textured per glass.
-    private static final TextureKey BONG_SHEET = TextureKey.of("bong");
-    private static final Model BONG_TEMPLATE = new Model(
-            Optional.of(Identifier.of(Hempdustry.MOD_ID, "block/bong_template")), Optional.empty(), BONG_SHEET);
-    private static final Model BONG_PACKED_TEMPLATE = new Model(
-            Optional.of(Identifier.of(Hempdustry.MOD_ID, "item/bong_template_packed")), Optional.empty(), BONG_SHEET);
-    private static final List<Model> BONG_DRAW_TEMPLATES = java.util.stream.IntStream.rangeClosed(1, 3)
-            .mapToObj(stage -> new Model(Optional.of(Identifier.of(Hempdustry.MOD_ID,
+    private static final TextureSlot BONG_SHEET = TextureSlot.create("bong");
+    private static final ModelTemplate BONG_TEMPLATE = new ModelTemplate(
+            Optional.of(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/bong_template")), Optional.empty(), BONG_SHEET);
+    private static final ModelTemplate BONG_PACKED_TEMPLATE = new ModelTemplate(
+            Optional.of(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/bong_template_packed")), Optional.empty(), BONG_SHEET);
+    private static final List<ModelTemplate> BONG_DRAW_TEMPLATES = java.util.stream.IntStream.rangeClosed(1, 3)
+            .mapToObj(stage -> new ModelTemplate(Optional.of(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID,
                     "item/bong_template_draw_" + stage)), Optional.empty(), BONG_SHEET))
             .toList();
 
-    private static TextureMap bongTextures(String name) {
-        return new TextureMap().put(BONG_SHEET, Identifier.of(Hempdustry.MOD_ID, "block/" + name));
+    private static TextureMapping bongTextures(String name) {
+        return new TextureMapping().put(BONG_SHEET, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/" + name));
     }
 
     /**
      * One model per glass and a facing blockstate. North-default, rotated the way every horizontal
      * block of vanilla's is, with the downstem to the east of the direction it faces.
      */
-    private static void registerBongBlocks(BlockStateModelGenerator generator) {
+    private static void registerBongBlocks(BlockModelGenerators generator) {
         for (Map.Entry<String, Block> entry : ModBlocks.DEVICE_BLOCKS.entrySet()) {
             Block block = entry.getValue();
-            Identifier model = BONG_TEMPLATE.upload(block, bongTextures(entry.getKey()), generator.modelCollector);
-            Identifier packed = BONG_PACKED_TEMPLATE.upload(block, "_packed", bongTextures(entry.getKey()),
-                    generator.modelCollector);
-            BlockStateVariantMap variants = BlockStateVariantMap.create(Properties.HORIZONTAL_FACING, BongBlock.PACKED)
-                    .register((facing, packedState) -> {
-                        BlockStateVariant variant = BlockStateVariant.create()
-                                .put(VariantSettings.MODEL, packedState ? packed : model);
-                        return facing == Direction.NORTH ? variant : variant.put(VariantSettings.Y, switch (facing) {
-                            case EAST -> VariantSettings.Rotation.R90;
-                            case SOUTH -> VariantSettings.Rotation.R180;
-                            default -> VariantSettings.Rotation.R270;
+            ResourceLocation model = BONG_TEMPLATE.create(block, bongTextures(entry.getKey()), generator.modelOutput);
+            ResourceLocation packed = BONG_PACKED_TEMPLATE.createWithSuffix(block, "_packed", bongTextures(entry.getKey()),
+                    generator.modelOutput);
+            PropertyDispatch variants = PropertyDispatch.properties(BlockStateProperties.HORIZONTAL_FACING, BongBlock.PACKED)
+                    .generate((facing, packedState) -> {
+                        Variant variant = Variant.variant()
+                                .with(VariantProperties.MODEL, packedState ? packed : model);
+                        return facing == Direction.NORTH ? variant : variant.with(VariantProperties.Y_ROT, switch (facing) {
+                            case EAST -> VariantProperties.Rotation.R90;
+                            case SOUTH -> VariantProperties.Rotation.R180;
+                            default -> VariantProperties.Rotation.R270;
                         });
                     });
-            generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(block).coordinate(variants));
+            generator.blockStateOutput.accept(MultiVariantGenerator.multiVariant(block).with(variants));
         }
     }
 
-    private static Identifier texture(String name) {
-        return Identifier.of(Hempdustry.MOD_ID, "item/" + name);
+    private static ResourceLocation texture(String name) {
+        return ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/" + name);
     }
 
-    private static Identifier spliffModel(RegistryKey<Strain> strain) {
-        return Identifier.of(Hempdustry.MOD_ID, "item/spliff_" + ModStrains.id(strain));
+    private static ResourceLocation spliffModel(ResourceKey<Strain> strain) {
+        return ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/spliff_" + ModStrains.id(strain));
     }
 
-    private static void uploadGenerated(ItemModelGenerator generator, Identifier modelId, Identifier texture) {
-        Models.GENERATED.upload(modelId, TextureMap.layer0(texture), generator.writer);
+    private static void uploadGenerated(ItemModelGenerators generator, ResourceLocation modelId, ResourceLocation texture) {
+        ModelTemplates.FLAT_ITEM.create(modelId, TextureMapping.layer0(texture), generator.output);
     }
 
     /**
      * A {@code minecraft:item/generated} model with an {@code overrides} array, which the vanilla
-     * {@link Models} helpers can't express. Written straight to the generator's writer rather than
-     * through a {@link Model}, since the whole point is the extra key.
+     * {@link ModelTemplates} helpers can't express. Written straight to the generator's writer rather than
+     * through a {@link ModelTemplate}, since the whole point is the extra key.
      */
-    private static void uploadWithOverrides(ItemModelGenerator generator, Identifier modelId,
-                                            Identifier texture, List<ModelOverride> overrides) {
+    private static void uploadWithOverrides(ItemModelGenerators generator, ResourceLocation modelId,
+                                            ResourceLocation texture, List<ModelOverride> overrides) {
         uploadTintable(generator, modelId, texture, null, overrides);
     }
 
@@ -410,10 +418,10 @@ public class ModModelProvider extends FabricModelProvider {
      * the tint index {@code N}, and the colour provider paints index 1 and leaves index 0 alone. Pass
      * {@code null} for a single-layer model.
      */
-    private static void uploadTintable(ItemModelGenerator generator, Identifier modelId,
-                                       Identifier texture, Identifier tintedLayer,
+    private static void uploadTintable(ItemModelGenerators generator, ResourceLocation modelId,
+                                       ResourceLocation texture, ResourceLocation tintedLayer,
                                        List<ModelOverride> overrides) {
-        generator.writer.accept(modelId, () -> {
+        generator.output.accept(modelId, () -> {
             JsonObject json = new JsonObject();
             json.addProperty("parent", "minecraft:item/generated");
             JsonObject textures = new JsonObject();
@@ -432,9 +440,9 @@ public class ModModelProvider extends FabricModelProvider {
      * A model that inherits everything from {@code parent} and adds an {@code overrides} array —
      * the bongs' 3D hand models, which are the placed block plus the packed switch.
      */
-    private static void uploadParented(ItemModelGenerator generator, Identifier modelId, Identifier parent,
+    private static void uploadParented(ItemModelGenerators generator, ResourceLocation modelId, ResourceLocation parent,
                                        List<ModelOverride> overrides) {
-        generator.writer.accept(modelId, () -> {
+        generator.output.accept(modelId, () -> {
             JsonObject json = new JsonObject();
             json.addProperty("parent", parent.toString());
             json.add("overrides", overridesJson(overrides));
@@ -448,7 +456,7 @@ public class ModModelProvider extends FabricModelProvider {
             JsonObject predicate = new JsonObject();
             // Vanilla writes its own properties bare (trim_type), as it reads them.
             override.predicates().forEach((property, threshold) -> predicate.addProperty(
-                    property.getNamespace().equals(Identifier.DEFAULT_NAMESPACE) ? property.getPath() : property.toString(),
+                    property.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE) ? property.getPath() : property.toString(),
                     threshold));
             JsonObject entry = new JsonObject();
             entry.add("predicate", predicate);
@@ -462,16 +470,16 @@ public class ModModelProvider extends FabricModelProvider {
      * One {@code overrides} entry: the model, and each property to test with its {@code >=} threshold.
      * Every property has to pass for the entry to match, and the last matching entry wins.
      */
-    private record ModelOverride(Map<Identifier, Number> predicates, Identifier model) {
-        ModelOverride(Identifier predicate, int threshold, Identifier model) {
+    private record ModelOverride(Map<ResourceLocation, Number> predicates, ResourceLocation model) {
+        ModelOverride(ResourceLocation predicate, int threshold, ResourceLocation model) {
             this(Map.of(predicate, threshold), model);
         }
 
         /** {@code model} when every (property, threshold) pair holds, written in the order given. */
-        static ModelOverride of(Identifier model, Object... propertyThresholdPairs) {
-            Map<Identifier, Number> predicates = new LinkedHashMap<>();
+        static ModelOverride of(ResourceLocation model, Object... propertyThresholdPairs) {
+            Map<ResourceLocation, Number> predicates = new LinkedHashMap<>();
             for (int i = 0; i < propertyThresholdPairs.length; i += 2) {
-                predicates.put((Identifier) propertyThresholdPairs[i], (Number) propertyThresholdPairs[i + 1]);
+                predicates.put((ResourceLocation) propertyThresholdPairs[i], (Number) propertyThresholdPairs[i + 1]);
             }
             return new ModelOverride(predicates, model);
         }
@@ -484,42 +492,42 @@ public class ModModelProvider extends FabricModelProvider {
      * <p>Each model is a one-line child of the matching vanilla cake model with only the texture map
      * replaced — model inheritance carries the {@code elements} across, so the bite geometry, the
      * cullfaces and the shrinking hitbox all come from Mojang and cannot drift out of step with them.
-     * The vanilla {@link Models} helpers can't express "parent plus textures", so these go straight
+     * The vanilla {@link ModelTemplates} helpers can't express "parent plus textures", so these go straight
      * to the generator's model collector, same as the smoking-gear overrides above.
      */
     /**
-     * Vanilla's {@code registerBed}, which only takes a {@code DyeColor}. The block points at
+     * Vanilla's beds, by hand: {@code createBedItem} writes only their item. The block points at
      * vanilla's own particle-only {@code block/bed} model, as all sixteen beds do (the renderer draws
      * the bed); the item is vanilla's {@code template_bed}, a {@code builtin/entity} model, with hemp
      * wool for its particle the way each vanilla bed item uses its wool. What draws that item is the
      * builtin renderer {@code HempdustryClient} registers for it.
      */
-    private static void registerHempBed(BlockStateModelGenerator generator) {
-        generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(ModBlocks.HEMP_BED,
-                BlockStateVariant.create().put(VariantSettings.MODEL, ModelIds.getMinecraftNamespacedBlock("bed"))));
-        Models.TEMPLATE_BED.upload(ModelIds.getItemModelId(ModBlocks.HEMP_BED.asItem()),
-                TextureMap.particle(ModBlocks.HEMP_WOOL), generator.modelCollector);
+    private static void registerHempBed(BlockModelGenerators generator) {
+        generator.blockStateOutput.accept(MultiVariantGenerator.multiVariant(ModBlocks.HEMP_BED,
+                Variant.variant().with(VariantProperties.MODEL, ModelLocationUtils.decorateBlockModelLocation("bed"))));
+        ModelTemplates.BED_INVENTORY.create(ModelLocationUtils.getModelLocation(ModBlocks.HEMP_BED.asItem()),
+                TextureMapping.particle(ModBlocks.HEMP_WOOL), generator.modelOutput);
     }
 
-    private static void registerSpaceCake(BlockStateModelGenerator generator) {
-        BlockStateVariantMap.SingleProperty<Integer> variants = BlockStateVariantMap.create(CakeBlock.BITES);
+    private static void registerSpaceCake(BlockModelGenerators generator) {
+        PropertyDispatch.C1<Integer> variants = PropertyDispatch.property(CakeBlock.BITES);
         for (int bites = 0; bites <= CakeBlock.MAX_BITES; bites++) {
             String suffix = bites == 0 ? "" : "_slice" + bites;
-            Identifier model = Identifier.of(Hempdustry.MOD_ID, "block/space_cake" + suffix);
-            uploadRetextured(generator, model, Identifier.ofVanilla("block/cake" + suffix), bites > 0);
-            variants.register(bites, BlockStateVariant.create().put(VariantSettings.MODEL, model));
+            ResourceLocation model = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/space_cake" + suffix);
+            uploadRetextured(generator, model, ResourceLocation.withDefaultNamespace("block/cake" + suffix), bites > 0);
+            variants.select(bites, Variant.variant().with(VariantProperties.MODEL, model));
         }
-        generator.blockStateCollector.accept(
-                VariantsBlockStateSupplier.create(ModBlocks.SPACE_CAKE).coordinate(variants));
+        generator.blockStateOutput.accept(
+                MultiVariantGenerator.multiVariant(ModBlocks.SPACE_CAKE).with(variants));
         // The item is the whole, uneaten cake, exactly as vanilla's cake item is.
-        Models.GENERATED.upload(ModelIds.getItemModelId(ModBlocks.SPACE_CAKE.asItem()),
-                TextureMap.layer0(Identifier.of(Hempdustry.MOD_ID, "item/space_cake")),
-                generator.modelCollector);
+        ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(ModBlocks.SPACE_CAKE.asItem()),
+                TextureMapping.layer0(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/space_cake")),
+                generator.modelOutput);
     }
 
-    private static void uploadRetextured(BlockStateModelGenerator generator, Identifier modelId,
-                                         Identifier parent, boolean sliced) {
-        generator.modelCollector.accept(modelId, () -> {
+    private static void uploadRetextured(BlockModelGenerators generator, ResourceLocation modelId,
+                                         ResourceLocation parent, boolean sliced) {
+        generator.modelOutput.accept(modelId, () -> {
             JsonObject textures = new JsonObject();
             textures.addProperty("particle", cakeTexture("side"));
             textures.addProperty("bottom", cakeTexture("bottom"));
@@ -541,31 +549,31 @@ public class ModModelProvider extends FabricModelProvider {
 
 
     /**
-     * {@code registerFlowerPotPlant} for a plant that is two blocks tall, which vanilla has no
+     * {@code createPlant} for a plant that is two blocks tall, which vanilla has no
      * helper for — nothing in vanilla is both a double plant and pottable.
      *
-     * <p>Three of the four pieces are vanilla's own: {@code registerDoubleBlock} writes the
+     * <p>Three of the four pieces are vanilla's own: {@code createDoubleBlock} writes the
      * {@code half=lower|upper} blockstate, and both halves upload as {@code TINTED_CROSS} so the
      * biome tint in {@code HempdustryClient} has a {@code tintindex} to land on.
      *
      * <p><b>The item and the flower pot deliberately take the BOTTOM texture.</b> Vanilla's
-     * {@code registerDoubleBlock(block, TintType)} would hand both the {@code _top} one — right for
+     * {@code createDoublePlant(block, TintState)} would hand both the {@code _top} one — right for
      * a rose bush, whose flowers are up top, and wrong here. Lemon Haze is the lanky strain: its
      * top half is a sparse scatter of leaflets up a bare stem, while the bottom is the dense,
      * recognisable half. That is the better inventory icon, and a pot wants the base of a plant in
      * it rather than its tip. That single difference is why this does not just call the vanilla
      * overload.
      */
-    private static void registerTallFlowerPotPlant(BlockStateModelGenerator generator, Block flower, Block potted) {
-        Identifier top = Models.TINTED_CROSS.upload(flower, "_top",
-                TextureMap.cross(TextureMap.getSubId(flower, "_top")), generator.modelCollector);
-        Identifier bottom = Models.TINTED_CROSS.upload(flower, "_bottom",
-                TextureMap.cross(TextureMap.getSubId(flower, "_bottom")), generator.modelCollector);
-        generator.registerDoubleBlock(flower, top, bottom);
-        generator.registerItemModel(flower, "_bottom");
+    private static void registerTallFlowerPotPlant(BlockModelGenerators generator, Block flower, Block potted) {
+        ResourceLocation top = ModelTemplates.TINTED_CROSS.createWithSuffix(flower, "_top",
+                TextureMapping.cross(TextureMapping.getBlockTexture(flower, "_top")), generator.modelOutput);
+        ResourceLocation bottom = ModelTemplates.TINTED_CROSS.createWithSuffix(flower, "_bottom",
+                TextureMapping.cross(TextureMapping.getBlockTexture(flower, "_bottom")), generator.modelOutput);
+        generator.createDoubleBlock(flower, top, bottom);
+        generator.createSimpleFlatItemModel(flower, "_bottom");
 
-        Identifier pot = Models.TINTED_FLOWER_POT_CROSS.upload(potted,
-                TextureMap.plant(TextureMap.getSubId(flower, "_bottom")), generator.modelCollector);
-        generator.blockStateCollector.accept(BlockStateModelGenerator.createSingletonBlockState(potted, pot));
+        ResourceLocation pot = ModelTemplates.TINTED_FLOWER_POT_CROSS.create(potted,
+                TextureMapping.plant(TextureMapping.getBlockTexture(flower, "_bottom")), generator.modelOutput);
+        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(potted, pot));
     }
 }

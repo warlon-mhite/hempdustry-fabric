@@ -1,14 +1,13 @@
 package com.warlonmhite.hempdustry.item.custom;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.world.World;
-
 import java.util.List;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 
 /**
  * Any edible carrying a dose — the toast, cookie, brownie, dawamesk and bhang. Eating one queues the
@@ -25,24 +24,24 @@ import java.util.List;
  */
 public class EdibleItem extends Item {
 
-    public EdibleItem(Settings settings) {
+    public EdibleItem(Properties settings) {
         super(settings);
     }
 
     @Override
-    public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
+    public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         int potency = EdibleEffects.potencyOf(stack);
         Quality quality = EdibleEffects.qualityOf(stack);
         // Read before super, which may empty the stack and take the components with it.
-        ItemStack result = super.finishUsing(stack, world, user);
-        if (!world.isClient && user instanceof PlayerEntity player) {
+        ItemStack result = super.finishUsingItem(stack, world, user);
+        if (!world.isClientSide && user instanceof Player player) {
             EdibleEffects.consume(player, potency, quality);
         }
         return result;
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
         EdibleEffects.appendTooltip(stack, tooltip);
     }
 }

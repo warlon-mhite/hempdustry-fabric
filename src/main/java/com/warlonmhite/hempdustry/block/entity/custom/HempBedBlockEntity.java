@@ -1,10 +1,10 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Holds nothing. A bed's block entity exists only so a renderer can draw it, and vanilla's
@@ -18,7 +18,7 @@ public class HempBedBlockEntity extends BlockEntity {
 
     // Vanilla's bed sends itself on every update, so a client never has a bed with nothing to draw.
     @Override
-    public BlockEntityUpdateS2CPacket toUpdatePacket() {
-        return BlockEntityUpdateS2CPacket.create(this);
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

@@ -15,34 +15,34 @@ import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.loot.LootTable;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.StringNbtReader;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryLoader;
-import net.minecraft.registry.tag.TagFile;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.property.Property;
-import net.minecraft.test.TestContext;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.TagFile;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.storage.loot.LootTable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -55,7 +55,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.test.GameTest;
 
 /**
  * Every public release is non-breaking: a world, a datapack or an addon that worked on one public
@@ -90,9 +89,9 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
      * lost there fires again the next time the item is picked up, and the recipe line beside it is
      * what is frozen.
      */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void theFrozenSurfaceHolds(TestContext context) {
-        ServerWorld world = context.getWorld();
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void theFrozenSurfaceHolds(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
         SortedSet<String> surface = surface(world);
         String version = version();
         write("frozen/" + version + ".txt", String.join("\n", surface) + "\n");
@@ -110,7 +109,7 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
         Sweep.atLeast(context, "release baselines in frozen/", baselines, 1);
         Sweep.atLeast(context, "frozen lines in this build", surface.size(), 1000);
         Sweep.report(context, "Everything a public release froze is still here", findings, retired());
-        context.complete();
+        context.succeed();
     }
 
     /**
@@ -123,11 +122,11 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
      * fail to load or quietly lose data, and nothing in the build itself notices. This is the cheap,
      * every-run half of the upgrade play-test, which stays the end-to-end proof at a release.
      */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void oldDataStillLoads(TestContext context) {
-        ServerWorld world = context.getWorld();
-        DynamicRegistryManager registries = world.getRegistryManager();
-        DynamicOps<JsonElement> json = registries.getOps(JsonOps.INSTANCE);
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void oldDataStillLoads(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        RegistryAccess registries = world.registryAccess();
+        DynamicOps<JsonElement> json = registries.createSerializationContext(JsonOps.INSTANCE);
         Map<String, String> findings = new TreeMap<>();
         int files = 0;
         int releases = 0;
@@ -161,20 +160,20 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
                 }
             }
 
-            BlockPos pos = context.getAbsolutePos(AT);
+            BlockPos pos = context.absolutePos(AT);
             for (Map.Entry<String, JsonElement> save : old.getAsJsonObject("blockEntities").entrySet()) {
                 String key = release + " " + save.getKey();
-                Block block = Registries.BLOCK.getOrEmpty(Identifier.of(save.getKey())).orElse(null);
+                Block block = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(save.getKey())).orElse(null);
                 if (block == null) {
                     findings.put(key, "the block is gone");
                     continue;
                 }
-                NbtCompound before = nbt(save.getValue().getAsString());
-                BlockEntity loaded = BlockEntity.createFromNbt(pos, block.getDefaultState(), before.copy(), registries);
+                CompoundTag before = nbt(save.getValue().getAsString());
+                BlockEntity loaded = BlockEntity.loadStatic(pos, block.defaultBlockState(), before.copy(), registries);
                 if (loaded == null) {
                     findings.put(key, "its block entity no longer loads from " + before);
-                } else if (!contains(placeless(loaded.createNbtWithIdentifyingData(registries)), placeless(before))) {
-                    findings.put(key, "saved " + before + " and loads as " + loaded.createNbtWithIdentifyingData(registries));
+                } else if (!contains(placeless(loaded.saveWithFullMetadata(registries)), placeless(before))) {
+                    findings.put(key, "saved " + before + " and loads as " + loaded.saveWithFullMetadata(registries));
                 }
             }
 
@@ -190,42 +189,42 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
         Sweep.atLeast(context, "released data files", files, 300);
         Sweep.atLeast(context, "releases in frozen/", releases, 1);
         Sweep.report(context, "What a public release wrote still loads", findings, Map.of());
-        context.complete();
+        context.succeed();
     }
 
     // ----- what this build freezes -----
 
-    private static SortedSet<String> surface(ServerWorld world) {
-        DynamicRegistryManager registries = world.getRegistryManager();
+    private static SortedSet<String> surface(ServerLevel world) {
+        RegistryAccess registries = world.registryAccess();
         SortedSet<String> lines = new TreeSet<>();
-        registries.streamAllRegistries().forEach(entry -> {
-            Identifier registry = entry.key().getValue();
+        registries.registries().forEach(entry -> {
+            ResourceLocation registry = entry.key().location();
             if (Sweep.ours(registry)) lines.add("registry " + registry);
-            for (Identifier id : entry.value().getIds()) {
+            for (ResourceLocation id : entry.value().keySet()) {
                 if (Sweep.ours(id)) lines.add("entry " + registry + " " + id);
             }
-            entry.value().streamTags().forEach(tag -> {
-                Identifier id = tag.id();
+            entry.value().getTagNames().forEach(tag -> {
+                ResourceLocation id = tag.location();
                 // Ours, and the c: subtags we mint; a tag we only add to is vanilla's or another mod's.
                 if (Sweep.ours(id) || id.getNamespace().equals("c") && id.getPath().endsWith("/hemp")) {
                     lines.add("tag " + registry + " #" + id);
                 }
             });
         });
-        for (Block block : Registries.BLOCK) {
-            Identifier id = Registries.BLOCK.getId(block);
+        for (Block block : BuiltInRegistries.BLOCK) {
+            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
             if (!Sweep.ours(id)) continue;
-            for (Property<?> property : block.getStateManager().getProperties()) states(id, property, lines);
+            for (Property<?> property : block.getStateDefinition().getProperties()) states(id, property, lines);
         }
-        for (AdvancementEntry advancement : world.getServer().getAdvancementLoader().getAdvancements()) {
-            Identifier id = advancement.id();
+        for (AdvancementHolder advancement : world.getServer().getAdvancements().getAllAdvancements()) {
+            ResourceLocation id = advancement.id();
             if (!Sweep.ours(id) || id.getPath().startsWith("recipes/")) continue;
             for (String criterion : advancement.value().criteria().keySet()) lines.add("criterion " + id + " " + criterion);
         }
-        for (RecipeEntry<?> recipe : world.getServer().getRecipeManager().values()) {
+        for (RecipeHolder<?> recipe : world.getServer().getRecipeManager().getRecipes()) {
             if (Sweep.ours(recipe.id())) lines.add("recipe " + recipe.id());
         }
-        world.getServer().getReloadableRegistries().getIds(RegistryKeys.LOOT_TABLE).stream()
+        world.getServer().reloadableRegistries().getKeys(Registries.LOOT_TABLE).stream()
                 .filter(Sweep::ours).forEach(id -> lines.add("loot_table " + id));
         for (String file : Sweep.modFiles().keySet()) {
             if (file.startsWith("assets/" + Hempdustry.MOD_ID + "/") && !file.startsWith("assets/" + Hempdustry.MOD_ID + "/lang/")) {
@@ -233,16 +232,16 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
             }
         }
         keys("", HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT).getOrThrow(), lines);
-        registries.get(Strain.REGISTRY_KEY).getEntrySet().forEach(strain -> {
-            if (Sweep.ours(strain.getKey().getValue())) {
-                lines.add("model_index " + strain.getKey().getValue() + " " + strain.getValue().modelIndex());
+        registries.registryOrThrow(Strain.REGISTRY_KEY).entrySet().forEach(strain -> {
+            if (Sweep.ours(strain.getKey().location())) {
+                lines.add("model_index " + strain.getKey().location() + " " + strain.getValue().modelIndex());
             }
         });
         return lines;
     }
 
-    private static <T extends Comparable<T>> void states(Identifier block, Property<T> property, SortedSet<String> into) {
-        for (T value : property.getValues()) into.add("state " + block + " " + property.getName() + "=" + property.name(value));
+    private static <T extends Comparable<T>> void states(ResourceLocation block, Property<T> property, SortedSet<String> into) {
+        for (T value : property.getPossibleValues()) into.add("state " + block + " " + property.getName() + "=" + property.getName(value));
     }
 
     private static void keys(String prefix, JsonElement json, SortedSet<String> into) {
@@ -258,9 +257,9 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
      * data file it ships, every stack its creative tab builds, a filled and named block entity of
      * every block that has one, and its default config.
      */
-    private static JsonObject capture(TestContext context) {
-        ServerWorld world = context.getWorld();
-        DynamicRegistryManager registries = world.getRegistryManager();
+    private static JsonObject capture(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        RegistryAccess registries = world.registryAccess();
         JsonObject out = new JsonObject();
 
         JsonObject data = new JsonObject();
@@ -269,34 +268,34 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
         });
         out.add("data", data);
 
-        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.updateEntries(new ItemGroup.DisplayContext(
-                world.getEnabledFeatures(), true, registries));
+        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(new CreativeModeTab.ItemDisplayParameters(
+                world.enabledFeatures(), true, registries));
         JsonArray stacks = new JsonArray();
-        Stream.concat(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayStacks().stream(),
-                        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks().stream())
-                .map(stack -> ItemStack.CODEC.encodeStart(registries.getOps(JsonOps.INSTANCE), stack).getOrThrow())
+        Stream.concat(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems().stream(),
+                        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems().stream())
+                .map(stack -> ItemStack.CODEC.encodeStart(registries.createSerializationContext(JsonOps.INSTANCE), stack).getOrThrow())
                 .distinct().forEach(stacks::add);
         out.add("stacks", stacks);
 
         JsonObject blockEntities = new JsonObject();
-        BlockPos pos = context.getAbsolutePos(AT);
-        for (Block block : Registries.BLOCK) {
-            Identifier id = Registries.BLOCK.getId(block);
-            BlockState state = block.getDefaultState();
+        BlockPos pos = context.absolutePos(AT);
+        for (Block block : BuiltInRegistries.BLOCK) {
+            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+            BlockState state = block.defaultBlockState();
             if (!Sweep.ours(id) || !state.hasBlockEntity()) continue;
-            world.setBlockState(pos, state, Block.NOTIFY_LISTENERS);
+            world.setBlock(pos, state, Block.UPDATE_CLIENTS);
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity == null) continue;
-            if (entity instanceof Inventory inventory) {
-                for (int slot = 0; slot < inventory.size(); slot++) inventory.setStack(slot, new ItemStack(Items.DIAMOND, slot + 1));
+            if (entity instanceof Container inventory) {
+                for (int slot = 0; slot < inventory.getContainerSize(); slot++) inventory.setItem(slot, new ItemStack(Items.DIAMOND, slot + 1));
             }
             ItemStack named = new ItemStack(block.asItem());
             if (!named.isEmpty()) {
-                named.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Frozen"));
-                entity.readComponents(named);
+                named.set(DataComponents.CUSTOM_NAME, Component.literal("Frozen"));
+                entity.applyComponentsFromItemStack(named);
             }
-            blockEntities.addProperty(id.toString(), entity.createNbtWithIdentifyingData(registries).toString());
-            if (entity instanceof Inventory inventory) inventory.clear();
+            blockEntities.addProperty(id.toString(), entity.saveWithFullMetadata(registries).toString());
+            if (entity instanceof Container inventory) inventory.clearContent();
             world.removeBlock(pos, false);
         }
         out.add("blockEntities", blockEntities);
@@ -313,12 +312,12 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
         if (inside.startsWith("tags/")) return TagFile.CODEC;
         if (inside.startsWith("recipe/")) return Recipe.CODEC;
         if (inside.startsWith("advancement/")) return Advancement.CODEC;
-        if (inside.startsWith("loot_table/")) return LootTable.CODEC;
+        if (inside.startsWith("loot_table/")) return LootTable.DIRECT_CODEC;
         // Fabric's list, not vanilla's: a mod's dynamic registry is in Fabric's alone. Its files live
         // under <namespace>/<path>, data/<pack>/hempdustry/strain/ for strains.
-        for (RegistryLoader.Entry<?> registry : DynamicRegistries.getDynamicRegistries()) {
-            Identifier id = registry.key().getValue();
-            String folder = id.getNamespace().equals(Identifier.DEFAULT_NAMESPACE) ? id.getPath() : id.getNamespace() + "/" + id.getPath();
+        for (RegistryDataLoader.RegistryData<?> registry : DynamicRegistries.getDynamicRegistries()) {
+            ResourceLocation id = registry.key().location();
+            String folder = id.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE) ? id.getPath() : id.getNamespace() + "/" + id.getPath();
             if (inside.startsWith(folder + "/")) return registry.elementCodec();
         }
         return null;
@@ -334,12 +333,12 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
         return now.equals(then);
     }
 
-    private static boolean contains(NbtCompound now, NbtCompound then) {
-        for (String key : then.getKeys()) {
-            NbtElement had = then.get(key);
-            NbtElement has = now.get(key);
+    private static boolean contains(CompoundTag now, CompoundTag then) {
+        for (String key : then.getAllKeys()) {
+            Tag had = then.get(key);
+            Tag has = now.get(key);
             if (has == null) return false;
-            if (had instanceof NbtCompound hadCompound && has instanceof NbtCompound hasCompound) {
+            if (had instanceof CompoundTag hadCompound && has instanceof CompoundTag hasCompound) {
                 if (!contains(hasCompound, hadCompound)) return false;
             } else if (!had.equals(has)) {
                 return false;
@@ -349,8 +348,8 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
     }
 
     /** A save without its position, so one loaded somewhere else compares equal. */
-    private static NbtCompound placeless(NbtCompound save) {
-        NbtCompound copy = save.copy();
+    private static CompoundTag placeless(CompoundTag save) {
+        CompoundTag copy = save.copy();
         copy.remove("x");
         copy.remove("y");
         copy.remove("z");
@@ -408,9 +407,9 @@ public final class FrozenSurfaceGameTest implements FabricGameTest {
         return new String(Sweep.bytes(file), StandardCharsets.UTF_8);
     }
 
-    private static NbtCompound nbt(String snbt) {
+    private static CompoundTag nbt(String snbt) {
         try {
-            return StringNbtReader.parse(snbt);
+            return TagParser.parseTag(snbt);
         } catch (CommandSyntaxException e) {
             throw new IllegalStateException(e);
         }

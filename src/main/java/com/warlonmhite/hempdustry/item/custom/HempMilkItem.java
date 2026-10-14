@@ -1,18 +1,18 @@
 package com.warlonmhite.hempdustry.item.custom;
 
-import net.minecraft.advancement.criterion.Criteria;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.stat.Stats;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.UseAction;
-import net.minecraft.world.World;
+import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.level.Level;
 
 /**
  * Hemp milk — the seed milk, and <b>not</b> the same thing as {@link BhangItem}. Zero THC, no
@@ -41,38 +41,38 @@ public class HempMilkItem extends Item {
     /** Vanilla's milk bucket drink time. */
     private static final int MAX_USE_TIME = 32;
 
-    public HempMilkItem(Settings settings) {
+    public HempMilkItem(Properties settings) {
         super(settings);
     }
 
     @Override
-    public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
-        if (user instanceof ServerPlayerEntity player) {
-            Criteria.CONSUME_ITEM.trigger(player, stack);
-            player.incrementStat(Stats.USED.getOrCreateStat(this));
+    public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
+        if (user instanceof ServerPlayer player) {
+            CriteriaTriggers.CONSUME_ITEM.trigger(player, stack);
+            player.awardStat(Stats.ITEM_USED.get(this));
         }
-        if (!world.isClient) {
-            user.clearStatusEffects();
+        if (!world.isClientSide) {
+            user.removeAllEffects();
         }
-        // exchangeStack wants a PlayerEntity; anything else that somehow drinks this just loses it.
-        if (!(user instanceof PlayerEntity player)) {
+        // createFilledResult wants a Player; anything else that somehow drinks this just loses it.
+        if (!(user instanceof Player player)) {
             return stack;
         }
-        return ItemUsage.exchangeStack(stack, player, new ItemStack(Items.BUCKET));
+        return ItemUtils.createFilledResult(stack, player, new ItemStack(Items.BUCKET));
     }
 
     @Override
-    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+    public int getUseDuration(ItemStack stack, LivingEntity user) {
         return MAX_USE_TIME;
     }
 
     @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.DRINK;
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.DRINK;
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        return ItemUsage.consumeHeldItem(world, user, hand);
+    public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+        return ItemUtils.startUsingInstantly(world, user, hand);
     }
 }

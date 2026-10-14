@@ -8,21 +8,20 @@ import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.ItemTags;
-
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import java.util.concurrent.CompletableFuture;
 
 public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
-    public ModItemTagProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> completableFuture) {
+    public ModItemTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> completableFuture) {
         super(output, completableFuture);
     }
 
     @Override
-    protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
+    protected void addTags(HolderLookup.Provider wrapperLookup) {
         getOrCreateTagBuilder(ModTags.Items.HEMP_SEEDS)
                 .add(ModItems.INDICA_SEEDS)
                 .add(ModItems.SATIVA_SEEDS)
@@ -89,7 +88,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // cows. Deliberately goats *only*: making hemp leaf feed every farm animal would just be a
         // worse wheat, where one animal that eats it is a fact worth knowing.
         //
-        // Joining the tag is the whole feature — GoatEntity#isBreedingItem reads it, and the tempt
+        // Joining the tag is the whole feature — Goat#isFood reads it, and the tempt
         // goal is built from that same check, so breeding, leading a goat around and speeding up a
         // kid all come for free. These per-animal food tags are Mojang's own extension point.
         getOrCreateTagBuilder(ItemTags.GOAT_FOOD)
@@ -197,9 +196,9 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         //
         // Buds come off the strain registry rather than being named, exactly as the spliff and
         // decarboxylating recipes do, so a third strain is siftable the moment it exists.
-        RegistryWrapper.Impl<Strain> strains = Strain.registry(wrapperLookup);
+        HolderLookup.RegistryLookup<Strain> strains = Strain.registry(wrapperLookup);
         var flower = getOrCreateTagBuilder(ModTags.Items.SIFTABLE_FLOWER);
-        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
+        for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
             // Only things that grew on a plant are plant matter. Hashish is a strain entry too, but
             // its "buds" are resin, and resin never goes back into the screen: only kief re-sifts.

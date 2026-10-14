@@ -11,17 +11,16 @@ import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.Comparison;
 import dev.emi.emi.api.stack.EmiStack;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-
 import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 
 /**
  * The EMI half of the recipe-viewer support. Loaded by EMI through the {@code emi} entrypoint in
@@ -54,11 +53,11 @@ public class HempdustryEmiPlugin implements EmiPlugin {
      * which would mean maintaining a second set of titles in eight locales purely so EMI and JEI
      * could say the same words. Overriding it points both viewers at one key.
      */
-    private static EmiRecipeCategory category(Identifier id, ItemConvertible icon) {
+    private static EmiRecipeCategory category(ResourceLocation id, ItemLike icon) {
         return new EmiRecipeCategory(id, EmiStack.of(icon)) {
             @Override
-            public Text getName() {
-                return Text.translatable("hempdustry.category." + id.getPath());
+            public Component getName() {
+                return Component.translatable("hempdustry.category." + id.getPath());
             }
         };
     }
@@ -69,7 +68,7 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         // output. Without this every packed pipe folds into the empty one -- and so do the ten
         // packing rows below, which differ only by their output's components. Keyed on the smoke
         // contents alone; see ViewerRecipes#smokeKey for why damage and charges are left out.
-        for (net.minecraft.item.Item smokeable : ViewerRecipes.smokeables()) {
+        for (net.minecraft.world.item.Item smokeable : ViewerRecipes.smokeables()) {
             registry.setDefaultComparison(EmiStack.of(smokeable),
                     Comparison.compareData(stack -> ViewerRecipes.smokeKey(stack.getItemStack())));
         }
@@ -112,10 +111,10 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         }
         ViewerRecipes.info().forEach((item, text) -> registry.addRecipe(new EmiInfoRecipe(
                 List.of(EmiStack.of(item)), List.of(text),
-                ViewerRecipes.synthetic(Identifier.of(Hempdustry.MOD_ID, "info/" + Registries.ITEM.getId(item).getPath())))));
+                ViewerRecipes.synthetic(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "info/" + BuiltInRegistries.ITEM.getKey(item).getPath())))));
 
         // In the World and packing both read the strain registry, which only a joined world has.
-        RegistryWrapper.WrapperLookup registries = registries();
+        HolderLookup.Provider registries = registries();
         if (registries != null) {
             for (ViewerRecipes.Entry entry : ViewerRecipes.world(registries)) {
                 registry.addRecipe(new EntryEmiRecipe(WORLD, entry));
@@ -149,8 +148,8 @@ public class HempdustryEmiPlugin implements EmiPlugin {
      * every reload. A null world means EMI is registering before a world is joined, in which case
      * there are no strains to enumerate yet and it will run again once there are.
      */
-    private static RegistryWrapper.WrapperLookup registries() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        return client.world == null ? null : client.world.getRegistryManager();
+    private static HolderLookup.Provider registries() {
+        Minecraft client = Minecraft.getInstance();
+        return client.level == null ? null : client.level.registryAccess();
     }
 }

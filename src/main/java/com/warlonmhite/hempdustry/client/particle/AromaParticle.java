@@ -1,13 +1,13 @@
 package com.warlonmhite.hempdustry.client.particle;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleFactory;
-import net.minecraft.client.particle.ParticleTextureSheet;
-import net.minecraft.client.particle.SpriteBillboardParticle;
-import net.minecraft.client.particle.SpriteProvider;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.SimpleParticleType;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.util.Mth;
 
 /**
  * One wisp of a ripe plant's smell: a faint curl that rises slowly off the flower, sways, spreads
@@ -17,7 +17,7 @@ import net.minecraft.util.math.MathHelper;
  * <p><b>Built to be cheap in the thousands.</b> A huge ripe field puts a few hundred of these in
  * the air around a player, so the per-tick work is kept to arithmetic:
  * <ul>
- *   <li>{@code collidesWithWorld} is off, which skips the world collision query every vanilla
+ *   <li>{@code hasPhysics} is off, which skips the world collision query every vanilla
  *       particle runs on every tick of its life. That is safe because {@code RipeAroma} only starts
  *       a wisp under open air, and a wisp never rises far enough to reach the block above that.</li>
  *   <li>No gravity and no drag: the rise is a constant and the sway a sine of the age, so nothing
@@ -25,7 +25,7 @@ import net.minecraft.util.math.MathHelper;
  * </ul>
  * Vanilla still bounds the total — every particle group is capped at 16384, the oldest evicted.
  */
-public class AromaParticle extends SpriteBillboardParticle {
+public class AromaParticle extends TextureSheetParticle {
     private static final float MAX_ALPHA = 0.9f;
     private static final int FADE_IN_TICKS = 6;
     /** The last this fraction of a wisp's life is spent fading out. */
@@ -35,62 +35,62 @@ public class AromaParticle extends SpriteBillboardParticle {
     private static final double SWAY = 0.004;
     private static final float SWAY_SPEED = 0.15f;
 
-    private final SpriteProvider sprites;
+    private final SpriteSet sprites;
     private final double driftX;
     private final double driftZ;
     private final float swayPhase;
 
-    AromaParticle(ClientWorld world, double x, double y, double z, SpriteProvider sprites) {
+    AromaParticle(ClientLevel world, double x, double y, double z, SpriteSet sprites) {
         super(world, x, y, z);
         this.sprites = sprites;
-        this.collidesWithWorld = false;
-        this.gravityStrength = 0.0f;
-        this.velocityMultiplier = 1.0f;
+        this.hasPhysics = false;
+        this.gravity = 0.0f;
+        this.friction = 1.0f;
         // Rise 0.4–0.9 of a block over the whole life: from the top of the flower it never
         // reaches the block above the air it started in.
-        this.maxAge = 40 + this.random.nextInt(21);
-        this.velocityY = 0.010 + this.random.nextDouble() * 0.005;
+        this.lifetime = 40 + this.random.nextInt(21);
+        this.yd = 0.010 + this.random.nextDouble() * 0.005;
         this.driftX = (this.random.nextDouble() - 0.5) * 0.004;
         this.driftZ = (this.random.nextDouble() - 0.5) * 0.004;
-        this.swayPhase = this.random.nextFloat() * MathHelper.TAU;
-        this.scale = 0.16f + this.random.nextFloat() * 0.06f;
+        this.swayPhase = this.random.nextFloat() * Mth.TWO_PI;
+        this.quadSize = 0.16f + this.random.nextFloat() * 0.06f;
         this.alpha = 0.0f;
-        this.setSpriteForAge(sprites);
+        this.setSpriteFromAge(sprites);
     }
 
     @Override
     public void tick() {
         float sway = this.swayPhase + this.age * SWAY_SPEED;
-        this.velocityX = this.driftX + SWAY * MathHelper.sin(sway);
-        this.velocityZ = this.driftZ + SWAY * MathHelper.cos(sway);
+        this.xd = this.driftX + SWAY * Mth.sin(sway);
+        this.zd = this.driftZ + SWAY * Mth.cos(sway);
         super.tick();
-        if (!this.dead) {
-            this.setSpriteForAge(this.sprites);
+        if (!this.removed) {
+            this.setSpriteFromAge(this.sprites);
             float fadeIn = (float) this.age / FADE_IN_TICKS;
-            float fadeOut = (this.maxAge - this.age) / (FADE_OUT_FRACTION * this.maxAge);
-            this.alpha = MAX_ALPHA * MathHelper.clamp(Math.min(fadeIn, fadeOut), 0.0f, 1.0f);
+            float fadeOut = (this.lifetime - this.age) / (FADE_OUT_FRACTION * this.lifetime);
+            this.alpha = MAX_ALPHA * Mth.clamp(Math.min(fadeIn, fadeOut), 0.0f, 1.0f);
         }
     }
 
     @Override
-    public float getSize(float tickDelta) {
-        return this.scale * (1.0f + SPREAD * (this.age + tickDelta) / this.maxAge);
+    public float getQuadSize(float tickDelta) {
+        return this.quadSize * (1.0f + SPREAD * (this.age + tickDelta) / this.lifetime);
     }
 
     @Override
-    public ParticleTextureSheet getType() {
-        return ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT;
+    public ParticleRenderType getRenderType() {
+        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
-    public static class Factory implements ParticleFactory<SimpleParticleType> {
-        private final SpriteProvider sprites;
+    public static class Factory implements ParticleProvider<SimpleParticleType> {
+        private final SpriteSet sprites;
 
-        public Factory(SpriteProvider sprites) {
+        public Factory(SpriteSet sprites) {
             this.sprites = sprites;
         }
 
         @Override
-        public Particle createParticle(SimpleParticleType type, ClientWorld world, double x, double y, double z,
+        public Particle createParticle(SimpleParticleType type, ClientLevel world, double x, double y, double z,
                                        double velocityX, double velocityY, double velocityZ) {
             return new AromaParticle(world, x, y, z, this.sprites);
         }

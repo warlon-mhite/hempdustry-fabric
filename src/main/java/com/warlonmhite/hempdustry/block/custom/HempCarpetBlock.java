@@ -1,32 +1,32 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import net.minecraft.block.CarpetBlock;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.Equipment;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.core.Holder;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Equipable;
+import net.minecraft.world.level.block.CarpetBlock;
 
 /**
- * The hemp carpet, as something a llama wears. Vanilla's {@code DyedCarpetBlock} is a carpet that is
- * also {@link Equipment} — body slot, the llama's swag sound — and that, not the carpet tag, is what
- * {@code /item replace} and anything else asking {@code Equipment.fromStack} go by. A dispenser asks
+ * The hemp carpet, as something a llama wears. Vanilla's {@code WoolCarpetBlock} is a carpet that is
+ * also {@link Equipable} — body slot, the llama's swag sound — and that, not the carpet tag, is what
+ * {@code /item replace} and anything else asking {@code Equipable.get} go by. A dispenser asks
  * neither: {@code ModDispenserBehaviors} gives ours the behaviour vanilla gives its carpets by name.
  * This is that block without the {@code DyeColor}, which ours does not have; the drawing is
  * {@code LlamaDecorFeatureRendererMixin}'s.
  */
-public class HempCarpetBlock extends CarpetBlock implements Equipment {
-    public HempCarpetBlock(Settings settings) {
+public class HempCarpetBlock extends CarpetBlock implements Equipable {
+    public HempCarpetBlock(Properties settings) {
         super(settings);
     }
 
     @Override
-    public EquipmentSlot getSlotType() {
+    public EquipmentSlot getEquipmentSlot() {
         return EquipmentSlot.BODY;
     }
 
     @Override
-    public RegistryEntry<SoundEvent> getEquipSound() {
-        return SoundEvents.ENTITY_LLAMA_SWAG;
+    public Holder<SoundEvent> getEquipSound() {
+        return SoundEvents.LLAMA_SWAG;
     }
 }

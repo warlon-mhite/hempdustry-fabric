@@ -2,28 +2,28 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.CropBlock;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * The Lemon Haze crop: a <em>three</em>-tall plant, built on the same pattern as the two-tall
@@ -48,9 +48,9 @@ import net.minecraft.world.WorldView;
  */
 public class SativaCropBlock extends CropBlock {
     public static final EnumProperty<TriplePlantSegment> SEGMENT =
-            EnumProperty.of("segment", TriplePlantSegment.class);
-    public static final IntProperty AGE = Properties.AGE_7;
-    /** Highest age value; a LOWER segment at this age is mature. Matches {@code Properties.AGE_7}. */
+            EnumProperty.create("segment", TriplePlantSegment.class);
+    public static final IntegerProperty AGE = BlockStateProperties.AGE_7;
+    /** Highest age value; a LOWER segment at this age is mature. Matches {@code BlockStateProperties.AGE_7}. */
     public static final int MAX_AGE = 7;
 
     /** From this age the plant wants a second block (LOWER + UPPER). */
@@ -70,34 +70,34 @@ public class SativaCropBlock extends CropBlock {
     private static final float GROWTH_RESISTANCE = 35.0F;
 
     private static final VoxelShape[] LOWER_SHAPE_BY_AGE = new VoxelShape[]{
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D),
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 5.0D, 16.0D),
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D),
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 11.0D, 16.0D),
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 3.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 5.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 11.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
     private static final VoxelShape MIDDLE_SHAPE =
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
     private static final VoxelShape UPPER_SHAPE =
-            Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D);
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D);
 
-    public SativaCropBlock(Settings settings) {
+    public SativaCropBlock(Properties settings) {
         super(settings);
         // Defoliation.unworked is load-bearing: a BooleanProperty left out of the default state
         // resolves to *true*, which would plant every seed pre-trimmed. See its javadoc.
-        this.setDefaultState(Defoliation.unworked(this.stateManager.getDefaultState()
-                .with(this.getAgeProperty(), 0)
-                .with(SEGMENT, TriplePlantSegment.LOWER)));
+        this.registerDefaultState(Defoliation.unworked(this.stateDefinition.any()
+                .setValue(this.getAgeProperty(), 0)
+                .setValue(SEGMENT, TriplePlantSegment.LOWER)));
     }
 
     private static boolean isLower(BlockState state) {
-        return state.get(SEGMENT) == TriplePlantSegment.LOWER;
+        return state.getValue(SEGMENT) == TriplePlantSegment.LOWER;
     }
 
     private BlockState stateFor(int age, TriplePlantSegment segment) {
-        return this.getDefaultState().with(this.getAgeProperty(), age).with(SEGMENT, segment);
+        return this.defaultBlockState().setValue(this.getAgeProperty(), age).setValue(SEGMENT, segment);
     }
 
     /**
@@ -105,23 +105,23 @@ public class SativaCropBlock extends CropBlock {
      * on {@link IndicaCropBlock}: whatever draws a block reads only that block.
      */
     private BlockState stateFor(int age, TriplePlantSegment segment, GrowLight light) {
-        return this.stateFor(age, segment).with(GrowLight.PROPERTY, light);
+        return this.stateFor(age, segment).setValue(GrowLight.PROPERTY, light);
     }
 
     /** Farmland, or one of the mod's beds — a Grow Pot or a Hydro Tray. */
     @Override
-    protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
-        return super.canPlantOnTop(floor, world, pos) || floor.getBlock() instanceof GrowMedium;
+    protected boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
+        return super.mayPlaceOn(floor, world, pos) || floor.getBlock() instanceof GrowMedium;
     }
 
     @Override
-    protected ItemConvertible getSeedsItem() {
+    protected ItemLike getBaseSeedId() {
         return ModItems.SATIVA_SEEDS;
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return switch (state.get(SEGMENT)) {
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return switch (state.getValue(SEGMENT)) {
             case UPPER -> UPPER_SHAPE;
             case MIDDLE -> MIDDLE_SHAPE;
             case LOWER -> LOWER_SHAPE_BY_AGE[Math.min(this.getAge(state), LOWER_SHAPE_BY_AGE.length - 1)];
@@ -130,26 +130,26 @@ public class SativaCropBlock extends CropBlock {
 
     // ----- support / placement -----
     // Every segment above the bottom only survives on top of the right partner, so removing any
-    // one of them makes the ones above it unsupported. PlantBlock's getStateForNeighborUpdate
+    // one of them makes the ones above it unsupported. BushBlock's updateShape
     // (inherited) turns an unsupported segment into air, so the removal cascades upwards on its
     // own. The LOWER segment uses the standard crop rule (enough light + farmland below), which
     // is also what stops a seed being planted onto an existing plant.
     @Override
-    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
-        BlockState below = world.getBlockState(pos.down());
-        return switch (state.get(SEGMENT)) {
+    protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+        BlockState below = world.getBlockState(pos.below());
+        return switch (state.getValue(SEGMENT)) {
             // The UPPER sits on the LOWER while the plant is two tall, and on the MIDDLE once
             // it is three tall, so it accepts either.
-            case UPPER -> below.isOf(this) && below.get(SEGMENT) != TriplePlantSegment.UPPER;
-            case MIDDLE -> below.isOf(this) && below.get(SEGMENT) == TriplePlantSegment.LOWER;
-            case LOWER -> super.canPlaceAt(state, world, pos);
+            case UPPER -> below.is(this) && below.getValue(SEGMENT) != TriplePlantSegment.UPPER;
+            case MIDDLE -> below.is(this) && below.getValue(SEGMENT) == TriplePlantSegment.LOWER;
+            case LOWER -> super.canSurvive(state, world, pos);
         };
     }
 
     // ----- growth -----
     // Only the LOWER segment is fertile and random-ticks; it drives the whole plant.
     @Override
-    protected boolean hasRandomTicks(BlockState state) {
+    protected boolean isRandomlyTicking(BlockState state) {
         // Deliberately *not* gated on `age < maxAge` the way vanilla's crops are. A plant that hit
         // age 7 while something was sitting two blocks above it is mature but a block short, and
         // this tick is what lets it finish once the space is cleared instead of staying stunted
@@ -162,11 +162,11 @@ public class SativaCropBlock extends CropBlock {
      * Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
      * allows. Without the {@link #maxAgeFor} half of this test, bonemeal would push a plant that is
      * boxed in all the way to maturity at whatever stunted height it happens to have:
-     * {@code applyGrowth} writes the LOWER's age whether or not the segments above can be placed,
+     * {@code growCrops} writes the LOWER's age whether or not the segments above can be placed,
      * and unlike the random tick it has no light check to incidentally stop it.
      */
     @Override
-    public boolean isFertilizable(WorldView world, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
         return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
     }
 
@@ -180,11 +180,11 @@ public class SativaCropBlock extends CropBlock {
      * run ahead and reconciling the shape afterwards: age is what the loot table and the models
      * read, so an age-7 lone stalk would look and harvest like a finished three-tall plant.
      */
-    private int maxAgeFor(WorldView world, BlockPos pos) {
-        if (!this.canOccupy(world, pos.up())) {
+    private int maxAgeFor(LevelReader world, BlockPos pos) {
+        if (!this.canOccupy(world, pos.above())) {
             return TWO_TALL_AGE - 1;
         }
-        if (!this.canOccupy(world, pos.up(2))) {
+        if (!this.canOccupy(world, pos.above(2))) {
             return THREE_TALL_AGE - 1;
         }
         return this.getMaxAge();
@@ -196,18 +196,18 @@ public class SativaCropBlock extends CropBlock {
      * the truth, since the LOWER drives the whole plant.
      *
      * <p>That is not cosmetic, it is what makes the plant safe around <b>bees</b>.
-     * {@code BeeEntity.GrowCropsGoal} looks 1–2 blocks below itself and, on anything in
+     * {@code Bee.BeeGrowCropGoal} looks 1–2 blocks below itself and, on anything in
      * {@code #minecraft:bee_growables} that is a {@code CropBlock}, does
-     * {@code if (!isMature(state)) setBlockState(pos, withAge(getAge(state) + 1))}. That write is
-     * direct — it never goes through {@code applyGrowth} — and {@link CropBlock#withAge} rebuilds
-     * the state from {@code getDefaultState()}, which resets {@link #SEGMENT} to LOWER. A bee
+     * {@code if (!isMaxAge(state)) setBlockAndUpdate(pos, getStateForAge(getAge(state) + 1))}. That write is
+     * direct — it never goes through {@code growCrops} — and {@link CropBlock#getStateForAge} rebuilds
+     * the state from {@code defaultBlockState()}, which resets {@link #SEGMENT} to LOWER. A bee
      * hovering over a tall plant would turn its MIDDLE or UPPER into a LOWER in mid-air, fail
-     * {@code canPlaceAt}, and decapitate the plant.
+     * {@code canSurvive}, and decapitate the plant.
      *
-     * <p>The guard has to be {@code isMature}, and {@code CropBlock#isMature} is {@code final} —
+     * <p>The guard has to be {@code isMaxAge}, and {@code CropBlock#isMaxAge} is {@code final} —
      * but it is defined as {@code getAge(state) >= getMaxAge()}, so overriding {@code getAge} is
      * how a segment is made to report itself mature. Bees then skip everything but the LOWER,
-     * where {@code withAge} happens to produce exactly the right state.
+     * where {@code getStateForAge} happens to produce exactly the right state.
      *
      * <p>Safe because nothing reads the age of a non-LOWER segment: the outline shape, growth,
      * fertilization and harvesting all either run on the LOWER only or go through {@link #SEGMENT},
@@ -219,41 +219,41 @@ public class SativaCropBlock extends CropBlock {
     }
 
     @Override
-    protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+    protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
         if (!isLower(state)) {
             return;
         }
         int age = this.getAge(state);
         int grown = age;
-        if (age < this.getMaxAge() && world.getBaseLightLevel(pos, 0) >= 9) {
+        if (age < this.getMaxAge() && world.getRawBrightness(pos, 0) >= 9) {
             // The ground answers for itself when it is a bed of ours (a pot or a tray): its own
             // moisture, and no crowding penalty, because the plant has soil or solution to itself.
-            BlockState floor = world.getBlockState(pos.down());
+            BlockState floor = world.getBlockState(pos.below());
             float moisture;
             float bed = 1.0F;
             if (floor.getBlock() instanceof GrowMedium medium) {
                 moisture = medium.moisture(floor);
                 bed = medium.speed(floor);
             } else {
-                moisture = getAvailableMoisture(this, world, pos);
+                moisture = getGrowthSpeed(this, world, pos);
             }
             if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture,
-                    bed * state.get(GrowLight.PROPERTY).speedAt(age))) {
+                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {
                 grown++;
             }
         }
         // Reconcile whether or not the plant just aged: this is the one place that repairs a plant
         // whose height fell behind its age — because it was boxed in earlier and now has the
-        // headroom, or because a bee bumped the LOWER's age with a raw setBlockState that never
+        // headroom, or because a bee bumped the LOWER's age with a raw setBlockAndUpdate that never
         // went through setAge.
         //
-        // Guarded on there being something to write, though. hasRandomTicks is not gated on
+        // Guarded on there being something to write, though. isRandomlyTicking is not gated on
         // maturity, so a finished field — the normal end state of a hemp farm — kept calling setAge
-        // for ever: three World#setBlockState calls plus a maxAgeFor probe per tick per plant. The
-        // writes themselves did nothing (an identical state early-outs in WorldChunk#setBlockState)
+        // for ever: three Level#setBlock calls plus a maxAgeFor probe per tick per plant. The
+        // writes themselves did nothing (an identical state early-outs in LevelChunk#setBlockState)
         // but each still paid a chunk lookup. isShapeSettled answers the same question in one or
         // two block reads.
-        if (grown != age || !this.isShapeSettled(world, pos, age, state.get(GrowLight.PROPERTY))) {
+        if (grown != age || !this.isShapeSettled(world, pos, age, state.getValue(GrowLight.PROPERTY))) {
             this.setAge(world, pos, grown, 0.0F, random);
         }
     }
@@ -269,16 +269,16 @@ public class SativaCropBlock extends CropBlock {
      * back through {@link Defoliation#carryOver}, which at an unchanged age reproduces the state
      * that is already there.) {@code light} is the LOWER's record, which every segment above copies.
      */
-    private boolean isShapeSettled(WorldView world, BlockPos pos, int age, GrowLight light) {
+    private boolean isShapeSettled(LevelReader world, BlockPos pos, int age, GrowLight light) {
         if (age < TWO_TALL_AGE) {
             return true; // a single stalk: nothing above is ever written this young
         }
-        BlockState mid = world.getBlockState(pos.up());
+        BlockState mid = world.getBlockState(pos.above());
         if (!canOccupy(mid)) {
             return true; // boxed in at the second block, so setAge writes nothing above either
         }
         if (age >= THREE_TALL_AGE) {
-            BlockState top = world.getBlockState(pos.up(2));
+            BlockState top = world.getBlockState(pos.above(2));
             if (canOccupy(top)) {
                 return mid == this.stateFor(age, TriplePlantSegment.MIDDLE, light)
                         && top == this.stateFor(age, TriplePlantSegment.UPPER, light);
@@ -289,31 +289,31 @@ public class SativaCropBlock extends CropBlock {
         return mid == this.stateFor(age, TriplePlantSegment.UPPER, light);
     }
 
-    // Bonemeal path: CropBlock.grow() calls applyGrowth() on the targeted block. Only the LOWER
+    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block. Only the LOWER
     // segment is fertilizable, so this only ever runs on the LOWER segment. grow() is overridden as
     // well so the roll uses the random it is handed, which is also what lets a test decide the roll.
     @Override
-    public void applyGrowth(World world, BlockPos pos, BlockState state) {
+    public void growCrops(Level world, BlockPos pos, BlockState state) {
         this.boneMeal(world, pos, state, world.getRandom());
     }
 
     @Override
-    public void grow(ServerWorld world, Random random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
         this.boneMeal(world, pos, state, random);
     }
 
     /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
-    private void boneMeal(World world, BlockPos pos, BlockState state, Random random) {
+    private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
         if (!isLower(state)) {
             return;
         }
-        this.setAge(world, pos, this.getAge(state) + this.getGrowthAmount(world),
+        this.setAge(world, pos, this.getAge(state) + this.getBonemealAgeIncrease(world),
                 PlantStress.ofBoneMeal(world, pos, state), random);
     }
 
     /** A flat one stage per successful bonemeal, for the same reasons as {@link IndicaCropBlock}. */
     @Override
-    protected int getGrowthAmount(World world) {
+    protected int getBonemealAgeIncrease(Level world) {
         return 1;
     }
 
@@ -322,7 +322,7 @@ public class SativaCropBlock extends CropBlock {
      * (see {@code BoneMealItem.useOnFertilizable}), so a false here is a wasted application.
      */
     @Override
-    public boolean canGrow(World world, Random random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
         return random.nextInt(BONEMEAL_FAILURE_CHANCE) != 0;
     }
 
@@ -338,52 +338,52 @@ public class SativaCropBlock extends CropBlock {
      * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
      * player later builds over keeps its age and its harvest instead of silently reverting.
      */
-    private void setAge(World world, BlockPos pos, int newAge, float extraStress, Random random) {
+    private void setAge(Level world, BlockPos pos, int newAge, float extraStress, RandomSource random) {
         BlockState current = world.getBlockState(pos);
-        int currentAge = current.isOf(this) && isLower(current) ? this.getAge(current) : 0;
+        int currentAge = current.is(this) && isLower(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
         newAge = Math.min(newAge, Math.max(currentAge, this.maxAgeFor(world, pos)));
 
-        // stateFor rebuilds from getDefaultState(), so the LOWER's trim flags have to be carried
+        // stateFor rebuilds from defaultBlockState(), so the LOWER's trim flags have to be carried
         // across explicitly or every growth step would quietly wipe them — and randomTick calls
         // this on every tick, not only when the plant actually ages.
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, TriplePlantSegment.LOWER));
-        if (newAge > currentAge && current.isOf(this)) {
-            lower = lower.with(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
-                    current.get(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random));
+        if (newAge > currentAge && current.is(this)) {
+            lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
+                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random));
             if (newAge == this.getMaxAge()) {
-                BlockPos floorPos = pos.down();
+                BlockPos floorPos = pos.below();
                 BlockState floor = world.getBlockState(floorPos);
                 if (floor.getBlock() instanceof GrowMedium medium) {
                     medium.spend(world, floorPos, floor);
                 }
             }
         }
-        world.setBlockState(pos, lower, Block.NOTIFY_LISTENERS);
+        world.setBlock(pos, lower, Block.UPDATE_CLIENTS);
 
-        BlockPos midPos = pos.up();
-        BlockPos topPos = pos.up(2);
+        BlockPos midPos = pos.above();
+        BlockPos topPos = pos.above(2);
         boolean midFree = this.canOccupy(world, midPos);
-        GrowLight light = lower.get(GrowLight.PROPERTY);
+        GrowLight light = lower.getValue(GrowLight.PROPERTY);
 
         if (newAge >= THREE_TALL_AGE && midFree && this.canOccupy(world, topPos)) {
             // Bottom-up: the new UPPER needs the MIDDLE under it to already be in place, otherwise
-            // its canPlaceAt fails and the neighbour update wipes it straight back out.
-            world.setBlockState(midPos, this.stateFor(newAge, TriplePlantSegment.MIDDLE, light), Block.NOTIFY_LISTENERS);
-            world.setBlockState(topPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.NOTIFY_LISTENERS);
+            // its canSurvive fails and the neighbour update wipes it straight back out.
+            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.MIDDLE, light), Block.UPDATE_CLIENTS);
+            world.setBlock(topPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.UPDATE_CLIENTS);
         } else if (newAge >= TWO_TALL_AGE && midFree) {
-            world.setBlockState(midPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.NOTIFY_LISTENERS);
+            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.UPDATE_CLIENTS);
         }
     }
 
     /** Whether the plant may grow into {@code pos} — empty space, or a segment it already owns. */
-    private boolean canOccupy(WorldView world, BlockPos pos) {
+    private boolean canOccupy(LevelReader world, BlockPos pos) {
         return canOccupy(world.getBlockState(pos));
     }
 
     /** As above, for a state already in hand — {@link #isShapeSettled} reads each block once. */
     private boolean canOccupy(BlockState state) {
-        return state.isAir() || (state.isOf(this) && !isLower(state));
+        return state.isAir() || (state.is(this) && !isLower(state));
     }
 
     // ----- defoliation -----
@@ -395,23 +395,23 @@ public class SativaCropBlock extends CropBlock {
      * and the trim flags are kept.
      */
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
-                                             PlayerEntity player, Hand hand, BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+                                             Player player, InteractionHand hand, BlockHitResult hit) {
         BlockPos lowerPos = this.findLowerPos(world, pos, state);
         BlockState lower = world.getBlockState(lowerPos);
-        if (lower.isOf(this) && isLower(lower)) {
+        if (lower.is(this) && isLower(lower)) {
             // A bottle on the plant waters its pot: that is where a player aims.
-            ItemActionResult watered = GrowPotBlock.tryWater(stack, world, lowerPos.down(), player, hand);
+            ItemInteractionResult watered = GrowPotBlock.tryWater(stack, world, lowerPos.below(), player, hand);
             if (watered != null) {
                 return watered;
             }
-            ItemActionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.get(AGE),
+            ItemInteractionResult result = Defoliation.tryCut(world, lowerPos, lower, lower.getValue(AGE),
                     stack, player, hand);
             if (result != null) {
                 return result;
             }
         }
-        return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+        return super.useItemOn(stack, state, world, pos, player, hand, hit);
     }
 
     // ----- the smell of a ripe plant -----
@@ -426,8 +426,8 @@ public class SativaCropBlock extends CropBlock {
      * answers truthfully here.
      */
     @Override
-    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        if (state.get(AGE) >= this.getMaxAge()) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+        if (state.getValue(AGE) >= this.getMaxAge()) {
             RipeAroma.randomDisplayTick(world, pos, random);
         }
     }
@@ -437,34 +437,34 @@ public class SativaCropBlock extends CropBlock {
     // drops for the LOWER segment, so we drop the LOWER's loot by hand when the player broke one
     // of the others, and clear the rest of the stack top-down with drops suppressed.
     @Override
-    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient) {
+    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+        if (!world.isClientSide) {
             BlockPos lowerPos = this.findLowerPos(world, pos, state);
             BlockState lower = world.getBlockState(lowerPos);
-            if (lower.isOf(this) && isLower(lower)) {
+            if (lower.is(this) && isLower(lower)) {
                 // The trim flags and the canonical age both live on the LOWER, so the harvest
                 // criterion is fed from there whichever segment the player actually broke.
-                if (this.isMature(lower)) {
-                    HarvestHempCriterion.trigger(player, (ServerWorld) world, lowerPos, lower);
+                if (this.isMaxAge(lower)) {
+                    HarvestHempCriterion.trigger(player, (ServerLevel) world, lowerPos, lower);
                 }
                 for (int offset = 2; offset >= 1; offset--) {
-                    BlockPos segmentPos = lowerPos.up(offset);
+                    BlockPos segmentPos = lowerPos.above(offset);
                     BlockState segment = world.getBlockState(segmentPos);
-                    if (!segmentPos.equals(pos) && segment.isOf(this) && !isLower(segment)) {
-                        world.setBlockState(segmentPos, Blocks.AIR.getDefaultState(),
-                                Block.NOTIFY_ALL | Block.SKIP_DROPS);
+                    if (!segmentPos.equals(pos) && segment.is(this) && !isLower(segment)) {
+                        world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
+                                Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
                     }
                 }
                 if (!lowerPos.equals(pos)) {
                     if (!player.isCreative()) {
-                        dropStacks(lower, world, lowerPos, null, player, player.getMainHandStack());
+                        dropResources(lower, world, lowerPos, null, player, player.getMainHandItem());
                     }
-                    world.setBlockState(lowerPos, Blocks.AIR.getDefaultState(),
-                            Block.NOTIFY_ALL | Block.SKIP_DROPS);
+                    world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(),
+                            Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
                 }
             }
         }
-        return super.onBreak(world, pos, state, player);
+        return super.playerWillDestroy(world, pos, state, player);
     }
 
     /**
@@ -472,26 +472,26 @@ public class SativaCropBlock extends CropBlock {
      * while the plant is two tall and two blocks up once it is three tall, so that case is
      * resolved by looking at what is underneath it.
      */
-    private BlockPos findLowerPos(WorldView world, BlockPos pos, BlockState state) {
-        return switch (state.get(SEGMENT)) {
+    private BlockPos findLowerPos(LevelReader world, BlockPos pos, BlockState state) {
+        return switch (state.getValue(SEGMENT)) {
             case LOWER -> pos;
-            case MIDDLE -> pos.down();
+            case MIDDLE -> pos.below();
             case UPPER -> {
-                BlockState below = world.getBlockState(pos.down());
-                yield below.isOf(this) && below.get(SEGMENT) == TriplePlantSegment.MIDDLE
-                        ? pos.down(2)
-                        : pos.down();
+                BlockState below = world.getBlockState(pos.below());
+                yield below.is(this) && below.getValue(SEGMENT) == TriplePlantSegment.MIDDLE
+                        ? pos.below(2)
+                        : pos.below();
             }
         };
     }
 
     @Override
-    protected IntProperty getAgeProperty() {
+    protected IntegerProperty getAgeProperty() {
         return AGE;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(AGE, SEGMENT, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED,
                 GrowLight.PROPERTY);
     }

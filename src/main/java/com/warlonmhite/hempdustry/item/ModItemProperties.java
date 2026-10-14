@@ -1,9 +1,9 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 
 /**
  * The item-model properties the smoking gear's models key on.
@@ -36,23 +36,23 @@ import net.minecraft.util.Identifier;
 public final class ModItemProperties {
 
     /** {@code hempdustry:packed} — 0 when the device is empty, 1 when something is loaded. */
-    public static final Identifier PACKED = Identifier.of(Hempdustry.MOD_ID, "packed");
+    public static final ResourceLocation PACKED = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "packed");
 
     /** {@code hempdustry:strain} — the loaded strain's {@code model_index}; 0 for "no bespoke art". */
-    public static final Identifier STRAIN = Identifier.of(Hempdustry.MOD_ID, "strain");
+    public static final ResourceLocation STRAIN = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "strain");
     /** 1 while this stack is the one being drawn on, as the bow's {@code pulling}. */
-    public static final Identifier DRAWING = Identifier.of(Hempdustry.MOD_ID, "drawing");
+    public static final ResourceLocation DRAWING = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "drawing");
     /** How far into a bong's draw, 0 to 1 — the bow's {@code pull}, against the draw's own length. */
-    public static final Identifier DRAW = Identifier.of(Hempdustry.MOD_ID, "draw");
+    public static final ResourceLocation DRAW = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "draw");
 
     /**
      * The 3D hand model of a device that stands as a block — the placed bong, with the packed switch.
      * Written by the model provider, loaded by id on the client, and drawn by {@code ItemRendererMixin}
      * wherever vanilla would draw a trident's hand model. One name, so the three cannot disagree.
      */
-    public static Identifier inHandModel(Item item) {
-        Identifier id = Registries.ITEM.getId(item);
-        return Identifier.of(id.getNamespace(), "item/" + id.getPath() + "_in_hand");
+    public static ResourceLocation inHandModel(Item item) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "item/" + id.getPath() + "_in_hand");
     }
 
     /**
@@ -63,7 +63,7 @@ public final class ModItemProperties {
      * An item model does not write {@code "tintindex"} anywhere. {@code ItemModelGenerator} builds one
      * set of quads per {@code layerN} in the {@code textures} map and passes <b>the layer number as
      * the tint index</b> — {@code layer0} is tint 0, {@code layer1} is tint 1, up to {@code layer4}.
-     * An {@code ItemColorProvider} then returns a colour per index, or {@code -1} for "leave this one
+     * An {@code ItemColor} then returns a colour per index, or {@code -1} for "leave this one
      * alone".
      *
      * <p>So the contract for anything strain-tinted is:

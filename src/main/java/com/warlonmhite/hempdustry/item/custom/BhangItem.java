@@ -1,16 +1,16 @@
 package com.warlonmhite.hempdustry.item.custom;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.UseAction;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 
 /**
  * Bhang — decarboxylated hemp worked into hot milk with sugar. The only <em>drink</em> in the
  * edibles set, and the only one that skips cannabutter entirely.
  *
- * <p>Kept and drunk from the bucket, exactly as vanilla milk is: {@code maxCount(1)}, and finishing
- * it hands the bucket back — via {@code FoodComponent.Builder.usingConvertsTo}, which is how 1.21.1's
- * own stews return their bowls, rather than a hand-written {@code finishUsing}. That is a real drawback next to the stackable edibles — one serving per
+ * <p>Kept and drunk from the bucket, exactly as vanilla milk is: {@code stacksTo(1)}, and finishing
+ * it hands the bucket back — via {@code FoodProperties.Builder.usingConvertsTo}, which is how 1.21.1's
+ * own stews return their bowls, rather than a hand-written {@code finishUsingItem}. That is a real drawback next to the stackable edibles — one serving per
  * inventory slot — and it is the right one for the crudest preparation in the set.
  *
  * <h2>Why it takes decarboxylated hemp rather than cannabutter</h2>
@@ -52,17 +52,17 @@ public class BhangItem extends EdibleItem {
     /** Honey bottle's drink time. A drink should not be quicker to down than vanilla's. */
     private static final int MAX_USE_TIME = 40;
 
-    public BhangItem(Settings settings) {
+    public BhangItem(Properties settings) {
         super(settings);
     }
 
     @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.DRINK;
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.DRINK;
     }
 
     @Override
-    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+    public int getUseDuration(ItemStack stack, LivingEntity user) {
         return MAX_USE_TIME;
     }
 

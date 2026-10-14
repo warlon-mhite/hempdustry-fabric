@@ -5,14 +5,6 @@ import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.advancement.AdvancementRequirements;
-import net.minecraft.advancement.AdvancementRewards;
-import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.RawShapedRecipe;
-import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.recipe.ShapelessRecipe;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
 import java.util.List;
 import java.util.Map;
 import com.warlonmhite.hempdustry.Hempdustry;
@@ -30,29 +22,36 @@ import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.minecraft.block.Blocks;
-import net.minecraft.data.server.recipe.ComplexRecipeJsonBuilder;
-import net.minecraft.data.server.recipe.CookingRecipeJsonBuilder;
-import net.minecraft.data.server.recipe.RecipeExporter;
-import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
-import net.minecraft.data.server.recipe.ShapelessRecipeJsonBuilder;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.data.DataWriter;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.item.DyeItem;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-
+import net.minecraft.advancements.AdvancementRequirements;
+import net.minecraft.advancements.AdvancementRewards;
+import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.CachedOutput;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
+import net.minecraft.data.recipes.SpecialRecipeBuilder;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 import java.util.concurrent.CompletableFuture;
 
 public class ModRecipeProvider extends FabricRecipeProvider {
@@ -68,45 +67,45 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * The registries this run resolved, captured on the way past.
      *
      * <p>Needed because the spliff recipes bake a {@code smoke_contents} component into their result,
-     * and a strain reference is a {@link RegistryEntry} that only a lookup can produce —
+     * and a strain reference is a {@link Holder} that only a lookup can produce —
      * {@link Strain#ENTRY_CODEC} refuses inline entries. {@code generate} is not handed the lookup,
      * so it is taken from {@code run}, which is called immediately before it.
      */
-    private RegistryWrapper.WrapperLookup registries;
+    private HolderLookup.Provider registries;
 
-    public ModRecipeProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+    public ModRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
     @Override
-    public CompletableFuture<?> run(DataWriter writer, RegistryWrapper.WrapperLookup lookup) {
+    public CompletableFuture<?> run(CachedOutput writer, HolderLookup.Provider lookup) {
         this.registries = lookup;
         return super.run(writer, lookup);
     }
 
     @Override
-    public void generate(RecipeExporter exporter) {
+    public void buildRecipes(RecipeOutput exporter) {
         // ---------------------------------------------------------------------
         // Building-block variants (already datagen'd) — stairs/slab/wall/etc.
         // These auto-emit their own ingredient-triggered unlock advancements.
         // ---------------------------------------------------------------------
-        createStairsRecipe(ModBlocks.HEMP_BRICKS_STAIRS, Ingredient.ofItems(ModBlocks.HEMP_BRICKS_BLOCK)).criterion(hasItem(ModBlocks.HEMP_BRICKS_BLOCK), conditionsFromItem(ModBlocks.HEMP_BRICKS_BLOCK)).offerTo(exporter);
-        offerSlabRecipe(exporter, RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_BRICKS_SLAB, ModBlocks.HEMP_BRICKS_BLOCK);
-        offerWallRecipe(exporter, RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_BRICKS_WALL, ModBlocks.HEMP_BRICKS_BLOCK);
+        stairBuilder(ModBlocks.HEMP_BRICKS_STAIRS, Ingredient.of(ModBlocks.HEMP_BRICKS_BLOCK)).unlockedBy(getHasName(ModBlocks.HEMP_BRICKS_BLOCK), has(ModBlocks.HEMP_BRICKS_BLOCK)).save(exporter);
+        slab(exporter, RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_BRICKS_SLAB, ModBlocks.HEMP_BRICKS_BLOCK);
+        wall(exporter, RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_BRICKS_WALL, ModBlocks.HEMP_BRICKS_BLOCK);
 
-        createStairsRecipe(ModBlocks.HEMP_PLANKS_STAIRS, Ingredient.ofItems(ModBlocks.HEMP_PLANKS)).criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS)).offerTo(exporter);
-        offerSlabRecipe(exporter, RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_PLANKS_SLAB, ModBlocks.HEMP_PLANKS);
-        createDoorRecipe(ModBlocks.HEMP_PLANKS_DOOR, Ingredient.ofItems(ModBlocks.HEMP_PLANKS)).criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS)).offerTo(exporter);
-        createTrapdoorRecipe(ModBlocks.HEMP_PLANKS_TRAPDOOR, Ingredient.ofItems(ModBlocks.HEMP_PLANKS)).criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS)).offerTo(exporter);
-        createFenceRecipe(ModBlocks.HEMP_PLANKS_FENCE, Ingredient.ofItems(ModBlocks.HEMP_PLANKS)).criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS)).offerTo(exporter);
-        createFenceGateRecipe(ModBlocks.HEMP_PLANKS_FENCE_GATE, Ingredient.ofItems(ModBlocks.HEMP_PLANKS)).criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS)).offerTo(exporter);
-        offerPressurePlateRecipe(exporter, ModBlocks.HEMP_PLANKS_PRESSURE_PLATE, ModBlocks.HEMP_PLANKS);
+        stairBuilder(ModBlocks.HEMP_PLANKS_STAIRS, Ingredient.of(ModBlocks.HEMP_PLANKS)).unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS)).save(exporter);
+        slab(exporter, RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_PLANKS_SLAB, ModBlocks.HEMP_PLANKS);
+        doorBuilder(ModBlocks.HEMP_PLANKS_DOOR, Ingredient.of(ModBlocks.HEMP_PLANKS)).unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS)).save(exporter);
+        trapdoorBuilder(ModBlocks.HEMP_PLANKS_TRAPDOOR, Ingredient.of(ModBlocks.HEMP_PLANKS)).unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS)).save(exporter);
+        fenceBuilder(ModBlocks.HEMP_PLANKS_FENCE, Ingredient.of(ModBlocks.HEMP_PLANKS)).unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS)).save(exporter);
+        fenceGateBuilder(ModBlocks.HEMP_PLANKS_FENCE_GATE, Ingredient.of(ModBlocks.HEMP_PLANKS)).unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS)).save(exporter);
+        pressurePlate(exporter, ModBlocks.HEMP_PLANKS_PRESSURE_PLATE, ModBlocks.HEMP_PLANKS);
 
         // Parquet is vanilla's mosaic recipe — two slabs stacked — and its stairs and slab are cut
         // from it the way bamboo mosaic's are.
-        offerMosaicRecipe(exporter, RecipeCategory.DECORATIONS, ModBlocks.HEMP_PARQUET, ModBlocks.HEMP_PLANKS_SLAB);
-        createStairsRecipe(ModBlocks.HEMP_PARQUET_STAIRS, Ingredient.ofItems(ModBlocks.HEMP_PARQUET)).criterion(hasItem(ModBlocks.HEMP_PARQUET), conditionsFromItem(ModBlocks.HEMP_PARQUET)).offerTo(exporter);
-        offerSlabRecipe(exporter, RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_PARQUET_SLAB, ModBlocks.HEMP_PARQUET);
+        mosaicBuilder(exporter, RecipeCategory.DECORATIONS, ModBlocks.HEMP_PARQUET, ModBlocks.HEMP_PLANKS_SLAB);
+        stairBuilder(ModBlocks.HEMP_PARQUET_STAIRS, Ingredient.of(ModBlocks.HEMP_PARQUET)).unlockedBy(getHasName(ModBlocks.HEMP_PARQUET), has(ModBlocks.HEMP_PARQUET)).save(exporter);
+        slab(exporter, RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_PARQUET_SLAB, ModBlocks.HEMP_PARQUET);
 
         // ---------------------------------------------------------------------
         // Core hemp processing chain (migrated from hand-written JSON).
@@ -126,46 +125,46 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         //
         // If the dry route ever looks pointless, lower FIBER_PER_RETTED_STEM rather than raising the
         // water cost — water is free either way, so the water is not what is being balanced.
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_FIBER, 4)
-                .input(ModItems.HEMP_STEM)
-                .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
-                .offerTo(exporter, id("hemp_fiber"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.HEMP_FIBER, 4)
+                .requires(ModItems.HEMP_STEM)
+                .unlockedBy(getHasName(ModItems.HEMP_STEM), has(ModItems.HEMP_STEM))
+                .save(exporter, id("hemp_fiber"));
 
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_FIBER, FIBER_PER_RETTED_STEM)
-                .input(ModItems.RETTED_HEMP_STEM)
-                .criterion(hasItem(ModItems.RETTED_HEMP_STEM), conditionsFromItem(ModItems.RETTED_HEMP_STEM))
-                .offerTo(exporter, id("hemp_fiber_from_retted_hemp_stem"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.HEMP_FIBER, FIBER_PER_RETTED_STEM)
+                .requires(ModItems.RETTED_HEMP_STEM)
+                .unlockedBy(getHasName(ModItems.RETTED_HEMP_STEM), has(ModItems.RETTED_HEMP_STEM))
+                .save(exporter, id("hemp_fiber_from_retted_hemp_stem"));
 
         // Fibre -> canvas, woven the same 2x2 way vanilla weaves string into wool, and costing the
         // same, because they are both just cloth. What canvas buys over wool is standing in for
         // leather.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_CANVAS)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.HEMP_CANVAS)
                 .pattern("##")
                 .pattern("##")
-                .input('#', ModItems.HEMP_FIBER)
-                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("hemp_canvas"));
+                .define('#', ModItems.HEMP_FIBER)
+                .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
+                .save(exporter, id("hemp_canvas"));
 
         // Canvas -> hemp wool. The block is the *bale*, not a lighter fabric: four sheets of cloth
         // stacked into a cubic metre of it, which is vanilla's 4-items-into-a-block grammar (clay
         // balls, snowballs, quartz, prismarine shards). Two out rather than vanilla's strict one,
         // matching this mod's own hempcrete recipe, so a building block lands at 8 fibre = 2 stems
         // instead of 16 fibre = 4 — a cloth block nobody can afford to build with isn't a block.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_WOOL, 2)
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_WOOL, 2)
                 .pattern("##")
                 .pattern("##")
-                .input('#', ModItems.HEMP_CANVAS)
-                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
-                .offerTo(exporter, id("hemp_wool"));
+                .define('#', ModItems.HEMP_CANVAS)
+                .unlockedBy(getHasName(ModItems.HEMP_CANVAS), has(ModItems.HEMP_CANVAS))
+                .save(exporter, id("hemp_wool"));
 
         // Vanilla's carpet recipe with our wool in it — two wide, three out, exactly the ratio every
         // vanilla carpet uses. Keyed on the hemp_wool item rather than a tag, so sheep wool can't
         // produce hemp carpet.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.HEMP_CARPET, 3)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModBlocks.HEMP_CARPET, 3)
                 .pattern("##")
-                .input('#', ModBlocks.HEMP_WOOL)
-                .criterion(hasItem(ModBlocks.HEMP_WOOL), conditionsFromItem(ModBlocks.HEMP_WOOL))
-                .offerTo(exporter, id("hemp_carpet"));
+                .define('#', ModBlocks.HEMP_WOOL)
+                .unlockedBy(getHasName(ModBlocks.HEMP_WOOL), has(ModBlocks.HEMP_WOOL))
+                .save(exporter, id("hemp_carpet"));
 
         // The two reversals, each going back exactly one step to the thing it was made from —
         // vanilla's only un-craft recipe, 1 wool -> 4 string, works the same way, and nothing in
@@ -179,15 +178,15 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         //
         // NOTE these are the only shapeless single-ingredient recipes hemp wool and canvas may ever
         // have. A second one on either item collides with these and silently never fires.
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_CANVAS, 2)
-                .input(ModBlocks.HEMP_WOOL)
-                .criterion(hasItem(ModBlocks.HEMP_WOOL), conditionsFromItem(ModBlocks.HEMP_WOOL))
-                .offerTo(exporter, id("hemp_canvas_from_hemp_wool"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.HEMP_CANVAS, 2)
+                .requires(ModBlocks.HEMP_WOOL)
+                .unlockedBy(getHasName(ModBlocks.HEMP_WOOL), has(ModBlocks.HEMP_WOOL))
+                .save(exporter, id("hemp_canvas_from_hemp_wool"));
 
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_FIBER, 4)
-                .input(ModItems.HEMP_CANVAS)
-                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
-                .offerTo(exporter, id("hemp_fiber_from_hemp_canvas"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.HEMP_FIBER, 4)
+                .requires(ModItems.HEMP_CANVAS)
+                .unlockedBy(getHasName(ModItems.HEMP_CANVAS), has(ModItems.HEMP_CANVAS))
+                .save(exporter, id("hemp_fiber_from_hemp_canvas"));
 
         // Vanilla's painting is 8 sticks around #minecraft:wool, so hemp wool is what belongs in
         // the middle — not canvas, which took vanilla's *leather* slot in the item frame below.
@@ -197,14 +196,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // An explicit recipe rather than a tag join, since hemp wool deliberately stays out of
         // #minecraft:wool — and note that putting it in that tag would make this recipe and
         // vanilla's own painting recipe collide.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.PAINTING)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, Items.PAINTING)
                 .pattern("###")
                 .pattern("#X#")
                 .pattern("###")
-                .input('#', Items.STICK)
-                .input('X', ModBlocks.HEMP_WOOL)
-                .criterion(hasItem(ModBlocks.HEMP_WOOL), conditionsFromItem(ModBlocks.HEMP_WOOL))
-                .offerTo(exporter, id("painting"));
+                .define('#', Items.STICK)
+                .define('X', ModBlocks.HEMP_WOOL)
+                .unlockedBy(getHasName(ModBlocks.HEMP_WOOL), has(ModBlocks.HEMP_WOOL))
+                .save(exporter, id("painting"));
 
         // Vanilla's item frame, with the leather swapped for canvas — same eight sticks, same
         // pattern. A second route rather than a replacement: the cow one still works.
@@ -213,79 +212,79 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // 3x3 ring with wool in the middle instead, so canvas standing in for both would produce
         // two identical recipes and only one of them could ever fire (it did, and it did — see
         // CLAUDE.md §5 #17). The painting is hemp wool's, since wool is what vanilla puts there.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.ITEM_FRAME)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, Items.ITEM_FRAME)
                 .pattern("###")
                 .pattern("#X#")
                 .pattern("###")
-                .input('#', Items.STICK)
-                .input('X', ModItems.HEMP_CANVAS)
-                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
-                .offerTo(exporter, id("item_frame"));
+                .define('#', Items.STICK)
+                .define('X', ModItems.HEMP_CANVAS)
+                .unlockedBy(getHasName(ModItems.HEMP_CANVAS), has(ModItems.HEMP_CANVAS))
+                .save(exporter, id("item_frame"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMPCRETE, 2)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.HEMPCRETE, 2)
                 .pattern("##")
                 .pattern("##")
-                .input('#', ModItems.HEMP_STEM)
-                .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
-                .offerTo(exporter, id("hempcrete"));
+                .define('#', ModItems.HEMP_STEM)
+                .unlockedBy(getHasName(ModItems.HEMP_STEM), has(ModItems.HEMP_STEM))
+                .save(exporter, id("hempcrete"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModBlocks.HEMP_BALE)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.HEMP_BALE)
                 .pattern("###")
                 .pattern("###")
                 .pattern("###")
-                .input('#', ModItems.HEMP_STEM)
-                .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
-                .offerTo(exporter, id("hemp_bale"));
+                .define('#', ModItems.HEMP_STEM)
+                .unlockedBy(getHasName(ModItems.HEMP_STEM), has(ModItems.HEMP_STEM))
+                .save(exporter, id("hemp_bale"));
 
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_STEM, 9)
-                .input(ModBlocks.HEMP_BALE)
-                .criterion(hasItem(ModBlocks.HEMP_BALE), conditionsFromItem(ModBlocks.HEMP_BALE))
-                .offerTo(exporter, id("hemp_stem_from_bale"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.HEMP_STEM, 9)
+                .requires(ModBlocks.HEMP_BALE)
+                .unlockedBy(getHasName(ModBlocks.HEMP_BALE), has(ModBlocks.HEMP_BALE))
+                .save(exporter, id("hemp_stem_from_bale"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_LEAVES)
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_LEAVES)
                 .pattern("###")
                 .pattern("###")
                 .pattern("###")
-                .input('#', ModItems.HEMP_LEAF)
-                .criterion(hasItem(ModItems.HEMP_LEAF), conditionsFromItem(ModItems.HEMP_LEAF))
-                .offerTo(exporter, id("hemp_leaves"));
+                .define('#', ModItems.HEMP_LEAF)
+                .unlockedBy(getHasName(ModItems.HEMP_LEAF), has(ModItems.HEMP_LEAF))
+                .save(exporter, id("hemp_leaves"));
 
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_LEAF, 9)
-                .input(ModBlocks.HEMP_LEAVES)
-                .criterion(hasItem(ModBlocks.HEMP_LEAVES), conditionsFromItem(ModBlocks.HEMP_LEAVES))
-                .offerTo(exporter, id("hemp_leaf_from_leaves"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.HEMP_LEAF, 9)
+                .requires(ModBlocks.HEMP_LEAVES)
+                .unlockedBy(getHasName(ModBlocks.HEMP_LEAVES), has(ModBlocks.HEMP_LEAVES))
+                .save(exporter, id("hemp_leaf_from_leaves"));
 
         // Hempcrete -> planks, brick, powder block
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModBlocks.HEMP_PLANKS)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.HEMP_PLANKS)
                 .pattern("###")
                 .pattern("###")
-                .input('#', ModItems.HEMPCRETE)
-                .criterion(hasItem(ModItems.HEMPCRETE), conditionsFromItem(ModItems.HEMPCRETE))
-                .offerTo(exporter, id("hemp_planks"));
+                .define('#', ModItems.HEMPCRETE)
+                .unlockedBy(getHasName(ModItems.HEMPCRETE), has(ModItems.HEMPCRETE))
+                .save(exporter, id("hemp_planks"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.HEMP_BRICK)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.HEMP_BRICK)
                 .pattern("##")
                 .pattern("##")
-                .input('#', ModItems.HEMPCRETE)
-                .criterion(hasItem(ModItems.HEMPCRETE), conditionsFromItem(ModItems.HEMPCRETE))
-                .offerTo(exporter, id("hemp_brick"));
+                .define('#', ModItems.HEMPCRETE)
+                .unlockedBy(getHasName(ModItems.HEMPCRETE), has(ModItems.HEMPCRETE))
+                .save(exporter, id("hemp_brick"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModBlocks.HEMPCRETE_POWDER_BLOCK, 4)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.HEMPCRETE_POWDER_BLOCK, 4)
                 .pattern("###")
                 .pattern("###")
                 .pattern("###")
-                .input('#', ModItems.HEMPCRETE)
-                .criterion(hasItem(ModItems.HEMPCRETE), conditionsFromItem(ModItems.HEMPCRETE))
-                .offerTo(exporter, id("hempcrete_powder_block"));
+                .define('#', ModItems.HEMPCRETE)
+                .unlockedBy(getHasName(ModItems.HEMPCRETE), has(ModItems.HEMPCRETE))
+                .save(exporter, id("hempcrete_powder_block"));
 
         // Brick -> block of hemp bricks
-        ShapedRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_BRICKS_BLOCK)
+        ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_BRICKS_BLOCK)
                 .pattern("###")
                 .pattern("###")
                 .pattern("###")
-                .input('#', ModItems.HEMP_BRICK)
-                .criterion(hasItem(ModItems.HEMP_BRICK), conditionsFromItem(ModItems.HEMP_BRICK))
-                .offerTo(exporter, id("hemp_bricks_block"));
+                .define('#', ModItems.HEMP_BRICK)
+                .unlockedBy(getHasName(ModItems.HEMP_BRICK), has(ModItems.HEMP_BRICK))
+                .save(exporter, id("hemp_bricks_block"));
 
         // Blocks of hemp bricks + a copper ingot -> Decarboxylator.
         //
@@ -303,14 +302,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // The unlock criterion is the hemp bricks block alone, NOT the copper: copper is early-game
         // and unlocking on it would show the recipe in the book long before the player could
         // plausibly build it, which would undercut the gating this recipe exists to create.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.DECARBOXYLATOR)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModBlocks.DECARBOXYLATOR)
                 .pattern("BCB")
                 .pattern("B B")
                 .pattern("BBB")
-                .input('B', ModBlocks.HEMP_BRICKS_BLOCK)
-                .input('C', Items.COPPER_INGOT)
-                .criterion(hasItem(ModBlocks.HEMP_BRICKS_BLOCK), conditionsFromItem(ModBlocks.HEMP_BRICKS_BLOCK))
-                .offerTo(exporter, id("decarboxylator"));
+                .define('B', ModBlocks.HEMP_BRICKS_BLOCK)
+                .define('C', Items.COPPER_INGOT)
+                .unlockedBy(getHasName(ModBlocks.HEMP_BRICKS_BLOCK), has(ModBlocks.HEMP_BRICKS_BLOCK))
+                .save(exporter, id("decarboxylator"));
 
         // Hempcrete + a cauldron -> Infuser. Same grammar as the Decarboxylator (a vanilla utility
         // block wrapped in a ring of hempdustry material) but built on a Cauldron instead of hemp
@@ -321,58 +320,58 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // this whole pipeline is paid at the Decarboxylator; charging heavily twice for one chain
         // would be punitive, and vanilla doesn't escalate every step either (a blast furnace costs
         // far less than the gear you already had by the time you build one).
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.INFUSER)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModBlocks.INFUSER)
                 .pattern("HHH")
                 .pattern("HCH")
                 .pattern("HHH")
-                .input('H', ModBlocks.HEMPCRETE_BLOCK)
-                .input('C', Items.CAULDRON)
-                .criterion(hasItem(ModBlocks.HEMPCRETE_BLOCK), conditionsFromItem(ModBlocks.HEMPCRETE_BLOCK))
-                .offerTo(exporter, id("infuser"));
+                .define('H', ModBlocks.HEMPCRETE_BLOCK)
+                .define('C', Items.CAULDRON)
+                .unlockedBy(getHasName(ModBlocks.HEMPCRETE_BLOCK), has(ModBlocks.HEMPCRETE_BLOCK))
+                .save(exporter, id("infuser"));
 
         // Planks -> button (redstone)
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.REDSTONE, ModBlocks.HEMP_PLANKS_BUTTON)
-                .input(ModBlocks.HEMP_PLANKS)
-                .criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS))
-                .offerTo(exporter, id("hemp_planks_button"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, ModBlocks.HEMP_PLANKS_BUTTON)
+                .requires(ModBlocks.HEMP_PLANKS)
+                .unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS))
+                .save(exporter, id("hemp_planks_button"));
 
         // ---------------------------------------------------------------------
         // Wood set: boats & signs
         // ---------------------------------------------------------------------
-        ShapedRecipeJsonBuilder.create(RecipeCategory.TRANSPORTATION, ModItems.HEMP_BOAT)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, ModItems.HEMP_BOAT)
                 .group("boat")
                 .pattern("# #")
                 .pattern("###")
-                .input('#', ModBlocks.HEMP_PLANKS)
-                .criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS))
-                .offerTo(exporter, id("hemp_boat"));
+                .define('#', ModBlocks.HEMP_PLANKS)
+                .unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS))
+                .save(exporter, id("hemp_boat"));
 
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.TRANSPORTATION, ModItems.HEMP_CHEST_BOAT)
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.TRANSPORTATION, ModItems.HEMP_CHEST_BOAT)
                 .group("chest_boat")
-                .input(Items.CHEST)
-                .input(ModItems.HEMP_BOAT)
-                .criterion(hasItem(ModItems.HEMP_BOAT), conditionsFromItem(ModItems.HEMP_BOAT))
-                .offerTo(exporter, id("hemp_chest_boat"));
+                .requires(Items.CHEST)
+                .requires(ModItems.HEMP_BOAT)
+                .unlockedBy(getHasName(ModItems.HEMP_BOAT), has(ModItems.HEMP_BOAT))
+                .save(exporter, id("hemp_chest_boat"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModItems.HEMP_PLANKS_SIGN, 3)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModItems.HEMP_PLANKS_SIGN, 3)
                 .group("wooden_sign")
                 .pattern("###")
                 .pattern("###")
                 .pattern(" X ")
-                .input('#', ModBlocks.HEMP_PLANKS)
-                .input('X', Items.STICK)
-                .criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS))
-                .offerTo(exporter, id("hemp_planks_sign"));
+                .define('#', ModBlocks.HEMP_PLANKS)
+                .define('X', Items.STICK)
+                .unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS))
+                .save(exporter, id("hemp_planks_sign"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModItems.HEMP_PLANKS_HANGING_SIGN, 6)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModItems.HEMP_PLANKS_HANGING_SIGN, 6)
                 .group("hanging_sign")
                 .pattern("X X")
                 .pattern("###")
                 .pattern("###")
-                .input('#', ModBlocks.HEMP_PLANKS)
-                .input('X', Items.CHAIN)
-                .criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS))
-                .offerTo(exporter, id("hemp_planks_hanging_sign"));
+                .define('#', ModBlocks.HEMP_PLANKS)
+                .define('X', Items.CHAIN)
+                .unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS))
+                .save(exporter, id("hemp_planks_hanging_sign"));
 
         // ---------------------------------------------------------------------
         // Wholesome hemp-seed food. No THC in any of this — hemp seed is a food
@@ -382,30 +381,30 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Cook the raw thing: vanilla's most-used food verb, and hemp seed had no cooked form.
         // Keyed on the tag so every strain's seed works and a future one needs no new recipe --
         // the unlock has to be tag-based too, or a Lemon Haze-only player never discovers this.
-        offerFoodCooking(exporter, "toasted_hemp_seeds", Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
+        offerFoodCooking(exporter, "toasted_hemp_seeds", Ingredient.of(ModTags.Items.HEMP_SEEDS),
                 ModItems.TOASTED_HEMP_SEEDS, ModTags.Items.HEMP_SEEDS, 0.1F);
 
         // Seeds bound with honey. The bottle comes back on its own.
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.HEMP_FLAPJACK, 2)
-                .input(ModItems.TOASTED_HEMP_SEEDS)
-                .input(ModItems.TOASTED_HEMP_SEEDS)
-                .input(Items.HONEY_BOTTLE)
-                .criterion(hasItem(ModItems.TOASTED_HEMP_SEEDS), conditionsFromItem(ModItems.TOASTED_HEMP_SEEDS))
-                .offerTo(exporter, id("hemp_flapjack"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.HEMP_FLAPJACK, 2)
+                .requires(ModItems.TOASTED_HEMP_SEEDS)
+                .requires(ModItems.TOASTED_HEMP_SEEDS)
+                .requires(Items.HONEY_BOTTLE)
+                .unlockedBy(getHasName(ModItems.TOASTED_HEMP_SEEDS), has(ModItems.TOASTED_HEMP_SEEDS))
+                .save(exporter, id("hemp_flapjack"));
 
         // Hemp seed milk: boil the seed until the husks crack, press the white pulp through a sieve,
         // throw the husks away. The boiling and straining are abstracted into the craft the way
         // vanilla abstracts baking into a grid.
         //
-        // ContainerCarried, not shapeless: WATER_BUCKET carries recipeRemainder(BUCKET), so a plain
+        // ContainerCarried, not shapeless: WATER_BUCKET carries craftRemainder(BUCKET), so a plain
         // recipe would hand an empty bucket back *and* leave one inside the hemp milk. Same
         // duplication bhang had. The bucket carries through instead.
         offerContainerCarried(exporter, id("hemp_milk_bucket"), new ItemStack(ModItems.HEMP_MILK_BUCKET),
                 ModTags.Items.HEMP_SEEDS,
-                List.of(Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
-                        Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
-                        Ingredient.fromTag(ModTags.Items.HEMP_SEEDS),
-                        Ingredient.ofItems(Items.WATER_BUCKET)));
+                List.of(Ingredient.of(ModTags.Items.HEMP_SEEDS),
+                        Ingredient.of(ModTags.Items.HEMP_SEEDS),
+                        Ingredient.of(ModTags.Items.HEMP_SEEDS),
+                        Ingredient.of(Items.WATER_BUCKET)));
 
         // Siemieniotka — the Silesian hemp-seed soup eaten at Wigilia, also called konopionka or
         // siemieniec. Hemp milk thickened with flour and sweetened; it is a *sweet* soup, and the
@@ -424,16 +423,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // exactly vanilla's stew grammar anyway.
         //
         // A whole bucket of hemp milk per bowl looks extravagant until you notice the bucket comes
-        // straight back — HEMP_MILK_BUCKET carries recipeRemainder(BUCKET) — so the real cost is the
+        // straight back — HEMP_MILK_BUCKET carries craftRemainder(BUCKET) — so the real cost is the
         // three hemp seeds that went into it. Safe alongside the bucket it returns when drunk,
         // because only one of those two things can ever happen to a given bucket.
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.SIEMIENIOTKA)
-                .input(Items.BOWL)
-                .input(ModItems.HEMP_MILK_BUCKET)
-                .input(ModItems.HEMP_FLOUR)
-                .input(Items.SUGAR)
-                .criterion(hasItem(ModItems.HEMP_MILK_BUCKET), conditionsFromItem(ModItems.HEMP_MILK_BUCKET))
-                .offerTo(exporter, id("siemieniotka"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.SIEMIENIOTKA)
+                .requires(Items.BOWL)
+                .requires(ModItems.HEMP_MILK_BUCKET)
+                .requires(ModItems.HEMP_FLOUR)
+                .requires(Items.SUGAR)
+                .unlockedBy(getHasName(ModItems.HEMP_MILK_BUCKET), has(ModItems.HEMP_MILK_BUCKET))
+                .save(exporter, id("siemieniotka"));
 
         // ---------------------------------------------------------------------
         // Edibles — cannabutter's first real use.
@@ -452,23 +451,23 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // are 6 and 3.6. Nutrition up, saturation down, and what you actually bought was three
         // doses out of one butter instead of one.
         offerInfusedShapeless(exporter, id("cannabutter_toast"), ModItems.CANNABUTTER_TOAST, 3,
-                List.of(Ingredient.ofItems(Items.BREAD), Ingredient.ofItems(ModItems.CANNABUTTER)));
+                List.of(Ingredient.of(Items.BREAD), Ingredient.of(ModItems.CANNABUTTER)));
 
         // Vanilla's cookie is wheat-cocoa-wheat for 8. Same row with hemp flour, plus the butter
         // underneath: the cheapest way into edibles and the most dilute.
         offerInfusedShaped(exporter, id("space_cookie"), ModItems.SPACE_COOKIE, 8,
-                Map.of('F', Ingredient.ofItems(ModItems.HEMP_FLOUR),
-                       'C', Ingredient.ofItems(Items.COCOA_BEANS),
-                       'B', Ingredient.ofItems(ModItems.CANNABUTTER)),
+                Map.of('F', Ingredient.of(ModItems.HEMP_FLOUR),
+                       'C', Ingredient.of(Items.COCOA_BEANS),
+                       'B', Ingredient.of(ModItems.CANNABUTTER)),
                 "FCF", " B ");
 
         // A brownie is flour, cocoa, sugar and fat — cocoa-forward where the cookie is flour-
         // forward, which is what the pattern says. Four to a batch, so twice a cookie's dose.
         offerInfusedShaped(exporter, id("space_brownie"), ModItems.SPACE_BROWNIE, 4,
-                Map.of('C', Ingredient.ofItems(Items.COCOA_BEANS),
-                       'F', Ingredient.ofItems(ModItems.HEMP_FLOUR),
-                       'S', Ingredient.ofItems(Items.SUGAR),
-                       'B', Ingredient.ofItems(ModItems.CANNABUTTER)),
+                Map.of('C', Ingredient.of(Items.COCOA_BEANS),
+                       'F', Ingredient.of(ModItems.HEMP_FLOUR),
+                       'S', Ingredient.of(Items.SUGAR),
+                       'B', Ingredient.of(ModItems.CANNABUTTER)),
                 "CFC", "SBS");
 
         // Vanilla's cake layout, with the butter taking the middle of the *milk* row:
@@ -488,11 +487,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // what vanilla's cake asks for anyway. Milk is the tag, so hemp milk works here as it does
         // in bhang.
         offerInfusedShaped(exporter, id("space_cake"), ModBlocks.SPACE_CAKE, 1,
-                Map.of('M', Ingredient.fromTag(ModTags.Items.MILK_BUCKETS),
-                       'S', Ingredient.ofItems(Items.SUGAR),
-                       'E', Ingredient.ofItems(Items.EGG),
-                       'B', Ingredient.ofItems(ModItems.CANNABUTTER),
-                       'F', Ingredient.ofItems(ModItems.HEMP_FLOUR)),
+                Map.of('M', Ingredient.of(ModTags.Items.MILK_BUCKETS),
+                       'S', Ingredient.of(Items.SUGAR),
+                       'E', Ingredient.of(Items.EGG),
+                       'B', Ingredient.of(ModItems.CANNABUTTER),
+                       'F', Ingredient.of(ModItems.HEMP_FLOUR)),
                 "MBM", "SES", "FFF");
 
         // Bhang. The drink, and the only edible that skips cannabutter -- the plant goes straight
@@ -507,7 +506,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // plant in, not by accepting less out. It also stops bhang undercutting the butter chain on
         // raw hemp per serving.
         //
-        // NOT a plain shapeless recipe: MILK_BUCKET carries recipeRemainder(BUCKET), so an ordinary
+        // NOT a plain shapeless recipe: MILK_BUCKET carries craftRemainder(BUCKET), so an ordinary
         // recipe hands the empty bucket straight back -- and since the bhang is itself in a bucket
         // that gives you back on drinking, that is one bucket in and two out. Free iron, repeatable.
         // ContainerCarriedRecipe suppresses the remainder so the bucket carries through: the one you
@@ -516,10 +515,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // there is nothing to transfer. Tier I, Rough -- the crudest preparation in the set.
         offerContainerCarried(exporter, id("bhang_bucket"), dosed(ModItems.BHANG_BUCKET, 1, Quality.ROUGH),
                 ModItems.DECARBOXYLATED_HEMP,
-                List.of(Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
-                        Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
-                        Ingredient.fromTag(ModTags.Items.MILK_BUCKETS),
-                        Ingredient.ofItems(Items.SUGAR)));
+                List.of(Ingredient.of(ModItems.DECARBOXYLATED_HEMP),
+                        Ingredient.of(ModItems.DECARBOXYLATED_HEMP),
+                        Ingredient.of(ModTags.Items.MILK_BUCKETS),
+                        Ingredient.of(Items.SUGAR)));
 
         // Dawamesk. The one edible here with a documented history rather than a folk name: the
         // Algerian confection the Club des Hashischins ate at the Hotel de Lauzun in the 1840s,
@@ -528,13 +527,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // almond around the fat -- none of which vanilla has, so sweet berries stand in for the
         // fruit and honey for the spiced syrup. Shapeless, because it is stirred, not baked.
         offerInfusedShapeless(exporter, id("dawamesk"), ModItems.DAWAMESK, 1,
-                List.of(Ingredient.ofItems(ModItems.CANNABUTTER), Ingredient.ofItems(Items.SUGAR),
-                        Ingredient.ofItems(Items.HONEY_BOTTLE), Ingredient.ofItems(Items.SWEET_BERRIES)));
+                List.of(Ingredient.of(ModItems.CANNABUTTER), Ingredient.of(Items.SUGAR),
+                        Ingredient.of(Items.HONEY_BOTTLE), Ingredient.of(Items.SWEET_BERRIES)));
 
         // ---------------------------------------------------------------------
         // The two machines' own conversions
         // ---------------------------------------------------------------------
-        RegistryWrapper.Impl<Strain> strains = Strain.registry(this.registries);
+        HolderLookup.RegistryLookup<Strain> strains = Strain.registry(this.registries);
         // These are recipes rather than Java because that is what lets a third-party strain reach
         // the oven, a pack rebalance the chain with KubeJS, and a recipe viewer show either machine
         // at all. Neither goes in the recipe book — it only knows the crafting types — so neither
@@ -545,24 +544,24 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         //
         // Plant strains only: a hash entry's "buds" are resin, and the oven takes plant matter,
         // never resin -- hash is a smoking material and nothing else.
-        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
+        for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
             if (strain.wildFlower().isEmpty()) {
                 continue;
             }
-            offerDecarboxylating(exporter, Ingredient.ofItems(strain.buds()),
+            offerDecarboxylating(exporter, Ingredient.of(strain.buds()),
                     new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.BUDS_OUTPUT),
-                    Registries.ITEM.getId(strain.buds()).getPath());
+                    BuiltInRegistries.ITEM.getKey(strain.buds()).getPath());
         }
         // Fan leaf: bulk trim, worth a quarter of a bud, and strain-agnostic like everything else
         // downstream of the oven.
-        offerDecarboxylating(exporter, Ingredient.ofItems(ModItems.HEMP_LEAF),
+        offerDecarboxylating(exporter, Ingredient.of(ModItems.HEMP_LEAF),
                 new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.LEAF_OUTPUT),
                 "hemp_leaf");
         // Schwag: a bud, at half a bud. The oven is the careful heat, so it never makes scorched
         // hemp out of anything -- that is the furnace's product, and schwag burns to it there like
         // any other bud.
-        offerDecarboxylating(exporter, Ingredient.ofItems(ModItems.SCHWAG),
+        offerDecarboxylating(exporter, Ingredient.of(ModItems.SCHWAG),
                 new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.SCHWAG_OUTPUT),
                 "schwag");
 
@@ -583,22 +582,22 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         //
         // One recipe over every input rather than one per input, which is the charcoal shape. The
         // unlock is any of them: a recipe's unlock advancement ORs its criteria.
-        List<ItemConvertible> scorchable = new java.util.ArrayList<>();
+        List<ItemLike> scorchable = new java.util.ArrayList<>();
         scorchable.add(ModItems.HEMP_LEAF);
         scorchable.add(ModItems.SCHWAG);
-        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
+        for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
             if (strain.wildFlower().isPresent()) {
                 scorchable.add(strain.buds());
             }
         }
-        CookingRecipeJsonBuilder scorching = CookingRecipeJsonBuilder.createSmelting(
-                Ingredient.ofItems(scorchable.toArray(ItemConvertible[]::new)),
+        SimpleCookingRecipeBuilder scorching = SimpleCookingRecipeBuilder.smelting(
+                Ingredient.of(scorchable.toArray(ItemLike[]::new)),
                 RecipeCategory.MISC, ModItems.SCORCHED_HEMP, 0.1F, 200);
-        for (ItemConvertible input : scorchable) {
-            scorching.criterion(hasItem(input), conditionsFromItem(input));
+        for (ItemLike input : scorchable) {
+            scorching.unlockedBy(getHasName(input), has(input));
         }
-        scorching.offerTo(exporter, id("scorched_hemp"));
+        scorching.save(exporter, id("scorched_hemp"));
 
         // NOTHING IN THE HASH FAMILY DECARBOXYLATES, and that is the rule rather than an omission:
         // the oven takes plant matter, the bowl takes resin. Hash is a smoking material and only a
@@ -621,40 +620,40 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // THERE IS DELIBERATELY NO SHAPELESS UNPACK. Every vanilla storage block has one; this one
         // unpacks by being cut, because the cut is the mechanic. A crafting-grid unpack would make
         // the block, the blade and the durability cost all optional at once.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModBlocks.HASHISH_BAR)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.HASHISH_BAR)
                 .pattern("HHH")
                 .pattern("HHH")
                 .pattern("HHH")
-                .input('H', ModItems.HASHISH)
-                .criterion(hasItem(ModItems.HASHISH), conditionsFromItem(ModItems.HASHISH))
-                .offerTo(exporter, id("hashish_bar"));
+                .define('H', ModItems.HASHISH)
+                .unlockedBy(getHasName(ModItems.HASHISH), has(ModItems.HASHISH))
+                .save(exporter, id("hashish_bar"));
 
         // Nine charas rolled into a ball. UNLIKE THE TWO BARS THIS UNPACKS IN THE GRID TOO, and the
         // asymmetry is the point: a bar is cut with a blade because pressing is what a bar is, and
         // charas is never pressed -- you roll it between your palms and you pull it apart the same
         // way. It is also the one member rare enough that a blade toll on top would sting.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModBlocks.CHARAS_BALL)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.CHARAS_BALL)
                 .pattern("CCC")
                 .pattern("CCC")
                 .pattern("CCC")
-                .input('C', ModItems.CHARAS)
-                .criterion(hasItem(ModItems.CHARAS), conditionsFromItem(ModItems.CHARAS))
-                .offerTo(exporter, id("charas_ball"));
+                .define('C', ModItems.CHARAS)
+                .unlockedBy(getHasName(ModItems.CHARAS), has(ModItems.CHARAS))
+                .save(exporter, id("charas_ball"));
 
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.CHARAS, 9)
-                .input(ModBlocks.CHARAS_BALL)
-                .criterion(hasItem(ModBlocks.CHARAS_BALL), conditionsFromItem(ModBlocks.CHARAS_BALL))
-                .offerTo(exporter, id("charas_from_charas_ball"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.CHARAS, 9)
+                .requires(ModBlocks.CHARAS_BALL)
+                .unlockedBy(getHasName(ModBlocks.CHARAS_BALL), has(ModBlocks.CHARAS_BALL))
+                .save(exporter, id("charas_from_charas_ball"));
 
         // The blonde bar packs the same way. Two 3x3 squares of a single material would collide if
         // they were the same material -- they are not, and that is the whole rule (materials.md).
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModBlocks.FILTERED_HASHISH_BAR)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.FILTERED_HASHISH_BAR)
                 .pattern("HHH")
                 .pattern("HHH")
                 .pattern("HHH")
-                .input('H', ModItems.FILTERED_HASHISH)
-                .criterion(hasItem(ModItems.FILTERED_HASHISH), conditionsFromItem(ModItems.FILTERED_HASHISH))
-                .offerTo(exporter, id("filtered_hashish_bar"));
+                .define('H', ModItems.FILTERED_HASHISH)
+                .unlockedBy(getHasName(ModItems.FILTERED_HASHISH), has(ModItems.FILTERED_HASHISH))
+                .save(exporter, id("filtered_hashish_bar"));
 
         // The Sifting Box: vanilla's composter with its two holes filled in. The composter is seven
         // wooden slabs in a U; a sift box is that same slatted box with a screen in it, so filling
@@ -675,23 +674,23 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // composter takes #minecraft:wooden_slabs, which hemp_planks_slab belongs to -- so the
         // scanner reads those two as distinct where a player would not. The extra ingredients are
         // what actually keeps them apart.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.SIFTING_BOX)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModBlocks.SIFTING_BOX)
                 .pattern("PBP")
                 .pattern("PCP")
                 .pattern("PPP")
-                .input('P', ModBlocks.HEMP_PLANKS_SLAB)
-                .input('B', Items.IRON_BARS)
-                .input('C', ModItems.HEMP_CANVAS)
-                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
-                .offerTo(exporter, id("sifting_box"));
+                .define('P', ModBlocks.HEMP_PLANKS_SLAB)
+                .define('B', Items.IRON_BARS)
+                .define('C', ModItems.HEMP_CANVAS)
+                .unlockedBy(getHasName(ModItems.HEMP_CANVAS), has(ModItems.HEMP_CANVAS))
+                .save(exporter, id("sifting_box"));
 
         // One recipe describing the whole tub. Strength and Quality stay in the block entity — they
         // are measurements of the simmer, not of a recipe — but which items play each part is data.
         exporter.accept(id("infusing"), new InfusingRecipe(
-                Ingredient.fromTag(ModTags.Items.MILK_BUCKETS),
-                Ingredient.ofItems(ModItems.DECARBOXYLATED_HEMP),
-                Ingredient.ofItems(ModItems.WASHED_DECARBOXYLATED_HEMP),
-                java.util.Optional.of(Ingredient.ofItems(ModItems.SCORCHED_HEMP)),
+                Ingredient.of(ModTags.Items.MILK_BUCKETS),
+                Ingredient.of(ModItems.DECARBOXYLATED_HEMP),
+                Ingredient.of(ModItems.WASHED_DECARBOXYLATED_HEMP),
+                java.util.Optional.of(Ingredient.of(ModItems.SCORCHED_HEMP)),
                 new ItemStack(ModItems.CANNABUTTER)), null);
 
         // The Hemp Press. THE MOD'S OWN MACHINE GRAMMAR IS "a vanilla utility block wrapped in a
@@ -707,50 +706,50 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Unlocked by hemp bricks, like the Decarboxylator. The press is now on the path to ANY
         // hashish at all, so gating its discovery behind an endgame item would hide the block a
         // player needs in order to reach the endgame.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.HEMP_PRESS)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModBlocks.HEMP_PRESS)
                 .pattern("BBB")
                 .pattern("BPB")
                 .pattern("BBB")
-                .input('B', ModBlocks.HEMP_BRICKS_BLOCK)
-                .input('P', Items.PISTON)
-                .criterion(hasItem(ModBlocks.HEMP_BRICKS_BLOCK), conditionsFromItem(ModBlocks.HEMP_BRICKS_BLOCK))
-                .offerTo(exporter, id("hemp_press"));
+                .define('B', ModBlocks.HEMP_BRICKS_BLOCK)
+                .define('P', Items.PISTON)
+                .unlockedBy(getHasName(ModBlocks.HEMP_BRICKS_BLOCK), has(ModBlocks.HEMP_BRICKS_BLOCK))
+                .save(exporter, id("hemp_press"));
 
         // A pot of hemp brick with soil in it, in the shape a flower pot is drawn. Any dirt: rooted,
         // coarse, mud, moss, or a modded soil in the tag. Unlocks on the brick, like the press.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, ModBlocks.GROW_POT)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModBlocks.GROW_POT)
                 .pattern("B B")
                 .pattern("BDB")
                 .pattern(" B ")
-                .input('B', ModItems.HEMP_BRICK)
-                .input('D', ItemTags.DIRT)
-                .criterion(hasItem(ModItems.HEMP_BRICK), conditionsFromItem(ModItems.HEMP_BRICK))
-                .offerTo(exporter, id("grow_pot"));
+                .define('B', ModItems.HEMP_BRICK)
+                .define('D', ItemTags.DIRT)
+                .unlockedBy(getHasName(ModItems.HEMP_BRICK), has(ModItems.HEMP_BRICK))
+                .save(exporter, id("grow_pot"));
 
         // A redstone lamp in a copper housing (vanilla's copper bulb is the precedent) behind an
         // amethyst lens — purple, the colour every LED grow light is. The lamp needs glowstone, so
         // the Nether gates the best light, which is what lets it pay +2 buds.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.REDSTONE, ModBlocks.GROW_LAMP)
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ModBlocks.GROW_LAMP)
                 .pattern("CAC")
                 .pattern("ALA")
                 .pattern("CAC")
-                .input('C', Items.COPPER_INGOT)
-                .input('A', Items.AMETHYST_SHARD)
-                .input('L', Items.REDSTONE_LAMP)
-                .criterion(hasItem(Items.REDSTONE_LAMP), conditionsFromItem(Items.REDSTONE_LAMP))
-                .offerTo(exporter, id("grow_lamp"));
+                .define('C', Items.COPPER_INGOT)
+                .define('A', Items.AMETHYST_SHARD)
+                .define('L', Items.REDSTONE_LAMP)
+                .unlockedBy(getHasName(Items.REDSTONE_LAMP), has(Items.REDSTONE_LAMP))
+                .save(exporter, id("grow_lamp"));
 
         // A Grow Pot plumbed into a copper reservoir with a pump in it. Copper is the mod's
         // electrical metal (the lamp's housing, and vanilla's own copper bulb); the redstone is the
         // pump, which is also what the block needs a signal for once it is placed.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.REDSTONE, ModBlocks.HYDRO_TRAY)
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ModBlocks.HYDRO_TRAY)
                 .pattern("CRC")
                 .pattern("CPC")
-                .input('C', Items.COPPER_INGOT)
-                .input('R', Items.REDSTONE)
-                .input('P', ModBlocks.GROW_POT)
-                .criterion(hasItem(ModBlocks.GROW_POT), conditionsFromItem(ModBlocks.GROW_POT))
-                .offerTo(exporter, id("hydro_tray"));
+                .define('C', Items.COPPER_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('P', ModBlocks.GROW_POT)
+                .unlockedBy(getHasName(ModBlocks.GROW_POT), has(ModBlocks.GROW_POT))
+                .save(exporter, id("hydro_tray"));
 
         // ---------------------------------------------------------------------
         // The Hemp Press's conversions
@@ -764,20 +763,20 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // the screen is kief, and it is *pressed with heat* to become hashish -- two steps and two
         // tools. The Sifting Box used to do both, which was only ever defensible while there was no
         // press. Now there is one, and the vessel makes powder.
-        offerPressing(exporter, Ingredient.ofItems(ModItems.KIEF),
+        offerPressing(exporter, Ingredient.of(ModItems.KIEF),
                 new ItemStack(ModItems.HASHISH), "hashish");
 
         // The washed powder presses to the blonde slab. Same step, cleaner input -- and the
         // cleanliness is the whole payoff for the ice room, cashed out here as filtered hashish's
         // halved green-out rather than as a bigger number.
-        offerPressing(exporter, Ingredient.ofItems(ModItems.BUBBLE_HASH),
+        offerPressing(exporter, Ingredient.of(ModItems.BUBBLE_HASH),
                 new ItemStack(ModItems.FILTERED_HASHISH), "filtered_hashish");
 
         // The dry road's blonde, pressed. It lands on the SAME item the washed powder does, because
         // the two buy the same thing -- smoothness, which is the only purity axis the mod has -- and
         // pressing is pressing. What separates the roads is price, not product: see
         // SiftingBoxBlock.KIEF_CHANCE, which is where the dry one is made to hurt.
-        offerPressing(exporter, Ingredient.ofItems(ModItems.FILTERED_KIEF),
+        offerPressing(exporter, Ingredient.of(ModItems.FILTERED_KIEF),
                 new ItemStack(ModItems.FILTERED_HASHISH), "filtered_hashish_from_filtered_kief");
 
         // Rosin, 1:1. Pressing hash is the highest-yield step in the whole chain -- 60-90% in life,
@@ -790,7 +789,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // hard gate on the whole concentrate tier, which is what justifies building one; and it
         // keeps the press to one thing to learn per input, with no second route that exists only to
         // be worse than the first.
-        offerPressing(exporter, Ingredient.ofItems(ModItems.FILTERED_HASHISH),
+        offerPressing(exporter, Ingredient.of(ModItems.FILTERED_HASHISH),
                 new ItemStack(ModItems.ROSIN, HempPressBlockEntity.ROSIN_OUTPUT),
                 "rosin");
 
@@ -800,7 +799,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // The shapeless grid recipe stays and still gives FIBER_PER_RETTED_STEM. Taking it away is a
         // balance change to shipped content with nothing to do with concentrates; making the press
         // simply better at it is additive, and is what a machine is for.
-        offerPressing(exporter, Ingredient.ofItems(ModItems.RETTED_HEMP_STEM),
+        offerPressing(exporter, Ingredient.of(ModItems.RETTED_HEMP_STEM),
                 new ItemStack(ModItems.HEMP_FIBER, HempPressBlockEntity.PRESSED_FIBER_OUTPUT),
                 "hemp_fiber");
 
@@ -828,18 +827,18 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         //
         // Unlocked by the rosin: by the time a player has any, they have had the buds and the resin
         // for a long while, and the rosin is the piece that was missing.
-        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
-            RegistryEntry.Reference<Strain> strain = strains.getOrThrow(key);
+        for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
+            Holder.Reference<Strain> strain = strains.getOrThrow(key);
             if (strain.value().wildFlower().isEmpty()) {
                 continue;
             }
             offerMoonRock(exporter, strain, strains.getOrThrow(ModStrains.HASHISH), "hashish",
-                    Ingredient.ofItems(ModItems.HASHISH, ModItems.KIEF));
+                    Ingredient.of(ModItems.HASHISH, ModItems.KIEF));
             offerMoonRock(exporter, strain, strains.getOrThrow(ModStrains.FILTERED_HASHISH), "filtered_hashish",
-                    Ingredient.ofItems(ModItems.FILTERED_HASHISH, ModItems.BUBBLE_HASH,
+                    Ingredient.of(ModItems.FILTERED_HASHISH, ModItems.BUBBLE_HASH,
                             ModItems.FILTERED_KIEF));
             offerMoonRock(exporter, strain, strains.getOrThrow(ModStrains.CHARAS), "charas",
-                    Ingredient.ofItems(ModItems.CHARAS));
+                    Ingredient.of(ModItems.CHARAS));
         }
 
         // ---------------------------------------------------------------------
@@ -859,8 +858,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Plants only. A hash-family strain has no flower, and a joint of pure hash would have
         // nothing to burn -- this mod has no tobacco. Hash rolls into a spliff alongside two buds
         // instead, which is the six hand-built recipes further down.
-        for (RegistryKey<Strain> key : ModStrains.BUILT_IN) {
-            RegistryEntry.Reference<Strain> strain = strains.getOrThrow(key);
+        for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
+            Holder.Reference<Strain> strain = strains.getOrThrow(key);
             if (strain.value().wildFlower().isEmpty()) {
                 continue;
             }
@@ -889,8 +888,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             // dosePerItem > 1 is the mod-wide spelling of "one of these is a whole bowl": a paper
             // has no hot surface to vaporise it off, and rolling one in as a dose-1 additive would
             // quietly undercut the bong exclusive that is the entire reason the Press exists.
-            for (RegistryKey<Strain> hashKey : ModStrains.BUILT_IN) {
-                RegistryEntry.Reference<Strain> hash = strains.getOrThrow(hashKey);
+            for (ResourceKey<Strain> hashKey : ModStrains.BUILT_IN) {
+                Holder.Reference<Strain> hash = strains.getOrThrow(hashKey);
                 if (hash.value().wildFlower().isPresent() || hash.value().dosePerItem() > 1) {
                     continue;
                 }
@@ -902,52 +901,52 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Schwag rolls on its own like any bud -- the schwag joint is the archetype -- but it is not
         // a plant strain, so the loop above never sees it, and nothing rolls it in with hash: coating
         // or cutting junk with resin is a waste of the resin.
-        RegistryEntry.Reference<Strain> schwag = strains.getOrThrow(ModStrains.SCHWAG);
+        Holder.Reference<Strain> schwag = strains.getOrThrow(ModStrains.SCHWAG);
         for (int dose = 1; dose <= ModItems.SPLIFF_MAX_DOSE; dose++) {
             offerSpliff(exporter, schwag, dose);
         }
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.WOODEN_PIPE)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.WOODEN_PIPE)
                 .pattern("P  ")
                 .pattern("SSS")
-                .input('P', ItemTags.PLANKS)
-                .input('S', Items.STICK)
-                .criterion(hasItem(Items.STICK), conditionsFromItem(Items.STICK))
-                .offerTo(exporter, id("wooden_pipe"));
+                .define('P', ItemTags.PLANKS)
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(Items.STICK), has(Items.STICK))
+                .save(exporter, id("wooden_pipe"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.BONG)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.BONG)
                 .pattern(" PI")
                 .pattern("GWG")
                 .pattern(" G ")
-                .input('P', Blocks.GLASS_PANE)
-                .input('I', Items.IRON_NUGGET)
-                .input('G', Blocks.GLASS)
-                .input('W', Items.WATER_BUCKET)
-                .criterion(hasItem(Blocks.GLASS), conditionsFromItem(Blocks.GLASS))
+                .define('P', Blocks.GLASS_PANE)
+                .define('I', Items.IRON_NUGGET)
+                .define('G', Blocks.GLASS)
+                .define('W', Items.WATER_BUCKET)
+                .unlockedBy(getHasName(Blocks.GLASS), has(Blocks.GLASS))
                 .group("bong")
-                .offerTo(exporter, id("bong"));
+                .save(exporter, id("bong"));
 
         // The same shape in every other glass, one recipe per colour the way vanilla's dyed
         // bundles are -- and grouped, so the recipe book gives all eighteen one button, as it does
         // beds and banners. The pane is the matching stained pane; vanilla makes no tinted pane, so
         // the tinted bong takes a plain one. No two share an ingredient multiset: the glass differs.
         for (Item bong : ModItems.COLORED_BONGS) {
-            String name = Registries.ITEM.getId(bong).getPath();
+            String name = BuiltInRegistries.ITEM.getKey(bong).getPath();
             String color = name.substring(0, name.length() - "_bong".length());
             boolean tinted = color.equals("tinted");
-            Item glass = Registries.ITEM.get(Identifier.ofVanilla(tinted ? "tinted_glass" : color + "_stained_glass"));
-            Item pane = tinted ? Items.GLASS_PANE : Registries.ITEM.get(Identifier.ofVanilla(color + "_stained_glass_pane"));
-            ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, bong)
+            Item glass = BuiltInRegistries.ITEM.get(ResourceLocation.withDefaultNamespace(tinted ? "tinted_glass" : color + "_stained_glass"));
+            Item pane = tinted ? Items.GLASS_PANE : BuiltInRegistries.ITEM.get(ResourceLocation.withDefaultNamespace(color + "_stained_glass_pane"));
+            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, bong)
                     .pattern(" PI")
                     .pattern("GWG")
                     .pattern(" G ")
-                    .input('P', pane)
-                    .input('I', Items.IRON_NUGGET)
-                    .input('G', glass)
-                    .input('W', Items.WATER_BUCKET)
-                    .criterion(hasItem(glass), conditionsFromItem(glass))
+                    .define('P', pane)
+                    .define('I', Items.IRON_NUGGET)
+                    .define('G', glass)
+                    .define('W', Items.WATER_BUCKET)
+                    .unlockedBy(getHasName(glass), has(glass))
                     .group("bong")
-                    .offerTo(exporter, id(name));
+                    .save(exporter, id(name));
         }
 
         // Iron chamber, a redstone heating element, and a hemp-plank body. Redstone is in the CRAFT
@@ -963,75 +962,75 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         //
         // Unlock on the hemp planks rather than the iron: iron is early and unlocking on it would
         // put this in the recipe book long before a player could plausibly build it.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, ModItems.VAPORIZER)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.VAPORIZER)
                 .pattern(" I ")
                 .pattern("IRI")
                 .pattern(" P ")
-                .input('I', Items.IRON_INGOT)
-                .input('R', Items.REDSTONE)
-                .input('P', ModBlocks.HEMP_PLANKS)
-                .criterion(hasItem(ModBlocks.HEMP_PLANKS), conditionsFromItem(ModBlocks.HEMP_PLANKS))
-                .offerTo(exporter, id("vaporizer"));
+                .define('I', Items.IRON_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('P', ModBlocks.HEMP_PLANKS)
+                .unlockedBy(getHasName(ModBlocks.HEMP_PLANKS), has(ModBlocks.HEMP_PLANKS))
+                .save(exporter, id("vaporizer"));
 
         // Pack an empty device with a strain's buds in the crafting grid. Special recipe so the
         // device's durability + enchantments carry over onto the packed result (see PackingRecipe).
-        ComplexRecipeJsonBuilder.create(PackingRecipe::new).offerTo(exporter, id("packing"));
+        SpecialRecipeBuilder.special(PackingRecipe::new).save(exporter, id("packing"));
 
         // ---------------------------------------------------------------------
         // Hemp fiber armor set
         // ---------------------------------------------------------------------
-        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.HEMP_BEANIE)
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ModItems.HEMP_BEANIE)
                 .pattern("###")
                 .pattern("# #")
-                .input('#', ModItems.HEMP_FIBER)
-                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("hemp_beanie"));
+                .define('#', ModItems.HEMP_FIBER)
+                .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
+                .save(exporter, id("hemp_beanie"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.HEMP_SHIRT)
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ModItems.HEMP_SHIRT)
                 .pattern("# #")
                 .pattern("###")
                 .pattern("###")
-                .input('#', ModItems.HEMP_FIBER)
-                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("hemp_shirt"));
+                .define('#', ModItems.HEMP_FIBER)
+                .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
+                .save(exporter, id("hemp_shirt"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.HEMP_HAREM_PANTS)
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ModItems.HEMP_HAREM_PANTS)
                 .pattern("###")
                 .pattern("# #")
                 .pattern("# #")
-                .input('#', ModItems.HEMP_FIBER)
-                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("hemp_harem_pants"));
+                .define('#', ModItems.HEMP_FIBER)
+                .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
+                .save(exporter, id("hemp_harem_pants"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.FLIP_FLOPS)
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ModItems.FLIP_FLOPS)
                 .pattern("# #")
                 .pattern("# #")
-                .input('#', ModItems.HEMP_FIBER)
-                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("flip_flops"));
+                .define('#', ModItems.HEMP_FIBER)
+                .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
+                .save(exporter, id("flip_flops"));
 
         // ---------------------------------------------------------------------
         // Edibles & fiber by-products (hemp as an ingredient for vanilla items)
         // ---------------------------------------------------------------------
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.FOOD, ModItems.HEMP_FLOUR)
-                .input(ModTags.Items.HEMP_SEEDS)
-                .criterion("has_hemp_seeds", conditionsFromTag(ModTags.Items.HEMP_SEEDS))
-                .offerTo(exporter, id("hemp_flour"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ModItems.HEMP_FLOUR)
+                .requires(ModTags.Items.HEMP_SEEDS)
+                .unlockedBy("has_hemp_seeds", has(ModTags.Items.HEMP_SEEDS))
+                .save(exporter, id("hemp_flour"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.FOOD, Items.BREAD)
+        ShapedRecipeBuilder.shaped(RecipeCategory.FOOD, Items.BREAD)
                 .pattern(" W ")
                 .pattern("###")
-                .input('W', Items.WATER_BUCKET)
-                .input('#', ModItems.HEMP_FLOUR)
-                .criterion(hasItem(ModItems.HEMP_FLOUR), conditionsFromItem(ModItems.HEMP_FLOUR))
-                .offerTo(exporter, id("bread"));
+                .define('W', Items.WATER_BUCKET)
+                .define('#', ModItems.HEMP_FLOUR)
+                .unlockedBy(getHasName(ModItems.HEMP_FLOUR), has(ModItems.HEMP_FLOUR))
+                .save(exporter, id("bread"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.FOOD, Items.COOKIE, 4)
+        ShapedRecipeBuilder.shaped(RecipeCategory.FOOD, Items.COOKIE, 4)
                 .pattern("#C#")
-                .input('#', ModItems.HEMP_FLOUR)
-                .input('C', Items.COCOA_BEANS)
-                .criterion(hasItem(ModItems.HEMP_FLOUR), conditionsFromItem(ModItems.HEMP_FLOUR))
-                .offerTo(exporter, id("cookie"));
+                .define('#', ModItems.HEMP_FLOUR)
+                .define('C', Items.COCOA_BEANS)
+                .unlockedBy(getHasName(ModItems.HEMP_FLOUR), has(ModItems.HEMP_FLOUR))
+                .save(exporter, id("cookie"));
 
         // Vanilla's cake, poured from hemp milk. Cake is the *only* vanilla recipe that uses a milk
         // bucket at all, so this one recipe is what makes "hemp milk works wherever milk works" a
@@ -1046,21 +1045,21 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // is also the one collision scripts/recipe_collisions.py cannot see, since it compares tags
         // as opaque atoms. Mixing cow and hemp milk in one cake is the price, and it is the right
         // price to pay.
-        ShapedRecipeJsonBuilder.create(RecipeCategory.FOOD, Items.CAKE)
+        ShapedRecipeBuilder.shaped(RecipeCategory.FOOD, Items.CAKE)
                 .pattern("MMM")
                 .pattern("SES")
                 .pattern("###")
-                .input('M', ModItems.HEMP_MILK_BUCKET)
-                .input('S', Items.SUGAR)
-                .input('E', Items.EGG)
-                .input('#', Items.WHEAT)
-                .criterion(hasItem(ModItems.HEMP_MILK_BUCKET), conditionsFromItem(ModItems.HEMP_MILK_BUCKET))
-                .offerTo(exporter, id("cake"));
+                .define('M', ModItems.HEMP_MILK_BUCKET)
+                .define('S', Items.SUGAR)
+                .define('E', Items.EGG)
+                .define('#', Items.WHEAT)
+                .unlockedBy(getHasName(ModItems.HEMP_MILK_BUCKET), has(ModItems.HEMP_MILK_BUCKET))
+                .save(exporter, id("cake"));
 
-        CookingRecipeJsonBuilder.createSmelting(Ingredient.ofItems(ModItems.HEMP_STEM), RecipeCategory.MISC, Items.GREEN_DYE, 1.0F, 200)
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ModItems.HEMP_STEM), RecipeCategory.MISC, Items.GREEN_DYE, 1.0F, 200)
                 .group("dye")
-                .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
-                .offerTo(exporter, id("green_dye"));
+                .unlockedBy(getHasName(ModItems.HEMP_STEM), has(ModItems.HEMP_STEM))
+                .save(exporter, id("green_dye"));
 
         // No 4 fibre -> green wool recipe. It collided byte for byte with the canvas recipe above,
         // and only one of two identical crafting recipes can ever fire. The 2x2 square of a fibre
@@ -1068,34 +1067,34 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // vanilla builds every dyed wool — fibre -> string -> white wool, dyed with the green dye
         // this mod already smelts out of hemp stem.
 
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, Items.STRING)
-                .input(ModItems.HEMP_FIBER)
-                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("string"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.STRING)
+                .requires(ModItems.HEMP_FIBER)
+                .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
+                .save(exporter, id("string"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, Items.PAPER, 2)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Items.PAPER, 2)
                 .pattern("###")
-                .input('#', ModItems.HEMP_FIBER)
-                .criterion(hasItem(ModItems.HEMP_FIBER), conditionsFromItem(ModItems.HEMP_FIBER))
-                .offerTo(exporter, id("paper"));
+                .define('#', ModItems.HEMP_FIBER)
+                .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
+                .save(exporter, id("paper"));
 
         // The bed hemp wool makes: vanilla's own bed recipe, with hemp wool where each vanilla bed
         // has its wool. It takes the grid over from the hemp-wool white bed this used to make —
         // two recipes on one grid collide, and only one of them could ever be crafted.
-        offerBedRecipe(exporter, ModBlocks.HEMP_BED, ModBlocks.HEMP_WOOL);
+        bedFromPlanksAndWool(exporter, ModBlocks.HEMP_BED, ModBlocks.HEMP_WOOL);
 
         // Any vanilla bed dyes into any other colour, but vanilla's sixteen dyeing recipes name the
         // fifteen other beds one by one rather than a tag, so none of them will ever take a hemp
         // bed. These are the same recipes with the hemp bed as the ingredient they are missing, and
         // white dye is now how hemp wool becomes a white bed.
         for (DyeColor color : ModBlocks.DYE_ORDER) {
-            Item bed = Registries.ITEM.get(Identifier.ofVanilla(color.asString() + "_bed"));
-            ShapelessRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, bed)
-                    .input(DyeItem.byColor(color))
-                    .input(ModBlocks.HEMP_BED)
+            Item bed = BuiltInRegistries.ITEM.get(ResourceLocation.withDefaultNamespace(color.getSerializedName() + "_bed"));
+            ShapelessRecipeBuilder.shapeless(RecipeCategory.DECORATIONS, bed)
+                    .requires(DyeItem.byColor(color))
+                    .requires(ModBlocks.HEMP_BED)
                     .group("bed_dye")
-                    .criterion(hasItem(ModBlocks.HEMP_BED), conditionsFromItem(ModBlocks.HEMP_BED))
-                    .offerTo(exporter, id(color.asString() + "_bed_from_hemp_bed"));
+                    .unlockedBy(getHasName(ModBlocks.HEMP_BED), has(ModBlocks.HEMP_BED))
+                    .save(exporter, id(color.getSerializedName() + "_bed_from_hemp_bed"));
         }
 
 
@@ -1108,27 +1107,27 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // This is the canvas recipe with real reach, and it was a deliberate call rather than a
         // freebie — see CLAUDE.md. Books gate enchanting through bookshelves, so this takes cows off
         // the critical path for an enchanting setup and cascades to lecterns and chiseled bookshelves.
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.MISC, Items.BOOK)
-                .input(Items.PAPER)
-                .input(Items.PAPER)
-                .input(Items.PAPER)
-                .input(ModItems.HEMP_CANVAS)
-                .criterion(hasItem(ModItems.HEMP_CANVAS), conditionsFromItem(ModItems.HEMP_CANVAS))
-                .offerTo(exporter, id("book"));
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.BOOK)
+                .requires(Items.PAPER)
+                .requires(Items.PAPER)
+                .requires(Items.PAPER)
+                .requires(ModItems.HEMP_CANVAS)
+                .unlockedBy(getHasName(ModItems.HEMP_CANVAS), has(ModItems.HEMP_CANVAS))
+                .save(exporter, id("book"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.DECORATIONS, Items.FLOWER_POT)
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, Items.FLOWER_POT)
                 .pattern("# #")
                 .pattern(" # ")
-                .input('#', ModItems.HEMP_BRICK)
-                .criterion(hasItem(ModItems.HEMP_BRICK), conditionsFromItem(ModItems.HEMP_BRICK))
-                .offerTo(exporter, id("flower_pot"));
+                .define('#', ModItems.HEMP_BRICK)
+                .unlockedBy(getHasName(ModItems.HEMP_BRICK), has(ModItems.HEMP_BRICK))
+                .save(exporter, id("flower_pot"));
 
-        ShapedRecipeJsonBuilder.create(RecipeCategory.MISC, Items.STICK)
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Items.STICK)
                 .pattern("#")
                 .pattern("#")
-                .input('#', ModItems.HEMP_STEM)
-                .criterion(hasItem(ModItems.HEMP_STEM), conditionsFromItem(ModItems.HEMP_STEM))
-                .offerTo(exporter, id("stick_from_stem"));
+                .define('#', ModItems.HEMP_STEM)
+                .unlockedBy(getHasName(ModItems.HEMP_STEM), has(ModItems.HEMP_STEM))
+                .save(exporter, id("stick_from_stem"));
         // No stick recipe of our own for hemp planks: they are #minecraft:planks, so vanilla's makes
         // four from them like any planks. A "2 hemp planks -> 6" recipe used to sit here on the same
         // grid as vanilla's, and which one crafted depended on the recipe book or the hand.
@@ -1156,13 +1155,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         offerConcretePowder(exporter, Items.BLACK_DYE, Items.BLACK_CONCRETE_POWDER);
     }
 
-    private void offerConcretePowder(RecipeExporter exporter, ItemConvertible dye, ItemConvertible result) {
-        ShapelessRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, result, 4)
-                .input(ModItems.HEMPCRETE, 8)
-                .input(dye)
+    private void offerConcretePowder(RecipeOutput exporter, ItemLike dye, ItemLike result) {
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.BUILDING_BLOCKS, result, 4)
+                .requires(ModItems.HEMPCRETE, 8)
+                .requires(dye)
                 .group("hempdustry_concrete_powder")
-                .criterion(hasItem(ModItems.HEMPCRETE), conditionsFromItem(ModItems.HEMPCRETE))
-                .offerTo(exporter, id(Registries.ITEM.getId(result.asItem()).getPath()));
+                .unlockedBy(getHasName(ModItems.HEMPCRETE), has(ModItems.HEMPCRETE))
+                .save(exporter, id(BuiltInRegistries.ITEM.getKey(result.asItem()).getPath()));
     }
 
     /**
@@ -1173,7 +1172,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * <p>No unlock advancement: machine recipes are not in the recipe book, so there is nothing an
      * advancement could reveal. See {@code DecarboxylatingRecipe}.
      */
-    private static void offerDecarboxylating(RecipeExporter exporter, Ingredient input,
+    private static void offerDecarboxylating(RecipeOutput exporter, Ingredient input,
                                              ItemStack result, String name) {
         exporter.accept(id("decarboxylating/" + name), new DecarboxylatingRecipe(input, result), null);
     }
@@ -1185,7 +1184,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * <p>No unlock advancement: machine recipes are not in the recipe book, so there is nothing an
      * advancement could reveal. See {@link PressingRecipe}.
      */
-    private static void offerPressing(RecipeExporter exporter, Ingredient input, ItemStack result, String name) {
+    private static void offerPressing(RecipeOutput exporter, Ingredient input, ItemStack result, String name) {
         exporter.accept(id("pressing/" + name), new PressingRecipe(input, result), null);
     }
 
@@ -1198,67 +1197,67 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * questions: what may be <em>put in</em> the grid, and which strain entry the result <em>carries</em>.
      * The hashish coat accepts kief as well, since kief is hashish that has not been pressed yet.
      *
-     * <p>Built by hand rather than through {@link ShapelessRecipeJsonBuilder} because that builder's
+     * <p>Built by hand rather than through {@link ShapelessRecipeBuilder} because that builder's
      * result is a bare {@code new ItemStack(item, count)} with no way to attach components — the
      * same reason {@link #offerSpliff} is built by hand. The stack comes from
      * {@link ModItems#moonRock} so the creative tab and the recipe cannot disagree about what one is.
      */
-    private static void offerMoonRock(RecipeExporter exporter, RegistryEntry.Reference<Strain> strain,
-                                      RegistryEntry.Reference<Strain> coat, String coatName,
+    private static void offerMoonRock(RecipeOutput exporter, Holder.Reference<Strain> strain,
+                                      Holder.Reference<Strain> coat, String coatName,
                                       Ingredient coatIngredient) {
         ItemStack result = ModItems.moonRock(strain, coat);
-        Identifier recipeId = id("moon_rock_" + ModStrains.id(strain.registryKey())
+        ResourceLocation recipeId = id("moon_rock_" + ModStrains.id(strain.key())
                 + "_" + coatName);
-        ShapelessRecipe recipe = new ShapelessRecipe("moon_rock", CraftingRecipeCategory.MISC, result,
-                DefaultedList.copyOf(Ingredient.EMPTY,
-                        Ingredient.ofItems(strain.value().buds()),
-                        Ingredient.ofItems(ModItems.ROSIN),
+        ShapelessRecipe recipe = new ShapelessRecipe("moon_rock", CraftingBookCategory.MISC, result,
+                NonNullList.of(Ingredient.EMPTY,
+                        Ingredient.of(strain.value().buds()),
+                        Ingredient.of(ModItems.ROSIN),
                         coatIngredient));
-        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
-                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
-                .criterion(hasItem(ModItems.ROSIN), conditionsFromItem(ModItems.ROSIN))
+        exporter.accept(recipeId, recipe, exporter.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion(getHasName(ModItems.ROSIN), has(ModItems.ROSIN))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
-                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
-                .build(recipeId.withPrefixedPath("recipes/misc/")));
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.withPrefix("recipes/misc/")));
     }
 
     /** An ingredient over a tag; 1.21.1 carries the {@code TagKey} itself through to load time. */
     private static Ingredient ofTag(TagKey<Item> tag) {
-        return Ingredient.fromTag(tag);
+        return Ingredient.of(tag);
     }
 
-    private static Identifier id(String path) {
-        return Identifier.of(Hempdustry.MOD_ID, path);
+    private static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, path);
     }
 
     /**
      * One spliff recipe: {@code dose} buds stacked over {@code dose} paper, producing a spliff whose
      * {@code smoke_contents} component carries the strain and the dose.
      *
-     * <p>Built by hand rather than through {@link ShapedRecipeJsonBuilder} because that builder's
+     * <p>Built by hand rather than through {@link ShapedRecipeBuilder} because that builder's
      * result is a bare {@code new ItemStack(item, count)} with no way to attach components. Handing
      * a fully-built {@link ShapedRecipe} to the exporter is the supported route, and it still emits
      * the usual unlock advancement so the recipe book discovers it on picking up the buds.
      */
-    private static void offerSpliff(RecipeExporter exporter, RegistryEntry.Reference<Strain> strain, int dose) {
+    private static void offerSpliff(RecipeOutput exporter, Holder.Reference<Strain> strain, int dose) {
         ItemStack result = new ItemStack(ModItems.SPLIFF);
         result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
 
         Item budItem = strain.value().buds();
         String buds = String.valueOf('B').repeat(dose);
         String paper = String.valueOf('P').repeat(dose);
-        RawShapedRecipe raw = RawShapedRecipe.create(
-                Map.of('B', Ingredient.ofItems(budItem), 'P', Ingredient.ofItems(Items.PAPER)),
+        ShapedRecipePattern raw = ShapedRecipePattern.of(
+                Map.of('B', Ingredient.of(budItem), 'P', Ingredient.of(Items.PAPER)),
                 buds, paper);
 
-        Identifier recipeId = id("spliff_" + ModStrains.id(strain.registryKey()) + "_" + dose);
-        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingRecipeCategory.MISC, raw, result);
-        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
-                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
-                .criterion(hasItem(budItem), conditionsFromItem(budItem))
+        ResourceLocation recipeId = id("spliff_" + ModStrains.id(strain.key()) + "_" + dose);
+        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingBookCategory.MISC, raw, result);
+        exporter.accept(recipeId, recipe, exporter.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion(getHasName(budItem), has(budItem))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
-                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
-                .build(recipeId.withPrefixedPath("recipes/misc/")));
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.withPrefix("recipes/misc/")));
     }
 
     /**
@@ -1274,8 +1273,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * <p>Unlocked by <b>the hash</b> rather than by the buds — by the time a player has hash they
      * have long since had the buds, and the hash is the new thing.
      */
-    private static void offerHashSpliff(RecipeExporter exporter, RegistryEntry.Reference<Strain> strain,
-                                        RegistryEntry.Reference<Strain> hash, int buds) {
+    private static void offerHashSpliff(RecipeOutput exporter, Holder.Reference<Strain> strain,
+                                        Holder.Reference<Strain> hash, int buds) {
         ItemStack result = new ItemStack(ModItems.SPLIFF);
         result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, buds, hash, 1));
 
@@ -1284,49 +1283,49 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // down the centre line, not at an end.
         String top = buds == 1 ? "BH" : "BHB";
         String paper = String.valueOf('P').repeat(buds + 1);
-        RawShapedRecipe raw = RawShapedRecipe.create(
-                Map.of('B', Ingredient.ofItems(strain.value().buds()),
-                        'H', Ingredient.ofItems(hashItem),
-                        'P', Ingredient.ofItems(Items.PAPER)),
+        ShapedRecipePattern raw = ShapedRecipePattern.of(
+                Map.of('B', Ingredient.of(strain.value().buds()),
+                        'H', Ingredient.of(hashItem),
+                        'P', Ingredient.of(Items.PAPER)),
                 top, paper);
 
-        Identifier recipeId = id("spliff_" + ModStrains.id(strain.registryKey())
-                + "_with_" + ModStrains.id(hash.registryKey()) + "_" + (buds + 1));
-        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingRecipeCategory.MISC, raw, result);
-        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
-                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
-                .criterion(hasItem(hashItem), conditionsFromItem(hashItem))
+        ResourceLocation recipeId = id("spliff_" + ModStrains.id(strain.key())
+                + "_with_" + ModStrains.id(hash.key()) + "_" + (buds + 1));
+        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingBookCategory.MISC, raw, result);
+        exporter.accept(recipeId, recipe, exporter.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion(getHasName(hashItem), has(hashItem))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
-                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
-                .build(recipeId.withPrefixedPath("recipes/misc/")));
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.withPrefix("recipes/misc/")));
     }
 
 
     /**
      * A shapeless recipe whose ingredients' containers stay in the result — see
-     * {@link ContainerCarriedRecipe}. Built by hand because {@link ShapelessRecipeJsonBuilder} can
+     * {@link ContainerCarriedRecipe}. Built by hand because {@link ShapelessRecipeBuilder} can
      * only emit vanilla's serializer, and still emits the usual unlock advancement so the recipe
      * book discovers it normally.
      */
     /** A result stack with a fixed dose baked in, for edibles that inherit nothing. */
-    private static ItemStack dosed(ItemConvertible item, int potency, Quality quality) {
+    private static ItemStack dosed(ItemLike item, int potency, Quality quality) {
         ItemStack stack = new ItemStack(item);
         stack.set(ModComponents.POTENCY, potency);
         stack.set(ModComponents.QUALITY, quality);
         return stack;
     }
 
-    private static void offerContainerCarried(RecipeExporter exporter, Identifier recipeId,
-                                              ItemStack output, ItemConvertible unlockedBy,
+    private static void offerContainerCarried(RecipeOutput exporter, ResourceLocation recipeId,
+                                              ItemStack output, ItemLike unlockedBy,
                                               List<Ingredient> inputs) {
-        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingRecipeCategory.MISC,
+        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingBookCategory.MISC,
                 output, inputs);
-        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
-                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
-                .criterion(hasItem(unlockedBy), conditionsFromItem(unlockedBy))
+        exporter.accept(recipeId, recipe, exporter.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion(getHasName(unlockedBy), has(unlockedBy))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
-                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
-                .build(recipeId.withPrefixedPath("recipes/food/")));
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.withPrefix("recipes/food/")));
     }
 
     /**
@@ -1334,37 +1333,37 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * is itself tag-based, so every strain's item discovers it rather than only whichever one got
      * hardcoded as the unlock.
      */
-    private static void offerContainerCarried(RecipeExporter exporter, Identifier recipeId,
+    private static void offerContainerCarried(RecipeOutput exporter, ResourceLocation recipeId,
                                               ItemStack output, TagKey<Item> unlockedByTag,
                                               List<Ingredient> inputs) {
-        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingRecipeCategory.MISC,
+        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingBookCategory.MISC,
                 output, inputs);
-        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
-                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
-                .criterion("has_hemp_seeds", conditionsFromTag(unlockedByTag))
+        exporter.accept(recipeId, recipe, exporter.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion("has_hemp_seeds", has(unlockedByTag))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
-                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
-                .build(recipeId.withPrefixedPath("recipes/food/")));
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.withPrefix("recipes/food/")));
     }
 
 
     /**
      * Furnace, smoker and campfire, the way every vanilla food is cookable in all three. Written out
-     * rather than using {@code offerFoodCookingRecipe} because that helper only takes a single item
+     * rather than using {@code simpleCookingRecipe} because that helper only takes a single item
      * as input and this one is keyed on the hemp-seed tag, so every strain works and a future strain
      * needs no new recipe.
      */
-    private static void offerFoodCooking(RecipeExporter exporter, String name, Ingredient input,
-                                         ItemConvertible output, TagKey<Item> unlockedByTag, float experience) {
-        CookingRecipeJsonBuilder.createSmelting(input, RecipeCategory.FOOD, output, experience, 200)
-                .criterion("has_hemp_seeds", conditionsFromTag(unlockedByTag))
-                .offerTo(exporter, id(name));
-        CookingRecipeJsonBuilder.createSmoking(input, RecipeCategory.FOOD, output, experience, 100)
-                .criterion("has_hemp_seeds", conditionsFromTag(unlockedByTag))
-                .offerTo(exporter, id(name + "_from_smoking"));
-        CookingRecipeJsonBuilder.createCampfireCooking(input, RecipeCategory.FOOD, output, experience, 600)
-                .criterion("has_hemp_seeds", conditionsFromTag(unlockedByTag))
-                .offerTo(exporter, id(name + "_from_campfire_cooking"));
+    private static void offerFoodCooking(RecipeOutput exporter, String name, Ingredient input,
+                                         ItemLike output, TagKey<Item> unlockedByTag, float experience) {
+        SimpleCookingRecipeBuilder.smelting(input, RecipeCategory.FOOD, output, experience, 200)
+                .unlockedBy("has_hemp_seeds", has(unlockedByTag))
+                .save(exporter, id(name));
+        SimpleCookingRecipeBuilder.smoking(input, RecipeCategory.FOOD, output, experience, 100)
+                .unlockedBy("has_hemp_seeds", has(unlockedByTag))
+                .save(exporter, id(name + "_from_smoking"));
+        SimpleCookingRecipeBuilder.campfireCooking(input, RecipeCategory.FOOD, output, experience, 600)
+                .unlockedBy("has_hemp_seeds", has(unlockedByTag))
+                .save(exporter, id(name + "_from_campfire_cooking"));
     }
 
 
@@ -1379,28 +1378,28 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * advancement is assembled the same way {@code offerSpliff} does it, so the recipe book still
      * discovers these on obtaining cannabutter.
      */
-    private static void offerInfusedShaped(RecipeExporter exporter, Identifier recipeId,
-                                           ItemConvertible output, int count,
+    private static void offerInfusedShaped(RecipeOutput exporter, ResourceLocation recipeId,
+                                           ItemLike output, int count,
                                            Map<Character, Ingredient> key, String... pattern) {
-        offerInfused(exporter, recipeId, new InfusedShapedRecipe("", CraftingRecipeCategory.MISC,
-                RawShapedRecipe.create(key, pattern), new ItemStack(output, count),
+        offerInfused(exporter, recipeId, new InfusedShapedRecipe("", CraftingBookCategory.MISC,
+                ShapedRecipePattern.of(key, pattern), new ItemStack(output, count),
                 ModItems.potencyOffsetOf(output)));
     }
 
-    private static void offerInfusedShapeless(RecipeExporter exporter, Identifier recipeId,
-                                              ItemConvertible output, int count,
+    private static void offerInfusedShapeless(RecipeOutput exporter, ResourceLocation recipeId,
+                                              ItemLike output, int count,
                                               List<Ingredient> inputs) {
-        offerInfused(exporter, recipeId, new InfusedShapelessRecipe("", CraftingRecipeCategory.MISC,
+        offerInfused(exporter, recipeId, new InfusedShapelessRecipe("", CraftingBookCategory.MISC,
                 new ItemStack(output, count), inputs, ModItems.potencyOffsetOf(output)));
     }
 
-    private static void offerInfused(RecipeExporter exporter, Identifier recipeId, net.minecraft.recipe.Recipe<?> recipe) {
-        exporter.accept(recipeId, recipe, exporter.getAdvancementBuilder()
-                .criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
-                .criterion(hasItem(ModItems.CANNABUTTER), conditionsFromItem(ModItems.CANNABUTTER))
+    private static void offerInfused(RecipeOutput exporter, ResourceLocation recipeId, net.minecraft.world.item.crafting.Recipe<?> recipe) {
+        exporter.accept(recipeId, recipe, exporter.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion(getHasName(ModItems.CANNABUTTER), has(ModItems.CANNABUTTER))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
-                .criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
-                .build(recipeId.withPrefixedPath("recipes/food/")));
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.withPrefix("recipes/food/")));
     }
 
 }

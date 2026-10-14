@@ -4,13 +4,12 @@ import com.mojang.serialization.Codec;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
-import net.minecraft.component.ComponentType;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
-
 import java.util.function.UnaryOperator;
+import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Custom data components.
@@ -39,19 +38,19 @@ public class ModComponents {
      * rather than a registered item per device × strain. Kept separate from {@link #CHARGES} because
      * the two have different lifetimes — charges deplete per hit, contents don't.
      */
-    public static final ComponentType<SmokeContents> SMOKE_CONTENTS = register("smoke_contents",
-            builder -> builder.codec(SmokeContents.CODEC).packetCodec(SmokeContents.PACKET_CODEC));
+    public static final DataComponentType<SmokeContents> SMOKE_CONTENTS = register("smoke_contents",
+            builder -> builder.persistent(SmokeContents.CODEC).networkSynchronized(SmokeContents.PACKET_CODEC));
 
     /**
      * An edible's potency tier, 1–4. Distinct from {@link #STRENGTH}, which is cannabutter's raw
      * 1–24 hemp count: the tier is what the butter's strength collapses to, plus the edible's own
      * offset. Four values rather than twenty-four is what keeps edible stacks merging.
      */
-    public static final ComponentType<Integer> POTENCY = register("potency",
-            builder -> builder.codec(Codec.INT).packetCodec(PacketCodecs.VAR_INT));
+    public static final DataComponentType<Integer> POTENCY = register("potency",
+            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
-    public static final ComponentType<Integer> CHARGES = register("charges",
-            builder -> builder.codec(Codec.INT).packetCodec(PacketCodecs.VAR_INT));
+    public static final DataComponentType<Integer> CHARGES = register("charges",
+            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
     /**
      * World time at which this stack's smoking cooldown ends. Present only on the one stack the
@@ -59,7 +58,7 @@ public class ModComponents {
      * {@link com.warlonmhite.hempdustry.item.custom.Smoking#expire}).
      *
      * <p>It is <b>not</b> what blocks the next hit — that is the vanilla {@link
-     * net.minecraft.entity.player.ItemCooldownManager}, which a hit arms for every smokeable at
+     * net.minecraft.world.item.ItemCooldowns}, which a hit arms for every smokeable at
      * once. This exists purely so the cooldown <em>swipe</em> can be drawn on the stack that was
      * used and on nothing else: the cooldown manager is keyed by {@code Item}, so without a mark
      * living on the stack itself the overlay has no way to tell one packed pipe from the next.
@@ -67,21 +66,21 @@ public class ModComponents {
      * <p>Storing the end tick rather than the start is what keeps the client out of the config: it
      * needs no knowledge of how long the cooldown was to know whether this mark is still live.
      */
-    public static final ComponentType<Long> COOLDOWN_UNTIL = register("cooldown_until",
-            builder -> builder.codec(Codec.LONG).packetCodec(PacketCodecs.VAR_LONG));
+    public static final DataComponentType<Long> COOLDOWN_UNTIL = register("cooldown_until",
+            builder -> builder.persistent(Codec.LONG).networkSynchronized(ByteBufCodecs.VAR_LONG));
 
     /** Total hemp items that went into the batch. Drives dose; see the Infuser. */
-    public static final ComponentType<Integer> STRENGTH = register("strength",
-            builder -> builder.codec(Codec.INT).packetCodec(PacketCodecs.VAR_INT));
+    public static final DataComponentType<Integer> STRENGTH = register("strength",
+            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
     /** How well the batch was made — patience plus ingredient prep. */
-    public static final ComponentType<Quality> QUALITY = register("quality",
-            builder -> builder.codec(Quality.CODEC).packetCodec(Quality.PACKET_CODEC));
+    public static final DataComponentType<Quality> QUALITY = register("quality",
+            builder -> builder.persistent(Quality.CODEC).networkSynchronized(Quality.PACKET_CODEC));
 
-    private static <T> ComponentType<T> register(String id, UnaryOperator<ComponentType.Builder<T>> builderOp) {
-        return Registry.register(Registries.DATA_COMPONENT_TYPE,
-                Identifier.of(Hempdustry.MOD_ID, id),
-                builderOp.apply(ComponentType.<T>builder()).build());
+    private static <T> DataComponentType<T> register(String id, UnaryOperator<DataComponentType.Builder<T>> builderOp) {
+        return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
+                ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, id),
+                builderOp.apply(DataComponentType.<T>builder()).build());
     }
 
     public static void registerModComponents() {

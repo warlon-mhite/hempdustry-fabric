@@ -1,13 +1,12 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
 import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 
 /**
  * Cannabutter. Inert for now — what it actually <em>does</em> belongs to the effects pass — but it
@@ -27,31 +26,31 @@ import java.util.List;
  */
 public class CannabutterItem extends Item {
 
-    public CannabutterItem(Settings settings) {
+    public CannabutterItem(Properties settings) {
         super(settings);
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
         Quality quality = stack.get(ModComponents.QUALITY);
         if (quality != null) {
-            tooltip.add(Text.translatable(quality.getTranslationKey()).formatted(colourOf(quality)));
+            tooltip.add(Component.translatable(quality.getTranslationKey()).withStyle(colourOf(quality)));
         }
         Integer strength = stack.get(ModComponents.STRENGTH);
         if (strength != null) {
-            tooltip.add(Text.translatable("item.hempdustry.cannabutter.strength", strength)
-                    .formatted(Formatting.GRAY));
+            tooltip.add(Component.translatable("item.hempdustry.cannabutter.strength", strength)
+                    .withStyle(ChatFormatting.GRAY));
         }
-        super.appendTooltip(stack, context, tooltip, type);
+        super.appendHoverText(stack, context, tooltip, type);
     }
 
     /** Climbs the same way vanilla's rarity colours do, so the ladder reads without being labelled. */
-    private static Formatting colourOf(Quality quality) {
+    private static ChatFormatting colourOf(Quality quality) {
         return switch (quality) {
-            case ROUGH -> Formatting.GRAY;
-            case STANDARD -> Formatting.WHITE;
-            case CLEAN -> Formatting.AQUA;
-            case PERFECT -> Formatting.LIGHT_PURPLE;
+            case ROUGH -> ChatFormatting.GRAY;
+            case STANDARD -> ChatFormatting.WHITE;
+            case CLEAN -> ChatFormatting.AQUA;
+            case PERFECT -> ChatFormatting.LIGHT_PURPLE;
         };
     }
 }

@@ -12,27 +12,26 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.HopperBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.input.SingleStackRecipeInput;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -101,7 +100,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
     public static final int PROPERTY_HEATED = 2;
     public static final int PROPERTY_COUNT = 3;
 
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(SLOT_COUNT, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> inventory = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
 
     private int progress;
     /** Recomputed every tick from the block below; synced so the screen's flame is truthful. */
@@ -109,7 +108,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
     /** Throttles {@link #pushOutput}. Not persisted — a few ticks of timer is not worth a save field. */
     private int pushCooldown;
 
-    private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
+    private final ContainerData propertyDelegate = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
@@ -131,7 +130,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         }
 
         @Override
-        public int size() {
+        public int getCount() {
             return PROPERTY_COUNT;
         }
     };
@@ -153,26 +152,26 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
      * too, so it answers there as well — the screen's input slot asks the same question, and
      * shift-click routing has to agree with the server's without a round trip.
      */
-    public static ItemStack resultFor(@Nullable World world, ItemStack stack) {
+    public static ItemStack resultFor(@Nullable Level world, ItemStack stack) {
         if (world == null || stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        SingleStackRecipeInput input = new SingleStackRecipeInput(stack);
+        SingleRecipeInput input = new SingleRecipeInput(stack);
         return world.getRecipeManager()
-                .getFirstMatch(ModRecipes.PRESSING_TYPE, input, world)
-                .map(entry -> entry.value().craft(input, world.getRegistryManager()))
+                .getRecipeFor(ModRecipes.PRESSING_TYPE, input, world)
+                .map(entry -> entry.value().assemble(input, world.registryAccess()))
                 .orElse(ItemStack.EMPTY);
     }
 
-    public static boolean isInput(@Nullable World world, ItemStack stack) {
+    public static boolean isInput(@Nullable Level world, ItemStack stack) {
         return !resultFor(world, stack).isEmpty();
     }
 
     // ----- ticking -----
 
-    public void tick(World world, BlockPos pos, BlockState state) {
+    public void tick(Level world, BlockPos pos, BlockState state) {
         boolean wasHeated = heated;
-        heated = InfuserBlockEntity.isHeatedFrom(world.getBlockState(pos.down()));
+        heated = InfuserBlockEntity.isHeatedFrom(world.getBlockState(pos.below()));
         boolean dirty = wasHeated != heated;
 
         boolean pressing = heated && canPress(world);
@@ -193,45 +192,45 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             dirty = true;
         }
 
-        BlockState shown = state.with(HempPressBlock.LIT, heated).with(HempPressBlock.PRESSING, pressing);
+        BlockState shown = state.setValue(HempPressBlock.LIT, heated).setValue(HempPressBlock.PRESSING, pressing);
         if (shown != state) {
             state = shown;
-            world.setBlockState(pos, state, Block.NOTIFY_ALL);
+            world.setBlock(pos, state, Block.UPDATE_ALL);
             dirty = true;
         }
 
         if (dirty) {
-            markDirty(world, pos, state);
+            setChanged(world, pos, state);
         }
     }
 
     /** Whether there is something to press and somewhere for it to go. */
-    private boolean canPress(World world) {
-        ItemStack result = resultFor(world, getStack(INPUT_SLOT));
+    private boolean canPress(Level world) {
+        ItemStack result = resultFor(world, getItem(INPUT_SLOT));
         if (result.isEmpty()) {
             return false;
         }
-        ItemStack output = getStack(OUTPUT_SLOT);
+        ItemStack output = getItem(OUTPUT_SLOT);
         if (output.isEmpty()) {
-            return result.getCount() <= result.getMaxCount();
+            return result.getCount() <= result.getMaxStackSize();
         }
-        return ItemStack.areItemsAndComponentsEqual(output, result)
-                && output.getCount() + result.getCount() <= output.getMaxCount();
+        return ItemStack.isSameItemSameComponents(output, result)
+                && output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
-    private void press(World world) {
-        ItemStack input = getStack(INPUT_SLOT);
+    private void press(Level world) {
+        ItemStack input = getItem(INPUT_SLOT);
         ItemStack result = resultFor(world, input);
         if (result.isEmpty()) {
             return;
         }
-        ItemStack output = getStack(OUTPUT_SLOT);
+        ItemStack output = getItem(OUTPUT_SLOT);
         if (output.isEmpty()) {
-            setStack(OUTPUT_SLOT, result);
+            setItem(OUTPUT_SLOT, result);
         } else {
-            output.increment(result.getCount());
+            output.grow(result.getCount());
         }
-        input.decrement(1);
+        input.shrink(1);
     }
 
     /**
@@ -252,15 +251,15 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
      * under a furnace takes: the press empties exactly as fast as it would if the heat were not in
      * the way, and a pour is never split between a neighbour and the slot. The neighbour is found the
      * Infuser's two ways, in its order — the Transfer API for pipes and storage-only blocks, then
-     * {@code getInventoryAt} for an inventory minecart — and the Infuser's {@code pushOutput} says why
+     * {@code getContainerAt} for an inventory minecart — and the Infuser's {@code pushOutput} says why
      * each is there.
      *
      * <p><b>With nothing behind it the output stays put.</b> A Dropper with no container in front
      * throws its item out, but a Dropper fires on a pulse; a press runs all day, and one worked by
      * hand would strew rosin over its own floor.
      */
-    private boolean pushOutput(World world, BlockPos pos, BlockState state) {
-        ItemStack output = getStack(OUTPUT_SLOT);
+    private boolean pushOutput(Level world, BlockPos pos, BlockState state) {
+        ItemStack output = getItem(OUTPUT_SLOT);
         if (output.isEmpty()) {
             return false;
         }
@@ -271,15 +270,15 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         pushCooldown = InfuserBlockEntity.PUSH_COOLDOWN;
 
         // The neighbour's face against the press's back points the way the press does.
-        Direction facing = state.get(HempPressBlock.FACING);
-        BlockPos behind = pos.offset(facing.getOpposite());
+        Direction facing = state.getValue(HempPressBlock.FACING);
+        BlockPos behind = pos.relative(facing.getOpposite());
 
         Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, behind, facing);
         if (storage != null) {
             try (Transaction transaction = Transaction.openOuter()) {
                 if (storage.insert(ItemVariant.of(output), 1, transaction) == 1) {
                     transaction.commit();
-                    removeStack(OUTPUT_SLOT, 1);
+                    removeItem(OUTPUT_SLOT, 1);
                     return true;
                 }
             }
@@ -287,14 +286,14 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             return false;
         }
 
-        Inventory target = HopperBlockEntity.getInventoryAt(world, behind);
+        Container target = HopperBlockEntity.getContainerAt(world, behind);
         if (target == null) {
             pushCooldown = InfuserBlockEntity.PUSH_IDLE_COOLDOWN;
             return false;
         }
         // transfer() only fills the destination, so it is handed a copy and the press takes its own.
-        if (HopperBlockEntity.transfer(this, target, output.copyWithCount(1), facing).isEmpty()) {
-            removeStack(OUTPUT_SLOT, 1);
+        if (HopperBlockEntity.addItem(this, target, output.copyWithCount(1), facing).isEmpty()) {
+            removeItem(OUTPUT_SLOT, 1);
             return true;
         }
         return false;
@@ -321,84 +320,84 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         // ponytail: the phase restarts from the top whenever the press is first seen, or resumes
         // after its output filled up with progress half-decayed. It only draws a platen; sync progress
         // in the update packet if a stroke ever has to land on the exact tick the item comes out.
-        if (world == null || !getCachedState().get(HempPressBlock.PRESSING)) {
+        if (level == null || !getBlockState().getValue(HempPressBlock.PRESSING)) {
             strokeStart = -1;
             return -1;
         }
         if (strokeStart < 0) {
-            strokeStart = world.getTime();
+            strokeStart = level.getGameTime();
         }
-        return (world.getTime() - strokeStart) % pressTime() + tickDelta;
+        return (level.getGameTime() - strokeStart) % pressTime() + tickDelta;
     }
 
     // ----- inventory -----
 
     @Override
-    public DefaultedList<ItemStack> getItems() {
+    public NonNullList<ItemStack> getItems() {
         return inventory;
     }
 
     @Override
-    public boolean isValid(int slot, ItemStack stack) {
-        return slot == INPUT_SLOT && isInput(this.world, stack);
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return slot == INPUT_SLOT && isInput(this.level, stack);
     }
 
     // Furnace-shaped hopper access: in from above or the sides, out through the bottom. The bottom
     // is where the heat sits, though, so automation gets the output from pushOutput instead.
     @Override
-    public int[] getAvailableSlots(Direction side) {
+    public int[] getSlotsForFace(Direction side) {
         return side == Direction.DOWN ? new int[]{OUTPUT_SLOT} : new int[]{INPUT_SLOT};
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
-        return isValid(slot, stack);
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
+        return canPlaceItem(slot, stack);
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         return slot == OUTPUT_SLOT;
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
-        return this.world != null
-                && this.world.getBlockEntity(this.pos) == this
-                && player.squaredDistanceTo(Vec3d.ofCenter(this.pos)) <= 64.0D;
+    public boolean stillValid(Player player) {
+        return this.level != null
+                && this.level.getBlockEntity(this.worldPosition) == this
+                && player.distanceToSqr(Vec3.atCenterOf(this.worldPosition)) <= 64.0D;
     }
 
     // ----- screen -----
 
     @Override
-    public BlockPos getScreenOpeningData(ServerPlayerEntity player) {
-        return this.pos;
+    public BlockPos getScreenOpeningData(ServerPlayer player) {
+        return this.worldPosition;
     }
 
     @Override
-    protected Text getContainerName() {
-        return Text.translatable("block.hempdustry.hemp_press");
+    protected Component getContainerName() {
+        return Component.translatable("block.hempdustry.hemp_press");
     }
 
     @Nullable
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
         return new HempPressScreenHandler(syncId, playerInventory, this, this.propertyDelegate);
     }
 
     // ----- persistence -----
 
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        super.writeNbt(nbt, registryLookup);
-        Inventories.writeNbt(nbt, inventory, registryLookup);
+    protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider registryLookup) {
+        super.saveAdditional(nbt, registryLookup);
+        ContainerHelper.saveAllItems(nbt, inventory, registryLookup);
         nbt.putInt("Progress", progress);
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        super.readNbt(nbt, registryLookup);
+    protected void loadAdditional(CompoundTag nbt, HolderLookup.Provider registryLookup) {
+        super.loadAdditional(nbt, registryLookup);
         inventory.clear();
-        Inventories.readNbt(nbt, inventory, registryLookup);
+        ContainerHelper.loadAllItems(nbt, inventory, registryLookup);
         progress = nbt.getInt("Progress");
         // `heated` is deliberately not persisted: it is a fact about the block below, and the first
         // tick after load reads it. Saving it would let a press come back hot over a cold campfire.

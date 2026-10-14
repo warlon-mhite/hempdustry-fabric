@@ -4,32 +4,31 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootChoice;
-import net.minecraft.loot.LootTableReporter;
-import net.minecraft.loot.condition.LootCondition;
-import net.minecraft.loot.context.LootContext;
-import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.loot.entry.LootPoolEntry;
-import net.minecraft.loot.entry.LootPoolEntryType;
-import net.minecraft.loot.entry.LootPoolEntryTypes;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.random.Random;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.ValidationContext;
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntries;
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntry;
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntryType;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 public class ModLootEntryTypes {
 
-    public static final LootPoolEntryType SPOILING = Registry.register(Registries.LOOT_POOL_ENTRY_TYPE,
-            Identifier.of(Hempdustry.MOD_ID, "spoiling"), new LootPoolEntryType(SpoilingEntry.CODEC));
+    public static final LootPoolEntryType SPOILING = Registry.register(BuiltInRegistries.LOOT_POOL_ENTRY_TYPE,
+            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "spoiling"), new LootPoolEntryType(SpoilingEntry.CODEC));
 
     public static void registerLootEntryTypes() {
         Hempdustry.LOGGER.info("Registering Loot Entry Types for " + Hempdustry.MOD_ID);
@@ -70,27 +69,27 @@ public class ModLootEntryTypes {
      * same whether or not anything spoiled, and two plants harvested on the same seed differ only in
      * what they are — the property every matched-seed harvest test leans on.
      */
-    public static final class SpoilingEntry extends LootPoolEntry {
+    public static final class SpoilingEntry extends LootPoolEntryContainer {
         // Above CODEC: a record codec is built eagerly, and a field declared below it is still null.
         private static final Codec<List<Float>> CHANCES = Codec.floatRange(0.0F, 1.0F).listOf();
 
         public static final MapCodec<SpoilingEntry> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                LootPoolEntryTypes.CODEC.fieldOf("child").forGetter(entry -> entry.child),
-                Registries.ITEM.getCodec().fieldOf("into").forGetter(entry -> entry.into),
-                Enchantment.ENTRY_CODEC.optionalFieldOf("enchantment").forGetter(entry -> entry.enchantment),
+                LootPoolEntries.CODEC.fieldOf("child").forGetter(entry -> entry.child),
+                BuiltInRegistries.ITEM.byNameCodec().fieldOf("into").forGetter(entry -> entry.into),
+                Enchantment.CODEC.optionalFieldOf("enchantment").forGetter(entry -> entry.enchantment),
                 CHANCES.optionalFieldOf("one_item_chances", List.of()).forGetter(entry -> entry.oneItemChances),
                 CHANCES.optionalFieldOf("each_item_chances", List.of()).forGetter(entry -> entry.eachItemChances)
-        ).and(addConditionsField(instance).t1()).apply(instance, SpoilingEntry::new));
+        ).and(commonFields(instance).t1()).apply(instance, SpoilingEntry::new));
 
-        private final LootPoolEntry child;
+        private final LootPoolEntryContainer child;
         private final Item into;
-        private final Optional<RegistryEntry<Enchantment>> enchantment;
+        private final Optional<Holder<Enchantment>> enchantment;
         private final List<Float> oneItemChances;
         private final List<Float> eachItemChances;
 
-        private SpoilingEntry(LootPoolEntry child, Item into, Optional<RegistryEntry<Enchantment>> enchantment,
+        private SpoilingEntry(LootPoolEntryContainer child, Item into, Optional<Holder<Enchantment>> enchantment,
                               List<Float> oneItemChances, List<Float> eachItemChances,
-                              List<LootCondition> conditions) {
+                              List<LootItemCondition> conditions) {
             super(conditions);
             this.child = child;
             this.into = into;
@@ -105,32 +104,32 @@ public class ModLootEntryTypes {
         }
 
         @Override
-        public void validate(LootTableReporter reporter) {
+        public void validate(ValidationContext reporter) {
             super.validate(reporter);
-            child.validate(reporter.makeChild(".child"));
+            child.validate(reporter.forChild(".child"));
         }
 
         @Override
-        public boolean expand(LootContext context, Consumer<LootChoice> choiceConsumer) {
-            if (!test(context)) {
+        public boolean expand(LootContext context, Consumer<LootPoolEntry> choiceConsumer) {
+            if (!canRun(context)) {
                 return false;
             }
-            return child.expand(context, choice -> choiceConsumer.accept(new LootChoice() {
+            return child.expand(context, choice -> choiceConsumer.accept(new LootPoolEntry() {
                 @Override
                 public int getWeight(float luck) {
                     return choice.getWeight(luck);
                 }
 
                 @Override
-                public void generateLoot(Consumer<ItemStack> lootConsumer, LootContext lootContext) {
-                    Random random = Random.create(lootContext.getRandom().nextLong());
+                public void createItemStack(Consumer<ItemStack> lootConsumer, LootContext lootContext) {
+                    RandomSource random = RandomSource.create(lootContext.getRandom().nextLong());
                     int level = level(lootContext);
-                    choice.generateLoot(stack -> spoil(stack, random, level, lootConsumer), lootContext);
+                    choice.createItemStack(stack -> spoil(stack, random, level, lootConsumer), lootContext);
                 }
             }));
         }
 
-        private void spoil(ItemStack stack, Random random, int level, Consumer<ItemStack> lootConsumer) {
+        private void spoil(ItemStack stack, RandomSource random, int level, Consumer<ItemStack> lootConsumer) {
             int spoiled = 0;
             if (stack.getCount() > 0 && random.nextFloat() < chance(oneItemChances, level)) {
                 spoiled = 1;
@@ -145,7 +144,7 @@ public class ModLootEntryTypes {
             }
             if (spoiled > 0) {
                 lootConsumer.accept(new ItemStack(into, spoiled));
-                stack.decrement(spoiled);
+                stack.shrink(spoiled);
             }
             if (!stack.isEmpty()) {
                 lootConsumer.accept(stack);
@@ -153,52 +152,52 @@ public class ModLootEntryTypes {
         }
 
         private int level(LootContext context) {
-            ItemStack tool = context.get(LootContextParameters.TOOL);
-            return enchantment.isPresent() && tool != null ? EnchantmentHelper.getLevel(enchantment.get(), tool) : 0;
+            ItemStack tool = context.getParamOrNull(LootContextParams.TOOL);
+            return enchantment.isPresent() && tool != null ? EnchantmentHelper.getItemEnchantmentLevel(enchantment.get(), tool) : 0;
         }
 
         private static float chance(List<Float> chances, int level) {
             return chances.isEmpty() ? 0.0F : chances.get(Math.min(level, chances.size() - 1));
         }
 
-        public static Builder builder(LootPoolEntry.Builder<?> child, Item into) {
-            return new Builder(child, into);
+        public static com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder builder(LootPoolEntryContainer.Builder<?> child, Item into) {
+            return new com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder(child, into);
         }
 
-        public static final class Builder extends LootPoolEntry.Builder<Builder> {
-            private final LootPoolEntry.Builder<?> child;
+        public static final class Builder extends LootPoolEntryContainer.Builder<com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder> {
+            private final LootPoolEntryContainer.Builder<?> child;
             private final Item into;
-            private Optional<RegistryEntry<Enchantment>> enchantment = Optional.empty();
+            private Optional<Holder<Enchantment>> enchantment = Optional.empty();
             private List<Float> oneItemChances = List.of();
             private List<Float> eachItemChances = List.of();
 
-            private Builder(LootPoolEntry.Builder<?> child, Item into) {
+            private Builder(LootPoolEntryContainer.Builder<?> child, Item into) {
                 this.child = child;
                 this.into = into;
             }
 
-            public Builder enchantment(RegistryEntry<Enchantment> enchantment) {
+            public com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder enchantment(Holder<Enchantment> enchantment) {
                 this.enchantment = Optional.of(enchantment);
                 return this;
             }
 
-            public Builder oneItem(Float... chances) {
+            public com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder oneItem(Float... chances) {
                 this.oneItemChances = List.of(chances);
                 return this;
             }
 
-            public Builder eachItem(Float... chances) {
+            public com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder eachItem(Float... chances) {
                 this.eachItemChances = List.of(chances);
                 return this;
             }
 
             @Override
-            protected Builder getThisBuilder() {
+            protected com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder getThis() {
                 return this;
             }
 
             @Override
-            public LootPoolEntry build() {
+            public LootPoolEntryContainer build() {
                 return new SpoilingEntry(child.build(), into, enchantment, oneItemChances, eachItemChances,
                         getConditions());
             }

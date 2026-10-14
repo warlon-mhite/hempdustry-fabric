@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 
 /**
  * The blonde bar: nine filtered hashish, crafted together in the grid.
@@ -21,14 +21,14 @@ import net.minecraft.item.Item;
  */
 public class FilteredHashishBarBlock extends HashishBarBlock {
 
-    public static final MapCodec<FilteredHashishBarBlock> CODEC = createCodec(FilteredHashishBarBlock::new);
+    public static final MapCodec<FilteredHashishBarBlock> CODEC = simpleCodec(FilteredHashishBarBlock::new);
 
-    public FilteredHashishBarBlock(Settings settings) {
+    public FilteredHashishBarBlock(Properties settings) {
         super(settings);
     }
 
     @Override
-    protected MapCodec<? extends HashishBarBlock> getCodec() {
+    protected MapCodec<? extends HashishBarBlock> codec() {
         return CODEC;
     }
 

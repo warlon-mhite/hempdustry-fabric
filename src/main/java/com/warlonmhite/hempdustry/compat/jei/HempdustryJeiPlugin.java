@@ -12,19 +12,19 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.ShapelessRecipe;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
+import net.minecraft.world.level.block.Blocks;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,8 +58,8 @@ public class HempdustryJeiPlugin implements IModPlugin {
     private EntryJeiCategory world;
 
     @Override
-    public Identifier getPluginUid() {
-        return Identifier.of(Hempdustry.MOD_ID, "jei");
+    public ResourceLocation getPluginUid() {
+        return ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "jei");
     }
 
     /**
@@ -73,7 +73,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
      */
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        for (net.minecraft.item.Item smokeable : ViewerRecipes.smokeables()) {
+        for (net.minecraft.world.item.Item smokeable : ViewerRecipes.smokeables()) {
             registration.registerSubtypeInterpreter(smokeable,
                     (ItemStack stack, UidContext context) -> ViewerRecipes.smokeKey(stack));
         }
@@ -104,14 +104,14 @@ public class HempdustryJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) {
             // JEI is building its index before a world is joined. Both machine categories read the
             // recipe manager and packing reads the strain registry, and neither exists yet; JEI
             // rebuilds on world join, which is when this becomes answerable.
             return;
         }
-        var recipes = client.world.getRecipeManager();
+        var recipes = client.level.getRecipeManager();
 
         registration.addRecipes(decarboxylating.getRecipeType(), decarboxylating.fitted(ViewerRecipes.decarboxylating(recipes)));
         registration.addRecipes(infusing.getRecipeType(), infusing.fitted(ViewerRecipes.infusing(recipes)));
@@ -119,13 +119,13 @@ public class HempdustryJeiPlugin implements IModPlugin {
         registration.addRecipes(pressing.getRecipeType(), pressing.fitted(ViewerRecipes.pressing(recipes)));
         registration.addRecipes(sifting.getRecipeType(), sifting.fitted(ViewerRecipes.sifting()));
         registration.addRecipes(iceOLator.getRecipeType(), iceOLator.fitted(ViewerRecipes.iceOLator()));
-        registration.addRecipes(world.getRecipeType(), world.fitted(ViewerRecipes.world(client.world.getRegistryManager())));
+        registration.addRecipes(world.getRecipeType(), world.fitted(ViewerRecipes.world(client.level.registryAccess())));
         ViewerRecipes.info().forEach((item, text) -> registration.addIngredientInfo(item, text));
 
         // Packing goes into JEI's own crafting category rather than one of ours, which is what makes
         // JEI's built-in "move ingredients into the grid" work on it without a transfer handler of
         // our own. See ViewerRecipes#packing.
-        registration.addRecipes(RecipeTypes.CRAFTING, packingAsCrafting(client.world.getRegistryManager()));
+        registration.addRecipes(RecipeTypes.CRAFTING, packingAsCrafting(client.level.registryAccess()));
     }
 
     /**
@@ -137,19 +137,19 @@ public class HempdustryJeiPlugin implements IModPlugin {
      * describing that match in the one shape JEI's crafting category and its transfer handler both
      * understand.
      */
-    private static List<RecipeEntry<CraftingRecipe>> packingAsCrafting(RegistryWrapper.WrapperLookup registries) {
-        List<RecipeEntry<CraftingRecipe>> out = new ArrayList<>();
+    private static List<RecipeHolder<CraftingRecipe>> packingAsCrafting(HolderLookup.Provider registries) {
+        List<RecipeHolder<CraftingRecipe>> out = new ArrayList<>();
         for (ViewerRecipes.Packing packing : ViewerRecipes.packing(registries)) {
             // Each slot is an Ingredient over the slot's own stacks. On this line an Ingredient keeps
             // the stacks it was built from and draws them as they are, components and all, while
             // matching on the item alone -- so the moon rock slot shows the loaded rock and the bong
             // slot cycles every glass, and the recipe still takes whatever rock or glass is put in.
-            DefaultedList<Ingredient> ingredients = DefaultedList.ofSize(packing.inputs().size(), Ingredient.EMPTY);
+            NonNullList<Ingredient> ingredients = NonNullList.withSize(packing.inputs().size(), Ingredient.EMPTY);
             for (int i = 0; i < packing.inputs().size(); i++) {
-                ingredients.set(i, Ingredient.ofStacks(packing.inputs().get(i).stream()));
+                ingredients.set(i, Ingredient.of(packing.inputs().get(i).stream()));
             }
-            out.add(new RecipeEntry<>(packing.id(),
-                    new ShapelessRecipe("", CraftingRecipeCategory.MISC, packing.output(), ingredients)));
+            out.add(new RecipeHolder<>(packing.id(),
+                    new ShapelessRecipe("", CraftingBookCategory.MISC, packing.output(), ingredients)));
         }
         return out;
     }

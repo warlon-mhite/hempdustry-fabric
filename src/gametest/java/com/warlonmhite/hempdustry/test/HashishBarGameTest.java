@@ -4,18 +4,18 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.GameMode;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.test.GameTest;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 
 /**
  * The hashish bar: the cut, what breaking a part-cut bar gives back, and whether the blade tag
@@ -33,46 +33,46 @@ public final class HashishBarGameTest implements FabricGameTest {
     private static final BlockPos BAR = new BlockPos(1, 1, 1);
 
     /**
-     * A real right-click, through {@code ServerPlayerInteractionManager}, and the result it gives.
+     * A real right-click, through {@code ServerPlayerGameMode}, and the result it gives.
      *
-     * <p><b>Not {@code TestContext#useBlock}.</b> The bug this shape exists to catch — a refusal
-     * returning {@code ActionResult.PASS} instead of {@code PASS_TO_DEFAULT_BLOCK_INTERACTION}, which
-     * swallows the click so {@code onUse} never runs — is invisible to {@code useBlock}, which falls
+     * <p><b>Not {@code GameTestHelper#useBlock}.</b> The bug this shape exists to catch — a refusal
+     * returning {@code InteractionResult.PASS} instead of {@code PASS_TO_DEFAULT_BLOCK_INTERACTION}, which
+     * swallows the click so {@code useWithoutItem} never runs — is invisible to {@code useBlock}, which falls
      * through on <em>any</em> non-accepted result. That is how it shipped in the Dry Sifter and was
      * found by a player rather than by a test.
      */
-    private static ActionResult rightClick(TestContext context, ItemStack held) {
+    private static InteractionResult rightClick(GameTestHelper context, ItemStack held) {
         return Players.click(context, Players.survival(context), BAR, held);
     }
 
     /** Five cuts give 2 + 2 + 2 + 2 + 1 = nine pieces, and the fifth takes the block with it. */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void barCutsIntoNinePieces(TestContext context) {
-        context.setBlockState(BAR, ModBlocks.HASHISH_BAR.getDefaultState());
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void barCutsIntoNinePieces(GameTestHelper context) {
+        context.setBlock(BAR, ModBlocks.HASHISH_BAR.defaultBlockState());
 
         ItemStack sword = new ItemStack(Items.IRON_SWORD);
         int expected = 0;
         for (int cut = 0; cut < 5; cut++) {
             expected += cut < 4 ? 2 : 1;
-            ActionResult result = rightClick(context, sword);
+            InteractionResult result = rightClick(context, sword);
             // Asserted on the returned value, not just on the world: a block that mutates state and
             // then hands back PASS still swallows the click for everything that comes after it.
-            context.assertTrue(result.isAccepted(),
+            context.assertTrue(result.consumesAction(),
                     "cut " + (cut + 1) + " was not accepted by the interaction manager");
             if (cut < 4) {
-                context.assertEquals(cut + 1, context.getBlockState(BAR).get(HashishBarBlock.CUTS),
+                context.assertValueEqual(cut + 1, context.getBlockState(BAR).getValue(HashishBarBlock.CUTS),
                         "the cut count did not advance");
             }
         }
-        context.assertEquals(9, expected, "the yield table no longer sums to nine");
+        context.assertValueEqual(9, expected, "the yield table no longer sums to nine");
         context.assertTrue(context.getBlockState(BAR).isAir(),
                 "the fifth cut left the bar standing instead of removing it");
-        context.assertTrue(sword.getDamage() == 5,
-                "the blade should have taken one damage per cut, took " + sword.getDamage());
+        context.assertTrue(sword.getDamageValue() == 5,
+                "the blade should have taken one damage per cut, took " + sword.getDamageValue());
 
-        context.waitAndRun(2, () -> {
-            context.expectItemsAt(ModItems.HASHISH, BAR, 3.0, 9);
-            context.complete();
+        context.runAfterDelay(2, () -> {
+            context.assertItemEntityCountIs(ModItems.HASHISH, BAR, 3.0, 9);
+            context.succeed();
         });
     }
 
@@ -82,18 +82,18 @@ public final class HashishBarGameTest implements FabricGameTest {
      * <p>At {@code cuts = 2} four pieces have already been cut off, so five remain. Nine here would
      * be the loot table ignoring the state — a dupe, and one in the generous direction.
      */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void brokenBarDropsWhatIsLeft(TestContext context) {
-        context.setBlockState(BAR, ModBlocks.HASHISH_BAR.getDefaultState()
-                .with(HashishBarBlock.CUTS, 2));
-        ServerPlayerEntity player = context.createMockCreativeServerPlayerInWorld();
-        player.changeGameMode(GameMode.SURVIVAL);
-        player.setStackInHand(Hand.MAIN_HAND, ItemStack.EMPTY);
-        context.getWorld().breakBlock(context.getAbsolutePos(BAR), true, player);
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void brokenBarDropsWhatIsLeft(GameTestHelper context) {
+        context.setBlock(BAR, ModBlocks.HASHISH_BAR.defaultBlockState()
+                .setValue(HashishBarBlock.CUTS, 2));
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        player.setGameMode(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        context.getLevel().destroyBlock(context.absolutePos(BAR), true, player);
 
-        context.waitAndRun(2, () -> {
-            context.expectItemsAt(ModItems.HASHISH, BAR, 3.0, 5);
-            context.complete();
+        context.runAfterDelay(2, () -> {
+            context.assertItemEntityCountIs(ModItems.HASHISH, BAR, 3.0, 5);
+            context.succeed();
         });
     }
 
@@ -107,15 +107,15 @@ public final class HashishBarGameTest implements FabricGameTest {
      * gametest runtime) and asserts the tag still has a sword in it. The failure mode it guards
      * against is a bar nobody can cut and nothing on screen to say why.
      */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void hashCuttersTagResolves(TestContext context) {
-        RegistryEntry<net.minecraft.item.Item> sword = Registries.ITEM.getEntry(Items.DIAMOND_SWORD);
-        context.assertTrue(sword.isIn(ModTags.Items.HASH_CUTTERS),
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void hashCuttersTagResolves(GameTestHelper context) {
+        Holder<net.minecraft.world.item.Item> sword = BuiltInRegistries.ITEM.wrapAsHolder(Items.DIAMOND_SWORD);
+        context.assertTrue(sword.is(ModTags.Items.HASH_CUTTERS),
                 "#hempdustry:hash_cutters does not contain a diamond sword — an unresolvable "
                         + "required entry has almost certainly dropped the whole tag");
         // Shears deliberately stay out of it: they mean "trim a plant" in this mod and nothing else.
-        context.assertFalse(Registries.ITEM.getEntry(Items.SHEARS).isIn(ModTags.Items.HASH_CUTTERS),
+        context.assertFalse(BuiltInRegistries.ITEM.wrapAsHolder(Items.SHEARS).is(ModTags.Items.HASH_CUTTERS),
                 "shears joined the hash cutters — they already mean 'trim a plant'");
-        context.complete();
+        context.succeed();
     }
 }

@@ -4,15 +4,14 @@ import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.test.TestContext;
-
 import java.util.Optional;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.test.GameTest;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
 
 /**
  * The balance a world loads is the balance the mod was written with.
@@ -26,22 +25,22 @@ import net.minecraft.test.GameTest;
  */
 public final class BalanceGameTest implements FabricGameTest {
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void theShippedBalanceIsTheBuiltInOne(TestContext context) {
-        RegistryWrapper.WrapperLookup registries = context.getWorld().getRegistryManager();
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void theShippedBalanceIsTheBuiltInOne(GameTestHelper context) {
+        HolderLookup.Provider registries = context.getLevel().registryAccess();
         for (DeviceType type : DeviceType.values()) {
             assertLoaded(context, registries, DeviceStats.REGISTRY_KEY, DeviceStats.key(type), type.builtInStats());
         }
         assertLoaded(context, registries, DeviceStats.REGISTRY_KEY, DeviceStats.SPLIFF, DeviceStats.SPLIFF_BUILT_IN);
         assertLoaded(context, registries, EdibleBundle.REGISTRY_KEY, EdibleBundle.DEFAULT, EdibleBundle.BUILT_IN);
         assertLoaded(context, registries, GreenOut.REGISTRY_KEY, GreenOut.DEFAULT, GreenOut.BUILT_IN);
-        context.complete();
+        context.succeed();
     }
 
-    private static <T> void assertLoaded(TestContext context, RegistryWrapper.WrapperLookup registries,
-                                         RegistryKey<Registry<T>> registry, RegistryKey<T> key, T builtIn) {
-        Optional<T> loaded = registries.getWrapperOrThrow(registry).getOptional(key).map(RegistryEntry.Reference::value);
-        context.assertTrue(loaded.isPresent(), key.getValue() + " is not in this world's data");
-        context.assertEquals(loaded.orElseThrow(), builtIn, "the numbers " + key.getValue() + " ships");
+    private static <T> void assertLoaded(GameTestHelper context, HolderLookup.Provider registries,
+                                         ResourceKey<Registry<T>> registry, ResourceKey<T> key, T builtIn) {
+        Optional<T> loaded = registries.lookupOrThrow(registry).get(key).map(Holder.Reference::value);
+        context.assertTrue(loaded.isPresent(), key.location() + " is not in this world's data");
+        context.assertValueEqual(loaded.orElseThrow(), builtIn, "the numbers " + key.location() + " ships");
     }
 }

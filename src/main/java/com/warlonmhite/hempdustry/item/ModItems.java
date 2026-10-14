@@ -19,42 +19,41 @@ import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
 import com.warlonmhite.hempdustry.sound.ModSounds;
-import net.minecraft.item.AliasedBlockItem;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.BannerPatternItem;
-import net.minecraft.item.HangingSignItem;
 import com.warlonmhite.hempdustry.component.ModComponents;
-import net.minecraft.component.type.FoodComponent;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.item.SignItem;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.Registry;
-import net.minecraft.text.Text;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Rarity;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.BannerPatternItem;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.HangingSignItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemNameBlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.SignItem;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.ItemLike;
 
 public class ModItems {
 
-    public static final Item INDICA_SEEDS = registerItem("indica_seeds", new AliasedBlockItem(ModBlocks.INDICA_CROP, new Item.Settings()));
-    public static final Item INDICA_BUDS = registerItem("indica_buds", new Item(new Item.Settings()));
-    public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", new AliasedBlockItem(ModBlocks.SATIVA_CROP, new Item.Settings()));
-    public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Settings()));
-    public static final Item BELDIA_SEEDS = registerItem("beldia_seeds", new AliasedBlockItem(ModBlocks.BELDIA_CROP, new Item.Settings()));
-    public static final Item BELDIA_BUDS = registerItem("beldia_buds", new Item(new Item.Settings()));
+    public static final Item INDICA_SEEDS = registerItem("indica_seeds", new ItemNameBlockItem(ModBlocks.INDICA_CROP, new Item.Properties()));
+    public static final Item INDICA_BUDS = registerItem("indica_buds", new Item(new Item.Properties()));
+    public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", new ItemNameBlockItem(ModBlocks.SATIVA_CROP, new Item.Properties()));
+    public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Properties()));
+    public static final Item BELDIA_SEEDS = registerItem("beldia_seeds", new ItemNameBlockItem(ModBlocks.BELDIA_CROP, new Item.Properties()));
+    public static final Item BELDIA_BUDS = registerItem("beldia_buds", new Item(new Item.Properties()));
     /**
      * Schwag — a bud gone wrong: seedy, stemmy and weak. Vanilla's poisonous potato, moved into the
      * bud system: it is what a ripe plant's bud sometimes becomes rather than an extra drop, rarely
@@ -65,21 +64,21 @@ public class ModItems {
      * cultivar, the same way there is one poisonous potato whichever plant grew it. It is its own
      * strain entry with no seeds and no flower.
      */
-    public static final Item SCHWAG = registerItem("schwag", new Item(new Item.Settings()));
-    public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Settings()));
+    public static final Item SCHWAG = registerItem("schwag", new Item(new Item.Properties()));
+    public static final Item HEMP_STEM = registerItem("hemp_stem", new Item(new Item.Properties()));
     /**
      * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has
      * rotted away — the first of the four traditional steps ({@code rouissage}, {@code broyage},
      * {@code teillage}, {@code peignage}). It is not fibre yet, and that is the whole point: the
      * cauldron rets, the crafting grid does the breaking and scutching. See {@code materials.md}.
      */
-    public static final Item RETTED_HEMP_STEM = registerItem("retted_hemp_stem", new Item(new Item.Settings()));
+    public static final Item RETTED_HEMP_STEM = registerItem("retted_hemp_stem", new Item(new Item.Properties()));
     /**
      * The fan leaf — and, since 2026-09-08, the loom's cannabis-leaf banner pattern item.
      *
      * <p>On 1.21.1 the loom takes a pattern only from a {@link BannerPatternItem} (it asks
-     * {@code instanceof} and reads {@link BannerPatternItem#getPattern()}, confirmed in
-     * {@code LoomScreenHandler}), so the leaf is one; there is no separate {@code *_banner_pattern}
+     * {@code instanceof} and reads {@link BannerPatternItem#getBannerPattern()}, confirmed in
+     * {@code LoomMenu}), so the leaf is one; there is no separate {@code *_banner_pattern}
      * item, because the leaf itself is the natural stencil and vanilla never consumes a pattern item
      * anyway (the loom takes only the banner and the dye). So this costs a player one leaf they keep
      * for ever, which is the right price for something purely cosmetic. The tag it names is the other
@@ -90,17 +89,17 @@ public class ModItems {
      * left out here rather than given a key of its own.
      */
     public static final Item HEMP_LEAF = registerItem("hemp_leaf",
-            new BannerPatternItem(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM, new Item.Settings()) {
+            new BannerPatternItem(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM, new Item.Properties()) {
                 @Override
-                public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+                public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
                 }
             });
 
     // The cannabutter chain's two intermediates. Both are strain-agnostic: every strain's buds and
     // the leaf all decarboxylate to the same thing, so the pipeline downstream stays a single line
     // of items. Strain identity is carried by the smoking system, not by edibles.
-    public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", new Item(new Item.Settings()));
-    public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", new Item(new Item.Settings()));
+    public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", new Item(new Item.Properties()));
+    public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", new Item(new Item.Properties()));
     /**
      * Hemp heated past the point of use — the furnace's version of the oven's work, and what a
      * vaporizer bowl leaves behind (<b>AVB</b>, "already vaped bud").
@@ -115,14 +114,14 @@ public class ModItems {
      * heat has already broken the chlorophyll down to brown, so there is nothing green left for
      * water to take out.
      */
-    public static final Item SCORCHED_HEMP = registerItem("scorched_hemp", new Item(new Item.Settings()));
+    public static final Item SCORCHED_HEMP = registerItem("scorched_hemp", new Item(new Item.Properties()));
 
     /**
      * What falls through the screen when plant matter is shaken over it dry. <b>Not smokeable</b> —
      * loose powder falls straight through a bowl's screen, which is exactly why the trade presses it.
      * Press it into {@link #HASHISH}, or stick it to a bud as a moon rock's coat.
      */
-    public static final Item KIEF = registerItem("kief", new Item(new Item.Settings()));
+    public static final Item KIEF = registerItem("kief", new Item(new Item.Properties()));
     /**
      * Kief put over the screen a second time at a finer mesh — the trade's <i>3× filtré</i>, at two
      * passes rather than three. <b>The dry road to a blonde product</b>, and the expensive one: each
@@ -132,13 +131,13 @@ public class ModItems {
      * <b>the two buy the same thing</b> — smoothness — and pressing is pressing. Where they differ is
      * the price: see {@code SiftingBoxBlock.KIEF_CHANCE}.
      */
-    public static final Item FILTERED_KIEF = registerItem("filtered_kief", new Item(new Item.Settings()));
+    public static final Item FILTERED_KIEF = registerItem("filtered_kief", new Item(new Item.Properties()));
     /**
      * The same trichome heads, washed out in ice water instead of screened out dry: cleaner, with
      * almost no leaf in it. Presses into {@link #FILTERED_HASHISH}, which is where the smoothness
      * shows up. Not smokeable, for the same reason kief is not.
      */
-    public static final Item BUBBLE_HASH = registerItem("bubble_hash", new Item(new Item.Settings()));
+    public static final Item BUBBLE_HASH = registerItem("bubble_hash", new Item(new Item.Properties()));
     /**
      * Hashish — {@link #KIEF} pressed in the Hemp Press, one for one: resin separated from the
      * plant and squeezed together.
@@ -155,7 +154,7 @@ public class ModItems {
      * oven takes plant matter and the bowl takes resin, so hash is a smoking material only, and the
      * flame is its heat.
      */
-    public static final Item HASHISH = registerItem("hashish", new Item(new Item.Settings()));
+    public static final Item HASHISH = registerItem("hashish", new Item(new Item.Properties()));
 
     /**
      * Charas — soft black resin rubbed off a <b>living</b> plant, and the only hash you can have
@@ -179,7 +178,7 @@ public class ModItems {
      * no memory of which plant it came off, and it never decarboxylates: only heat does that, and
      * resin in the hand is as raw as the plant it came off.
      */
-    public static final Item CHARAS = registerItem("charas", new Item(new Item.Settings()));
+    public static final Item CHARAS = registerItem("charas", new Item(new Item.Properties()));
 
     /**
      * Filtered hashish — loose blonde powder, the cleanest thing the screen makes.
@@ -209,29 +208,29 @@ public class ModItems {
      * whole 1×–3× range. A third pass would be a second near-identical blonde for no mechanic, and
      * the re-sift's three to one already says what a pass costs.
      */
-    public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", new Item(new Item.Settings()));
+    public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", new Item(new Item.Properties()));
     /**
      * Pressed out of filtered hashish in the Hemp Press. A strain entry with no flower, like the
      * rest of the hash family — but the only one whose {@code dose_per_item} is not 1.
      */
-    public static final Item ROSIN = registerItem("rosin", new Item(new Item.Settings()));
+    public static final Item ROSIN = registerItem("rosin", new Item(new Item.Properties()));
     /**
      * A bud dipped in rosin and rolled in a hash coat — hashish, charas or filtered hashish. One
      * item for every strain and every coat: the strain rides in
      * the {@code smoke_contents} component, exactly as it does on a spliff. See {@link MoonRockItem}.
      */
-    public static final Item MOON_ROCK = registerItem("moon_rock", new MoonRockItem(new Item.Settings()));
+    public static final Item MOON_ROCK = registerItem("moon_rock", new MoonRockItem(new Item.Properties()));
 
     public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign",
-            new SignItem(new Item.Settings().maxCount(16), ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN));
+            new SignItem(new Item.Properties().stacksTo(16), ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN));
     public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign",
-            new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, new Item.Settings().maxCount(16)));
+            new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, new Item.Properties().stacksTo(16)));
 
-    public static final Item HEMP_BOAT = registerItem("hemp_boat", new HempBoatItem(false, new Item.Settings().maxCount(1)));
-    public static final Item HEMP_CHEST_BOAT = registerItem("hemp_chest_boat", new HempBoatItem(true, new Item.Settings().maxCount(1)));
+    public static final Item HEMP_BOAT = registerItem("hemp_boat", new HempBoatItem(false, new Item.Properties().stacksTo(1)));
+    public static final Item HEMP_CHEST_BOAT = registerItem("hemp_chest_boat", new HempBoatItem(true, new Item.Properties().stacksTo(1)));
 
-    public static final Item HEMP_FLOUR = registerItem("hemp_flour", new Item(new Item.Settings()));
-    public static final Item HEMP_FIBER = registerItem("hemp_fiber", new Item(new Item.Settings()));
+    public static final Item HEMP_FLOUR = registerItem("hemp_flour", new Item(new Item.Properties()));
+    public static final Item HEMP_FIBER = registerItem("hemp_fiber", new Item(new Item.Properties()));
     /**
      * Woven hemp cloth, and the mod's stand-in for leather. Hemp canvas is the oldest use the plant
      * has — the word "canvas" is itself a corruption of "cannabis" — and sailcloth and rope were
@@ -239,10 +238,10 @@ public class ModItems {
      * the item frame recipe only; see CLAUDE.md for the open question of which other leather recipes
      * it should reach.
      */
-    public static final Item HEMP_CANVAS = registerItem("hemp_canvas", new Item(new Item.Settings()));
-    public static final Item HEMPCRETE = registerItem("hempcrete", new Item(new Item.Settings()));
-    public static final Item HEMP_BRICK = registerItem("hemp_brick", new Item(new Item.Settings()));
-    public static final Item CANNABUTTER = registerItem("cannabutter", new CannabutterItem(new Item.Settings()));
+    public static final Item HEMP_CANVAS = registerItem("hemp_canvas", new Item(new Item.Properties()));
+    public static final Item HEMPCRETE = registerItem("hempcrete", new Item(new Item.Properties()));
+    public static final Item HEMP_BRICK = registerItem("hemp_brick", new Item(new Item.Properties()));
+    public static final Item CANNABUTTER = registerItem("cannabutter", new CannabutterItem(new Item.Properties()));
 
     // ---------------------------------------------------------------------
     // Wholesome hemp-seed food. No THC anywhere in this block — hemp seed is
@@ -259,12 +258,12 @@ public class ModItems {
      * a small, very dense seed honestly is. Dried-kelp tier.
      */
     public static final Item TOASTED_HEMP_SEEDS = registerItem("toasted_hemp_seeds",
-            new Item(new Item.Settings().food(new FoodComponent.Builder()
-                    .nutrition(2).saturationModifier(0.6F).snack().build())));
+            new Item(new Item.Properties().food(new FoodProperties.Builder()
+                    .nutrition(2).saturationModifier(0.6F).fast().build())));
 
     /** Seeds bound with honey. Portable and saturation-heavy, the shape a flapjack actually is. */
     public static final Item HEMP_FLAPJACK = registerItem("hemp_flapjack",
-            new Item(new Item.Settings().food(new FoodComponent.Builder()
+            new Item(new Item.Properties().food(new FoodProperties.Builder()
                     .nutrition(4).saturationModifier(0.6F).build())));
 
     /**
@@ -273,14 +272,14 @@ public class ModItems {
      * lets it be poured into siemieniotka without losing the bucket.
      */
     public static final Item HEMP_MILK_BUCKET = registerItem("hemp_milk_bucket",
-            new HempMilkItem(new Item.Settings().maxCount(1).recipeRemainder(Items.BUCKET)));
+            new HempMilkItem(new Item.Properties().stacksTo(1).craftRemainder(Items.BUCKET)));
 
     /**
      * Siemieniotka — the Silesian hemp-seed Christmas Eve soup. Vanilla stew parity (6 / 0.6) and
      * vanilla's own bowl, returned on eating the way every vanilla stew returns its own.
      */
     public static final Item SIEMIENIOTKA = registerItem("siemieniotka",
-            new Item(new Item.Settings().maxCount(1).food(new FoodComponent.Builder()
+            new Item(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder()
                     .nutrition(6).saturationModifier(0.6F).usingConvertsTo(Items.BOWL).build())));
 
     // ---------------------------------------------------------------------
@@ -301,17 +300,17 @@ public class ModItems {
      * speed: no hemp flour, no cocoa, no sugar.
      */
     public static final Item CANNABUTTER_TOAST = registerItem("cannabutter_toast",
-            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
+            new EdibleItem(new Item.Properties().food(new FoodProperties.Builder()
                     .nutrition(2).saturationModifier(0.3F).alwaysEdible().build())));
 
     /** Vanilla cookie parity (2 / 0.1), eight to a batch. The cheap, low-dose entry point. */
     public static final Item SPACE_COOKIE = registerItem("space_cookie",
-            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
+            new EdibleItem(new Item.Properties().food(new FoodProperties.Builder()
                     .nutrition(2).saturationModifier(0.1F).alwaysEdible().build())));
 
     /** Richer than a cookie, pitched at an apple (4 / 0.3). Four to a batch. */
     public static final Item SPACE_BROWNIE = registerItem("space_brownie",
-            new EdibleItem(new Item.Settings().food(new FoodComponent.Builder()
+            new EdibleItem(new Item.Properties().food(new FoodProperties.Builder()
                     .nutrition(4).saturationModifier(0.3F).alwaysEdible().build())));
 
     /**
@@ -321,7 +320,7 @@ public class ModItems {
      * the cruder preparation. See {@link BhangItem} for the design.
      */
     public static final Item BHANG_BUCKET = registerItem("bhang_bucket",
-            new BhangItem(new Item.Settings().maxCount(1).food(new FoodComponent.Builder()
+            new BhangItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder()
                     .nutrition(6).saturationModifier(0.3F).alwaysEdible()
                     .usingConvertsTo(Items.BUCKET).build())));
 
@@ -331,7 +330,7 @@ public class ModItems {
      * bread on saturation (6 / 0.6 = 7.2) while costing a whole cannabutter for a single item.
      */
     public static final Item DAWAMESK = registerItem("dawamesk",
-            new EdibleItem(new Item.Settings().maxCount(16).food(new FoodComponent.Builder()
+            new EdibleItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder()
                     .nutrition(6).saturationModifier(0.6F).alwaysEdible().build())));
 
     /**
@@ -340,7 +339,7 @@ public class ModItems {
      *
      * @see com.warlonmhite.hempdustry.recipe.Infusion
      */
-    public record InfusedEdible(ItemConvertible item, int potencyOffset) {
+    public record InfusedEdible(ItemLike item, int potencyOffset) {
         /** Lowest tier this edible can ever carry — {@link EdibleEffects#applyOffset} clamps at 1. */
         public int minTier() {
             return EdibleEffects.applyOffset(1, potencyOffset);
@@ -370,7 +369,7 @@ public class ModItems {
             new InfusedEdible(DAWAMESK, +1));
 
     /** The offset {@code item} was declared with. Throws rather than guessing — datagen reads this. */
-    public static int potencyOffsetOf(ItemConvertible item) {
+    public static int potencyOffsetOf(ItemLike item) {
         for (InfusedEdible edible : INFUSED_EDIBLES) {
             if (edible.item() == item) {
                 return edible.potencyOffset();
@@ -383,7 +382,7 @@ public class ModItems {
     // the smoke_contents component, the way a potion carries potion_contents — so a new strain adds
     // no items, no models and no per-device lang keys. See CLAUDE.md §5b D10.
     public static final Item SPLIFF = registerItem("spliff",
-            new SpliffItem(new Item.Settings().rarity(Rarity.COMMON).maxCount(16)));
+            new SpliffItem(new Item.Properties().rarity(Rarity.COMMON).stacksTo(16)));
 
     /**
      * Every device, keyed by its {@link DeviceType}. <b>Declared above the devices themselves on
@@ -421,9 +420,9 @@ public class ModItems {
     // Same shape as a vanilla common disc (single-stack, uncommon, jukebox-playable). The song data
     // — length, comparator output, "Now Playing" label — lives in the JUKEBOX_SONG entry it points at.
     public static final Item MUSIC_DISC_MOONLIGHT = registerItem("music_disc_moonlight",
-            new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.MOONLIGHT_SONG)));
+            new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.MOONLIGHT_SONG)));
     public static final Item MUSIC_DISC_ROBADOB = registerItem("music_disc_robadob",
-            new Item(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.ROBADOB_SONG)));
+            new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.ROBADOB_SONG)));
 
     /**
      * Every disc the mod ships, in one place — the creative tab, the two disc tags and the chest
@@ -437,20 +436,20 @@ public class ModItems {
     // flip-flops as a sole and a strap -- and the material's layers draw nothing for them.
     // Durability 5 is leather's: hemp is the hard-wearing cloth (sailcloth, canvas), so it wears as
     // long as leather does, and only leather's protection stays out of reach. It was 3 until 2.1.
-    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Settings()
-            .maxDamage(ArmorItem.Type.HELMET.getMaxDamage(5))));
-    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Settings()
-            .maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(5))));
-    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Settings()
-            .maxDamage(ArmorItem.Type.LEGGINGS.getMaxDamage(5))));
-    public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Settings()
-            .maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(5))));
+    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Properties()
+            .durability(ArmorItem.Type.HELMET.getDurability(5))));
+    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Properties()
+            .durability(ArmorItem.Type.CHESTPLATE.getDurability(5))));
+    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Properties()
+            .durability(ArmorItem.Type.LEGGINGS.getDurability(5))));
+    public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Properties()
+            .durability(ArmorItem.Type.BOOTS.getDurability(5))));
 
     private static Item registerDevice(DeviceType device) {
         Item item = registerItem(device.baseName(),
                 // Null for everything but the bong: a device with no block does not place.
                 new SmokingDeviceItem(device, ModBlocks.DEVICE_BLOCKS.get(device.baseName()),
-                        deviceSettings(new Item.Settings(), device)));
+                        deviceSettings(new Item.Properties(), device)));
         DEVICES.put(device, item);
         return item;
     }
@@ -459,8 +458,8 @@ public class ModItems {
         List<Item> bongs = new ArrayList<>();
         bongs.add(registerBong("tinted_bong", Items.TINTED_GLASS));
         for (DyeColor color : ModBlocks.DYE_ORDER) {
-            bongs.add(registerBong(color.asString() + "_bong",
-                    Registries.ITEM.get(Identifier.ofVanilla(color.asString() + "_stained_glass"))));
+            bongs.add(registerBong(color.getSerializedName() + "_bong",
+                    BuiltInRegistries.ITEM.get(ResourceLocation.withDefaultNamespace(color.getSerializedName() + "_stained_glass"))));
         }
         return List.copyOf(bongs);
     }
@@ -468,13 +467,13 @@ public class ModItems {
     /** A bong in coloured glass, repaired with the glass it is blown from. */
     private static Item registerBong(String name, Item glass) {
         return registerItem(name, new SmokingDeviceItem(DeviceType.BONG, ModBlocks.DEVICE_BLOCKS.get(name),
-                deviceSettings(new Item.Settings(), DeviceType.BONG), glass));
+                deviceSettings(new Item.Properties(), DeviceType.BONG), glass));
     }
 
-    private static Item.Settings deviceSettings(Item.Settings settings, DeviceType device) {
+    private static Item.Properties deviceSettings(Item.Properties settings, DeviceType device) {
         // Enchantability is an Item override on this line, read off the device type in
         // SmokingDeviceItem#getEnchantability, so the settings stop at the stack and the durability.
-        return settings.maxCount(1).maxDamage(device.maxDamage()).rarity(Rarity.COMMON);
+        return settings.stacksTo(1).durability(device.maxDamage()).rarity(Rarity.COMMON);
     }
 
     /** Every bong, clear glass first — for anything that means "a bong" rather than one colour. */
@@ -499,10 +498,10 @@ public class ModItems {
      *
      * <h2>Why strain is listed and dose is not</h2>
      *
-     * This copies the enchanted book: {@code ItemGroups} pairs
-     * {@code addMaxLevelEnchantedBooks(…, PARENT_TAB_ONLY)} with
-     * {@code addAllLevelEnchantedBooks(…, SEARCH_TAB_ONLY)}, so the Ingredients tab shows one book per
-     * enchantment while every level lives in the search tab.
+     * This copies the enchanted book: {@code CreativeModeTabs} pairs
+     * {@code generateEnchantmentBookTypesOnlyMaxLevel(…, PARENT_TAB_ONLY)} with
+     * {@code generateEnchantmentBookTypesAllLevels(…, SEARCH_TAB_ONLY)}, so the Ingredients tab shows one
+     * book per enchantment while every level lives in the search tab.
      *
      * <p><b>Vanilla would arguably enumerate at our size.</b> It shows all 46 potions including the
      * nine "strong" level-II ones, and it lists integer component levels outright — ominous bottle
@@ -515,7 +514,7 @@ public class ModItems {
      * <p><b>Nothing is lost to a modpack by that.</b> Both recipe viewers read the search set, not
      * the visible grid: JEI's {@code ItemStackListFactory} walks {@code getDisplayItems()} <em>and</em>
      * {@code getSearchTabDisplayItems()}, and EMI's {@code EmiStackList} reads
-     * {@code getSearchTabStacks()} outright. A search-only stack is a fully listed stack to both.
+     * {@code getSearchTabDisplayItems()} outright. A search-only stack is a fully listed stack to both.
      *
      * <p>The showcase carries <b>dose 1</b> where vanilla's book carries the max level. Deliberate,
      * and the same reason vanilla writes "Potion of Strength" for the level-I one: dose 1 is the
@@ -523,12 +522,12 @@ public class ModItems {
      *
      * @see #allSmokeables()
      */
-    public static List<ItemStack> showcaseSmokeables(RegistryWrapper.WrapperLookup registries) {
+    public static List<ItemStack> showcaseSmokeables(HolderLookup.Provider registries) {
         List<ItemStack> out = new ArrayList<>();
-        List<RegistryEntry.Reference<Strain>> strains = Strain.all(registries);
+        List<Holder.Reference<Strain>> strains = Strain.all(registries);
         // Plants only: a pure-hash spliff has no recipe (a joint needs something to burn), so
         // offering one in the tab would be a stack nothing can make. Pipes and bongs take anything.
-        for (RegistryEntry.Reference<Strain> strain : rollable(strains)) {
+        for (Holder.Reference<Strain> strain : rollable(strains)) {
             out.add(loaded(SPLIFF, strain, 1, 0));
         }
         for (Map.Entry<DeviceType, Item> entry : DEVICES.entrySet()) {
@@ -536,7 +535,7 @@ public class ModItems {
             Item item = entry.getValue();
             out.add(new ItemStack(item));
             DeviceStats.Bowl bowl = DeviceStats.bowl(registries, device);
-            for (RegistryEntry<Strain> strain : strains) {
+            for (Holder<Strain> strain : strains) {
                 // The smallest load that strain can actually make in that device -- one item's
                 // worth. For everything but rosin that is dose 1, exactly as before; for rosin it is
                 // dose 3, and in the two devices that cannot hold it there is nothing to show.
@@ -552,14 +551,14 @@ public class ModItems {
     /**
      * Every smokeable that exists: each device empty, and one stack per device per dose per active
      * strain. This is the {@code SEARCH_TAB_ONLY} half of the pair — what the creative search field
-     * and the recipe viewers see. It is a superset of {@link #showcaseSmokeables()}, and re-adding
-     * those stacks is safe because the duplicate guard in {@code ItemGroup.EntriesImpl#add} exempts
-     * search-only entries. Vanilla's two enchanted-book passes overlap the same way.
+     * and the recipe viewers see. It is a superset of {@link #showcaseSmokeables()}, and re-adding those
+     * stacks is safe because the duplicate guard in {@code CreativeModeTab.ItemDisplayBuilder#accept}
+     * exempts search-only entries. Vanilla's two enchanted-book passes overlap the same way.
      */
-    public static List<ItemStack> allSmokeables(RegistryWrapper.WrapperLookup registries) {
+    public static List<ItemStack> allSmokeables(HolderLookup.Provider registries) {
         List<ItemStack> out = new ArrayList<>();
-        List<RegistryEntry.Reference<Strain>> strains = Strain.all(registries);
-        for (RegistryEntry.Reference<Strain> strain : rollable(strains)) {
+        List<Holder.Reference<Strain>> strains = Strain.all(registries);
+        for (Holder.Reference<Strain> strain : rollable(strains)) {
             for (int dose = 1; dose <= SPLIFF_MAX_DOSE; dose++) {
                 out.add(loaded(SPLIFF, strain, dose, 0));
             }
@@ -569,8 +568,8 @@ public class ModItems {
             if (strain.value().wildFlower().isEmpty()) {
                 continue;
             }
-            for (RegistryEntry.Reference<Strain> hash : strains) {
-                if (ModStrains.BUILT_IN.contains(hash.registryKey()) && hash.value().wildFlower().isEmpty()
+            for (Holder.Reference<Strain> hash : strains) {
+                if (ModStrains.BUILT_IN.contains(hash.key()) && hash.value().wildFlower().isEmpty()
                         && hash.value().dosePerItem() <= 1) {
                     for (int buds = 1; buds < SPLIFF_MAX_DOSE; buds++) {
                         ItemStack stack = new ItemStack(SPLIFF);
@@ -585,7 +584,7 @@ public class ModItems {
             Item item = entry.getValue();
             out.add(new ItemStack(item));
             DeviceStats.Bowl bowl = DeviceStats.bowl(registries, device);
-            for (RegistryEntry<Strain> strain : strains) {
+            for (Holder<Strain> strain : strains) {
                 // Dose climbs one ITEM at a time, not one point at a time. They are the same thing
                 // for every strain but rosin, whose one piece is worth three -- so a rosin bong at
                 // dose 1 or 2 is a state no recipe can reach and does not belong in the search tab.
@@ -605,7 +604,7 @@ public class ModItems {
      *
      * @see #moonRocks
      */
-    public static List<ItemStack> showcaseMoonRocks(RegistryWrapper.WrapperLookup registries) {
+    public static List<ItemStack> showcaseMoonRocks(HolderLookup.Provider registries) {
         return moonRocks(registries, List.of(ModStrains.HASHISH));
     }
 
@@ -619,25 +618,25 @@ public class ModItems {
      * or replaces one keeps working; a coat that is gone takes its moon rocks with it, which is the
      * honest answer.
      */
-    public static List<ItemStack> moonRocks(RegistryWrapper.WrapperLookup registries) {
+    public static List<ItemStack> moonRocks(HolderLookup.Provider registries) {
         return moonRocks(registries, List.of(ModStrains.HASHISH, ModStrains.CHARAS, ModStrains.FILTERED_HASHISH));
     }
 
-    private static List<ItemStack> moonRocks(RegistryWrapper.WrapperLookup registries, List<RegistryKey<Strain>> coats) {
+    private static List<ItemStack> moonRocks(HolderLookup.Provider registries, List<ResourceKey<Strain>> coats) {
         List<ItemStack> out = new ArrayList<>();
-        for (RegistryEntry.Reference<Strain> strain : Strain.all(registries)) {
+        for (Holder.Reference<Strain> strain : Strain.all(registries)) {
             if (strain.value().wildFlower().isEmpty()) {
                 continue;
             }
-            for (RegistryKey<Strain> coat : coats) {
-                Strain.registry(registries).getOptional(coat).ifPresent(hash -> out.add(moonRock(strain, hash)));
+            for (ResourceKey<Strain> coat : coats) {
+                Strain.registry(registries).get(coat).ifPresent(hash -> out.add(moonRock(strain, hash)));
             }
         }
         return out;
     }
 
     /** The exact stack {@code ModRecipeProvider} bakes, so the tab and the recipe cannot disagree. */
-    public static ItemStack moonRock(RegistryEntry<Strain> strain, RegistryEntry<Strain> hashish) {
+    public static ItemStack moonRock(Holder<Strain> strain, Holder<Strain> hashish) {
         ItemStack stack = new ItemStack(MOON_ROCK);
         stack.set(ModComponents.SMOKE_CONTENTS,
                 SmokeContents.of(strain, MOON_ROCK_DOSE, hashish, MOON_ROCK_HASH_DOSE));
@@ -662,7 +661,7 @@ public class ModItems {
      * it goes in <em>alongside</em> the buds instead. Schwag has no plant of its own but is still a
      * bud, and the schwag joint is the archetype.
      */
-    private static List<RegistryEntry.Reference<Strain>> rollable(List<RegistryEntry.Reference<Strain>> strains) {
+    private static List<Holder.Reference<Strain>> rollable(List<Holder.Reference<Strain>> strains) {
         return strains.stream().filter(ModStrains::isPlantMatter).toList();
     }
 
@@ -676,7 +675,7 @@ public class ModItems {
     // each, the whole matrix goes in the search tab. What is different is
     // that these have *two* level axes and no identity axis at all, so the
     // search pass is a cross-product -- which is exactly what vanilla's
-    // addAllLevelEnchantedBooks does with enchantment x level.
+    // generateEnchantmentBookTypesAllLevels does with enchantment x level.
     //
     // The grid entries carry components where they used to carry none.
     // A potency-0 edible does nothing and no recipe can make one, so listing
@@ -752,7 +751,7 @@ public class ModItems {
         return stack;
     }
 
-    private static ItemStack dosed(ItemConvertible item, int potency, Quality quality) {
+    private static ItemStack dosed(ItemLike item, int potency, Quality quality) {
         ItemStack stack = new ItemStack(item);
         stack.set(ModComponents.POTENCY, potency);
         stack.set(ModComponents.QUALITY, quality);
@@ -760,7 +759,7 @@ public class ModItems {
     }
 
     /** A spliff or device holding {@code dose} buds of one strain, with a full bowl where it has one. */
-    private static ItemStack loaded(Item item, RegistryEntry<Strain> strain, int dose, int charges) {
+    private static ItemStack loaded(Item item, Holder<Strain> strain, int dose, int charges) {
         ItemStack stack = new ItemStack(item);
         stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
         if (charges > 0) {
@@ -770,7 +769,7 @@ public class ModItems {
     }
 
     private static Item registerItem(String name, Item item){
-        return Registry.register(Registries.ITEM, Identifier.of(Hempdustry.MOD_ID, name), item);
+        return Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name), item);
     }
     public static void registerModItems(){
         Hempdustry.LOGGER.info("Registering Mod Items for " + Hempdustry.MOD_ID);

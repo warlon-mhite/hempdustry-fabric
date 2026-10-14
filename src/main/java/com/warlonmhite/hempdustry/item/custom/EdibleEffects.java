@@ -4,19 +4,18 @@ import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.MathHelper;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * What an edible does: the full design, and the reasoning behind every number, made executable.
@@ -67,18 +66,18 @@ public final class EdibleEffects {
     // since 2.1: EdibleBundle, whose built-in value carries the reasoning behind each of them.
 
     /** One effect of the bundle and how many ticks after eating it lands. */
-    public record Dose(int delay, StatusEffectInstance effect) {
+    public record Dose(int delay, MobEffectInstance effect) {
     }
 
     /** Cannabutter strength (1..24) collapsed to a potency tier (1..4) by even quartiles. */
     public static int tierFromStrength(int strength) {
-        int clamped = MathHelper.clamp(strength, 1, STRENGTH_CAP);
-        return MathHelper.clamp((clamped - 1) * MAX_TIER / STRENGTH_CAP + 1, 1, MAX_TIER);
+        int clamped = Mth.clamp(strength, 1, STRENGTH_CAP);
+        return Mth.clamp((clamped - 1) * MAX_TIER / STRENGTH_CAP + 1, 1, MAX_TIER);
     }
 
     /** A tier with an edible's own offset applied. Clamping is what removes any need for a floor. */
     public static int applyOffset(int tier, int offset) {
-        return MathHelper.clamp(tier + offset, 1, MAX_TIER);
+        return Mth.clamp(tier + offset, 1, MAX_TIER);
     }
 
     /** The potency an edible stack carries, or 0 if it carries none. */
@@ -119,13 +118,13 @@ public final class EdibleEffects {
      * {@link HempdustryEvents#AFTER_EAT} is fired from here rather than from either call site. An
      * edible added later joins by using the same door.
      */
-    public static void consume(PlayerEntity player, int tier, Quality quality) {
+    public static void consume(Player player, int tier, Quality quality) {
         if (tier <= 0) {
             // Undosed: nothing is queued, so nothing was consumed in the sense a listener cares
             // about, and no event fires.
             return;
         }
-        EdibleBundle data = EdibleBundle.of(player.getRegistryManager());
+        EdibleBundle data = EdibleBundle.of(player.registryAccess());
         for (Dose dose : bundle(data, tier, quality, rollOnsetTicks(data, quality, ThreadLocalRandom.current()))) {
             queue(player, dose.delay(), dose.effect());
         }
@@ -146,7 +145,7 @@ public final class EdibleEffects {
      * multiplier, as Regeneration's never was.
      */
     public static List<Dose> bundle(EdibleBundle data, int tier, Quality quality, int onset) {
-        int index = MathHelper.clamp(tier, 1, MAX_TIER) - 1;
+        int index = Mth.clamp(tier, 1, MAX_TIER) - 1;
         int duration = (int) (durationTicks(data, quality) * (double) data.tierShare().get(index));
         List<Dose> out = new ArrayList<>();
         for (EdibleBundle.Effect effect : data.effects()) {
@@ -157,19 +156,19 @@ public final class EdibleEffects {
         return out;
     }
 
-    private static void add(List<Dose> out, int delay, RegistryEntry<StatusEffect> effect,
+    private static void add(List<Dose> out, int delay, Holder<MobEffect> effect,
                             int amplifier, int duration) {
         if (duration > 0) {
-            out.add(new Dose(delay, new StatusEffectInstance(effect, duration, amplifier)));
+            out.add(new Dose(delay, new MobEffectInstance(effect, duration, amplifier)));
         }
     }
 
-    private static void queue(PlayerEntity player, int delay, StatusEffectInstance effect) {
+    private static void queue(Player player, int delay, MobEffectInstance effect) {
         // Through the same gate as everything else: an edible obeys effects.enabled, the debuff and
         // munchies switches and the level cap exactly as a bong hit does. Durations arrive already
         // scaled from durationTicks, so the policy's own scaling is not applied twice here -- it is
         // filter() that is wanted, and it returns nothing when the effect is switched off.
-        for (StatusEffectInstance allowed : EffectPolicy.filterKeepingDuration(List.of(effect))) {
+        for (MobEffectInstance allowed : EffectPolicy.filterKeepingDuration(List.of(effect))) {
             EdibleScheduler.schedule(player, delay, allowed);
         }
     }
@@ -182,17 +181,17 @@ public final class EdibleEffects {
      * stack in your inventory has no in-world surface, and vanilla answers exactly that case with a
      * tooltip line on potions, enchanted books and suspicious stew.
      */
-    public static void appendTooltip(ItemStack stack, List<Text> tooltip) {
+    public static void appendTooltip(ItemStack stack, List<Component> tooltip) {
         int potency = potencyOf(stack);
         if (potency <= 0) {
             return;
         }
-        tooltip.add(Text.translatable("hempdustry.edible.potency",
-                Text.translatable("enchantment.level." + potency)).formatted(Formatting.GRAY));
+        tooltip.add(Component.translatable("hempdustry.edible.potency",
+                Component.translatable("enchantment.level." + potency)).withStyle(ChatFormatting.GRAY));
         Quality quality = stack.get(ModComponents.QUALITY);
         if (quality != null) {
-            tooltip.add(Text.translatable("hempdustry.edible.quality",
-                    Text.translatable(quality.getTranslationKey())).formatted(Formatting.DARK_GRAY));
+            tooltip.add(Component.translatable("hempdustry.edible.quality",
+                    Component.translatable(quality.getTranslationKey())).withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 }

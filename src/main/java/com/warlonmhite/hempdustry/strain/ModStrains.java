@@ -6,13 +6,12 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.strain.Strain.SmokeEffect;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.registry.Registerable;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffects;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,17 +60,17 @@ import java.util.Optional;
  */
 public class ModStrains {
 
-    public static final RegistryKey<Strain> INDICA = key("indica");
-    public static final RegistryKey<Strain> SATIVA = key("sativa");
+    public static final ResourceKey<Strain> INDICA = key("indica");
+    public static final ResourceKey<Strain> SATIVA = key("sativa");
     /** Not a plant: kief from the Sifting Box, pressed. Strainless by construction; no seeds, no flower. */
-    public static final RegistryKey<Strain> HASHISH = key("hashish");
+    public static final ResourceKey<Strain> HASHISH = key("hashish");
     /** Not a plant either: resin rubbed off a ripe living plant with the shears. */
-    public static final RegistryKey<Strain> CHARAS = key("charas");
+    public static final ResourceKey<Strain> CHARAS = key("charas");
     /** Not a plant either: kief re-sifted at a finer mesh, or bubble hash, pressed. */
-    public static final RegistryKey<Strain> FILTERED_HASHISH = key("filtered_hashish");
-    public static final RegistryKey<Strain> ROSIN = key("rosin");
+    public static final ResourceKey<Strain> FILTERED_HASHISH = key("filtered_hashish");
+    public static final ResourceKey<Strain> ROSIN = key("rosin");
     /** The Rif's landrace, grown on sand beside water for the sieve. Its wild flower is its own crop. */
-    public static final RegistryKey<Strain> BELDIA = key("beldia");
+    public static final ResourceKey<Strain> BELDIA = key("beldia");
     /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
@@ -79,13 +78,13 @@ public class ModStrains {
      * (spliffs, hash spliffs, moon rocks, the oven) ever see it. It is loaded like any datapack
      * strain would be, which is exactly what it is shaped like.
      */
-    public static final RegistryKey<Strain> SCORCHED_HEMP = key("scorched_hemp");
+    public static final ResourceKey<Strain> SCORCHED_HEMP = key("scorched_hemp");
     /**
      * A plant's bud gone wrong. Outside {@link #BUILT_IN} for the same reasons as scorched hemp — no
      * art of its own, the shared tinted look — but unlike it, <b>plant matter</b>: see
      * {@link #isPlantMatter}.
      */
-    public static final RegistryKey<Strain> SCHWAG = key("schwag");
+    public static final ResourceKey<Strain> SCHWAG = key("schwag");
 
     /**
      * The strains the mod ships art and recipes for. <b>Append only, and never reorder</b> —
@@ -95,7 +94,7 @@ public class ModStrains {
      *
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
-    public static final List<RegistryKey<Strain>> BUILT_IN =
+    public static final List<ResourceKey<Strain>> BUILT_IN =
             List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA);
 
     /** First {@code model_index} this mod claims for its own art. */
@@ -117,7 +116,7 @@ public class ModStrains {
         // Checked once, at startup: a datapack is exactly where a clashing index comes from, and the
         // registry is read only when the world opens — /reload keeps the strains it has.
         ServerLifecycleEvents.SERVER_STARTED.register(server ->
-                validateModelIndices(server.getRegistryManager()));
+                validateModelIndices(server.registryAccess()));
         Hempdustry.LOGGER.info("Registering Strains for " + Hempdustry.MOD_ID);
     }
 
@@ -134,15 +133,15 @@ public class ModStrains {
      * <p>Warnings only, never a hard failure: a wrong texture is not worth refusing to load a world
      * over, and the server owner may not be the person who can fix the datapack.
      */
-    private static void validateModelIndices(RegistryWrapper.WrapperLookup registries) {
-        Map<Integer, Identifier> claimed = new HashMap<>();
-        for (RegistryEntry.Reference<Strain> entry : Strain.all(registries)) {
+    private static void validateModelIndices(HolderLookup.Provider registries) {
+        Map<Integer, ResourceLocation> claimed = new HashMap<>();
+        for (Holder.Reference<Strain> entry : Strain.all(registries)) {
             int index = entry.value().modelIndex();
             if (index == 0) {
                 continue; // "no art of my own" — shared by design, never a clash
             }
-            Identifier id = entry.registryKey().getValue();
-            Identifier previous = claimed.putIfAbsent(index, id);
+            ResourceLocation id = entry.key().location();
+            ResourceLocation previous = claimed.putIfAbsent(index, id);
             if (previous != null) {
                 Hempdustry.LOGGER.warn(
                         "Strains {} and {} both declare model_index {} — one will wear the other's art. "
@@ -170,22 +169,22 @@ public class ModStrains {
      * spent bowl in a vaporizer like any bud, and it is sifted, coated or found in the grass like
      * none of them.
      */
-    public static boolean isPlantMatter(RegistryEntry<Strain> strain) {
-        return strain.value().wildFlower().isPresent() || strain.matchesKey(SCHWAG);
+    public static boolean isPlantMatter(Holder<Strain> strain) {
+        return strain.value().wildFlower().isPresent() || strain.is(SCHWAG);
     }
 
     /** The art index a built-in strain gets. Datagen and the bootstrap both read this. */
-    public static int modelIndex(RegistryKey<Strain> key) {
+    public static int modelIndex(ResourceKey<Strain> key) {
         int index = BUILT_IN.indexOf(key);
         return index < 0 ? 0 : index + RESERVED_MODEL_INDEX_MIN;
     }
 
     /** The registry id's path — {@code indica} — which is what texture and recipe names are built on. */
-    public static String id(RegistryKey<Strain> key) {
-        return key.getValue().getPath();
+    public static String id(ResourceKey<Strain> key) {
+        return key.location().getPath();
     }
 
-    public static void bootstrap(Registerable<Strain> context) {
+    public static void bootstrap(BootstrapContext<Strain> context) {
         // Purple Kush — the body high: hard to hurt, hard to get anything done.
         //
         // The colour is every tinted Purple Kush load (pipe, bong, vaporizer LED, moon rock), and a
@@ -196,9 +195,9 @@ public class ModStrains {
                 Optional.of(ModItems.INDICA_SEEDS), ModItems.INDICA_BUDS,
                 Optional.of(ModBlocks.INDICA_FLOWER), 1.0F, 1,
                 List.of(
-                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true),
-                        new SmokeEffect(StatusEffects.MINING_FATIGUE, 0, true))));
+                        new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true),
+                        new SmokeEffect(MobEffects.DIG_SLOWDOWN, 0, true))));
 
         // Lemon Haze — the head high, and a deliberate mirror of Purple Kush: where indica buffs
         // defence and taxes mining, sativa buffs movement and mining and taxes melee damage. Hunger
@@ -208,10 +207,10 @@ public class ModStrains {
                 Optional.of(ModItems.SATIVA_SEEDS), ModItems.SATIVA_BUDS,
                 Optional.of(ModBlocks.SATIVA_FLOWER), 1.0F, 1,
                 List.of(
-                        new SmokeEffect(StatusEffects.SPEED, 0, true),
-                        new SmokeEffect(StatusEffects.HASTE, 0, true),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true),
-                        new SmokeEffect(StatusEffects.WEAKNESS, 0, true))));
+                        new SmokeEffect(MobEffects.MOVEMENT_SPEED, 0, true),
+                        new SmokeEffect(MobEffects.DIG_SPEED, 0, true),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true),
+                        new SmokeEffect(MobEffects.WEAKNESS, 0, true))));
 
         // Beldía -- the Rif's traditional landrace ("of the country" in Darija), grown for the sieve
         // rather than the bowl: its buds count double at the Sifting Box, and its flower smokes harsh.
@@ -219,7 +218,7 @@ public class ModStrains {
         // "MIRAGE". INVISIBILITY is the signature, flat because a level buys nothing. BLINDNESS is the
         // tax -- streaming eyes from leafy, unfiltered smoke -- and it lands with the exhale, for a
         // quarter of the hit: a bong's 50 s of Invisibility opens on about 12 s of Blindness. Blindness
-        // stops sprinting and critical hits (PlayerEntity#canSprint, #isCriticalHit), so this is a
+        // stops sprinting and critical hits (Player#canSprint, #canCriticalAttack), so this is a
         // sneak-past, never a fight. Priced against the potion: a golden carrot and a fermented spider
         // eye, mid-game and cheap, so a farmable bud skips no gate. Hunger, as ever. Neither buff
         // scales -- the one plant with no scaling effect, because it is grown to be sifted.
@@ -231,9 +230,9 @@ public class ModStrains {
                 Optional.of(ModItems.BELDIA_SEEDS), ModItems.BELDIA_BUDS,
                 Optional.of(ModBlocks.BELDIA_CROP), 1.0F, 1,
                 List.of(
-                        new SmokeEffect(StatusEffects.INVISIBILITY, 0, false),
-                        new SmokeEffect(StatusEffects.BLINDNESS, 0, false, 0.25F, true),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true)),
+                        new SmokeEffect(MobEffects.INVISIBILITY, 0, false),
+                        new SmokeEffect(MobEffects.BLINDNESS, 0, false, 0.25F, true),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true)),
                 0.5F));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
@@ -258,10 +257,10 @@ public class ModStrains {
         context.register(HASHISH, new Strain("hempdustry.strain.hashish", 0x6B4A2F, modelIndex(HASHISH),
                 Optional.empty(), ModItems.HASHISH, Optional.empty(), 1.0F, 1,
                 List.of(
-                        new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
-                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
-                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
+                        new SmokeEffect(MobEffects.NIGHT_VISION, 0, false),
+                        new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
+                        new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Charas -- the same hash body as hashish, and the family's second signature.
         //
@@ -286,10 +285,10 @@ public class ModStrains {
         context.register(CHARAS, new Strain("hempdustry.strain.charas", 0x2B2118, modelIndex(CHARAS),
                 Optional.empty(), ModItems.CHARAS, Optional.empty(), 1.0F, 1,
                 List.of(
-                        new SmokeEffect(StatusEffects.SLOW_FALLING, 0, false),
-                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
-                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
+                        new SmokeEffect(MobEffects.SLOW_FALLING, 0, false),
+                        new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
+                        new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Filtered hashish -- HASHISH's effect list, unchanged, and half the green-out odds.
         //
@@ -313,10 +312,10 @@ public class ModStrains {
                 modelIndex(FILTERED_HASHISH),
                 Optional.empty(), ModItems.FILTERED_HASHISH, Optional.empty(), 2.0F, 1,
                 List.of(
-                        new SmokeEffect(StatusEffects.NIGHT_VISION, 0, false),
-                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
-                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
+                        new SmokeEffect(MobEffects.NIGHT_VISION, 0, false),
+                        new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
+                        new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Rosin -- the hash body with the signature stripped out, and the only smokeable in the mod
         // with nothing to explore with. That is the design, not an oversight: concentration costs
@@ -334,9 +333,9 @@ public class ModStrains {
         context.register(ROSIN, new Strain("hempdustry.strain.rosin", 0xD8A93A, modelIndex(ROSIN),
                 Optional.empty(), ModItems.ROSIN, Optional.empty(), 2.0F, 3,
                 List.of(
-                        new SmokeEffect(StatusEffects.RESISTANCE, 0, true),
-                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
+                        new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
+                        new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Scorched hemp -- the high is gone; the couch and the munchies are not.
         //
@@ -356,8 +355,8 @@ public class ModStrains {
                 modelIndex(SCORCHED_HEMP),
                 Optional.empty(), ModItems.SCORCHED_HEMP, Optional.empty(), 0.0F, 1,
                 List.of(
-                        new SmokeEffect(StatusEffects.SLOWNESS, 0, false),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true))));
+                        new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Schwag -- the poisonous potato of the bud system, and smoked the way the potato is eaten:
         // a gamble with nothing to win. POISON on 60% of hits, the potato's odds, for a seventh of
@@ -376,9 +375,9 @@ public class ModStrains {
                 modelIndex(SCHWAG),
                 Optional.empty(), ModItems.SCHWAG, Optional.empty(), 0.0F, 1,
                 List.of(
-                        new SmokeEffect(StatusEffects.POISON, 0, true, SCHWAG_POISON_SHARE, false,
+                        new SmokeEffect(MobEffects.POISON, 0, true, SCHWAG_POISON_SHARE, false,
                                 SCHWAG_POISON_CHANCE, SCHWAG_POISON_MAX_AMPLIFIER),
-                        new SmokeEffect(StatusEffects.HUNGER, 0, true)),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true)),
                 0.5F));
     }
 
@@ -389,7 +388,7 @@ public class ModStrains {
     /** Poison II: vanilla's own survival ceiling for the effect. */
     private static final int SCHWAG_POISON_MAX_AMPLIFIER = 1;
 
-    private static RegistryKey<Strain> key(String name) {
-        return RegistryKey.of(Strain.REGISTRY_KEY, Identifier.of(Hempdustry.MOD_ID, name));
+    private static ResourceKey<Strain> key(String name) {
+        return ResourceKey.create(Strain.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
     }
 }

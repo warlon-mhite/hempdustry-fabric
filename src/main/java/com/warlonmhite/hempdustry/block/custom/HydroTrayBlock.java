@@ -1,39 +1,38 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.item.Items;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.DirectionProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.stat.Stats;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -70,17 +69,17 @@ import org.jetbrains.annotations.Nullable;
  * scorching dimension gets it for free — and the Grow Pot is left owning hemp in the Nether.
  */
 public class HydroTrayBlock extends Block implements GrowMedium {
-    public static final MapCodec<HydroTrayBlock> CODEC = createCodec(HydroTrayBlock::new);
+    public static final MapCodec<HydroTrayBlock> CODEC = simpleCodec(HydroTrayBlock::new);
 
     public static final int MAX_LEVEL = 3;
     /** Water in the reservoir; one level is drunk per plant that ripens. */
-    public static final IntProperty LEVEL = IntProperty.of("level", 0, MAX_LEVEL);
+    public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, MAX_LEVEL);
     /** Whether that water has been fed — nutrient solution rather than plain water. */
-    public static final BooleanProperty FED = BooleanProperty.of("fed");
+    public static final BooleanProperty FED = BooleanProperty.create("fed");
     /** The pump. Vanilla's own property, so any redstone a player already understands drives it. */
-    public static final BooleanProperty POWERED = Properties.POWERED;
+    public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     /** Which way the sight tube and the pump face — towards whoever placed it, like a furnace. */
-    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     /** Wet: the best ground vanilla knows — a lone plant on fully watered farmland. */
     public static final float WET_MOISTURE = GrowPotBlock.WET_MOISTURE;
@@ -88,14 +87,14 @@ public class HydroTrayBlock extends Block implements GrowMedium {
     public static final float DRY_MOISTURE = GrowPotBlock.DRY_MOISTURE;
     public static final float PUMPED_SPEED = 2.0F;
 
-    public HydroTrayBlock(Settings settings) {
+    public HydroTrayBlock(Properties settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState()
-                .with(LEVEL, 0).with(FED, false).with(POWERED, false).with(FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any()
+                .setValue(LEVEL, 0).setValue(FED, false).setValue(POWERED, false).setValue(FACING, Direction.NORTH));
     }
 
     @Override
-    protected MapCodec<? extends Block> getCodec() {
+    protected MapCodec<? extends Block> codec() {
         return CODEC;
     }
 
@@ -103,28 +102,28 @@ public class HydroTrayBlock extends Block implements GrowMedium {
 
     @Override
     public float moisture(BlockState state) {
-        return state.get(LEVEL) > 0 ? WET_MOISTURE : DRY_MOISTURE;
+        return state.getValue(LEVEL) > 0 ? WET_MOISTURE : DRY_MOISTURE;
     }
 
     @Override
     public float speed(BlockState state) {
-        return state.get(LEVEL) > 0 && state.get(FED) && state.get(POWERED) ? PUMPED_SPEED : 1.0F;
+        return state.getValue(LEVEL) > 0 && state.getValue(FED) && state.getValue(POWERED) ? PUMPED_SPEED : 1.0F;
     }
 
     @Override
-    public void spend(World world, BlockPos pos, BlockState state) {
-        int left = state.get(LEVEL) - 1;
+    public void spend(Level world, BlockPos pos, BlockState state) {
+        int left = state.getValue(LEVEL) - 1;
         if (left < 0) {
             return;
         }
         // The nutrients drain with the last of the water: an empty reservoir is an unfed one.
-        world.setBlockState(pos, state.with(LEVEL, left).with(FED, left > 0 && state.get(FED)),
-                Block.NOTIFY_LISTENERS);
+        world.setBlock(pos, state.setValue(LEVEL, left).setValue(FED, left > 0 && state.getValue(FED)),
+                Block.UPDATE_CLIENTS);
     }
 
     @Override
     public boolean fed(BlockState state) {
-        return state.get(FED);
+        return state.getValue(FED);
     }
 
     /**
@@ -133,10 +132,10 @@ public class HydroTrayBlock extends Block implements GrowMedium {
      */
     @Override
     public float stress(BlockState state) {
-        if (state.get(LEVEL) == 0) {
+        if (state.getValue(LEVEL) == 0) {
             return PlantStress.DRY_BED;
         }
-        return state.get(POWERED) ? 0.0F : PlantStress.STAGNANT;
+        return state.getValue(POWERED) ? 0.0F : PlantStress.STAGNANT;
     }
 
     /**
@@ -144,38 +143,38 @@ public class HydroTrayBlock extends Block implements GrowMedium {
      * away cannot be kept in a tray. On this line that is {@code DimensionType.ultrawarm}, the same
      * test a water bucket makes before it pours ({@code BucketItem}).
      */
-    public static boolean boilsAway(WorldView world, BlockPos pos) {
-        return world.getDimension().ultrawarm();
+    public static boolean boilsAway(LevelReader world, BlockPos pos) {
+        return world.dimensionType().ultraWarm();
     }
 
     // ----- filling and feeding -----
 
     /** Fills the reservoir, if this one can hold water and is not already full. */
-    public static boolean fill(World world, BlockPos pos, BlockState state) {
-        if (!(state.getBlock() instanceof HydroTrayBlock) || state.get(LEVEL) >= MAX_LEVEL
+    public static boolean fill(Level world, BlockPos pos, BlockState state) {
+        if (!(state.getBlock() instanceof HydroTrayBlock) || state.getValue(LEVEL) >= MAX_LEVEL
                 || boilsAway(world, pos)) {
             return false;
         }
-        world.setBlockState(pos, state.with(LEVEL, MAX_LEVEL), Block.NOTIFY_LISTENERS);
-        world.playSound(null, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
-        world.emitGameEvent(null, GameEvent.FLUID_PLACE, pos);
+        world.setBlock(pos, state.setValue(LEVEL, MAX_LEVEL), Block.UPDATE_CLIENTS);
+        world.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+        world.gameEvent(null, GameEvent.FLUID_PLACE, pos);
         return true;
     }
 
     /** Nutrients need water to go into: an empty tray cannot be fed, and a fed one is already mixed. */
     @Override
-    public boolean isFertilizable(WorldView world, BlockPos pos, BlockState state) {
-        return state.get(LEVEL) > 0 && !state.get(FED) && !boilsAway(world, pos);
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
+        return state.getValue(LEVEL) > 0 && !state.getValue(FED) && !boilsAway(world, pos);
     }
 
     @Override
-    public boolean canGrow(World world, Random random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
         return true;
     }
 
     @Override
-    public void grow(ServerWorld world, Random random, BlockPos pos, BlockState state) {
-        world.setBlockState(pos, state.with(FED, true), Block.NOTIFY_LISTENERS);
+    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
+        world.setBlock(pos, state.setValue(FED, true), Block.UPDATE_CLIENTS);
     }
 
     /**
@@ -189,57 +188,57 @@ public class HydroTrayBlock extends Block implements GrowMedium {
      * swallow the click.
      */
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
-                                         PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (stack.isOf(Items.WATER_BUCKET) && state.get(LEVEL) < MAX_LEVEL && !boilsAway(world, pos)) {
-            if (!world.isClient()) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+                                         Player player, InteractionHand hand, BlockHitResult hit) {
+        if (stack.is(Items.WATER_BUCKET) && state.getValue(LEVEL) < MAX_LEVEL && !boilsAway(world, pos)) {
+            if (!world.isClientSide()) {
                 fill(world, pos, state);
-                player.setStackInHand(hand, ItemUsage.exchangeStack(stack, player, new ItemStack(Items.BUCKET)));
-                player.incrementStat(Stats.USED.getOrCreateStat(Items.WATER_BUCKET));
+                player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, new ItemStack(Items.BUCKET)));
+                player.awardStat(Stats.ITEM_USED.get(Items.WATER_BUCKET));
             }
-            return ItemActionResult.success(world.isClient);
+            return ItemInteractionResult.sidedSuccess(world.isClientSide);
         }
-        if (stack.isOf(Items.WATER_BUCKET) && !boilsAway(world, pos)) {
-            return ItemActionResult.CONSUME;
+        if (stack.is(Items.WATER_BUCKET) && !boilsAway(world, pos)) {
+            return ItemInteractionResult.CONSUME;
         }
-        ItemActionResult fed = GrowMedium.tryFeed(stack, state, world, pos, player);
-        return fed != null ? fed : super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+        ItemInteractionResult fed = GrowMedium.tryFeed(stack, state, world, pos, player);
+        return fed != null ? fed : super.useItemOn(stack, state, world, pos, player, hand, hit);
     }
 
     /** Harvests the plant above first, as the player — see {@link GrowMedium#harvestAbove}. */
     @Override
-    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         GrowMedium.harvestAbove(world, pos, player);
-        return super.onBreak(world, pos, state, player);
+        return super.playerWillDestroy(world, pos, state, player);
     }
 
     // ----- the pump -----
 
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return this.getDefaultState()
-                .with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
-                .with(POWERED, ctx.getWorld().isReceivingRedstonePower(ctx.getBlockPos()));
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return this.defaultBlockState()
+                .setValue(FACING, ctx.getHorizontalDirection().getOpposite())
+                .setValue(POWERED, ctx.getLevel().hasNeighborSignal(ctx.getClickedPos()));
     }
 
     @Override
-    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock,
+    protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock,
                                   BlockPos sourcePos, boolean notify) {
-        if (world.isClient()) {
+        if (world.isClientSide()) {
             return;
         }
-        boolean powered = world.isReceivingRedstonePower(pos);
-        if (powered != state.get(POWERED)) {
+        boolean powered = world.hasNeighborSignal(pos);
+        if (powered != state.getValue(POWERED)) {
             // Both ways at once, unlike a redstone lamp's four-tick fade: a pump stops when the
             // signal stops, and there is nothing here for a delay to buy.
-            world.setBlockState(pos, state.with(POWERED, powered), Block.NOTIFY_LISTENERS);
+            world.setBlock(pos, state.setValue(POWERED, powered), Block.UPDATE_CLIENTS);
         }
     }
 
     /** A running pump breaks the surface: the state is on the block, but this is what catches the eye. */
     @Override
-    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        if (!state.get(POWERED) || state.get(LEVEL) == 0) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+        if (!state.getValue(POWERED) || state.getValue(LEVEL) == 0) {
             return;
         }
         // The air stone breaks the surface under the net pot, so the bubbles come up through the pebbles.
@@ -249,22 +248,22 @@ public class HydroTrayBlock extends Block implements GrowMedium {
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return VoxelShapes.fullCube();
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return Shapes.block();
     }
 
     @Override
-    protected BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(FACING, rotation.rotate(state.get(FACING)));
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, BlockMirror mirror) {
-        return state.rotate(mirror.getRotation(state.get(FACING)));
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(LEVEL, FED, POWERED, FACING);
     }
 }

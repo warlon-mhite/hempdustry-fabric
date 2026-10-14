@@ -4,14 +4,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
-import net.minecraft.registry.Registerable;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.dynamic.Codecs;
-
 import java.util.Optional;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
 
 /**
  * How one smokeable smokes, as data: {@code data/<namespace>/hempdustry/device/<id>.json}, one file
@@ -36,25 +35,25 @@ public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, 
      */
     public record Bowl(int hits, int maxDose, int spentYield) {
         public static final Codec<Bowl> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codecs.POSITIVE_INT.fieldOf("hits").forGetter(Bowl::hits),
-                Codecs.POSITIVE_INT.fieldOf("max_dose").forGetter(Bowl::maxDose),
-                Codecs.NONNEGATIVE_INT.fieldOf("spent_yield").forGetter(Bowl::spentYield)
+                ExtraCodecs.POSITIVE_INT.fieldOf("hits").forGetter(Bowl::hits),
+                ExtraCodecs.POSITIVE_INT.fieldOf("max_dose").forGetter(Bowl::maxDose),
+                ExtraCodecs.NON_NEGATIVE_INT.fieldOf("spent_yield").forGetter(Bowl::spentYield)
         ).apply(instance, Bowl::new));
     }
 
-    public static final RegistryKey<Registry<DeviceStats>> REGISTRY_KEY =
-            RegistryKey.ofRegistry(Identifier.of(Hempdustry.MOD_ID, "device"));
+    public static final ResourceKey<Registry<DeviceStats>> REGISTRY_KEY =
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "device"));
 
     public static final Codec<DeviceStats> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codecs.POSITIVE_INT.fieldOf("duration_ticks").forGetter(DeviceStats::durationTicks),
-            Codecs.NONNEGATIVE_INT.fieldOf("cooldown_ticks").forGetter(DeviceStats::cooldownTicks),
-            Codecs.NONNEGATIVE_INT.fieldOf("cough_one_in").forGetter(DeviceStats::coughOneIn),
-            Codecs.NONNEGATIVE_INT.fieldOf("nausea_one_in").forGetter(DeviceStats::nauseaOneIn),
+            ExtraCodecs.POSITIVE_INT.fieldOf("duration_ticks").forGetter(DeviceStats::durationTicks),
+            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("cooldown_ticks").forGetter(DeviceStats::cooldownTicks),
+            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("cough_one_in").forGetter(DeviceStats::coughOneIn),
+            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("nausea_one_in").forGetter(DeviceStats::nauseaOneIn),
             Codec.FLOAT.fieldOf("green_out_factor").forGetter(DeviceStats::greenOutFactor),
             Bowl.CODEC.optionalFieldOf("bowl").forGetter(DeviceStats::bowl)
     ).apply(instance, DeviceStats::new));
 
-    public static final RegistryKey<DeviceStats> SPLIFF = key("spliff");
+    public static final ResourceKey<DeviceStats> SPLIFF = key("spliff");
 
     /**
      * The spliff's own numbers. 45 s sits between the pipe's 35 and the bong's 50 — duration is the
@@ -62,15 +61,15 @@ public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, 
      */
     public static final DeviceStats SPLIFF_BUILT_IN = new DeviceStats(900, 80, 6, 500, 2.0F, Optional.empty());
 
-    public static RegistryKey<DeviceStats> key(DeviceType type) {
+    public static ResourceKey<DeviceStats> key(DeviceType type) {
         return key(type.baseName());
     }
 
-    private static RegistryKey<DeviceStats> key(String id) {
-        return RegistryKey.of(REGISTRY_KEY, Identifier.of(Hempdustry.MOD_ID, id));
+    private static ResourceKey<DeviceStats> key(String id) {
+        return ResourceKey.create(REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, id));
     }
 
-    public static void bootstrap(Registerable<DeviceStats> registerable) {
+    public static void bootstrap(BootstrapContext<DeviceStats> registerable) {
         for (DeviceType type : DeviceType.values()) {
             registerable.register(key(type), type.builtInStats());
         }
@@ -78,17 +77,17 @@ public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, 
     }
 
     /** {@code type}'s numbers in this world. */
-    public static DeviceStats of(RegistryWrapper.WrapperLookup registries, DeviceType type) {
+    public static DeviceStats of(HolderLookup.Provider registries, DeviceType type) {
         return ModBalance.entry(registries, key(type), type.builtInStats());
     }
 
     /** The spliff's numbers in this world. */
-    public static DeviceStats spliff(RegistryWrapper.WrapperLookup registries) {
+    public static DeviceStats spliff(HolderLookup.Provider registries) {
         return ModBalance.entry(registries, SPLIFF, SPLIFF_BUILT_IN);
     }
 
     /** {@code type}'s bowl in this world, or the built-in one when its file has none. */
-    public static Bowl bowl(RegistryWrapper.WrapperLookup registries, DeviceType type) {
+    public static Bowl bowl(HolderLookup.Provider registries, DeviceType type) {
         return of(registries, type).bowl().orElseGet(() -> type.builtInStats().bowl().orElseThrow());
     }
 }

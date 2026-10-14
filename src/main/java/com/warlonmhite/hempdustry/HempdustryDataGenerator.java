@@ -10,8 +10,8 @@ import com.warlonmhite.hempdustry.world.ModConfiguredFeatures;
 import com.warlonmhite.hempdustry.world.ModPlacedFeatures;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.minecraft.registry.RegistryBuilder;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
 
 public class HempdustryDataGenerator implements DataGeneratorEntrypoint {
 	@Override
@@ -30,12 +30,12 @@ public class HempdustryDataGenerator implements DataGeneratorEntrypoint {
 	}
 
 	@Override
-	public void buildRegistry(RegistryBuilder registryBuilder) {
-		registryBuilder.addRegistry(Strain.REGISTRY_KEY, ModStrains::bootstrap);
-		registryBuilder.addRegistry(DeviceStats.REGISTRY_KEY, DeviceStats::bootstrap);
-		registryBuilder.addRegistry(EdibleBundle.REGISTRY_KEY, EdibleBundle::bootstrap);
-		registryBuilder.addRegistry(GreenOut.REGISTRY_KEY, GreenOut::bootstrap);
-		registryBuilder.addRegistry(RegistryKeys.CONFIGURED_FEATURE, ModConfiguredFeatures::bootstrap);
-		registryBuilder.addRegistry(RegistryKeys.PLACED_FEATURE, ModPlacedFeatures::bootstrap);
+	public void buildRegistry(RegistrySetBuilder registryBuilder) {
+		registryBuilder.add(Strain.REGISTRY_KEY, ModStrains::bootstrap);
+		registryBuilder.add(DeviceStats.REGISTRY_KEY, DeviceStats::bootstrap);
+		registryBuilder.add(EdibleBundle.REGISTRY_KEY, EdibleBundle::bootstrap);
+		registryBuilder.add(GreenOut.REGISTRY_KEY, GreenOut::bootstrap);
+		registryBuilder.add(Registries.CONFIGURED_FEATURE, ModConfiguredFeatures::bootstrap);
+		registryBuilder.add(Registries.PLACED_FEATURE, ModPlacedFeatures::bootstrap);
 	}
 }

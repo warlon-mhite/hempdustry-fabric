@@ -3,28 +3,27 @@ package com.warlonmhite.hempdustry.block.custom;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
 import com.warlonmhite.hempdustry.component.ModComponents;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import net.minecraft.state.property.DirectionProperty;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * A bong standing on something — empty, or packed and set down by sneaking to be picked up and
@@ -37,16 +36,16 @@ import net.minecraft.util.Util;
  * and candles; every one shares {@link BongBlockEntity}, whose only job is to hold the stack's
  * components until the block is broken.
  */
-public class BongBlock extends BlockWithEntity {
-    public static final MapCodec<BongBlock> CODEC = createCodec(BongBlock::new);
+public class BongBlock extends BaseEntityBlock {
+    public static final MapCodec<BongBlock> CODEC = simpleCodec(BongBlock::new);
 
-    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     /**
      * A bowl is loaded — only the model reads it; the load itself is in the block entity with
      * everything else. Set false in the default state below: a {@code BooleanProperty} left out of
      * it defaults to <em>true</em>, the first of its two values.
      */
-    public static final BooleanProperty PACKED = BooleanProperty.of("packed");
+    public static final BooleanProperty PACKED = BooleanProperty.create("packed");
 
     // The chamber, the neck and lip, and the bowl on its downstem -- models/block/bong_template.json.
     private static final Map<Direction, VoxelShape> SHAPES = HorizontalShapes.of(new double[][]{
@@ -54,18 +53,18 @@ public class BongBlock extends BlockWithEntity {
             {6, 5, 6, 10, 15, 10},
             {11.75, 2, 6.75, 14.25, 5.75, 9.25}});
 
-    public BongBlock(Settings settings) {
+    public BongBlock(Properties settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(FACING, Direction.NORTH).with(PACKED, false));
+        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(PACKED, false));
     }
 
     @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
+    protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, PACKED);
     }
 
@@ -74,33 +73,33 @@ public class BongBlock extends BlockWithEntity {
      * in your hand is, with no second line in every locale to say the same thing.
      */
     @Override
-    public String getTranslationKey() {
-        return Util.createTranslationKey("item", Registries.BLOCK.getId(this));
+    public String getDescriptionId() {
+        return Util.makeDescriptionId("item", BuiltInRegistries.BLOCK.getKey(this));
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return SHAPES.get(state.get(FACING));
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return SHAPES.get(state.getValue(FACING));
     }
 
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
-                .with(PACKED, ctx.getStack().contains(ModComponents.SMOKE_CONTENTS));
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite())
+                .setValue(PACKED, ctx.getItemInHand().has(ModComponents.SMOKE_CONTENTS));
     }
 
     @Override
-    protected BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(FACING, rotation.rotate(state.get(FACING)));
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, BlockMirror mirror) {
-        return state.rotate(mirror.getRotation(state.get(FACING)));
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
-    public @Nullable BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new BongBlockEntity(pos, state);
     }
 }

@@ -4,34 +4,42 @@ import com.warlonmhite.hempdustry.util.ModTags;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.registry.Registerable;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.util.math.intprovider.ConstantIntProvider;
-import net.minecraft.world.gen.blockpredicate.BlockPredicate;
-import net.minecraft.world.gen.placementmodifier.BlockFilterPlacementModifier;
-import net.minecraft.world.gen.feature.*;
-import net.minecraft.world.gen.stateprovider.BlockStateProvider;
-
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Vec3i;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.placement.PlacementUtils;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.valueproviders.ConstantInt;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.WeightedPlacedFeature;
+import net.minecraft.world.level.levelgen.feature.configurations.BlockColumnConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.RandomFeatureConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.RandomPatchConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
+import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
+import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.material.Fluids;
 import java.util.List;
 
 public class ModConfiguredFeatures {
 
-    public static final RegistryKey<ConfiguredFeature<?, ?>> INDICA_KEY = registerKey("indica");
-    public static final RegistryKey<ConfiguredFeature<?, ?>> INDICA_CAVE_KEY = registerKey("indica_cave");
-    public static final RegistryKey<ConfiguredFeature<?, ?>> SATIVA_KEY = registerKey("sativa");
-    public static final RegistryKey<ConfiguredFeature<?, ?>> SATIVA_SPARSE_KEY = registerKey("sativa_sparse");
-    public static final RegistryKey<ConfiguredFeature<?, ?>> SATIVA_RARE_KEY = registerKey("sativa_rare");
-    public static final RegistryKey<ConfiguredFeature<?, ?>> BELDIA_KEY = registerKey("beldia");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> INDICA_KEY = registerKey("indica");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> INDICA_CAVE_KEY = registerKey("indica_cave");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> SATIVA_KEY = registerKey("sativa");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> SATIVA_SPARSE_KEY = registerKey("sativa_sparse");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> SATIVA_RARE_KEY = registerKey("sativa_rare");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> BELDIA_KEY = registerKey("beldia");
 
     /** Vanilla sugar cane's patch shape: 20 tries within 4 blocks, all on the centre's level. */
     private static final int BELDIA_TRIES = 20;
@@ -50,19 +58,19 @@ public class ModConfiguredFeatures {
     private static final int BIG_TRIES = 64;
     private static final float BIG_CHANCE = 0.1F;
 
-    public static RegistryKey<ConfiguredFeature<?, ?>> registerKey(String name) {
-        return RegistryKey.of(RegistryKeys.CONFIGURED_FEATURE, Identifier.of(Hempdustry.MOD_ID, name));
+    public static ResourceKey<ConfiguredFeature<?, ?>> registerKey(String name) {
+        return ResourceKey.create(Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
     }
 
-    public static void bootstrap(Registerable<ConfiguredFeature<?, ?>> context) {
+    public static void bootstrap(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         // Surface: a small patch on the terrain heightmap, now and then a big one.
         register(context, INDICA_KEY, wildPatch(ModBlocks.INDICA_FLOWER));
 
         // Caves: a single flower; the cave placed feature scatters these across cave
-        // floors, and SimpleBlockFeature's own canPlaceAt check keeps them on valid
+        // floors, and SimpleBlockFeature's own canSurvive check keeps them on valid
         // ground (moss/dirt) rather than bare stone.
         register(context, INDICA_CAVE_KEY, Feature.SIMPLE_BLOCK,
-                new SimpleBlockFeatureConfig(BlockStateProvider.of(ModBlocks.INDICA_FLOWER)));
+                new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.INDICA_FLOWER)));
 
         // Wild Lemon Haze. Sativa is a sun plant — no cave counterpart, unlike indica. Three
         // surface tiers, thinning out as the ground gets harsher; each is paired with a rarity in
@@ -83,33 +91,33 @@ public class ModConfiguredFeatures {
         //
         // The ground test is #hempdustry:beldia_soil -- the plant's own survival rule, so a modded
         // desert's sands work -- and it is asked directly rather than through wouldSurvive, because a
-        // crop's canPlaceAt also reads light and worldgen has none yet. The water is vanilla's own four
-        // offsets from wouldSurviveNearWaterModifier. InBeldiaBiome then checks each plant's own biome,
+        // crop's canSurvive also reads light and worldgen has none yet. The water is vanilla's own four
+        // offsets from nearWaterPredicate. InBeldiaBiome then checks each plant's own biome,
         // since the patch spreads past its centre's -- see that class. A desert shore grows it too.
-        BlockState ripe = ModBlocks.BELDIA_CROP.getDefaultState().with(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
-        register(context, BELDIA_KEY, Feature.RANDOM_PATCH, new RandomPatchFeatureConfig(BELDIA_TRIES, 4, 0,
-                PlacedFeatures.createEntry(Feature.BLOCK_COLUMN,
-                        new BlockColumnFeatureConfig(List.of(
-                                BlockColumnFeatureConfig.createLayer(ConstantIntProvider.create(1),
-                                        BlockStateProvider.of(ripe.with(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER))),
-                                BlockColumnFeatureConfig.createLayer(ConstantIntProvider.create(1),
-                                        BlockStateProvider.of(ripe.with(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
-                                Direction.UP, BlockPredicate.IS_AIR, false),
-                        BlockFilterPlacementModifier.of(BlockPredicate.allOf(
-                                BlockPredicate.IS_AIR,
-                                BlockPredicate.matchingBlocks(new Vec3i(0, 1, 0), Blocks.AIR),
-                                BlockPredicate.matchingBlockTag(new Vec3i(0, -1, 0), ModTags.Blocks.BELDIA_SOIL),
+        BlockState ripe = ModBlocks.BELDIA_CROP.defaultBlockState().setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
+        register(context, BELDIA_KEY, Feature.RANDOM_PATCH, new RandomPatchConfiguration(BELDIA_TRIES, 4, 0,
+                PlacementUtils.inlinePlaced(Feature.BLOCK_COLUMN,
+                        new BlockColumnConfiguration(List.of(
+                                BlockColumnConfiguration.layer(ConstantInt.of(1),
+                                        BlockStateProvider.simple(ripe.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER))),
+                                BlockColumnConfiguration.layer(ConstantInt.of(1),
+                                        BlockStateProvider.simple(ripe.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
+                                Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false),
+                        BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                                BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                                BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), Blocks.AIR),
+                                BlockPredicate.matchesTag(new Vec3i(0, -1, 0), ModTags.Blocks.BELDIA_SOIL),
                                 BlockPredicate.anyOf(
-                                        BlockPredicate.matchingFluids(new Vec3i(1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
-                                        BlockPredicate.matchingFluids(new Vec3i(-1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
-                                        BlockPredicate.matchingFluids(new Vec3i(0, -1, 1), Fluids.WATER, Fluids.FLOWING_WATER),
-                                        BlockPredicate.matchingFluids(new Vec3i(0, -1, -1), Fluids.WATER, Fluids.FLOWING_WATER)))),
+                                        BlockPredicate.matchesFluids(new Vec3i(1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
+                                        BlockPredicate.matchesFluids(new Vec3i(-1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
+                                        BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), Fluids.WATER, Fluids.FLOWING_WATER),
+                                        BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), Fluids.WATER, Fluids.FLOWING_WATER)))),
                         ModPlacementModifiers.InBeldiaBiomePlacementModifier.INSTANCE)));
     }
 
     private static ConfiguredFeature<?, ?> wildPatch(Block flower) {
-        return new ConfiguredFeature<>(Feature.RANDOM_SELECTOR, new RandomFeatureConfig(
-                List.of(new RandomFeatureEntry(inline(patch(flower, BIG_TRIES)), BIG_CHANCE)),
+        return new ConfiguredFeature<>(Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(
+                List.of(new WeightedPlacedFeature(inline(patch(flower, BIG_TRIES)), BIG_CHANCE)),
                 inline(patch(flower, SMALL_TRIES))));
     }
 
@@ -120,9 +128,9 @@ public class ModConfiguredFeatures {
      * plant, and so free seeds, from a stack of bone meal.
      */
     private static ConfiguredFeature<?, ?> patch(Block flower, int tries) {
-        return new ConfiguredFeature<>(Feature.RANDOM_PATCH, new RandomPatchFeatureConfig(tries, 6, 2,
-                PlacedFeatures.createEntry(Feature.SIMPLE_BLOCK,
-                        new SimpleBlockFeatureConfig(BlockStateProvider.of(flower)))));
+        return new ConfiguredFeature<>(Feature.RANDOM_PATCH, new RandomPatchConfiguration(tries, 6, 2,
+                PlacementUtils.onlyWhenEmpty(Feature.SIMPLE_BLOCK,
+                        new SimpleBlockConfiguration(BlockStateProvider.simple(flower)))));
     }
 
     /**
@@ -130,17 +138,17 @@ public class ModConfiguredFeatures {
      * adds an is-air filter, which here would test the patch's centre and drop the whole patch
      * whenever a tuft of grass stands on it.
      */
-    private static RegistryEntry<PlacedFeature> inline(ConfiguredFeature<?, ?> feature) {
-        return PlacedFeatures.createEntry(RegistryEntry.of(feature));
+    private static Holder<PlacedFeature> inline(ConfiguredFeature<?, ?> feature) {
+        return PlacementUtils.inlinePlaced(Holder.direct(feature));
     }
 
-    private static void register(Registerable<ConfiguredFeature<?, ?>> context,
-                                 RegistryKey<ConfiguredFeature<?, ?>> key, ConfiguredFeature<?, ?> feature) {
+    private static void register(BootstrapContext<ConfiguredFeature<?, ?>> context,
+                                 ResourceKey<ConfiguredFeature<?, ?>> key, ConfiguredFeature<?, ?> feature) {
         context.register(key, feature);
     }
 
-    private static <FC extends FeatureConfig, F extends Feature<FC>> void register(Registerable<ConfiguredFeature<?, ?>> context,
-                                                                                   RegistryKey<ConfiguredFeature<?, ?>> key, F feature, FC configuration) {
+    private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstrapContext<ConfiguredFeature<?, ?>> context,
+                                                                                   ResourceKey<ConfiguredFeature<?, ?>> key, F feature, FC configuration) {
         context.register(key, new ConfiguredFeature<>(feature, configuration));
     }
 }

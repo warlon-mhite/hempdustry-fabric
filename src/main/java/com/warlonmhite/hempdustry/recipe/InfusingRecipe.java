@@ -3,22 +3,21 @@ package com.warlonmhite.hempdustry.recipe;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.block.ModBlocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.input.SingleStackRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.world.World;
-
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.Level;
 
 /**
  * What the Infuser turns into what: the three things it accepts, and the one thing it yields.
@@ -47,7 +46,7 @@ import java.util.Optional;
  */
 public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient washedHemp,
                              Optional<Ingredient> scorchedHemp, ItemStack result)
-        implements Recipe<SingleStackRecipeInput> {
+        implements Recipe<SingleRecipeInput> {
 
     /**
      * The conversion this world is running.
@@ -57,14 +56,14 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
      * milk that selected it is spent long before the batch is collected. If a second one is ever
      * genuinely wanted, that is the work.
      */
-    public static InfusingRecipe of(World world) {
-        List<RecipeEntry<InfusingRecipe>> all =
-                world.getRecipeManager().listAllOfType(ModRecipes.INFUSING_TYPE);
+    public static InfusingRecipe of(Level world) {
+        List<RecipeHolder<InfusingRecipe>> all =
+                world.getRecipeManager().getAllRecipesFor(ModRecipes.INFUSING_TYPE);
         return all.isEmpty() ? null : all.get(0).value();
     }
 
     @Override
-    public boolean matches(SingleStackRecipeInput input, World world) {
+    public boolean matches(SingleRecipeInput input, Level world) {
         ItemStack stack = input.item();
         return container.test(stack) || hemp.test(stack) || washedHemp.test(stack) || isScorched(stack);
     }
@@ -75,23 +74,23 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     }
 
     @Override
-    public ItemStack craft(SingleStackRecipeInput input, RegistryWrapper.WrapperLookup lookup) {
+    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider lookup) {
         return result.copy();
     }
 
     @Override
-    public boolean fits(int width, int height) {
+    public boolean canCraftInDimensions(int width, int height) {
         return true;
     }
 
     @Override
-    public ItemStack getResult(RegistryWrapper.WrapperLookup lookup) {
+    public ItemStack getResultItem(HolderLookup.Provider lookup) {
         return result;
     }
 
     @Override
-    public DefaultedList<Ingredient> getIngredients() {
-        DefaultedList<Ingredient> list = DefaultedList.ofSize(scorchedHemp.isPresent() ? 4 : 3, Ingredient.EMPTY);
+    public NonNullList<Ingredient> getIngredients() {
+        NonNullList<Ingredient> list = NonNullList.withSize(scorchedHemp.isPresent() ? 4 : 3, Ingredient.EMPTY);
         list.set(0, container);
         list.set(1, hemp);
         list.set(2, washedHemp);
@@ -100,12 +99,12 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     }
 
     @Override
-    public boolean isIgnoredInRecipeBook() {
+    public boolean isSpecial() {
         return true;
     }
 
     @Override
-    public ItemStack createIcon() {
+    public ItemStack getToastSymbol() {
         return new ItemStack(ModBlocks.INFUSER);
     }
 
@@ -127,27 +126,27 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
      * the shipped ones are.
      */
     public static ItemStack representative(Ingredient ingredient) {
-        ItemStack[] matches = ingredient.getMatchingStacks();
+        ItemStack[] matches = ingredient.getItems();
         return matches.length == 0 ? ItemStack.EMPTY : matches[0];
     }
 
     public static class Serializer implements RecipeSerializer<InfusingRecipe> {
         private static final MapCodec<InfusingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.DISALLOW_EMPTY_CODEC.fieldOf("container").forGetter(InfusingRecipe::container),
-                Ingredient.DISALLOW_EMPTY_CODEC.fieldOf("hemp").forGetter(InfusingRecipe::hemp),
-                Ingredient.DISALLOW_EMPTY_CODEC.fieldOf("washed_hemp").forGetter(InfusingRecipe::washedHemp),
+                Ingredient.CODEC_NONEMPTY.fieldOf("container").forGetter(InfusingRecipe::container),
+                Ingredient.CODEC_NONEMPTY.fieldOf("hemp").forGetter(InfusingRecipe::hemp),
+                Ingredient.CODEC_NONEMPTY.fieldOf("washed_hemp").forGetter(InfusingRecipe::washedHemp),
                 // Optional: see the class notes. Every infusing.json written before it existed
                 // still parses, and means "this tub takes no scorched hemp".
-                Ingredient.DISALLOW_EMPTY_CODEC.optionalFieldOf("scorched_hemp").forGetter(InfusingRecipe::scorchedHemp),
-                ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
+                Ingredient.CODEC_NONEMPTY.optionalFieldOf("scorched_hemp").forGetter(InfusingRecipe::scorchedHemp),
+                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
         ).apply(instance, InfusingRecipe::new));
 
-        private static final PacketCodec<RegistryByteBuf, InfusingRecipe> PACKET_CODEC = PacketCodec.tuple(
-                Ingredient.PACKET_CODEC, InfusingRecipe::container,
-                Ingredient.PACKET_CODEC, InfusingRecipe::hemp,
-                Ingredient.PACKET_CODEC, InfusingRecipe::washedHemp,
-                PacketCodecs.optional(Ingredient.PACKET_CODEC), InfusingRecipe::scorchedHemp,
-                ItemStack.PACKET_CODEC, InfusingRecipe::result,
+        private static final StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> PACKET_CODEC = StreamCodec.composite(
+                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::container,
+                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::hemp,
+                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::washedHemp,
+                ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), InfusingRecipe::scorchedHemp,
+                ItemStack.STREAM_CODEC, InfusingRecipe::result,
                 InfusingRecipe::new);
 
         @Override
@@ -156,7 +155,7 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
         }
 
         @Override
-        public PacketCodec<RegistryByteBuf, InfusingRecipe> packetCodec() {
+        public StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> streamCodec() {
             return PACKET_CODEC;
         }
     }

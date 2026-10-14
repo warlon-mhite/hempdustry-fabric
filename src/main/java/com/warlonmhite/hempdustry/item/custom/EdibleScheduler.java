@@ -6,13 +6,12 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.dynamic.Codecs;
-
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,16 +42,16 @@ public final class EdibleScheduler {
     }
 
     /** One effect waiting to land, and how many ticks it has left. */
-    public record Pending(int ticksLeft, StatusEffectInstance effect) {
+    public record Pending(int ticksLeft, MobEffectInstance effect) {
         public static final Codec<Pending> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codecs.POSITIVE_INT.fieldOf("ticks_left").forGetter(Pending::ticksLeft),
-                StatusEffectInstance.CODEC.fieldOf("effect").forGetter(Pending::effect)
+                ExtraCodecs.POSITIVE_INT.fieldOf("ticks_left").forGetter(Pending::ticksLeft),
+                MobEffectInstance.CODEC.fieldOf("effect").forGetter(Pending::effect)
         ).apply(instance, Pending::new));
     }
 
     /** Everything a player has eaten that has not landed yet, oldest first. Saved with the player. */
     public static final AttachmentType<List<Pending>> PENDING = AttachmentRegistry.createPersistent(
-            Identifier.of(Hempdustry.MOD_ID, "pending_edibles"), Pending.CODEC.listOf());
+            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "pending_edibles"), Pending.CODEC.listOf());
 
     /** Registers the tick pump. Call once from mod init. */
     public static void init() {
@@ -60,19 +59,19 @@ public final class EdibleScheduler {
     }
 
     /** Applies {@code effect} to {@code player} in {@code delayTicks} ticks. */
-    public static void schedule(PlayerEntity player, int delayTicks, StatusEffectInstance effect) {
+    public static void schedule(Player player, int delayTicks, MobEffectInstance effect) {
         List<Pending> waiting = new ArrayList<>(player.getAttachedOrElse(PENDING, List.of()));
-        waiting.add(new Pending(Math.max(1, delayTicks), new StatusEffectInstance(effect)));
+        waiting.add(new Pending(Math.max(1, delayTicks), new MobEffectInstance(effect)));
         player.setAttached(PENDING, List.copyOf(waiting));
     }
 
     /** What {@code player} still has on its way, oldest first. */
-    public static List<Pending> pending(PlayerEntity player) {
+    public static List<Pending> pending(Player player) {
         return player.getAttachedOrElse(PENDING, List.of());
     }
 
     private static void tick(MinecraftServer server) {
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             List<Pending> waiting = player.getAttached(PENDING);
             // A player lying dead waits for the respawn screen, which drops the list; nothing lands on a corpse.
             if (waiting == null || !player.isAlive()) {
@@ -83,7 +82,7 @@ public final class EdibleScheduler {
                 if (pending.ticksLeft() > 1) {
                     still.add(new Pending(pending.ticksLeft() - 1, pending.effect()));
                 } else {
-                    player.addStatusEffect(new StatusEffectInstance(pending.effect()));
+                    player.addEffect(new MobEffectInstance(pending.effect()));
                 }
             }
             if (still.isEmpty()) {

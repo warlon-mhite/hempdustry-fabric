@@ -1,34 +1,33 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-
 import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Supplier;
+import net.minecraft.Util;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.crafting.Ingredient;
 
 public class ModArmorMaterials {
-    public static final RegistryEntry<ArmorMaterial> HEMP_ARMOR_MATERIAL = registerArmorMaterial("hemp_fiber",
+    public static final Holder<ArmorMaterial> HEMP_ARMOR_MATERIAL = registerArmorMaterial("hemp_fiber",
             () -> new ArmorMaterial(Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
                 map.put(ArmorItem.Type.BOOTS, 1);
                 map.put(ArmorItem.Type.LEGGINGS, 1);
                 map.put(ArmorItem.Type.CHESTPLATE, 2);
                 map.put(ArmorItem.Type.HELMET, 1);
                 map.put(ArmorItem.Type.BODY, 2);
-            }), 20, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, () -> Ingredient.ofItems(ModItems.HEMP_FIBER),
+            }), 20, SoundEvents.ARMOR_EQUIP_LEATHER, () -> Ingredient.of(ModItems.HEMP_FIBER),
                     // The grey cloth first, tinted by the dye (or HEMP_UNDYED_COLOR), and the drawn
                     // layer -- the name a resource pack already redraws -- untinted on top, so a pack
                     // that redrew the whole garment still shows its own art.
-                    List.of(new ArmorMaterial.Layer(Identifier.of(Hempdustry.MOD_ID, "hemp_fiber_dyeable"), "", true),
-                            new ArmorMaterial.Layer(Identifier.of(Hempdustry.MOD_ID, "hemp_fiber"), "", false)), 0, 0));
+                    List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_fiber_dyeable"), "", true),
+                            new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_fiber"), "", false)), 0, 0));
 
     /**
      * The colour an undyed shirt or pair of harem pants is drawn in: unbleached hemp, the one tint
@@ -39,7 +38,7 @@ public class ModArmorMaterials {
      */
     public static final int HEMP_UNDYED_COLOR = 0xFFFFDFB7;
 
-    public static RegistryEntry<ArmorMaterial> registerArmorMaterial(String name, Supplier<ArmorMaterial> material) {
-        return Registry.registerReference(Registries.ARMOR_MATERIAL, Identifier.of(Hempdustry.MOD_ID, name), material.get());
+    public static Holder<ArmorMaterial> registerArmorMaterial(String name, Supplier<ArmorMaterial> material) {
+        return Registry.registerForHolder(BuiltInRegistries.ARMOR_MATERIAL, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name), material.get());
     }
 }

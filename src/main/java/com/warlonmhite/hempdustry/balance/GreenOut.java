@@ -3,16 +3,15 @@ package com.warlonmhite.hempdustry.balance;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.registry.Registerable;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.dynamic.Codecs;
-
 import java.util.List;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 
 /**
  * What smoking too much costs, as data: {@code data/<namespace>/hempdustry/green_out/default.json}.
@@ -24,21 +23,21 @@ import java.util.List;
  * <em>does</em> stays code: it replaces the hit's effects, and the full one ends every buff the mod
  * grants and empties the saturation.
  */
-public record GreenOut(List<Integer> oneInByDose, int fullFromDose, List<StatusEffectInstance> spins,
-                       List<StatusEffectInstance> full, int lockoutTicks) {
+public record GreenOut(List<Integer> oneInByDose, int fullFromDose, List<MobEffectInstance> spins,
+                       List<MobEffectInstance> full, int lockoutTicks) {
 
-    public static final RegistryKey<Registry<GreenOut>> REGISTRY_KEY =
-            RegistryKey.ofRegistry(Identifier.of(Hempdustry.MOD_ID, "green_out"));
+    public static final ResourceKey<Registry<GreenOut>> REGISTRY_KEY =
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "green_out"));
 
-    public static final RegistryKey<GreenOut> DEFAULT =
-            RegistryKey.of(REGISTRY_KEY, Identifier.of(Hempdustry.MOD_ID, "default"));
+    public static final ResourceKey<GreenOut> DEFAULT =
+            ResourceKey.create(REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "default"));
 
     public static final Codec<GreenOut> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codecs.NONNEGATIVE_INT.listOf(1, Integer.MAX_VALUE).fieldOf("one_in_by_dose").forGetter(GreenOut::oneInByDose),
-            Codecs.POSITIVE_INT.fieldOf("full_from_dose").forGetter(GreenOut::fullFromDose),
-            StatusEffectInstance.CODEC.listOf().fieldOf("spins").forGetter(GreenOut::spins),
-            StatusEffectInstance.CODEC.listOf().fieldOf("full").forGetter(GreenOut::full),
-            Codecs.NONNEGATIVE_INT.fieldOf("lockout_ticks").forGetter(GreenOut::lockoutTicks)
+            ExtraCodecs.NON_NEGATIVE_INT.listOf(1, Integer.MAX_VALUE).fieldOf("one_in_by_dose").forGetter(GreenOut::oneInByDose),
+            ExtraCodecs.POSITIVE_INT.fieldOf("full_from_dose").forGetter(GreenOut::fullFromDose),
+            MobEffectInstance.CODEC.listOf().fieldOf("spins").forGetter(GreenOut::spins),
+            MobEffectInstance.CODEC.listOf().fieldOf("full").forGetter(GreenOut::full),
+            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("lockout_ticks").forGetter(GreenOut::lockoutTicks)
     ).apply(instance, GreenOut::new));
 
     /**
@@ -51,22 +50,22 @@ public record GreenOut(List<Integer> oneInByDose, int fullFromDose, List<StatusE
     public static final GreenOut BUILT_IN = new GreenOut(
             List.of(0, 12, 4),
             3,
-            List.of(new StatusEffectInstance(StatusEffects.NAUSEA, 400, 0),
-                    new StatusEffectInstance(StatusEffects.SLOWNESS, 300, 1),
-                    new StatusEffectInstance(StatusEffects.WEAKNESS, 300, 1),
-                    new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 300, 1)),
-            List.of(new StatusEffectInstance(StatusEffects.NAUSEA, 700, 0),
-                    new StatusEffectInstance(StatusEffects.SLOWNESS, 600, 1),
-                    new StatusEffectInstance(StatusEffects.WEAKNESS, 600, 1),
-                    new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 600, 1)),
+            List.of(new MobEffectInstance(MobEffects.CONFUSION, 400, 0),
+                    new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 300, 1),
+                    new MobEffectInstance(MobEffects.WEAKNESS, 300, 1),
+                    new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 300, 1)),
+            List.of(new MobEffectInstance(MobEffects.CONFUSION, 700, 0),
+                    new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 600, 1),
+                    new MobEffectInstance(MobEffects.WEAKNESS, 600, 1),
+                    new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 600, 1)),
             1200);
 
-    public static void bootstrap(Registerable<GreenOut> registerable) {
+    public static void bootstrap(BootstrapContext<GreenOut> registerable) {
         registerable.register(DEFAULT, BUILT_IN);
     }
 
     /** The green-out in this world. */
-    public static GreenOut of(RegistryWrapper.WrapperLookup registries) {
+    public static GreenOut of(HolderLookup.Provider registries) {
         return ModBalance.entry(registries, DEFAULT, BUILT_IN);
     }
 

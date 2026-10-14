@@ -3,24 +3,25 @@ package com.warlonmhite.hempdustry.test;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.minecraft.block.BedBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.enums.BedPart;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.poi.PointOfInterestType;
-import net.minecraft.world.poi.PointOfInterestTypes;
-
+import net.fabricmc.fabric.api.registry.FlammableBlockRegistry.Entry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import java.util.Optional;
-import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.test.GameTest;
 
 /**
  * The hemp bed and the parquet. Each thing tested here is a registration that fails without a
@@ -35,30 +36,30 @@ public final class FurnitureGameTest implements FabricGameTest {
      * sixteen bed heads. A hemp bed nobody added is a bed no villager will ever sleep in, with
      * nothing in any log. So the bed is placed for real and the world's own point-of-interest
      * record is asked — which is what a villager's bed sensor reads — a few ticks later, because
-     * the world files a new point on the next server task, not inside {@code setBlockState}.
+     * the world files a new point on the next server task, not inside {@code setBlock}.
      */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void aHempBedIsAVillagersHome(TestContext context) {
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void aHempBedIsAVillagersHome(GameTestHelper context) {
         BlockPos head = new BlockPos(1, 1, 1);
         BlockPos foot = head.south();
-        BlockState headState = ModBlocks.HEMP_BED.getDefaultState()
-                .with(BedBlock.FACING, Direction.NORTH).with(BedBlock.PART, BedPart.HEAD);
-        context.setBlockState(foot, headState.with(BedBlock.PART, BedPart.FOOT));
-        context.setBlockState(head, headState);
+        BlockState headState = ModBlocks.HEMP_BED.defaultBlockState()
+                .setValue(BedBlock.FACING, Direction.NORTH).setValue(BedBlock.PART, BedPart.HEAD);
+        context.setBlock(foot, headState.setValue(BedBlock.PART, BedPart.FOOT));
+        context.setBlock(head, headState);
 
         // Throws if the head has no block entity of ours, which is the one the bed is drawn from.
         context.<HempBedBlockEntity>getBlockEntity(head);
-        context.assertTrue(headState.isIn(BlockTags.BEDS),
+        context.assertTrue(headState.is(BlockTags.BEDS),
                 "the hemp bed is not in #minecraft:beds, which a villager's sleep task checks");
 
-        context.waitAndRun(5, () -> {
-            var storage = context.getWorld().getPointOfInterestStorage();
-            Optional<RegistryEntry<PointOfInterestType>> atHead = storage.getType(context.getAbsolutePos(head));
-            context.assertTrue(atHead.isPresent() && atHead.get().matchesKey(PointOfInterestTypes.HOME),
+        context.runAfterDelay(5, () -> {
+            var storage = context.getLevel().getPoiManager();
+            Optional<Holder<PoiType>> atHead = storage.getType(context.absolutePos(head));
+            context.assertTrue(atHead.isPresent() && atHead.get().is(PoiTypes.HOME),
                     "the hemp bed's head is not a villager's home point (found " + atHead + ")");
-            context.assertTrue(storage.getType(context.getAbsolutePos(foot)).isEmpty(),
+            context.assertTrue(storage.getType(context.absolutePos(foot)).isEmpty(),
                     "the hemp bed's foot is a point of interest too — vanilla files a bed by its head only");
-            context.complete();
+            context.succeed();
         });
     }
 
@@ -67,8 +68,8 @@ public final class FurnitureGameTest implements FabricGameTest {
      * burns neither in a fire nor in a furnace. An oak slab is asked too, so this cannot pass
      * against a fuel table that has simply lost every wooden block.
      */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void theBedBurnsTheWoodDoesNot(TestContext context) {
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void theBedBurnsTheWoodDoesNot(GameTestHelper context) {
         var fire = FlammableBlockRegistry.getDefaultInstance();
         var bed = fire.get(ModBlocks.HEMP_BED);
         var wool = fire.get(ModBlocks.HEMP_WOOL);
@@ -83,11 +84,11 @@ public final class FurnitureGameTest implements FabricGameTest {
             var entry = fire.get(wood);
             context.assertTrue(entry == null || (entry.getBurnChance() == 0 && entry.getSpreadChance() == 0),
                     wood + " catches fire, and the hemp plank set is fireproof");
-            context.assertFalse(AbstractFurnaceBlockEntity.canUseAsFuel(new ItemStack(wood)),
+            context.assertFalse(AbstractFurnaceBlockEntity.isFuel(new ItemStack(wood)),
                     wood + " burns in a furnace, and the hemp plank set is fireproof");
         }
-        context.assertTrue(AbstractFurnaceBlockEntity.canUseAsFuel(new ItemStack(Blocks.OAK_SLAB)),
+        context.assertTrue(AbstractFurnaceBlockEntity.isFuel(new ItemStack(Blocks.OAK_SLAB)),
                 "an oak slab is not fuel either, so the check above proves nothing");
-        context.complete();
+        context.succeed();
     }
 }

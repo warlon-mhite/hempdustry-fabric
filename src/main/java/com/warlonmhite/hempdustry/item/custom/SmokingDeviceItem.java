@@ -7,41 +7,41 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.strain.ModStrains;
-import net.minecraft.advancement.criterion.Criteria;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.UseAction;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.util.ActionResult;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.util.Arm;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
@@ -56,11 +56,11 @@ import java.util.List;
  *
  * <ul>
  *   <li><b>Durability and enchantments never move.</b> Packing and emptying are a component being
- *       set and cleared on the same stack, so the old {@code copyComponentsToNewStack} dance between
+ *       set and cleared on the same stack, so the old {@code transmuteCopy} dance between
  *       two items — and the class of bug that came with it — is gone.</li>
  *   <li><b>Repair works in either state.</b> Deliberate, and vanilla-consistent: a loaded crossbow
  *       carrying {@code charged_projectiles} is anvil-repairable too.</li>
- *   <li><b>The cooldown is shared across strains</b>, because {@code ItemCooldownManager} is keyed
+ *   <li><b>The cooldown is shared across strains</b>, because {@code ItemCooldowns} is keyed
  *       by {@code Item}. This closes an exploit — carrying one bong per strain used to give
  *       independent cooldowns and double the smoke rate. {@link Smoking#startCooldown} now widens
  *       it further, to every smokeable at once, so a spliff in the other hand is no way round it
@@ -70,12 +70,12 @@ import java.util.List;
 public class SmokingDeviceItem extends Item {
     private final DeviceType device;
     private final @Nullable Block placed;
-    /** What mends it on an anvil; null means the device's own build material, see {@link #canRepair}. */
+    /** What mends it on an anvil; null means the device's own build material, see {@link #isValidRepairItem}. */
     @Nullable
     private final Item repairMaterial;
 
     /** @param placed what an empty one stands as when put down, or {@code null} if it does not. */
-    public SmokingDeviceItem(DeviceType device, @Nullable Block placed, Settings settings) {
+    public SmokingDeviceItem(DeviceType device, @Nullable Block placed, Properties settings) {
         this(device, placed, settings, null);
     }
 
@@ -83,7 +83,7 @@ public class SmokingDeviceItem extends Item {
      * A device repaired with something other than its type's build material — the coloured bongs,
      * each mended with the glass it is blown from.
      */
-    public SmokingDeviceItem(DeviceType device, @Nullable Block placed, Settings settings,
+    public SmokingDeviceItem(DeviceType device, @Nullable Block placed, Properties settings,
                              @Nullable Item repairMaterial) {
         super(settings);
         this.device = device;
@@ -93,7 +93,7 @@ public class SmokingDeviceItem extends Item {
         if (placed != null) {
             // What BlockItem#appendBlocks does at registration. Block#asItem reads this map, and it
             // is how pick-block and the block's loot table find their way back to the device.
-            Item.BLOCK_ITEMS.put(placed, this);
+            Item.BY_BLOCK.put(placed, this);
         }
     }
 
@@ -107,28 +107,28 @@ public class SmokingDeviceItem extends Item {
     }
 
     @Override
-    public int getEnchantability() {
+    public int getEnchantmentValue() {
         return device.enchantability();
     }
 
     @Override
-    public boolean canRepair(ItemStack stack, ItemStack ingredient) {
+    public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
         // Vanilla-style material repair: every device repairs with the material it is built from —
         // pipe planks, bong glass, vaporizer iron. Nothing in vanilla repairs with redstone, so
         // redstone-as-repair would have been the modded tell. Allowed packed or empty — durability
         // is the same component either way.
         if (repairMaterial != null) {
-            return ingredient.isOf(repairMaterial);
+            return ingredient.is(repairMaterial);
         }
         return switch (device) {
-            case PIPE -> ingredient.isIn(ItemTags.PLANKS);
-            case BONG -> ingredient.isOf(Items.GLASS);
-            case VAPORIZER -> ingredient.isOf(Items.IRON_INGOT);
+            case PIPE -> ingredient.is(ItemTags.PLANKS);
+            case BONG -> ingredient.is(Items.GLASS);
+            case VAPORIZER -> ingredient.is(Items.IRON_INGOT);
         };
     }
 
     @Override
-    public Text getName(ItemStack stack) {
+    public Component getName(ItemStack stack) {
         SmokeContents contents = contentsOf(stack);
         // The packed format is the device's, not this item's: a packed Red Bong is "Purple Kush
         // Bong", because the glass is on the model and the name has room for one thing only.
@@ -139,19 +139,19 @@ public class SmokingDeviceItem extends Item {
 
     /**
      * Says how to set a packed bong down, which nothing else in the game does: a plain right-click
-     * smokes it, so it places only while sneaking ({@link #useOnBlock}). An empty one places on a
+     * smokes it, so it places only while sneaking ({@link #useOn}). An empty one places on a
      * plain click and needs no line.
      */
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        super.appendTooltip(stack, context, tooltip, type);
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+        super.appendHoverText(stack, context, tooltip, type);
         if (placed != null && !contentsOf(stack).isEmpty()) {
-            tooltip.add(Text.translatable("hempdustry.bong.set_down").formatted(Formatting.GRAY));
+            tooltip.add(Component.translatable("hempdustry.bong.set_down").withStyle(ChatFormatting.GRAY));
         }
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+    public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, world, entity, slot, selected);
         Smoking.expire(stack, world);
     }
@@ -165,40 +165,40 @@ public class SmokingDeviceItem extends Item {
      *
      * <p>{@code BlockItem#place} cut down to what a decorative block needs, since this class is
      * every device and cannot be a {@code BlockItem}. What keeps it short is
-     * {@code readComponents}: the block entity holds on to durability, enchantments and a name
+     * {@code applyComponentsFromItemStack}: the block entity holds on to durability, enchantments and a name
      * without a line of ours, and hands them back when broken ({@code BongBlockEntity}).
      */
     @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        ItemStack stack = context.getStack();
-        if (placed == null || (!contentsOf(stack).isEmpty() && !context.shouldCancelInteraction())) {
-            return ActionResult.PASS;
+    public InteractionResult useOn(UseOnContext context) {
+        ItemStack stack = context.getItemInHand();
+        if (placed == null || (!contentsOf(stack).isEmpty() && !context.isSecondaryUseActive())) {
+            return InteractionResult.PASS;
         }
-        ItemPlacementContext placement = new ItemPlacementContext(context);
-        World world = placement.getWorld();
-        BlockPos pos = placement.getBlockPos();
-        PlayerEntity player = placement.getPlayer();
-        BlockState state = placement.canPlace() ? placed.getPlacementState(placement) : null;
-        if (state == null || !state.canPlaceAt(world, pos)
-                || !world.canPlace(state, pos, player == null ? ShapeContext.absent() : ShapeContext.of(player))
-                || !world.setBlockState(pos, state, Block.NOTIFY_ALL_AND_REDRAW)) {
-            return ActionResult.FAIL;
+        BlockPlaceContext placement = new BlockPlaceContext(context);
+        Level world = placement.getLevel();
+        BlockPos pos = placement.getClickedPos();
+        Player player = placement.getPlayer();
+        BlockState state = placement.canPlace() ? placed.getStateForPlacement(placement) : null;
+        if (state == null || !state.canSurvive(world, pos)
+                || !world.isUnobstructed(state, pos, player == null ? CollisionContext.empty() : CollisionContext.of(player))
+                || !world.setBlock(pos, state, Block.UPDATE_ALL_IMMEDIATE)) {
+            return InteractionResult.FAIL;
         }
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity != null) {
-            blockEntity.readComponents(stack);
-            blockEntity.markDirty();
+            blockEntity.applyComponentsFromItemStack(stack);
+            blockEntity.setChanged();
         }
-        placed.onPlaced(world, pos, state, player, stack);
-        if (player instanceof ServerPlayerEntity serverPlayer) {
-            Criteria.PLACED_BLOCK.trigger(serverPlayer, pos, stack);
+        placed.setPlacedBy(world, pos, state, player, stack);
+        if (player instanceof ServerPlayer serverPlayer) {
+            CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, pos, stack);
         }
-        BlockSoundGroup sounds = state.getSoundGroup();
-        world.playSound(player, pos, sounds.getPlaceSound(), SoundCategory.BLOCKS,
+        SoundType sounds = state.getSoundType();
+        world.playSound(player, pos, sounds.getPlaceSound(), SoundSource.BLOCKS,
                 (sounds.getVolume() + 1f) / 2f, sounds.getPitch() * 0.8f);
-        world.emitGameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Emitter.of(player, state));
-        stack.decrementUnlessCreative(1, player);
-        return ActionResult.success(world.isClient);
+        world.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(player, state));
+        stack.consume(1, player);
+        return InteractionResult.sidedSuccess(world.isClientSide);
     }
 
     /** The block an empty one stands as when put down, or {@code null} for a device that does not. */
@@ -207,28 +207,28 @@ public class SmokingDeviceItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-        ItemStack stack = player.getStackInHand(hand);
+    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
         SmokeContents contents = contentsOf(stack);
-        if (contents.isEmpty() || player.getItemCooldownManager().isCoolingDown(this)) {
-            return TypedActionResult.pass(stack);
+        if (contents.isEmpty() || player.getCooldowns().isOnCooldown(this)) {
+            return InteractionResultHolder.pass(stack);
         }
         if (device.drawTicks() > 0) {
-            // Hold to rip: the hit lands in finishUsing once the draw is complete, and letting go
-            // first spends nothing -- not even the bubbling, which usageTick starts on each client.
-            player.setCurrentHand(hand);
-            return TypedActionResult.consume(stack);
+            // Hold to rip: the hit lands in finishUsingItem once the draw is complete, and letting go
+            // first spends nothing -- not even the bubbling, which onUseTick starts on each client.
+            player.startUsingItem(hand);
+            return InteractionResultHolder.consume(stack);
         }
-        if (!world.isClient()) {
+        if (!world.isClientSide()) {
             // A veto costs the player nothing: no effects, no charge spent, no cooldown. Checked
             // here rather than beside the emptiness test because it is the expensive one of the
             // three and the only one another mod can answer.
             if (!Smoking.allowed(player, stack, contents)) {
-                return TypedActionResult.pass(stack);
+                return InteractionResultHolder.pass(stack);
             }
             hit(world, player, stack, contents, hand, device.soundDelayTicks());
         }
-        return TypedActionResult.success(stack, world.isClient());
+        return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
     }
 
     /**
@@ -237,28 +237,28 @@ public class SmokingDeviceItem extends Item {
      * refused at the last moment costs nothing, only the breath.
      */
     @Override
-    public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
+    public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         SmokeContents contents = contentsOf(stack);
-        if (!world.isClient() && user instanceof PlayerEntity player && !contents.isEmpty()
+        if (!world.isClientSide() && user instanceof Player player && !contents.isEmpty()
                 && Smoking.allowed(player, stack, contents)) {
             // The bubbling began with the draw, drawTicks ago, and the inhale's delay counts from there.
-            hit(world, player, stack, contents, user.getActiveHand(),
+            hit(world, player, stack, contents, user.getUsedItemHand(),
                     Math.max(0, device.soundDelayTicks() - device.drawTicks()));
         }
         return stack;
     }
 
-    // Overridden the way GoatHornItem overrides them: ItemStack asks the item, and Item's own
+    // Overridden the way InstrumentItem overrides them: ItemStack asks the item, and Item's own
     // answer comes from a consumable component this device does not have. 0 and NONE for every
     // device that hits on the click, which is what they were before.
     @Override
-    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+    public int getUseDuration(ItemStack stack, LivingEntity user) {
         return device.drawTicks();
     }
 
     @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return device.drawTicks() > 0 ? UseAction.TOOT_HORN : UseAction.NONE;
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return device.drawTicks() > 0 ? UseAnim.TOOT_HORN : UseAnim.NONE;
     }
 
     /**
@@ -273,15 +273,15 @@ public class SmokingDeviceItem extends Item {
     private static final int WISP_EVERY_TICKS = 5;
 
     @Override
-    public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        int drawn = getMaxUseTime(stack, user) - remainingUseTicks;
-        if (world.isClient()) {
+    public void onUseTick(Level world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+        int drawn = getUseDuration(stack, user) - remainingUseTicks;
+        if (world.isClientSide()) {
             // The first tick of a draw, on every client that can see it: a remote player's draw
             // ticks here too, from the use flag the server syncs.
             if (drawn == 0 && device == DeviceType.BONG) {
                 drawSound.accept(user);
             }
-        } else if (drawn % WISP_EVERY_TICKS == 0 && world instanceof ServerWorld serverWorld) {
+        } else if (drawn % WISP_EVERY_TICKS == 0 && world instanceof ServerLevel serverWorld) {
             wisp(serverWorld, user);
         }
     }
@@ -291,19 +291,19 @@ public class SmokingDeviceItem extends Item {
      * room. Placed off the player's yaw rather than their look, so it stays at the bowl whether
      * they are looking at their feet or the sky.
      */
-    private static void wisp(ServerWorld world, LivingEntity user) {
-        boolean rightHand = (user.getActiveHand() == Hand.MAIN_HAND) == (user.getMainArm() == Arm.RIGHT);
-        Vec3d forward = Vec3d.fromPolar(0, user.getYaw());
-        Vec3d side = Vec3d.fromPolar(0, user.getYaw() + (rightHand ? 90 : -90));
-        Vec3d bowl = user.getEyePos().add(forward.multiply(0.4)).add(side.multiply(0.3)).add(0, -0.5, 0);
-        world.spawnParticles(ParticleTypes.SMOKE, bowl.x, bowl.y, bowl.z, 1, 0.02, 0.02, 0.02, 0.005);
+    private static void wisp(ServerLevel world, LivingEntity user) {
+        boolean rightHand = (user.getUsedItemHand() == InteractionHand.MAIN_HAND) == (user.getMainArm() == HumanoidArm.RIGHT);
+        Vec3 forward = Vec3.directionFromRotation(0, user.getYRot());
+        Vec3 side = Vec3.directionFromRotation(0, user.getYRot() + (rightHand ? 90 : -90));
+        Vec3 bowl = user.getEyePosition().add(forward.scale(0.4)).add(side.scale(0.3)).add(0, -0.5, 0);
+        world.sendParticles(ParticleTypes.SMOKE, bowl.x, bowl.y, bowl.z, 1, 0.02, 0.02, 0.02, 0.005);
     }
 
     /** One hit, spent: effects, cooldown, a charge and a point of durability, and the bowl's end. */
-    private void hit(World world, PlayerEntity player, ItemStack stack, SmokeContents contents,
-                     Hand hand, int soundDelayTicks) {
-        DeviceStats stats = DeviceStats.of(world.getRegistryManager(), device);
-        GreenOut greenOut = GreenOut.of(world.getRegistryManager());
+    private void hit(Level world, Player player, ItemStack stack, SmokeContents contents,
+                     InteractionHand hand, int soundDelayTicks) {
+        DeviceStats stats = DeviceStats.of(world.registryAccess(), device);
+        GreenOut greenOut = GreenOut.of(world.registryAccess());
         boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
                 stats.coughOneIn(), stats.nauseaOneIn(),
                 Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
@@ -311,12 +311,12 @@ public class SmokingDeviceItem extends Item {
         Smoking.startCooldown(player, stack,
                 EffectPolicy.cooldown(lockedOut ? greenOut.lockoutTicks() : stats.cooldownTicks()));
 
-        if (player.getAbilities().creativeMode) {
+        if (player.getAbilities().instabuild) {
             return;
         }
         int remaining = stack.getOrDefault(ModComponents.CHARGES, 0) - 1;
-        EquipmentSlot slot = hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
-        stack.damage(1, player, slot);
+        EquipmentSlot slot = hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+        stack.hurtAndBreak(1, player, slot);
         if (remaining <= 0) {
             // The bowl is spent whether or not the device survived the hit, and both halves
             // of that matter. Every device's maxDamage is a whole number of bowls, so the
@@ -348,15 +348,15 @@ public class SmokingDeviceItem extends Item {
      * predicate for plant matter answers both, and anything hash-shaped a datapack adds. Schwag
      * passes it: a spoiled bud still leaves a spent one.
      *
-     * <p>{@code giveItemStack} puts it in the inventory and drops the remainder at the player's feet
+     * <p>{@code addItem} puts it in the inventory and drops the remainder at the player's feet
      * if there is no room, which is vanilla's own behaviour for a bucket emptying or a bundle
      * spilling — the yield can never be lost to a full hotbar.
      */
-    private void yieldSpent(PlayerEntity player, SmokeContents contents) {
-        int yield = DeviceStats.bowl(player.getRegistryManager(), device).spentYield();
+    private void yieldSpent(Player player, SmokeContents contents) {
+        int yield = DeviceStats.bowl(player.registryAccess(), device).spentYield();
         if (yield > 0 && contents.entries().stream()
                 .allMatch(entry -> ModStrains.isPlantMatter(entry.strain()))) {
-            player.giveItemStack(new ItemStack(ModItems.SCORCHED_HEMP, yield));
+            player.addItem(new ItemStack(ModItems.SCORCHED_HEMP, yield));
         }
     }
 }

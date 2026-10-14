@@ -2,38 +2,48 @@ package com.warlonmhite.hempdustry.world;
 
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.Registerable;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.intprovider.ConstantIntProvider;
-import net.minecraft.world.gen.blockpredicate.BlockPredicate;
-import net.minecraft.world.gen.feature.*;
-import net.minecraft.world.gen.placementmodifier.*;
-
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.placement.PlacementUtils;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.valueproviders.ConstantInt;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
+import net.minecraft.world.level.levelgen.placement.BiomeFilter;
+import net.minecraft.world.level.levelgen.placement.CountPlacement;
+import net.minecraft.world.level.levelgen.placement.EnvironmentScanPlacement;
+import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.placement.PlacementModifier;
+import net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement;
+import net.minecraft.world.level.levelgen.placement.RarityFilter;
 import java.util.List;
 
 public class ModPlacedFeatures {
 
-    public static final RegistryKey<PlacedFeature> INDICA_PLACED_KEY = registerKey("indica_placed");
-    public static final RegistryKey<PlacedFeature> INDICA_CAVE_PLACED_KEY = registerKey("indica_cave_placed");
-    public static final RegistryKey<PlacedFeature> SATIVA_PLACED_KEY = registerKey("sativa_placed");
-    public static final RegistryKey<PlacedFeature> SATIVA_SPARSE_PLACED_KEY = registerKey("sativa_sparse_placed");
-    public static final RegistryKey<PlacedFeature> SATIVA_RARE_PLACED_KEY = registerKey("sativa_rare_placed");
-    public static final RegistryKey<PlacedFeature> BELDIA_PLACED_KEY = registerKey("beldia_placed");
+    public static final ResourceKey<PlacedFeature> INDICA_PLACED_KEY = registerKey("indica_placed");
+    public static final ResourceKey<PlacedFeature> INDICA_CAVE_PLACED_KEY = registerKey("indica_cave_placed");
+    public static final ResourceKey<PlacedFeature> SATIVA_PLACED_KEY = registerKey("sativa_placed");
+    public static final ResourceKey<PlacedFeature> SATIVA_SPARSE_PLACED_KEY = registerKey("sativa_sparse_placed");
+    public static final ResourceKey<PlacedFeature> SATIVA_RARE_PLACED_KEY = registerKey("sativa_rare_placed");
+    public static final ResourceKey<PlacedFeature> BELDIA_PLACED_KEY = registerKey("beldia_placed");
 
     /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
     private static final int BELDIA_RARITY = 8;
 
-    public static RegistryKey<PlacedFeature> registerKey(String name) {
-        return RegistryKey.of(RegistryKeys.PLACED_FEATURE, Identifier.of(Hempdustry.MOD_ID, name));
+    public static ResourceKey<PlacedFeature> registerKey(String name) {
+        return ResourceKey.create(Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
     }
 
-    public static void bootstrap(Registerable<PlacedFeature> context) {
-        var configured = context.getRegistryLookup(RegistryKeys.CONFIGURED_FEATURE);
+    public static void bootstrap(BootstrapContext<PlacedFeature> context) {
+        var configured = context.lookup(Registries.CONFIGURED_FEATURE);
 
         // Surface: 1 patch per 48 chunks in valid biomes. The wild plant is the main seed source,
         // so this is what decides how soon a player can start a farm: one find, not one per hill.
@@ -57,13 +67,13 @@ public class ModPlacedFeatures {
         // whose top half would be left floating.
         register(context, INDICA_CAVE_PLACED_KEY,
                 configured.getOrThrow(ModConfiguredFeatures.INDICA_CAVE_KEY),
-                CountPlacementModifier.of(64),
-                SquarePlacementModifier.of(),
-                PlacedFeatures.BOTTOM_TO_120_RANGE,
-                EnvironmentScanPlacementModifier.of(Direction.DOWN, BlockPredicate.solid(),
-                        BlockPredicate.matchingBlocks(Blocks.AIR, Blocks.MOSS_CARPET, Blocks.SHORT_GRASS), 12),
-                RandomOffsetPlacementModifier.vertically(ConstantIntProvider.create(1)),
-                BiomePlacementModifier.of());
+                CountPlacement.of(64),
+                InSquarePlacement.spread(),
+                PlacementUtils.RANGE_BOTTOM_TO_MAX_TERRAIN_HEIGHT,
+                EnvironmentScanPlacement.scanningFor(Direction.DOWN, BlockPredicate.solid(),
+                        BlockPredicate.matchesBlocks(Blocks.AIR, Blocks.MOSS_CARPET, Blocks.SHORT_GRASS), 12),
+                RandomOffsetPlacement.vertical(ConstantInt.of(1)),
+                BiomeFilter.biome());
 
         // Wild Lemon Haze, surface only, in three tiers that get rarer as the ground gets harsher
         // (see ModConfiguredFeatures for the patch densities and the biome mapping). All three are
@@ -89,21 +99,21 @@ public class ModPlacedFeatures {
     /** Standard surface-vegetation placement: one attempt per {@code rarity} chunks, on the terrain top. */
     private static PlacementModifier[] surfacePatch(int rarity) {
         return new PlacementModifier[]{
-                RarityFilterPlacementModifier.of(rarity),
-                SquarePlacementModifier.of(),
-                PlacedFeatures.MOTION_BLOCKING_HEIGHTMAP,
-                BiomePlacementModifier.of()};
+                RarityFilter.onAverageOnceEvery(rarity),
+                InSquarePlacement.spread(),
+                PlacementUtils.HEIGHTMAP,
+                BiomeFilter.biome()};
     }
 
 
 
-    private static void register(Registerable<PlacedFeature> context, RegistryKey<PlacedFeature> key, RegistryEntry<ConfiguredFeature<?, ?>> configuration,
+    private static void register(BootstrapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key, Holder<ConfiguredFeature<?, ?>> configuration,
                                  List<PlacementModifier> modifiers) {
         context.register(key, new PlacedFeature(configuration, List.copyOf(modifiers)));
     }
 
-    private static <FC extends FeatureConfig, F extends Feature<FC>> void register(Registerable<PlacedFeature> context, RegistryKey<PlacedFeature> key,
-                                                                                   RegistryEntry<ConfiguredFeature<?, ?>> configuration,
+    private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstrapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key,
+                                                                                   Holder<ConfiguredFeature<?, ?>> configuration,
                                                                                    PlacementModifier... modifiers) {
         register(context, key, configuration, List.of(modifiers));
     }

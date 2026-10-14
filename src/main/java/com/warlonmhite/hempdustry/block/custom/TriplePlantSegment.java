@@ -1,6 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.StringRepresentable;
 
 /**
  * Which slice of a three-tall plant a block is. The direct analogue of vanilla's
@@ -10,7 +10,7 @@ import net.minecraft.util.StringIdentifiable;
  * <p>The canonical age of the plant lives on the LOWER segment; MIDDLE and UPPER
  * mirror it.
  */
-public enum TriplePlantSegment implements StringIdentifiable {
+public enum TriplePlantSegment implements StringRepresentable {
     LOWER("lower"),
     MIDDLE("middle"),
     UPPER("upper");
@@ -22,12 +22,12 @@ public enum TriplePlantSegment implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return this.name;
     }
 
     @Override
     public String toString() {
-        return this.asString();
+        return this.getSerializedName();
     }
 }

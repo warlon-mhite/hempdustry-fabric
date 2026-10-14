@@ -3,9 +3,9 @@ package com.warlonmhite.hempdustry.config;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 
 /**
  * {@code /hempdustry reload} — re-reads {@code config/hempdustry.json} without a restart.
@@ -26,20 +26,20 @@ public class ModCommands {
         Hempdustry.LOGGER.info("Registering Commands for " + Hempdustry.MOD_ID);
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> build() {
-        return CommandManager.literal(Hempdustry.MOD_ID)
-                .requires(source -> source.hasPermissionLevel(2))
-                .then(CommandManager.literal("reload").executes(context -> {
+    private static LiteralArgumentBuilder<CommandSourceStack> build() {
+        return Commands.literal(Hempdustry.MOD_ID)
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("reload").executes(context -> {
                     if (!HempdustryConfig.load()) {
                         // The file could not be read and was left alone; the settings already running
                         // stay. Say so, or a typo looks exactly like a reload that took.
-                        context.getSource().sendError(Text.translatable("commands.hempdustry.reload.failed"));
+                        context.getSource().sendFailure(Component.translatable("commands.hempdustry.reload.failed"));
                         return 0;
                     }
                     // Sent as a broadcast-to-ops message: a balance change is something the other
                     // operators online want to know happened, the way /gamerule announces itself.
-                    context.getSource().sendFeedback(
-                            () -> Text.translatable("commands.hempdustry.reload"), true);
+                    context.getSource().sendSuccess(
+                            () -> Component.translatable("commands.hempdustry.reload"), true);
                     return 1;
                 }));
     }

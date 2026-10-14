@@ -7,16 +7,15 @@ import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.SimpleRegistry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.GameTest;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.Registry;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.CreativeModeTab;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -32,47 +31,47 @@ import java.util.stream.Stream;
  */
 public final class DatapackStrainGameTest implements FabricGameTest {
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void aStrainReusingItemsKeepsTheTabWhole(TestContext context) {
-        ServerWorld world = context.getWorld();
-        RegistryWrapper.WrapperLookup real = world.getRegistryManager();
-        Registry<Strain> loaded = world.getRegistryManager().get(Strain.REGISTRY_KEY);
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void aStrainReusingItemsKeepsTheTabWhole(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        HolderLookup.Provider real = world.registryAccess();
+        Registry<Strain> loaded = world.registryAccess().registryOrThrow(Strain.REGISTRY_KEY);
         Strain purpleKush = loaded.getOrThrow(ModStrains.INDICA);
 
-        SimpleRegistry<Strain> strains = new SimpleRegistry<>(Strain.REGISTRY_KEY, Lifecycle.stable());
-        loaded.streamEntries().forEach(entry -> Registry.register(strains, entry.registryKey(), entry.value()));
+        MappedRegistry<Strain> strains = new MappedRegistry<>(Strain.REGISTRY_KEY, Lifecycle.stable());
+        loaded.holders().forEach(entry -> Registry.register(strains, entry.key(), entry.value()));
         // Purple Kush's own definition through the codec a datapack goes through, under another id and
         // translation key (which keeps the record unequal to Purple Kush's); the items are the same.
         JsonObject json = Strain.CODEC.encodeStart(JsonOps.INSTANCE, purpleKush).getOrThrow().getAsJsonObject();
         json.addProperty("translation_key", "strain.hempdustry-gametest.copy");
-        Registry.register(strains, RegistryKey.of(Strain.REGISTRY_KEY, Identifier.of("hempdustry-gametest", "copy")),
+        Registry.register(strains, ResourceKey.create(Strain.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("hempdustry-gametest", "copy")),
                 Strain.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
         strains.freeze();
 
-        RegistryWrapper.WrapperLookup withCopy = new RegistryWrapper.WrapperLookup() {
+        HolderLookup.Provider withCopy = new HolderLookup.Provider() {
             @Override
-            public Stream<RegistryKey<? extends Registry<?>>> streamAllRegistryKeys() {
-                return real.streamAllRegistryKeys();
+            public Stream<ResourceKey<? extends Registry<?>>> listRegistries() {
+                return real.listRegistries();
             }
 
             @Override
             @SuppressWarnings("unchecked")
-            public <T> Optional<RegistryWrapper.Impl<T>> getOptionalWrapper(
-                    RegistryKey<? extends Registry<? extends T>> key) {
+            public <T> Optional<HolderLookup.RegistryLookup<T>> lookup(
+                    ResourceKey<? extends Registry<? extends T>> key) {
                 return key.equals(Strain.REGISTRY_KEY)
-                        ? Optional.of((RegistryWrapper.Impl<T>) (Object) strains.getReadOnlyWrapper())
-                        : real.getOptionalWrapper(key);
+                        ? Optional.of((HolderLookup.RegistryLookup<T>) (Object) strains.asLookup())
+                        : real.lookup(key);
             }
         };
 
-        // What CreativeInventoryScreen does on opening; the duplicate throws from in here.
-        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.updateEntries(
-                new ItemGroup.DisplayContext(world.getEnabledFeatures(), true, withCopy));
+        // What CreativeModeInventoryScreen does on opening; the duplicate throws from in here.
+        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(
+                new CreativeModeTab.ItemDisplayParameters(world.enabledFeatures(), true, withCopy));
 
-        long buds = ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayStacks().stream()
-                .filter(stack -> stack.isOf(purpleKush.buds()))
+        long buds = ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems().stream()
+                .filter(stack -> stack.is(purpleKush.buds()))
                 .count();
-        context.assertEquals(buds, 1L, "the stacks of Purple Kush's buds in the tab");
-        context.complete();
+        context.assertValueEqual(buds, 1L, "the stacks of Purple Kush's buds in the tab");
+        context.succeed();
     }
 }

@@ -6,28 +6,6 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.block.AbstractSignBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.WallHangingSignBlock;
-import net.minecraft.block.WallSignBlock;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.TestContext;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableTextContent;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.util.Language;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,7 +18,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.test.GameTest;
+import net.minecraft.Util;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SignBlock;
+import net.minecraft.world.level.block.WallHangingSignBlock;
+import net.minecraft.world.level.block.WallSignBlock;
 
 /**
  * Every string in every lang file is one the game actually asks for — <b>and this test exists
@@ -72,59 +71,59 @@ public final class LangGameTest implements FabricGameTest {
     /** Anything in a class's constant pool that could be one of our keys. */
     private static final Pattern LITERAL = Pattern.compile("[a-z0-9_.]*hempdustry[a-z0-9_.]*");
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void everyStringIsReadByTheGame(TestContext context) {
-        ServerWorld world = context.getWorld();
-        DynamicRegistryManager registries = world.getRegistryManager();
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void everyStringIsReadByTheGame(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        RegistryAccess registries = world.registryAccess();
         Set<String> read = new HashSet<>();
 
-        for (Item item : Registries.ITEM) {
-            if (Sweep.ours(Registries.ITEM.getId(item))) keys(new ItemStack(item).getName(), read);
+        for (Item item : BuiltInRegistries.ITEM) {
+            if (Sweep.ours(BuiltInRegistries.ITEM.getKey(item))) keys(new ItemStack(item).getHoverName(), read);
         }
-        for (Block block : Registries.BLOCK) {
-            if (!Sweep.ours(Registries.BLOCK.getId(block))) continue;
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (!Sweep.ours(BuiltInRegistries.BLOCK.getKey(block))) continue;
             keys(block.getName(), read);
             // On this version a wall sign is named after its item, the standing sign, so its own key
             // goes unread here (WallSignBlock#getTranslationKey); from 1.21.2 it names itself. Kept,
             // so the locales match the 1.21.11 build's, and counted as read.
             if (block instanceof WallSignBlock || block instanceof WallHangingSignBlock) {
-                read.add(Util.createTranslationKey("block", Registries.BLOCK.getId(block)));
+                read.add(Util.makeDescriptionId("block", BuiltInRegistries.BLOCK.getKey(block)));
             }
             // And a sign's item is named after its block (BlockItem#getTranslationKey), so the item
             // key goes unread too; from 1.21.2 an item names itself. Kept and counted the same way.
-            if (block instanceof AbstractSignBlock && !(block instanceof WallSignBlock || block instanceof WallHangingSignBlock)) {
-                read.add(Util.createTranslationKey("item", Registries.ITEM.getId(block.asItem())));
+            if (block instanceof SignBlock && !(block instanceof WallSignBlock || block instanceof WallHangingSignBlock)) {
+                read.add(Util.makeDescriptionId("item", BuiltInRegistries.ITEM.getKey(block.asItem())));
             }
         }
-        for (EntityType<?> type : Registries.ENTITY_TYPE) {
-            if (Sweep.ours(Registries.ENTITY_TYPE.getId(type))) keys(type.getName(), read);
+        for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE) {
+            if (Sweep.ours(BuiltInRegistries.ENTITY_TYPE.getKey(type))) keys(type.getDescription(), read);
         }
         // A loaded spliff, device or moon rock names itself from what is in it, so the stacks the
         // creative tab builds are named too, not just each item fresh.
-        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.updateEntries(new ItemGroup.DisplayContext(
-                world.getEnabledFeatures(), true, registries));
-        for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks()) keys(stack.getName(), read);
+        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(new CreativeModeTab.ItemDisplayParameters(
+                world.enabledFeatures(), true, registries));
+        for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems()) keys(stack.getHoverName(), read);
         keys(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayName(), read);
-        // On this version a painting's title and author are built from its id (DecorationItem).
-        for (Identifier painting : registries.get(RegistryKeys.PAINTING_VARIANT).getIds()) {
-            read.add(painting.toTranslationKey("painting", "title"));
-            read.add(painting.toTranslationKey("painting", "author"));
+        // On this version a painting's title and author are built from its id (HangingEntityItem).
+        for (ResourceLocation painting : registries.registryOrThrow(Registries.PAINTING_VARIANT).keySet()) {
+            read.add(painting.toLanguageKey("painting", "title"));
+            read.add(painting.toLanguageKey("painting", "author"));
         }
-        registries.get(RegistryKeys.JUKEBOX_SONG).forEach(song -> keys(song.description(), read));
-        registries.get(RegistryKeys.BANNER_PATTERN).forEach(pattern -> {
-            for (DyeColor colour : DyeColor.values()) read.add(pattern.translationKey() + "." + colour.asString());
+        registries.registryOrThrow(Registries.JUKEBOX_SONG).forEach(song -> keys(song.description(), read));
+        registries.registryOrThrow(Registries.BANNER_PATTERN).forEach(pattern -> {
+            for (DyeColor colour : DyeColor.values()) read.add(pattern.translationKey() + "." + colour.getSerializedName());
         });
-        registries.get(Strain.REGISTRY_KEY).forEach(strain -> read.add(strain.translationKey()));
+        registries.registryOrThrow(Strain.REGISTRY_KEY).forEach(strain -> read.add(strain.translationKey()));
         for (Quality quality : Quality.values()) read.add(quality.getTranslationKey());
-        for (AdvancementEntry entry : world.getServer().getAdvancementLoader().getAdvancements()) {
+        for (AdvancementHolder entry : world.getServer().getAdvancements().getAllAdvancements()) {
             entry.value().display().ifPresent(display -> {
                 keys(display.getTitle(), read);
                 keys(display.getDescription(), read);
             });
         }
-        Registries.ITEM.streamTags().forEach(tag -> {
-            Identifier id = tag.id();
-            if (!id.getNamespace().equals(Identifier.DEFAULT_NAMESPACE)) {
+        BuiltInRegistries.ITEM.getTagNames().forEach(tag -> {
+            ResourceLocation id = tag.location();
+            if (!id.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE)) {
                 read.add("tag.item." + id.getNamespace() + "." + id.getPath().replace('/', '.'));
             }
         });
@@ -144,7 +143,7 @@ public final class LangGameTest implements FabricGameTest {
             } else if (name.equals("assets/hempdustry/sounds.json")) {
                 // The client reads a subtitle only for a sound event the server registered.
                 Sweep.json(file).getAsJsonObject().entrySet().forEach(e -> {
-                    if (Registries.SOUND_EVENT.containsId(Identifier.of(Hempdustry.MOD_ID, e.getKey()))
+                    if (BuiltInRegistries.SOUND_EVENT.containsKey(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, e.getKey()))
                             && e.getValue().getAsJsonObject().has("subtitle")) {
                         read.add(e.getValue().getAsJsonObject().get("subtitle").getAsString());
                     }
@@ -166,7 +165,7 @@ public final class LangGameTest implements FabricGameTest {
         }
         context.assertTrue(unread.isEmpty() && missing.isEmpty(), "nothing in the game reads these lang keys: "
                 + unread + "; the game asks for these and en_us does not have them: " + missing);
-        context.complete();
+        context.succeed();
     }
 
     /**
@@ -177,20 +176,20 @@ public final class LangGameTest implements FabricGameTest {
      * classes, so a key built at run time ({@code "tooltip.hempdustry." + something}) is invisible to
      * it until a player reads the raw key off the screen. This builds every tooltip for real.
      */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void everyTooltipNamesARealKey(TestContext context) {
-        ServerWorld world = context.getWorld();
-        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.updateEntries(new ItemGroup.DisplayContext(
-                world.getEnabledFeatures(), true, world.getRegistryManager()));
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void everyTooltipNamesARealKey(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(new CreativeModeTab.ItemDisplayParameters(
+                world.enabledFeatures(), true, world.registryAccess()));
         Set<String> ours = Sweep.json(Sweep.modFiles().get("assets/hempdustry/lang/en_us.json")).getAsJsonObject().keySet();
         Map<String, String> findings = new TreeMap<>();
         int lines = 0;
-        for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks()) {
-            String id = Registries.ITEM.getId(stack.getItem()).toString();
-            for (TooltipType type : List.of(TooltipType.BASIC, TooltipType.ADVANCED)) {
-                List<Text> tooltip;
+        for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems()) {
+            String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+            for (TooltipFlag type : List.of(TooltipFlag.NORMAL, TooltipFlag.ADVANCED)) {
+                List<Component> tooltip;
                 try {
-                    tooltip = stack.getTooltip(Item.TooltipContext.create(world), null, type);
+                    tooltip = stack.getTooltipLines(Item.TooltipContext.of(world), null, type);
                 } catch (RuntimeException | LinkageError e) {
                     findings.putIfAbsent(id, "building its tooltip threw " + e);
                     continue;
@@ -199,7 +198,7 @@ public final class LangGameTest implements FabricGameTest {
                 tooltip.forEach(line -> keys(line, asked));
                 lines += tooltip.size();
                 for (String key : asked) {
-                    if (!ours.contains(key) && !Language.getInstance().hasTranslation(key)) {
+                    if (!ours.contains(key) && !Language.getInstance().has(key)) {
                         findings.putIfAbsent(id + " " + key, "its tooltip asks for a key no lang file has");
                     }
                 }
@@ -207,7 +206,7 @@ public final class LangGameTest implements FabricGameTest {
         }
         Sweep.atLeast(context, "tooltip lines", lines, 300);
         Sweep.report(context, "Every tooltip names a real key", findings, Map.of());
-        context.complete();
+        context.succeed();
     }
 
     /**
@@ -218,8 +217,8 @@ public final class LangGameTest implements FabricGameTest {
      * {@code %s} English never had prints a literal {@code %s}. Translations arrive in packets from
      * people who do not run the game, so nothing else would see it.
      */
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void everyTranslationKeepsItsPlaceholders(TestContext context) {
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void everyTranslationKeepsItsPlaceholders(GameTestHelper context) {
         Pattern placeholder = Pattern.compile("%(?:\\d+\\$)?[sd]|%%");
         JsonObject english = Sweep.json(Sweep.modFiles().get("assets/hempdustry/lang/en_us.json")).getAsJsonObject();
         Map<String, String> findings = new TreeMap<>();
@@ -239,7 +238,7 @@ public final class LangGameTest implements FabricGameTest {
         }
         Sweep.atLeast(context, "translated strings", compared, 1000);
         Sweep.report(context, "Every translation keeps its placeholders", findings, Map.of());
-        context.complete();
+        context.succeed();
     }
 
     private static List<String> placeholders(Pattern placeholder, String text) {
@@ -266,13 +265,13 @@ public final class LangGameTest implements FabricGameTest {
         return prefix != null && !REGISTRY_PREFIXES.contains(prefix) && literals.contains(prefix);
     }
 
-    private static void keys(Text text, Set<String> into) {
-        if (text.getContent() instanceof TranslatableTextContent translatable) {
+    private static void keys(Component text, Set<String> into) {
+        if (text.getContents() instanceof TranslatableContents translatable) {
             into.add(translatable.getKey());
             for (Object arg : translatable.getArgs()) {
-                if (arg instanceof Text inner) keys(inner, into);
+                if (arg instanceof Component inner) keys(inner, into);
             }
         }
-        for (Text sibling : text.getSiblings()) keys(sibling, into);
+        for (Component sibling : text.getSiblings()) keys(sibling, into);
     }
 }

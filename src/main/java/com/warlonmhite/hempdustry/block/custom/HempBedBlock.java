@@ -1,11 +1,11 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
-import net.minecraft.block.BedBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * A bed made up in hemp cloth — the seventeenth bed, beside vanilla's sixteen dyed ones.
@@ -19,12 +19,12 @@ import net.minecraft.util.math.BlockPos;
  * cloth is undyed and white is vanilla's undyed wool.
  */
 public class HempBedBlock extends BedBlock {
-    public HempBedBlock(Settings settings) {
+    public HempBedBlock(Properties settings) {
         super(DyeColor.WHITE, settings);
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new HempBedBlockEntity(pos, state);
     }
 }

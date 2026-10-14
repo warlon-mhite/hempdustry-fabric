@@ -4,8 +4,7 @@ import com.warlonmhite.hempdustry.compat.ViewerRecipes;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
-import net.minecraft.text.Text;
-
+import net.minecraft.network.chat.Component;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +18,7 @@ import java.util.Optional;
 public class EntryReiDisplay extends BasicDisplay {
 
     private final CategoryIdentifier<?> category;
-    private final List<Text> notes;
+    private final List<Component> notes;
 
     public EntryReiDisplay(CategoryIdentifier<?> category, ViewerRecipes.Entry entry) {
         super(EntryIngredients.ofIngredients(entry.inputs()),
@@ -38,7 +37,7 @@ public class EntryReiDisplay extends BasicDisplay {
     }
 
     /** The lines {@link EntryReiCategory} draws under the slots. */
-    public List<Text> notes() {
+    public List<Component> notes() {
         return notes;
     }
 }

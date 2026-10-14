@@ -3,23 +3,24 @@ package com.warlonmhite.hempdustry.test;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.entity.ai.SeekHempCropGoal;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.goal.GoalSelector;
-import net.minecraft.entity.mob.CreeperEntity;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.math.BlockPos;
-
+import java.lang.reflect.Field;
 import java.util.UUID;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.test.GameTest;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.GoalSelector;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 /**
  * Creepers now and then wander into an open, grown hemp field — and never gather at one.
  *
- * <p>Everything random about the goal is stepped over, not waited for: {@code ignoreChanceOnce}
+ * <p>Everything random about the goal is stepped over, not waited for: {@code trigger}
  * skips the per-tick roll (and the despawn-counter rule, which a test world with no player would
  * otherwise trip), and {@link SeekHempCropGoal#findCover} is asked with a sample count that cannot
  * miss a 7×7 field inside a range-3 square. What is left is the rules, which is what can break.
@@ -36,11 +37,11 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
     /** The longest lurk is 120 ticks. */
     private static final int LURK_OVER_BY_TICK = 140;
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 400)
-    public void creeperSeeksHempCrop(TestContext context) {
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 400)
+    public void creeperSeeksHempCrop(GameTestHelper context) {
         floor(context);
         openSky(context);
-        CreeperEntity creeper = interested(context, CENTRE);
+        Creeper creeper = interested(context, CENTRE);
 
         context.assertTrue(goalOf(creeper) != null,
                 "CreeperEntityMixin did not add SeekHempCropGoal to a creeper");
@@ -55,7 +56,7 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
         field(context, IndicaCropBlock.MAX_AGE);
         BlockPos cover = SeekHempCropGoal.findCover(creeper, 3, ALWAYS);
         context.assertTrue(cover != null, "a grown field under open sky did not draw the creeper");
-        context.assertTrue(context.getWorld().getBlockState(cover).isOf(ModBlocks.INDICA_CROP),
+        context.assertTrue(context.getLevel().getBlockState(cover).is(ModBlocks.INDICA_CROP),
                 "findCover returned " + cover + ", which is not the root of a hemp plant");
 
         roof(context, Blocks.GLASS);
@@ -63,7 +64,7 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
                 "a field under a glass roof drew a creeper; only open fields may");
         roof(context, Blocks.AIR);
 
-        CreeperEntity first = interested(context, CENTRE.add(1, 0, 1));
+        Creeper first = interested(context, CENTRE.offset(1, 0, 1));
         context.assertTrue(SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
                 "a field another creeper is already in drew a second one");
         first.discard();
@@ -74,8 +75,8 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
         SeekHempCropGoal goal = goalOf(creeper);
         boolean noticed = false;
         for (int glance = 0; glance < 2000 && !noticed; glance++) {
-            goal.ignoreChanceOnce();
-            noticed = goal.canStart();
+            goal.trigger();
+            noticed = goal.canUse();
         }
         context.assertTrue(noticed, "a creeper standing in a grown field never noticed it in 2000 glances");
         goal.start();
@@ -85,8 +86,8 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
         // the field ends the visit early, which is allowed; staying for ever is not.
         int prowls = 0;
         while (prowls < 20) {
-            goal.ignoreChanceOnce();
-            if (!goal.canStart()) {
+            goal.trigger();
+            if (!goal.canUse()) {
                 break;
             }
             goal.start();
@@ -96,20 +97,20 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
         context.assertTrue(prowls <= 6, "a creeper prowled a field " + prowls
                 + " times in a row; it should stop after 3-6 -- 20 means it never leaves");
         for (int glance = 0; glance < 500; glance++) {
-            goal.ignoreChanceOnce();
-            context.assertFalse(goal.canStart(),
+            goal.trigger();
+            context.assertFalse(goal.canUse(),
                     "a creeper that has just left a field went straight back to it instead of resting");
         }
 
         // An indifferent creeper never notices, however many times it looks. Alone in the field:
         // with another creeper in it the "taken" rule refuses first and this proves nothing.
         creeper.discard();
-        CreeperEntity indifferent = context.spawnEntity(EntityType.CREEPER, CENTRE.add(-1, 0, -1));
-        indifferent.setUuid(new UUID(0L, 1L));
+        Creeper indifferent = context.spawn(EntityType.CREEPER, CENTRE.offset(-1, 0, -1));
+        indifferent.setUUID(new UUID(0L, 1L));
         SeekHempCropGoal indifferentGoal = goalOf(indifferent);
         for (int glance = 0; glance < 2000; glance++) {
-            indifferentGoal.ignoreChanceOnce();
-            context.assertFalse(indifferentGoal.canStart(),
+            indifferentGoal.trigger();
+            context.assertFalse(indifferentGoal.canUse(),
                     "a creeper whose UUID says it ignores hemp noticed a field");
         }
 
@@ -118,33 +119,33 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
         // A creeper that has arrived lurks -- the goal holds on with the navigation idle -- and
         // then lets go by itself. A lurk with no end is the old goal's parking, back again. The
         // AI is off so nothing else moves the navigation; the goal is driven by hand.
-        CreeperEntity lurker = interested(context, CENTRE);
-        lurker.setAiDisabled(true);
+        Creeper lurker = interested(context, CENTRE);
+        lurker.setNoAi(true);
         SeekHempCropGoal lurk = new SeekHempCropGoal(lurker);
         lurk.start();
         lurker.getNavigation().stop();
-        context.assertTrue(lurk.shouldContinue(), "a creeper that arrived did not lurk at all");
-        context.runAtTick(LURK_OVER_BY_TICK, () -> {
-            context.assertFalse(lurk.shouldContinue(),
+        context.assertTrue(lurk.canContinueToUse(), "a creeper that arrived did not lurk at all");
+        context.runAtTickTime(LURK_OVER_BY_TICK, () -> {
+            context.assertFalse(lurk.canContinueToUse(),
                     "a creeper was still lurking " + LURK_OVER_BY_TICK + " ticks after it arrived; a lurk is 2-6 s");
-            context.complete();
+            context.succeed();
         });
     }
 
     /** A creeper whose UUID puts it in the half that notices hemp. */
-    private static CreeperEntity interested(TestContext context, BlockPos at) {
-        // spawnEntity, NOT spawnMob: TestContext.spawnMob strips every goal off the mob.
-        CreeperEntity creeper = context.spawnEntity(EntityType.CREEPER, at);
-        creeper.setUuid(new UUID(creeper.getUuid().getMostSignificantBits(), 2L));
+    private static Creeper interested(GameTestHelper context, BlockPos at) {
+        // spawn, NOT spawnWithNoFreeWill: GameTestHelper.spawnWithNoFreeWill strips every goal off the mob.
+        Creeper creeper = context.spawn(EntityType.CREEPER, at);
+        creeper.setUUID(new UUID(creeper.getUUID().getMostSignificantBits(), 2L));
         context.assertTrue(SeekHempCropGoal.caresAboutHemp(creeper), "test setup: UUID parity");
         return creeper;
     }
 
-    private static SeekHempCropGoal goalOf(MobEntity mob) {
+    private static SeekHempCropGoal goalOf(Mob mob) {
         try {
-            var field = MobEntity.class.getDeclaredField("goalSelector");
+            var field = Mob.class.getDeclaredField("goalSelector");
             field.setAccessible(true);
-            return ((GoalSelector) field.get(mob)).getGoals().stream()
+            return ((GoalSelector) field.get(mob)).getAvailableGoals().stream()
                     .map(prioritized -> prioritized.getGoal())
                     .filter(SeekHempCropGoal.class::isInstance)
                     .map(SeekHempCropGoal.class::cast)
@@ -154,10 +155,10 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
         }
     }
 
-    private static void floor(TestContext context) {
+    private static void floor(GameTestHelper context) {
         for (int x = 0; x < 9; x++) {
             for (int z = 0; z < 9; z++) {
-                context.setBlockState(new BlockPos(x, 1, z), Blocks.FARMLAND);
+                context.setBlock(new BlockPos(x, 1, z), Blocks.FARMLAND);
             }
         }
     }
@@ -167,39 +168,39 @@ public final class CreeperSeeksHempGameTest implements FabricGameTest {
      * until the roof over this one is lifted. The goal refusing roofed fields is the point of the
      * glass check below, so the barrier has to go rather than the check.
      */
-    private static void openSky(TestContext context) {
-        var world = context.getWorld();
+    private static void openSky(GameTestHelper context) {
+        var world = context.getLevel();
         for (int x = 0; x < 9; x++) {
             for (int z = 0; z < 9; z++) {
-                BlockPos column = context.getAbsolutePos(new BlockPos(x, 0, z));
-                int top = world.getTopY(net.minecraft.world.Heightmap.Type.WORLD_SURFACE, column.getX(), column.getZ());
+                BlockPos column = context.absolutePos(new BlockPos(x, 0, z));
+                int top = world.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, column.getX(), column.getZ());
                 for (int y = column.getY() + 3; y < top; y++) {
-                    world.setBlockState(new BlockPos(column.getX(), y, column.getZ()), Blocks.AIR.getDefaultState());
+                    world.setBlockAndUpdate(new BlockPos(column.getX(), y, column.getZ()), Blocks.AIR.defaultBlockState());
                 }
             }
         }
     }
 
     /** A 7×7 field around the creeper, at {@code age}. Seedlings are one block tall. */
-    private static void field(TestContext context, int age) {
+    private static void field(GameTestHelper context, int age) {
         for (int x = 1; x <= FIELD; x++) {
             for (int z = 1; z <= FIELD; z++) {
                 BlockPos root = new BlockPos(x, 2, z);
-                context.setBlockState(root.up(), Blocks.AIR);
-                context.setBlockState(root, ModBlocks.INDICA_CROP.getDefaultState()
-                        .with(IndicaCropBlock.AGE, age).with(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER));
+                context.setBlock(root.above(), Blocks.AIR);
+                context.setBlock(root, ModBlocks.INDICA_CROP.defaultBlockState()
+                        .setValue(IndicaCropBlock.AGE, age).setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER));
                 if (age >= 4) {
-                    context.setBlockState(root.up(), ModBlocks.INDICA_CROP.getDefaultState()
-                            .with(IndicaCropBlock.AGE, age).with(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER));
+                    context.setBlock(root.above(), ModBlocks.INDICA_CROP.defaultBlockState()
+                            .setValue(IndicaCropBlock.AGE, age).setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER));
                 }
             }
         }
     }
 
-    private static void roof(TestContext context, net.minecraft.block.Block block) {
+    private static void roof(GameTestHelper context, net.minecraft.world.level.block.Block block) {
         for (int x = 0; x < 9; x++) {
             for (int z = 0; z < 9; z++) {
-                context.setBlockState(new BlockPos(x, 6, z), block);
+                context.setBlock(new BlockPos(x, 6, z), block);
             }
         }
     }

@@ -2,19 +2,19 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -76,8 +76,8 @@ import org.jetbrains.annotations.Nullable;
  * each crop's {@code setAge}, and the bee mixin. <b>All three flags, every time.</b>
  */
 public final class Defoliation {
-    public static final BooleanProperty TRIMMED_EARLY = BooleanProperty.of("trimmed_early");
-    public static final BooleanProperty TRIMMED_LATE = BooleanProperty.of("trimmed_late");
+    public static final BooleanProperty TRIMMED_EARLY = BooleanProperty.create("trimmed_early");
+    public static final BooleanProperty TRIMMED_LATE = BooleanProperty.create("trimmed_late");
 
     /** First age at which the early/vegetative trim is accepted. */
     public static final int EARLY_MIN_AGE = 3;
@@ -93,11 +93,11 @@ public final class Defoliation {
      *
      * <p><b>It must be stamped false in {@link #unworked}</b>, exactly like the two trim flags and
      * for exactly the same reason: {@code BooleanProperty}'s value set is
-     * {@code ImmutableSet.of(true, false)}, so a boolean left out of {@code setDefaultState}
+     * {@code ImmutableSet.of(true, false)}, so a boolean left out of {@code registerDefaultState}
      * defaults to <b>true</b>. Left unset, every hemp plant would be born already rubbed and charas
      * would simply never drop — with nothing on screen to say why.
      */
-    public static final BooleanProperty RUBBED = BooleanProperty.of("rubbed");
+    public static final BooleanProperty RUBBED = BooleanProperty.create("rubbed");
 
     /** First age at which a plant is ripe enough to rub. */
     public static final int RUB_MIN_AGE = 6;
@@ -165,15 +165,15 @@ public final class Defoliation {
      * <p><b>This is not redundant.</b> A block's default state is {@code states.get(0)} — the first
      * entry of the cartesian product of its properties, which takes each property's <i>first</i>
      * value. {@code BooleanProperty}'s value set is built as {@code ImmutableSet.of(true, false)},
-     * so a boolean property left out of {@code setDefaultState} defaults to <b>true</b>, not false.
+     * so a boolean property left out of {@code registerDefaultState} defaults to <b>true</b>, not false.
      * Left unset, every hemp crop would be planted already fully trimmed <em>and</em> already
      * rubbed: both trim windows spent, the two-cut harvest payout handed over for free, and charas
      * never dropping at all. This is why vanilla always spells out {@code .with(WATERLOGGED, false)}
      * and friends rather than relying on the default.
      */
     public static BlockState unworked(BlockState state) {
-        return state.with(TRIMMED_EARLY, false).with(TRIMMED_LATE, false).with(RUBBED, false)
-                .with(GrowLight.PROPERTY, GrowLight.NATURAL);
+        return state.setValue(TRIMMED_EARLY, false).setValue(TRIMMED_LATE, false).setValue(RUBBED, false)
+                .setValue(GrowLight.PROPERTY, GrowLight.NATURAL);
     }
 
     /**
@@ -182,19 +182,19 @@ public final class Defoliation {
      * which is what makes this safe to call from the bee mixin on any crop in the game.
      *
      * <p>This exists because several things rebuild a crop's state from
-     * {@code getDefaultState()} rather than mutating the state in place — most importantly
-     * {@link net.minecraft.block.CropBlock#withAge(int)}, which is what a pollinating bee writes
+     * {@code defaultBlockState()} rather than mutating the state in place — most importantly
+     * {@link net.minecraft.world.level.block.CropBlock#getStateForAge(int)}, which is what a pollinating bee writes
      * through. Without this the flags would silently reset to {@code false} and the player's work
      * would vanish with no feedback.
      */
     public static BlockState carryOver(BlockState from, BlockState to) {
-        if (!from.contains(TRIMMED_EARLY) || !to.contains(TRIMMED_EARLY)) {
+        if (!from.hasProperty(TRIMMED_EARLY) || !to.hasProperty(TRIMMED_EARLY)) {
             return to;
         }
-        return to.with(TRIMMED_EARLY, from.get(TRIMMED_EARLY))
-                .with(TRIMMED_LATE, from.get(TRIMMED_LATE))
-                .with(RUBBED, from.get(RUBBED))
-                .with(GrowLight.PROPERTY, from.get(GrowLight.PROPERTY));
+        return to.setValue(TRIMMED_EARLY, from.getValue(TRIMMED_EARLY))
+                .setValue(TRIMMED_LATE, from.getValue(TRIMMED_LATE))
+                .setValue(RUBBED, from.getValue(RUBBED))
+                .setValue(GrowLight.PROPERTY, from.getValue(GrowLight.PROPERTY));
     }
 
     /**
@@ -202,7 +202,7 @@ public final class Defoliation {
      * it takes a leaf but moves no buds. Read by {@code HarvestHempCriterion}.
      */
     public static int cutCount(BlockState lowerState) {
-        return (lowerState.get(TRIMMED_EARLY) ? 1 : 0) + (lowerState.get(TRIMMED_LATE) ? 1 : 0);
+        return (lowerState.getValue(TRIMMED_EARLY) ? 1 : 0) + (lowerState.getValue(TRIMMED_LATE) ? 1 : 0);
     }
 
     /**
@@ -223,13 +223,13 @@ public final class Defoliation {
      * for the {@link #CHARAS_CHANCE_ONE_IN} roll.
      */
     @Nullable
-    public static ItemActionResult tryCut(World world, BlockPos lowerPos, BlockState lowerState,
-                                          int age, ItemStack stack, PlayerEntity player, Hand hand) {
+    public static ItemInteractionResult tryCut(Level world, BlockPos lowerPos, BlockState lowerState,
+                                          int age, ItemStack stack, Player player, InteractionHand hand) {
         // The convention tag rather than Items.SHEARS, so a modded pair of shears works too.
         // SHEAR_TOOLS is #c:tools/shear, which is the widest of the three: Fabric puts vanilla
         // shears in it AND pulls in the older #c:tools/shears and #c:shears as optional sub-tags,
         // so a mod that joined any of the three matches. Nothing forwards into the older two.
-        if (!stack.isIn(ConventionalItemTags.SHEAR_TOOLS)) {
+        if (!stack.is(ConventionalItemTags.SHEAR_TOOLS)) {
             return null;
         }
 
@@ -252,20 +252,20 @@ public final class Defoliation {
             }
             return null;
         }
-        if (lowerState.get(window)) {
+        if (lowerState.getValue(window)) {
             refuse(world, player, rub ? "hempdustry.trim.already_rubbed" : "hempdustry.trim.already");
             return null;
         }
 
-        if (!world.isClient) {
+        if (!world.isClientSide) {
             // The flag first, then the leaf. The flag is what the loot table reads to take this leaf
             // back off the harvest, so the leaf is only ever handed over together with it.
-            world.setBlockState(lowerPos, lowerState.with(window, true), Block.NOTIFY_LISTENERS);
+            world.setBlock(lowerPos, lowerState.setValue(window, true), Block.UPDATE_CLIENTS);
             // A Grow Lamp plant has leaf to spare: a TRIM of one hands over a second leaf, which the
             // harvest does not take back. Read off the plant's record, never off the lamp.
-            GrowLight light = lowerState.get(GrowLight.PROPERTY);
+            GrowLight light = lowerState.getValue(GrowLight.PROPERTY);
             int leaves = !rub && light == GrowLight.GROW_LAMP ? 2 : 1;
-            Block.dropStack(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF, leaves));
+            Block.popResource(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF, leaves));
             if (rub) {
                 // The age is untouched, and the charas is a roll on top of the leaf.
                 //
@@ -285,16 +285,16 @@ public final class Defoliation {
                 int oneIn = light.artificial() ? CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS : CHARAS_CHANCE_ONE_IN;
                 boolean gotCharas = world.getRandom().nextInt(oneIn) == 0;
                 if (gotCharas) {
-                    Block.dropStack(world, lowerPos, new ItemStack(ModItems.CHARAS));
+                    Block.popResource(world, lowerPos, new ItemStack(ModItems.CHARAS));
                 }
                 world.playSound(null, lowerPos,
-                        gotCharas ? SoundEvents.BLOCK_HONEY_BLOCK_BREAK
-                                : SoundEvents.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES,
-                        SoundCategory.BLOCKS, gotCharas ? 0.8F : 1.0F,
+                        gotCharas ? SoundEvents.HONEY_BLOCK_BREAK
+                                : SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
+                        SoundSource.BLOCKS, gotCharas ? 0.8F : 1.0F,
                         (gotCharas ? 0.7F : 0.6F) + world.getRandom().nextFloat() * 0.2F);
             }
-            stack.damage(1, player,
-                    hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+            stack.hurtAndBreak(1, player,
+                    hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
         }
 
         // A TRIM's sound is unconditional, so it keeps the two-sided immediate pattern: passing the
@@ -303,10 +303,10 @@ public final class Defoliation {
         // hears exactly one, and the randomised pitch differing between the two sides is invisible
         // because only one of them ever reaches a given pair of ears.
         if (!rub) {
-            world.playSound(player, lowerPos, SoundEvents.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES,
-                    SoundCategory.BLOCKS, 1.0F, 0.8F + world.getRandom().nextFloat() * 0.4F);
+            world.playSound(player, lowerPos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
+                    SoundSource.BLOCKS, 1.0F, 0.8F + world.getRandom().nextFloat() * 0.4F);
         }
-        return ItemActionResult.success(world.isClient);
+        return ItemInteractionResult.sidedSuccess(world.isClientSide);
     }
 
     /**
@@ -315,9 +315,9 @@ public final class Defoliation {
      * find by looking, and the refused click is the one moment they are testing it. Server side
      * only, or the line would arrive twice.
      */
-    private static void refuse(World world, PlayerEntity player, String key) {
-        if (!world.isClient()) {
-            player.sendMessage(Text.translatable(key), true);
+    private static void refuse(Level world, Player player, String key) {
+        if (!world.isClientSide()) {
+            player.displayClientMessage(Component.translatable(key), true);
         }
     }
 }

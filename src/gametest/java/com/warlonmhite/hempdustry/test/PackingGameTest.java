@@ -6,14 +6,13 @@ import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.test.GameTest;
-import net.minecraft.test.TestContext;
-
+import net.minecraft.core.HolderLookup;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,26 +25,26 @@ import java.util.List;
  */
 public final class PackingGameTest implements FabricGameTest {
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, tickLimit = 200)
-    public void oneBudPerSlotIsTheDose(TestContext context) {
-        RegistryWrapper.WrapperLookup registries = context.getWorld().getRegistryManager();
-        Item buds = context.getWorld().getRegistryManager().get(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA).buds();
-        PackingRecipe recipe = new PackingRecipe(CraftingRecipeCategory.MISC);
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+    public void oneBudPerSlotIsTheDose(GameTestHelper context) {
+        HolderLookup.Provider registries = context.getLevel().registryAccess();
+        Item buds = context.getLevel().registryAccess().registryOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA).buds();
+        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
 
         int stacked = dose(recipe, registries, new ItemStack(ModItems.BONG), new ItemStack(buds, 3));
-        context.assertEquals(stacked, 1, "the dose from three buds stacked in one slot");
+        context.assertValueEqual(stacked, 1, "the dose from three buds stacked in one slot");
 
         int spread = dose(recipe, registries, new ItemStack(ModItems.BONG), new ItemStack(buds), new ItemStack(buds));
-        context.assertEquals(spread, 2, "the dose from a bud in each of two slots");
-        context.complete();
+        context.assertValueEqual(spread, 2, "the dose from a bud in each of two slots");
+        context.succeed();
     }
 
-    private static int dose(PackingRecipe recipe, RegistryWrapper.WrapperLookup registries, ItemStack... grid) {
+    private static int dose(PackingRecipe recipe, HolderLookup.Provider registries, ItemStack... grid) {
         List<ItemStack> stacks = new ArrayList<>(List.of(grid));
         while (stacks.size() < 9) {
             stacks.add(ItemStack.EMPTY);
         }
-        ItemStack packed = recipe.craft(CraftingRecipeInput.create(3, 3, stacks), registries);
+        ItemStack packed = recipe.assemble(CraftingInput.of(3, 3, stacks), registries);
         return SmokingDeviceItem.contentsOf(packed).dose();
     }
 }

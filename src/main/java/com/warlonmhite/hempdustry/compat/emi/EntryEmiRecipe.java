@@ -7,13 +7,12 @@ import dev.emi.emi.api.render.EmiTexture;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-
 import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.Ingredient;
 
 /**
  * One {@link ViewerRecipes.Entry} drawn as an EMI page: the inputs in a row, an arrow, the output,
@@ -49,7 +48,7 @@ public class EntryEmiRecipe implements EmiRecipe {
      * rather than as one arbitrary bucket.
      */
     private static EmiIngredient ingredient(Ingredient ingredient) {
-        return EmiIngredient.of(List.of(ingredient.getMatchingStacks()).stream()
+        return EmiIngredient.of(List.of(ingredient.getItems()).stream()
                 .map(EmiStack::of)
                 .toList());
     }
@@ -64,7 +63,7 @@ public class EntryEmiRecipe implements EmiRecipe {
      * from a real recipe that has gone missing. See {@link ViewerRecipes#synthetic}.
      */
     @Override
-    public Identifier getId() {
+    public ResourceLocation getId() {
         return entry.synthetic() ? ViewerRecipes.synthetic(entry.id()) : entry.id();
     }
 
@@ -85,8 +84,8 @@ public class EntryEmiRecipe implements EmiRecipe {
      */
     @Override
     public int getDisplayWidth() {
-        TextRenderer font = MinecraftClient.getInstance().textRenderer;
-        int widest = entry.notes().stream().mapToInt(font::getWidth).max().orElse(0);
+        Font font = Minecraft.getInstance().font;
+        int widest = entry.notes().stream().mapToInt(font::width).max().orElse(0);
         return Math.max(inputs.size() * SLOT + ARROW_WIDTH + SLOT + PADDING * 2, widest + 1); // notes start at x = 1
     }
 
@@ -107,7 +106,7 @@ public class EntryEmiRecipe implements EmiRecipe {
         widgets.addSlot(output, x, 0).recipeContext(this);
 
         int y = SLOT + PADDING;
-        for (Text note : entry.notes()) {
+        for (Component note : entry.notes()) {
             widgets.addText(note, 1, y, 0x555555, false);
             y += LINE_HEIGHT;
         }

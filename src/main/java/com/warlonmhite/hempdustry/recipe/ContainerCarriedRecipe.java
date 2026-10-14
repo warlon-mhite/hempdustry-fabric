@@ -3,19 +3,17 @@ package com.warlonmhite.hempdustry.recipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.ShapelessRecipe;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.collection.DefaultedList;
-
 import java.util.List;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
 
 /**
  * A shapeless recipe whose ingredients' containers <em>travel into the result</em> instead of being
@@ -23,7 +21,7 @@ import java.util.List;
  *
  * <h2>The bug this exists to prevent</h2>
  *
- * Vanilla's {@code MILK_BUCKET} carries {@code recipeRemainder(BUCKET)}, so an ordinary recipe using
+ * Vanilla's {@code MILK_BUCKET} carries {@code craftRemainder(BUCKET)}, so an ordinary recipe using
  * one gives the empty bucket straight back. That is correct when the product doesn't keep the
  * container — a cake keeps none of its three buckets — but it is <b>a duplication bug</b> when the
  * product <em>is</em> a bucket:
@@ -43,7 +41,7 @@ import java.util.List;
  *
  * <h2>Why a real recipe subclass rather than a special recipe</h2>
  *
- * The mod's other bespoke recipe, {@link PackingRecipe}, is a {@code SpecialCraftingRecipe}, which
+ * The mod's other bespoke recipe, {@link PackingRecipe}, is a {@code CustomRecipe}, which
  * the recipe book and every recipe viewer ignore because it has no fixed ingredient list. This one
  * has perfectly ordinary fixed ingredients — it differs from a shapeless recipe in exactly one
  * method — so extending {@link ShapelessRecipe} keeps it visible in the recipe book and in JEI/EMI
@@ -54,7 +52,7 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
     private final ItemStack result;
     private final List<Ingredient> ingredients;
 
-    public ContainerCarriedRecipe(String group, CraftingRecipeCategory category, ItemStack result,
+    public ContainerCarriedRecipe(String group, CraftingBookCategory category, ItemStack result,
                                   List<Ingredient> ingredients) {
         super(group, category, result, toDefaultedList(ingredients));
         this.result = result;
@@ -63,8 +61,8 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
 
     /** No remainders: every ingredient's container is considered part of the product. */
     @Override
-    public DefaultedList<ItemStack> getRemainder(CraftingRecipeInput input) {
-        return DefaultedList.ofSize(input.getSize(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+        return NonNullList.withSize(input.size(), ItemStack.EMPTY);
     }
 
     @Override
@@ -72,8 +70,8 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
         return ModRecipes.CONTAINER_CARRIED;
     }
 
-    private static DefaultedList<Ingredient> toDefaultedList(List<Ingredient> ingredients) {
-        DefaultedList<Ingredient> list = DefaultedList.ofSize(ingredients.size(), Ingredient.EMPTY);
+    private static NonNullList<Ingredient> toDefaultedList(List<Ingredient> ingredients) {
+        NonNullList<Ingredient> list = NonNullList.withSize(ingredients.size(), Ingredient.EMPTY);
         for (int i = 0; i < ingredients.size(); i++) {
             list.set(i, ingredients.get(i));
         }
@@ -83,17 +81,17 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
     public static class Serializer implements RecipeSerializer<ContainerCarriedRecipe> {
         private static final MapCodec<ContainerCarriedRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Codec.STRING.optionalFieldOf("group", "").forGetter(ShapelessRecipe::getGroup),
-                CraftingRecipeCategory.CODEC.fieldOf("category")
-                        .orElse(CraftingRecipeCategory.MISC).forGetter(ShapelessRecipe::getCategory),
-                ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
-                Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
+                CraftingBookCategory.CODEC.fieldOf("category")
+                        .orElse(CraftingBookCategory.MISC).forGetter(ShapelessRecipe::category),
+                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
+                Ingredient.CODEC_NONEMPTY.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
         ).apply(instance, ContainerCarriedRecipe::new));
 
-        private static final PacketCodec<RegistryByteBuf, ContainerCarriedRecipe> PACKET_CODEC = PacketCodec.tuple(
-                PacketCodecs.STRING, ShapelessRecipe::getGroup,
-                CraftingRecipeCategory.PACKET_CODEC, ShapelessRecipe::getCategory,
-                ItemStack.PACKET_CODEC, recipe -> recipe.result,
-                Ingredient.PACKET_CODEC.collect(PacketCodecs.toList()), recipe -> recipe.ingredients,
+        private static final StreamCodec<RegistryFriendlyByteBuf, ContainerCarriedRecipe> PACKET_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, ShapelessRecipe::getGroup,
+                CraftingBookCategory.STREAM_CODEC, ShapelessRecipe::category,
+                ItemStack.STREAM_CODEC, recipe -> recipe.result,
+                Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), recipe -> recipe.ingredients,
                 ContainerCarriedRecipe::new);
 
         @Override
@@ -102,7 +100,7 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
         }
 
         @Override
-        public PacketCodec<RegistryByteBuf, ContainerCarriedRecipe> packetCodec() {
+        public StreamCodec<RegistryFriendlyByteBuf, ContainerCarriedRecipe> streamCodec() {
             return PACKET_CODEC;
         }
     }

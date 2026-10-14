@@ -1,23 +1,23 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.RedstoneLampBlock;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RedstoneLampBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -36,47 +36,47 @@ import org.jetbrains.annotations.Nullable;
  * edge strip from every angle.
  */
 public class GrowLampBlock extends RedstoneLampBlock {
-    public static final MapCodec<RedstoneLampBlock> CODEC = createCodec(GrowLampBlock::new);
+    public static final MapCodec<RedstoneLampBlock> CODEC = simpleCodec(GrowLampBlock::new);
 
     /** The panel, and the two chains it hangs from, as the model draws them. */
-    private static final VoxelShape SHAPE = VoxelShapes.union(
-            Block.createCuboidShape(1.0D, 4.0D, 1.0D, 15.0D, 7.0D, 15.0D),
-            Block.createCuboidShape(2.5D, 7.0D, 6.5D, 5.5D, 16.0D, 9.5D),
-            Block.createCuboidShape(10.5D, 7.0D, 6.5D, 13.5D, 16.0D, 9.5D));
+    private static final VoxelShape SHAPE = Shapes.or(
+            Block.box(1.0D, 4.0D, 1.0D, 15.0D, 7.0D, 15.0D),
+            Block.box(2.5D, 7.0D, 6.5D, 5.5D, 16.0D, 9.5D),
+            Block.box(10.5D, 7.0D, 6.5D, 13.5D, 16.0D, 9.5D));
 
-    public GrowLampBlock(Settings settings) {
+    public GrowLampBlock(Properties settings) {
         super(settings);
     }
 
     @Override
-    public MapCodec<RedstoneLampBlock> getCodec() {
+    public MapCodec<RedstoneLampBlock> codec() {
         return CODEC;
     }
 
     /** Vanilla's placement (lit if already powered), refused where there is no ceiling to hang from. */
     @Nullable
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        BlockState state = super.getPlacementState(ctx);
-        return state != null && state.canPlaceAt(ctx.getWorld(), ctx.getBlockPos()) ? state : null;
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        BlockState state = super.getStateForPlacement(ctx);
+        return state != null && state.canSurvive(ctx.getLevel(), ctx.getClickedPos()) ? state : null;
     }
 
     /** The same test a hanging lantern makes: something under the block above to hang the chains from. */
     @Override
-    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
-        return Block.sideCoversSmallSquare(world, pos.up(), Direction.DOWN);
+    protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+        return Block.canSupportCenter(world, pos.above(), Direction.DOWN);
     }
 
     @Override
-    protected BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState,
-                                                   WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        return direction == Direction.UP && !state.canPlaceAt(world, pos)
-                ? Blocks.AIR.getDefaultState()
-                : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+                                                   LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
+        return direction == Direction.UP && !state.canSurvive(world, pos)
+                ? Blocks.AIR.defaultBlockState()
+                : super.updateShape(state, direction, neighborState, world, pos, neighborPos);
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
@@ -87,8 +87,8 @@ public class GrowLampBlock extends RedstoneLampBlock {
      * redstone ore sparkles on.
      */
     @Override
-    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        if (!state.get(LIT)) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+        if (!state.getValue(LIT)) {
             return;
         }
         for (int i = 0; i < 2; i++) {
@@ -101,5 +101,5 @@ public class GrowLampBlock extends RedstoneLampBlock {
     }
 
     /** The diodes' violet, and a little smaller than redstone's dust. */
-    private static final DustParticleEffect UV_GLOW = new DustParticleEffect(Vec3d.unpackRgb(0x8A3CFF).toVector3f(), 0.7F);
+    private static final DustParticleOptions UV_GLOW = new DustParticleOptions(Vec3.fromRGB24(0x8A3CFF).toVector3f(), 0.7F);
 }

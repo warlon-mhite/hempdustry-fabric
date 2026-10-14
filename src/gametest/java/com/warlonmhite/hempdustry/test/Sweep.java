@@ -4,9 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
@@ -38,7 +37,7 @@ final class Sweep {
     private Sweep() {
     }
 
-    static boolean ours(Identifier id) {
+    static boolean ours(ResourceLocation id) {
         return id.getNamespace().equals(Hempdustry.MOD_ID);
     }
 
@@ -48,7 +47,7 @@ final class Sweep {
      * @param findings what broke the rule, by id, with what is wrong with each
      * @param exempt   ids that may break it, each with the reason
      */
-    static void report(TestContext context, String rule, Map<String, String> findings, Map<String, String> exempt) {
+    static void report(GameTestHelper context, String rule, Map<String, String> findings, Map<String, String> exempt) {
         Map<String, String> unexcused = new TreeMap<>(findings);
         exempt.keySet().forEach(unexcused::remove);
         Set<String> stale = new HashSet<>(exempt.keySet());
@@ -60,7 +59,7 @@ final class Sweep {
         context.assertTrue(unexcused.isEmpty() && stale.isEmpty(), message.toString());
     }
 
-    static void atLeast(TestContext context, String what, int seen, int floor) {
+    static void atLeast(GameTestHelper context, String what, int seen, int floor) {
         context.assertTrue(seen >= floor, "saw only " + seen + " " + what + " where there are at least " + floor
                 + ": the sweep is no longer seeing what it checks");
     }

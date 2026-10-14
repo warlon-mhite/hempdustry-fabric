@@ -4,37 +4,36 @@ import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.client.sound.InfuserSoundInstance;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.stat.Stats;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.DirectionProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.stats.Stats;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -67,12 +66,12 @@ import org.jetbrains.annotations.Nullable;
  * <p><b>Milk is poured in by hand, the way a cauldron takes water</b> — right-click with a bucket
  * of milk and the tub fills and hands the empty back. Everything else about a right-click opens the
  * screen, which is the lectern's rule: a book in hand places it, anything else opens it to read. So
- * the pour and the GUI share one button without clashing. See {@link #onUseWithItem}.
+ * the pour and the GUI share one button without clashing. See {@link #useItemOn}.
  *
  * <p>Deliberately absent from {@code FlammableBlockRegistry}, like the rest of the mod's machinery.
  */
-public class InfuserBlock extends BlockWithEntity {
-    public static final MapCodec<InfuserBlock> CODEC = createCodec(InfuserBlock::new);
+public class InfuserBlock extends BaseEntityBlock {
+    public static final MapCodec<InfuserBlock> CODEC = simpleCodec(InfuserBlock::new);
 
     /**
      * Which way the spout points. <b>This is the block teaching its own automation rule.</b> The
@@ -81,45 +80,45 @@ public class InfuserBlock extends BlockWithEntity {
      * face. A hidden "pushes to some adjacent container" rule would be unguessable; a spout you can
      * see is not. See {@link InfuserBlockEntity#pushOutput}.
      */
-    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     /** Milk is in the tub. Drives the model. Set by the block entity, never by the player. */
-    public static final BooleanProperty FILLED = BooleanProperty.of("filled");
+    public static final BooleanProperty FILLED = BooleanProperty.create("filled");
     /** A batch is simmering right now. Drives the particles. Set by the block entity. */
-    public static final BooleanProperty INFUSING = BooleanProperty.of("infusing");
+    public static final BooleanProperty INFUSING = BooleanProperty.create("infusing");
 
-    public InfuserBlock(Settings settings) {
+    public InfuserBlock(Properties settings) {
         super(settings);
         // The booleans are spelled out: an omitted BooleanProperty defaults to *true* (its value set
         // is ImmutableSet.of(true, false) and the default state is states.get(0)).
-        this.setDefaultState(this.stateManager.getDefaultState()
-                .with(FACING, Direction.NORTH)
-                .with(FILLED, false)
-                .with(INFUSING, false));
+        this.registerDefaultState(this.stateDefinition.any()
+                .setValue(FACING, Direction.NORTH)
+                .setValue(FILLED, false)
+                .setValue(INFUSING, false));
     }
 
     /** Spout away from the player, so you place the tub facing the chest you are looking at. */
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return this.getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing().getOpposite());
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return this.defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite());
     }
 
     @Override
-    protected BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(FACING, rotation.rotate(state.get(FACING)));
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, BlockMirror mirror) {
-        return state.rotate(mirror.getRotation(state.get(FACING)));
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
+    protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, FILLED, INFUSING);
     }
 
@@ -127,34 +126,34 @@ public class InfuserBlock extends BlockWithEntity {
 
     @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new InfuserBlockEntity(pos, state);
     }
 
     @Override
-    protected BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        if (world.isClient()) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
+        if (world.isClientSide()) {
             return null;
         }
-        return validateTicker(type, ModBlockEntities.INFUSER,
+        return createTickerHelper(type, ModBlockEntities.INFUSER,
                 (tickWorld, pos, tickState, blockEntity) -> blockEntity.tick(tickWorld, pos, tickState));
     }
 
     /**
      * Pours a bucket of milk into an empty tub and hands the empty back — vanilla's cauldron fill,
-     * down to {@link ItemUsage#exchangeStack}'s creative rule (the full bucket is kept, and the empty
+     * down to {@link ItemUtils#createFilledResult}'s creative rule (the full bucket is kept, and the empty
      * is only added if the player has none).
      *
-     * <p><b>A full tub, or anything that is not milk, falls through to {@link #onUse} and opens the
+     * <p><b>A full tub, or anything that is not milk, falls through to {@link #useWithoutItem} and opens the
      * screen.</b> That is the lectern's rule, and it is what lets a player with milk in hand still
      * look inside a busy tub. The fall-through has to be {@code super}, not {@code PASS}: since
-     * 1.20.5 {@code onUse} only runs after {@code PASS_TO_DEFAULT_BLOCK_INTERACTION}, and plain
+     * 1.20.5 {@code useWithoutItem} only runs after {@code PASS_TO_DEFAULT_BLOCK_INTERACTION}, and plain
      * {@code PASS} would swallow the click (CLAUDE.md §5).
      *
      * <p>The client predicts from the synced {@link #FILLED} state and the synced recipe, so the arm
@@ -162,62 +161,62 @@ public class InfuserBlock extends BlockWithEntity {
      * server's refusal falls through to the screen like any other.
      */
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
-                                             PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (state.get(FILLED) || !InfuserBlockEntity.isMilk(world, stack)) {
-            return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+                                             Player player, InteractionHand hand, BlockHitResult hit) {
+        if (state.getValue(FILLED) || !InfuserBlockEntity.isMilk(world, stack)) {
+            return super.useItemOn(stack, state, world, pos, player, hand, hit);
         }
-        if (!world.isClient()) {
+        if (!world.isClientSide()) {
             if (!(world.getBlockEntity(pos) instanceof InfuserBlockEntity infuser) || !infuser.fill(stack, player)) {
-                return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+                return super.useItemOn(stack, state, world, pos, player, hand, hit);
             }
             Item milk = stack.getItem();
-            player.setStackInHand(hand,
-                    ItemUsage.exchangeStack(stack, player, InfuserBlockEntity.emptiedContainer(stack)));
-            player.incrementStat(Stats.USED.getOrCreateStat(milk));
+            player.setItemInHand(hand,
+                    ItemUtils.createFilledResult(stack, player, InfuserBlockEntity.emptiedContainer(stack)));
+            player.awardStat(Stats.ITEM_USED.get(milk));
         }
-        return ItemActionResult.success(world.isClient());
+        return ItemInteractionResult.sidedSuccess(world.isClientSide());
     }
 
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (!world.isClient()) {
-            NamedScreenHandlerFactory factory = state.createScreenHandlerFactory(world, pos);
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!world.isClientSide()) {
+            MenuProvider factory = state.getMenuProvider(world, pos);
             if (factory != null) {
-                player.openHandledScreen(factory);
+                player.openMenu(factory);
             }
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Nullable
     @Override
-    protected NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
+    protected MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
         return world.getBlockEntity(pos) instanceof InfuserBlockEntity be ? be : null;
     }
 
     @Override
-    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.isOf(newState.getBlock())) {
+    protected void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock())) {
             if (world.getBlockEntity(pos) instanceof InfuserBlockEntity be) {
                 // Order matters. The preview is not a real item, so it goes in the bin first —
                 // otherwise breaking a ready tub would drop the cannabutter *and* refund the hemp
                 // below. What a spilled batch gives back is its ingredients.
                 be.discardPreview();
-                ItemScatterer.spawn(world, pos, be);
+                Containers.dropContents(world, pos, be);
                 // Hemp already drawn into a running batch has left the slots, so it has to be
                 // spilled separately or breaking a simmering tub would destroy it.
-                ItemScatterer.spawn(world, pos, be.getBatchItems());
-                world.updateComparators(pos, this);
+                Containers.dropContents(world, pos, be.getBatchItems());
+                world.updateNeighbourForOutputSignal(pos, this);
             }
-            super.onStateReplaced(state, world, pos, newState, moved);
+            super.onRemove(state, world, pos, newState, moved);
         }
     }
 
     // ----- comparator -----
 
     @Override
-    protected boolean hasComparatorOutput(BlockState state) {
+    protected boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
@@ -227,7 +226,7 @@ public class InfuserBlock extends BlockWithEntity {
      * nothing useful here.
      */
     @Override
-    protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+    protected int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
         return world.getBlockEntity(pos) instanceof InfuserBlockEntity infuser
                 ? infuser.getComparatorOutput()
                 : 0;
@@ -245,8 +244,8 @@ public class InfuserBlock extends BlockWithEntity {
      * Self-illuminating would quietly undercut the whole heat-from-below idea.
      */
     @Override
-    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        if (!state.get(INFUSING)) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+        if (!state.getValue(INFUSING)) {
             return;
         }
         double x = pos.getX() + 0.5D;
@@ -256,7 +255,7 @@ public class InfuserBlock extends BlockWithEntity {
         // The simmer is a twenty-second loop, so it is started once and left to end itself rather
         // than fired per roll — see InfuserSoundInstance for what that buys and why a one-shot at
         // this length layers itself into a mess. This is the only client-only reference in this
-        // class, and it is safe: randomDisplayTick is called from ClientWorld and from nowhere else,
+        // class, and it is safe: animateTick is called from ClientLevel and from nowhere else,
         // so a dedicated server never resolves the class.
         InfuserSoundInstance.startIfNeeded(pos);
         for (int i = 0; i < 2; i++) {

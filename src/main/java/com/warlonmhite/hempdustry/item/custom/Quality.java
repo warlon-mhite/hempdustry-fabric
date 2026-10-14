@@ -2,10 +2,10 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Mth;
+import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -80,7 +80,7 @@ import org.jetbrains.annotations.Nullable;
  * as vanilla letting you eat raw meat instead of cooked — and that a player can reach Clean well
  * before the full timer if they prepped properly, which is the whole point of washing hemp.
  */
-public enum Quality implements StringIdentifiable {
+public enum Quality implements StringRepresentable {
     /** Pulled early, without the prep to make up for it. Under-extracted. */
     ROUGH("rough"),
     /** A full dose of one dial: all the patience, or all the prep. */
@@ -98,10 +98,10 @@ public enum Quality implements StringIdentifiable {
      */
     public static final int CLEAN_SCORE = 160;
 
-    public static final Codec<Quality> CODEC = StringIdentifiable.createCodec(Quality::values);
+    public static final Codec<Quality> CODEC = StringRepresentable.fromEnum(Quality::values);
     /** Ordinal-based rather than string-based: this only ever travels over the wire, never to disk. */
-    public static final PacketCodec<ByteBuf, Quality> PACKET_CODEC =
-            PacketCodecs.VAR_INT.xmap(ordinal -> values()[ordinal], Quality::ordinal);
+    public static final StreamCodec<ByteBuf, Quality> PACKET_CODEC =
+            ByteBufCodecs.VAR_INT.map(ordinal -> values()[ordinal], Quality::ordinal);
 
     private final String name;
 
@@ -125,8 +125,8 @@ public enum Quality implements StringIdentifiable {
      *                      when nothing unwashed or scorched went in
      */
     public static Quality of(int timePercent, int purityPercent) {
-        int time = MathHelper.clamp(timePercent, 0, 100);
-        int purity = MathHelper.clamp(purityPercent, MIN_PURITY, 100);
+        int time = Mth.clamp(timePercent, 0, 100);
+        int purity = Mth.clamp(purityPercent, MIN_PURITY, 100);
         // Both dials maxed, checked before the score so Perfect can never be approximated into.
         if (time >= 100 && purity >= 100) {
             return PERFECT;
@@ -147,7 +147,7 @@ public enum Quality implements StringIdentifiable {
      * always "the full timer"; now it moves with the washed ratio, so it has to be shown.
      */
     public static int timeNeededFor(Quality target, int purityPercent) {
-        int purity = MathHelper.clamp(purityPercent, MIN_PURITY, 100);
+        int purity = Mth.clamp(purityPercent, MIN_PURITY, 100);
         int needed = switch (target) {
             case ROUGH -> 0;
             case STANDARD -> STANDARD_SCORE - purity;
@@ -173,12 +173,12 @@ public enum Quality implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return this.name;
     }
 
     @Override
     public String toString() {
-        return this.asString();
+        return this.getSerializedName();
     }
 }

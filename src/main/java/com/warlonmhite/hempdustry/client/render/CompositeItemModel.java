@@ -1,19 +1,19 @@
 package com.warlonmhite.hempdustry.client.render;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.render.model.json.ModelOverrideList;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * An item model made of other baked models, drawn as one: what 1.21.11's {@code minecraft:composite}
@@ -33,7 +33,7 @@ public final class CompositeItemModel implements BakedModel {
     public CompositeItemModel(BakedModel frame, List<BakedModel> parts) {
         this.frame = frame;
         // Plain JSON models: their quads depend on neither the block state nor the random.
-        Random random = Random.create(42L);
+        RandomSource random = RandomSource.create(42L);
         List<BakedQuad> faceless = new ArrayList<>();
         for (BakedModel part : parts) {
             faceless.addAll(part.getQuads(null, null, random));
@@ -49,7 +49,7 @@ public final class CompositeItemModel implements BakedModel {
     }
 
     @Override
-    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, Random random) {
+    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, RandomSource random) {
         return face == null ? unculled : culled.get(face);
     }
 
@@ -59,32 +59,32 @@ public final class CompositeItemModel implements BakedModel {
     }
 
     @Override
-    public boolean hasDepth() {
-        return frame.hasDepth();
+    public boolean isGui3d() {
+        return frame.isGui3d();
     }
 
     @Override
-    public boolean isSideLit() {
-        return frame.isSideLit();
+    public boolean usesBlockLight() {
+        return frame.usesBlockLight();
     }
 
     @Override
-    public boolean isBuiltin() {
+    public boolean isCustomRenderer() {
         return false;
     }
 
     @Override
-    public Sprite getParticleSprite() {
-        return frame.getParticleSprite();
+    public TextureAtlasSprite getParticleIcon() {
+        return frame.getParticleIcon();
     }
 
     @Override
-    public ModelTransformation getTransformation() {
-        return frame.getTransformation();
+    public ItemTransforms getTransforms() {
+        return frame.getTransforms();
     }
 
     @Override
-    public ModelOverrideList getOverrides() {
-        return ModelOverrideList.EMPTY;
+    public ItemOverrides getOverrides() {
+        return ItemOverrides.EMPTY;
     }
 }

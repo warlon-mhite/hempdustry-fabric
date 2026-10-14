@@ -3,29 +3,28 @@ package com.warlonmhite.hempdustry.strain;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryFixedCodec;
-import net.minecraft.util.Identifier;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.RegistryFixedCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 /**
  * A smokeable material and what it does: what packs into a device, its colour, and the effects one
@@ -41,7 +40,7 @@ import java.util.random.RandomGenerator;
  * free</b> because the registry is registered with {@code DynamicRegistries.registerSynced}.
  *
  * <p><b>That path has {@code hempdustry} in it twice for the mod's own strains, and that is correct.</b>
- * {@code RegistryLoader} builds a dynamic registry's directory from the registry id: a vanilla
+ * {@code RegistryDataLoader} builds a dynamic registry's directory from the registry id: a vanilla
  * registry like {@code minecraft:worldgen/biome} gets {@code worldgen/biome}, but any registry
  * outside the {@code minecraft} namespace gets {@code <namespace>/<path>}. So the folder is
  * {@code hempdustry/strain}, and it sits under whichever pack namespace owns the file — giving
@@ -199,8 +198,8 @@ public record Strain(String translationKey, int color, int modelIndex,
     }
 
     /** The dynamic registry itself. Entries load from {@code data/<namespace>/hempdustry/strain/<id>.json}. */
-    public static final RegistryKey<Registry<Strain>> REGISTRY_KEY =
-            RegistryKey.ofRegistry(Identifier.of(Hempdustry.MOD_ID, "strain"));
+    public static final ResourceKey<Registry<Strain>> REGISTRY_KEY =
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "strain"));
 
     public static final Codec<Strain> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("translation_key").forGetter(Strain::translationKey),
@@ -209,9 +208,9 @@ public record Strain(String translationKey, int color, int modelIndex,
             // seeds and flower are optional because a hash entry has neither -- see the class
             // javadoc. Widening a required field to optional is the one schema change compat.md
             // permits: every strain JSON already written keeps parsing unchanged.
-            Registries.ITEM.getCodec().optionalFieldOf("seeds").forGetter(Strain::seedItem),
-            Registries.ITEM.getCodec().fieldOf("buds").forGetter(Strain::buds),
-            Registries.BLOCK.getCodec().optionalFieldOf("flower").forGetter(Strain::wildFlower),
+            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("seeds").forGetter(Strain::seedItem),
+            BuiltInRegistries.ITEM.byNameCodec().fieldOf("buds").forGetter(Strain::buds),
+            BuiltInRegistries.BLOCK.byNameCodec().optionalFieldOf("flower").forGetter(Strain::wildFlower),
             Codec.FLOAT.optionalFieldOf("green_out_factor", 1.0F).forGetter(Strain::greenOutFactor),
             Codec.INT.optionalFieldOf("dose_per_item", 1).forGetter(Strain::dosePerItem),
             SmokeEffect.CODEC.listOf().optionalFieldOf("effects", List.of()).forGetter(Strain::smokeEffects),
@@ -221,17 +220,17 @@ public record Strain(String translationKey, int color, int modelIndex,
     /**
      * How a <em>reference</em> to a strain is written — in the {@code smoke_contents} component, and
      * anywhere else that points at one. {@link RegistryFixedCodec} is what vanilla uses for the same
-     * job in {@code JukeboxPlayableComponent}, and it refuses inline entries, so a stack always
+     * job in {@code JukeboxPlayable}, and it refuses inline entries, so a stack always
      * carries an id rather than a copy of the definition.
      */
-    public static final Codec<RegistryEntry<Strain>> ENTRY_CODEC = RegistryFixedCodec.of(REGISTRY_KEY);
+    public static final Codec<Holder<Strain>> ENTRY_CODEC = RegistryFixedCodec.create(REGISTRY_KEY);
 
-    public static final PacketCodec<RegistryByteBuf, RegistryEntry<Strain>> ENTRY_PACKET_CODEC =
-            PacketCodecs.registryEntry(REGISTRY_KEY);
+    public static final StreamCodec<RegistryFriendlyByteBuf, Holder<Strain>> ENTRY_PACKET_CODEC =
+            ByteBufCodecs.holderRegistry(REGISTRY_KEY);
 
     /** The strain registry as loaded for this world. */
-    public static RegistryWrapper.Impl<Strain> registry(RegistryWrapper.WrapperLookup registries) {
-        return registries.getWrapperOrThrow(REGISTRY_KEY);
+    public static HolderLookup.RegistryLookup<Strain> registry(HolderLookup.Provider registries) {
+        return registries.lookupOrThrow(REGISTRY_KEY);
     }
 
     /**
@@ -239,10 +238,10 @@ public record Strain(String translationKey, int color, int modelIndex,
      * Registry iteration order is not guaranteed, and this list drives the creative tab and the seed
      * loot pools, so an unstable order would shuffle the tab between launches.
      */
-    public static List<RegistryEntry.Reference<Strain>> all(RegistryWrapper.WrapperLookup registries) {
-        List<RegistryEntry.Reference<Strain>> out = new ArrayList<>(registry(registries).streamEntries().toList());
-        out.sort(Comparator.comparingInt((RegistryEntry.Reference<Strain> entry) -> entry.value().modelIndex())
-                .thenComparing(entry -> entry.registryKey().getValue()));
+    public static List<Holder.Reference<Strain>> all(HolderLookup.Provider registries) {
+        List<Holder.Reference<Strain>> out = new ArrayList<>(registry(registries).listElements().toList());
+        out.sort(Comparator.comparingInt((Holder.Reference<Strain> entry) -> entry.value().modelIndex())
+                .thenComparing(entry -> entry.key().location()));
         return out;
     }
 
@@ -257,8 +256,8 @@ public record Strain(String translationKey, int color, int modelIndex,
      * Ordering matters where the result is <em>shown</em> (the creative tab, the seed loot pools);
      * it never matters here.
      */
-    public static Optional<RegistryEntry.Reference<Strain>> fromBuds(RegistryWrapper.WrapperLookup registries, Item item) {
-        return registry(registries).streamEntries()
+    public static Optional<Holder.Reference<Strain>> fromBuds(HolderLookup.Provider registries, Item item) {
+        return registry(registries).listElements()
                 .filter(entry -> entry.value().buds() == item)
                 .findFirst();
     }
@@ -274,7 +273,7 @@ public record Strain(String translationKey, int color, int modelIndex,
      * dropped while the {@code smoke_contents} component decodes, leaving the device unpacked. See
      * {@code SmokeContents.ENTRIES_CODEC} for why that has to happen there rather than here.
      */
-    public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale, RandomGenerator random) {
+    public List<MobEffectInstance> effects(int dose, int durationTicks, boolean onExhale, RandomGenerator random) {
         return effects(dose, durationTicks, onExhale, 0, random);
     }
 
@@ -287,10 +286,10 @@ public record Strain(String translationKey, int color, int modelIndex,
      *             {@link #effects(int, int, boolean, RandomGenerator)}
      */
     @Deprecated
-    public List<StatusEffectInstance> effects(int dose, int durationTicks) {
+    public List<MobEffectInstance> effects(int dose, int durationTicks) {
         // A generator whose every draw is zero: nextFloat() is 0.0, under any chance above zero.
         RandomGenerator lands = () -> 0L;
-        List<StatusEffectInstance> out = new ArrayList<>(effects(dose, durationTicks, false, lands));
+        List<MobEffectInstance> out = new ArrayList<>(effects(dose, durationTicks, false, lands));
         out.addAll(effects(dose, durationTicks, true, lands));
         return out;
     }
@@ -300,9 +299,9 @@ public record Strain(String translationKey, int color, int modelIndex,
      * dose: how a bud loaded with a concentrate reaches past the cap. Costs are not raised, because
      * the concentrate is potency, not a bigger dose of the plant.
      */
-    public List<StatusEffectInstance> effects(int dose, int durationTicks, boolean onExhale, int buffBonus,
+    public List<MobEffectInstance> effects(int dose, int durationTicks, boolean onExhale, int buffBonus,
                                               RandomGenerator random) {
-        List<StatusEffectInstance> out = new ArrayList<>(smokeEffects.size());
+        List<MobEffectInstance> out = new ArrayList<>(smokeEffects.size());
         for (SmokeEffect effect : smokeEffects) {
             if (effect.onExhale() != onExhale) {
                 continue;
@@ -313,14 +312,14 @@ public record Strain(String translationKey, int color, int modelIndex,
                 continue;
             }
             int amplifier = effect.baseAmplifier() + (effect.scales() ? Math.max(0, dose - 1) : 0);
-            if (effect.scales() && effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL) {
+            if (effect.scales() && effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL) {
                 amplifier += buffBonus;
             }
             amplifier = Math.min(effect.maxAmplifier(), amplifier);
             // At least a tick: a datapack's 0 or negative factor is a very short effect, never one
             // that silently does not exist.
             int duration = Math.max(1, Math.round(durationTicks * effect.durationFactor()));
-            out.add(new StatusEffectInstance(effect.effect(), duration, amplifier));
+            out.add(new MobEffectInstance(effect.effect(), duration, amplifier));
         }
         return out;
     }
@@ -349,13 +348,13 @@ public record Strain(String translationKey, int color, int modelIndex,
      *                       (the strong potion, the pufferfish) and level III takes a full-health
      *                       player to half a heart in seven seconds
      */
-    public record SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales,
+    public record SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales,
                               float durationFactor, boolean onExhale, float chance, int maxAmplifier) {
         /** Vanilla's highest amplifier, and the default: no cap a dose could reach. */
         public static final int NO_CAP = 255;
 
         public static final Codec<SmokeEffect> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                StatusEffect.ENTRY_CODEC.fieldOf("effect").forGetter(SmokeEffect::effect),
+                MobEffect.CODEC.fieldOf("effect").forGetter(SmokeEffect::effect),
                 Codec.INT.optionalFieldOf("base_amplifier", 0).forGetter(SmokeEffect::baseAmplifier),
                 Codec.BOOL.optionalFieldOf("scales", true).forGetter(SmokeEffect::scales),
                 Codec.FLOAT.optionalFieldOf("duration_factor", 1.0F).forGetter(SmokeEffect::durationFactor),
@@ -365,12 +364,12 @@ public record Strain(String translationKey, int color, int modelIndex,
         ).apply(instance, SmokeEffect::new));
 
         /** The whole duration, from the hit — every effect written before the last four fields existed. */
-        public SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales) {
+        public SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales) {
             this(effect, baseAmplifier, scales, 1.0F, false);
         }
 
         /** Certain to land and uncapped — every effect written before {@code chance} existed. */
-        public SmokeEffect(RegistryEntry<StatusEffect> effect, int baseAmplifier, boolean scales,
+        public SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales,
                            float durationFactor, boolean onExhale) {
             this(effect, baseAmplifier, scales, durationFactor, onExhale, 1.0F, NO_CAP);
         }

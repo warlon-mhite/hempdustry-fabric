@@ -10,14 +10,13 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import java.util.List;
 
 /**
@@ -40,7 +39,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private static final int SLOTS_WIDTH = MAX_INPUTS * SLOT + ARROW_WIDTH + SLOT + PADDING * 2;
 
     private final RecipeType<ViewerRecipes.Entry> type;
-    private final Text title;
+    private final Component title;
     private final IDrawable icon;
     private final IDrawableStatic arrow;
     private final IDrawableStatic slot;
@@ -51,9 +50,9 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private int width = SLOTS_WIDTH;
     private String measuredIn = "";
 
-    public EntryJeiCategory(IGuiHelper guiHelper, Identifier id, ItemStack icon, int noteLines) {
+    public EntryJeiCategory(IGuiHelper guiHelper, ResourceLocation id, ItemStack icon, int noteLines) {
         this.type = new RecipeType<>(id, ViewerRecipes.Entry.class);
-        this.title = Text.translatable("hempdustry.category." + id.getPath());
+        this.title = Component.translatable("hempdustry.category." + id.getPath());
         this.icon = guiHelper.createDrawableItemStack(icon);
         this.arrow = guiHelper.getRecipeArrow();
         this.slot = guiHelper.getSlotDrawable();
@@ -66,7 +65,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     }
 
     @Override
-    public Text getTitle() {
+    public Component getTitle() {
         return title;
     }
 
@@ -84,12 +83,12 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
      */
     @Override
     public int getWidth() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        String language = client.getLanguageManager().getLanguage();
+        Minecraft client = Minecraft.getInstance();
+        String language = client.getLanguageManager().getSelected();
         if (!language.equals(measuredIn)) {
-            TextRenderer font = client.textRenderer;
+            Font font = client.font;
             int widest = entries.stream().flatMap(entry -> entry.notes().stream())
-                    .mapToInt(font::getWidth).max().orElse(0);
+                    .mapToInt(font::width).max().orElse(0);
             width = Math.max(SLOTS_WIDTH, widest + 1); // notes are drawn from x = 1
             measuredIn = language;
         }
@@ -125,12 +124,12 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     }
 
     @Override
-    public void draw(ViewerRecipes.Entry entry, IRecipeSlotsView slots, DrawContext context,
+    public void draw(ViewerRecipes.Entry entry, IRecipeSlotsView slots, GuiGraphics context,
                      double mouseX, double mouseY) {
         arrow.draw(context, PADDING + MAX_INPUTS * SLOT + 4, 1);
         int y = SLOT + PADDING;
-        for (Text note : entry.notes()) {
-            context.drawText(MinecraftClient.getInstance().textRenderer, note, 1, y, 0x555555, false);
+        for (Component note : entry.notes()) {
+            context.drawString(Minecraft.getInstance().font, note, 1, y, 0x555555, false);
             y += LINE_HEIGHT;
         }
     }
@@ -141,7 +140,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
      * handing it over costs nothing and makes them addressable.
      */
     @Override
-    public Identifier getRegistryName(ViewerRecipes.Entry entry) {
+    public ResourceLocation getRegistryName(ViewerRecipes.Entry entry) {
         return entry.id();
     }
 }

@@ -1,10 +1,10 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.TallPlantBlock;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Wild Lemon Haze — <b>two blocks tall</b>, and the only wild plant in the mod that is.
@@ -21,34 +21,34 @@ import net.minecraft.world.BlockView;
  * for the height</b> — a wild plant is not a crop and inherits none of a crop's behaviour: no age, no
  * defoliation, no farmland, no bees, no bone meal.
  *
- * <p>{@link TallPlantBlock}, not {@code TallFlowerBlock}, is deliberate. The latter is
- * {@code Fertilizable} — bone meal on a rose bush drops a second rose bush — which here would be a
+ * <p>{@link DoublePlantBlock}, not {@code TallFlowerBlock}, is deliberate. The latter is
+ * {@code BonemealableBlock} — bone meal on a rose bush drops a second rose bush — which here would be a
  * free route to a flower and therefore to seeds, bypassing the crop entirely.
  *
  * <p>It also drops the stew effect {@code FlowerBlock}'s constructor used to demand. That argument
- * was always dead ({@code ModBlocks}, and {@code crops.md}); a {@code TallPlantBlock} never asks for it,
+ * was always dead ({@code ModBlocks}, and {@code crops.md}); a {@code DoublePlantBlock} never asks for it,
  * which is one fewer unreachable knob to explain.
  *
  * <h2>The ground rule, unchanged</h2>
  *
- * {@code PlantBlock} lets a plant sit only on {@code #minecraft:dirt} or farmland. Badlands is red
+ * {@code BushBlock} lets a plant sit only on {@code #minecraft:dirt} or farmland. Badlands is red
  * sand and terracotta, so a stock plant can <em>never</em> generate there — the badlands tiers of the
  * worldgen would silently place nothing. Widening to {@code #minecraft:dead_bush_may_place_on}
  * (sand + terracotta + dirt) is the same override {@code DeadBushBlock} uses, and it is what makes
  * Lemon Haze an arid-ground plant: a hardy landrace sativa scraping a living out of badlands, rather
  * than another meadow flower.
  *
- * <p>{@code TallPlantBlock#canPlaceAt} only consults this for the <b>lower</b> half; the upper half's
+ * <p>{@code DoublePlantBlock#canSurvive} only consults this for the <b>lower</b> half; the upper half's
  * test is "is the lower half of me directly below", which needs no help.
  */
-public class SativaFlower extends TallPlantBlock {
+public class SativaFlower extends DoublePlantBlock {
 
-    public SativaFlower(Settings settings) {
+    public SativaFlower(Properties settings) {
         super(settings);
     }
 
     @Override
-    protected boolean canPlantOnTop(BlockState floor, BlockView world, BlockPos pos) {
-        return floor.isIn(BlockTags.DEAD_BUSH_MAY_PLACE_ON) || super.canPlantOnTop(floor, world, pos);
+    protected boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
+        return floor.is(BlockTags.DEAD_BUSH_MAY_PLACE_ON) || super.mayPlaceOn(floor, world, pos);
     }
 }
