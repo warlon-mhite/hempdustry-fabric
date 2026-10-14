@@ -16,37 +16,34 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.HopperBlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -240,7 +237,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     public static final int PROPERTY_FILLED = 5;
     public static final int PROPERTY_COUNT = 6;
 
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(SLOT_COUNT, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> inventory = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
 
     private int progress;
     /** Whether something hot is underneath. Reported to the GUI's flame; not a blockstate on its own. */
@@ -273,7 +270,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      */
     private boolean previewShown;
 
-    private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
+    private final ContainerData propertyDelegate = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
@@ -300,7 +297,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         }
 
         @Override
-        public int size() {
+        public int getCount() {
             return PROPERTY_COUNT;
         }
     };
@@ -321,32 +318,32 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * {@code #hempdustry:milk_buckets}, so widening what counts as milk stays a tag edit.
      */
     @Nullable
-    private static InfusingRecipe recipe(@Nullable World world) {
+    private static InfusingRecipe recipe(@Nullable Level world) {
         return world == null ? null : InfusingRecipe.of(world);
     }
 
-    public static boolean isMilk(@Nullable World world, ItemStack stack) {
+    public static boolean isMilk(@Nullable Level world, ItemStack stack) {
         InfusingRecipe recipe = recipe(world);
         return recipe != null && recipe.container().test(stack);
     }
 
-    public static boolean isUnwashedHemp(@Nullable World world, ItemStack stack) {
+    public static boolean isUnwashedHemp(@Nullable Level world, ItemStack stack) {
         InfusingRecipe recipe = recipe(world);
         return recipe != null && recipe.hemp().test(stack);
     }
 
-    public static boolean isWashedHemp(@Nullable World world, ItemStack stack) {
+    public static boolean isWashedHemp(@Nullable Level world, ItemStack stack) {
         InfusingRecipe recipe = recipe(world);
         return recipe != null && recipe.washedHemp().test(stack);
     }
 
-    public static boolean isScorchedHemp(@Nullable World world, ItemStack stack) {
+    public static boolean isScorchedHemp(@Nullable Level world, ItemStack stack) {
         InfusingRecipe recipe = recipe(world);
         return recipe != null && recipe.isScorched(stack);
     }
 
     /** Any of the three hemps — both hemp slots accept all of them. */
-    public static boolean isHemp(@Nullable World world, ItemStack stack) {
+    public static boolean isHemp(@Nullable Level world, ItemStack stack) {
         InfusingRecipe recipe = recipe(world);
         return recipe != null
                 && (recipe.hemp().test(stack) || recipe.washedHemp().test(stack) || recipe.isScorched(stack));
@@ -359,21 +356,21 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * a very different proposition from a furnace (only lit while it is itself busy smelting).
      */
     public static boolean isHeatedFrom(BlockState below) {
-        if (!below.isIn(ModTags.Blocks.HEAT_SOURCES)) {
+        if (!below.is(ModTags.Blocks.HEAT_SOURCES)) {
             return false;
         }
-        return !below.contains(Properties.LIT) || below.get(Properties.LIT);
+        return !below.hasProperty(BlockStateProperties.LIT) || below.getValue(BlockStateProperties.LIT);
     }
 
     // ----- ticking -----
 
-    public void tick(World world, BlockPos pos, BlockState state) {
-        heated = isHeatedFrom(world.getBlockState(pos.down()));
+    public void tick(Level world, BlockPos pos, BlockState state) {
+        heated = isHeatedFrom(world.getBlockState(pos.below()));
 
         boolean dirty = false;
 
         // Before anything else touches the output slot: did something take the cannabutter without
-        // going through removeStack? See collectIfPreviewTaken.
+        // going through removeItem? See collectIfPreviewTaken.
         if (collectIfPreviewTaken()) {
             dirty = true;
         }
@@ -404,49 +401,49 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
             dirty = true;
         }
 
-        BlockState wanted = state.with(InfuserBlock.FILLED, isFilled())
-                .with(InfuserBlock.INFUSING, isInfusing());
+        BlockState wanted = state.setValue(InfuserBlock.FILLED, isFilled())
+                .setValue(InfuserBlock.INFUSING, isInfusing());
         if (wanted != state) {
             state = wanted;
-            world.setBlockState(pos, state, Block.NOTIFY_ALL);
+            world.setBlock(pos, state, Block.UPDATE_ALL);
             dirty = true;
         }
 
         // No explicit comparator update here, and no "only when the level changed" guard either.
-        // BlockEntity#markDirty(World, BlockPos, BlockState) already ends in
+        // BlockEntity#setChanged(Level, BlockPos, BlockState) already ends in
         // world.updateComparators(pos, state.getBlock()) unconditionally (verified in the 1.21.1
         // jar), so any tick that marks this block entity dirty has poked the comparators anyway. The
-        // guard that used to sit here therefore saved nothing and cost an extra updateComparators
-        // plus a getComparatorOutput -- which runs isAtBestQuality -- on every tick it did fire.
+        // guard that used to sit here therefore saved nothing and cost an extra updateNeighbourForOutputSignal
+        // plus a getAnalogOutputSignal -- which runs isAtBestQuality -- on every tick it did fire.
         // Vanilla's furnace marks dirty every burning tick for exactly the same reason.
         // Last, so it records what the slot looks like once this tick has finished with it.
-        previewShown = !getStack(OUTPUT_SLOT).isEmpty();
+        previewShown = !getItem(OUTPUT_SLOT).isEmpty();
 
         if (dirty) {
-            markDirty(world, pos, state);
+            setChanged(world, pos, state);
         }
     }
 
     /**
      * Closes the batch out when the preview left the slot by a route that never called
-     * {@link #removeStack}. Returns whether it fired.
+     * {@link #removeItemNoUpdate}. Returns whether it fired.
      *
      * <h2>There are three ways out of this slot, not two</h2>
      *
-     * A {@code Slot} take is one, and a hopper's {@code Inventory#removeStack} is the second — both
+     * A {@code Slot} take is one, and a hopper's {@code Container#removeItem} is the second — both
      * are already handled. The third is the <b>Fabric Transfer API</b>, which every Fabric-side pipe,
      * cable and storage mod uses, and which reaches this inventory through a fallback Fabric
-     * registers automatically for any {@code Inventory} block entity. Its
+     * registers automatically for any {@code Container} block entity. Its
      * {@code InventorySlotWrapper} extends {@code SingleStackStorage} and moves items with
-     * {@code getStack}/{@code setStack} — <b>it never calls {@code removeStack}</b>. So the batch was
+     * {@code getItem}/{@code setItem} — <b>it never calls {@code removeItem}</b>. So the batch was
      * never closed, {@link #refreshPreview()} handed out a fresh cannabutter on the next tick, and a
      * single batch produced them for ever.
      *
-     * <h2>Why this is a tick-boundary sweep and not a setStack hook</h2>
+     * <h2>Why this is a tick-boundary sweep and not a setItem hook</h2>
      *
-     * The obvious fix — notice the write in {@code setStack} — is wrong, and expensively so. Transfer
+     * The obvious fix — notice the write in {@code setItem} — is wrong, and expensively so. Transfer
      * API extraction is <b>transactional</b>: a pipe routinely opens a transaction, takes an item to
-     * see whether it fits somewhere, and <b>aborts</b>, which restores the stack. A {@code setStack}
+     * see whether it fits somewhere, and <b>aborts</b>, which restores the stack. A {@code setItem}
      * hook would close the batch on that speculative take and the abort would not undo it, quietly
      * destroying live batches on any build that merely probes this machine.
      *
@@ -461,7 +458,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * legitimately empty — and the sweep would then destroy it.
      */
     private boolean collectIfPreviewTaken() {
-        if (!previewShown || !getStack(OUTPUT_SLOT).isEmpty() || !hasBatch()) {
+        if (!previewShown || !getItem(OUTPUT_SLOT).isEmpty() || !hasBatch()) {
             return false;
         }
         onPreviewTaken();
@@ -476,7 +473,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * <p><b>Filled in the world, not through a slot.</b> The tub holds one milk or none, and a
      * two-state vessel is what vanilla fills by hand — a water bucket on a cauldron. The slot this
      * replaced emptied a bucket by itself and parked the empty in a second slot: two slots of GUI to
-     * say one bit. {@link InfuserBlock#onUseWithItem} is the click and {@code ModDispenserBehaviors}
+     * say one bit. {@link InfuserBlock#useItemOn} is the click and {@code ModDispenserBehaviors}
      * the dispenser; both come through here.
      *
      * <p><b>One milk, one cannabutter.</b> {@link #haveMilk} gates this, so a full tub refuses and
@@ -487,15 +484,15 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * says what it is. The sound and the game event are vanilla's cauldron fill.
      */
     public boolean fill(ItemStack milk, @Nullable Entity actor) {
-        if (haveMilk || this.world == null || this.world.isClient() || !isMilk(this.world, milk)) {
+        if (haveMilk || this.level == null || this.level.isClientSide() || !isMilk(this.level, milk)) {
             return false;
         }
         haveMilk = true;
         // Now rather than on the next tick, so a second click a moment later already sees a full tub.
-        this.world.setBlockState(this.pos, getCachedState().with(InfuserBlock.FILLED, true), Block.NOTIFY_ALL);
-        this.world.playSound(null, this.pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
-        this.world.emitGameEvent(actor, GameEvent.FLUID_PLACE, this.pos);
-        markDirty();
+        this.level.setBlock(this.worldPosition, getBlockState().setValue(InfuserBlock.FILLED, true), Block.UPDATE_ALL);
+        this.level.playSound(null, this.worldPosition, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+        this.level.gameEvent(actor, GameEvent.FLUID_PLACE, this.worldPosition);
+        setChanged();
         return true;
     }
 
@@ -505,16 +502,16 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      *
      * <p>Neither slot is in the screen or on any face now, so a bucket left in one would otherwise be
      * unreachable until the tub was broken. Out of the top because the underside is the heat and the
-     * spout pours cannabutter only. {@link ItemScatterer} rather than {@code Block.dropStack}, which
+     * spout pours cannabutter only. {@link Containers} rather than {@code Block.dropStack}, which
      * obeys {@code doTileDrops}: these are the player's own items, not the block's drops.
      */
-    private boolean ejectRetiredSlots(World world, BlockPos pos) {
+    private boolean ejectRetiredSlots(Level world, BlockPos pos) {
         boolean ejected = false;
         for (int slot : RETIRED_SLOTS) {
-            ItemStack stack = getStack(slot);
+            ItemStack stack = getItem(slot);
             if (!stack.isEmpty()) {
-                setStack(slot, ItemStack.EMPTY);
-                ItemScatterer.spawn(world, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, stack);
+                setItem(slot, ItemStack.EMPTY);
+                Containers.dropItemStack(world, pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, stack);
                 ejected = true;
             }
         }
@@ -535,8 +532,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * mod's milks answer {@code BUCKET} here, so nothing changes for either.
      */
     public static ItemStack emptiedContainer(ItemStack milk) {
-        // getRecipeRemainder is an ItemStack since 1.21.2 — empty, not null, when there is none.
-        ItemStack remainder = milk.getItem().getRecipeRemainder();
+        // getCraftingRemainder is an ItemStack since 1.21.2 — empty, not null, when there is none.
+        ItemStack remainder = milk.getItem().getCraftingRemainder();
         return remainder.isEmpty() ? new ItemStack(Items.BUCKET) : remainder.copy();
     }
 
@@ -575,14 +572,14 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         }
         for (int pass = 0; pass < 3; pass++) {
             for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
-                ItemStack stack = getStack(FIRST_HEMP_SLOT + i);
+                ItemStack stack = getItem(FIRST_HEMP_SLOT + i);
                 boolean match = switch (pass) {
-                    case 0 -> isScorchedHemp(this.world, stack);
-                    case 1 -> isUnwashedHemp(this.world, stack);
-                    default -> isWashedHemp(this.world, stack);
+                    case 0 -> isScorchedHemp(this.level, stack);
+                    case 1 -> isUnwashedHemp(this.level, stack);
+                    default -> isWashedHemp(this.level, stack);
                 };
                 if (match) {
-                    stack.decrement(1);
+                    stack.shrink(1);
                     switch (pass) {
                         case 0 -> batchScorched++;
                         case 1 -> batchUnwashed++;
@@ -598,8 +595,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     private int availableHemp() {
         int total = 0;
         for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
-            ItemStack stack = getStack(FIRST_HEMP_SLOT + i);
-            if (isHemp(this.world, stack)) {
+            ItemStack stack = getItem(FIRST_HEMP_SLOT + i);
+            if (isHemp(this.level, stack)) {
                 total += stack.getCount();
             }
         }
@@ -648,7 +645,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      */
     public int timePercent() {
         int span = fullTime() - minTime();
-        return MathHelper.clamp((progress - minTime()) * 100 / span, 0, 100);
+        return Mth.clamp((progress - minTime()) * 100 / span, 0, 100);
     }
 
     private boolean hasBatch() {
@@ -723,7 +720,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
 
     /** Whether {@code shown} is already the preview a batch of this strength and grade wants. */
     private static boolean showsPreview(ItemStack shown, InfusingRecipe recipe, int strength, Quality quality) {
-        return shown.isOf(recipe.result().getItem())
+        return shown.is(recipe.result().getItem())
                 && shown.getCount() == recipe.result().getCount()
                 && Integer.valueOf(strength).equals(shown.get(ModComponents.STRENGTH))
                 && shown.get(ModComponents.QUALITY) == quality;
@@ -736,9 +733,9 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * <p><b>Two ways in, tried in that order.</b> The Fabric Transfer API first — that is the only
      * thing an AE2 interface, a Modern Industrialization pipe or any other storage-only neighbour
      * answers to, and until 2026-08-23 the spout could not see any of them (roadmap D16). Fabric
-     * registers an automatic fallback for every {@code Inventory} block entity, so the same lookup
+     * registers an automatic fallback for every {@code Container} block entity, so the same lookup
      * covers chests, hoppers, barrels and droppers too; it is the general path rather than a special
-     * case. The old {@code Inventory} path stays behind it for the one thing a <em>block</em> lookup
+     * case. The old {@code Container} path stays behind it for the one thing a <em>block</em> lookup
      * structurally cannot find: an <b>inventory minecart</b> parked against the spout, which is an
      * entity.
      *
@@ -765,15 +762,15 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * automatable: that trade is only meaningful once cannabutter <em>does</em> something, and it
      * would need a GUI toggle to express. See the deferred-toggle note in CLAUDE.md §3.
      *
-     * <p>Pushing routes through {@link #removeStack}, so it closes the batch out exactly as a player
+     * <p>Pushing routes through {@link #removeItemNoUpdate}, so it closes the batch out exactly as a player
      * or a hopper taking it would — the one place that guarantee lives.
      */
-    private boolean pushOutput(World world, BlockPos pos, BlockState state) {
-        if (!isAtBestQuality() || getStack(OUTPUT_SLOT).isEmpty() || !state.contains(InfuserBlock.FACING)) {
+    private boolean pushOutput(Level world, BlockPos pos, BlockState state) {
+        if (!isAtBestQuality() || getItem(OUTPUT_SLOT).isEmpty() || !state.hasProperty(InfuserBlock.FACING)) {
             return false;
         }
         // A finished batch with nothing to pour into would otherwise re-scan every tick, and the
-        // miss path is the expensive one: a BlockApiLookup miss followed by getInventoryAt, which
+        // miss path is the expensive one: a BlockApiLookup miss followed by getContainerAt, which
         // runs an entity query for inventory minecarts. Vanilla hoppers throttle the same work to
         // 8 ticks; so does this, and it backs off to PUSH_IDLE_COOLDOWN when the last scan found no
         // target of either kind.
@@ -783,17 +780,17 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         }
         pushCooldown = PUSH_COOLDOWN;
 
-        Direction facing = state.get(InfuserBlock.FACING);
-        BlockPos spoutPos = pos.offset(facing);
+        Direction facing = state.getValue(InfuserBlock.FACING);
+        BlockPos spoutPos = pos.relative(facing);
         // The receiving side is the face of the target that we are pouring into.
         Direction receivingSide = facing.getOpposite();
         // transfer() and insert() both only ever touch the destination — neither removes from the
         // source — so this passes a copy and does the removal itself.
-        ItemStack pending = getStack(OUTPUT_SLOT).copy();
+        ItemStack pending = getItem(OUTPUT_SLOT).copy();
 
         // The Transfer API first, because that is the only thing an AE2 interface, a Modern
         // Industrialization pipe or any other storage-only neighbour answers to. Fabric's automatic
-        // fallback means this also finds every ordinary Inventory, so it is the general path and not
+        // fallback means this also finds every ordinary Container, so it is the general path and not
         // a special case.
         Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, spoutPos, receivingSide);
         if (storage != null) {
@@ -802,26 +799,26 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
                 // off — it may have room again in eight ticks.
                 return false;
             }
-            removeStack(OUTPUT_SLOT);
+            removeItemNoUpdate(OUTPUT_SLOT);
             return true;
         }
 
         // Nothing exposes a Storage here, so this is the last thing left that can still be a
         // container: an inventory minecart parked against the spout, which is an entity and so is
-        // invisible to a block lookup. getInventoryAt is the only thing that finds one.
-        Inventory target = HopperBlockEntity.getInventoryAt(world, spoutPos);
+        // invisible to a block lookup. getContainerAt is the only thing that finds one.
+        Container target = HopperBlockEntity.getContainerAt(world, spoutPos);
         if (target == null) {
             pushCooldown = PUSH_IDLE_COOLDOWN;
             return false;
         }
         int before = pending.getCount();
-        ItemStack leftover = HopperBlockEntity.transfer(this, target, pending, receivingSide);
+        ItemStack leftover = HopperBlockEntity.addItem(this, target, pending, receivingSide);
         if (leftover.getCount() >= before) {
             return false;
         }
         // The preview is always a single item, so anything moving means all of it moved. The count
         // check above rather than isEmpty() keeps that from becoming a silent dupe if it ever isn't.
-        removeStack(OUTPUT_SLOT);
+        removeItemNoUpdate(OUTPUT_SLOT);
         return true;
     }
 
@@ -829,7 +826,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * Inserts {@code stack} into {@code storage}, <b>all of it or none of it</b>. Returns whether it
      * went.
      *
-     * <p>The all-or-nothing rule is the same invariant the {@code Inventory} path's count check
+     * <p>The all-or-nothing rule is the same invariant the {@code Container} path's count check
      * keeps, and it matters for the same reason: the batch is closed out by removing the whole
      * preview, so a partial insert would hand a neighbour one item and destroy the rest. A
      * transaction makes that free — a partial result is simply never committed, and closing without
@@ -858,13 +855,13 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * batch; that is how often a stack is now allocated.
      */
     private boolean refreshPreview() {
-        ItemStack shown = getStack(OUTPUT_SLOT);
-        InfusingRecipe recipe = recipe(this.world);
+        ItemStack shown = getItem(OUTPUT_SLOT);
+        InfusingRecipe recipe = recipe(this.level);
         if (recipe == null || !isReady() || !hasBatch()) {
             if (shown.isEmpty()) {
                 return false;
             }
-            setStack(OUTPUT_SLOT, ItemStack.EMPTY);
+            setItem(OUTPUT_SLOT, ItemStack.EMPTY);
             return true;
         }
         int strength = strength();
@@ -872,7 +869,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         if (showsPreview(shown, recipe, strength, quality)) {
             return false;
         }
-        setStack(OUTPUT_SLOT, previewStack(recipe, strength, quality));
+        setItem(OUTPUT_SLOT, previewStack(recipe, strength, quality));
         return true;
     }
 
@@ -888,30 +885,30 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     public void onPreviewTaken() {
         // Fired before the numbers are wiped, because this is the last moment they exist — and only
         // when there was actually a batch to close, which is what stops a second listener call when
-        // both the slot hook and removeStack fire for one collection (the close-out itself is
+        // both the slot hook and removeItem fire for one collection (the close-out itself is
         // idempotent, an event is not).
-        if (batchHemp() > 0 && world != null) {
+        if (batchHemp() > 0 && level != null) {
             HempdustryEvents.AFTER_INFUSE.invoker().onInfused(
-                    world, pos, strength(), Quality.of(timePercent(), purityPercent()));
+                    level, worldPosition, strength(), Quality.of(timePercent(), purityPercent()));
         }
         haveMilk = false;
         batchUnwashed = 0;
         batchWashed = 0;
         batchScorched = 0;
         progress = 0;
-        markDirty();
+        setChanged();
     }
 
     /**
      * Any route out of the output slot closes the batch out — <b>including a hopper</b>, which is the
      * whole reason this is overridden here rather than left to the screen handler's
-     * {@code PreviewSlot#onTakeItem}. A hopper pulls through {@code Inventory#removeStack} and never
+     * {@code PreviewSlot#onTakeItem}. A hopper pulls through {@code Container#removeItem} and never
      * touches a {@code Slot}, so without this it would take the cannabutter, leave the batch running,
      * and have a fresh preview handed to it on the next tick — an unlimited supply from one batch.
      */
     @Override
-    public ItemStack removeStack(int slot, int count) {
-        ItemStack taken = ImplementedInventory.super.removeStack(slot, count);
+    public ItemStack removeItem(int slot, int count) {
+        ItemStack taken = ImplementedInventory.super.removeItem(slot, count);
         if (slot == OUTPUT_SLOT && !taken.isEmpty()) {
             onPreviewTaken();
         }
@@ -919,8 +916,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     }
 
     @Override
-    public ItemStack removeStack(int slot) {
-        ItemStack taken = ImplementedInventory.super.removeStack(slot);
+    public ItemStack removeItemNoUpdate(int slot) {
+        ItemStack taken = ImplementedInventory.super.removeItemNoUpdate(slot);
         if (slot == OUTPUT_SLOT && !taken.isEmpty()) {
             onPreviewTaken();
         }
@@ -929,7 +926,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
 
     /**
      * Spills the tub when its block goes. Since 1.21.5 the world calls this before it removes the
-     * block entity, and only then the block's {@code onStateReplaced} — which by then finds nothing,
+     * block entity, and only then the block's {@code affectNeighborsAfterRemoval} — which by then finds nothing,
      * so the spilling has to live here. Until 2.0.3 it lived on the block, and breaking a simmering
      * tub on 1.21.11 destroyed its batch.
      *
@@ -937,11 +934,11 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * it does for any inventory, then the hemp already drawn into the batch follows.
      */
     @Override
-    public void onBlockReplaced(BlockPos pos, BlockState oldState) {
+    public void preRemoveSideEffects(BlockPos pos, BlockState oldState) {
         discardPreview();
-        super.onBlockReplaced(pos, oldState);
-        if (this.world != null) {
-            ItemScatterer.spawn(this.world, pos, getBatchItems());
+        super.preRemoveSideEffects(pos, oldState);
+        if (this.level != null) {
+            Containers.dropContents(this.level, pos, getBatchItems());
         }
     }
 
@@ -952,13 +949,13 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * Spilling a batch returns the ingredients, never the product.
      */
     private void discardPreview() {
-        setStack(OUTPUT_SLOT, ItemStack.EMPTY);
+        setItem(OUTPUT_SLOT, ItemStack.EMPTY);
     }
 
     /**
      * The hemp currently committed to a batch, as items, so a broken tub can spill it.
      * Without this, breaking a simmering Infuser would silently destroy up to {@link #BATCH_CAP}
-     * hemp — it has already left the slots that {@code ItemScatterer} walks.
+     * hemp — it has already left the slots that {@code Containers} walks.
      *
      * <p><b>The milk in the tub is deliberately not returned.</b> Its bucket came back the moment it
      * was poured in, so handing a full milk bucket back as well would mint a bucket out of nothing —
@@ -966,9 +963,9 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * dupe-free and the physically obvious outcome. At most one milk is ever at stake, since the tub
      * holds one at a time.
      */
-    private DefaultedList<ItemStack> getBatchItems() {
-        DefaultedList<ItemStack> spill = DefaultedList.of();
-        InfusingRecipe recipe = recipe(this.world);
+    private NonNullList<ItemStack> getBatchItems() {
+        NonNullList<ItemStack> spill = NonNullList.create();
+        InfusingRecipe recipe = recipe(this.level);
         if (recipe == null) {
             // No conversion means nothing was ever absorbed under one; nothing to hand back.
             return spill;
@@ -985,11 +982,11 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         return spill;
     }
 
-    private static void addBatchStacks(DefaultedList<ItemStack> out, Item item, int count) {
+    private static void addBatchStacks(NonNullList<ItemStack> out, Item item, int count) {
         if (item == Items.AIR) {
             return; // an ingredient with no matching stacks: nothing sensible to hand back
         }
-        int max = item.getMaxCount();
+        int max = item.getDefaultMaxStackSize();
         while (count > 0) {
             int take = Math.min(count, max);
             out.add(new ItemStack(item, take));
@@ -1044,7 +1041,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     // ----- inventory -----
 
     @Override
-    public DefaultedList<ItemStack> getItems() {
+    public NonNullList<ItemStack> getItems() {
         return inventory;
     }
 
@@ -1055,12 +1052,12 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * the two retired slots take nothing ever again.
      */
     @Override
-    public boolean isValid(int slot, ItemStack stack) {
-        return slot >= FIRST_HEMP_SLOT && slot < FIRST_HEMP_SLOT + HEMP_SLOT_COUNT && isHemp(this.world, stack);
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return slot >= FIRST_HEMP_SLOT && slot < FIRST_HEMP_SLOT + HEMP_SLOT_COUNT && isHemp(this.level, stack);
     }
 
     @Override
-    public int[] getAvailableSlots(Direction side) {
+    public int[] getSlotsForFace(Direction side) {
         return switch (side) {
             case DOWN -> new int[]{OUTPUT_SLOT};
             default -> new int[]{FIRST_HEMP_SLOT, FIRST_HEMP_SLOT + 1};
@@ -1068,12 +1065,12 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
-        return isValid(slot, stack);
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
+        return canPlaceItem(slot, stack);
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         // Automation only ever gets a batch at its best grade. Without this a hopper would snatch
         // the Rough preview the instant it appeared, making an automated Infuser strictly worse
         // than a hand-tended one — the opposite of what automation should buy you.
@@ -1084,37 +1081,37 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
-        return this.world != null
-                && this.world.getBlockEntity(this.pos) == this
-                && player.squaredDistanceTo(Vec3d.ofCenter(this.pos)) <= 64.0D;
+    public boolean stillValid(Player player) {
+        return this.level != null
+                && this.level.getBlockEntity(this.worldPosition) == this
+                && player.distanceToSqr(Vec3.atCenterOf(this.worldPosition)) <= 64.0D;
     }
 
     // ----- screen -----
 
     @Override
-    public BlockPos getScreenOpeningData(ServerPlayerEntity player) {
-        return this.pos;
+    public BlockPos getScreenOpeningData(ServerPlayer player) {
+        return this.worldPosition;
     }
 
     @Override
-    protected Text getContainerName() {
-        return Text.translatable("block.hempdustry.infuser");
+    protected Component getContainerName() {
+        return Component.translatable("block.hempdustry.infuser");
     }
 
     @Nullable
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
         return new InfuserScreenHandler(syncId, playerInventory, this, this.propertyDelegate);
     }
 
     // ----- persistence -----
 
-    // ReadView/WriteView since 1.21.9; the keys are unchanged, so older worlds still load.
+    // ValueInput/ValueOutput since 1.21.9; the keys are unchanged, so older worlds still load.
     @Override
-    protected void writeData(WriteView view) {
-        super.writeData(view);
-        Inventories.writeData(view, inventory);
+    protected void saveAdditional(ValueOutput view) {
+        super.saveAdditional(view);
+        ContainerHelper.saveAllItems(view, inventory);
         view.putInt("Progress", progress);
         view.putBoolean("HaveMilk", haveMilk);
         view.putInt("BatchUnwashed", batchUnwashed);
@@ -1124,17 +1121,17 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     }
 
     @Override
-    protected void readData(ReadView view) {
-        super.readData(view);
+    protected void loadAdditional(ValueInput view) {
+        super.loadAdditional(view);
         inventory.clear();
-        Inventories.readData(view, inventory);
-        progress = view.getInt("Progress", 0);
-        haveMilk = view.getBoolean("HaveMilk", false);
-        batchUnwashed = view.getInt("BatchUnwashed", 0);
-        batchWashed = view.getInt("BatchWashed", 0);
+        ContainerHelper.loadAllItems(view, inventory);
+        progress = view.getIntOr("Progress", 0);
+        haveMilk = view.getBooleanOr("HaveMilk", false);
+        batchUnwashed = view.getIntOr("BatchUnwashed", 0);
+        batchWashed = view.getIntOr("BatchWashed", 0);
         // Absent in every world written before scorched hemp existed, and none is what those held.
-        batchScorched = view.getInt("BatchScorched", 0);
+        batchScorched = view.getIntOr("BatchScorched", 0);
         // Absent in worlds written before this field existed, and false is what those meant.
-        previewShown = view.getBoolean("PreviewShown", false);
+        previewShown = view.getBooleanOr("PreviewShown", false);
     }
 }

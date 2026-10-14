@@ -8,29 +8,25 @@ import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.recipe.input.SingleStackRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -102,7 +98,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     // There is deliberately NO hashish figure here. Nothing in the hash family decarboxylates:
     // the oven takes plant matter, the bowl takes resin. See ModRecipeProvider and SiftingBoxBlock.
 
-    // PropertyDelegate indices. The cook time is synced because the config can change it.
+    // ContainerData indices. The cook time is synced because the config can change it.
     public static final int PROPERTY_BURN_TIME = 0;
     public static final int PROPERTY_FUEL_TIME = 1;
     /** Per-tray cook progress occupies indices 2..4. */
@@ -110,7 +106,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     public static final int PROPERTY_COOK_TIME = 5;
     public static final int PROPERTY_COUNT = 6;
 
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(SLOT_COUNT, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> inventory = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
 
     /** Ticks of fuel left in the fire. */
     private int burnTime;
@@ -118,7 +114,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     private int fuelTime;
     private final int[] progress = new int[TRAY_COUNT];
 
-    private final PropertyDelegate propertyDelegate = new PropertyDelegate() {
+    private final ContainerData propertyDelegate = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
@@ -147,7 +143,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         }
 
         @Override
-        public int size() {
+        public int getCount() {
             return PROPERTY_COUNT;
         }
     };
@@ -170,41 +166,41 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
      * <p>A {@code null} world (a block entity that has not been placed into one yet) answers empty
      * rather than throwing: there are no recipes to consult, so there is no input either.
      */
-    public static ItemStack resultFor(@Nullable World world, ItemStack stack) {
+    public static ItemStack resultFor(@Nullable Level world, ItemStack stack) {
         if (world == null || stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        SingleStackRecipeInput input = new SingleStackRecipeInput(stack);
+        SingleRecipeInput input = new SingleRecipeInput(stack);
         // Through the synchronized view, so this answers on a client too — the screen's tray slots
         // ask the same question. See ModRecipes#allOfType.
-        return world.getRecipeManager().getSynchronizedRecipes()
+        return world.recipeAccess().getSynchronizedRecipes()
                 .getFirstMatch(ModRecipes.DECARBOXYLATING_TYPE, input, world)
-                .map(entry -> entry.value().craft(input, world.getRegistryManager()))
+                .map(entry -> entry.value().assemble(input, world.registryAccess()))
                 .orElse(ItemStack.EMPTY);
     }
 
-    public static boolean isTrayInput(@Nullable World world, ItemStack stack) {
+    public static boolean isTrayInput(@Nullable Level world, ItemStack stack) {
         return !resultFor(world, stack).isEmpty();
     }
 
-    public static boolean isFuel(@Nullable World world, ItemStack stack) {
-        return world != null && world.getFuelRegistry().isFuel(stack);
+    public static boolean isFuel(@Nullable Level world, ItemStack stack) {
+        return world != null && world.fuelValues().isFuel(stack);
     }
 
     /**
      * Burn time of a fuel item, via the same map vanilla furnaces use — so the mod's own
-     * {@code FuelRegistry} entries (hemp stem, bales, the armour set) work here for free.
+     * {@code FuelValues} entries (hemp stem, bales, the armour set) work here for free.
      */
-    private static int burnTimeOf(@Nullable World world, ItemStack stack) {
+    private static int burnTimeOf(@Nullable Level world, ItemStack stack) {
         if (world == null || stack.isEmpty()) {
             return 0;
         }
-        return world.getFuelRegistry().getFuelTicks(stack);
+        return world.fuelValues().burnDuration(stack);
     }
 
     // ----- ticking -----
 
-    public void tick(World world, BlockPos pos, BlockState state) {
+    public void tick(Level world, BlockPos pos, BlockState state) {
         boolean wasBurning = isBurning();
         boolean dirty = false;
 
@@ -223,17 +219,17 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         // Light the fire only when there is actually something to cook, so fuel is never wasted on
         // an idle machine (same contract as a furnace).
         if (!isBurning() && anyTrayReady) {
-            ItemStack fuel = getStack(FUEL_SLOT);
+            ItemStack fuel = getItem(FUEL_SLOT);
             int time = burnTimeOf(world, fuel);
             if (time > 0) {
                 burnTime = time;
                 fuelTime = time;
                 Item before = fuel.getItem();
-                fuel.decrement(1);
+                fuel.shrink(1);
                 if (fuel.isEmpty()) {
                     // Buckets and the like leave their empty container behind, as in a furnace.
-                    // getRecipeRemainder returns an ItemStack since 1.21.2, empty rather than null.
-                    setStack(FUEL_SLOT, before.getRecipeRemainder().copy());
+                    // getCraftingRemainder returns an ItemStack since 1.21.2, empty rather than null.
+                    setItem(FUEL_SLOT, before.getCraftingRemainder().copy());
                 }
                 dirty = true;
             }
@@ -255,13 +251,13 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         }
 
         if (wasBurning != isBurning()) {
-            state = state.with(DecarboxylatorBlock.LIT, isBurning());
-            world.setBlockState(pos, state, Block.NOTIFY_ALL);
+            state = state.setValue(DecarboxylatorBlock.LIT, isBurning());
+            world.setBlock(pos, state, Block.UPDATE_ALL);
             dirty = true;
         }
 
         if (dirty) {
-            markDirty(world, pos, state);
+            setChanged(world, pos, state);
         }
     }
 
@@ -272,32 +268,32 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
      * already holding simply waits — which is the same stall a furnace has when its output slot holds
      * the wrong item, and the reason the components have to match and not just the item.
      */
-    private boolean canCook(World world, int tray) {
-        ItemStack result = resultFor(world, getStack(FIRST_TRAY_SLOT + tray));
+    private boolean canCook(Level world, int tray) {
+        ItemStack result = resultFor(world, getItem(FIRST_TRAY_SLOT + tray));
         if (result.isEmpty()) {
             return false;
         }
-        ItemStack output = getStack(OUTPUT_SLOT);
+        ItemStack output = getItem(OUTPUT_SLOT);
         if (output.isEmpty()) {
-            return result.getCount() <= result.getMaxCount();
+            return result.getCount() <= result.getMaxStackSize();
         }
-        return ItemStack.areItemsAndComponentsEqual(output, result)
-                && output.getCount() + result.getCount() <= output.getMaxCount();
+        return ItemStack.isSameItemSameComponents(output, result)
+                && output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
-    private void cook(World world, int tray) {
-        ItemStack input = getStack(FIRST_TRAY_SLOT + tray);
+    private void cook(Level world, int tray) {
+        ItemStack input = getItem(FIRST_TRAY_SLOT + tray);
         ItemStack result = resultFor(world, input);
         if (result.isEmpty()) {
             return;
         }
-        ItemStack output = getStack(OUTPUT_SLOT);
+        ItemStack output = getItem(OUTPUT_SLOT);
         if (output.isEmpty()) {
-            setStack(OUTPUT_SLOT, result);
+            setItem(OUTPUT_SLOT, result);
         } else {
-            output.increment(result.getCount());
+            output.grow(result.getCount());
         }
-        input.decrement(1);
+        input.shrink(1);
     }
 
     public boolean isBurning() {
@@ -307,22 +303,22 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     // ----- inventory -----
 
     @Override
-    public DefaultedList<ItemStack> getItems() {
+    public NonNullList<ItemStack> getItems() {
         return inventory;
     }
 
     @Override
-    public boolean isValid(int slot, ItemStack stack) {
+    public boolean canPlaceItem(int slot, ItemStack stack) {
         return switch (slot) {
-            case FUEL_SLOT -> isFuel(this.world, stack);
+            case FUEL_SLOT -> isFuel(this.level, stack);
             case OUTPUT_SLOT -> false;
-            default -> isTrayInput(this.world, stack);
+            default -> isTrayInput(this.level, stack);
         };
     }
 
     // Hopper access mirrors a furnace: input from above, fuel from the sides, output out the bottom.
     @Override
-    public int[] getAvailableSlots(Direction side) {
+    public int[] getSlotsForFace(Direction side) {
         return switch (side) {
             case UP -> new int[]{FIRST_TRAY_SLOT, FIRST_TRAY_SLOT + 1, FIRST_TRAY_SLOT + 2};
             case DOWN -> new int[]{OUTPUT_SLOT, FUEL_SLOT};
@@ -331,66 +327,66 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     }
 
     @Override
-    public boolean canInsert(int slot, ItemStack stack, @Nullable Direction side) {
-        return isValid(slot, stack);
+    public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
+        return canPlaceItem(slot, stack);
     }
 
     @Override
-    public boolean canExtract(int slot, ItemStack stack, Direction side) {
+    public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         // The output is always drainable. The fuel slot only gives back leftover containers
         // (an empty bucket), never the fuel a hopper just inserted.
         if (slot == OUTPUT_SLOT) {
             return true;
         }
-        return slot == FUEL_SLOT && !isFuel(this.world, stack);
+        return slot == FUEL_SLOT && !isFuel(this.level, stack);
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
-        return this.world != null
-                && this.world.getBlockEntity(this.pos) == this
-                && player.squaredDistanceTo(Vec3d.ofCenter(this.pos)) <= 64.0D;
+    public boolean stillValid(Player player) {
+        return this.level != null
+                && this.level.getBlockEntity(this.worldPosition) == this
+                && player.distanceToSqr(Vec3.atCenterOf(this.worldPosition)) <= 64.0D;
     }
 
     // ----- screen -----
 
     @Override
-    public BlockPos getScreenOpeningData(ServerPlayerEntity player) {
-        return this.pos;
+    public BlockPos getScreenOpeningData(ServerPlayer player) {
+        return this.worldPosition;
     }
 
     @Override
-    protected Text getContainerName() {
-        return Text.translatable("block.hempdustry.decarboxylator");
+    protected Component getContainerName() {
+        return Component.translatable("block.hempdustry.decarboxylator");
     }
 
     @Nullable
     @Override
-    public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
         return new DecarboxylatorScreenHandler(syncId, playerInventory, this, this.propertyDelegate);
     }
 
     // ----- persistence -----
 
-    // Since 1.21.9 a block entity is read and written through ReadView/WriteView rather than a raw
-    // NbtCompound. The keys are unchanged, so a world written by 2.0.0-beta on 1.21.1 still loads.
+    // Since 1.21.9 a block entity is read and written through ValueInput/ValueOutput rather than a raw
+    // CompoundTag. The keys are unchanged, so a world written by 2.0.0-beta on 1.21.1 still loads.
     @Override
-    protected void writeData(WriteView view) {
-        super.writeData(view);
-        Inventories.writeData(view, inventory);
+    protected void saveAdditional(ValueOutput view) {
+        super.saveAdditional(view);
+        ContainerHelper.saveAllItems(view, inventory);
         view.putInt("BurnTime", burnTime);
         view.putInt("FuelTime", fuelTime);
         view.putIntArray("Progress", progress.clone());
     }
 
     @Override
-    protected void readData(ReadView view) {
-        super.readData(view);
+    protected void loadAdditional(ValueInput view) {
+        super.loadAdditional(view);
         inventory.clear();
-        Inventories.readData(view, inventory);
-        burnTime = view.getInt("BurnTime", 0);
-        fuelTime = view.getInt("FuelTime", 0);
-        int[] saved = view.getOptionalIntArray("Progress").orElse(new int[0]);
+        ContainerHelper.loadAllItems(view, inventory);
+        burnTime = view.getIntOr("BurnTime", 0);
+        fuelTime = view.getIntOr("FuelTime", 0);
+        int[] saved = view.getIntArray("Progress").orElse(new int[0]);
         for (int tray = 0; tray < TRAY_COUNT; tray++) {
             progress[tray] = tray < saved.length ? saved[tray] : 0;
         }

@@ -5,24 +5,24 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowMedium;
 import com.warlonmhite.hempdustry.block.custom.PlantStress;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CropBlock;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
  * Stops a pollinating bee from wiping a hemp plant's defoliation state.
  *
- * <p>{@code BeeEntity.GrowCropsGoal} fertilises any {@code CropBlock} in
+ * <p>{@code Bee.BeeGrowCropGoal} fertilises any {@code CropBlock} in
  * {@code #minecraft:bee_growables} with, in effect:
  *
- * <pre>{@code if (!crop.isMature(state)) world.setBlockState(pos, crop.withAge(crop.getAge(state) + 1));}</pre>
+ * <pre>{@code if (!crop.isMaxAge(state)) world.setBlockAndUpdate(pos, crop.getStateForAge(crop.getAge(state) + 1));}</pre>
  *
  * <p>Two things there are hostile to a crop that keeps state of its own. The write is <b>direct</b>,
  * so it never runs the crop's own growth path, and {@code CropBlock#withAge} is
- * {@code getDefaultState().with(AGE, n)} — it rebuilds the state from scratch and drops every other
+ * {@code defaultBlockState().setValue(AGE, n)} — it rebuilds the state from scratch and drops every other
  * property back to its default. Our crops already dodge the half of this that would behead a tall
  * plant, by overriding {@code getAge} so only the LOWER segment is ever a bee's target (see
  * {@code IndicaCropBlock#getAge}). But the LOWER is exactly where
@@ -42,7 +42,7 @@ import org.spongepowered.asm.mixin.injection.At;
  *
  * <h2>Why {@code @WrapOperation} and not {@code @Redirect}</h2>
  *
- * There is exactly one {@code setBlockState} call in {@code tick()}, so either would find its target
+ * There is exactly one {@code setBlockAndUpdate} call in {@code tick()}, so either would find its target
  * unambiguously. But <b>{@code @Redirect} is exclusive</b>: it replaces the call outright, so a
  * second mod redirecting the same instruction is an unresolvable conflict, and with
  * {@code defaultRequire: 1} the result is a <em>startup crash</em> for the whole pack rather than one
@@ -51,28 +51,28 @@ import org.spongepowered.asm.mixin.injection.At;
  *
  * <p>{@code @WrapOperation} wraps the call instead of replacing it: several mods can wrap the same
  * instruction and they compose, each seeing the previous one's arguments. Passing the amended state
- * to {@link Operation#call} rather than calling {@code world.setBlockState} directly is what keeps
+ * to {@link Operation#call} rather than calling {@code world.setBlockAndUpdate} directly is what keeps
  * that chain intact — a direct call would jump the queue and skip every wrapper underneath. Ships
  * inside Fabric Loader (0.15 and later), so it costs no new dependency.
  */
-@Mixin(targets = "net.minecraft.entity.passive.BeeEntity$GrowCropsGoal")
+@Mixin(targets = "net.minecraft.world.entity.animal.bee.Bee$BeeGrowCropGoal")
 public class BeeGrowCropsGoalMixin {
     @WrapOperation(
             method = "tick",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z"
+                    target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"
             )
     )
-    private boolean hempdustry$preserveDefoliation(World world, BlockPos pos, BlockState newState,
+    private boolean hempdustry$preserveDefoliation(Level world, BlockPos pos, BlockState newState,
                                                    Operation<Boolean> original) {
         BlockState current = world.getBlockState(pos);
         BlockState next = PlantStress.beeStep(world, pos, current, Defoliation.carryOver(current, newState),
                 world.getRandom());
         boolean set = original.call(world, pos, next);
-        if (set && next.getBlock() instanceof CropBlock crop && current.isOf(crop)
-                && crop.isMature(next) && !crop.isMature(current)) {
-            BlockPos floorPos = pos.down();
+        if (set && next.getBlock() instanceof CropBlock crop && current.is(crop)
+                && crop.isMaxAge(next) && !crop.isMaxAge(current)) {
+            BlockPos floorPos = pos.below();
             BlockState floor = world.getBlockState(floorPos);
             if (floor.getBlock() instanceof GrowMedium medium) {
                 medium.spend(world, floorPos, floor);

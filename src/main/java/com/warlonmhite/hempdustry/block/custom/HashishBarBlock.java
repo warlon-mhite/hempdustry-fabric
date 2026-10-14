@@ -3,31 +3,31 @@ package com.warlonmhite.hempdustry.block.custom;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * A pressed slab of hash, sitting on the floor, that you cut pieces off with a blade. Two of these
@@ -74,11 +74,11 @@ import net.minecraft.world.World;
  */
 public class HashishBarBlock extends Block {
 
-    public static final MapCodec<HashishBarBlock> CODEC = createCodec(HashishBarBlock::new);
+    public static final MapCodec<HashishBarBlock> CODEC = simpleCodec(HashishBarBlock::new);
 
     /** How many cuts have been taken out of this bar, 0–4. At 4 the next cut removes the block. */
-    public static final IntProperty CUTS = IntProperty.of("cuts", 0, 4);
-    public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
+    public static final IntegerProperty CUTS = IntegerProperty.create("cuts", 0, 4);
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     /** Pieces the next cut yields — 2, 2, 2, 2, then 1. Nine to a bar, so 9↔9 is lossless. */
     private static final int[] YIELD = {2, 2, 2, 2, 1};
@@ -116,7 +116,7 @@ public class HashishBarBlock extends Block {
      * whole of the difference between the two bars — everything else, geometry included, is shared.
      *
      * <p>A method rather than a constructor field so both blocks keep a plain
-     * {@code Settings}-only constructor and therefore {@code createCodec}, which is the one-liner
+     * {@code Properties}-only constructor and therefore {@code simpleCodec}, which is the one-liner
      * form of a block's {@code MapCodec}. A field would mean hand-rolling a {@code RecordCodecBuilder}
      * twice for a value neither block ever varies at runtime.
      */
@@ -124,21 +124,21 @@ public class HashishBarBlock extends Block {
         return ModItems.HASHISH;
     }
 
-    public HashishBarBlock(Settings settings) {
+    public HashishBarBlock(Properties settings) {
         super(settings);
-        // CUTS spelled out even though an IntProperty has no BooleanProperty's first-value trap
+        // CUTS spelled out even though an IntegerProperty has no BooleanProperty's first-value trap
         // (left out of the default state, a boolean comes back true): writing it means the next
         // person does not have to go and check.
-        setDefaultState(getDefaultState().with(CUTS, 0).with(FACING, Direction.NORTH));
+        registerDefaultState(defaultBlockState().setValue(CUTS, 0).setValue(FACING, Direction.NORTH));
     }
 
     @Override
-    protected MapCodec<? extends HashishBarBlock> getCodec() {
+    protected MapCodec<? extends HashishBarBlock> codec() {
         return CODEC;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(CUTS, FACING);
     }
 
@@ -147,11 +147,11 @@ public class HashishBarBlock extends Block {
      *
      * <p>{@code FACING} names the end the bar is anchored at, and cuts eat from the far end — so
      * where it is laid decides whether the player can <em>see</em> it shrink. Pointing it along the
-     * line of sight (which {@code getHorizontalPlayerFacing().getOpposite()} does, and which this
+     * line of sight (which {@code getHorizontalDirection().getOpposite()} does, and which this
      * originally did) shows the 8 px end face and foreshortens the 14 px that actually changes: five
      * cuts and the bar barely looks different.
      *
-     * <p>{@code rotateYCounterclockwise} turns it side-on. The long axis now runs left-to-right, the
+     * <p>{@code getCounterClockWise} turns it side-on. The long axis now runs left-to-right, the
      * bar is anchored at the player's <b>left</b>, and each cut visibly takes a chunk off the right
      * — which is both the way a bar is laid down to be cut and the way a right-handed person cuts
      * it. Consistent for all four facings: the anchor is always the placer's left.
@@ -160,25 +160,25 @@ public class HashishBarBlock extends Block {
      * with the same convention, so this is one expression and no new state.
      */
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing().rotateYCounterclockwise());
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getCounterClockWise());
     }
 
     @Override
-    protected BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(FACING, rotation.rotate(state.get(FACING)));
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, BlockMirror mirror) {
-        return state.rotate(mirror.getRotation(state.get(FACING)));
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     /**
      * Every shape the bar can have: 4 horizontal facings × 5 cut counts, built once at class-load.
      *
-     * <p><b>Not built per call.</b> {@code getOutlineShape} runs every frame the player is looking
-     * at the block, and {@code AbstractBlock}'s default {@code getCollisionShape} delegates to it —
+     * <p><b>Not built per call.</b> {@code getShape} runs every frame the player is looking
+     * at the block, and {@code BlockBehaviour}'s default {@code getCollisionShape} delegates to it —
      * so every entity standing on or beside a bar queries this <em>every tick</em>. Allocating a
      * {@code VoxelShape} there is exactly the garbage vanilla precomputes to avoid, and this file's
      * neighbour {@code IndicaCropBlock} already keeps its own {@code LOWER_SHAPE_BY_AGE} table for
@@ -188,16 +188,16 @@ public class HashishBarBlock extends Block {
 
     private static VoxelShape[][] buildShapes() {
         VoxelShape[][] shapes = new VoxelShape[4][YIELD.length];
-        for (Direction facing : Direction.Type.HORIZONTAL) {
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
             for (int cuts = 0; cuts < YIELD.length; cuts++) {
                 // 8 px across, 4 px tall, and 14 - 3*cuts long, anchored at the end the bar faces so
                 // the cuts come off the far one.
                 double length = FULL_LENGTH - cuts * CUT_PIXELS;
-                shapes[facing.getHorizontalQuarterTurns()][cuts] = switch (facing) {
-                    case NORTH -> createCuboidShape(4.0, 0.0, 1.0, 12.0, 4.0, 1.0 + length);
-                    case SOUTH -> createCuboidShape(4.0, 0.0, 15.0 - length, 12.0, 4.0, 15.0);
-                    case WEST -> createCuboidShape(1.0, 0.0, 4.0, 1.0 + length, 4.0, 12.0);
-                    default -> createCuboidShape(15.0 - length, 0.0, 4.0, 15.0, 4.0, 12.0);
+                shapes[facing.get2DDataValue()][cuts] = switch (facing) {
+                    case NORTH -> box(4.0, 0.0, 1.0, 12.0, 4.0, 1.0 + length);
+                    case SOUTH -> box(4.0, 0.0, 15.0 - length, 12.0, 4.0, 15.0);
+                    case WEST -> box(1.0, 0.0, 4.0, 1.0 + length, 4.0, 12.0);
+                    default -> box(15.0 - length, 0.0, 4.0, 15.0, 4.0, 12.0);
                 };
             }
         }
@@ -205,42 +205,42 @@ public class HashishBarBlock extends Block {
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return SHAPES[state.get(FACING).getHorizontalQuarterTurns()][state.get(CUTS)];
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return SHAPES[state.getValue(FACING).get2DDataValue()][state.getValue(CUTS)];
     }
 
     /**
      * One cut with a blade.
      *
-     * <p><b>A refusal hands back {@code super}, never {@code ActionResult.PASS}.</b> Since 1.21.2
-     * {@code ServerPlayerInteractionManager} calls {@code onUseWithItem} on every click, empty hand
-     * included, and only falls through to {@link #onUse} when the result is
-     * {@code instanceof ActionResult.PassToDefaultBlockAction} — which is exactly what
-     * {@code AbstractBlock#onUseWithItem}'s default is. A plain {@code PASS} swallows the click.
+     * <p><b>A refusal hands back {@code super}, never {@code InteractionResult.PASS}.</b> Since 1.21.2
+     * {@code ServerPlayerGameMode} calls {@code useItemOn} on every click, empty hand
+     * included, and only falls through to {@link #useWithoutItem} when the result is
+     * {@code instanceof InteractionResult.TryEmptyHandInteraction} — which is exactly what
+     * {@code BlockBehaviour#useItemOn}'s default is. A plain {@code PASS} swallows the click.
      * This shipped wrong in the Sifting Box and was found by a player, not by the game test.
      */
     @Override
-    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
-                                         PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!stack.isIn(ModTags.Items.HASH_CUTTERS)) {
-            return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+                                         Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!stack.is(ModTags.Items.HASH_CUTTERS)) {
+            return super.useItemOn(stack, state, world, pos, player, hand, hit);
         }
-        int cuts = state.get(CUTS);
-        if (world instanceof ServerWorld serverWorld) {
-            dropStack(serverWorld, pos, Direction.UP, new ItemStack(piece(), YIELD[cuts]));
+        int cuts = state.getValue(CUTS);
+        if (world instanceof ServerLevel serverWorld) {
+            popResourceFromFace(serverWorld, pos, Direction.UP, new ItemStack(piece(), YIELD[cuts]));
             // The blade is the whole cost of a cut: nothing else is spent, and the bar itself is
             // what shrinks. Same slot dance as Defoliation.tryCut.
-            stack.damage(1, player, hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+            stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             if (cuts + 1 >= YIELD.length) {
                 serverWorld.removeBlock(pos, false);
             } else {
-                serverWorld.setBlockState(pos, state.with(CUTS, cuts + 1), Block.NOTIFY_ALL);
+                serverWorld.setBlock(pos, state.setValue(CUTS, cuts + 1), Block.UPDATE_ALL);
             }
         }
         // Honey's break sound at a high pitch: sticky and soft, which is what parting a slab of
         // resin sounds like, and it is a sound event that already exists.
-        world.playSound(player, pos, SoundEvents.BLOCK_HONEY_BLOCK_BREAK, SoundCategory.BLOCKS,
+        world.playSound(player, pos, SoundEvents.HONEY_BLOCK_BREAK, SoundSource.BLOCKS,
                 0.8F, 1.4F + world.getRandom().nextFloat() * 0.2F);
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

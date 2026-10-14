@@ -1,28 +1,27 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.datafixer.DataFixTypes;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.StringNbtReader;
-import net.minecraft.registry.Registries;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
 /**
  * Every entity and block entity of ours must be one vanilla's data fixer knows, or a world moved
@@ -47,15 +46,15 @@ public final class DataFixerGameTest {
     private static final String SWORD = "{Slot:0b,id:\"minecraft:iron_sword\",count:1,"
             + "components:{\"minecraft:enchantments\":{levels:{\"minecraft:sharpness\":3}}}}";
 
-    public static void aHempBoatDoesNotStopTheDataFixer(TestContext context) {
+    public static void aHempBoatDoesNotStopTheDataFixer(GameTestHelper context) {
         List<Identifier> ours = new ArrayList<>();
         Map<Identifier, Boolean> holdsItems = new HashMap<>();
         StringBuilder chunk = new StringBuilder("{DataVersion:3955,Position:[I;0,0],Entities:[");
-        for (EntityType<?> type : Registries.ENTITY_TYPE) {
-            Identifier id = Registries.ENTITY_TYPE.getId(type);
+        for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE) {
+            Identifier id = BuiltInRegistries.ENTITY_TYPE.getKey(type);
             if (!Sweep.ours(id)) continue;
-            Entity entity = type.create(context.getWorld(), SpawnReason.LOAD);
-            holdsItems.put(id, entity instanceof Inventory);
+            Entity entity = type.create(context.getLevel(), EntitySpawnReason.LOAD);
+            holdsItems.put(id, entity instanceof Container);
             chunk.append("{id:\"").append(id).append("\",Pos:[").append(ours.size() * 3).append(".5d,-60.0d,0.5d],")
                     .append("Type:\"oak\",Items:[").append(SWORD).append("]},");
             ours.add(id);
@@ -64,26 +63,26 @@ public final class DataFixerGameTest {
                 + "ArmorItems:[{id:\"minecraft:leather_boots\",count:1},{},{},{}],HandItems:[{},{}]}]}");
         Sweep.atLeast(context, "entity types of ours", ours.size(), 2);
 
-        NbtList entities = DataFixTypes.ENTITY_CHUNK.update(
-                context.getWorld().getServer().getDataFixer(), read(chunk.toString()), MINECRAFT_1_21_1)
+        ListTag entities = DataFixTypes.ENTITY_CHUNK.updateToCurrentVersion(
+                context.getLevel().getServer().getFixerUpper(), read(chunk.toString()), MINECRAFT_1_21_1)
                 .getListOrEmpty("Entities");
 
         // The fixer writes the new equipment map and leaves the old key beside it; the game drops the
         // old one the next time it saves the entity. The new one is what 1.21.11 reads.
-        NbtCompound stand = entities.getCompoundOrEmpty(ours.size());
+        CompoundTag stand = entities.getCompoundOrEmpty(ours.size());
         context.assertTrue("minecraft:leather_boots".equals(
-                        stand.getCompoundOrEmpty("equipment").getCompoundOrEmpty("feet").getString("id", "")),
+                        stand.getCompoundOrEmpty("equipment").getCompoundOrEmpty("feet").getStringOr("id", "")),
                 "the armour stand beside " + ours + " was not upgraded, so it has no equipment: " + stand);
 
         Map<String, String> findings = new TreeMap<>();
         for (int i = 0; i < ours.size(); i++) {
-            NbtCompound entity = entities.getCompoundOrEmpty(i);
+            CompoundTag entity = entities.getCompoundOrEmpty(i);
             Identifier id = ours.get(i);
-            if (!id.toString().equals(entity.getString("id", ""))) {
+            if (!id.toString().equals(entity.getStringOr("id", ""))) {
                 findings.put(id.toString(), "came out of the fixer as " + entity);
                 continue;
             }
-            NbtCompound enchantments = entity.getListOrEmpty("Items").getCompoundOrEmpty(0)
+            CompoundTag enchantments = entity.getListOrEmpty("Items").getCompoundOrEmpty(0)
                     .getCompoundOrEmpty("components").getCompoundOrEmpty("minecraft:enchantments");
             if (holdsItems.get(id) && (enchantments.contains("levels") || !enchantments.contains("minecraft:sharpness"))) {
                 findings.put(id.toString(), "the sword it carries kept its 1.21.1 enchantments: " + enchantments);
@@ -91,7 +90,7 @@ public final class DataFixerGameTest {
         }
         Sweep.report(context, "Every entity of ours, and what it carries, goes through the data fixer",
                 findings, Map.of());
-        context.complete();
+        context.succeed();
     }
 
     /**
@@ -101,14 +100,14 @@ public final class DataFixerGameTest {
      * fixer did not know the machines, so their bows kept the {@code levels} wrapper 1.21.11 cannot
      * read, and lost their enchantments on load.
      */
-    public static void theMachinesContentsAreUpgraded(TestContext context) {
+    public static void theMachinesContentsAreUpgraded(GameTestHelper context) {
         Map<Identifier, Boolean> types = new TreeMap<>();
-        for (Block block : Registries.BLOCK) {
-            if (!Sweep.ours(Registries.BLOCK.getId(block)) || !(block instanceof BlockEntityProvider provider)) continue;
-            BlockEntity entity = provider.createBlockEntity(BlockPos.ORIGIN, block.getDefaultState());
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (!Sweep.ours(BuiltInRegistries.BLOCK.getKey(block)) || !(block instanceof EntityBlock provider)) continue;
+            BlockEntity entity = provider.newBlockEntity(BlockPos.ZERO, block.defaultBlockState());
             if (entity == null) continue;
-            Identifier type = BlockEntityType.getId(entity.getType());
-            if (type != null && Sweep.ours(type)) types.put(type, entity instanceof Inventory);
+            Identifier type = BlockEntityType.getKey(entity.getType());
+            if (type != null && Sweep.ours(type)) types.put(type, entity instanceof Container);
         }
         Sweep.atLeast(context, "block entity types of ours", types.size(), 4);
 
@@ -118,16 +117,16 @@ public final class DataFixerGameTest {
         for (int i = 0; i < order.size(); i++) {
             chunk.append(",").append(machine(order.get(i).toString(), i, types.get(order.get(i))));
         }
-        NbtList blockEntities = DataFixTypes.CHUNK.update(context.getWorld().getServer().getDataFixer(),
+        ListTag blockEntities = DataFixTypes.CHUNK.updateToCurrentVersion(context.getLevel().getServer().getFixerUpper(),
                 read(chunk.append("]}").toString()), MINECRAFT_1_21_1).getListOrEmpty("block_entities");
-        context.assertEquals(order.size() + 1, blockEntities.size(), "the block entities through the fixer");
+        context.assertValueEqual(order.size() + 1, blockEntities.size(), "the block entities through the fixer");
 
         // The chest first: if it was not converted, the chunk itself did not go through.
         context.assertTrue(upgraded(blockEntities.getCompoundOrEmpty(0).getListOrEmpty("Items").getCompoundOrEmpty(0)),
                 "the control chest's bow kept its 1.21.1 enchantments, so the chunk never went through the fixer");
         Map<String, String> findings = new TreeMap<>();
         for (int i = 0; i < order.size(); i++) {
-            NbtCompound blockEntity = blockEntities.getCompoundOrEmpty(i + 1);
+            CompoundTag blockEntity = blockEntities.getCompoundOrEmpty(i + 1);
             if (!upgraded(blockEntity)) {
                 findings.put(order.get(i).toString(), "its own components kept their 1.21.1 enchantments: "
                         + blockEntity.getCompoundOrEmpty("components"));
@@ -138,7 +137,7 @@ public final class DataFixerGameTest {
         }
         Sweep.report(context, "Every block entity of ours, and what it holds, goes through the data fixer",
                 findings, Map.of());
-        context.complete();
+        context.succeed();
     }
 
     private static String machine(String id, int x, boolean holdsItems) {
@@ -150,14 +149,14 @@ public final class DataFixerGameTest {
     }
 
     /** Whether a stack's or a block entity's enchantments lost the 1.21.1 {@code levels} wrapper. */
-    private static boolean upgraded(NbtCompound holder) {
-        NbtCompound enchantments = holder.getCompoundOrEmpty("components").getCompoundOrEmpty("minecraft:enchantments");
+    private static boolean upgraded(CompoundTag holder) {
+        CompoundTag enchantments = holder.getCompoundOrEmpty("components").getCompoundOrEmpty("minecraft:enchantments");
         return !enchantments.isEmpty() && !enchantments.contains("levels");
     }
 
-    private static NbtCompound read(String snbt) {
+    private static CompoundTag read(String snbt) {
         try {
-            return StringNbtReader.readCompound(snbt);
+            return TagParser.parseCompoundFully(snbt);
         } catch (CommandSyntaxException e) {
             throw new IllegalStateException(e);
         }

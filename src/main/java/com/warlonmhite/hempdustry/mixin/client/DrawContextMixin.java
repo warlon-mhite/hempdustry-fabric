@@ -4,18 +4,18 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.Smoking;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
  * Draws the smoking cooldown swipe on the stack that was actually smoked, and on nothing else.
  *
- * <p>{@code ItemCooldownManager} is keyed by a cooldown <em>group</em> — the item's own id unless a
+ * <p>{@code ItemCooldowns} is keyed by a cooldown <em>group</em> — the item's own id unless a
  * {@code use_cooldown} component says otherwise — and a hit deliberately arms it on every
  * smokeable at once (see {@link Smoking#startCooldown} for why the <em>block</em> has to be global).
- * The overlay in {@code DrawContext#drawCooldownProgress} asks that manager one question per slot —
+ * The overlay in {@code GuiGraphics#renderItemCooldown} asks that manager one question per slot —
  * "is this item cooling down?" — so straight off vanilla it sweeps a white bar down every pipe,
  * every bong and every spliff in the inventory, including the empty ones that were never smoked and
  * could not have been. That reads as a bug even though the cooldown underneath it is correct.
@@ -31,19 +31,19 @@ import org.spongepowered.asm.mixin.injection.At;
  * several mods can stack on it. MixinExtras ships inside Fabric Loader, so it costs no dependency —
  * same reasoning as {@code BeeGrowCropsGoalMixin}.
  */
-@Mixin(DrawContext.class)
+@Mixin(GuiGraphics.class)
 public class DrawContextMixin {
     @ModifyExpressionValue(
-            method = "drawCooldownProgress(Lnet/minecraft/item/ItemStack;II)V",
+            method = "renderItemCooldown(Lnet/minecraft/world/item/ItemStack;II)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/entity/player/ItemCooldownManager;getCooldownProgress(Lnet/minecraft/item/ItemStack;F)F"
+                    target = "Lnet/minecraft/world/item/ItemCooldowns;getCooldownPercent(Lnet/minecraft/world/item/ItemStack;F)F"
             )
     )
     private float hempdustry$swipeOnlyTheStackThatWasSmoked(float progress,
                                                             @Local(argsOnly = true) ItemStack stack) {
         if (progress > 0.0F && Smoking.isSmokeable(stack.getItem())
-                && !stack.contains(ModComponents.COOLDOWN_UNTIL)) {
+                && !stack.has(ModComponents.COOLDOWN_UNTIL)) {
             return 0.0F;
         }
         return progress;

@@ -4,17 +4,17 @@ import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.DispenserBlock;
-import net.minecraft.block.dispenser.DispenserBehavior;
-import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
-import net.minecraft.block.dispenser.ItemDispenserBehavior;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.math.BlockPointer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.dispenser.BlockSource;
+import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.core.dispenser.DispenseItemBehavior;
+import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -37,13 +37,13 @@ import org.jetbrains.annotations.Nullable;
  * item did before, so another mod's milk behaviour is wrapped rather than replaced.
  */
 public final class ModDispenserBehaviors {
-    private static final FallibleItemDispenserBehavior POUR_INTO_INFUSER = new FallibleItemDispenserBehavior() {
+    private static final OptionalDispenseItemBehavior POUR_INTO_INFUSER = new OptionalDispenseItemBehavior() {
         @Override
-        protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
+        protected ItemStack execute(BlockSource pointer, ItemStack stack) {
             InfuserBlockEntity infuser = infuserInFront(pointer);
             ItemStack empty = InfuserBlockEntity.emptiedContainer(stack);
             this.setSuccess(infuser != null && infuser.fill(stack, null));
-            return this.isSuccess() ? this.decrementStackWithRemainder(pointer, stack, empty) : stack;
+            return this.isSuccess() ? this.consumeWithRemainder(pointer, stack, empty) : stack;
         }
     };
 
@@ -54,14 +54,14 @@ public final class ModDispenserBehaviors {
      * <p>It wraps vanilla's water-bucket behaviour rather than replacing it: anything that is not a
      * fillable tray still places water as it always did.
      */
-    private static final FallibleItemDispenserBehavior FILL_HYDRO_TRAY = new FallibleItemDispenserBehavior() {
+    private static final OptionalDispenseItemBehavior FILL_HYDRO_TRAY = new OptionalDispenseItemBehavior() {
         @Override
-        protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
-            BlockPos front = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
-            World world = pointer.world();
+        protected ItemStack execute(BlockSource pointer, ItemStack stack) {
+            BlockPos front = pointer.pos().relative(pointer.state().getValue(DispenserBlock.FACING));
+            Level world = pointer.level();
             this.setSuccess(HydroTrayBlock.fill(world, front, world.getBlockState(front)));
             return this.isSuccess()
-                    ? this.decrementStackWithRemainder(pointer, stack, new ItemStack(Items.BUCKET))
+                    ? this.consumeWithRemainder(pointer, stack, new ItemStack(Items.BUCKET))
                     : stack;
         }
     };
@@ -71,14 +71,14 @@ public final class ModDispenserBehaviors {
      * pot's drip line. It waters a wet pot too, exactly as a hand does, so a line that fires on a timer
      * overwaters. Vanilla's own bottle behaviour (mud) is wrapped, so anything else in front still gets it.
      */
-    private static final FallibleItemDispenserBehavior WATER_GROW_POT = new FallibleItemDispenserBehavior() {
+    private static final OptionalDispenseItemBehavior WATER_GROW_POT = new OptionalDispenseItemBehavior() {
         @Override
-        protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
-            BlockPos front = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
-            World world = pointer.world();
+        protected ItemStack execute(BlockSource pointer, ItemStack stack) {
+            BlockPos front = pointer.pos().relative(pointer.state().getValue(DispenserBlock.FACING));
+            Level world = pointer.level();
             GrowPotBlock.water(world, front, world.getBlockState(front), world.getRandom());
             this.setSuccess(true);
-            return this.decrementStackWithRemainder(pointer, stack, new ItemStack(Items.GLASS_BOTTLE));
+            return this.consumeWithRemainder(pointer, stack, new ItemStack(Items.GLASS_BOTTLE));
         }
     };
 
@@ -96,7 +96,7 @@ public final class ModDispenserBehaviors {
         // Nobody registers anything for milk in vanilla, so this is normally the plain "drop it"
         // behaviour. Spelled out rather than trusting the map's own default: 1.21.1's map has one,
         // 1.21.11's does not and answers null.
-        DispenserBehavior previous = DispenserBlock.BEHAVIORS.getOrDefault(milk, new ItemDispenserBehavior());
+        DispenseItemBehavior previous = DispenserBlock.DISPENSER_REGISTRY.getOrDefault(milk, new DefaultDispenseItemBehavior());
         DispenserBlock.registerBehavior(milk, (pointer, stack) -> infuserInFront(pointer) != null
                 ? POUR_INTO_INFUSER.dispense(pointer, stack)
                 : previous.dispense(pointer, stack));
@@ -105,8 +105,8 @@ public final class ModDispenserBehaviors {
     private static void fillHydroTrays() {
         // Vanilla does register a behaviour for a water bucket (it places the fluid), so this wraps
         // that one: only a tray with room takes the pour, and everything else behaves as before.
-        DispenserBehavior previous =
-                DispenserBlock.BEHAVIORS.getOrDefault(Items.WATER_BUCKET, new ItemDispenserBehavior());
+        DispenseItemBehavior previous =
+                DispenserBlock.DISPENSER_REGISTRY.getOrDefault(Items.WATER_BUCKET, new DefaultDispenseItemBehavior());
         DispenserBlock.registerBehavior(Items.WATER_BUCKET, (pointer, stack) -> fillableTrayInFront(pointer)
                 ? FILL_HYDRO_TRAY.dispense(pointer, stack)
                 : previous.dispense(pointer, stack));
@@ -114,24 +114,24 @@ public final class ModDispenserBehaviors {
 
     private static void waterGrowPots() {
         // Vanilla registers the potion's behaviour (a water bottle turns dirt to mud); wrap it.
-        DispenserBehavior previous = DispenserBlock.BEHAVIORS.getOrDefault(Items.POTION, new ItemDispenserBehavior());
+        DispenseItemBehavior previous = DispenserBlock.DISPENSER_REGISTRY.getOrDefault(Items.POTION, new DefaultDispenseItemBehavior());
         DispenserBlock.registerBehavior(Items.POTION, (pointer, stack) -> GrowPotBlock.isWaterBottle(stack)
-                && GrowPotBlock.isPot(pointer.world().getBlockState(
-                        pointer.pos().offset(pointer.state().get(DispenserBlock.FACING))))
+                && GrowPotBlock.isPot(pointer.level().getBlockState(
+                        pointer.pos().relative(pointer.state().getValue(DispenserBlock.FACING))))
                 ? WATER_GROW_POT.dispense(pointer, stack)
                 : previous.dispense(pointer, stack));
     }
 
-    private static boolean fillableTrayInFront(BlockPointer pointer) {
-        BlockPos front = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
-        BlockState state = pointer.world().getBlockState(front);
+    private static boolean fillableTrayInFront(BlockSource pointer) {
+        BlockPos front = pointer.pos().relative(pointer.state().getValue(DispenserBlock.FACING));
+        BlockState state = pointer.level().getBlockState(front);
         return state.getBlock() instanceof HydroTrayBlock
-                && state.get(HydroTrayBlock.LEVEL) < HydroTrayBlock.MAX_LEVEL;
+                && state.getValue(HydroTrayBlock.LEVEL) < HydroTrayBlock.MAX_LEVEL;
     }
 
     @Nullable
-    private static InfuserBlockEntity infuserInFront(BlockPointer pointer) {
-        BlockPos front = pointer.pos().offset(pointer.state().get(DispenserBlock.FACING));
-        return pointer.world().getBlockEntity(front) instanceof InfuserBlockEntity infuser ? infuser : null;
+    private static InfuserBlockEntity infuserInFront(BlockSource pointer) {
+        BlockPos front = pointer.pos().relative(pointer.state().getValue(DispenserBlock.FACING));
+        return pointer.level().getBlockEntity(front) instanceof InfuserBlockEntity infuser ? infuser : null;
     }
 }

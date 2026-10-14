@@ -2,25 +2,24 @@ package com.warlonmhite.hempdustry.recipe;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.SpecialCraftingRecipe;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.recipe.input.RecipeInput;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import java.util.Collection;
 
 public class ModRecipes {
 
     public static final RecipeSerializer<PackingRecipe> PACKING = Registry.register(
-            Registries.RECIPE_SERIALIZER,
-            Identifier.of(Hempdustry.MOD_ID, "packing"),
-            new SpecialCraftingRecipe.SpecialRecipeSerializer<>(PackingRecipe::new));
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "packing"),
+            new CustomRecipe.Serializer<>(PackingRecipe::new));
 
     /**
      * Shapeless, but the ingredients' containers travel into the result rather than being handed
@@ -28,8 +27,8 @@ public class ModRecipes {
      * bucket in and two out. See {@link ContainerCarriedRecipe}.
      */
     public static final RecipeSerializer<ContainerCarriedRecipe> CONTAINER_CARRIED = Registry.register(
-            Registries.RECIPE_SERIALIZER,
-            Identifier.of(Hempdustry.MOD_ID, "container_carried"),
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "container_carried"),
             new ContainerCarriedRecipe.Serializer());
 
     /**
@@ -38,13 +37,13 @@ public class ModRecipes {
      * to JEI/EMI — see {@link Infusion}.
      */
     public static final RecipeSerializer<InfusedShapedRecipe> INFUSED_SHAPED = Registry.register(
-            Registries.RECIPE_SERIALIZER,
-            Identifier.of(Hempdustry.MOD_ID, "infused_shaped"),
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "infused_shaped"),
             new InfusedShapedRecipe.Serializer());
 
     public static final RecipeSerializer<InfusedShapelessRecipe> INFUSED_SHAPELESS = Registry.register(
-            Registries.RECIPE_SERIALIZER,
-            Identifier.of(Hempdustry.MOD_ID, "infused_shapeless"),
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "infused_shapeless"),
             new InfusedShapelessRecipe.Serializer());
 
     /**
@@ -60,46 +59,46 @@ public class ModRecipes {
      * {@code RecipeManager} files a loaded recipe under, and the serializer that reads its JSON.
      */
     public static final RecipeType<DecarboxylatingRecipe> DECARBOXYLATING_TYPE = Registry.register(
-            Registries.RECIPE_TYPE,
-            Identifier.of(Hempdustry.MOD_ID, "decarboxylating"),
+            BuiltInRegistries.RECIPE_TYPE,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylating"),
             recipeType("decarboxylating"));
 
     public static final RecipeSerializer<DecarboxylatingRecipe> DECARBOXYLATING = Registry.register(
-            Registries.RECIPE_SERIALIZER,
-            Identifier.of(Hempdustry.MOD_ID, "decarboxylating"),
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylating"),
             new DecarboxylatingRecipe.Serializer());
 
     public static final RecipeType<InfusingRecipe> INFUSING_TYPE = Registry.register(
-            Registries.RECIPE_TYPE,
-            Identifier.of(Hempdustry.MOD_ID, "infusing"),
+            BuiltInRegistries.RECIPE_TYPE,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "infusing"),
             recipeType("infusing"));
 
     public static final RecipeSerializer<InfusingRecipe> INFUSING = Registry.register(
-            Registries.RECIPE_SERIALIZER,
-            Identifier.of(Hempdustry.MOD_ID, "infusing"),
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "infusing"),
             new InfusingRecipe.Serializer());
 
     /** What the Hemp Press turns into what — the third machine recipe type. See {@link PressingRecipe}. */
     public static final RecipeType<PressingRecipe> PRESSING_TYPE = Registry.register(
-            Registries.RECIPE_TYPE,
-            Identifier.of(Hempdustry.MOD_ID, "pressing"),
+            BuiltInRegistries.RECIPE_TYPE,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "pressing"),
             recipeType("pressing"));
 
     public static final RecipeSerializer<PressingRecipe> PRESSING = Registry.register(
-            Registries.RECIPE_SERIALIZER,
-            Identifier.of(Hempdustry.MOD_ID, "pressing"),
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "pressing"),
             new PressingRecipe.Serializer());
 
     /**
      * A bare {@code RecipeType}, ready to be registered.
      *
      * <p><b>{@code RecipeType.register} cannot be used here</b>: it builds its own id with
-     * {@code Identifier.ofVanilla}, so a namespaced string arrives as the <em>path</em> and the game
+     * {@code Identifier.withDefaultNamespace}, so a namespaced string arrives as the <em>path</em> and the game
      * refuses it — {@code Non [a-z0-9/._-] character in path of location:
      * minecraft:hempdustry:decarboxylating}, thrown at class-load before anything else runs. All the
      * method adds over this is the {@code toString}, which is worth keeping for a crash report.
      */
-    private static <T extends net.minecraft.recipe.Recipe<?>> RecipeType<T> recipeType(String path) {
+    private static <T extends net.minecraft.world.item.crafting.Recipe<?>> RecipeType<T> recipeType(String path) {
         String name = Hempdustry.MOD_ID + ":" + path;
         return new RecipeType<>() {
             @Override
@@ -115,12 +114,12 @@ public class ModRecipes {
      * <p>Since 1.21.4 the client is not handed the recipe list wholesale, so the two machine types
      * have to opt in to being synced (below) and everything reads them back through Fabric's
      * {@code SynchronizedRecipes} view — which the dedicated server, the integrated server and the
-     * client all have. {@code ServerRecipeManager#getAllOfType} would work on a server and quietly
+     * client all have. {@code RecipeMap#byType} would work on a server and quietly
      * not exist on a client, which is exactly the split a recipe viewer lands on.
      */
-    public static <I extends RecipeInput, T extends Recipe<I>> Collection<RecipeEntry<T>> allOfType(
-            World world, RecipeType<T> type) {
-        return world.getRecipeManager().getSynchronizedRecipes().getAllOfType(type);
+    public static <I extends RecipeInput, T extends Recipe<I>> Collection<RecipeHolder<T>> allOfType(
+            Level world, RecipeType<T> type) {
+        return world.recipeAccess().getSynchronizedRecipes().getAllOfType(type);
     }
 
     public static void registerRecipes() {

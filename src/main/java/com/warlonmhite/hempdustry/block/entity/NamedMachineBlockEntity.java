@@ -1,24 +1,24 @@
 package com.warlonmhite.hempdustry.block.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.ComponentsAccess;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
-import net.minecraft.util.Nameable;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.world.Nameable;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A machine that keeps the name an anvil gave it, as vanilla's furnace, smoker and brewing stand do:
  * the name comes in from the placed item, shows as the screen's title, is saved with the block, and
  * goes back onto the item when the block is broken (the loot table's {@code copy_components}). This
- * is {@code LockableContainerBlockEntity}'s name handling, call for call, for the three machines that
+ * is {@code BaseContainerBlockEntity}'s name handling, call for call, for the three machines that
  * are not vanilla containers. {@code CustomName} is absent from every machine saved before it, and
  * absent means unnamed, which is what those machines were.
  */
@@ -26,58 +26,58 @@ public abstract class NamedMachineBlockEntity extends BlockEntity implements Nam
     private static final String CUSTOM_NAME = "CustomName";
 
     @Nullable
-    private Text customName;
+    private Component customName;
 
     protected NamedMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 
     /** The machine's own name, for when nobody has renamed it. */
-    protected abstract Text getContainerName();
+    protected abstract Component getContainerName();
 
     @Override
-    public Text getName() {
+    public Component getName() {
         return customName != null ? customName : getContainerName();
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return getName();
     }
 
     @Nullable
     @Override
-    public Text getCustomName() {
+    public Component getCustomName() {
         return customName;
     }
 
     @Override
-    protected void readData(ReadView view) {
-        super.readData(view);
-        customName = tryParseCustomName(view, CUSTOM_NAME);
+    protected void loadAdditional(ValueInput view) {
+        super.loadAdditional(view);
+        customName = parseCustomNameSafe(view, CUSTOM_NAME);
     }
 
     @Override
-    protected void writeData(WriteView view) {
-        super.writeData(view);
-        view.putNullable(CUSTOM_NAME, TextCodecs.CODEC, customName);
+    protected void saveAdditional(ValueOutput view) {
+        super.saveAdditional(view);
+        view.storeNullable(CUSTOM_NAME, ComponentSerialization.CODEC, customName);
     }
 
     @Override
-    protected void readComponents(ComponentsAccess components) {
-        super.readComponents(components);
-        customName = components.get(DataComponentTypes.CUSTOM_NAME);
+    protected void applyImplicitComponents(DataComponentGetter components) {
+        super.applyImplicitComponents(components);
+        customName = components.get(DataComponents.CUSTOM_NAME);
     }
 
     @Override
-    protected void addComponents(ComponentMap.Builder builder) {
-        super.addComponents(builder);
-        builder.add(DataComponentTypes.CUSTOM_NAME, customName);
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        builder.set(DataComponents.CUSTOM_NAME, customName);
     }
 
     @Override
-    public void removeFromCopiedStackData(WriteView view) {
-        super.removeFromCopiedStackData(view);
-        view.remove(CUSTOM_NAME);
+    public void removeComponentsFromTag(ValueOutput view) {
+        super.removeComponentsFromTag(view);
+        view.discard(CUSTOM_NAME);
     }
 }

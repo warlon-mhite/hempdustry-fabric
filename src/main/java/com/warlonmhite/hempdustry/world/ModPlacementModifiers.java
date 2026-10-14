@@ -3,20 +3,20 @@ package com.warlonmhite.hempdustry.world;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.biome.source.BiomeCoords;
-import net.minecraft.world.gen.feature.FeaturePlacementContext;
-import net.minecraft.world.gen.placementmodifier.AbstractConditionalPlacementModifier;
-import net.minecraft.world.gen.placementmodifier.PlacementModifierType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.QuartPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.levelgen.placement.PlacementContext;
+import net.minecraft.world.level.levelgen.placement.PlacementFilter;
+import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 public class ModPlacementModifiers {
 
     public static final PlacementModifierType<InBeldiaBiomePlacementModifier> IN_BELDIA_BIOME =
-            Registry.register(Registries.PLACEMENT_MODIFIER_TYPE, Identifier.of(Hempdustry.MOD_ID, "in_beldia_biome"),
+            Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "in_beldia_biome"),
                     () -> InBeldiaBiomePlacementModifier.CODEC);
 
     public static void registerPlacementModifiers() {
@@ -26,7 +26,7 @@ public class ModPlacementModifiers {
     /**
      * Each wild Beldía, not just its patch, stands in {@code #hempdustry:beldia_gen}.
      *
-     * <p>{@code BiomePlacementModifier} only tests the patch's <em>centre</em>, and a patch spreads four
+     * <p>{@code BiomeFilter} only tests the patch's <em>centre</em>, and a patch spreads four
      * blocks, so without this a plant could land across a desert's border — on the beach beside it,
      * which is the one place Beldía is kept off. A desert that runs straight into the sea is a desert,
      * and grows it on the shore (Warlon Mhite's call, 2026-09-17).
@@ -35,7 +35,7 @@ public class ModPlacementModifiers {
      * vanilla's zoom jitter and can answer for a neighbouring cell — a border is exactly where that
      * lies.
      */
-    public static final class InBeldiaBiomePlacementModifier extends AbstractConditionalPlacementModifier {
+    public static final class InBeldiaBiomePlacementModifier extends PlacementFilter {
         public static final InBeldiaBiomePlacementModifier INSTANCE = new InBeldiaBiomePlacementModifier();
         public static final MapCodec<InBeldiaBiomePlacementModifier> CODEC = MapCodec.unit(() -> INSTANCE);
 
@@ -43,13 +43,13 @@ public class ModPlacementModifiers {
         }
 
         @Override
-        protected boolean shouldPlace(FeaturePlacementContext context, Random random, BlockPos pos) {
-            return context.getWorld().getBiomeForNoiseGen(BiomeCoords.fromBlock(pos.getX()),
-                    BiomeCoords.fromBlock(pos.getY()), BiomeCoords.fromBlock(pos.getZ())).isIn(ModTags.Biomes.BELDIA_GEN);
+        protected boolean shouldPlace(PlacementContext context, RandomSource random, BlockPos pos) {
+            return context.getLevel().getNoiseBiome(QuartPos.fromBlock(pos.getX()),
+                    QuartPos.fromBlock(pos.getY()), QuartPos.fromBlock(pos.getZ())).is(ModTags.Biomes.BELDIA_GEN);
         }
 
         @Override
-        public PlacementModifierType<?> getType() {
+        public PlacementModifierType<?> type() {
             return IN_BELDIA_BIOME;
         }
     }

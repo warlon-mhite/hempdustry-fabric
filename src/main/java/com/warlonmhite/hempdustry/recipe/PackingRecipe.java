@@ -7,14 +7,14 @@ import com.warlonmhite.hempdustry.item.custom.MoonRockItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.SpecialCraftingRecipe;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.world.World;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
 
 /**
  * Packs an empty pipe/bong with buds in the crafting grid. The number of buds is the <b>dose</b>,
@@ -49,18 +49,18 @@ import net.minecraft.world.World;
  * <p>Together they are also the whole of "concentrates are bong-only": only the bong's
  * {@code maxDose} is 3, so rosin and moon rocks fit nothing else. No rule says so; the numbers do.
  */
-public class PackingRecipe extends SpecialCraftingRecipe {
-    public PackingRecipe(CraftingRecipeCategory category) {
+public class PackingRecipe extends CustomRecipe {
+    public PackingRecipe(CraftingBookCategory category) {
         super(category);
     }
 
     @Override
-    public boolean matches(CraftingRecipeInput input, World world) {
-        return find(input, world.getRegistryManager()) != null;
+    public boolean matches(CraftingInput input, Level world) {
+        return find(input, world.registryAccess()) != null;
     }
 
     @Override
-    public ItemStack craft(CraftingRecipeInput input, RegistryWrapper.WrapperLookup lookup) {
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider lookup) {
         Match match = find(input, lookup);
         if (match == null) {
             return ItemStack.EMPTY;
@@ -86,16 +86,16 @@ public class PackingRecipe extends SpecialCraftingRecipe {
      * <p>An already-packed device is rejected deliberately: allowing it would silently discard the
      * bowl already in there along with whatever charges were left on it.
      */
-    private static Match find(CraftingRecipeInput input, RegistryWrapper.WrapperLookup registries) {
+    private static Match find(CraftingInput input, HolderLookup.Provider registries) {
         ItemStack device = ItemStack.EMPTY;
         // A moon rock arrives with its load already built -- the plant at 3 and a pinch of hashish --
         // so it is copied across rather than counted. It is the one item in the grid that IS a bowl,
         // which is why it may not share the grid with loose buds: the two would be two loads.
         SmokeContents preloaded = null;
-        RegistryEntry<Strain> strain = null;
+        Holder<Strain> strain = null;
         int dose = 0;
         for (int i = 0; i < input.size(); i++) {
-            ItemStack stack = input.getStackInSlot(i);
+            ItemStack stack = input.getItem(i);
             if (stack.isEmpty()) {
                 continue;
             }
@@ -114,7 +114,7 @@ public class PackingRecipe extends SpecialCraftingRecipe {
             } else {
                 // Resolved against the world's strain registry rather than a fixed list, so a
                 // datapack-defined strain packs like any other.
-                RegistryEntry<Strain> budStrain =
+                Holder<Strain> budStrain =
                         Strain.fromBuds(registries, stack.getItem()).orElse(null);
                 if (budStrain == null || (strain != null && strain != budStrain)) {
                     return null; // a foreign item, or a second strain (no mixing yet)

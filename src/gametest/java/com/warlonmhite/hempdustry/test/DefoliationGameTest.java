@@ -6,28 +6,28 @@ import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.CropBlock;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootTable;
-import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.loot.context.LootContextTypes;
-import net.minecraft.loot.context.LootWorldContext;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * The two defoliation traps, both of which fail silently in game.
  *
- * <p>A boolean blockstate property left out of {@code setDefaultState} defaults to <b>true</b>,
+ * <p>A boolean blockstate property left out of {@code registerDefaultState} defaults to <b>true</b>,
  * because {@code BooleanProperty}'s value set is {@code ImmutableSet.of(true, false)} — so a seed
  * plants itself pre-trimmed and hands over the two-cut payout for free. And every growth tick runs
- * through {@code setAge}, which rebuilds the state from {@code getDefaultState()} and wipes any
+ * through {@code setAge}, which rebuilds the state from {@code defaultBlockState()} and wipes any
  * property not carried across by {@link Defoliation#carryOver}.
  *
  * <p>Neither shows up as an error. The first only reads as "the harvest is generous"; the second as
@@ -35,47 +35,47 @@ import net.minecraft.util.math.Vec3d;
  */
 public final class DefoliationGameTest {
     private static final BlockPos SOIL = new BlockPos(1, 1, 1);
-    private static final BlockPos CROP = SOIL.up();
-    private static final BlockPos UPPER = CROP.up();
+    private static final BlockPos CROP = SOIL.above();
+    private static final BlockPos UPPER = CROP.above();
 
     /** Trap #1: the default state must be untrimmed. */
-    public static void freshlyPlantedCropIsUntrimmed(TestContext context) {
-        context.setBlockState(SOIL, Blocks.FARMLAND);
-        context.setBlockState(CROP, ModBlocks.INDICA_CROP.getDefaultState());
+    public static void freshlyPlantedCropIsUntrimmed(GameTestHelper context) {
+        context.setBlock(SOIL, Blocks.FARMLAND);
+        context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState());
 
         BlockState planted = context.getBlockState(CROP);
-        context.assertTrue(!planted.get(Defoliation.TRIMMED_EARLY),
+        context.assertTrue(!planted.getValue(Defoliation.TRIMMED_EARLY),
                 "a freshly planted crop is already early-trimmed");
-        context.assertTrue(!planted.get(Defoliation.TRIMMED_LATE),
+        context.assertTrue(!planted.getValue(Defoliation.TRIMMED_LATE),
                 "a freshly planted crop is already late-trimmed");
         // The newest flag, and the one that fails most quietly: a crop born RUBBED never drops
         // charas at all, and nothing on screen says why.
-        context.assertTrue(!planted.get(Defoliation.RUBBED),
+        context.assertTrue(!planted.getValue(Defoliation.RUBBED),
                 "a freshly planted crop is already rubbed");
-        context.complete();
+        context.succeed();
     }
 
     /** Trap #2: growth must not wipe the flags — including the tick that sprouts the upper half. */
-    public static void trimSurvivesGrowthToMaturity(TestContext context) {
-        context.setBlockState(SOIL, Blocks.FARMLAND);
-        context.setBlockState(CROP, ModBlocks.INDICA_CROP.getDefaultState()
-                .with(IndicaCropBlock.AGE, Defoliation.EARLY_MIN_AGE)
-                .with(Defoliation.TRIMMED_EARLY, true));
+    public static void trimSurvivesGrowthToMaturity(GameTestHelper context) {
+        context.setBlock(SOIL, Blocks.FARMLAND);
+        context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState()
+                .setValue(IndicaCropBlock.AGE, Defoliation.EARLY_MIN_AGE)
+                .setValue(Defoliation.TRIMMED_EARLY, true));
 
         CropBlock crop = (CropBlock) ModBlocks.INDICA_CROP;
-        BlockPos cropPos = context.getAbsolutePos(CROP);
-        // One stage per call (getGrowthAmount is a flat 1), so this walks every intermediate age
+        BlockPos cropPos = context.absolutePos(CROP);
+        // One stage per call (getBonemealAgeIncrease is a flat 1), so this walks every intermediate age
         // rather than jumping the one that matters — the sprout at DOUBLE_BLOCK_AGE.
         for (int age = Defoliation.EARLY_MIN_AGE; age < IndicaCropBlock.MAX_AGE; age++) {
-            crop.applyGrowth(context.getWorld(), cropPos, context.getWorld().getBlockState(cropPos));
+            crop.growCrops(context.getLevel(), cropPos, context.getLevel().getBlockState(cropPos));
             BlockState grown = context.getBlockState(CROP);
-            context.assertTrue(grown.get(IndicaCropBlock.AGE) == age + 1,
-                    "growth stalled at age " + grown.get(IndicaCropBlock.AGE));
-            context.assertTrue(grown.get(Defoliation.TRIMMED_EARLY),
+            context.assertTrue(grown.getValue(IndicaCropBlock.AGE) == age + 1,
+                    "growth stalled at age " + grown.getValue(IndicaCropBlock.AGE));
+            context.assertTrue(grown.getValue(Defoliation.TRIMMED_EARLY),
                     "growing to age " + (age + 1) + " wiped the early trim flag");
-            context.assertTrue(!grown.get(Defoliation.TRIMMED_LATE),
+            context.assertTrue(!grown.getValue(Defoliation.TRIMMED_LATE),
                     "growing to age " + (age + 1) + " invented a late trim flag");
-            context.assertTrue(!grown.get(Defoliation.RUBBED),
+            context.assertTrue(!grown.getValue(Defoliation.RUBBED),
                     "growing to age " + (age + 1) + " invented a rubbed flag");
         }
 
@@ -84,20 +84,20 @@ public final class DefoliationGameTest {
         // RUBBED leaves it false, which is what it was anyway. Only a plant that is already rubbed
         // can tell the two apart -- and if the flag is wiped, the plant can be rubbed a second time
         // and pays out twice, silently.
-        context.setBlockState(CROP, ModBlocks.INDICA_CROP.getDefaultState()
-                .with(IndicaCropBlock.AGE, Defoliation.RUB_MIN_AGE)
-                .with(Defoliation.RUBBED, true));
-        crop.applyGrowth(context.getWorld(), cropPos, context.getWorld().getBlockState(cropPos));
+        context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState()
+                .setValue(IndicaCropBlock.AGE, Defoliation.RUB_MIN_AGE)
+                .setValue(Defoliation.RUBBED, true));
+        crop.growCrops(context.getLevel(), cropPos, context.getLevel().getBlockState(cropPos));
         BlockState ripened = context.getBlockState(CROP);
-        context.assertTrue(ripened.get(IndicaCropBlock.AGE) == Defoliation.RUB_MIN_AGE + 1,
+        context.assertTrue(ripened.getValue(IndicaCropBlock.AGE) == Defoliation.RUB_MIN_AGE + 1,
                 "growth stalled on the way to maturity");
-        context.assertTrue(ripened.get(Defoliation.RUBBED),
+        context.assertTrue(ripened.getValue(Defoliation.RUBBED),
                 "ripening wiped the rubbed flag — the plant can now be rubbed twice");
 
-        context.expectBlock(ModBlocks.INDICA_CROP, UPPER);
-        context.assertTrue(context.getBlockState(UPPER).get(IndicaCropBlock.HALF) == DoubleBlockHalf.UPPER,
+        context.assertBlockPresent(ModBlocks.INDICA_CROP, UPPER);
+        context.assertTrue(context.getBlockState(UPPER).getValue(IndicaCropBlock.HALF) == DoubleBlockHalf.UPPER,
                 "the second block of a mature plant is not its upper half");
-        context.complete();
+        context.succeed();
     }
 
     /** Fixed rolls per flag combination; the counts are deterministic, so this is plenty. */
@@ -120,23 +120,23 @@ public final class DefoliationGameTest {
      * Lemon Haze worked three ways lands on a base of <b>zero</b>, so it also proves a zero base
      * still takes its Fortune bonus rather than vanishing.
      */
-    public static void everyLeafTakenComesOffTheHarvest(TestContext context) {
-        ServerWorld world = context.getWorld();
-        Vec3d origin = Vec3d.ofCenter(context.getAbsolutePos(CROP));
-        checkHarvest(context, world, origin, ModBlocks.INDICA_CROP.getDefaultState()
-                .with(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER)
-                .with(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE), ModItems.INDICA_BUDS);
-        checkHarvest(context, world, origin, ModBlocks.SATIVA_CROP.getDefaultState()
-                .with(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER)
-                .with(SativaCropBlock.AGE, SativaCropBlock.MAX_AGE), ModItems.SATIVA_BUDS);
-        context.complete();
+    public static void everyLeafTakenComesOffTheHarvest(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        Vec3 origin = Vec3.atCenterOf(context.absolutePos(CROP));
+        checkHarvest(context, world, origin, ModBlocks.INDICA_CROP.defaultBlockState()
+                .setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER)
+                .setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE), ModItems.INDICA_BUDS);
+        checkHarvest(context, world, origin, ModBlocks.SATIVA_CROP.defaultBlockState()
+                .setValue(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER)
+                .setValue(SativaCropBlock.AGE, SativaCropBlock.MAX_AGE), ModItems.SATIVA_BUDS);
+        context.succeed();
     }
 
-    private static void checkHarvest(TestContext context, ServerWorld world, Vec3d origin,
+    private static void checkHarvest(GameTestHelper context, ServerLevel world, Vec3 origin,
                                      BlockState mature, Item buds) {
-        LootTable table = world.getServer().getReloadableRegistries()
-                .getLootTable(mature.getBlock().getLootTableKey().orElseThrow());
-        String crop = mature.getBlock().getTranslationKey();
+        LootTable table = world.getServer().reloadableRegistries()
+                .getLootTable(mature.getBlock().getLootTable().orElseThrow());
+        String crop = mature.getBlock().getDescriptionId();
         java.util.Random seeds = new java.util.Random(SEED_SOURCE);
         for (int roll = 0; roll < ROLLS; roll++) {
             long seed = seeds.nextLong();
@@ -147,9 +147,9 @@ public final class DefoliationGameTest {
                 boolean late = (flags & 2) != 0;
                 boolean rubbed = (flags & 4) != 0;
                 int[] worked = harvest(table, world, origin, mature
-                        .with(Defoliation.TRIMMED_EARLY, early)
-                        .with(Defoliation.TRIMMED_LATE, late)
-                        .with(Defoliation.RUBBED, rubbed), seed, buds);
+                        .setValue(Defoliation.TRIMMED_EARLY, early)
+                        .setValue(Defoliation.TRIMMED_LATE, late)
+                        .setValue(Defoliation.RUBBED, rubbed), seed, buds);
                 String which = crop + " (early=" + early + ", late=" + late + ", rubbed=" + rubbed + ")";
                 int taken = Integer.bitCount(flags);
                 context.assertTrue(worked[0] + taken == untouched[0], which + ": harvested "
@@ -164,18 +164,18 @@ public final class DefoliationGameTest {
     }
 
     /** {leaves, buds} from one roll of a crop's loot table on a given seed. */
-    private static int[] harvest(LootTable table, ServerWorld world, Vec3d origin, BlockState state,
+    private static int[] harvest(LootTable table, ServerLevel world, Vec3 origin, BlockState state,
                                  long seed, Item buds) {
-        LootWorldContext params = new LootWorldContext.Builder(world)
-                .add(LootContextParameters.ORIGIN, origin)
-                .add(LootContextParameters.BLOCK_STATE, state)
-                .add(LootContextParameters.TOOL, ItemStack.EMPTY)
-                .build(LootContextTypes.BLOCK);
+        LootParams params = new LootParams.Builder(world)
+                .withParameter(LootContextParams.ORIGIN, origin)
+                .withParameter(LootContextParams.BLOCK_STATE, state)
+                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
+                .create(LootContextParamSets.BLOCK);
         int[] counts = new int[2];
-        for (ItemStack stack : table.generateLoot(params, seed)) {
-            if (stack.isOf(ModItems.HEMP_LEAF)) {
+        for (ItemStack stack : table.getRandomItems(params, seed)) {
+            if (stack.is(ModItems.HEMP_LEAF)) {
                 counts[0] += stack.getCount();
-            } else if (stack.isOf(buds)) {
+            } else if (stack.is(buds)) {
                 counts[1] += stack.getCount();
             }
         }

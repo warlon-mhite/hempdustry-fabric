@@ -1,9 +1,9 @@
 package com.warlonmhite.hempdustry.advancement;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 
 /**
  * Custom advancement criteria (triggers). Registered eagerly at class-load; {@link #registerCriteria()}
@@ -12,13 +12,13 @@ import net.minecraft.util.Identifier;
 public class ModCriteria {
 
     public static final SmokeCriterion SMOKE = Registry.register(
-            Registries.CRITERION,
-            Identifier.of(Hempdustry.MOD_ID, "smoke"),
+            BuiltInRegistries.TRIGGER_TYPES,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "smoke"),
             new SmokeCriterion());
 
     public static final HarvestHempCriterion HARVEST_HEMP = Registry.register(
-            Registries.CRITERION,
-            Identifier.of(Hempdustry.MOD_ID, "harvest_hemp"),
+            BuiltInRegistries.TRIGGER_TYPES,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "harvest_hemp"),
             new HarvestHempCriterion());
 
     public static void registerCriteria() {

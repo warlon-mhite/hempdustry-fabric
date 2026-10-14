@@ -1,14 +1,13 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
 import java.util.function.Consumer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 
 /**
  * A moon rock: a bud dipped in rosin and rolled in hashish.
@@ -39,7 +38,7 @@ import java.util.function.Consumer;
  */
 public class MoonRockItem extends Item {
 
-    public MoonRockItem(Settings settings) {
+    public MoonRockItem(Properties settings) {
         super(settings);
     }
 
@@ -53,22 +52,22 @@ public class MoonRockItem extends Item {
      * a I and a II.
      */
     @Override
-    public Text getName(ItemStack stack) {
+    public Component getName(ItemStack stack) {
         SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
         return contents.isEmpty()
                 ? super.getName(stack)
-                : Text.translatable(this.getTranslationKey() + ".of", contents.loadName());
+                : Component.translatable(this.getDescriptionId() + ".of", contents.loadName());
     }
 
     /** The hashish coat, named the same italic way a hash spliff names its pinch. */
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent,
-                              Consumer<Text> textConsumer, TooltipType type) {
-        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent,
+                              Consumer<Component> textConsumer, TooltipFlag type) {
+        super.appendHoverText(stack, context, displayComponent, textConsumer, type);
         stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).hashAdditive()
                 .ifPresent(hash -> textConsumer.accept(
-                        Text.translatable("hempdustry.spliff.with",
-                                        Text.translatable(hash.value().translationKey()))
-                                .formatted(Formatting.GRAY, Formatting.ITALIC)));
+                        Component.translatable("hempdustry.spliff.with",
+                                        Component.translatable(hash.value().translationKey()))
+                                .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
     }
 }

@@ -1,20 +1,20 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.TallPlantBlock;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootTable;
-import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.loot.context.LootContextTypes;
-import net.minecraft.loot.context.LootWorldContext;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * The hemp-seed pool injected into tall grass must pay out once per plant, not twice.
@@ -44,21 +44,21 @@ public final class TallPlantLootGameTest {
     private static final long SEED_SOURCE = 0x48454D50L; // "HEMP"
 
     private static final BlockState LOWER =
-            Blocks.TALL_GRASS.getDefaultState().with(TallPlantBlock.HALF, DoubleBlockHalf.LOWER);
+            Blocks.TALL_GRASS.defaultBlockState().setValue(DoublePlantBlock.HALF, DoubleBlockHalf.LOWER);
     private static final BlockState UPPER =
-            Blocks.TALL_GRASS.getDefaultState().with(TallPlantBlock.HALF, DoubleBlockHalf.UPPER);
+            Blocks.TALL_GRASS.defaultBlockState().setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER);
 
-    public static void tallGrassSeedPoolFiresOncePerPlant(TestContext context) {
-        ServerWorld world = context.getWorld();
-        BlockPos lowerPos = context.getAbsolutePos(new BlockPos(1, 2, 1));
-        BlockPos upperPos = lowerPos.up();
-        LootTable table = world.getServer().getReloadableRegistries()
-                .getLootTable(Blocks.TALL_GRASS.getLootTableKey().orElseThrow());
+    public static void tallGrassSeedPoolFiresOncePerPlant(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        BlockPos lowerPos = context.absolutePos(new BlockPos(1, 2, 1));
+        BlockPos upperPos = lowerPos.above();
+        LootTable table = world.getServer().reloadableRegistries()
+                .getLootTable(Blocks.TALL_GRASS.getLootTable().orElseThrow());
 
         // FORCE_STATE and nothing else: no neighbour updates, so a half left on its own below sits
         // there to be rolled instead of immediately popping off.
-        world.setBlockState(lowerPos, LOWER, Block.FORCE_STATE);
-        world.setBlockState(upperPos, UPPER, Block.FORCE_STATE);
+        world.setBlock(lowerPos, LOWER, Block.UPDATE_KNOWN_SHAPE);
+        world.setBlock(upperPos, UPPER, Block.UPDATE_KNOWN_SHAPE);
 
         // The whole plant is standing — this is the roll for the half the player actually hit.
         int hitLower = seedDrops(table, world, lowerPos, LOWER);
@@ -69,36 +69,36 @@ public final class TallPlantLootGameTest {
                 "the hemp seed pool never fired on a broken upper half in " + SEEDS + " rolls");
 
         // …and this is the second roll, as the orphan pops off with its partner already gone.
-        world.setBlockState(upperPos, Blocks.AIR.getDefaultState(), Block.FORCE_STATE);
+        world.setBlock(upperPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_KNOWN_SHAPE);
         int orphanLower = seedDrops(table, world, lowerPos, LOWER);
 
-        world.setBlockState(upperPos, UPPER, Block.FORCE_STATE);
-        world.setBlockState(lowerPos, Blocks.AIR.getDefaultState(), Block.FORCE_STATE);
+        world.setBlock(upperPos, UPPER, Block.UPDATE_KNOWN_SHAPE);
+        world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_KNOWN_SHAPE);
         int orphanUpper = seedDrops(table, world, upperPos, UPPER);
 
         context.assertTrue(orphanLower == 0, "the orphaned lower half paid out " + orphanLower
                 + " hemp seeds in " + SEEDS + " rolls — the plant drops at 1-(1-p)², not p");
         context.assertTrue(orphanUpper == 0, "the orphaned upper half paid out " + orphanUpper
                 + " hemp seeds in " + SEEDS + " rolls — the plant drops at 1-(1-p)², not p");
-        context.complete();
+        context.succeed();
     }
 
     /** How many of {@link #SEEDS} fixed rolls of {@code table} hand over a hemp seed. */
-    private static int seedDrops(LootTable table, ServerWorld world, BlockPos pos, BlockState state) {
-        // LootContextParameterSet is LootWorldContext since 1.21.5; the parameters are unchanged.
-        LootWorldContext params = new LootWorldContext.Builder(world)
-                .add(LootContextParameters.ORIGIN, Vec3d.ofCenter(pos))
-                .add(LootContextParameters.BLOCK_STATE, state)
+    private static int seedDrops(LootTable table, ServerLevel world, BlockPos pos, BlockState state) {
+        // LootParams: the parameters are unchanged since 1.21.5.
+        LootParams params = new LootParams.Builder(world)
+                .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
+                .withParameter(LootContextParams.BLOCK_STATE, state)
                 // Empty rather than a real tool: the pool carries vanilla's "not sheared" gate.
-                .add(LootContextParameters.TOOL, ItemStack.EMPTY)
-                .build(LootContextTypes.BLOCK);
+                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
+                .create(LootContextParamSets.BLOCK);
 
         java.util.Random seeds = new java.util.Random(SEED_SOURCE);
         int hits = 0;
         for (int roll = 0; roll < SEEDS; roll++) {
             long seed = seeds.nextLong();
-            for (ItemStack stack : table.generateLoot(params, seed)) {
-                if (stack.isIn(ModTags.Items.HEMP_SEEDS)) {
+            for (ItemStack stack : table.getRandomItems(params, seed)) {
+                if (stack.is(ModTags.Items.HEMP_SEEDS)) {
                     hits++;
                 }
             }

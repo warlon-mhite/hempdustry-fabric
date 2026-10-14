@@ -1,13 +1,13 @@
 package com.warlonmhite.hempdustry.util;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.block.Block;
-import net.minecraft.block.entity.BannerPattern;
-import net.minecraft.item.Item;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BannerPattern;
 
 public class ModTags {
 
@@ -21,7 +21,7 @@ public class ModTags {
         public static final TagKey<Biome> SATIVA_FLOWER_GEN_RARE = createTag("sativa_flower_gen_rare");
         public static final TagKey<Biome> BELDIA_GEN = createTag("beldia_gen");
         private static TagKey<Biome> createTag(String name) {
-            return TagKey.of(RegistryKeys.BIOME, Identifier.of(Hempdustry.MOD_ID, name));
+            return TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }
     }
 
@@ -109,7 +109,7 @@ public class ModTags {
          */
         public static final TagKey<Item> HASH_CUTTERS = createTag("hash_cutters");
         private static TagKey<Item> createTag(String name) {
-            return TagKey.of(RegistryKeys.ITEM, Identifier.of(Hempdustry.MOD_ID, name));
+            return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }
     }
 
@@ -140,11 +140,11 @@ public class ModTags {
         public static final TagKey<Block> HEMP_STORAGE_BLOCKS_BLOCK = blockTag("storage_blocks/hemp");
 
         private static TagKey<Item> itemTag(String path) {
-            return TagKey.of(RegistryKeys.ITEM, Identifier.of("c", path));
+            return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path));
         }
 
         private static TagKey<Block> blockTag(String path) {
-            return TagKey.of(RegistryKeys.BLOCK, Identifier.of("c", path));
+            return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("c", path));
         }
     }
 
@@ -164,7 +164,7 @@ public class ModTags {
          * and the same leaf unlocks both, with no code change.
          */
         public static final TagKey<BannerPattern> HEMP_LEAF_PATTERN_ITEM =
-                TagKey.of(RegistryKeys.BANNER_PATTERN, Identifier.of(Hempdustry.MOD_ID, "pattern_item/hemp_leaf"));
+                TagKey.create(Registries.BANNER_PATTERN, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "pattern_item/hemp_leaf"));
 
         private BannerPatterns() {
         }
@@ -200,7 +200,7 @@ public class ModTags {
          */
         public static final TagKey<Block> BELDIA_SOIL = createTag("beldia_soil");
         private static TagKey<Block> createTag(String name) {
-            return TagKey.of(RegistryKeys.BLOCK, Identifier.of(Hempdustry.MOD_ID, name));
+            return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }
     }
 }

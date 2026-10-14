@@ -1,13 +1,13 @@
 package com.warlonmhite.hempdustry.screen.custom;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Inventory;
 
 /**
  * The Infuser's screen.
@@ -28,9 +28,9 @@ import net.minecraft.util.math.MathHelper;
  * </ul>
  * No numbers anywhere, per vanilla's convention.
  */
-public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
+public class InfuserScreen extends AbstractContainerScreen<InfuserScreenHandler> {
     private static final Identifier TEXTURE =
-            Identifier.of(Hempdustry.MOD_ID, "textures/gui/container/infuser.png");
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "textures/gui/container/infuser.png");
 
     // Sprite regions in the 256x256 sheet, right of the 176x166 panel.
     private static final int BAR_U = 176, BAR_V = 0, BAR_W = 44, BAR_H = 5;
@@ -62,27 +62,27 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
      */
     private static final int FLAME_X = 99, FLAME_Y = 54;
 
-    public InfuserScreen(InfuserScreenHandler handler, PlayerInventory inventory, Text title) {
+    public InfuserScreen(InfuserScreenHandler handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
     }
 
     @Override
     protected void init() {
         super.init();
-        this.titleY = 6;
-        this.playerInventoryTitleY = this.backgroundHeight - 94;
+        this.titleLabelY = 6;
+        this.inventoryLabelY = this.imageHeight - 94;
     }
 
     @Override
-    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        int x = (this.width - this.backgroundWidth) / 2;
-        int y = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
+    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 
         // Simmer bar, filling left to right.
-        int filled = Math.round(this.handler.getProgress() * BAR_W);
+        int filled = Math.round(this.menu.getProgress() * BAR_W);
         if (filled > 0) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BAR_X, y + BAR_Y, BAR_U, BAR_V, filled, BAR_H, 256, 256);
+            context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BAR_X, y + BAR_Y, BAR_U, BAR_V, filled, BAR_H, 256, 256);
         }
 
         // Both marks are drawn at runtime rather than baked into the panel, because the bar is scaled
@@ -90,37 +90,37 @@ public class InfuserScreen extends HandledScreen<InfuserScreenHandler> {
 
         // The dark notch: everything left of it is "nothing collectable yet". Drawn over the fill so
         // it stays legible either way.
-        drawMark(context, x, y, this.handler.getMinimumMark(), NOTCH_U, NOTCH_V, NOTCH_W, NOTCH_H);
+        drawMark(context, x, y, this.menu.getMinimumMark(), NOTCH_U, NOTCH_V, NOTCH_W, NOTCH_H);
 
         // The bright mark: where this batch earns its next grade up. Two marks, two different
         // questions — the dark one is "can I take it", the bright one is "should I wait". The final
         // upgrade's mark lands on the bar's end, so a full bar and a finished batch are the same
         // sight; once there is nothing left to wait for the mark simply stops being drawn.
-        float nextGrade = this.handler.getNextGradeMark();
+        float nextGrade = this.menu.getNextGradeMark();
         if (nextGrade >= 0.0F) {
             drawMark(context, x, y, nextGrade, MARK_U, MARK_V, MARK_W, MARK_H);
         }
 
-        if (this.handler.isFilled()) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + MILK_X, y + MILK_Y, MILK_U, MILK_V, MILK_W, MILK_H, 256, 256);
+        if (this.menu.isFilled()) {
+            context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + MILK_X, y + MILK_Y, MILK_U, MILK_V, MILK_W, MILK_H, 256, 256);
         }
 
         // Heat indicator. Not a fuel gauge — it reports whether something hot is underneath.
-        if (this.handler.isHeated()) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + FLAME_X, y + FLAME_Y, FLAME_U, FLAME_V, FLAME_W, FLAME_H, 256, 256);
+        if (this.menu.isHeated()) {
+            context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + FLAME_X, y + FLAME_Y, FLAME_U, FLAME_V, FLAME_W, FLAME_H, 256, 256);
         }
     }
 
     /** Places a mark sprite at {@code fraction} along the bar, clamped so it never overhangs the end. */
-    private void drawMark(DrawContext context, int x, int y, float fraction,
+    private void drawMark(GuiGraphics context, int x, int y, float fraction,
                           int u, int v, int width, int height) {
-        int offset = MathHelper.clamp(Math.round(fraction * BAR_W) - (width / 2), 0, BAR_W - width);
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BAR_X + offset, y + BAR_Y - 1, u, v, width, height, 256, 256);
+        int offset = Mth.clamp(Math.round(fraction * BAR_W) - (width / 2), 0, BAR_W - width);
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BAR_X + offset, y + BAR_Y - 1, u, v, width, height, 256, 256);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
-        this.drawMouseoverTooltip(context, mouseX, mouseY);
+        this.renderTooltip(context, mouseX, mouseY);
     }
 }

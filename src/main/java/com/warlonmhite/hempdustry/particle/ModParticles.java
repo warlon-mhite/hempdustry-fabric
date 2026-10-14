@@ -2,10 +2,10 @@ package com.warlonmhite.hempdustry.particle;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
-import net.minecraft.particle.SimpleParticleType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 
 public class ModParticles {
 
@@ -19,7 +19,7 @@ public class ModParticles {
     public static final SimpleParticleType AROMA = registerParticle("aroma", FabricParticleTypes.simple());
 
     private static SimpleParticleType registerParticle(String name, SimpleParticleType type) {
-        return Registry.register(Registries.PARTICLE_TYPE, Identifier.of(Hempdustry.MOD_ID, name), type);
+        return Registry.register(BuiltInRegistries.PARTICLE_TYPE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name), type);
     }
 
     public static void registerParticles() {

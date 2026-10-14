@@ -9,8 +9,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.util.math.MathHelper;
-
+import net.minecraft.util.Mth;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -43,7 +42,7 @@ import java.util.Optional;
  *
  * Nothing here has to reach a client. Effects, cooldowns, growth and loot are all applied
  * server-side, and <b>the Infuser's timings ride to the screen on its existing
- * {@code PropertyDelegate}</b> rather than needing a config packet — the GUI reads the values the
+ * {@code ContainerData}</b> rather than needing a config packet — the GUI reads the values the
  * block is actually using, so a client with a different file (or no file) still draws a truthful bar.
  * There is no sync code in this mod, and this file is why there does not need to be.
  *
@@ -231,7 +230,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
     }
 
     private static double clampDouble(String name, double value, double min, double max) {
-        double clamped = MathHelper.clamp(value, min, max);
+        double clamped = Mth.clamp(value, min, max);
         if (clamped != value) {
             Hempdustry.LOGGER.warn("Config {} was {}, clamped to {}", name, value, clamped);
         }
@@ -239,7 +238,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
     }
 
     private static int clampInt(String name, int value, int min, int max) {
-        int clamped = MathHelper.clamp(value, min, max);
+        int clamped = Mth.clamp(value, min, max);
         if (clamped != value) {
             Hempdustry.LOGGER.warn("Config {} was {}, clamped to {}", name, value, clamped);
         }
@@ -398,8 +397,8 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
         /**
          * <b>The ceiling is what the screen can receive, not what the machine can count.</b>
          *
-         * <p>Both numbers ride to the client on the block's {@code PropertyDelegate}, and
-         * {@code ScreenHandlerPropertyUpdateS2CPacket} writes every property with
+         * <p>Both numbers ride to the client on the block's {@code ContainerData}, and
+         * {@code ClientboundContainerSetDataPacket} writes every property with
          * {@code writeShort} — so anything above {@link Short#MAX_VALUE} arrives as a negative
          * number and the bar, the minimum notch and the next-grade mark all go wrong. The block
          * itself would keep perfect time; the player would simply be shown nonsense, with nothing

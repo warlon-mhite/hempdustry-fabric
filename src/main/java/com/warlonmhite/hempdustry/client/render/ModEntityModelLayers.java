@@ -1,8 +1,8 @@
 package com.warlonmhite.hempdustry.client.render;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.client.render.entity.model.EntityModelLayer;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The mod's entity model layers. Hemp gets its own pair rather than borrowing oak's, because since
@@ -11,13 +11,13 @@ import net.minecraft.util.Identifier;
  */
 public final class ModEntityModelLayers {
 
-    public static final EntityModelLayer HEMP_BOAT =
-            new EntityModelLayer(Identifier.of(Hempdustry.MOD_ID, "boat/hemp"), "main");
-    public static final EntityModelLayer HEMP_CHEST_BOAT =
-            new EntityModelLayer(Identifier.of(Hempdustry.MOD_ID, "chest_boat/hemp"), "main");
+    public static final ModelLayerLocation HEMP_BOAT =
+            new ModelLayerLocation(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "boat/hemp"), "main");
+    public static final ModelLayerLocation HEMP_CHEST_BOAT =
+            new ModelLayerLocation(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "chest_boat/hemp"), "main");
     /** The flip-flops' soles and straps, drawn in place of boots (FlipFlopsRenderer). */
-    public static final EntityModelLayer FLIP_FLOPS =
-            new EntityModelLayer(Identifier.of(Hempdustry.MOD_ID, "flip_flops"), "main");
+    public static final ModelLayerLocation FLIP_FLOPS =
+            new ModelLayerLocation(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "flip_flops"), "main");
 
     private ModEntityModelLayers() {
     }

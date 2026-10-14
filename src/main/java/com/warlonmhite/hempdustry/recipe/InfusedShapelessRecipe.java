@@ -3,19 +3,17 @@ package com.warlonmhite.hempdustry.recipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.ShapelessRecipe;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.collection.DefaultedList;
-
 import java.util.List;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
 
 /**
  * The shapeless twin of {@link InfusedShapedRecipe} — carries cannabutter's potency and quality onto
@@ -26,7 +24,7 @@ public class InfusedShapelessRecipe extends ShapelessRecipe {
     private final List<Ingredient> ingredients;
     private final int offset;
 
-    public InfusedShapelessRecipe(String group, CraftingRecipeCategory category, ItemStack result,
+    public InfusedShapelessRecipe(String group, CraftingBookCategory category, ItemStack result,
                                   List<Ingredient> ingredients, int offset) {
         super(group, category, result, ingredients);
         this.result = result;
@@ -35,8 +33,8 @@ public class InfusedShapelessRecipe extends ShapelessRecipe {
     }
 
     @Override
-    public ItemStack craft(CraftingRecipeInput input, RegistryWrapper.WrapperLookup lookup) {
-        return Infusion.transfer(input, super.craft(input, lookup), offset);
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider lookup) {
+        return Infusion.transfer(input, super.assemble(input, lookup), offset);
     }
 
     // ShapelessRecipe declares RecipeSerializer<ShapelessRecipe> — invariant, so an override cannot
@@ -50,20 +48,20 @@ public class InfusedShapelessRecipe extends ShapelessRecipe {
 
     public static class Serializer implements RecipeSerializer<InfusedShapelessRecipe> {
         private static final MapCodec<InfusedShapelessRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Codec.STRING.optionalFieldOf("group", "").forGetter(ShapelessRecipe::getGroup),
-                CraftingRecipeCategory.CODEC.fieldOf("category")
-                        .orElse(CraftingRecipeCategory.MISC).forGetter(ShapelessRecipe::getCategory),
-                ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
+                Codec.STRING.optionalFieldOf("group", "").forGetter(ShapelessRecipe::group),
+                CraftingBookCategory.CODEC.fieldOf("category")
+                        .orElse(CraftingBookCategory.MISC).forGetter(ShapelessRecipe::category),
+                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
                 Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients),
                 Codec.INT.optionalFieldOf("offset", 0).forGetter(recipe -> recipe.offset)
         ).apply(instance, InfusedShapelessRecipe::new));
 
-        private static final PacketCodec<RegistryByteBuf, InfusedShapelessRecipe> PACKET_CODEC = PacketCodec.tuple(
-                PacketCodecs.STRING, ShapelessRecipe::getGroup,
-                CraftingRecipeCategory.PACKET_CODEC, ShapelessRecipe::getCategory,
-                ItemStack.PACKET_CODEC, recipe -> recipe.result,
-                Ingredient.PACKET_CODEC.collect(PacketCodecs.toList()), recipe -> recipe.ingredients,
-                PacketCodecs.VAR_INT, recipe -> recipe.offset,
+        private static final StreamCodec<RegistryFriendlyByteBuf, InfusedShapelessRecipe> PACKET_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, ShapelessRecipe::group,
+                CraftingBookCategory.STREAM_CODEC, ShapelessRecipe::category,
+                ItemStack.STREAM_CODEC, recipe -> recipe.result,
+                Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), recipe -> recipe.ingredients,
+                ByteBufCodecs.VAR_INT, recipe -> recipe.offset,
                 InfusedShapelessRecipe::new);
 
         @Override
@@ -72,7 +70,7 @@ public class InfusedShapelessRecipe extends ShapelessRecipe {
         }
 
         @Override
-        public PacketCodec<RegistryByteBuf, InfusedShapelessRecipe> packetCodec() {
+        public StreamCodec<RegistryFriendlyByteBuf, InfusedShapelessRecipe> streamCodec() {
             return PACKET_CODEC;
         }
     }

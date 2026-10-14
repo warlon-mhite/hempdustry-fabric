@@ -3,19 +3,19 @@ package com.warlonmhite.hempdustry.screen.custom;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * Menu for the {@link InfuserBlockEntity}: the two hemp slots, the batch preview on the right, and
@@ -25,19 +25,19 @@ import net.minecraft.util.math.MathHelper;
  * cauldron, so this screen only reports whether it is there. See {@link InfuserBlockEntity#fill}.
  *
  * <p>The output slot is the unusual one. It shows a <em>preview</em> of the batch rather than a
- * finished item, so taking it is what commits the batch — {@link PreviewSlot#onTakeItem} tells the
+ * finished item, so taking it is what commits the batch — {@link PreviewSlot#onTake} tells the
  * block entity to spend the ingredients and restart the timer. That is the whole early-pull
  * mechanic, expressed with no extra input verb and therefore no clash with the right-click that
  * opens this screen.
  */
-public class InfuserScreenHandler extends ScreenHandler {
-    private final Inventory inventory;
-    private final PropertyDelegate propertyDelegate;
+public class InfuserScreenHandler extends AbstractContainerMenu {
+    private final Container inventory;
+    private final ContainerData propertyDelegate;
     /**
      * What the tub accepts is a recipe lookup now, not an item comparison, and a lookup needs a
      * world. Recipes are synced, so shift-click routing agrees on both sides without a round trip.
      */
-    private final World world;
+    private final Level world;
 
     /** Layout, shared with the screen and the GUI-texture generator. */
     public static final int HEMP_X = 62, HEMP_Y = 17;
@@ -50,19 +50,19 @@ public class InfuserScreenHandler extends ScreenHandler {
      */
     public static final int OUTPUT_X = 138, OUTPUT_Y = 35;
 
-    public InfuserScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
+    public InfuserScreenHandler(int syncId, Inventory playerInventory, BlockPos pos) {
         this(syncId, playerInventory, resolveInventory(playerInventory, pos),
-                new ArrayPropertyDelegate(InfuserBlockEntity.PROPERTY_COUNT));
+                new SimpleContainerData(InfuserBlockEntity.PROPERTY_COUNT));
     }
 
-    public InfuserScreenHandler(int syncId, PlayerInventory playerInventory,
-                                Inventory inventory, PropertyDelegate propertyDelegate) {
+    public InfuserScreenHandler(int syncId, Inventory playerInventory,
+                                Container inventory, ContainerData propertyDelegate) {
         super(ModScreenHandlers.INFUSER, syncId);
-        checkSize(inventory, InfuserBlockEntity.SLOT_COUNT);
+        checkContainerSize(inventory, InfuserBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
-        this.world = playerInventory.player.getEntityWorld();
-        inventory.onOpen(playerInventory.player);
+        this.world = playerInventory.player.level();
+        inventory.startOpen(playerInventory.player);
 
         // Both hemp slots take either type; they exist so a batch can mix washed and unwashed, not
         // so each type has a home. The block entity's two retired slots get no Slot at all.
@@ -71,17 +71,17 @@ public class InfuserScreenHandler extends ScreenHandler {
         this.addSlot(new PreviewSlot(inventory, InfuserBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
 
         addPlayerSlots(playerInventory);
-        this.addProperties(propertyDelegate);
+        this.addDataSlots(propertyDelegate);
     }
 
-    private static Inventory resolveInventory(PlayerInventory playerInventory, BlockPos pos) {
-        BlockEntity blockEntity = playerInventory.player.getEntityWorld().getBlockEntity(pos);
-        return blockEntity instanceof Inventory found
+    private static Container resolveInventory(Inventory playerInventory, BlockPos pos) {
+        BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(pos);
+        return blockEntity instanceof Container found
                 ? found
-                : new SimpleInventory(InfuserBlockEntity.SLOT_COUNT);
+                : new SimpleContainer(InfuserBlockEntity.SLOT_COUNT);
     }
 
-    private void addPlayerSlots(PlayerInventory playerInventory) {
+    private void addPlayerSlots(Inventory playerInventory) {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
@@ -94,40 +94,40 @@ public class InfuserScreenHandler extends ScreenHandler {
 
     /** An input slot that defers to the block entity for what it will accept. */
     private static class InputSlot extends Slot {
-        InputSlot(Inventory inventory, int index, int x, int y) {
+        InputSlot(Container inventory, int index, int x, int y) {
             super(inventory, index, x, y);
         }
 
         @Override
-        public boolean canInsert(ItemStack stack) {
-            return this.inventory.isValid(this.getIndex(), stack);
+        public boolean mayPlace(ItemStack stack) {
+            return this.container.canPlaceItem(this.getContainerSlot(), stack);
         }
     }
 
     /**
      * Take-only, and taking it is what closes the batch out.
      *
-     * <p>The real guard lives on {@link InfuserBlockEntity#removeStack}, which catches every route
+     * <p>The real guard lives on {@link InfuserBlockEntity#removeItemNoUpdate}, which catches every route
      * out of the slot including hoppers; this hook stays because it also covers the shift-click path,
-     * where {@code quickMove} empties the slot with {@code setStack} rather than {@code removeStack}.
+     * where {@code quickMoveStack} empties the slot with {@code setItem} rather than {@code removeItem}.
      * Closing a batch out twice is harmless — it just clears already-cleared bookkeeping.
      */
     private static class PreviewSlot extends Slot {
-        PreviewSlot(Inventory inventory, int index, int x, int y) {
+        PreviewSlot(Container inventory, int index, int x, int y) {
             super(inventory, index, x, y);
         }
 
         @Override
-        public boolean canInsert(ItemStack stack) {
+        public boolean mayPlace(ItemStack stack) {
             return false;
         }
 
         @Override
-        public void onTakeItem(PlayerEntity player, ItemStack stack) {
-            if (this.inventory instanceof InfuserBlockEntity infuser) {
+        public void onTake(Player player, ItemStack stack) {
+            if (this.container instanceof InfuserBlockEntity infuser) {
                 infuser.onPreviewTaken();
             }
-            super.onTakeItem(player, stack);
+            super.onTake(player, stack);
         }
     }
 
@@ -164,7 +164,7 @@ public class InfuserScreenHandler extends ScreenHandler {
     /** How far through this batch's job the simmer is, 0..1. Reaches 1 exactly when it is done. */
     public float getProgress() {
         int progress = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_PROGRESS);
-        return MathHelper.clamp(progress / (float) finishProgress(), 0.0F, 1.0F);
+        return Mth.clamp(progress / (float) finishProgress(), 0.0F, 1.0F);
     }
 
     /**
@@ -177,7 +177,7 @@ public class InfuserScreenHandler extends ScreenHandler {
      * the mandatory part.
      */
     public float getMinimumMark() {
-        return MathHelper.clamp(minTime() / (float) finishProgress(), 0.0F, 1.0F);
+        return Mth.clamp(minTime() / (float) finishProgress(), 0.0F, 1.0F);
     }
 
     /**
@@ -203,7 +203,7 @@ public class InfuserScreenHandler extends ScreenHandler {
                 // Scaled against the job, like everything else on the bar — so the *last* upgrade's
                 // mark lands exactly on the bar's end, and the fill arriving there is the batch
                 // finishing. Intermediate upgrades still fall part-way along.
-                return MathHelper.clamp(
+                return Mth.clamp(
                         (minTime() + needed / 100.0F * span) / finishProgress(),
                         0.0F, 1.0F);
             }
@@ -224,7 +224,7 @@ public class InfuserScreenHandler extends ScreenHandler {
     private int timePercent() {
         int progress = this.propertyDelegate.get(InfuserBlockEntity.PROPERTY_PROGRESS);
         int span = fullTime() - minTime();
-        return MathHelper.clamp((progress - minTime()) * 100 / span, 0, 100);
+        return Mth.clamp((progress - minTime()) * 100 / span, 0, 100);
     }
 
     public boolean isHeated() {
@@ -238,14 +238,14 @@ public class InfuserScreenHandler extends ScreenHandler {
     // ----- shift-click -----
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int slotIndex) {
+    public ItemStack quickMoveStack(Player player, int slotIndex) {
         ItemStack moved = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotIndex);
-        if (!slot.hasStack()) {
+        if (!slot.hasItem()) {
             return moved;
         }
 
-        ItemStack inSlot = slot.getStack();
+        ItemStack inSlot = slot.getItem();
         moved = inSlot.copy();
 
         // Indices into this menu's slot list, not the block entity's inventory: the menu holds the
@@ -255,46 +255,46 @@ public class InfuserScreenHandler extends ScreenHandler {
         int playerEnd = this.slots.size();
 
         if (slotIndex < blockSlots) {
-            if (!this.insertItem(inSlot, playerStart, playerEnd, true)) {
+            if (!this.moveItemStackTo(inSlot, playerStart, playerEnd, true)) {
                 return ItemStack.EMPTY;
             }
         } else if (InfuserBlockEntity.isHemp(this.world, inSlot)) {
             // Either type into either hemp slot — insertItem walks the range and takes the first
             // that will have it, which is what makes shift-clicking a mixed batch in work at all.
-            if (!this.insertItem(inSlot, 0, InfuserBlockEntity.HEMP_SLOT_COUNT, false)) {
+            if (!this.moveItemStackTo(inSlot, 0, InfuserBlockEntity.HEMP_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;
             }
         } else {
             int hotbarStart = playerEnd - 9;
             if (slotIndex < hotbarStart) {
-                if (!this.insertItem(inSlot, hotbarStart, playerEnd, false)) {
+                if (!this.moveItemStackTo(inSlot, hotbarStart, playerEnd, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.insertItem(inSlot, playerStart, hotbarStart, false)) {
+            } else if (!this.moveItemStackTo(inSlot, playerStart, hotbarStart, false)) {
                 return ItemStack.EMPTY;
             }
         }
 
         if (inSlot.isEmpty()) {
-            slot.setStack(ItemStack.EMPTY);
+            slot.setByPlayer(ItemStack.EMPTY);
         } else {
-            slot.markDirty();
+            slot.setChanged();
         }
         if (inSlot.getCount() == moved.getCount()) {
             return ItemStack.EMPTY;
         }
-        slot.onTakeItem(player, inSlot);
+        slot.onTake(player, inSlot);
         return moved;
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
+    public boolean stillValid(Player player) {
+        return this.inventory.stillValid(player);
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        this.inventory.onClose(player);
+    public void removed(Player player) {
+        super.removed(player);
+        this.inventory.stopOpen(player);
     }
 }

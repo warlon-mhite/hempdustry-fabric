@@ -3,8 +3,6 @@ package com.warlonmhite.hempdustry.mixin;
 import com.mojang.datafixers.DSL;
 import com.mojang.datafixers.schemas.Schema;
 import com.mojang.datafixers.types.templates.TypeTemplate;
-import net.minecraft.datafixer.TypeReferences;
-import net.minecraft.datafixer.schema.Schema1460;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -12,6 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
 import java.util.function.Supplier;
+import net.minecraft.util.datafix.fixes.References;
+import net.minecraft.util.datafix.schemas.V1460;
 
 /**
  * Tells vanilla's data fixer what the two hemp boats, the three machines and a placed bong are, so a world moved to a
@@ -38,7 +38,7 @@ import java.util.function.Supplier;
  * what lets the item fixes reach what it carries (an enchanted book in a chest boat changed format
  * on the way to 1.21.11 too). Nothing else about either boat has ever needed fixing. The machines
  * are registered as vanilla registers its furnace: their {@code Items} typed as item stacks, which is
- * the shape {@code Inventories.writeData} writes.
+ * the shape {@code ContainerHelper.saveAllItems} writes.
  *
  * <h2>Why here</h2>
  *
@@ -53,7 +53,7 @@ import java.util.function.Supplier;
  * <p>{@code remap = false} on the injectors because both methods are DFU's, not Minecraft's, and have
  * no mapping; the class itself is still remapped through the refmap.
  */
-@Mixin(Schema1460.class)
+@Mixin(V1460.class)
 public class Schema1460Mixin {
     @Inject(method = "registerEntities", at = @At("RETURN"), remap = false)
     private void hempdustry$registerHempBoats(Schema schema,
@@ -61,7 +61,7 @@ public class Schema1460Mixin {
         Map<String, Supplier<TypeTemplate>> entities = cir.getReturnValue();
         schema.registerSimple(entities, "hempdustry:hemp_boat");
         schema.register(entities, "hempdustry:hemp_chest_boat",
-                name -> DSL.optionalFields("Items", DSL.list(TypeReferences.ITEM_STACK.in(schema))));
+                name -> DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(schema))));
     }
 
     @Inject(method = "registerBlockEntities", at = @At("RETURN"), remap = false)
@@ -70,7 +70,7 @@ public class Schema1460Mixin {
         Map<String, Supplier<TypeTemplate>> blockEntities = cir.getReturnValue();
         for (String machine : new String[] {"hempdustry:decarboxylator", "hempdustry:infuser", "hempdustry:hemp_press"}) {
             schema.register(blockEntities, machine,
-                    name -> DSL.optionalFields("Items", DSL.list(TypeReferences.ITEM_STACK.in(schema))));
+                    name -> DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(schema))));
         }
         // A placed bong is the device item itself, kept as the block entity's own components
         // (BongBlockEntity); being in the table is what lets the fixer reach them. A placed hemp bed

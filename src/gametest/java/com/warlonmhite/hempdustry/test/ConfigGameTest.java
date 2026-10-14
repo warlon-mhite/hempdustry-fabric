@@ -3,8 +3,7 @@ package com.warlonmhite.hempdustry.test;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.test.TestContext;
-
+import net.minecraft.gametest.framework.GameTestHelper;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -30,7 +29,7 @@ public final class ConfigGameTest {
             "[ \"effects\" ]"                                    // JSON, but not an object
     };
 
-    public static void aBrokenConfigIsLeftAlone(TestContext context) {
+    public static void aBrokenConfigIsLeftAlone(GameTestHelper context) {
         Path path = FabricLoader.getInstance().getConfigDir().resolve(Hempdustry.MOD_ID + ".json");
         byte[] original = read(path);
         try {
@@ -57,7 +56,7 @@ public final class ConfigGameTest {
             write(path, original);
             HempdustryConfig.load();
         }
-        context.complete();
+        context.succeed();
     }
 
     /**

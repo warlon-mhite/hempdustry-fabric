@@ -4,16 +4,15 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BarrelBlockEntity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-
 import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 
 /**
  * The Hemp Press pours its output out of its back, into whatever stands there, and keeps it when
@@ -40,21 +39,21 @@ public final class HempPressGameTest {
     private static final BlockPos LAST = SECOND.north();
 
     /** A press on a lit campfire, the way one stands in a world. */
-    private static HempPressBlockEntity heatedPress(TestContext context, BlockPos pos, Direction facing) {
-        context.setBlockState(pos.down(), Blocks.CAMPFIRE);
-        context.setBlockState(pos, ModBlocks.HEMP_PRESS.getDefaultState().with(HempPressBlock.FACING, facing));
+    private static HempPressBlockEntity heatedPress(GameTestHelper context, BlockPos pos, Direction facing) {
+        context.setBlock(pos.below(), Blocks.CAMPFIRE);
+        context.setBlock(pos, ModBlocks.HEMP_PRESS.defaultBlockState().setValue(HempPressBlock.FACING, facing));
         return context.getBlockEntity(pos, HempPressBlockEntity.class);
     }
 
-    private static int rosinIn(TestContext context, BlockPos barrel) {
-        return context.getBlockEntity(barrel, BarrelBlockEntity.class).count(ModItems.ROSIN);
+    private static int rosinIn(GameTestHelper context, BlockPos barrel) {
+        return context.getBlockEntity(barrel, BarrelBlockEntity.class).countItem(ModItems.ROSIN);
     }
 
-    private static int rosinOnTheFloor(TestContext context) {
+    private static int rosinOnTheFloor(GameTestHelper context) {
         int total = 0;
         for (ItemEntity entity : context.getEntities(EntityType.ITEM)) {
-            if (entity.getStack().isOf(ModItems.ROSIN)) {
-                total += entity.getStack().getCount();
+            if (entity.getItem().is(ModItems.ROSIN)) {
+                total += entity.getItem().getCount();
             }
         }
         return total;
@@ -64,28 +63,28 @@ public final class HempPressGameTest {
      * Barrels on all four sides of a heated press: only the one behind it fills, one item at a time
      * until the slot is empty. A second press with nothing round it keeps its rosin and drops none.
      */
-    public static void thePressPoursOutOfItsBack(TestContext context) {
+    public static void thePressPoursOutOfItsBack(GameTestHelper context) {
         HempPressBlockEntity press = heatedPress(context, PRESS, Direction.EAST);
-        context.setBlockState(BEHIND, Blocks.BARREL);
-        NOT_BEHIND.forEach(pos -> context.setBlockState(pos, Blocks.BARREL));
-        press.setStack(HempPressBlockEntity.OUTPUT_SLOT, new ItemStack(ModItems.ROSIN, 3));
+        context.setBlock(BEHIND, Blocks.BARREL);
+        NOT_BEHIND.forEach(pos -> context.setBlock(pos, Blocks.BARREL));
+        press.setItem(HempPressBlockEntity.OUTPUT_SLOT, new ItemStack(ModItems.ROSIN, 3));
 
         HempPressBlockEntity lone = heatedPress(context, LONE, Direction.EAST);
-        lone.setStack(HempPressBlockEntity.OUTPUT_SLOT, new ItemStack(ModItems.ROSIN, 3));
+        lone.setItem(HempPressBlockEntity.OUTPUT_SLOT, new ItemStack(ModItems.ROSIN, 3));
 
         // One item every eight ticks from the first: all three are out by tick 17, and by 40 the lone
         // press has looked behind itself twice.
-        context.runAtTick(40, () -> {
+        context.runAtTickTime(40, () -> {
             context.assertTrue(press.isHeated(), "the campfire under the press does not heat it, so this rig tests nothing");
-            context.assertEquals(3, rosinIn(context, BEHIND), "the rosin in the barrel behind the press");
-            context.assertEquals(0, NOT_BEHIND.stream().mapToInt(pos -> rosinIn(context, pos)).sum(),
+            context.assertValueEqual(3, rosinIn(context, BEHIND), "the rosin in the barrel behind the press");
+            context.assertValueEqual(0, NOT_BEHIND.stream().mapToInt(pos -> rosinIn(context, pos)).sum(),
                     "the rosin poured out of the front or a side");
-            context.assertTrue(press.getStack(HempPressBlockEntity.OUTPUT_SLOT).isEmpty(),
-                    "the press still holds " + press.getStack(HempPressBlockEntity.OUTPUT_SLOT));
-            context.assertEquals(3, lone.getStack(HempPressBlockEntity.OUTPUT_SLOT).getCount(),
+            context.assertTrue(press.getItem(HempPressBlockEntity.OUTPUT_SLOT).isEmpty(),
+                    "the press still holds " + press.getItem(HempPressBlockEntity.OUTPUT_SLOT));
+            context.assertValueEqual(3, lone.getItem(HempPressBlockEntity.OUTPUT_SLOT).getCount(),
                     "the rosin kept by a press with nothing behind it");
-            context.assertEquals(0, rosinOnTheFloor(context), "the rosin thrown on the floor");
-            context.complete();
+            context.assertValueEqual(0, rosinOnTheFloor(context), "the rosin thrown on the floor");
+            context.succeed();
         });
     }
 
@@ -94,14 +93,14 @@ public final class HempPressGameTest {
      * presses it into rosin and pours that into the barrel behind itself. Bubble hash to rosin with
      * nobody touching either press.
      */
-    public static void aPressBehindAnotherPressesWhatItPours(TestContext context) {
+    public static void aPressBehindAnotherPressesWhatItPours(GameTestHelper context) {
         HempPressBlockEntity first = heatedPress(context, FIRST, Direction.SOUTH);
         heatedPress(context, SECOND, Direction.SOUTH);
-        context.setBlockState(LAST, Blocks.BARREL);
-        first.setStack(HempPressBlockEntity.INPUT_SLOT, new ItemStack(ModItems.BUBBLE_HASH));
+        context.setBlock(LAST, Blocks.BARREL);
+        first.setItem(HempPressBlockEntity.INPUT_SLOT, new ItemStack(ModItems.BUBBLE_HASH));
 
-        // Retried every tick until it holds; Yarn's addFinalTask is the one that must hold on tick 0.
-        context.addInstantFinalTask(() -> context.assertEquals(1, rosinIn(context, LAST),
+        // Retried every tick until it holds; succeedIf is the one that must hold on tick 0.
+        context.succeedWhen(() -> context.assertValueEqual(1, rosinIn(context, LAST),
                 "the rosin in the barrel behind the second press"));
     }
 }

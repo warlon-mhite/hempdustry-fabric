@@ -2,22 +2,21 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CakeBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CakeBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * A Space Cake — vanilla's cake, baked with cannabutter. Seven bites, same shapes, same comparator
@@ -41,56 +40,56 @@ import net.minecraft.world.World;
  *
  * <h2>Why the candle override is not optional</h2>
  *
- * {@link CakeBlock#onUseWithItem} matches the held item against {@code CandleCakeBlock.getCandleCake}
+ * {@link CakeBlock#useItemOn} matches the held item against {@code CandleCakeBlock.getCandleCake}
  * and, on a hit, <em>replaces the block outright</em> with a vanilla candle cake. Inherited unchanged
  * that would let a player quietly convert a Space Cake into an ordinary candle cake — losing ours and
  * duplicating vanilla's — and would throw the dose away with it.
  */
 public class SpaceCakeBlock extends CakeBlock {
     /** Dose per bite. <b>0 is inert</b>, for a cake placed without a component. */
-    public static final IntProperty POTENCY = IntProperty.of("potency", 0, EdibleEffects.MAX_TIER);
+    public static final IntegerProperty POTENCY = IntegerProperty.create("potency", 0, EdibleEffects.MAX_TIER);
     /** Carried so a cake baked from a Perfect batch is still a Perfect cake once it is placed. */
-    public static final EnumProperty<Quality> QUALITY = EnumProperty.of("quality", Quality.class);
+    public static final EnumProperty<Quality> QUALITY = EnumProperty.create("quality", Quality.class);
 
-    public SpaceCakeBlock(Settings settings) {
+    public SpaceCakeBlock(Properties settings) {
         super(settings);
-        // Spelled out rather than trusted: a property left out of setDefaultState resolves to the
+        // Spelled out rather than trusted: a property left out of registerDefaultState resolves to the
         // first value of its set, which is exactly how the crops shipped pre-trimmed for two days.
-        setDefaultState(getDefaultState().with(POTENCY, 0).with(QUALITY, Quality.ROUGH));
+        registerDefaultState(defaultBlockState().setValue(POTENCY, 0).setValue(QUALITY, Quality.ROUGH));
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        super.appendProperties(builder);
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(POTENCY, QUALITY);
     }
 
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        ItemStack stack = ctx.getStack();
-        return getDefaultState()
-                .with(POTENCY, MathHelper.clamp(EdibleEffects.potencyOf(stack), 0, EdibleEffects.MAX_TIER))
-                .with(QUALITY, EdibleEffects.qualityOf(stack));
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        ItemStack stack = ctx.getItemInHand();
+        return defaultBlockState()
+                .setValue(POTENCY, Mth.clamp(EdibleEffects.potencyOf(stack), 0, EdibleEffects.MAX_TIER))
+                .setValue(QUALITY, EdibleEffects.qualityOf(stack));
     }
 
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player,
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
                                  BlockHitResult hit) {
         // Read the dose off the pre-use state: super may take a bite and rewrite the block.
-        int potency = state.get(POTENCY);
-        Quality quality = state.get(QUALITY);
-        ActionResult result = super.onUse(state, world, pos, player, hit);
-        if (result.isAccepted() && !world.isClient()) {
+        int potency = state.getValue(POTENCY);
+        Quality quality = state.getValue(QUALITY);
+        InteractionResult result = super.useWithoutItem(state, world, pos, player, hit);
+        if (result.consumesAction() && !world.isClientSide()) {
             EdibleEffects.consume(player, potency, quality);
         }
         return result;
     }
 
     @Override
-    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
-                                             PlayerEntity player, Hand hand, BlockHitResult hit) {
-        // Deliberately never the candle branch. Falling through to onUse means a player holding any
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+                                             Player player, InteractionHand hand, BlockHitResult hit) {
+        // Deliberately never the candle branch. Falling through to useWithoutItem means a player holding any
         // item still gets to eat, which is what they meant by right-clicking a cake.
-        return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 }

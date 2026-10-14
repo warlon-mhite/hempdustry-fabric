@@ -5,8 +5,7 @@ import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider;
-import net.minecraft.registry.RegistryWrapper;
-
+import net.minecraft.core.HolderLookup;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -16,15 +15,15 @@ import java.util.concurrent.CompletableFuture;
  * own datapack and edits it.
  */
 public class ModBalanceProvider extends FabricDynamicRegistryProvider {
-    public ModBalanceProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+    public ModBalanceProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
     @Override
-    protected void configure(RegistryWrapper.WrapperLookup registries, Entries entries) {
-        entries.addAll(registries.getOrThrow(DeviceStats.REGISTRY_KEY));
-        entries.addAll(registries.getOrThrow(EdibleBundle.REGISTRY_KEY));
-        entries.addAll(registries.getOrThrow(GreenOut.REGISTRY_KEY));
+    protected void configure(HolderLookup.Provider registries, Entries entries) {
+        entries.addAll(registries.lookupOrThrow(DeviceStats.REGISTRY_KEY));
+        entries.addAll(registries.lookupOrThrow(EdibleBundle.REGISTRY_KEY));
+        entries.addAll(registries.lookupOrThrow(GreenOut.REGISTRY_KEY));
     }
 
     @Override

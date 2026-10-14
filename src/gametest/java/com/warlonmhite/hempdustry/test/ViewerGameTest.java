@@ -6,14 +6,13 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.TestContext;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
  * What a recipe viewer shows as packing is what the crafting grid does.
@@ -25,10 +24,10 @@ import java.util.List;
  */
 public final class ViewerGameTest {
 
-    public static void everyPackingRowIsARealCraft(TestContext context) {
-        ServerWorld world = context.getWorld();
-        PackingRecipe packing = new PackingRecipe(CraftingRecipeCategory.MISC);
-        List<ViewerRecipes.Packing> rows = ViewerRecipes.packing(world.getRegistryManager());
+    public static void everyPackingRowIsARealCraft(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        PackingRecipe packing = new PackingRecipe(CraftingBookCategory.MISC);
+        List<ViewerRecipes.Packing> rows = ViewerRecipes.packing(world.registryAccess());
         context.assertFalse(rows.isEmpty(), "the viewers are shown no packing rows at all");
 
         int moonRockRows = 0;
@@ -41,35 +40,35 @@ public final class ViewerGameTest {
                         grid.add(i >= row.inputs().size() ? ItemStack.EMPTY
                                 : i == slot ? offered.copy() : row.inputs().get(i).getFirst().copy());
                     }
-                    CraftingRecipeInput input = CraftingRecipeInput.create(3, 3, grid);
+                    CraftingInput input = CraftingInput.of(3, 3, grid);
                     context.assertTrue(packing.matches(input, world),
-                            id + " is refused by the real recipe with " + offered.getName().getString());
-                    ItemStack packed = packing.craft(input, world.getRegistryManager());
-                    context.assertEquals(packed.get(ModComponents.SMOKE_CONTENTS),
+                            id + " is refused by the real recipe with " + offered.getHoverName().getString());
+                    ItemStack packed = packing.assemble(input, world.registryAccess());
+                    context.assertValueEqual(packed.get(ModComponents.SMOKE_CONTENTS),
                             row.output().get(ModComponents.SMOKE_CONTENTS),
                             id + " shows a different load from the one it crafts");
-                    context.assertEquals(packed.get(ModComponents.CHARGES), row.output().get(ModComponents.CHARGES),
+                    context.assertValueEqual(packed.get(ModComponents.CHARGES), row.output().get(ModComponents.CHARGES),
                             id + " shows a different bowl from the one it crafts");
                     if (slot == 0) {
-                        context.assertTrue(packed.isOf(offered.getItem()),
-                                id + " packs " + offered.getName().getString() + " into another item");
+                        context.assertTrue(packed.is(offered.getItem()),
+                                id + " packs " + offered.getHoverName().getString() + " into another item");
                     }
                 }
             }
-            if (row.inputs().stream().anyMatch(stacks -> stacks.getFirst().isOf(ModItems.MOON_ROCK))) {
+            if (row.inputs().stream().anyMatch(stacks -> stacks.getFirst().is(ModItems.MOON_ROCK))) {
                 moonRockRows++;
             }
         }
 
         // One row per plant strain per coat: the coat is half of what a moon rock carries.
-        long plants = Strain.all(world.getRegistryManager()).stream()
+        long plants = Strain.all(world.registryAccess()).stream()
                 .filter(strain -> strain.value().wildFlower().isPresent()).count();
-        context.assertEquals(moonRockRows, (int) plants * 3, "moon rock rows, one per plant and coat");
+        context.assertValueEqual(moonRockRows, (int) plants * 3, "moon rock rows, one per plant and coat");
         context.assertTrue(rows.stream().anyMatch(row -> row.inputs().getFirst().size() == ModItems.bongs().size()),
                 "no bong row offers every glass");
         context.assertFalse(rows.getFirst().output().getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY)
                         .entries().getFirst().strain().value().wildFlower().isEmpty(),
                 "the packing rows open on a strain that never grew on a plant");
-        context.complete();
+        context.succeed();
     }
 }

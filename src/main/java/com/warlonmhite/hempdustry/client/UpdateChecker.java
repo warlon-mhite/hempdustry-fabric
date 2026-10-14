@@ -11,12 +11,12 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -153,24 +153,24 @@ public final class UpdateChecker {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             String latest = availableVersion;
             if (latest != null && client.player != null && NOTIFIED.compareAndSet(false, true)) {
-                client.player.sendMessage(updateMessage(latest), false);
+                client.player.displayClientMessage(updateMessage(latest), false);
             }
         });
     }
 
     /** "Hempdustry 2.1.0 is available. You have 2.0.0." followed by a clickable download link. */
-    private static MutableText updateMessage(String latest) {
-        MutableText link = Text.translatable("hempdustry.update.link")
-                .styled(style -> style
-                        .withColor(Formatting.GREEN)
-                        .withUnderline(true)
+    private static MutableComponent updateMessage(String latest) {
+        MutableComponent link = Component.translatable("hempdustry.update.link")
+                .withStyle(style -> style
+                        .withColor(ChatFormatting.GREEN)
+                        .withUnderlined(true)
                         .withClickEvent(new ClickEvent.OpenUrl(URI.create(downloadUrl)))
                         .withHoverEvent(new HoverEvent.ShowText(
-                                Text.translatable("hempdustry.update.tooltip"))));
+                                Component.translatable("hempdustry.update.tooltip"))));
 
-        return Text.translatable("hempdustry.update.available", latest, currentVersion())
-                .formatted(Formatting.GRAY)
-                .append(Text.literal(" "))
+        return Component.translatable("hempdustry.update.available", latest, currentVersion())
+                .withStyle(ChatFormatting.GRAY)
+                .append(Component.literal(" "))
                 .append(link);
     }
 
@@ -350,7 +350,7 @@ public final class UpdateChecker {
 
     /** The Minecraft version this client is running, as both sources key their answers by it. */
     private static String gameVersion() {
-        return SharedConstants.getGameVersion().name();
+        return SharedConstants.getCurrentVersion().name();
     }
 
     private static String currentVersion() {

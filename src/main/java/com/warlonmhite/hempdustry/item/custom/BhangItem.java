@@ -1,15 +1,12 @@
 package com.warlonmhite.hempdustry.item.custom;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-
 /**
  * Bhang — decarboxylated hemp worked into hot milk with sugar. The only <em>drink</em> in the
  * edibles set, and the only one that skips cannabutter entirely.
  *
  * <p>Kept and drunk from the bucket, exactly as vanilla milk is: {@code maxCount(1)}, and finishing
- * it hands the bucket back — via {@code Item.Settings.useRemainder}, which is how vanilla's own stews
- * return their bowls, rather than a hand-written {@code finishUsing}. That is a real drawback next to
+ * it hands the bucket back — via {@code Item.Properties.usingConvertsTo}, which is how vanilla's own stews
+ * return their bowls, rather than a hand-written {@code finishUsingItem}. That is a real drawback next to
  * the stackable edibles — one serving per inventory slot — and it is the right one for the crudest
  * preparation in the set.
  *
@@ -53,7 +50,7 @@ public class BhangItem extends EdibleItem {
     // honey bottle's two seconds -- is the `consumable` component ModItems passes alongside the food
     // component; since 1.21.2 Item#getUseAction and Item#getMaxUseTime read that and an override of
     // either is dead code. This class exists for the dosed-edible behaviour it inherits.
-    public BhangItem(Settings settings) {
+    public BhangItem(Properties settings) {
         super(settings);
     }
 }

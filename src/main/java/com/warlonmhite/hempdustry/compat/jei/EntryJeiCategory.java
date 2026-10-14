@@ -10,14 +10,13 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import java.util.List;
 
 /**
@@ -42,7 +41,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private static final int NOTE_COLOR = 0xFF555555;
 
     private final RecipeType<ViewerRecipes.Entry> type;
-    private final Text title;
+    private final Component title;
     private final IDrawable icon;
     private final IDrawableStatic arrow;
     private final IDrawableStatic slot;
@@ -55,7 +54,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
 
     public EntryJeiCategory(IGuiHelper guiHelper, Identifier id, ItemStack icon, int noteLines) {
         this.type = new RecipeType<>(id, ViewerRecipes.Entry.class);
-        this.title = Text.translatable("hempdustry.category." + id.getPath());
+        this.title = Component.translatable("hempdustry.category." + id.getPath());
         this.icon = guiHelper.createDrawableItemStack(icon);
         this.arrow = guiHelper.getRecipeArrow();
         this.slot = guiHelper.getSlotDrawable();
@@ -68,7 +67,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     }
 
     @Override
-    public Text getTitle() {
+    public Component getTitle() {
         return title;
     }
 
@@ -87,12 +86,12 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
      */
     @Override
     public int getWidth() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        String language = client.getLanguageManager().getLanguage();
+        Minecraft client = Minecraft.getInstance();
+        String language = client.getLanguageManager().getSelected();
         if (!language.equals(measuredIn)) {
-            TextRenderer font = client.textRenderer;
+            Font font = client.font;
             int widest = entries.stream().flatMap(entry -> entry.notes().stream())
-                    .mapToInt(font::getWidth).max().orElse(0);
+                    .mapToInt(font::width).max().orElse(0);
             width = Math.max(SLOTS_WIDTH, widest + 1); // notes are drawn from x = 1
             measuredIn = language;
         }
@@ -128,14 +127,14 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     }
 
     @Override
-    public void draw(ViewerRecipes.Entry entry, IRecipeSlotsView slots, DrawContext context,
+    public void draw(ViewerRecipes.Entry entry, IRecipeSlotsView slots, GuiGraphics context,
                      double mouseX, double mouseY) {
         arrow.draw(context, PADDING + MAX_INPUTS * SLOT + 4, 1);
         int y = SLOT + PADDING;
-        for (Text note : entry.notes()) {
-            // ARGB, and the alpha byte is not optional: since 1.21.6 drawText skips a colour whose
+        for (Component note : entry.notes()) {
+            // ARGB, and the alpha byte is not optional: since 1.21.6 drawString skips a colour whose
             // alpha is 0, so a bare 0x555555 drew every note on every page as nothing at all.
-            context.drawText(MinecraftClient.getInstance().textRenderer, note, 1, y, NOTE_COLOR, false);
+            context.drawString(Minecraft.getInstance().font, note, 1, y, NOTE_COLOR, false);
             y += LINE_HEIGHT;
         }
     }

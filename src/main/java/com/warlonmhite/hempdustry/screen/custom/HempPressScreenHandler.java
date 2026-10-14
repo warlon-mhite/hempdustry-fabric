@@ -2,19 +2,19 @@ package com.warlonmhite.hempdustry.screen.custom;
 
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * Menu for the {@link HempPressBlockEntity}: one thing in on the left, an arrow, one thing out on
@@ -24,57 +24,57 @@ import net.minecraft.world.World;
  * from the block underneath, and the flame under the arrow is a report about that rather than a
  * gauge. Same arrangement, and the same reasoning, as the Infuser's.
  */
-public class HempPressScreenHandler extends ScreenHandler {
-    private final Inventory inventory;
-    private final PropertyDelegate propertyDelegate;
+public class HempPressScreenHandler extends AbstractContainerMenu {
+    private final Container inventory;
+    private final ContainerData propertyDelegate;
     /** What the press accepts is a recipe lookup, and a lookup needs a world. Held on both sides. */
-    private final World world;
+    private final Level world;
 
     /** Slot layout, shared with the screen and the GUI-texture generator so they cannot drift. */
     public static final int INPUT_X = 56, INPUT_Y = 35;
     public static final int OUTPUT_X = 116, OUTPUT_Y = 35;
 
     /** Client-side constructor: the block position arrives via the extended screen handler type. */
-    public HempPressScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
+    public HempPressScreenHandler(int syncId, Inventory playerInventory, BlockPos pos) {
         this(syncId, playerInventory, resolveInventory(playerInventory, pos),
-                new ArrayPropertyDelegate(HempPressBlockEntity.PROPERTY_COUNT));
+                new SimpleContainerData(HempPressBlockEntity.PROPERTY_COUNT));
     }
 
-    public HempPressScreenHandler(int syncId, PlayerInventory playerInventory,
-                                  Inventory inventory, PropertyDelegate propertyDelegate) {
+    public HempPressScreenHandler(int syncId, Inventory playerInventory,
+                                  Container inventory, ContainerData propertyDelegate) {
         super(ModScreenHandlers.HEMP_PRESS, syncId);
-        checkSize(inventory, HempPressBlockEntity.SLOT_COUNT);
+        checkContainerSize(inventory, HempPressBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
-        this.world = playerInventory.player.getEntityWorld();
-        inventory.onOpen(playerInventory.player);
+        this.world = playerInventory.player.level();
+        inventory.startOpen(playerInventory.player);
 
         this.addSlot(new Slot(inventory, HempPressBlockEntity.INPUT_SLOT, INPUT_X, INPUT_Y) {
             @Override
-            public boolean canInsert(ItemStack stack) {
-                return HempPressBlockEntity.isInput(playerInventory.player.getEntityWorld(), stack);
+            public boolean mayPlace(ItemStack stack) {
+                return HempPressBlockEntity.isInput(playerInventory.player.level(), stack);
             }
         });
 
         this.addSlot(new Slot(inventory, HempPressBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y) {
             @Override
-            public boolean canInsert(ItemStack stack) {
+            public boolean mayPlace(ItemStack stack) {
                 return false;
             }
         });
 
         addPlayerSlots(playerInventory);
-        this.addProperties(propertyDelegate);
+        this.addDataSlots(propertyDelegate);
     }
 
-    private static Inventory resolveInventory(PlayerInventory playerInventory, BlockPos pos) {
-        BlockEntity blockEntity = playerInventory.player.getEntityWorld().getBlockEntity(pos);
-        return blockEntity instanceof Inventory found
+    private static Container resolveInventory(Inventory playerInventory, BlockPos pos) {
+        BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(pos);
+        return blockEntity instanceof Container found
                 ? found
-                : new SimpleInventory(HempPressBlockEntity.SLOT_COUNT);
+                : new SimpleContainer(HempPressBlockEntity.SLOT_COUNT);
     }
 
-    private void addPlayerSlots(PlayerInventory playerInventory) {
+    private void addPlayerSlots(Inventory playerInventory) {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
@@ -91,7 +91,7 @@ public class HempPressScreenHandler extends ScreenHandler {
     public float getProgress() {
         int value = this.propertyDelegate.get(HempPressBlockEntity.PROPERTY_PROGRESS);
         int pressTime = Math.max(1, this.propertyDelegate.get(HempPressBlockEntity.PROPERTY_PRESS_TIME));
-        return MathHelper.clamp(value / (float) pressTime, 0.0F, 1.0F);
+        return Mth.clamp(value / (float) pressTime, 0.0F, 1.0F);
     }
 
     public boolean isHeated() {
@@ -101,14 +101,14 @@ public class HempPressScreenHandler extends ScreenHandler {
     // ----- shift-click -----
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int slotIndex) {
+    public ItemStack quickMoveStack(Player player, int slotIndex) {
         ItemStack moved = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotIndex);
-        if (!slot.hasStack()) {
+        if (!slot.hasItem()) {
             return moved;
         }
 
-        ItemStack inSlot = slot.getStack();
+        ItemStack inSlot = slot.getItem();
         moved = inSlot.copy();
 
         int blockSlots = HempPressBlockEntity.SLOT_COUNT;
@@ -116,11 +116,11 @@ public class HempPressScreenHandler extends ScreenHandler {
         int playerEnd = this.slots.size();
 
         if (slotIndex < blockSlots) {
-            if (!this.insertItem(inSlot, playerStart, playerEnd, true)) {
+            if (!this.moveItemStackTo(inSlot, playerStart, playerEnd, true)) {
                 return ItemStack.EMPTY;
             }
         } else if (HempPressBlockEntity.isInput(this.world, inSlot)) {
-            if (!this.insertItem(inSlot, HempPressBlockEntity.INPUT_SLOT,
+            if (!this.moveItemStackTo(inSlot, HempPressBlockEntity.INPUT_SLOT,
                     HempPressBlockEntity.INPUT_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
@@ -128,34 +128,34 @@ public class HempPressScreenHandler extends ScreenHandler {
             // Not something the press takes — shuffle between the main inventory and the hotbar.
             int hotbarStart = playerEnd - 9;
             if (slotIndex < hotbarStart) {
-                if (!this.insertItem(inSlot, hotbarStart, playerEnd, false)) {
+                if (!this.moveItemStackTo(inSlot, hotbarStart, playerEnd, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.insertItem(inSlot, playerStart, hotbarStart, false)) {
+            } else if (!this.moveItemStackTo(inSlot, playerStart, hotbarStart, false)) {
                 return ItemStack.EMPTY;
             }
         }
 
         if (inSlot.isEmpty()) {
-            slot.setStack(ItemStack.EMPTY);
+            slot.setByPlayer(ItemStack.EMPTY);
         } else {
-            slot.markDirty();
+            slot.setChanged();
         }
         if (inSlot.getCount() == moved.getCount()) {
             return ItemStack.EMPTY;
         }
-        slot.onTakeItem(player, inSlot);
+        slot.onTake(player, inSlot);
         return moved;
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
+    public boolean stillValid(Player player) {
+        return this.inventory.stillValid(player);
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        this.inventory.onClose(player);
+    public void removed(Player player) {
+        super.removed(player);
+        this.inventory.stopOpen(player);
     }
 }

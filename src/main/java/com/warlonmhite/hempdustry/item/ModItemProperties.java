@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 /**
  * The ids the smoking gear's <b>client item definitions</b> key on.
@@ -39,10 +39,10 @@ import net.minecraft.util.Identifier;
 public final class ModItemProperties {
 
     /** {@code hempdustry:strain} — the loaded strain's {@code model_index}; 0 for "no bespoke art". */
-    public static final Identifier STRAIN = Identifier.of(Hempdustry.MOD_ID, "strain");
+    public static final Identifier STRAIN = Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "strain");
 
     /** {@code hempdustry:strain} as a tint source. Same path, a different registry. */
-    public static final Identifier STRAIN_TINT = Identifier.of(Hempdustry.MOD_ID, "strain");
+    public static final Identifier STRAIN_TINT = Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "strain");
 
     /**
      * The tint index carrying the strain's colour, and therefore <b>which texture layer gets tinted</b>.

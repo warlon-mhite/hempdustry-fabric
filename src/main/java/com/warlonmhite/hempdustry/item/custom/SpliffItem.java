@@ -4,22 +4,21 @@ import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-
 import java.util.function.Consumer;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ActionResult;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
 
 /**
  * A single-use joint. One item for every strain and every dose — what was rolled into it lives in
@@ -39,23 +38,23 @@ import net.minecraft.world.World;
  * are the {@code spliff} entry of {@link DeviceStats}.
  */
 public class SpliffItem extends Item {
-    public SpliffItem(Settings settings) {
+    public SpliffItem(Properties settings) {
         super(settings);
         Smoking.registerSmokeable(this);
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, EquipmentSlot slot) {
+    public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, EquipmentSlot slot) {
         super.inventoryTick(stack, world, entity, slot);
         Smoking.expire(stack, world);
     }
 
     @Override
-    public Text getName(ItemStack stack) {
+    public Component getName(ItemStack stack) {
         SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
         return contents.isEmpty()
                 ? super.getName(stack)
-                : SmokeContents.packedName(this.getTranslationKey() + ".packed", contents);
+                : SmokeContents.packedName(this.getDescriptionId() + ".packed", contents);
     }
 
     /**
@@ -72,30 +71,30 @@ public class SpliffItem extends Item {
      * something the player did on purpose.
      */
     @Override
-    public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent,
-                              Consumer<Text> textConsumer, TooltipType type) {
-        super.appendTooltip(stack, context, displayComponent, textConsumer, type);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent,
+                              Consumer<Component> textConsumer, TooltipFlag type) {
+        super.appendHoverText(stack, context, displayComponent, textConsumer, type);
         stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).hashAdditive()
                 .ifPresent(hash -> textConsumer.accept(
-                        Text.translatable("hempdustry.spliff.with",
-                                        Text.translatable(hash.value().translationKey()))
-                                .formatted(Formatting.GRAY, Formatting.ITALIC)));
+                        Component.translatable("hempdustry.spliff.with",
+                                        Component.translatable(hash.value().translationKey()))
+                                .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity player, Hand hand) {
-        ItemStack stack = player.getStackInHand(hand);
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
         SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-        if (contents.isEmpty() || player.getItemCooldownManager().isCoolingDown(stack)) {
-            return ActionResult.PASS;
+        if (contents.isEmpty() || player.getCooldowns().isOnCooldown(stack)) {
+            return InteractionResult.PASS;
         }
-        if (!world.isClient()) {
+        if (!world.isClientSide()) {
             // See SmokingDeviceItem: a vetoed hit must not burn the spliff.
             if (!Smoking.allowed(player, stack, contents)) {
-                return ActionResult.PASS;
+                return InteractionResult.PASS;
             }
-            DeviceStats stats = DeviceStats.spliff(world.getRegistryManager());
-            GreenOut greenOut = GreenOut.of(world.getRegistryManager());
+            DeviceStats stats = DeviceStats.spliff(world.registryAccess());
+            GreenOut greenOut = GreenOut.of(world.registryAccess());
             boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
                     stats.coughOneIn(), stats.nauseaOneIn(),
                     Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
@@ -104,10 +103,10 @@ public class SpliffItem extends Item {
             // from, and that is what the cooldown swipe should sit on.
             Smoking.startCooldown(player, stack,
                     EffectPolicy.cooldown(lockedOut ? greenOut.lockoutTicks() : stats.cooldownTicks()));
-            if (!player.getAbilities().creativeMode) {
-                stack.decrement(1);
+            if (!player.getAbilities().instabuild) {
+                stack.shrink(1);
             }
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

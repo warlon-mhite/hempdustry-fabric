@@ -9,29 +9,28 @@ import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.core.Holder;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Shared "take a hit" feedback so the spliff, pipe and bong don't each re-implement it. Call from
@@ -69,12 +68,12 @@ public final class Smoking {
      * first place.
      *
      * <p>The mark is what keeps the <em>swipe</em> honest about which stack was used:
-     * {@link net.minecraft.entity.player.ItemCooldownManager} is keyed by {@code Item}, so the
+     * {@link net.minecraft.world.item.ItemCooldowns} is keyed by {@code Item}, so the
      * overlay would otherwise sweep across every pipe in the inventory — including the empty ones,
      * which were never smoked and cannot be. See {@link ModComponents#COOLDOWN_UNTIL} and the
      * client's {@code DrawContextMixin}.
      */
-    public static void startCooldown(PlayerEntity player, ItemStack used, int ticks) {
+    public static void startCooldown(Player player, ItemStack used, int ticks) {
         if (ticks <= 0) {
             // EffectPolicy.cooldown treats 0 as "no cooldown"; a zero-length entry would be a
             // degenerate one (start == end) and a mark with nothing to mark.
@@ -83,9 +82,9 @@ public final class Smoking {
         for (Item item : SMOKEABLES) {
             // Cooldowns are keyed by a group Identifier since 1.21.2, defaulting to the item's own
             // id when it carries no use_cooldown component — which is what every smokeable here is.
-            player.getItemCooldownManager().set(Registries.ITEM.getId(item), ticks);
+            player.getCooldowns().addCooldown(BuiltInRegistries.ITEM.getKey(item), ticks);
         }
-        used.set(ModComponents.COOLDOWN_UNTIL, player.getEntityWorld().getTime() + ticks);
+        used.set(ModComponents.COOLDOWN_UNTIL, player.level().getGameTime() + ticks);
     }
 
     /**
@@ -97,9 +96,9 @@ public final class Smoking {
      * <p>Server side only. The client is told about the removal like any other component change, and
      * by then the swipe it gated has finished drawing anyway.
      */
-    public static void expire(ItemStack stack, World world) {
-        if (!world.isClient() && stack.contains(ModComponents.COOLDOWN_UNTIL)
-                && world.getTime() >= stack.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L)) {
+    public static void expire(ItemStack stack, Level world) {
+        if (!world.isClientSide() && stack.has(ModComponents.COOLDOWN_UNTIL)
+                && world.getGameTime() >= stack.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L)) {
             stack.remove(ModComponents.COOLDOWN_UNTIL);
         }
     }
@@ -112,7 +111,7 @@ public final class Smoking {
      * apart on what a veto means, and so a smokeable added later gets it by using the same door.
      * See {@link HempdustryEvents#ALLOW_SMOKE}.
      */
-    public static boolean allowed(PlayerEntity player, ItemStack stack, SmokeContents contents) {
+    public static boolean allowed(Player player, ItemStack stack, SmokeContents contents) {
         return HempdustryEvents.ALLOW_SMOKE.invoker().allowSmoke(player, contents, stack);
     }
 
@@ -153,10 +152,10 @@ public final class Smoking {
      *         lockout instead of its own cooldown. It has to be the caller: it starts the cooldown
      *         after this returns, and would overwrite one set here
      */
-    public static boolean takeHit(World world, PlayerEntity player, ItemStack stack,
+    public static boolean takeHit(Level world, Player player, ItemStack stack,
                                   SmokeContents contents, int durationTicks, int coughChanceOneIn,
                                   int nauseaChanceOneIn, int greenOutChanceOneIn,
-                                  ParticleEffect exhaleParticle) {
+                                  ParticleOptions exhaleParticle) {
         return takeHit(world, player, stack, contents, durationTicks, coughChanceOneIn,
                 nauseaChanceOneIn, greenOutChanceOneIn, exhaleParticle, 0);
     }
@@ -166,15 +165,15 @@ public final class Smoking {
      * {@code soundDelayTicks}. The bong uses this to let its own bubbling — played by the caller,
      * not here — clear before the inhale sound starts.
      */
-    public static boolean takeHit(World world, PlayerEntity player, ItemStack stack,
+    public static boolean takeHit(Level world, Player player, ItemStack stack,
                                   SmokeContents contents, int durationTicks, int coughChanceOneIn,
                                   int nauseaChanceOneIn, int greenOutChanceOneIn,
-                                  ParticleEffect exhaleParticle, int soundDelayTicks) {
+                                  ParticleOptions exhaleParticle, int soundDelayTicks) {
         if (soundDelayTicks > 0) {
             SmokeScheduler.scheduleSound(player, soundDelayTicks, ModSounds.SMOKING);
         } else {
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    ModSounds.SMOKING, SoundCategory.PLAYERS, 1f, 1f);
+                    ModSounds.SMOKING, SoundSource.PLAYERS, 1f, 1f);
         }
 
         // Every chance and every effect below goes through EffectPolicy, which is where the
@@ -186,13 +185,13 @@ public final class Smoking {
         if (greenedOut) {
             greenOut(player, contents.dose());
         } else {
-            for (StatusEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks, false, ThreadLocalRandom.current()), contents.buffBonus())) {
-                player.addStatusEffect(effect);
+            for (MobEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks, false, ThreadLocalRandom.current()), contents.buffBonus())) {
+                player.addEffect(effect);
             }
             // What a strain holds back to the exhale -- Beldía's streaming eyes -- rides the same
             // timer as the puff, filtered now so a server's debuffs switch still removes it.
-            if (!world.isClient()) {
-                List<StatusEffectInstance> exhaled = EffectPolicy.filter(contents.effects(durationTicks, true, ThreadLocalRandom.current()), contents.buffBonus());
+            if (!world.isClientSide()) {
+                List<MobEffectInstance> exhaled = EffectPolicy.filter(contents.effects(durationTicks, true, ThreadLocalRandom.current()), contents.buffBonus());
                 if (!exhaled.isEmpty()) {
                     SmokeScheduler.scheduleEffects(player, exhaled, EXHALE_DELAY_TICKS + soundDelayTicks);
                 }
@@ -203,32 +202,32 @@ public final class Smoking {
         // lives in the advancement's conditions — a time window for "Blaze It!" and "Wake and Bake",
         // an item predicate for "Pipe Dream" and "Bong Voyage" — so all this does is hand over the
         // time of day (tick 0 = 6:00 AM) and the stack, still packed at this point.
-        if (player instanceof ServerPlayerEntity serverPlayer) {
-            ModCriteria.SMOKE.trigger(serverPlayer, world.getTimeOfDay() % 24000L, stack);
+        if (player instanceof ServerPlayer serverPlayer) {
+            ModCriteria.SMOKE.trigger(serverPlayer, world.getDayTime() % 24000L, stack);
         }
 
-        if (!world.isClient()) {
+        if (!world.isClientSide()) {
             SmokeScheduler.schedule(player, exhaleParticle, EXHALE_DELAY_TICKS + soundDelayTicks);
         }
 
         int coughOdds = easedByOutfit(player, harshened(coughChanceOneIn, contents));
         if (coughOdds > 0 && ThreadLocalRandom.current().nextInt(coughOdds) == 0) {
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
-                    ModSounds.COUGHING, SoundCategory.PLAYERS, 1f, 1f);
+                    ModSounds.COUGHING, SoundSource.PLAYERS, 1f, 1f);
         }
 
         // Nausea is its own roll and stays per-device, dose-independent — it is the "harsh smoke"
         // cost, not the "too much" cost. A green-out already brings its own, longer nausea.
         int nauseaOdds = easedByOutfit(player, EffectPolicy.nauseaChanceOneIn(nauseaChanceOneIn));
         if (!greenedOut && nauseaOdds > 0 && ThreadLocalRandom.current().nextInt(nauseaOdds) == 0) {
-            apply(player, new StatusEffectInstance(StatusEffects.NAUSEA, NAUSEA_DURATION_TICKS, 0));
+            apply(player, new MobEffectInstance(MobEffects.NAUSEA, NAUSEA_DURATION_TICKS, 0));
         }
 
         // Last, so a listener sees the hit exactly as the player did — effects on, sound played.
         // The stack is still packed here; a spliff's contents are gone a few lines later, which is
         // why contents is handed over as its own argument.
         HempdustryEvents.AFTER_SMOKE.invoker().afterSmoke(player, contents, stack);
-        return greenedOut && contents.dose() >= GreenOut.of(world.getRegistryManager()).fullFromDose();
+        return greenedOut && contents.dose() >= GreenOut.of(world.registryAccess()).fullFromDose();
     }
 
     /**
@@ -245,7 +244,7 @@ public final class Smoking {
      * pinch does not redeem the paper around it. A pipe or bong packed with the hash alone gets it.
      */
     private static int smoothed(int greenOutChanceOneIn, SmokeContents contents) {
-        RegistryEntry<Strain> primary = contents.primaryStrain();
+        Holder<Strain> primary = contents.primaryStrain();
         if (greenOutChanceOneIn <= 0 || primary == null) {
             return greenOutChanceOneIn;
         }
@@ -268,7 +267,7 @@ public final class Smoking {
      * datapack reason given there.
      */
     private static int harshened(int coughChanceOneIn, SmokeContents contents) {
-        RegistryEntry<Strain> primary = contents.primaryStrain();
+        Holder<Strain> primary = contents.primaryStrain();
         if (coughChanceOneIn <= 0 || primary == null) {
             return coughChanceOneIn;
         }
@@ -288,12 +287,12 @@ public final class Smoking {
      *
      * <p>Silent, as leather's freeze immunity is: no tooltip says so.
      */
-    public static int easedByOutfit(PlayerEntity player, int oneIn) {
+    public static int easedByOutfit(Player player, int oneIn) {
         if (oneIn <= 0
-                || !player.getEquippedStack(EquipmentSlot.HEAD).isOf(ModItems.HEMP_BEANIE)
-                || !player.getEquippedStack(EquipmentSlot.CHEST).isOf(ModItems.HEMP_SHIRT)
-                || !player.getEquippedStack(EquipmentSlot.LEGS).isOf(ModItems.HEMP_HAREM_PANTS)
-                || !player.getEquippedStack(EquipmentSlot.FEET).isOf(ModItems.FLIP_FLOPS)) {
+                || !player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.HEMP_BEANIE)
+                || !player.getItemBySlot(EquipmentSlot.CHEST).is(ModItems.HEMP_SHIRT)
+                || !player.getItemBySlot(EquipmentSlot.LEGS).is(ModItems.HEMP_HAREM_PANTS)
+                || !player.getItemBySlot(EquipmentSlot.FEET).is(ModItems.FLIP_FLOPS)) {
             return oneIn;
         }
         return (int) Math.min(Integer.MAX_VALUE, 2L * oneIn);
@@ -310,19 +309,19 @@ public final class Smoking {
      * food bar at once), and the caller locks smoking out for a minute. Effects of a type the mod
      * never grants, a potion of Fire Resistance say, are left alone: a green-out is not milk.
      */
-    public static void greenOut(PlayerEntity player, int dose) {
-        GreenOut greenOut = GreenOut.of(player.getRegistryManager());
+    public static void greenOut(Player player, int dose) {
+        GreenOut greenOut = GreenOut.of(player.registryAccess());
         boolean full = dose >= greenOut.fullFromDose();
         if (full) {
-            for (RegistryEntry<StatusEffect> buff : buffsTheModGrants(player)) {
-                player.removeStatusEffect(buff);
+            for (Holder<MobEffect> buff : buffsTheModGrants(player)) {
+                player.removeEffect(buff);
             }
-            player.getHungerManager().setSaturationLevel(0f);
+            player.getFoodData().setSaturation(0f);
         }
         // Through the filter, which also hands back fresh instances: the listed ones belong to the
         // registry, and a status effect ticks down in place once a player wears it.
-        for (StatusEffectInstance effect : EffectPolicy.filter(full ? greenOut.full() : greenOut.spins())) {
-            player.addStatusEffect(effect);
+        for (MobEffectInstance effect : EffectPolicy.filter(full ? greenOut.full() : greenOut.spins())) {
+            player.addEffect(effect);
         }
     }
 
@@ -330,16 +329,16 @@ public final class Smoking {
      * Every beneficial effect a loaded strain or an edible can grant. Read off the registry, so a
      * datapack strain's buffs are ended by a green-out the day they exist.
      */
-    private static Set<RegistryEntry<StatusEffect>> buffsTheModGrants(PlayerEntity player) {
-        Set<RegistryEntry<StatusEffect>> out = new HashSet<>();
-        for (EdibleBundle.Effect effect : EdibleBundle.of(player.getRegistryManager()).effects()) {
-            if (effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL) {
+    private static Set<Holder<MobEffect>> buffsTheModGrants(Player player) {
+        Set<Holder<MobEffect>> out = new HashSet<>();
+        for (EdibleBundle.Effect effect : EdibleBundle.of(player.registryAccess()).effects()) {
+            if (effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL) {
                 out.add(effect.effect());
             }
         }
-        for (RegistryEntry<Strain> strain : Strain.registry(player.getRegistryManager()).streamEntries().toList()) {
+        for (Holder<Strain> strain : Strain.registry(player.registryAccess()).listElements().toList()) {
             for (Strain.SmokeEffect effect : strain.value().smokeEffects()) {
-                if (effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL) {
+                if (effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL) {
                     out.add(effect.effect());
                 }
             }
@@ -348,22 +347,22 @@ public final class Smoking {
     }
 
     /** One effect, through the same gate. */
-    private static void apply(PlayerEntity player, StatusEffectInstance effect) {
-        EffectPolicy.filter(List.of(effect)).forEach(player::addStatusEffect);
+    private static void apply(Player player, MobEffectInstance effect) {
+        EffectPolicy.filter(List.of(effect)).forEach(player::addEffect);
     }
 
     /**
      * A small puff at the player's mouth, drifting the way they're facing. What it puffs is the
      * device's own: smoke for anything that burns, {@code CLOUD} for the vaporizer, which does not.
      *
-     * <p>{@code ServerWorld.spawnParticles} sends a packet to every player in range rather than to
+     * <p>{@code ServerLevel.sendParticles} sends a packet to every player in range rather than to
      * the smoker alone, which is what makes this visible to everyone else on a server.
      */
-    static void spawnExhale(ServerWorld world, PlayerEntity player, ParticleEffect particle) {
-        Vec3d look = player.getRotationVector();
+    static void spawnExhale(ServerLevel world, Player player, ParticleOptions particle) {
+        Vec3 look = player.getLookAngle();
         double x = player.getX() + look.x * 0.5;
         double y = player.getEyeY() - 0.1 + look.y * 0.5;
         double z = player.getZ() + look.z * 0.5;
-        world.spawnParticles(particle, x, y, z, 8, 0.02, 0.02, 0.02, 0.005);
+        world.sendParticles(particle, x, y, z, 8, 0.02, 0.02, 0.02, 0.005);
     }
 }

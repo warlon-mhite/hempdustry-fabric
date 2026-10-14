@@ -4,20 +4,19 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
-import net.minecraft.advancement.AdvancementCriterion;
-import net.minecraft.advancement.criterion.AbstractCriterion;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.predicate.BlockPredicate;
-import net.minecraft.predicate.NumberRange;
-import net.minecraft.predicate.entity.EntityPredicate;
-import net.minecraft.predicate.entity.LootContextPredicate;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.Optional;
+import net.minecraft.advancements.Criterion;
+import net.minecraft.advancements.criterion.BlockPredicate;
+import net.minecraft.advancements.criterion.ContextAwarePredicate;
+import net.minecraft.advancements.criterion.EntityPredicate;
+import net.minecraft.advancements.criterion.MinMaxBounds;
+import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Fires when a player harvests a <em>mature</em> hemp plant, carrying how many of the two
@@ -42,7 +41,7 @@ import java.util.Optional;
  * block under the LOWER segment — so a datapack can ask for a Hydro Tray, a Grow Pot, or a tray that
  * was fed, in the same vocabulary as {@code minecraft:location}.
  */
-public class HarvestHempCriterion extends AbstractCriterion<HarvestHempCriterion.Conditions> {
+public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCriterion.Conditions> {
 
     /**
      * Call from the server side when a mature plant is broken, having resolved it down to its LOWER
@@ -52,65 +51,65 @@ public class HarvestHempCriterion extends AbstractCriterion<HarvestHempCriterion
      * <p>Silently does nothing for a non-player or for a state without the trim properties, so a
      * caller can hand it whatever it has resolved without pre-checking.
      */
-    public static void trigger(PlayerEntity player, ServerWorld world, BlockPos lowerPos, BlockState lowerState) {
-        if (!(player instanceof ServerPlayerEntity serverPlayer)
-                || !lowerState.contains(Defoliation.TRIMMED_EARLY)) {
+    public static void trigger(Player player, ServerLevel world, BlockPos lowerPos, BlockState lowerState) {
+        if (!(player instanceof ServerPlayer serverPlayer)
+                || !lowerState.hasProperty(Defoliation.TRIMMED_EARLY)) {
             return;
         }
         int cuts = Defoliation.cutCount(lowerState);
-        Optional<GrowLight> light = lowerState.getOrEmpty(GrowLight.PROPERTY);
-        BlockPos bedPos = lowerPos.down();
+        Optional<GrowLight> light = lowerState.getOptionalValue(GrowLight.PROPERTY);
+        BlockPos bedPos = lowerPos.below();
         ModCriteria.HARVEST_HEMP.trigger(serverPlayer,
                 conditions -> conditions.matches(cuts, light, world, bedPos));
     }
 
     @Override
-    public Codec<Conditions> getConditionsCodec() {
+    public Codec<Conditions> codec() {
         return Conditions.CODEC;
     }
 
     /** The record's own names ({@code "grow_lamp"}, {@code "stressed"}…), as the blockstate spells them. */
-    private static final Codec<GrowLight> LIGHT_CODEC = StringIdentifiable.createCodec(GrowLight::values);
+    private static final Codec<GrowLight> LIGHT_CODEC = StringRepresentable.fromEnum(GrowLight::values);
 
     /**
      * The optional fields are additive: a criterion written before {@code condition} and {@code bed}
      * existed decodes with both empty and means exactly what it meant.
      */
-    public record Conditions(Optional<LootContextPredicate> player, NumberRange.IntRange cuts,
+    public record Conditions(Optional<ContextAwarePredicate> player, MinMaxBounds.Ints cuts,
                              Optional<GrowLight> light, Optional<BlockPredicate> bed)
-            implements AbstractCriterion.Conditions {
+            implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                EntityPredicate.LOOT_CONTEXT_PREDICATE_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
-                NumberRange.IntRange.CODEC.optionalFieldOf("cuts", NumberRange.IntRange.ANY).forGetter(Conditions::cuts),
+                EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
+                MinMaxBounds.Ints.CODEC.optionalFieldOf("cuts", MinMaxBounds.Ints.ANY).forGetter(Conditions::cuts),
                 LIGHT_CODEC.optionalFieldOf("condition").forGetter(Conditions::light),
                 BlockPredicate.CODEC.optionalFieldOf("bed").forGetter(Conditions::bed)
         ).apply(instance, Conditions::new));
 
         /** A plant with no light record (a crop without the property) never matches a light filter. */
-        public boolean matches(int cuts, Optional<GrowLight> light, ServerWorld world, BlockPos bedPos) {
-            return this.cuts.test(cuts)
+        public boolean matches(int cuts, Optional<GrowLight> light, ServerLevel world, BlockPos bedPos) {
+            return this.cuts.matches(cuts)
                     && (this.light.isEmpty() || this.light.equals(light))
-                    && (this.bed.isEmpty() || this.bed.get().test(world, bedPos));
+                    && (this.bed.isEmpty() || this.bed.get().matches(world, bedPos));
         }
 
         /** Only counts a harvest of a plant cut in <b>both</b> windows. */
-        public static AdvancementCriterion<Conditions> fullyTrimmed() {
-            return create(NumberRange.IntRange.exactly(2), Optional.empty(), Optional.empty());
+        public static Criterion<Conditions> fullyTrimmed() {
+            return create(MinMaxBounds.Ints.exactly(2), Optional.empty(), Optional.empty());
         }
 
         /** Only counts a plant that kept {@code light} as its {@code condition} all the way to harvest. */
-        public static AdvancementCriterion<Conditions> grownUnder(GrowLight light) {
-            return create(NumberRange.IntRange.ANY, Optional.of(light), Optional.empty());
+        public static Criterion<Conditions> grownUnder(GrowLight light) {
+            return create(MinMaxBounds.Ints.ANY, Optional.of(light), Optional.empty());
         }
 
         /** Only counts a plant whose bed — the block under it — matches {@code bed}. */
-        public static AdvancementCriterion<Conditions> grownIn(BlockPredicate.Builder bed) {
-            return create(NumberRange.IntRange.ANY, Optional.empty(), Optional.of(bed.build()));
+        public static Criterion<Conditions> grownIn(BlockPredicate.Builder bed) {
+            return create(MinMaxBounds.Ints.ANY, Optional.empty(), Optional.of(bed.build()));
         }
 
-        public static AdvancementCriterion<Conditions> create(NumberRange.IntRange cuts, Optional<GrowLight> light,
+        public static Criterion<Conditions> create(MinMaxBounds.Ints cuts, Optional<GrowLight> light,
                                                               Optional<BlockPredicate> bed) {
-            return ModCriteria.HARVEST_HEMP.create(new Conditions(Optional.empty(), cuts, light, bed));
+            return ModCriteria.HARVEST_HEMP.createCriterion(new Conditions(Optional.empty(), cuts, light, bed));
         }
     }
 }

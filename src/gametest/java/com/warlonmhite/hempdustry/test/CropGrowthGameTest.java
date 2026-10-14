@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.block.custom.HempGrowth;
-import net.minecraft.test.TestContext;
+import net.minecraft.gametest.framework.GameTestHelper;
 
 /**
  * The growth roll's odds, asserted as numbers rather than by growing plants and counting — a rate
@@ -13,7 +13,7 @@ import net.minecraft.test.TestContext;
  */
 public final class CropGrowthGameTest {
 
-    public static void growthMultiplierScalesTheOdds(TestContext context) {
+    public static void growthMultiplierScalesTheOdds(GameTestHelper context) {
         // Unchanged at 1.0: vanilla's own odds, floor and all.
         expect(context, 25.0F, 10.0F, 1.0, 1.0F / 3.0F);
         expect(context, 35.0F, 10.0F, 1.0, 1.0F / 4.0F);
@@ -27,10 +27,10 @@ public final class CropGrowthGameTest {
         // Dry ground: exactly nothing. The overflow gave about -1e-9, inside expect's tolerance.
         float dry = HempGrowth.chance(25.0F, 0.0F, 2.0);
         context.assertTrue(dry == 0.0F, "moisture 0: odds " + dry + ", expected exactly 0");
-        context.complete();
+        context.succeed();
     }
 
-    private static void expect(TestContext context, float resistance, float moisture, double multiplier, float odds) {
+    private static void expect(GameTestHelper context, float resistance, float moisture, double multiplier, float odds) {
         float actual = HempGrowth.chance(resistance, moisture, multiplier);
         context.assertTrue(Math.abs(actual - odds) < 1.0E-6F, "resistance " + resistance + ", moisture "
                 + moisture + ", multiplier " + multiplier + ": odds " + actual + ", expected " + odds);

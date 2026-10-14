@@ -1,12 +1,12 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.minecraft.block.BlockState;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 /**
  * The light a hemp plant grew under — a <b>record the plant keeps</b>, never a reading of the lamp
@@ -31,7 +31,7 @@ import net.minecraft.world.BlockView;
  *
  * <p>The constants are in tier order, weakest first, and {@link #afterStep} relies on it.
  */
-public enum GrowLight implements StringIdentifiable {
+public enum GrowLight implements StringRepresentable {
     /** Sun, torches, or nothing counted — the baseline. */
     NATURAL("natural"),
     /** Any other block at light 15: glowstone, sea lantern, shroomlight, froglights, lanterns. */
@@ -43,7 +43,7 @@ public enum GrowLight implements StringIdentifiable {
     /** Lost its lamp while flowering, or stressed some other way ({@link PlantStress}). Harvests a bud short and seeded. */
     STRESSED("stressed");
 
-    public static final EnumProperty<GrowLight> PROPERTY = EnumProperty.of("condition", GrowLight.class);
+    public static final EnumProperty<GrowLight> PROPERTY = EnumProperty.create("condition", GrowLight.class);
 
     /** The age the plant starts flowering at — the age both crops first stand two blocks tall. */
     public static final int FLOWERING_AGE = 4;
@@ -59,7 +59,7 @@ public enum GrowLight implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return this.name;
     }
 
@@ -95,11 +95,11 @@ public enum GrowLight implements StringIdentifiable {
      * blocks tall once grown. A Grow Lamp reaches the 3×3 plants below it; every other light only
      * the plant directly underneath.
      */
-    public static GrowLight over(BlockView world, BlockPos lower, int height) {
+    public static GrowLight over(BlockGetter world, BlockPos lower, int height) {
         GrowLight best = NATURAL;
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
-                GrowLight found = scan(world, lower.add(dx, height, dz));
+                GrowLight found = scan(world, lower.offset(dx, height, dz));
                 if (found == GROW_LAMP) {
                     return GROW_LAMP;
                 }
@@ -112,11 +112,11 @@ public enum GrowLight implements StringIdentifiable {
     }
 
     /** Walks up from {@code from}: light passes glass and plants, and an opaque block stops it. */
-    private static GrowLight scan(BlockView world, BlockPos from) {
+    private static GrowLight scan(BlockGetter world, BlockPos from) {
         for (int i = 0; i < REACH; i++) {
-            BlockState state = world.getBlockState(from.up(i));
+            BlockState state = world.getBlockState(from.above(i));
             GrowLight tier = of(state);
-            if (tier != NATURAL || state.isOpaqueFullCube()) {
+            if (tier != NATURAL || state.isSolidRender()) {
                 return tier;
             }
         }
@@ -131,12 +131,12 @@ public enum GrowLight implements StringIdentifiable {
      * what is bright but is not a light over a plant: campfires, fire, lava.
      */
     public static GrowLight of(BlockState state) {
-        if (state.isIn(ModTags.Blocks.GROW_LAMPS)) {
-            return !state.contains(Properties.LIT) || state.get(Properties.LIT) ? GROW_LAMP : NATURAL;
+        if (state.is(ModTags.Blocks.GROW_LAMPS)) {
+            return !state.hasProperty(BlockStateProperties.LIT) || state.getValue(BlockStateProperties.LIT) ? GROW_LAMP : NATURAL;
         }
-        if (state.getLuminance() < 15 || state.isIn(ModTags.Blocks.NOT_GROW_LIGHTS)) {
+        if (state.getLightEmission() < 15 || state.is(ModTags.Blocks.NOT_GROW_LIGHTS)) {
             return NATURAL;
         }
-        return state.contains(Properties.LIT) ? LAMP : AMBIENT;
+        return state.hasProperty(BlockStateProperties.LIT) ? LAMP : AMBIENT;
     }
 }

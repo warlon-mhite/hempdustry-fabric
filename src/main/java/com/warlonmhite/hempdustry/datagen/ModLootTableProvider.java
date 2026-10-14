@@ -14,41 +14,40 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.loot.ModLootEntryTypes;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
-import net.minecraft.block.BedBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.TallPlantBlock;
-import net.minecraft.block.enums.BedPart;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.item.Item;
-import net.minecraft.loot.LootPool;
-import net.minecraft.loot.LootTable;
-import net.minecraft.loot.condition.AllOfLootCondition;
-import net.minecraft.loot.condition.AnyOfLootCondition;
-import net.minecraft.loot.condition.BlockStatePropertyLootCondition;
-import net.minecraft.loot.condition.LocationCheckLootCondition;
-import net.minecraft.loot.condition.LootCondition;
-import net.minecraft.loot.condition.RandomChanceLootCondition;
-import net.minecraft.loot.entry.ItemEntry;
-import net.minecraft.loot.entry.LeafEntry;
-import net.minecraft.loot.entry.LootPoolEntry;
-import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.loot.function.ApplyBonusLootFunction;
-import net.minecraft.loot.function.CopyComponentsLootFunction;
-import net.minecraft.loot.function.CopyStateLootFunction;
-import net.minecraft.loot.function.SetCountLootFunction;
-import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
-import net.minecraft.predicate.BlockPredicate;
-import net.minecraft.predicate.StatePredicate;
-import net.minecraft.predicate.entity.LocationPredicate;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.advancements.criterion.BlockPredicate;
+import net.minecraft.advancements.criterion.LocationPredicate;
+import net.minecraft.advancements.criterion.StatePropertiesPredicate;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
+import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
+import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
+import net.minecraft.world.level.storage.loot.functions.CopyBlockState;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.predicates.AllOfCondition;
+import net.minecraft.world.level.storage.loot.predicates.AnyOfCondition;
+import net.minecraft.world.level.storage.loot.predicates.LocationCheck;
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -77,39 +76,39 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * still filling drops only itself, as a composter below full does.
      */
     private LootTable.Builder siftingBoxDrops() {
-        return drops(ModBlocks.SIFTING_BOX).pool(LootPool.builder()
-                .rolls(ConstantLootNumberProvider.create(1))
-                .conditionally(siftingBox(StatePredicate.Builder.create()
-                        .exactMatch(SiftingBoxBlock.LEVEL, SiftingBoxBlock.READY_LEVEL)))
-                .with(batch(ModItems.FILTERED_KIEF, StatePredicate.Builder.create()
-                        .exactMatch(SiftingBoxBlock.CONTENT, SiftingBoxBlock.Content.KIEF))
-                        .alternatively(batch(ModItems.BUBBLE_HASH, StatePredicate.Builder.create()
-                                .exactMatch(SiftingBoxBlock.FILLED, true)))
-                        .alternatively(ItemEntry.builder(ModItems.KIEF)
-                                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(SiftingBoxBlock.YIELD))))));
+        return createSingleItemTable(ModBlocks.SIFTING_BOX).withPool(LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1))
+                .when(siftingBox(StatePropertiesPredicate.Builder.properties()
+                        .hasProperty(SiftingBoxBlock.LEVEL, SiftingBoxBlock.READY_LEVEL)))
+                .add(batch(ModItems.FILTERED_KIEF, StatePropertiesPredicate.Builder.properties()
+                        .hasProperty(SiftingBoxBlock.CONTENT, SiftingBoxBlock.Content.KIEF))
+                        .otherwise(batch(ModItems.BUBBLE_HASH, StatePropertiesPredicate.Builder.properties()
+                                .hasProperty(SiftingBoxBlock.FILLED, true)))
+                        .otherwise(LootItem.lootTableItem(ModItems.KIEF)
+                                .apply(SetItemCountFunction.setCount(ConstantValue.exactly(SiftingBoxBlock.YIELD))))));
     }
 
-    private static BlockStatePropertyLootCondition.Builder siftingBox(StatePredicate.Builder state) {
-        return BlockStatePropertyLootCondition.builder(ModBlocks.SIFTING_BOX).properties(state);
+    private static LootItemBlockStatePropertyCondition.Builder siftingBox(StatePropertiesPredicate.Builder state) {
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(ModBlocks.SIFTING_BOX).setProperties(state);
     }
 
-    private static LeafEntry.Builder<?> batch(Item item, StatePredicate.Builder when) {
-        return ItemEntry.builder(item)
-                .conditionally(siftingBox(when))
-                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(SiftingBoxBlock.YIELD)));
+    private static LootPoolSingletonContainer.Builder<?> batch(Item item, StatePropertiesPredicate.Builder when) {
+        return LootItem.lootTableItem(item)
+                .when(siftingBox(when))
+                .apply(SetItemCountFunction.setCount(ConstantValue.exactly(SiftingBoxBlock.YIELD)));
     }
 
     private LootTable.Builder hashishBarDrops(Block bar, Item piece) {
-        LootTable.Builder table = LootTable.builder().pool(LootPool.builder()
-                .rolls(ConstantLootNumberProvider.create(1))
-                .conditionally(cutsExactly(bar, 0))
-                .with(ItemEntry.builder(bar)));
+        LootTable.Builder table = LootTable.lootTable().withPool(LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1))
+                .when(cutsExactly(bar, 0))
+                .add(LootItem.lootTableItem(bar)));
         for (int cuts = 1; cuts <= 4; cuts++) {
-            table.pool(LootPool.builder()
-                    .rolls(ConstantLootNumberProvider.create(1))
-                    .conditionally(cutsExactly(bar, cuts))
-                    .with(ItemEntry.builder(piece).apply(SetCountLootFunction.builder(
-                            ConstantLootNumberProvider.create(HashishBarBlock.remaining(cuts))))));
+            table.withPool(LootPool.lootPool()
+                    .setRolls(ConstantValue.exactly(1))
+                    .when(cutsExactly(bar, cuts))
+                    .add(LootItem.lootTableItem(piece).apply(SetItemCountFunction.setCount(
+                            ConstantValue.exactly(HashishBarBlock.remaining(cuts))))));
         }
         return table;
     }
@@ -119,9 +118,9 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * {@code block_state_property} checks the block as well as the state, and a table pointing at
      * the wrong one would simply never fire and drop nothing at all.
      */
-    private static LootCondition.Builder cutsExactly(Block bar, int cuts) {
-        return BlockStatePropertyLootCondition.builder(bar)
-                .properties(StatePredicate.Builder.create().exactMatch(HashishBarBlock.CUTS, cuts));
+    private static LootItemCondition.Builder cutsExactly(Block bar, int cuts) {
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(bar)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(HashishBarBlock.CUTS, cuts));
     }
 
     /**
@@ -164,84 +163,84 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
     private static final BooleanProperty[] LEAVES_TAKEN =
             {Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED};
 
-    public ModLootTableProvider(FabricDataOutput dataOutput, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
+    public ModLootTableProvider(FabricDataOutput dataOutput, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(dataOutput, registryLookup);
     }
 
     @Override
     public void generate() {
-        addDrop(ModBlocks.HEMP_BRICKS_BLOCK);
-        addDrop(ModBlocks.HEMP_BRICKS_SLAB,slabDrops(ModBlocks.HEMP_BRICKS_SLAB));
-        addDrop(ModBlocks.HEMP_BRICKS_STAIRS);
-        addDrop(ModBlocks.HEMP_BRICKS_WALL);
-        addDrop(ModBlocks.HEMP_PLANKS);
-        addDrop(ModBlocks.HEMP_PLANKS_SLAB, slabDrops(ModBlocks.HEMP_PLANKS_SLAB));
-        addDrop(ModBlocks.HEMP_PLANKS_STAIRS);
-        addDrop(ModBlocks.HEMP_PLANKS_BUTTON);
-        addDrop(ModBlocks.HEMP_PLANKS_DOOR, doorDrops((ModBlocks.HEMP_PLANKS_DOOR)));
-        addDrop(ModBlocks.HEMP_PLANKS_FENCE);
+        dropSelf(ModBlocks.HEMP_BRICKS_BLOCK);
+        add(ModBlocks.HEMP_BRICKS_SLAB,createSlabItemTable(ModBlocks.HEMP_BRICKS_SLAB));
+        dropSelf(ModBlocks.HEMP_BRICKS_STAIRS);
+        dropSelf(ModBlocks.HEMP_BRICKS_WALL);
+        dropSelf(ModBlocks.HEMP_PLANKS);
+        add(ModBlocks.HEMP_PLANKS_SLAB, createSlabItemTable(ModBlocks.HEMP_PLANKS_SLAB));
+        dropSelf(ModBlocks.HEMP_PLANKS_STAIRS);
+        dropSelf(ModBlocks.HEMP_PLANKS_BUTTON);
+        add(ModBlocks.HEMP_PLANKS_DOOR, createDoorTable((ModBlocks.HEMP_PLANKS_DOOR)));
+        dropSelf(ModBlocks.HEMP_PLANKS_FENCE);
         // Missing until 2.0.2: a block with no table of its own drops nothing at all.
-        addDrop(ModBlocks.HEMP_PLANKS_TRAPDOOR);
-        addDrop(ModBlocks.HEMP_PLANKS_FENCE_GATE);
-        addDrop(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
-        addDrop(ModBlocks.HEMP_PLANKS_SHELF);
-        addDrop(ModBlocks.HEMP_PARQUET);
-        addDrop(ModBlocks.HEMP_PARQUET_STAIRS);
-        addDrop(ModBlocks.HEMP_PARQUET_SLAB, slabDrops(ModBlocks.HEMP_PARQUET_SLAB));
-        addDrop(ModBlocks.HEMPCRETE_BLOCK);
-        addDrop(ModBlocks.HEMPCRETE_POWDER_BLOCK);
-        addDrop(ModBlocks.HEMP_BALE);
-        addDrop(ModBlocks.HEMP_LEAVES);
-        addDrop(ModBlocks.HEMP_WOOL);
-        addDrop(ModBlocks.HEMP_CARPET);
+        dropSelf(ModBlocks.HEMP_PLANKS_TRAPDOOR);
+        dropSelf(ModBlocks.HEMP_PLANKS_FENCE_GATE);
+        dropSelf(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
+        dropSelf(ModBlocks.HEMP_PLANKS_SHELF);
+        dropSelf(ModBlocks.HEMP_PARQUET);
+        dropSelf(ModBlocks.HEMP_PARQUET_STAIRS);
+        add(ModBlocks.HEMP_PARQUET_SLAB, createSlabItemTable(ModBlocks.HEMP_PARQUET_SLAB));
+        dropSelf(ModBlocks.HEMPCRETE_BLOCK);
+        dropSelf(ModBlocks.HEMPCRETE_POWDER_BLOCK);
+        dropSelf(ModBlocks.HEMP_BALE);
+        dropSelf(ModBlocks.HEMP_LEAVES);
+        dropSelf(ModBlocks.HEMP_WOOL);
+        dropSelf(ModBlocks.HEMP_CARPET);
         // Two halves, one bed: vanilla's beds drop from the head half only, and so does this one.
-        addDrop(ModBlocks.HEMP_BED, dropsWithProperty(ModBlocks.HEMP_BED, BedBlock.PART, BedPart.HEAD));
+        add(ModBlocks.HEMP_BED, createSinglePropConditionTable(ModBlocks.HEMP_BED, BedBlock.PART, BedPart.HEAD));
         // Empty, exactly like vanilla's cake: you cannot pick a cake back up once it is placed.
         // Vanilla still ships a loot table file for it rather than omitting one, so we do too.
-        addDrop(ModBlocks.SPACE_CAKE, LootTable.builder());
+        add(ModBlocks.SPACE_CAKE, LootTable.lootTable());
         // Each machine's block entity scatters its own contents when the block goes, so the loot
         // table only has to hand back the machine itself. Vanilla's furnace drop: the machine,
         // carrying the name an anvil gave it (NamedMachineBlockEntity keeps it while the machine
         // stands).
-        addDrop(ModBlocks.DECARBOXYLATOR, nameableContainerDrops(ModBlocks.DECARBOXYLATOR));
-        addDrop(ModBlocks.INFUSER, nameableContainerDrops(ModBlocks.INFUSER));
-        addDrop(ModBlocks.SIFTING_BOX, siftingBoxDrops());
-        addDrop(ModBlocks.HEMP_PRESS, nameableContainerDrops(ModBlocks.HEMP_PRESS));
-        addDrop(ModBlocks.GROW_LAMP);
-        addDrop(ModBlocks.GROW_POT, growPotDrops());
+        add(ModBlocks.DECARBOXYLATOR, createNameableBlockEntityTable(ModBlocks.DECARBOXYLATOR));
+        add(ModBlocks.INFUSER, createNameableBlockEntityTable(ModBlocks.INFUSER));
+        add(ModBlocks.SIFTING_BOX, siftingBoxDrops());
+        add(ModBlocks.HEMP_PRESS, createNameableBlockEntityTable(ModBlocks.HEMP_PRESS));
+        dropSelf(ModBlocks.GROW_LAMP);
+        add(ModBlocks.GROW_POT, growPotDrops());
         // The tray drops empty — you drain a reservoir before you move it — so it needs no
         // copy_state, unlike the pot, which keeps its soil.
-        addDrop(ModBlocks.HYDRO_TRAY);
+        dropSelf(ModBlocks.HYDRO_TRAY);
         // A placed bong is the device itself, set down: it drops that device back, carrying every
         // component the block entity kept (durability, enchantments, a name). Explosions still
         // break it the way they break a flower pot, because it is glass.
         for (Block bong : ModBlocks.DEVICE_BLOCKS.values()) {
-            addDrop(bong, LootTable.builder().pool(addSurvivesExplosionCondition(bong, LootPool.builder()
-                    .rolls(ConstantLootNumberProvider.create(1))
-                    .with(ItemEntry.builder(bong.asItem())
-                            .apply(CopyComponentsLootFunction.blockEntity(LootContextParameters.BLOCK_ENTITY))))));
+            add(bong, LootTable.lootTable().withPool(applyExplosionCondition(bong, LootPool.lootPool()
+                    .setRolls(ConstantValue.exactly(1))
+                    .add(LootItem.lootTableItem(bong.asItem())
+                            .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY))))));
         }
-        addDrop(ModBlocks.CHARAS_BALL);
-        addDrop(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
-        addDrop(ModBlocks.FILTERED_HASHISH_BAR,
+        dropSelf(ModBlocks.CHARAS_BALL);
+        add(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
+        add(ModBlocks.FILTERED_HASHISH_BAR,
                 hashishBarDrops(ModBlocks.FILTERED_HASHISH_BAR, ModItems.FILTERED_HASHISH));
 
         // Wall sign / wall hanging sign share the standing block's loot table (see ModBlocks#dropsLike),
-        // so they must not get their own addDrop call here.
-        addDrop(ModBlocks.HEMP_PLANKS_SIGN);
-        addDrop(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
+        // so they must not get their own dropSelf call here.
+        dropSelf(ModBlocks.HEMP_PLANKS_SIGN);
+        dropSelf(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
 
-        addDrop(ModBlocks.INDICA_CROP, indicaCropDrops());
-        addDrop(ModBlocks.BELDIA_CROP, beldiaCropDrops());
-        addDrop(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
+        add(ModBlocks.INDICA_CROP, indicaCropDrops());
+        add(ModBlocks.BELDIA_CROP, beldiaCropDrops());
+        add(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
 
-        addDrop(ModBlocks.SATIVA_CROP, sativaCropDrops());
-        addDrop(ModBlocks.SATIVA_FLOWER, sativaFlowerDrops());
+        add(ModBlocks.SATIVA_CROP, sativaCropDrops());
+        add(ModBlocks.SATIVA_FLOWER, sativaFlowerDrops());
         // The pot and the plant back, as every vanilla potted plant gives. Copying a potted allium's
         // settings does not bring its table along -- a block reads the table under its own id -- so
         // both pots dropped nothing until 2.0.2.
-        addPottedPlantDrops(ModBlocks.POTTED_INDICA_FLOWER);
-        addPottedPlantDrops(ModBlocks.POTTED_SATIVA_FLOWER);
+        dropPottedContents(ModBlocks.POTTED_INDICA_FLOWER);
+        dropPottedContents(ModBlocks.POTTED_SATIVA_FLOWER);
     }
 
     /**
@@ -250,11 +249,11 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * the crop's seeds (base 1 + binomial(fortuneLevel + 3, 0.40)).
      */
     private LootTable.Builder indicaFlowerDrops() {
-        RegistryEntry<Enchantment> fortune = this.registries.getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
-        return this.dropsWithSilkTouchOrShears(ModBlocks.INDICA_FLOWER,
+        Holder<Enchantment> fortune = this.registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        return this.createSilkTouchOrShearsDispatchTable(ModBlocks.INDICA_FLOWER,
                 this.applyExplosionDecay(ModBlocks.INDICA_FLOWER,
-                        ItemEntry.builder(ModItems.INDICA_SEEDS)
-                                .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))));
+                        LootItem.lootTableItem(ModItems.INDICA_SEEDS)
+                                .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.40F, 3))));
     }
 
     /**
@@ -264,7 +263,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      */
     private LootTable.Builder indicaCropDrops() {
         return this.hempCropDrops(ModBlocks.INDICA_CROP,
-                () -> StatePredicate.Builder.create().exactMatch(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
                 IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
                 ModItems.INDICA_BUDS, ModItems.INDICA_SEEDS,
                 5, 2);
@@ -301,104 +300,104 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * throws instead. Lemon Haze sits exactly on it: worked all three ways, its base is zero and
      * only Fortune's bonus remains.
      */
-    private LootTable.Builder hempCropDrops(Block crop, Supplier<StatePredicate.Builder> lowerPredicate,
-                                            IntProperty ageProperty, int maxAge,
+    private LootTable.Builder hempCropDrops(Block crop, Supplier<StatePropertiesPredicate.Builder> lowerPredicate,
+                                            IntegerProperty ageProperty, int maxAge,
                                             Item buds, Item seeds,
                                             int leavesAtZeroCuts, int stemCount) {
         if (leavesAtZeroCuts < LEAVES_TAKEN.length) {
             throw new IllegalArgumentException(crop + " has " + leavesAtZeroCuts + " leaves at harvest,"
                     + " fewer than the " + LEAVES_TAKEN.length + " a player can take off it while it grows");
         }
-        RegistryWrapper.Impl<Enchantment> enchantments = this.registries.getOrThrow(RegistryKeys.ENCHANTMENT);
-        RegistryEntry<Enchantment> fortune = enchantments.getOrThrow(Enchantments.FORTUNE);
+        HolderLookup.RegistryLookup<Enchantment> enchantments = this.registries.lookupOrThrow(Registries.ENCHANTMENT);
+        Holder<Enchantment> fortune = enchantments.getOrThrow(Enchantments.FORTUNE);
 
-        LootCondition.Builder isLower = BlockStatePropertyLootCondition.builder(crop)
-                .properties(lowerPredicate.get());
-        LootCondition.Builder isMatureLower = BlockStatePropertyLootCondition.builder(crop)
-                .properties(lowerPredicate.get().exactMatch(ageProperty, maxAge));
+        LootItemCondition.Builder isLower = LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop)
+                .setProperties(lowerPredicate.get());
+        LootItemCondition.Builder isMatureLower = LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop)
+                .setProperties(lowerPredicate.get().hasProperty(ageProperty, maxAge));
 
         // The three cut buckets, which drive the buds. "One cut" is the only one that needs an OR,
         // because it is reached by two different paths: the player caught the early window, or only
         // the late one.
-        LootCondition.Builder zeroCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 0, TRIMS);
-        LootCondition.Builder oneCut = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 1, TRIMS);
-        LootCondition.Builder twoCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, TRIMS);
-        LootCondition.Builder stressed = grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.STRESSED);
-        LootCondition.Builder inABed = LocationCheckLootCondition.builder(
-                LocationPredicate.Builder.create().block(BlockPredicate.Builder.create()
-                        .blocks(this.registries.getOrThrow(RegistryKeys.BLOCK),
+        LootItemCondition.Builder zeroCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 0, TRIMS);
+        LootItemCondition.Builder oneCut = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 1, TRIMS);
+        LootItemCondition.Builder twoCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, TRIMS);
+        LootItemCondition.Builder stressed = grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.STRESSED);
+        LootItemCondition.Builder inABed = LocationCheck.checkLocation(
+                LocationPredicate.Builder.location().setBlock(BlockPredicate.Builder.block()
+                        .of(this.registries.lookupOrThrow(Registries.BLOCK),
                                 ModBlocks.GROW_POT, ModBlocks.HYDRO_TRAY)),
                 new BlockPos(0, -1, 0));
 
         return this.applyExplosionDecay(crop,
-                LootTable.builder()
+                LootTable.lootTable()
                         // Buds when mature — more of them the more the plant was trimmed. Falls
                         // through to a single seed when the plant isn't mature yet.
-                        .pool(LootPool.builder()
-                                .conditionally(isLower)
+                        .withPool(LootPool.lootPool()
+                                .when(isLower)
                                 // A STRESSED plant first: one bud short of whatever its trims earned,
                                 // and every bud it keeps may have gone to schwag. Every other ripe
                                 // plant risks the poisonous potato's one bad item, which any Fortune
                                 // clears. See SCHWAG_*_CHANCES.
-                                .with(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS - 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfLootCondition.builder(zeroCuts, stressed), fortune)
-                                        .alternatively(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfLootCondition.builder(oneCut, stressed), fortune))
-                                        .alternatively(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfLootCondition.builder(twoCuts, stressed), fortune))
-                                        .alternatively(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), zeroCuts, fortune))
-                                        .alternatively(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), oneCut, fortune))
-                                        .alternatively(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), twoCuts, fortune))
-                                        .alternatively(ItemEntry.builder(seeds))))
+                                .add(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS - 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, stressed), fortune)
+                                        .otherwise(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, stressed), fortune))
+                                        .otherwise(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, stressed), fortune))
+                                        .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), zeroCuts, fortune))
+                                        .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), oneCut, fortune))
+                                        .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), twoCuts, fortune))
+                                        .otherwise(LootItem.lootTableItem(seeds))))
                         // Hemp leaf when mature — one fewer for every leaf already taken off the
                         // plant while it grew: both trims AND the rub, so four buckets, not three.
-                        .pool(LootPool.builder()
-                                .conditionally(isMatureLower)
-                                .with(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts,
+                        .withPool(LootPool.lootPool()
+                                .when(isMatureLower)
+                                .add(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts,
                                                 workedBucket(crop, lowerPredicate, ageProperty, maxAge, 0, LEAVES_TAKEN), fortune, 0.30F, 3)
-                                        .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 1,
+                                        .otherwise(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 1,
                                                 workedBucket(crop, lowerPredicate, ageProperty, maxAge, 1, LEAVES_TAKEN), fortune, 0.30F, 3))
-                                        .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 2,
+                                        .otherwise(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 2,
                                                 workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, LEAVES_TAKEN), fortune, 0.30F, 3))
-                                        .alternatively(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 3,
+                                        .otherwise(scaledEntry(ModItems.HEMP_LEAF, leavesAtZeroCuts - 3,
                                                 workedBucket(crop, lowerPredicate, ageProperty, maxAge, 3, LEAVES_TAKEN), fortune, 0.30F, 3))))
                         // The light it grew under: +2 buds under a Grow Lamp, +1 under any lit lamp, and
                         // an even chance of +1 under any other light-15 block. See GrowLight.
-                        .pool(LootPool.builder()
-                                .conditionally(isMatureLower)
-                                .with(fixedEntry(buds, GROW_LAMP_BUDS, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.GROW_LAMP))
-                                        .alternatively(fixedEntry(buds, LAMP_BUDS, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.LAMP)))
-                                        .alternatively(fixedEntry(buds, 1, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.AMBIENT))
-                                                .conditionally(RandomChanceLootCondition.builder(AMBIENT_BUD_CHANCE)))))
+                        .withPool(LootPool.lootPool()
+                                .when(isMatureLower)
+                                .add(fixedEntry(buds, GROW_LAMP_BUDS, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.GROW_LAMP))
+                                        .otherwise(fixedEntry(buds, LAMP_BUDS, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.LAMP)))
+                                        .otherwise(fixedEntry(buds, 1, grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.AMBIENT))
+                                                .when(LootItemRandomChanceCondition.randomChance(AMBIENT_BUD_CHANCE)))))
                         // A leaf for any lit lamp. The Grow Lamp's larger share comes during growth
                         // instead, a second leaf on each trim (Defoliation#tryCut).
-                        .pool(LootPool.builder()
-                                .conditionally(isMatureLower)
-                                .conditionally(AnyOfLootCondition.builder(
+                        .withPool(LootPool.lootPool()
+                                .when(isMatureLower)
+                                .when(AnyOfCondition.anyOf(
                                         grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.GROW_LAMP),
                                         grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.LAMP)))
-                                .with(ItemEntry.builder(ModItems.HEMP_LEAF)))
+                                .add(LootItem.lootTableItem(ModItems.HEMP_LEAF)))
                         // A STRESSED plant went hermaphrodite and seeded its own buds.
-                        .pool(LootPool.builder()
-                                .conditionally(stressed)
-                                .with(ItemEntry.builder(seeds)
-                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) STRESSED_SEEDS)))))
+                        .withPool(LootPool.lootPool()
+                                .when(stressed)
+                                .add(LootItem.lootTableItem(seeds)
+                                        .apply(SetItemCountFunction.setCount(ConstantValue.exactly((float) STRESSED_SEEDS)))))
                         // Seeds when mature. Identical across strains, so replanting either costs the same.
-                        .pool(LootPool.builder()
-                                .conditionally(isMatureLower)
-                                .with(ItemEntry.builder(seeds)
-                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create(3.0F)))
-                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))
+                        .withPool(LootPool.lootPool()
+                                .when(isMatureLower)
+                                .add(LootItem.lootTableItem(seeds)
+                                        .apply(SetItemCountFunction.setCount(ConstantValue.exactly(3.0F)))
+                                        .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.40F, 3))))
                         // Hemp stem when mature. Unaffected by trimming — but one short in any bed of
                         // ours: a plant with its roots boxed in (a pot's soil, a tray's net pot) grows a
                         // thinner stalk, and fibre hemp is a field crop. Read off the block underneath,
                         // so it needs no state of its own.
-                        .pool(LootPool.builder()
-                                .conditionally(isMatureLower)
-                                .with(ItemEntry.builder(ModItems.HEMP_STEM)
-                                        .conditionally(inABed)
-                                        .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) (stemCount - 1))))
-                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3))
-                                        .alternatively(ItemEntry.builder(ModItems.HEMP_STEM)
-                                                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) stemCount)))
-                                                .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.30F, 3))))));
+                        .withPool(LootPool.lootPool()
+                                .when(isMatureLower)
+                                .add(LootItem.lootTableItem(ModItems.HEMP_STEM)
+                                        .when(inABed)
+                                        .apply(SetItemCountFunction.setCount(ConstantValue.exactly((float) (stemCount - 1))))
+                                        .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.30F, 3))
+                                        .otherwise(LootItem.lootTableItem(ModItems.HEMP_STEM)
+                                                .apply(SetItemCountFunction.setCount(ConstantValue.exactly((float) stemCount)))
+                                                .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.30F, 3))))));
     }
 
     /**
@@ -409,29 +408,29 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * <p>Every bucket names <b>every</b> flag in the list, so the buckets for one list are mutually
      * exclusive and cover all of its combinations: a plant cannot match two and fall through none.
      */
-    private static LootCondition.Builder workedBucket(Block crop, Supplier<StatePredicate.Builder> lowerPredicate,
-                                                      IntProperty ageProperty, int maxAge,
+    private static LootItemCondition.Builder workedBucket(Block crop, Supplier<StatePropertiesPredicate.Builder> lowerPredicate,
+                                                      IntegerProperty ageProperty, int maxAge,
                                                       int count, BooleanProperty[] flags) {
-        List<LootCondition.Builder> paths = new ArrayList<>();
+        List<LootItemCondition.Builder> paths = new ArrayList<>();
         for (int set = 0; set < 1 << flags.length; set++) {
             if (Integer.bitCount(set) != count) {
                 continue;
             }
-            StatePredicate.Builder state = lowerPredicate.get().exactMatch(ageProperty, maxAge);
+            StatePropertiesPredicate.Builder state = lowerPredicate.get().hasProperty(ageProperty, maxAge);
             for (int i = 0; i < flags.length; i++) {
-                state.exactMatch(flags[i], (set & 1 << i) != 0);
+                state.hasProperty(flags[i], (set & 1 << i) != 0);
             }
-            paths.add(BlockStatePropertyLootCondition.builder(crop).properties(state));
+            paths.add(LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop).setProperties(state));
         }
         return paths.size() == 1 ? paths.get(0)
-                : AnyOfLootCondition.builder(paths.toArray(LootCondition.Builder[]::new));
+                : AnyOfCondition.anyOf(paths.toArray(LootItemCondition.Builder[]::new));
     }
 
     /** "This plant is a mature LOWER that grew under {@code light}." */
-    private static LootCondition.Builder grewUnder(Block crop, Supplier<StatePredicate.Builder> lowerPredicate,
-                                                   IntProperty ageProperty, int maxAge, GrowLight light) {
-        return BlockStatePropertyLootCondition.builder(crop)
-                .properties(lowerPredicate.get().exactMatch(ageProperty, maxAge).exactMatch(GrowLight.PROPERTY, light));
+    private static LootItemCondition.Builder grewUnder(Block crop, Supplier<StatePropertiesPredicate.Builder> lowerPredicate,
+                                                   IntegerProperty ageProperty, int maxAge, GrowLight light) {
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop)
+                .setProperties(lowerPredicate.get().hasProperty(ageProperty, maxAge).hasProperty(GrowLight.PROPERTY, light));
     }
 
     /**
@@ -439,10 +438,10 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * time. Only the main bud pool is wrapped, and exactly one of its alternatives fires, so that is
      * the odds per plant; the light ladder's bonus buds are never spoiled.
      */
-    private static LootPoolEntry.Builder<?> healthyBuds(LeafEntry.Builder<?> buds, LootCondition.Builder bucket,
-                                                       RegistryEntry<Enchantment> fortune) {
+    private static LootPoolEntryContainer.Builder<?> healthyBuds(LootPoolSingletonContainer.Builder<?> buds, LootItemCondition.Builder bucket,
+                                                       Holder<Enchantment> fortune) {
         return ModLootEntryTypes.SpoilingEntry.builder(buds, ModItems.SCHWAG)
-                .conditionally(bucket)
+                .when(bucket)
                 .enchantment(fortune)
                 .oneItem(HEALTHY_SCHWAG_CHANCES);
     }
@@ -455,19 +454,19 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * the chain's own children. With them on the buds, every later alternative was reported as an
      * "Unreachable entry!" — three warnings at every world load, though the drops were right.
      */
-    private static LootPoolEntry.Builder<?> stressedBuds(LeafEntry.Builder<?> buds, LootCondition.Builder bucket,
-                                                        RegistryEntry<Enchantment> fortune) {
+    private static LootPoolEntryContainer.Builder<?> stressedBuds(LootPoolSingletonContainer.Builder<?> buds, LootItemCondition.Builder bucket,
+                                                        Holder<Enchantment> fortune) {
         return ModLootEntryTypes.SpoilingEntry.builder(buds, ModItems.SCHWAG)
-                .conditionally(bucket)
+                .when(bucket)
                 .enchantment(fortune)
                 .eachItem(STRESSED_SCHWAG_CHANCES);
     }
 
     /** A flat bonus: no Fortune, which already scales the plant's own drops. */
-    private static LeafEntry.Builder<?> fixedEntry(Item item, int count, LootCondition.Builder condition) {
-        return ItemEntry.builder(item)
-                .conditionally(condition)
-                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) count)));
+    private static LootPoolSingletonContainer.Builder<?> fixedEntry(Item item, int count, LootItemCondition.Builder condition) {
+        return LootItem.lootTableItem(item)
+                .when(condition)
+                .apply(SetItemCountFunction.setCount(ConstantValue.exactly((float) count)));
     }
 
     /**
@@ -475,28 +474,28 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * stacks with a freshly crafted one — both are empty.
      */
     private LootTable.Builder growPotDrops() {
-        return LootTable.builder().pool(LootPool.builder()
-                .rolls(ConstantLootNumberProvider.create(1.0F))
-                .with(ItemEntry.builder(ModBlocks.GROW_POT)
-                        .conditionally(BlockStatePropertyLootCondition.builder(ModBlocks.GROW_POT)
-                                .properties(StatePredicate.Builder.create().exactMatch(GrowPotBlock.FERTILITY, 0)))
-                        .alternatively(ItemEntry.builder(ModBlocks.GROW_POT)
-                                .apply(CopyStateLootFunction.builder(ModBlocks.GROW_POT).addProperty(GrowPotBlock.FERTILITY)))));
+        return LootTable.lootTable().withPool(LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .add(LootItem.lootTableItem(ModBlocks.GROW_POT)
+                        .when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(ModBlocks.GROW_POT)
+                                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(GrowPotBlock.FERTILITY, 0)))
+                        .otherwise(LootItem.lootTableItem(ModBlocks.GROW_POT)
+                                .apply(CopyBlockState.copyState(ModBlocks.GROW_POT).copy(GrowPotBlock.FERTILITY)))));
     }
 
     /** A fixed-count drop gated on one cut bucket, with the usual Fortune bonus on top. */
-    private static LeafEntry.Builder<?> scaledEntry(Item item, int count, LootCondition.Builder bucket,
-                                                    RegistryEntry<Enchantment> fortune,
+    private static LootPoolSingletonContainer.Builder<?> scaledEntry(Item item, int count, LootItemCondition.Builder bucket,
+                                                    Holder<Enchantment> fortune,
                                                     float fortuneChance, int fortuneExtra) {
-        return scaledCount(item, count, fortune, fortuneChance, fortuneExtra).conditionally(bucket);
+        return scaledCount(item, count, fortune, fortuneChance, fortuneExtra).when(bucket);
     }
 
     /** The same drop with no condition of its own, for a wrapper that carries it (the buds). */
-    private static LeafEntry.Builder<?> scaledCount(Item item, int count, RegistryEntry<Enchantment> fortune,
+    private static LootPoolSingletonContainer.Builder<?> scaledCount(Item item, int count, Holder<Enchantment> fortune,
                                                     float fortuneChance, int fortuneExtra) {
-        return ItemEntry.builder(item)
-                .apply(SetCountLootFunction.builder(ConstantLootNumberProvider.create((float) count)))
-                .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, fortuneChance, fortuneExtra));
+        return LootItem.lootTableItem(item)
+                .apply(SetItemCountFunction.setCount(ConstantValue.exactly((float) count)))
+                .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, fortuneChance, fortuneExtra));
     }
 
     /**
@@ -514,17 +513,17 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * uses, and the same one {@code hempCropDrops} applies through {@code isLower}.
      */
     private LootTable.Builder sativaFlowerDrops() {
-        RegistryEntry<Enchantment> fortune = this.registries.getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
-        LootCondition.Builder isLower = BlockStatePropertyLootCondition.builder(ModBlocks.SATIVA_FLOWER)
-                .properties(StatePredicate.Builder.create().exactMatch(TallPlantBlock.HALF, DoubleBlockHalf.LOWER));
-        return LootTable.builder().pool(LootPool.builder()
-                .rolls(ConstantLootNumberProvider.create(1.0F))
-                .conditionally(isLower)
-                .with(ItemEntry.builder(ModBlocks.SATIVA_FLOWER)
-                        .conditionally(this.createWithShearsCondition().or(this.createSilkTouchCondition()))
-                        .alternatively(this.applyExplosionDecay(ModBlocks.SATIVA_FLOWER,
-                                ItemEntry.builder(ModItems.SATIVA_SEEDS)
-                                        .apply(ApplyBonusLootFunction.binomialWithBonusCount(fortune, 0.40F, 3))))));
+        Holder<Enchantment> fortune = this.registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        LootItemCondition.Builder isLower = LootItemBlockStatePropertyCondition.hasBlockStateProperties(ModBlocks.SATIVA_FLOWER)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(DoublePlantBlock.HALF, DoubleBlockHalf.LOWER));
+        return LootTable.lootTable().withPool(LootPool.lootPool()
+                .setRolls(ConstantValue.exactly(1.0F))
+                .when(isLower)
+                .add(LootItem.lootTableItem(ModBlocks.SATIVA_FLOWER)
+                        .when(this.hasShears().or(this.hasSilkTouch()))
+                        .otherwise(this.applyExplosionDecay(ModBlocks.SATIVA_FLOWER,
+                                LootItem.lootTableItem(ModItems.SATIVA_SEEDS)
+                                        .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.40F, 3))))));
     }
 
     /**
@@ -537,7 +536,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      */
     private LootTable.Builder beldiaCropDrops() {
         return this.hempCropDrops(ModBlocks.BELDIA_CROP,
-                () -> StatePredicate.Builder.create().exactMatch(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
                 IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
                 ModItems.BELDIA_BUDS, ModItems.BELDIA_SEEDS,
                 5, 1);
@@ -555,7 +554,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      */
     private LootTable.Builder sativaCropDrops() {
         return this.hempCropDrops(ModBlocks.SATIVA_CROP,
-                () -> StatePredicate.Builder.create().exactMatch(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER),
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(SativaCropBlock.SEGMENT, TriplePlantSegment.LOWER),
                 SativaCropBlock.AGE, SativaCropBlock.MAX_AGE,
                 ModItems.SATIVA_BUDS, ModItems.SATIVA_SEEDS,
                 3, 4);

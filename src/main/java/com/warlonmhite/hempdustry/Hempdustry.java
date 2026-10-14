@@ -29,11 +29,11 @@ import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityT
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
-import net.minecraft.block.BedBlock;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.enums.BedPart;
-import net.minecraft.registry.Registries;
-import net.minecraft.world.poi.PointOfInterestTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,9 +147,9 @@ public class Hempdustry implements ModInitializer {
 
 		// A villager's home is any bed head, the way vanilla lists its own sixteen.
 		PointOfInterestTypesAccessor.hempdustry$registerStates(
-				Registries.POINT_OF_INTEREST_TYPE.getOrThrow(PointOfInterestTypes.HOME),
-				ModBlocks.HEMP_BED.getStateManager().getStates().stream()
-						.filter(state -> state.get(BedBlock.PART) == BedPart.HEAD)
+				BuiltInRegistries.POINT_OF_INTEREST_TYPE.getOrThrow(PoiTypes.HOME),
+				ModBlocks.HEMP_BED.getStateDefinition().getPossibleStates().stream()
+						.filter(state -> state.getValue(BedBlock.PART) == BedPart.HEAD)
 						.collect(Collectors.toUnmodifiableSet()));
 	}
 

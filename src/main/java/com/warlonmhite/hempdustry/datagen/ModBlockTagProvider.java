@@ -5,21 +5,20 @@ import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.BlockTags;
-
+import net.minecraft.core.HolderLookup;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
 import java.util.concurrent.CompletableFuture;
 
 public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
-    public ModBlockTagProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+    public ModBlockTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
     @Override
-    protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
+    protected void addTags(HolderLookup.Provider wrapperLookup) {
         // Without this, farmland that dries out (no water within 4 blocks, no rain) reverts to dirt
-        // *even though a crop is standing on it* — FarmlandBlock's "is there still a crop here?"
+        // *even though a crop is standing on it* — FarmBlock's "is there still a crop here?"
         // check is this tag, not "is this a CropBlock" — and the unsupported plant then pops off.
         // Vanilla lists every one of its crops here; ours have to opt in the same way.
         valueLookupBuilder(BlockTags.MAINTAINS_FARMLAND)
@@ -31,7 +30,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // includes it, which is exactly what we're after: a bee carrying pollen that flies over a
         // hemp plant fertilises it, same as it would wheat.
         //
-        // Requires the crops' isMature() override to be in place, or bees decapitate tall plants —
+        // Requires the crops' isMaxAge() override to be in place, or bees decapitate tall plants —
         // see IndicaCropBlock#isMature for why.
         // Beldía joins for the bees and nothing else: it never stands on farmland, so it stays out of
         // #minecraft:maintains_farmland above.
@@ -62,7 +61,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // #minecraft:small_flowers, and that is the whole point of the entry:
         //
         //   #minecraft:small_flowers is included by #minecraft:flowers, and #minecraft:flowers is
-        //   what BeeEntity reads to decide what counts as a flower (verified in the 1.21.1 jar --
+        //   what Bee reads to decide what counts as a flower (verified in the 1.21.1 jar --
         //   findFlower and the pollination check both test it). Joining the umbrella would hand bees
         //   the wild flower, and bees are meant to work on the CROP, which is already in
         //   #minecraft:crops and therefore #minecraft:bee_growables. The wild flower is worldgen
@@ -142,7 +141,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // smelting recipe, and nine hemp leaves for one leaf litter is a trade nobody asked for.
         valueLookupBuilder(BlockTags.LEAVES).add(ModBlocks.HEMP_LEAVES);
 
-        valueLookupBuilder(BlockTags.PICKAXE_MINEABLE)
+        valueLookupBuilder(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(ModBlocks.HEMPCRETE_BLOCK)
                 .add(ModBlocks.DECARBOXYLATOR)
                 .add(ModBlocks.INFUSER)
@@ -160,7 +159,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(Blocks.LAVA)
                 .add(Blocks.LAVA_CAULDRON);
 
-        valueLookupBuilder(BlockTags.SHOVEL_MINEABLE)
+        valueLookupBuilder(BlockTags.MINEABLE_WITH_SHOVEL)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK);
 
         // The bale is a copy of hay in every other respect and hay is hoe-mineable. It was in no
@@ -170,10 +169,10 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // is deliberately not, and that was a decision rather than an oversight — the mod feeds
         // goats hemp leaf and nothing else, and a bale that feeds horses would start it down the
         // "hemp is a worse wheat for every farm animal" road that goat_food was scoped to avoid.
-        valueLookupBuilder(BlockTags.HOE_MINEABLE)
+        valueLookupBuilder(BlockTags.MINEABLE_WITH_HOE)
                 .add(ModBlocks.HEMP_BALE);
 
-        valueLookupBuilder(BlockTags.AXE_MINEABLE)
+        valueLookupBuilder(BlockTags.MINEABLE_WITH_AXE)
                 // The Sifting Box is a wooden crate and vanilla's composter — the block it copies —
                 // is axe-mineable, so leaving it out meant no tool sped it up at all.
                 .add(ModBlocks.SIFTING_BOX)
@@ -232,7 +231,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         //   FenceBlock#canConnectToFence requires *matching* WOODEN_FENCES membership on both sides.
         //     The fence used to join #minecraft:fences directly, which made it read as a non-wooden
         //     fence: it refused to connect to oak and connected to nether brick fence instead.
-        //   LandPathNodeMaker gives #minecraft:trapdoors its own PathNodeType, and FallLocation
+        //   WalkNodeEvaluator gives #minecraft:trapdoors its own PathType, and FallLocation
         //     reads the same tag for the fall death message.
         //   MoveControl suppresses its jump-at-obstacle reflex for #minecraft:doors, so without it
         //     a mob walking into a hemp door bounces off it instead of pathing.

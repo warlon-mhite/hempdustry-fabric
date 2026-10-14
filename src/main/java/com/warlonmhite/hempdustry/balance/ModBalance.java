@@ -2,10 +2,9 @@ package com.warlonmhite.hempdustry.balance;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
-
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceKey;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +27,7 @@ public final class ModBalance {
     private ModBalance() {
     }
 
-    private static final Set<RegistryKey<?>> WARNED = ConcurrentHashMap.newKeySet();
+    private static final Set<ResourceKey<?>> WARNED = ConcurrentHashMap.newKeySet();
 
     /**
      * Synced, like the strains: the creative tab and the recipe viewers show the bowls the server
@@ -46,10 +45,10 @@ public final class ModBalance {
      * files are always loaded, so a miss means its data pack was switched off. The game carries on
      * with the numbers the mod shipped with, and says so once rather than on every hit.
      */
-    static <T> T entry(RegistryWrapper.WrapperLookup registries, RegistryKey<T> key, T builtIn) {
-        return registries.getOptional(key.getRegistryRef())
-                .flatMap(registry -> registry.getOptional(key))
-                .map(RegistryEntry.Reference::value)
+    static <T> T entry(HolderLookup.Provider registries, ResourceKey<T> key, T builtIn) {
+        return registries.lookup(key.registryKey())
+                .flatMap(registry -> registry.get(key))
+                .map(Holder.Reference::value)
                 .orElseGet(() -> {
                     if (WARNED.add(key)) {
                         Hempdustry.LOGGER.warn("{} is missing from this world's data packs; using the built-in numbers", key);

@@ -2,16 +2,16 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Fertilizable;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.LevelEvent;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -24,12 +24,12 @@ import org.jetbrains.annotations.Nullable;
  * plant in <em>any</em> medium is free of vanilla's crowding penalty: each has soil or solution of
  * its own.
  *
- * <p>It extends {@link Fertilizable}, because a medium is exactly a block bone meal fills back up —
+ * <p>It extends {@link BonemealableBlock}, because a medium is exactly a block bone meal fills back up —
  * which also means a dispenser of bone meal feeds one with no code of ours, as it does any
  * fertilizable block. {@link #tryFeed} adds the rest of the ecosystem's fertilisers on top of that
  * vanilla path, through {@code #c:fertilizers}.
  */
-public interface GrowMedium extends Fertilizable {
+public interface GrowMedium extends BonemealableBlock {
 
     /**
      * The moisture the plant above reads, in place of vanilla's farmland count
@@ -41,7 +41,7 @@ public interface GrowMedium extends Fertilizable {
     float speed(BlockState state);
 
     /** A plant has just ripened on this block: spend one charge, if there is one. */
-    void spend(World world, BlockPos pos, BlockState state);
+    void spend(Level world, BlockPos pos, BlockState state);
 
     /** Whether there is food in this bed already — bone meal on a flowering plant here overfeeds it. */
     boolean fed(BlockState state);
@@ -54,28 +54,28 @@ public interface GrowMedium extends Fertilizable {
      * today, and whatever a modpack tags tomorrow, with no compile dependency either way.
      *
      * <p>Returns {@code null} when this click is not a feed (not a fertiliser, or the bed is full or
-     * refusing), leaving the caller to fall through to {@code super.onUseWithItem} — never a bare
-     * {@code PASS}, which would swallow the click: only {@code PASS_TO_DEFAULT_BLOCK_ACTION} goes on
-     * to {@code onUse}.
+     * refusing), leaving the caller to fall through to {@code super.useItemOn} — never a bare
+     * {@code PASS}, which would swallow the click: only {@code TRY_WITH_EMPTY_HAND} goes on
+     * to {@code useWithoutItem}.
      *
      * <p>The effect is one charge whatever was used: a pack's fancier fertiliser is an alternative,
      * never an upgrade, so pack content cannot power-creep a hemp farm.
      */
     @Nullable
-    static ActionResult tryFeed(ItemStack stack, BlockState state, World world, BlockPos pos,
-                                PlayerEntity player) {
-        if (!stack.isIn(ConventionalItemTags.FERTILIZERS)
+    static InteractionResult tryFeed(ItemStack stack, BlockState state, Level world, BlockPos pos,
+                                Player player) {
+        if (!stack.is(ConventionalItemTags.FERTILIZERS)
                 || !(state.getBlock() instanceof GrowMedium medium)
-                || !medium.isFertilizable(world, pos, state)) {
+                || !medium.isValidBonemealTarget(world, pos, state)) {
             return null;
         }
-        if (world instanceof ServerWorld server) {
-            medium.grow(server, server.getRandom(), pos, state);
-            stack.decrementUnlessCreative(1, player);
+        if (world instanceof ServerLevel server) {
+            medium.performBonemeal(server, server.getRandom(), pos, state);
+            stack.consume(1, player);
             // Vanilla's own "that was fertilised" feedback, the event BoneMealItem fires.
-            server.syncWorldEvent(WorldEvents.BONE_MEAL_USED, pos, 0);
+            server.levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, pos, 0);
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -85,10 +85,10 @@ public interface GrowMedium extends Fertilizable {
      * gone, its loot no longer sees a bed, and breaking the bed becomes the way round the root-bound
      * stem — and round Sea of Green and Midnight Sun, which never fire.
      */
-    static void harvestAbove(World world, BlockPos pos, PlayerEntity player) {
-        if (player instanceof ServerPlayerEntity serverPlayer
-                && world.getBlockState(pos.up()).isIn(ModTags.Blocks.HEMP_CROPS)) {
-            serverPlayer.interactionManager.tryBreakBlock(pos.up());
+    static void harvestAbove(Level world, BlockPos pos, Player player) {
+        if (player instanceof ServerPlayer serverPlayer
+                && world.getBlockState(pos.above()).is(ModTags.Blocks.HEMP_CROPS)) {
+            serverPlayer.gameMode.destroyBlock(pos.above());
         }
     }
 }

@@ -6,23 +6,16 @@ import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
 import com.warlonmhite.hempdustry.client.item.StrainTintSource;
-import net.minecraft.client.render.item.property.numeric.NumericProperties;
-import net.minecraft.client.render.item.tint.TintSourceTypes;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.client.color.world.BiomeColors;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 
 import com.warlonmhite.hempdustry.client.UpdateChecker;
 import com.warlonmhite.hempdustry.client.particle.AromaParticle;
 import com.warlonmhite.hempdustry.client.sound.BongDrawSoundInstance;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import com.warlonmhite.hempdustry.client.render.FlipFlopsRenderer;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -37,44 +30,51 @@ import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.color.item.ItemTintSources;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.model.object.boat.BoatModel;
+import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperties;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.level.block.Block;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.minecraft.client.render.entity.model.BoatEntityModel;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.client.render.BlockRenderLayer;
 
 public class HempdustryClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         UpdateChecker.init();
 
-        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_PLANKS_DOOR, BlockRenderLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_PLANKS_TRAPDOOR, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_PLANKS_DOOR, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_PLANKS_TRAPDOOR, ChunkSectionLayer.CUTOUT);
 
 
         // Vanilla's leaves texture, holes and all — solid would fill them in with black.
-        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_LEAVES, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.HEMP_LEAVES, ChunkSectionLayer.CUTOUT);
 
-        BlockRenderLayerMap.putBlock(ModBlocks.INDICA_CROP, BlockRenderLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.INDICA_FLOWER, BlockRenderLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.POTTED_INDICA_FLOWER, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.INDICA_CROP, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.INDICA_FLOWER, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.POTTED_INDICA_FLOWER, ChunkSectionLayer.CUTOUT);
 
         // Stained glass is drawn at partial alpha, so the placed bongs need the translucent pass.
-        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> BlockRenderLayerMap.putBlock(bong, BlockRenderLayer.TRANSLUCENT));
+        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> BlockRenderLayerMap.putBlock(bong, ChunkSectionLayer.TRANSLUCENT));
 
-        BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_CROP, BlockRenderLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_FLOWER, BlockRenderLayer.CUTOUT);
-        BlockRenderLayerMap.putBlock(ModBlocks.POTTED_SATIVA_FLOWER, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_CROP, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.POTTED_SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
 
-        BlockRenderLayerMap.putBlock(ModBlocks.BELDIA_CROP, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.BELDIA_CROP, ChunkSectionLayer.CUTOUT);
         // The chains the Grow Lamp hangs from are see-through between the links.
-        BlockRenderLayerMap.putBlock(ModBlocks.GROW_LAMP, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
         // The compost crumbs over the pot's soil are drawn with see-through pixels.
-        BlockRenderLayerMap.putBlock(ModBlocks.GROW_POT, BlockRenderLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(ModBlocks.GROW_POT, ChunkSectionLayer.CUTOUT);
 
         EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.HEMP_BOAT,
-                BoatEntityModel::getTexturedModelData);
+                BoatModel::createBoatModel);
         EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.HEMP_CHEST_BOAT,
-                BoatEntityModel::getChestTexturedModelData);
+                BoatModel::createChestBoatModel);
         EntityRendererRegistry.register(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
         EntityRendererRegistry.register(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
 
@@ -84,22 +84,22 @@ public class HempdustryClient implements ClientModInitializer {
                 FlipFlopsRenderer::getTexturedModelData);
         ArmorRenderer.register(FlipFlopsRenderer::new, ModItems.FLIP_FLOPS);
 
-        HandledScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
-        HandledScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
-        HandledScreens.register(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
+        MenuScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
+        MenuScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
+        MenuScreens.register(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
 
         ParticleFactoryRegistry.getInstance().register(ModParticles.AROMA, AromaParticle.Factory::new);
 
         // The press's platen and capstan move, so a renderer draws them rather than the block model.
-        BlockEntityRendererFactories.register(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
         // A bed has no block model: its block entity draws it, like every vanilla bed.
-        BlockEntityRendererFactories.register(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
 
         registerItemModelHooks();
         registerBlockColors();
 
         // A bong's bubbling is played here, per client, so it can stop when the drawer lets go.
-        SmokingDeviceItem.drawSound = drawer -> MinecraftClient.getInstance().getSoundManager()
+        SmokingDeviceItem.drawSound = drawer -> Minecraft.getInstance().getSoundManager()
                 .play(new BongDrawSoundInstance(drawer));
     }
 
@@ -130,14 +130,14 @@ public class HempdustryClient implements ClientModInitializer {
      * The bud, seed and flower <b>items</b> are untouched — their models declare no tint index, so
      * an item in a hand or a slot looks exactly as drawn, with no biome to ask about anyway.
      *
-     * <p>Break and step particles follow this automatically — {@code BlockDustParticle} multiplies
+     * <p>Break and step particles follow this automatically — {@code TerrainParticle} multiplies
      * itself by {@code BlockColors.getColor(state, world, pos, 0)} — <b>but they are coloured with
      * the broken state, not the world's</b>: by then {@code pos} may hold air on this client. So a
      * provider here reads the plant off {@code state} and asks the world for nothing but its biome.
      *
      * <p>Returning ARGB is deliberate but, unlike the item tint above, the alpha byte is
-     * <em>ignored</em> here — {@code BlockModelRenderer} reads only the three colour bytes off a
-     * block tint. {@link ColorHelper#lerp} is used for the blend all the same, so the value
+     * <em>ignored</em> here — {@code ModelBlockRenderer} reads only the three colour bytes off a
+     * block tint. {@link ARGB#srgbLerp} is used for the blend all the same, so the value
      * that leaves this method is a well-formed colour rather than one that only works by luck.
      */
     private static void registerBlockColors() {
@@ -147,7 +147,7 @@ public class HempdustryClient implements ClientModInitializer {
             if (tintIndex != 0 || view == null || pos == null) {
                 return NO_TINT;
             }
-            return biomeTint(BiomeColors.getGrassColor(view, pos));
+            return biomeTint(BiomeColors.getAverageGrassColor(view, pos));
         }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
                 ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
         // The crops take the same biome tint, then show the light they grew under: a lamp-grown
@@ -163,10 +163,10 @@ public class HempdustryClient implements ClientModInitializer {
             // Beldía is drawn in its own colours, so it skips the biome and keeps only the light
             // cue: a desert's grass colour is a dry olive that would turn a sand-grown plant to straw
             // (and a potted one would change colour with the room it stands in).
-            int tint = state.isOf(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getGrassColor(view, pos));
-            GrowLight light = state.get(GrowLight.PROPERTY);
+            int tint = state.is(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getAverageGrassColor(view, pos));
+            GrowLight light = state.getValue(GrowLight.PROPERTY);
             return light.artificial() && light != GrowLight.STRESSED
-                    ? ColorHelper.lerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
+                    ? ARGB.srgbLerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
         }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
@@ -186,7 +186,7 @@ public class HempdustryClient implements ClientModInitializer {
      * costs a lerp and nothing else, and no branch is needed to honour it.
      */
     private static int biomeTint(int grassColor) {
-        return ColorHelper.lerp(
+        return ARGB.srgbLerp(
                 (float) HempdustryConfig.get().client().biomeTintStrength(),
                 NO_TINT,
                 grassColor);
@@ -205,7 +205,7 @@ public class HempdustryClient implements ClientModInitializer {
      * {@code minecraft:has_component} answers "is anything loaded" exactly.
      */
     private static void registerItemModelHooks() {
-        NumericProperties.ID_MAPPER.put(ModItemProperties.STRAIN, StrainModelIndexProperty.CODEC);
-        TintSourceTypes.ID_MAPPER.put(ModItemProperties.STRAIN_TINT, StrainTintSource.CODEC);
+        RangeSelectItemModelProperties.ID_MAPPER.put(ModItemProperties.STRAIN, StrainModelIndexProperty.CODEC);
+        ItemTintSources.ID_MAPPER.put(ModItemProperties.STRAIN_TINT, StrainTintSource.CODEC);
     }
 }

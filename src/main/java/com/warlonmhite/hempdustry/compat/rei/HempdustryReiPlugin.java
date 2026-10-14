@@ -10,11 +10,10 @@ import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import me.shedaniel.rei.plugin.client.BuiltinClientPlugin;
 import me.shedaniel.rei.plugin.common.displays.crafting.DefaultCustomShapelessDisplay;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.Items;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +75,7 @@ public class HempdustryReiPlugin implements REIClientPlugin {
     }
 
     private void add(CategoryRegistry registry, CategoryIdentifier<EntryReiDisplay> id,
-                     ItemConvertible icon, int noteLines) {
+                     ItemLike icon, int noteLines) {
         EntryReiCategory category = new EntryReiCategory(id.getIdentifier(), icon, noteLines);
         categories.put(id, category);
         registry.add(category);
@@ -93,21 +92,21 @@ public class HempdustryReiPlugin implements REIClientPlugin {
 
     @Override
     public void registerDisplays(DisplayRegistry registry) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) {
             // REI is building its index before a world is joined. Both machine categories read the
             // recipe manager and packing reads the strain registry, and neither exists yet; REI
             // rebuilds on world join, which is when this becomes answerable.
             return;
         }
 
-        add(registry, DECARBOXYLATING, ViewerRecipes.decarboxylating(client.world));
-        add(registry, INFUSING, ViewerRecipes.infusing(client.world));
+        add(registry, DECARBOXYLATING, ViewerRecipes.decarboxylating(client.level));
+        add(registry, INFUSING, ViewerRecipes.infusing(client.level));
         add(registry, CAULDRON, ViewerRecipes.cauldron());
-        add(registry, PRESSING, ViewerRecipes.pressing(client.world));
-        add(registry, SIFTING, ViewerRecipes.sifting(client.world));
-        add(registry, ICE_O_LATOR, ViewerRecipes.iceOLator(client.world));
-        add(registry, WORLD, ViewerRecipes.world(client.world));
+        add(registry, PRESSING, ViewerRecipes.pressing(client.level));
+        add(registry, SIFTING, ViewerRecipes.sifting(client.level));
+        add(registry, ICE_O_LATOR, ViewerRecipes.iceOLator(client.level));
+        add(registry, WORLD, ViewerRecipes.world(client.level));
         ViewerRecipes.info().forEach((item, text) -> BuiltinClientPlugin.getInstance()
                 .registerInformation(EntryStacks.of(item), item.getName(), lines -> {
                     lines.add(text);
@@ -118,7 +117,7 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         // makes REI's built-in "move ingredients into the grid" work on it without a transfer
         // handler of our own. See ViewerRecipes#packing. Each slot is built from stacks, so the
         // moon rock shows its load and the bong slot every glass.
-        for (ViewerRecipes.Packing packing : ViewerRecipes.packing(client.world.getRegistryManager())) {
+        for (ViewerRecipes.Packing packing : ViewerRecipes.packing(client.level.registryAccess())) {
             registry.add(new DefaultCustomShapelessDisplay(
                     packing.inputs().stream().map(EntryIngredients::ofItemStacks).toList(),
                     List.of(EntryIngredients.of(packing.output())),

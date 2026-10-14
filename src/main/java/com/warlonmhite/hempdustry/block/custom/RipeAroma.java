@@ -2,9 +2,9 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.particle.ModParticles;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 
 /**
  * The smell of a ripe plant, shared by every hemp crop: now and then a wisp drifts up off the top
@@ -17,11 +17,11 @@ import net.minecraft.world.World;
  * in three. Vanilla's full beehive is the model — it drips honey, and its model changes too.
  *
  * <p><b>The server never runs a line of this.</b> It is reached only from a crop's
- * {@code randomDisplayTick}, which only {@code ClientWorld} calls. Nothing is stored, nothing
+ * {@code animateTick}, which only {@code ClientLevel} calls. Nothing is stored, nothing
  * random-ticks, and no packet is sent.
  *
  * <p><b>Its cost does not grow with the field.</b> A client samples a fixed 667 blocks within 16 of
- * the player and 667 within 32 each tick ({@code ClientWorld#doRandomBlockDisplayTicks}), and a
+ * the player and 667 within 32 each tick ({@code ClientLevel#animateTick}), and a
  * plant only gets a say when it is one of them. However big the farm, no more than 1334 blocks are
  * asked, so no more than 1334 / {@link #CHANCE} wisps can start in a tick — and a real field, whose
  * plant tops fill one layer in every few, starts far fewer. Each wisp skips the world collision
@@ -40,15 +40,15 @@ public final class RipeAroma {
      * a ripe plant. Only the block with open air above it smells — the top of the plant — so the
      * wisp never starts inside a block, and a plant with something on its head gives off nothing.
      */
-    public static void randomDisplayTick(World world, BlockPos pos, Random random) {
+    public static void randomDisplayTick(Level world, BlockPos pos, RandomSource random) {
         // The roll first: it is the cheapest test and fails fourteen times in fifteen, so the block
         // lookup above almost never happens.
         if (random.nextInt(CHANCE) != 0
                 || !HempdustryConfig.get().client().ripeAroma()
-                || !world.getBlockState(pos.up()).isAir()) {
+                || !world.getBlockState(pos.above()).isAir()) {
             return;
         }
-        world.addParticleClient(ModParticles.AROMA,
+        world.addParticle(ModParticles.AROMA,
                 pos.getX() + 0.25 + random.nextDouble() * 0.5,
                 pos.getY() + 0.55 + random.nextDouble() * 0.3,
                 pos.getZ() + 0.25 + random.nextDouble() * 0.5,

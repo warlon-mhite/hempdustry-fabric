@@ -7,20 +7,19 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
+import net.minecraft.core.Holder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 
 /**
  * What is loaded in a spliff, pipe or bong — the payload of the {@code hempdustry:smoke_contents}
@@ -58,8 +57,8 @@ public record SmokeContents(List<Entry> entries) {
      *
      * {@link Strain#ENTRY_CODEC} is a {@code RegistryFixedCodec}, which fails when the id does not
      * resolve. A component whose codec fails takes the <em>whole {@code ItemStack}</em> down with it:
-     * {@code ComponentChanges.CODEC} is a {@code dispatchedMap}, so one bad value errors the map,
-     * {@code ItemStack}'s codec errors in turn, and {@code Inventories.readNbt} quietly drops the
+     * {@code DataComponentPatch.CODEC} is a {@code dispatchedMap}, so one bad value errors the map,
+     * {@code ItemStack}'s codec errors in turn, and {@code ContainerHelper.loadAllItems} quietly drops the
      * slot. <b>The item is deleted.</b>
      *
      * <p>Which would mean that removing a strain from a datapack — or uninstalling an addon that
@@ -130,32 +129,32 @@ public record SmokeContents(List<Entry> entries) {
         return kept;
     }
 
-    public static final PacketCodec<RegistryByteBuf, SmokeContents> PACKET_CODEC =
-            Entry.PACKET_CODEC.collect(PacketCodecs.toList())
-                    .xmap(SmokeContents::new, SmokeContents::entries);
+    public static final StreamCodec<RegistryFriendlyByteBuf, SmokeContents> PACKET_CODEC =
+            Entry.PACKET_CODEC.apply(ByteBufCodecs.list())
+                    .map(SmokeContents::new, SmokeContents::entries);
 
     /**
      * A single strain's share of the load.
      *
-     * <p>The strain is held as a {@link RegistryEntry} rather than by value: a stack stores the id
+     * <p>The strain is held as a {@link Holder} rather than by value: a stack stores the id
      * and resolves it against the world's strain registry, so a datapack edit reaches every spliff
      * already in a chest. {@link Strain#ENTRY_CODEC} refuses inline entries, which is what stops a
      * stack from carrying a stale copy of a definition.
      */
-    public record Entry(RegistryEntry<Strain> strain, int count) {
+    public record Entry(Holder<Strain> strain, int count) {
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Strain.ENTRY_CODEC.fieldOf("strain").forGetter(Entry::strain),
                 Codec.INT.fieldOf("count").forGetter(Entry::count)
         ).apply(instance, Entry::new));
 
-        public static final PacketCodec<RegistryByteBuf, Entry> PACKET_CODEC = PacketCodec.tuple(
+        public static final StreamCodec<RegistryFriendlyByteBuf, Entry> PACKET_CODEC = StreamCodec.composite(
                 Strain.ENTRY_PACKET_CODEC, Entry::strain,
-                PacketCodecs.VAR_INT, Entry::count,
+                ByteBufCodecs.VAR_INT, Entry::count,
                 Entry::new);
     }
 
     /** A single-strain load. */
-    public static SmokeContents of(RegistryEntry<Strain> strain, int count) {
+    public static SmokeContents of(Holder<Strain> strain, int count) {
         return new SmokeContents(List.of(new Entry(strain, count)));
     }
 
@@ -165,8 +164,8 @@ public record SmokeContents(List<Entry> entries) {
      * <p>The plant goes first so it is unambiguously the primary entry, but nothing depends on the
      * order: {@link #primaryStrain} picks by count and a hash spliff is 2 buds against 1 hash.
      */
-    public static SmokeContents of(RegistryEntry<Strain> strain, int count,
-                                   RegistryEntry<Strain> additive, int additiveCount) {
+    public static SmokeContents of(Holder<Strain> strain, int count,
+                                   Holder<Strain> additive, int additiveCount) {
         return new SmokeContents(List.of(new Entry(strain, count), new Entry(additive, additiveCount)));
     }
 
@@ -206,7 +205,7 @@ public record SmokeContents(List<Entry> entries) {
     }
 
     /** The dominant strain, for naming and tinting. {@code null} only when empty. */
-    public RegistryEntry<Strain> primaryStrain() {
+    public Holder<Strain> primaryStrain() {
         Entry best = primaryEntry();
         return best == null ? null : best.strain();
     }
@@ -233,7 +232,7 @@ public record SmokeContents(List<Entry> entries) {
      * is anything hash-shaped a datapack adds. Empty for a plain single-strain load, and empty for a
      * genuine multi-plant blend, which is a different case that keeps the "Mixed" name.
      */
-    public Optional<RegistryEntry<Strain>> hashAdditive() {
+    public Optional<Holder<Strain>> hashAdditive() {
         if (entries.size() != 2) {
             return Optional.empty();
         }
@@ -259,7 +258,7 @@ public record SmokeContents(List<Entry> entries) {
 
     /**
      * Average of the loaded strains' colours, weighted by bud count — the same approach
-     * {@code PotionContentsComponent#getColor} takes across a potion's effects. Falls back to a
+     * {@code PotionContents#getColor} takes across a potion's effects. Falls back to a
      * neutral tint when empty so a colour provider never has to null-check.
      */
     public int color() {
@@ -289,12 +288,12 @@ public record SmokeContents(List<Entry> entries) {
      * <p>{@code hempdustry.strain.blend} stays reserved for a load with more than one <em>plant</em>
      * strain in it, which is the case where there is no primary strain to name it after.
      */
-    public Text loadName() {
+    public Component loadName() {
         if (isBlend() && hashAdditive().isEmpty()) {
-            return Text.translatable("hempdustry.strain.blend");
+            return Component.translatable("hempdustry.strain.blend");
         }
-        RegistryEntry<Strain> strain = primaryStrain();
-        return strain == null ? Text.empty() : Text.translatable(strain.value().translationKey());
+        Holder<Strain> strain = primaryStrain();
+        return strain == null ? Component.empty() : Component.translatable(strain.value().translationKey());
     }
 
     /**
@@ -306,13 +305,13 @@ public record SmokeContents(List<Entry> entries) {
      * {@code enchantment.level.N} keys and is omitted at dose 1, exactly as vanilla writes "Potion of
      * Strength" and "Potion of Strength II".
      */
-    public static Text packedName(String formatKey, SmokeContents contents) {
-        MutableText name = Text.translatable(formatKey, contents.loadName());
+    public static Component packedName(String formatKey, SmokeContents contents) {
+        MutableComponent name = Component.translatable(formatKey, contents.loadName());
         // The primary entry's count, not the total: see primaryCount(). Identical for every
         // single-entry load, so no name already in a world changes.
         int level = contents.primaryCount();
         if (level > 1) {
-            name.append(ScreenTexts.SPACE).append(Text.translatable("enchantment.level." + level));
+            name.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
         }
         return name;
     }
@@ -333,16 +332,16 @@ public record SmokeContents(List<Entry> entries) {
      * concentrate's own strain-agnostic effects included, is held to the plain cap here, so the
      * raised cap {@code Smoking} hands the policy lifts only the bud.
      */
-    public List<StatusEffectInstance> effects(int durationTicks, boolean onExhale, RandomGenerator random) {
+    public List<MobEffectInstance> effects(int durationTicks, boolean onExhale, RandomGenerator random) {
         int load = buffBonus();
-        List<StatusEffectInstance> out = new ArrayList<>();
+        List<MobEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
             int bonus = entry.strain().value().wildFlower().isPresent() ? load : 0;
             int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel(bonus));
-            for (StatusEffectInstance effect : entry.strain().value().effects(entry.count(),
+            for (MobEffectInstance effect : entry.strain().value().effects(entry.count(),
                     durationTicks + durationTicks * past / 2, onExhale, bonus, random)) {
-                out.add(new StatusEffectInstance(effect.getEffectType(), effect.getDuration(),
-                        EffectPolicy.amplifier(effect.getEffectType(), effect.getAmplifier(), bonus)));
+                out.add(new MobEffectInstance(effect.getEffect(), effect.getDuration(),
+                        EffectPolicy.amplifier(effect.getEffect(), effect.getAmplifier(), bonus)));
             }
         }
         return out;
@@ -356,10 +355,10 @@ public record SmokeContents(List<Entry> entries) {
      *             {@link #effects(int, boolean, RandomGenerator)}
      */
     @Deprecated
-    public List<StatusEffectInstance> effects(int durationTicks) {
+    public List<MobEffectInstance> effects(int durationTicks) {
         // A generator whose every draw is zero: nextFloat() is 0.0, under any chance above zero.
         RandomGenerator lands = () -> 0L;
-        List<StatusEffectInstance> out = effects(durationTicks, false, lands);
+        List<MobEffectInstance> out = effects(durationTicks, false, lands);
         out.addAll(effects(durationTicks, true, lands));
         return out;
     }
@@ -381,7 +380,7 @@ public record SmokeContents(List<Entry> entries) {
             if (strain.wildFlower().isPresent()) {
                 bud = true;
             } else if (strain.smokeEffects().stream().anyMatch(effect ->
-                    effect.effect().value().getCategory() == StatusEffectCategory.BENEFICIAL)) {
+                    effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL)) {
                 concentrate = true;
             }
         }

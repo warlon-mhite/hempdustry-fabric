@@ -1,18 +1,17 @@
 package com.warlonmhite.hempdustry.test;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import java.util.function.Consumer;
 
 /**
  * Registers the game tests.
  *
  * <p>Since 1.21.5 a game test is <b>not</b> an annotated method any more: {@code @GameTest} is gone
- * and a test is a {@code Consumer<TestContext>} in {@link Registries#TEST_FUNCTION} paired with a
+ * and a test is a {@code Consumer<GameTestHelper>} in {@link BuiltInRegistries#TEST_FUNCTION} paired with a
  * {@code test_instance} JSON in the test mod's datapack, which is what names the structure, the
  * environment and the tick budget. (Fabric's {@code fabric-gametest} entrypoint is its own
  * {@code @GameTest} annotation scanner, which this suite does not use, so it lists nothing.)
@@ -170,10 +169,10 @@ public class HempdustryGameTests implements ModInitializer {
                 LangGameTest::everyTranslationKeepsItsPlaceholders);
     }
 
-    private static void register(String name, Consumer<TestContext> test) {
+    private static void register(String name, Consumer<GameTestHelper> test) {
         if (HempdustryGameTests.class.getResource("/data/" + NAMESPACE + "/test_instance/" + name + ".json") == null) {
             throw new IllegalStateException("game test " + name + " has no test_instance JSON, so it would never run");
         }
-        Registry.register(Registries.TEST_FUNCTION, Identifier.of(NAMESPACE, name), test);
+        Registry.register(BuiltInRegistries.TEST_FUNCTION, Identifier.fromNamespaceAndPath(NAMESPACE, name), test);
     }
 }

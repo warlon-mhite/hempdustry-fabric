@@ -7,16 +7,15 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.book.CraftingRecipeCategory;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.TestContext;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import net.minecraft.core.Holder;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
  * The two loads that are not "one bud, one dose", asserted against the <b>real</b>
@@ -38,22 +37,22 @@ public final class ConcentrateGameTest {
      * {@code maxDose} is 3. That is exactly the kind of emergent gate that breaks the day somebody
      * "simplifies" the cap back to a total, so it is asserted here rather than assumed.
      */
-    public static void oneRosinFillsABong(TestContext context) {
-        ServerWorld world = context.getWorld();
-        PackingRecipe recipe = new PackingRecipe(CraftingRecipeCategory.MISC);
+    public static void oneRosinFillsABong(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
         ItemStack rosin = new ItemStack(ModItems.ROSIN);
 
-        CraftingRecipeInput one = grid(new ItemStack(ModItems.BONG), rosin);
+        CraftingInput one = grid(new ItemStack(ModItems.BONG), rosin);
         context.assertTrue(recipe.matches(one, world),
                 "a bong and one rosin is not a packing recipe at all");
 
-        ItemStack packed = recipe.craft(one, world.getRegistryManager());
+        ItemStack packed = recipe.assemble(one, world.registryAccess());
         SmokeContents load = packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-        context.assertEquals(load.dose(), 3,
+        context.assertValueEqual(load.dose(), 3,
                 "one rosin did not pack as dose 3 — dose_per_item is not being read");
-        context.assertEquals(load.primaryCount(), 3,
+        context.assertValueEqual(load.primaryCount(), 3,
                 "the load's level is not III, so the item's name would lie about what it does");
-        context.assertEquals(packed.getOrDefault(ModComponents.CHARGES, 0),
+        context.assertValueEqual(packed.getOrDefault(ModComponents.CHARGES, 0),
                 DeviceType.BONG.builtInBowl().hits(), "packing did not load a full bowl");
 
         // Two rosin is dose 6, over the bong's cap. A dab is THE dose, not a step on a ladder.
@@ -72,7 +71,7 @@ public final class ConcentrateGameTest {
         context.assertTrue(recipe.matches(
                         grid(new ItemStack(ModItems.WOODEN_PIPE), new ItemStack(buds(world, ModStrains.INDICA))), world),
                 "the pipe refused a plain bud, so the refusals above prove nothing");
-        context.complete();
+        context.succeed();
     }
 
     /**
@@ -90,30 +89,30 @@ public final class ConcentrateGameTest {
      *   <li><b>Two moon rocks</b> — same thing, twice as loudly.</li>
      * </ul>
      */
-    public static void moonRockPacksAsATwoEntryBowl(TestContext context) {
-        ServerWorld world = context.getWorld();
-        PackingRecipe recipe = new PackingRecipe(CraftingRecipeCategory.MISC);
-        RegistryEntry<Strain> indica = strain(world, ModStrains.INDICA);
-        RegistryEntry<Strain> hashish = strain(world, ModStrains.HASHISH);
+    public static void moonRockPacksAsATwoEntryBowl(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        Holder<Strain> indica = strain(world, ModStrains.INDICA);
+        Holder<Strain> hashish = strain(world, ModStrains.HASHISH);
         ItemStack moonRock = ModItems.moonRock(indica, hashish);
 
-        CraftingRecipeInput one = grid(new ItemStack(ModItems.BONG), moonRock);
+        CraftingInput one = grid(new ItemStack(ModItems.BONG), moonRock);
         context.assertTrue(recipe.matches(one, world),
                 "a bong and one moon rock is not a packing recipe at all");
 
-        ItemStack packed = recipe.craft(one, world.getRegistryManager());
+        ItemStack packed = recipe.assemble(one, world.registryAccess());
         SmokeContents load = packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-        context.assertEquals(load.entries().size(), 2,
+        context.assertValueEqual(load.entries().size(), 2,
                 "the moon rock's two-entry load did not carry onto the bong");
-        context.assertEquals(load.primaryCount(), ModItems.MOON_ROCK_DOSE,
+        context.assertValueEqual(load.primaryCount(), ModItems.MOON_ROCK_DOSE,
                 "the plant is not the primary entry at level III");
-        context.assertEquals(load.dose(), ModItems.MOON_ROCK_DOSE + ModItems.MOON_ROCK_HASH_DOSE,
+        context.assertValueEqual(load.dose(), ModItems.MOON_ROCK_DOSE + ModItems.MOON_ROCK_HASH_DOSE,
                 "the hashish coat did not come along");
         context.assertTrue(load.hashAdditive().isPresent(),
                 "the load has no hash additive, so the tooltip would not name the coat");
         context.assertTrue(load.primaryStrain() == indica,
                 "the moon rock packed as something other than its own plant strain");
-        context.assertEquals(packed.getOrDefault(ModComponents.CHARGES, 0),
+        context.assertValueEqual(packed.getOrDefault(ModComponents.CHARGES, 0),
                 DeviceType.BONG.builtInBowl().hits(), "packing did not load a full bowl");
 
         // A pipe is maxDose 2 against the plant entry's 3. No rule was written for this; the cap
@@ -133,25 +132,25 @@ public final class ConcentrateGameTest {
         context.assertTrue(recipe.matches(
                         grid(new ItemStack(ModItems.BONG), moonRock.copyWithCount(2)), world),
                 "a stack of two moon rocks refused, though crafting takes only one of them");
-        context.complete();
+        context.succeed();
     }
 
-    private static RegistryEntry<Strain> strain(ServerWorld world,
-                                                net.minecraft.registry.RegistryKey<Strain> key) {
-        return world.getRegistryManager().getOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
+    private static Holder<Strain> strain(ServerLevel world,
+                                                net.minecraft.resources.ResourceKey<Strain> key) {
+        return world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
     }
 
-    private static net.minecraft.item.Item buds(ServerWorld world,
-                                                net.minecraft.registry.RegistryKey<Strain> key) {
+    private static net.minecraft.world.item.Item buds(ServerLevel world,
+                                                net.minecraft.resources.ResourceKey<Strain> key) {
         return strain(world, key).value().buds();
     }
 
     /** A 3x3 grid holding these stacks, as the crafting table would present them. */
-    private static CraftingRecipeInput grid(ItemStack... stacks) {
+    private static CraftingInput grid(ItemStack... stacks) {
         List<ItemStack> slots = new ArrayList<>(Arrays.asList(stacks));
         while (slots.size() < 9) {
             slots.add(ItemStack.EMPTY);
         }
-        return CraftingRecipeInput.create(3, 3, slots);
+        return CraftingInput.of(3, 3, slots);
     }
 }

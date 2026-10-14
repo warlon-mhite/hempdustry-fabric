@@ -3,41 +3,41 @@ package com.warlonmhite.hempdustry.block.custom;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.item.Items;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.stat.Stats;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.function.BooleanBiFunction;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -107,16 +107,16 @@ import org.jetbrains.annotations.Nullable;
  * <h2>Not automatable, for now</h2>
  *
  * Vanilla's composter is hopper-fed because {@code ComposterBlock} implements
- * {@code InventoryProvider} and hands out three different fake {@code SidedInventory}s depending on
+ * {@code WorldlyContainerHolder} and hands out three different fake {@code WorldlyContainer}s depending on
  * its level. That is real work for a block whose whole point is that it has no inventory. Left out
  * on purpose; it changes nothing already written.
  */
 public class SiftingBoxBlock extends Block {
 
-    public static final MapCodec<SiftingBoxBlock> CODEC = createCodec(SiftingBoxBlock::new);
+    public static final MapCodec<SiftingBoxBlock> CODEC = simpleCodec(SiftingBoxBlock::new);
 
     /** Vanilla's own 0–8 property, so the blockstate reads exactly like a composter's. */
-    public static final IntProperty LEVEL = Properties.LEVEL_8;
+    public static final IntegerProperty LEVEL = BlockStateProperties.LEVEL_COMPOSTER;
     /**
      * Whether there is water in the tub — and therefore <b>which of the two processes is running</b>.
      *
@@ -125,7 +125,7 @@ public class SiftingBoxBlock extends Block {
      * water through to collection is a free way to say so. A separate "what is in here" property
      * would be a second source of truth for the same fact.
      */
-    public static final BooleanProperty FILLED = BooleanProperty.of("filled");
+    public static final BooleanProperty FILLED = BooleanProperty.create("filled");
 
     /**
      * What is on the screen. <b>Plant matter and powder do not share one</b> — that is the whole
@@ -135,16 +135,16 @@ public class SiftingBoxBlock extends Block {
      * rates already say how much. Powder is a different pass entirely: it is a <em>re-sift</em> at a
      * finer mesh, and what comes out is not kief.
      */
-    public enum Content implements StringIdentifiable {
+    public enum Content implements StringRepresentable {
         PLANT, KIEF;
 
         @Override
-        public String asString() {
+        public String getSerializedName() {
             return name().toLowerCase(java.util.Locale.ROOT);
         }
     }
 
-    public static final EnumProperty<Content> CONTENT = EnumProperty.of("content", Content.class);
+    public static final EnumProperty<Content> CONTENT = EnumProperty.create("content", Content.class);
 
     /** The level at which the screen is full and a scheduled tick settles the batch. */
     public static final int FULL_LEVEL = 7;
@@ -229,36 +229,36 @@ public class SiftingBoxBlock extends Block {
      * A full cube with the tub carved out of it, so the box is something you can drop into and stand
      * in rather than a solid block with a picture of a box on it. Vanilla's composter shape.
      */
-    private static final VoxelShape COLLISION_SHAPE = VoxelShapes.combineAndSimplify(
-            VoxelShapes.fullCube(),
-            Block.createCuboidShape(2.0, 2.0, 2.0, 14.0, 16.0, 14.0),
-            BooleanBiFunction.ONLY_FIRST);
+    private static final VoxelShape COLLISION_SHAPE = Shapes.join(
+            Shapes.block(),
+            Block.box(2.0, 2.0, 2.0, 14.0, 16.0, 14.0),
+            BooleanOp.ONLY_FIRST);
 
-    public SiftingBoxBlock(Settings settings) {
+    public SiftingBoxBlock(Properties settings) {
         super(settings);
         // Both named explicitly. A BooleanProperty left out of the default state comes back TRUE,
         // because its values are ImmutableSet.of(true, false) -- the trap that shipped pre-trimmed
         // seeds for two days. A box that starts full of water is the same bug.
-        setDefaultState(getDefaultState().with(LEVEL, 0).with(FILLED, false).with(CONTENT, Content.PLANT));
+        registerDefaultState(defaultBlockState().setValue(LEVEL, 0).setValue(FILLED, false).setValue(CONTENT, Content.PLANT));
     }
 
     @Override
-    protected MapCodec<? extends SiftingBoxBlock> getCodec() {
+    protected MapCodec<? extends SiftingBoxBlock> codec() {
         return CODEC;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(LEVEL, FILLED, CONTENT);
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return VoxelShapes.fullCube();
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return Shapes.block();
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return COLLISION_SHAPE;
     }
 
@@ -266,65 +266,65 @@ public class SiftingBoxBlock extends Block {
      * Filling the tub, and working plant matter over the screen.
      *
      * <p><b>Every refusal hands back {@code super}, never {@code PASS}.</b> Since 1.21.2
-     * {@code ServerPlayerInteractionManager} calls this on every click, empty hand included, and
-     * only falls through to {@link #onUse} when the result is {@code PASS_TO_DEFAULT_BLOCK_ACTION} —
-     * which is what {@code AbstractBlock#onUseWithItem}'s default is. A plain {@code PASS} swallows
+     * {@code ServerPlayerGameMode} calls this on every click, empty hand included, and
+     * only falls through to {@link #useWithoutItem} when the result is {@code TRY_WITH_EMPTY_HAND} —
+     * which is what {@code BlockBehaviour#useItemOn}'s default is. A plain {@code PASS} swallows
      * the click, so the box fills up and can then never be emptied. This block shipped that bug once
      * and a player found it, not the game test.
      */
     @Override
-    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
-                                         PlayerEntity player, Hand hand, BlockHitResult hit) {
-        int level = state.get(LEVEL);
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+                                         Player player, InteractionHand hand, BlockHitResult hit) {
+        int level = state.getValue(LEVEL);
 
         // A bucket of water turns the box into an Ice-o-lator. Only into an EMPTY box: a half-sifted
         // dry batch must not be convertible into a wash, or the water would be retroactively
         // deciding what the last three buds became.
-        if (stack.isOf(Items.WATER_BUCKET) && !state.get(FILLED) && level == 0) {
-            if (world instanceof ServerWorld serverWorld) {
-                serverWorld.setBlockState(pos, state.with(FILLED, true), Block.NOTIFY_ALL);
-                // Server-side and through ItemUsage#exchangeStack, exactly as vanilla's cauldron and
+        if (stack.is(Items.WATER_BUCKET) && !state.getValue(FILLED) && level == 0) {
+            if (world instanceof ServerLevel serverWorld) {
+                serverWorld.setBlock(pos, state.setValue(FILLED, true), Block.UPDATE_ALL);
+                // Server-side and through ItemUtils#createFilledResult, exactly as vanilla's cauldron and
                 // ModCauldronBehaviors do it. Swapping the held stack on both sides mints a bucket
                 // the next inventory sync takes away, and creativeOverride is what stops a creative
                 // player minting a fresh one on every click.
-                player.setStackInHand(hand,
-                        ItemUsage.exchangeStack(stack, player, new ItemStack(Items.BUCKET)));
-                player.incrementStat(Stats.USED.getOrCreateStat(Items.WATER_BUCKET));
-                serverWorld.playSound(null, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
-                serverWorld.emitGameEvent(player, GameEvent.FLUID_PLACE, pos);
+                player.setItemInHand(hand,
+                        ItemUtils.createFilledResult(stack, player, new ItemStack(Items.BUCKET)));
+                player.awardStat(Stats.ITEM_USED.get(Items.WATER_BUCKET));
+                serverWorld.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+                serverWorld.gameEvent(player, GameEvent.FLUID_PLACE, pos);
             }
-            return ActionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
         // Any other water bucket is turned down with CONSUME, not super: past a refusal the client
         // goes on to the bucket's own use and pours it out on top of the box, which looks as if the
         // box took it. A ready box still falls through, so the bucket's holder can empty it.
-        if (stack.isOf(Items.WATER_BUCKET) && level != READY_LEVEL) {
-            return ActionResult.CONSUME;
+        if (stack.is(Items.WATER_BUCKET) && level != READY_LEVEL) {
+            return InteractionResult.CONSUME;
         }
 
         Content content = contentOf(stack);
         float chance = sieveChance(stack) * rate(world, pos, state);
         // An empty screen takes whichever arrives first and is stamped with it; a part-full one
         // refuses the other kind outright -- with super, never PASS, so the click still falls
-        // through to onUse and a ready screen can still be emptied.
+        // through to useWithoutItem and a ready screen can still be emptied.
         //
         // A WASH TAKES PLANT MATTER AND NOTHING ELSE. Ice-washing kief is a real thing, but it is a
         // third road to a product that already has two, and every extra road here is one more way
         // for one of them to become a trap.
         if (level >= FULL_LEVEL || chance <= 0.0F || content == null
-                || (state.get(FILLED) && content != Content.PLANT)
-                || (level > 0 && content != state.get(CONTENT))) {
+                || (state.getValue(FILLED) && content != Content.PLANT)
+                || (level > 0 && content != state.getValue(CONTENT))) {
             explainRefusal(world, player, state, content, level);
-            return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+            return super.useItemOn(stack, state, world, pos, player, hand, hit);
         }
-        if (world instanceof ServerWorld serverWorld) {
-            sift(serverWorld, pos, level == 0 ? state.with(CONTENT, content) : state, level, chance);
+        if (world instanceof ServerLevel serverWorld) {
+            sift(serverWorld, pos, level == 0 ? state.setValue(CONTENT, content) : state, level, chance);
         }
         // Outside the server branch, as vanilla's composter does it: the cost is the same on both
         // sides whatever the roll, so spending it client-side too is what makes the stack shrink on
         // the frame you click rather than on the frame the server's answer arrives.
-        stack.decrementUnlessCreative(1, player);
-        return ActionResult.SUCCESS;
+        stack.consume(1, player);
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -334,36 +334,36 @@ public class SiftingBoxBlock extends Block {
      * screen) is left silent, the way vanilla's composter is. Server side only, or the line would
      * arrive twice.
      */
-    private static void explainRefusal(World world, PlayerEntity player, BlockState state,
+    private static void explainRefusal(Level world, Player player, BlockState state,
                                        Content content, int level) {
-        if (world.isClient() || content == null || level >= FULL_LEVEL) {
+        if (world.isClientSide() || content == null || level >= FULL_LEVEL) {
             return;
         }
         String key = null;
-        if (state.get(FILLED)) {
+        if (state.getValue(FILLED)) {
             if (content == Content.PLANT) {
                 key = "hempdustry.sifting_box.needs_ice";
             }
-        } else if (level > 0 && content != state.get(CONTENT)) {
+        } else if (level > 0 && content != state.getValue(CONTENT)) {
             key = content == Content.PLANT
                     ? "hempdustry.sifting_box.no_plant_in_kief"
                     : "hempdustry.sifting_box.no_kief_in_plant";
         }
         if (key != null) {
-            player.sendMessage(Text.translatable(key), true);
+            player.displayClientMessage(Component.translatable(key), true);
         }
     }
 
     /** Taking the batch out. Empty-handed, or holding anything the box does not accept. */
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (state.get(LEVEL) != READY_LEVEL) {
-            return ActionResult.PASS;
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (state.getValue(LEVEL) != READY_LEVEL) {
+            return InteractionResult.PASS;
         }
-        if (world instanceof ServerWorld serverWorld) {
+        if (world instanceof ServerLevel serverWorld) {
             collect(serverWorld, pos, state);
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -373,30 +373,30 @@ public class SiftingBoxBlock extends Block {
      * block's included, and a second schedule for a queued tick is ignored.
      */
     @Override
-    protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-        if (state.get(LEVEL) == FULL_LEVEL) {
-            world.scheduleBlockTick(pos, this, SETTLE_DELAY);
+    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+        if (state.getValue(LEVEL) == FULL_LEVEL) {
+            world.scheduleTick(pos, this, SETTLE_DELAY);
         }
     }
 
     /** {@link #FULL_LEVEL} → {@link #READY_LEVEL}: the powder settles and is ready to take. */
     @Override
-    protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        if (state.get(LEVEL) == FULL_LEVEL) {
-            world.setBlockState(pos, state.with(LEVEL, READY_LEVEL), Block.NOTIFY_ALL);
-            world.playSound(null, pos, SoundEvents.BLOCK_COMPOSTER_READY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+    protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+        if (state.getValue(LEVEL) == FULL_LEVEL) {
+            world.setBlock(pos, state.setValue(LEVEL, READY_LEVEL), Block.UPDATE_ALL);
+            world.playSound(null, pos, SoundEvents.COMPOSTER_READY, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
     }
 
     @Override
-    protected boolean hasComparatorOutput(BlockState state) {
+    protected boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
     /** Fill level, 0–8, exactly as a composter reports it. */
     @Override
-    protected int getComparatorOutput(BlockState state, World world, BlockPos pos, Direction direction) {
-        return state.get(LEVEL);
+    protected int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
+        return state.getValue(LEVEL);
     }
 
     /**
@@ -404,15 +404,15 @@ public class SiftingBoxBlock extends Block {
      *
      * <p>The one thing this block must not do is fail silently, and its failure mode is a torch: the
      * jacket melts, the wash stops, and nothing says so. So the particles are keyed on exactly the
-     * condition {@link #onUseWithItem} checks, and they stop the moment it does. A dry box needs no
+     * condition {@link #useItemOn} checks, and they stop the moment it does. A dry box needs no
      * signal, because a dry box has no condition to fail.
      */
     @Override
-    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        if (!state.get(FILLED) || state.get(LEVEL) >= READY_LEVEL || jacketRate(world, pos) <= 0.0F) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+        if (!state.getValue(FILLED) || state.getValue(LEVEL) >= READY_LEVEL || jacketRate(world, pos) <= 0.0F) {
             return;
         }
-        world.addParticleClient(ParticleTypes.SNOWFLAKE,
+        world.addParticle(ParticleTypes.SNOWFLAKE,
                 pos.getX() + 0.2D + random.nextDouble() * 0.6D,
                 pos.getY() + 0.9D,
                 pos.getZ() + 0.2D + random.nextDouble() * 0.6D,
@@ -423,8 +423,8 @@ public class SiftingBoxBlock extends Block {
      * The multiplier this box is running at: <b>1.0 dry, the jacket's tier wet, and 0 for a wet box
      * with no jacket at all</b> — which is what makes a melted jacket stop the wash dead.
      */
-    public static float rate(BlockView world, BlockPos pos, BlockState state) {
-        return state.get(FILLED) ? jacketRate(world, pos) : 1.0F;
+    public static float rate(BlockGetter world, BlockPos pos, BlockState state) {
+        return state.getValue(FILLED) ? jacketRate(world, pos) : 1.0F;
     }
 
     /**
@@ -434,10 +434,10 @@ public class SiftingBoxBlock extends Block {
      * <p>The weakest rather than an average, so a jacket is a thing you either built or did not.
      * Four sides rather than six: the box is open at the top and something has to hold it up.
      */
-    public static float jacketRate(BlockView world, BlockPos pos) {
+    public static float jacketRate(BlockGetter world, BlockPos pos) {
         float worst = BLUE_ICE_RATE;
-        for (Direction side : Direction.Type.HORIZONTAL) {
-            float rate = iceRate(world.getBlockState(pos.offset(side)));
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            float rate = iceRate(world.getBlockState(pos.relative(side)));
             if (rate <= 0.0F) {
                 return 0.0F;
             }
@@ -447,15 +447,15 @@ public class SiftingBoxBlock extends Block {
     }
 
     private static float iceRate(BlockState state) {
-        if (state.isOf(Blocks.BLUE_ICE)) {
+        if (state.is(Blocks.BLUE_ICE)) {
             return BLUE_ICE_RATE;
         }
-        if (state.isOf(Blocks.PACKED_ICE)) {
+        if (state.is(Blocks.PACKED_ICE)) {
             return PACKED_ICE_RATE;
         }
         // Frosted ice counts, and is a joke worth leaving in: Frost Walker boots keep a jacket alive
         // for exactly as long as you stand there and no longer.
-        return state.isOf(Blocks.ICE) || state.isOf(Blocks.FROSTED_ICE) ? ICE_RATE : 0.0F;
+        return state.is(Blocks.ICE) || state.is(Blocks.FROSTED_ICE) ? ICE_RATE : 0.0F;
     }
 
     /**
@@ -472,16 +472,16 @@ public class SiftingBoxBlock extends Block {
      * cleanliness, which is exactly what the wash buys.
      */
     private static float sieveChance(ItemStack stack) {
-        if (stack.isIn(ModTags.Items.SIFTABLE_RESINOUS)) {
+        if (stack.is(ModTags.Items.SIFTABLE_RESINOUS)) {
             return RESINOUS_CHANCE;
         }
-        if (stack.isIn(ModTags.Items.SIFTABLE_FLOWER)) {
+        if (stack.is(ModTags.Items.SIFTABLE_FLOWER)) {
             return FLOWER_CHANCE;
         }
-        if (stack.isIn(ModTags.Items.SIFTABLE_TRIM)) {
+        if (stack.is(ModTags.Items.SIFTABLE_TRIM)) {
             return TRIM_CHANCE;
         }
-        return stack.isIn(ModTags.Items.SIFTABLE_KIEF) ? KIEF_CHANCE : 0.0F;
+        return stack.is(ModTags.Items.SIFTABLE_KIEF) ? KIEF_CHANCE : 0.0F;
     }
 
     /**
@@ -493,11 +493,11 @@ public class SiftingBoxBlock extends Block {
      */
     @Nullable
     private static Content contentOf(ItemStack stack) {
-        if (stack.isIn(ModTags.Items.SIFTABLE_FLOWER) || stack.isIn(ModTags.Items.SIFTABLE_RESINOUS)
-                || stack.isIn(ModTags.Items.SIFTABLE_TRIM)) {
+        if (stack.is(ModTags.Items.SIFTABLE_FLOWER) || stack.is(ModTags.Items.SIFTABLE_RESINOUS)
+                || stack.is(ModTags.Items.SIFTABLE_TRIM)) {
             return Content.PLANT;
         }
-        return stack.isIn(ModTags.Items.SIFTABLE_KIEF) ? Content.KIEF : null;
+        return stack.is(ModTags.Items.SIFTABLE_KIEF) ? Content.KIEF : null;
     }
 
     /**
@@ -505,17 +505,17 @@ public class SiftingBoxBlock extends Block {
      * for certain and the fraction as a roll, so a resinous bud in a packed-ice wash (2 × 0.75) is one
      * level and a coin flip on a second. A level past full is simply lost, as in a composter.
      */
-    private static void sift(ServerWorld world, BlockPos pos, BlockState state, int level, float chance) {
+    private static void sift(ServerLevel world, BlockPos pos, BlockState state, int level, float chance) {
         int steps = (int) chance + (world.random.nextFloat() < chance - (int) chance ? 1 : 0);
         if (steps > 0) {
             int next = Math.min(FULL_LEVEL, level + steps);
-            // Reaching FULL_LEVEL schedules the settle in onBlockAdded, which this call runs.
-            world.setBlockState(pos, state.with(LEVEL, next), Block.NOTIFY_ALL);
-            world.playSound(null, pos, SoundEvents.BLOCK_COMPOSTER_FILL_SUCCESS, SoundCategory.BLOCKS, 1.0F, 1.0F);
-        } else if (state.get(FILLED)) {
-            world.playSound(null, pos, SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 0.6F, 1.4F);
+            // Reaching FULL_LEVEL schedules the settle in onPlace, which this call runs.
+            world.setBlock(pos, state.setValue(LEVEL, next), Block.UPDATE_ALL);
+            world.playSound(null, pos, SoundEvents.COMPOSTER_FILL_SUCCESS, SoundSource.BLOCKS, 1.0F, 1.0F);
+        } else if (state.getValue(FILLED)) {
+            world.playSound(null, pos, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 0.6F, 1.4F);
         } else {
-            world.playSound(null, pos, SoundEvents.BLOCK_COMPOSTER_FILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            world.playSound(null, pos, SoundEvents.COMPOSTER_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
     }
 
@@ -527,20 +527,20 @@ public class SiftingBoxBlock extends Block {
      * class comment. What comes out of a screen is powder, which is why neither of these is
      * smokeable until it has been through the press.
      */
-    private static void collect(ServerWorld world, BlockPos pos, BlockState state) {
+    private static void collect(ServerLevel world, BlockPos pos, BlockState state) {
         Item yield;
-        if (state.get(CONTENT) == Content.KIEF) {
+        if (state.getValue(CONTENT) == Content.KIEF) {
             yield = ModItems.FILTERED_KIEF;   // the dry re-sift; a wash never holds powder
         } else {
-            yield = state.get(FILLED) ? ModItems.BUBBLE_HASH : ModItems.KIEF;
+            yield = state.getValue(FILLED) ? ModItems.BUBBLE_HASH : ModItems.KIEF;
         }
-        Vec3d spawn = Vec3d.add(pos, 0.5, 1.01, 0.5).addRandom(world.random, 0.7F);
-        ItemEntity dropped = new ItemEntity(world, spawn.getX(), spawn.getY(), spawn.getZ(),
+        Vec3 spawn = Vec3.atLowerCornerWithOffset(pos, 0.5, 1.01, 0.5).offsetRandom(world.random, 0.7F);
+        ItemEntity dropped = new ItemEntity(world, spawn.x(), spawn.y(), spawn.z(),
                 new ItemStack(yield, YIELD));
-        dropped.setToDefaultPickupDelay();
-        world.spawnEntity(dropped);
-        world.setBlockState(pos, state.with(LEVEL, 0).with(FILLED, false).with(CONTENT, Content.PLANT),
-                Block.NOTIFY_ALL);
-        world.playSound(null, pos, SoundEvents.BLOCK_COMPOSTER_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+        dropped.setDefaultPickUpDelay();
+        world.addFreshEntity(dropped);
+        world.setBlock(pos, state.setValue(LEVEL, 0).setValue(FILLED, false).setValue(CONTENT, Content.PLANT),
+                Block.UPDATE_ALL);
+        world.playSound(null, pos, SoundEvents.COMPOSTER_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 }

@@ -3,7 +3,7 @@ package com.warlonmhite.hempdustry.compat.rei;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
 import me.shedaniel.rei.api.common.entry.comparison.ItemComparatorRegistry;
 import me.shedaniel.rei.api.common.plugins.REICommonPlugin;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 
 /**
  * Tells REI that what is loaded makes a smokeable a different item.

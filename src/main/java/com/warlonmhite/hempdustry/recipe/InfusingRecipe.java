@@ -2,26 +2,22 @@ package com.warlonmhite.hempdustry.recipe;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.IngredientPlacement;
-import net.minecraft.recipe.IngredientPlacement;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.book.RecipeBookCategories;
-import net.minecraft.recipe.book.RecipeBookCategory;
-import net.minecraft.recipe.book.RecipeBookCategories;
-import net.minecraft.recipe.book.RecipeBookCategory;
-import net.minecraft.recipe.input.SingleStackRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.world.World;
-
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.level.Level;
 import java.util.Optional;
 
 /**
@@ -51,7 +47,7 @@ import java.util.Optional;
  */
 public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient washedHemp,
                              Optional<Ingredient> scorchedHemp, ItemStack result)
-        implements Recipe<SingleStackRecipeInput> {
+        implements Recipe<SingleRecipeInput> {
 
     /**
      * The conversion this world is running.
@@ -61,13 +57,13 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
      * milk that selected it is spent long before the batch is collected. If a second one is ever
      * genuinely wanted, that is the work.
      */
-    public static InfusingRecipe of(World world) {
+    public static InfusingRecipe of(Level world) {
         return ModRecipes.allOfType(world, ModRecipes.INFUSING_TYPE)
-                .stream().findFirst().map(RecipeEntry::value).orElse(null);
+                .stream().findFirst().map(RecipeHolder::value).orElse(null);
     }
 
     @Override
-    public boolean matches(SingleStackRecipeInput input, World world) {
+    public boolean matches(SingleRecipeInput input, Level world) {
         ItemStack stack = input.item();
         return container.test(stack) || hemp.test(stack) || washedHemp.test(stack) || isScorched(stack);
     }
@@ -78,25 +74,25 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     }
 
     @Override
-    public ItemStack craft(SingleStackRecipeInput input, RegistryWrapper.WrapperLookup lookup) {
+    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider lookup) {
         return result.copy();
     }
 
     /** The things the tub accepts, in the order the screen lays them out. */
     @Override
-    public IngredientPlacement getIngredientPlacement() {
-        return IngredientPlacement.forMultipleSlots(
+    public PlacementInfo placementInfo() {
+        return PlacementInfo.createFromOptionals(
                 List.of(Optional.of(container), Optional.of(hemp), Optional.of(washedHemp), scorchedHemp));
     }
 
     @Override
-    public boolean isIgnoredInRecipeBook() {
+    public boolean isSpecial() {
         return true;
     }
 
-    /** Never shown — see {@link DecarboxylatingRecipe#getRecipeBookCategory()}. */
+    /** Never shown — see {@link DecarboxylatingRecipe#recipeBookCategory()}. */
     @Override
-    public RecipeBookCategory getRecipeBookCategory() {
+    public RecipeBookCategory recipeBookCategory() {
         return RecipeBookCategories.CRAFTING_MISC;
     }
 
@@ -118,7 +114,7 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
      * the shipped ones are.
      */
     public static ItemStack representative(Ingredient ingredient) {
-        return ingredient.getMatchingItems().findFirst()
+        return ingredient.items().findFirst()
                 .map(ItemStack::new).orElse(ItemStack.EMPTY);
     }
 
@@ -130,15 +126,15 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
                 // Optional: see the class notes. Every infusing.json written before it existed
                 // still parses, and means "this tub takes no scorched hemp".
                 Ingredient.CODEC.optionalFieldOf("scorched_hemp").forGetter(InfusingRecipe::scorchedHemp),
-                ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
+                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
         ).apply(instance, InfusingRecipe::new));
 
-        private static final PacketCodec<RegistryByteBuf, InfusingRecipe> PACKET_CODEC = PacketCodec.tuple(
-                Ingredient.PACKET_CODEC, InfusingRecipe::container,
-                Ingredient.PACKET_CODEC, InfusingRecipe::hemp,
-                Ingredient.PACKET_CODEC, InfusingRecipe::washedHemp,
-                Ingredient.OPTIONAL_PACKET_CODEC, InfusingRecipe::scorchedHemp,
-                ItemStack.PACKET_CODEC, InfusingRecipe::result,
+        private static final StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> PACKET_CODEC = StreamCodec.composite(
+                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::container,
+                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::hemp,
+                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::washedHemp,
+                Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC, InfusingRecipe::scorchedHemp,
+                ItemStack.STREAM_CODEC, InfusingRecipe::result,
                 InfusingRecipe::new);
 
         @Override
@@ -147,7 +143,7 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
         }
 
         @Override
-        public PacketCodec<RegistryByteBuf, InfusingRecipe> packetCodec() {
+        public StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> streamCodec() {
             return PACKET_CODEC;
         }
     }

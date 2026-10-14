@@ -2,21 +2,20 @@ package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.display.RecipeDisplay;
-import net.minecraft.recipe.display.SlotDisplay;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.test.TestContext;
-import net.minecraft.util.Identifier;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 /**
  * The creative tab is built without throwing — <b>and this test exists because it once did.</b>
@@ -25,20 +24,20 @@ import java.util.TreeMap;
  *
  * On 2026-09-09 an edit to {@code ModItemGroups} added
  * {@code entries.add(WASHED_DECARBOXYLATED_HEMP)} without removing the existing one. Vanilla's
- * {@code ItemGroup$EntriesImpl.add} refuses that outright —
+ * {@code CreativeModeTab$ItemDisplayBuilder.accept} refuses that outright —
  * <i>"Accidentally adding the same item stack twice"</i>, an {@code IllegalStateException} — so
  * <b>opening the creative inventory crashed the client, in every world.</b>
  *
  * <p>It reached a play-test through a full green board: {@code build}, {@code runDatagen},
  * {@code recipe_collisions.py} and sixteen game tests all passed. They passed because
  * <b>{@code runGametest} boots a dedicated server, and a dedicated server never populates a creative
- * tab</b> — {@code ItemGroups.updateEntries} runs from {@code CreativeInventoryScreen}, on the
- * client, when a player presses E. The mod's largest and most-edited lambda had no coverage at all.
+ * tab</b> — {@code CreativeModeTabs.tryRebuildTabContents} runs from {@code CreativeModeInventoryScreen},
+ * on the client, when a player presses E. The mod's largest and most-edited lambda had no coverage at all.
  *
  * <p><b>It did not have to be that way, and that is the actual lesson.</b>
- * {@code net.minecraft.item.ItemGroups} and {@code ItemGroup#updateEntries} are <em>common</em> code,
- * not client code: a headless server can build the tab perfectly well: it simply had never been
- * asked to. "It only happens on a client" was an assumption, not a fact — and the way to check an
+ * {@code net.minecraft.world.item.CreativeModeTabs} and {@code CreativeModeTab#buildContents} are
+ * <em>common</em> code, not client code: a headless server can build the tab perfectly well: it simply had
+ * never been asked to. "It only happens on a client" was an assumption, not a fact — and the way to check an
  * assumption like that is {@code javap} against the mapped jar, which takes ten seconds.
  *
  * <h2>What this guards, beyond the duplicate</h2>
@@ -50,18 +49,18 @@ import java.util.TreeMap;
  */
 public final class CreativeTabGameTest {
 
-    public static void creativeTabPopulates(TestContext context) {
-        ServerWorld world = context.getWorld();
+    public static void creativeTabPopulates(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
 
-        // Exactly what CreativeInventoryScreen does on opening, minus the screen. A duplicate stack
+        // Exactly what CreativeModeInventoryScreen does on opening, minus the screen. A duplicate stack
         // throws IllegalStateException from inside here, which fails the test as an error rather
         // than as an assertion -- which is the right shape: this is "does it work at all".
-        ItemGroup.DisplayContext display = new ItemGroup.DisplayContext(
-                world.getEnabledFeatures(), true, world.getRegistryManager());
-        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.updateEntries(display);
+        CreativeModeTab.ItemDisplayParameters display = new CreativeModeTab.ItemDisplayParameters(
+                world.enabledFeatures(), true, world.registryAccess());
+        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(display);
 
-        List<ItemStack> all = new ArrayList<>(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayStacks());
-        all.addAll(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks());
+        List<ItemStack> all = new ArrayList<>(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems());
+        all.addAll(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems());
         // A tab that quietly built nothing would pass the throw test and fail the player, so the
         // count is asserted too rather than assumed.
         context.assertTrue(all.size() > 50,
@@ -71,9 +70,9 @@ public final class CreativeTabGameTest {
         // with no check is a suggestion: until 2026-10-08 this named seven items by hand, so an item
         // added since was checked by nothing.
         Map<String, String> missing = new TreeMap<>();
-        for (Item item : Registries.ITEM) {
-            Identifier id = Registries.ITEM.getId(item);
-            if (Sweep.ours(id) && all.stream().noneMatch(stack -> stack.isOf(item))) {
+        for (Item item : BuiltInRegistries.ITEM) {
+            Identifier id = BuiltInRegistries.ITEM.getKey(item);
+            if (Sweep.ours(id) && all.stream().noneMatch(stack -> stack.is(item))) {
                 missing.put(id.toString(), "is in no stack the tab or creative search shows");
             }
         }
@@ -82,10 +81,10 @@ public final class CreativeTabGameTest {
         // Everything the tab shows can be found by searching for it. PARENT_TAB_ONLY keeps a stack
         // out of the search tab, and is meant for a showcase whose full run is listed search-only;
         // the moon rocks had no such run, so search never found one.
-        for (ItemStack shown : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayStacks()) {
+        for (ItemStack shown : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems()) {
             boolean searchable = false;
-            for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks()) {
-                if (stack.isOf(shown.getItem())) {
+            for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems()) {
+                if (stack.is(shown.getItem())) {
                     searchable = true;
                     break;
                 }
@@ -97,22 +96,22 @@ public final class CreativeTabGameTest {
         // its contents. The tab builds those stacks from the registry and the recipes build their
         // own, so the two drifted: the schwag spliffs, the hash spliffs and two of the three moon
         // rock coats were craftable and in no list.
-        for (RecipeEntry<?> entry : world.getServer().getRecipeManager().values()) {
-            for (RecipeDisplay shown : entry.value().getDisplays()) {
-                if (!(shown.result() instanceof SlotDisplay.StackSlotDisplay(ItemStack made))
-                        || !(made.isOf(ModItems.SPLIFF) || made.isOf(ModItems.MOON_ROCK))) {
+        for (RecipeHolder<?> entry : world.getServer().getRecipeManager().getRecipes()) {
+            for (RecipeDisplay shown : entry.value().display()) {
+                if (!(shown.result() instanceof SlotDisplay.ItemStackSlotDisplay(ItemStack made))
+                        || !(made.is(ModItems.SPLIFF) || made.is(ModItems.MOON_ROCK))) {
                     continue;
                 }
                 boolean listed = false;
-                for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabStacks()) {
-                    if (ItemStack.areItemsAndComponentsEqual(stack, made)) {
+                for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems()) {
+                    if (ItemStack.isSameItemSameComponents(stack, made)) {
                         listed = true;
                         break;
                     }
                 }
-                context.assertTrue(listed, entry.id().getValue() + " makes a stack creative search never finds");
+                context.assertTrue(listed, entry.id().identifier() + " makes a stack creative search never finds");
             }
         }
-        context.complete();
+        context.succeed();
     }
 }

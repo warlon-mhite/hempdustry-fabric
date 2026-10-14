@@ -4,10 +4,10 @@ import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 /**
  * The mod's <b>outbound</b> integration points: how another mod hears about, and can refuse, things
@@ -128,12 +128,12 @@ public final class HempdustryEvents {
     @FunctionalInterface
     public interface AllowSmoke {
         /** @return {@code false} to refuse the hit. */
-        boolean allowSmoke(PlayerEntity player, SmokeContents contents, ItemStack device);
+        boolean allowSmoke(Player player, SmokeContents contents, ItemStack device);
     }
 
     @FunctionalInterface
     public interface AfterSmoke {
-        void afterSmoke(PlayerEntity player, SmokeContents contents, ItemStack device);
+        void afterSmoke(Player player, SmokeContents contents, ItemStack device);
     }
 
     @FunctionalInterface
@@ -142,7 +142,7 @@ public final class HempdustryEvents {
          * @param tier    potency, 1..4
          * @param quality the grade of the cannabutter it was baked with
          */
-        void onEaten(PlayerEntity player, int tier, Quality quality);
+        void onEaten(Player player, int tier, Quality quality);
     }
 
     @FunctionalInterface
@@ -151,6 +151,6 @@ public final class HempdustryEvents {
          * @param strength how much hemp went into the batch, 1..{@code BATCH_CAP}
          * @param quality  the grade it was collected at
          */
-        void onInfused(World world, BlockPos pos, int strength, Quality quality);
+        void onInfused(Level world, BlockPos pos, int strength, Quality quality);
     }
 }

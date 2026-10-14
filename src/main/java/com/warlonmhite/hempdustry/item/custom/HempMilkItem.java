@@ -1,15 +1,15 @@
 package com.warlonmhite.hempdustry.item.custom;
 
-import net.minecraft.advancement.criterion.Criteria;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsage;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.stat.Stats;
-import net.minecraft.world.World;
+import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 
 /**
  * Hemp milk — the seed milk, and <b>not</b> the same thing as {@link BhangItem}. Zero THC, no
@@ -39,24 +39,24 @@ public class HempMilkItem extends Item {
     // `consumable` component set in ModItems, not an override here: since 1.21.2 Item#getUseAction
     // and Item#getMaxUseTime read that component and an override of either is dead code.
 
-    public HempMilkItem(Settings settings) {
+    public HempMilkItem(Properties settings) {
         super(settings);
     }
 
     @Override
-    public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
-        if (user instanceof ServerPlayerEntity player) {
-            Criteria.CONSUME_ITEM.trigger(player, stack);
-            player.incrementStat(Stats.USED.getOrCreateStat(this));
+    public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
+        if (user instanceof ServerPlayer player) {
+            CriteriaTriggers.CONSUME_ITEM.trigger(player, stack);
+            player.awardStat(Stats.ITEM_USED.get(this));
         }
-        if (!world.isClient()) {
-            user.clearStatusEffects();
+        if (!world.isClientSide()) {
+            user.removeAllEffects();
         }
-        // exchangeStack wants a PlayerEntity; anything else that somehow drinks this just loses it.
-        if (!(user instanceof PlayerEntity player)) {
+        // createFilledResult wants a Player; anything else that somehow drinks this just loses it.
+        if (!(user instanceof Player player)) {
             return stack;
         }
-        return ItemUsage.exchangeStack(stack, player, new ItemStack(Items.BUCKET));
+        return ItemUtils.createFilledResult(stack, player, new ItemStack(Items.BUCKET));
     }
 
 }

@@ -4,11 +4,11 @@ import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.client.render.item.property.numeric.NumericProperty;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.HeldItemContext;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperty;
+import net.minecraft.core.Holder;
+import net.minecraft.world.entity.ItemOwner;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -23,22 +23,22 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>It replaces the 1.21.1 {@code ModelPredicateProvider} pair and takes their trap with it: the
  * old registry only accepted a <em>clamped</em> provider, so a {@code model_index} above 1 silently
- * collapsed onto the first strain's art. A {@link NumericProperty} is unclamped, and the mod's
+ * collapsed onto the first strain's art. A {@link RangeSelectItemModelProperty} is unclamped, and the mod's
  * accessor mixin into {@code ModelPredicateProviderRegistry} is no longer needed.
  */
-public record StrainModelIndexProperty() implements NumericProperty {
+public record StrainModelIndexProperty() implements RangeSelectItemModelProperty {
     public static final MapCodec<StrainModelIndexProperty> CODEC =
             MapCodec.unit(new StrainModelIndexProperty());
 
     @Override
-    public float getValue(ItemStack stack, @Nullable ClientWorld world, HeldItemContext context, int seed) {
-        RegistryEntry<Strain> loaded =
+    public float get(ItemStack stack, @Nullable ClientLevel world, ItemOwner context, int seed) {
+        Holder<Strain> loaded =
                 stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).primaryStrain();
         return loaded == null ? 0f : loaded.value().modelIndex();
     }
 
     @Override
-    public MapCodec<? extends NumericProperty> getCodec() {
+    public MapCodec<? extends RangeSelectItemModelProperty> type() {
         return CODEC;
     }
 }

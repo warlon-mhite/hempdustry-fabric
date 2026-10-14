@@ -1,24 +1,24 @@
 package com.warlonmhite.hempdustry.client.render;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
-import net.minecraft.client.item.ItemModelManager;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.block.entity.state.BlockEntityRenderState;
-import net.minecraft.client.render.command.ModelCommandRenderer;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.item.ItemRenderState;
-import net.minecraft.client.render.state.CameraRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -52,21 +52,21 @@ public class HempPressBlockEntityRenderer
     /** Where the squeeze ends and the lift begins; the lift is quick, the way an unwound screw is. */
     private static final float HOLD = 0.9F;
 
-    private final ItemModelManager itemModels;
+    private final ItemModelResolver itemModels;
 
-    public HempPressBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
-        this.itemModels = context.itemModelManager();
+    public HempPressBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        this.itemModels = context.itemModelResolver();
     }
 
     private static ItemStack part(String model) {
         ItemStack stack = new ItemStack(Items.STICK);
-        stack.set(DataComponentTypes.ITEM_MODEL, Identifier.of(Hempdustry.MOD_ID, model));
+        stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, model));
         return stack;
     }
 
     public static class State extends BlockEntityRenderState {
-        final ItemRenderState platen = new ItemRenderState();
-        final ItemRenderState screw = new ItemRenderState();
+        final ItemStackRenderState platen = new ItemStackRenderState();
+        final ItemStackRenderState screw = new ItemStackRenderState();
         /** 0 at rest under the crossbeam, 1 bottomed out on the packet. */
         float depth;
     }
@@ -77,11 +77,11 @@ public class HempPressBlockEntityRenderer
     }
 
     @Override
-    public void updateRenderState(HempPressBlockEntity press, State state, float tickDelta, Vec3d cameraPos,
-                                  @Nullable ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlay) {
-        BlockEntityRenderer.super.updateRenderState(press, state, tickDelta, cameraPos, crumblingOverlay);
-        itemModels.clearAndUpdate(state.platen, PLATEN, ItemDisplayContext.NONE, press.getWorld(), null, 0);
-        itemModels.clearAndUpdate(state.screw, SCREW, ItemDisplayContext.NONE, press.getWorld(), null, 0);
+    public void extractRenderState(HempPressBlockEntity press, State state, float tickDelta, Vec3 cameraPos,
+                                  @Nullable ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
+        BlockEntityRenderer.super.extractRenderState(press, state, tickDelta, cameraPos, crumblingOverlay);
+        itemModels.updateForTopItem(state.platen, PLATEN, ItemDisplayContext.NONE, press.getLevel(), null, 0);
+        itemModels.updateForTopItem(state.screw, SCREW, ItemDisplayContext.NONE, press.getLevel(), null, 0);
         float ticks = press.strokeTicks(tickDelta);
         state.depth = ticks < 0 ? 0.0F : depth(ticks / HempPressBlockEntity.pressTime());
     }
@@ -105,15 +105,15 @@ public class HempPressBlockEntityRenderer
     }
 
     @Override
-    public void render(State state, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState camera) {
-        matrices.push();
+    public void submit(State state, PoseStack matrices, SubmitNodeCollector queue, CameraRenderState camera) {
+        matrices.pushPose();
         // The item pipeline draws a model centred on the origin, so stand it in the middle of the block.
         matrices.translate(0.5F, 0.5F - state.depth * TRAVEL / 16.0F, 0.5F);
-        state.platen.render(matrices, queue, state.lightmapCoordinates, OverlayTexture.DEFAULT_UV, 0);
+        state.platen.submit(matrices, queue, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 
         // A right-hand thread drives down turning clockwise seen from above: a negative turn about +Y.
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-state.depth * TURNS * 360.0F));
-        state.screw.render(matrices, queue, state.lightmapCoordinates, OverlayTexture.DEFAULT_UV, 0);
-        matrices.pop();
+        matrices.mulPose(Axis.YP.rotationDegrees(-state.depth * TURNS * 360.0F));
+        state.screw.submit(matrices, queue, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        matrices.popPose();
     }
 }

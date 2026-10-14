@@ -1,8 +1,8 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import net.minecraft.block.FlowerBlock;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.core.Holder;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.level.block.FlowerBlock;
 
 /**
  * Wild indica flower. Its seed drop (with Fortune scaling) is defined in the
@@ -10,7 +10,7 @@ import net.minecraft.registry.entry.RegistryEntry;
  */
 public class IndicaFlower extends FlowerBlock {
 
-    public IndicaFlower(RegistryEntry<StatusEffect> stewEffect, float effectLengthInSeconds, Settings settings) {
+    public IndicaFlower(Holder<MobEffect> stewEffect, float effectLengthInSeconds, Properties settings) {
         super(stewEffect, effectLengthInSeconds, settings);
     }
 }

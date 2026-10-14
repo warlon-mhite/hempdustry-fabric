@@ -1,14 +1,14 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.CropBlock;
-import net.minecraft.block.FarmlandBlock;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**
  * Everything besides a lost light that can turn a flowering plant {@link GrowLight#STRESSED}.
@@ -49,14 +49,14 @@ public final class PlantStress {
 
     /**
      * The odds that one growth step stresses a flowering plant standing on {@code floor}. A bed of ours
-     * answers for itself; farmland only once it is bone dry, which vanilla's {@code FarmlandBlock} only
+     * answers for itself; farmland only once it is bone dry, which vanilla's {@code FarmBlock} only
      * lets happen after about seven random ticks with no water in reach and no rain.
      */
     public static float ofGround(BlockState floor) {
         if (floor.getBlock() instanceof GrowMedium medium) {
             return medium.stress(floor);
         }
-        return floor.isOf(Blocks.FARMLAND) && floor.get(FarmlandBlock.MOISTURE) == 0 ? DRY_FIELD : 0.0F;
+        return floor.is(Blocks.FARMLAND) && floor.getValue(FarmBlock.MOISTURE) == 0 ? DRY_FIELD : 0.0F;
     }
 
     /**
@@ -65,19 +65,19 @@ public final class PlantStress {
      * overfeeding a bone meal step brings with it). {@code height} is how tall the plant stands grown,
      * which is where its light is read.
      */
-    public static GrowLight afterStep(World world, BlockPos lower, GrowLight record, int fromAge, int toAge,
-                                      int height, float extra, Random random) {
+    public static GrowLight afterStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge,
+                                      int height, float extra, RandomSource random) {
         GrowLight next = record.afterStep(fromAge, GrowLight.over(world, lower, height));
         if (next == GrowLight.STRESSED || toAge < GrowLight.FLOWERING_AGE) {
             return next;
         }
-        float chance = Math.max(ofGround(world.getBlockState(lower.down())), extra);
+        float chance = Math.max(ofGround(world.getBlockState(lower.below())), extra);
         return chance > 0.0F && random.nextFloat() < chance ? GrowLight.STRESSED : next;
     }
 
     /** The odds a bone meal step on the plant at {@code lower} overfeeds it: flowering already, in a fed bed. */
-    public static float ofBoneMeal(World world, BlockPos lower, BlockState plant) {
-        BlockState floor = world.getBlockState(lower.down());
+    public static float ofBoneMeal(Level world, BlockPos lower, BlockState plant) {
+        BlockState floor = world.getBlockState(lower.below());
         return isFlowering(plant) && floor.getBlock() instanceof GrowMedium medium && medium.fed(floor)
                 ? OVERFED : 0.0F;
     }
@@ -89,40 +89,40 @@ public final class PlantStress {
      * plant cut at maturity has no weeks left to go seedy. Vanilla never costs a finished crop its
      * yield either.
      */
-    public static void roll(World world, BlockPos lower, float chance, Random random) {
+    public static void roll(Level world, BlockPos lower, float chance, RandomSource random) {
         BlockState plant = world.getBlockState(lower);
-        if (!isFlowering(plant) || plant.get(GrowLight.PROPERTY) == GrowLight.STRESSED
-                || plant.getBlock() instanceof CropBlock crop && crop.isMature(plant)
+        if (!isFlowering(plant) || plant.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED
+                || plant.getBlock() instanceof CropBlock crop && crop.isMaxAge(plant)
                 || random.nextFloat() >= chance) {
             return;
         }
         Block block = plant.getBlock();
-        for (BlockPos pos = lower; world.getBlockState(pos).isOf(block); pos = pos.up()) {
-            world.setBlockState(pos, world.getBlockState(pos).with(GrowLight.PROPERTY, GrowLight.STRESSED),
-                    Block.NOTIFY_LISTENERS);
+        for (BlockPos pos = lower; world.getBlockState(pos).is(block); pos = pos.above()) {
+            world.setBlock(pos, world.getBlockState(pos).setValue(GrowLight.PROPERTY, GrowLight.STRESSED),
+                    Block.UPDATE_CLIENTS);
         }
     }
 
     /**
      * The state a bee's growth step should write. A bee grows a crop with a raw
-     * {@code setBlockState(withAge(age + 1))}, which skips the crop's own step; this gives that step
+     * {@code setBlockAndUpdate(getStateForAge(age + 1))}, which skips the crop's own step; this gives that step
      * the same light reading and the same roll as any other, so a bee cannot carry a dry field
      * through its flowering untouched.
      */
-    public static BlockState beeStep(World world, BlockPos pos, BlockState current, BlockState next,
-                                     Random random) {
-        if (!(current.getBlock() instanceof CropBlock crop) || !current.isOf(next.getBlock())
-                || !next.contains(GrowLight.PROPERTY)) {
+    public static BlockState beeStep(Level world, BlockPos pos, BlockState current, BlockState next,
+                                     RandomSource random) {
+        if (!(current.getBlock() instanceof CropBlock crop) || !current.is(next.getBlock())
+                || !next.hasProperty(GrowLight.PROPERTY)) {
             return next;
         }
         int height = crop instanceof SativaCropBlock ? 3 : 2;
-        return next.with(GrowLight.PROPERTY, afterStep(world, pos, current.get(GrowLight.PROPERTY),
+        return next.setValue(GrowLight.PROPERTY, afterStep(world, pos, current.getValue(GrowLight.PROPERTY),
                 crop.getAge(current), crop.getAge(next), height, 0.0F, random));
     }
 
     /** A hemp plant at or past {@link GrowLight#FLOWERING_AGE}, with a record to lose. */
     public static boolean isFlowering(BlockState state) {
-        return state.contains(GrowLight.PROPERTY) && state.contains(Properties.AGE_7)
-                && state.get(Properties.AGE_7) >= GrowLight.FLOWERING_AGE;
+        return state.hasProperty(GrowLight.PROPERTY) && state.hasProperty(BlockStateProperties.AGE_7)
+                && state.getValue(BlockStateProperties.AGE_7) >= GrowLight.FLOWERING_AGE;
     }
 }

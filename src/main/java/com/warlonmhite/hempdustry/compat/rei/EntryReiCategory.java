@@ -10,12 +10,11 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.ItemLike;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -43,18 +42,18 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
     private static final int NOTE_DARK = 0xFFBBBBBB;
 
     private final CategoryIdentifier<EntryReiDisplay> id;
-    private final Text title;
+    private final Component title;
     private final Renderer icon;
     private final int noteLines;
     /** Every row this category shows, so each page is as wide as the widest of them. */
     private List<ViewerRecipes.Entry> entries = List.of();
 
-    public EntryReiCategory(Identifier id, ItemConvertible icon, int noteLines) {
+    public EntryReiCategory(Identifier id, ItemLike icon, int noteLines) {
         this.id = CategoryIdentifier.of(id);
         // The same key JEI's title comes from, rather than REI's default
         // category.rei.<namespace>.<path> — one set of titles across eight locales, and the two
         // viewers cannot end up saying different words for the same category.
-        this.title = Text.translatable("hempdustry.category." + id.getPath());
+        this.title = Component.translatable("hempdustry.category." + id.getPath());
         this.icon = EntryStacks.of(icon);
         this.noteLines = noteLines;
     }
@@ -65,7 +64,7 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
     }
 
     @Override
-    public Text getTitle() {
+    public Component getTitle() {
         return title;
     }
 
@@ -96,14 +95,14 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
     @Override
     public int getDisplayWidth(EntryReiDisplay display) {
         int slots = MAX_INPUTS * SLOT + ARROW_WIDTH + SLOT;
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (!client.isOnThread()) {
+        Minecraft client = Minecraft.getInstance();
+        if (!client.isSameThread()) {
             return slots + PADDING * 2;
         }
-        TextRenderer font = client.textRenderer;
+        Font font = client.font;
         int widest = Stream.concat(entries.stream().flatMap(entry -> entry.notes().stream()),
                         display.notes().stream())
-                .mapToInt(font::getWidth).max().orElse(0);
+                .mapToInt(font::width).max().orElse(0);
         return Math.max(slots, widest + CORNER_BUTTON) + PADDING * 2;
     }
 
@@ -131,7 +130,7 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
                 .entries(display.getOutputEntries().getFirst()).markOutput());
 
         int noteY = y + SLOT + PADDING;
-        for (Text note : display.notes()) {
+        for (Component note : display.notes()) {
             widgets.add(Widgets.createLabel(new Point(bounds.x + PADDING, noteY), note)
                     .color(NOTE_LIGHT, NOTE_DARK).noShadow().leftAligned());
             noteY += LINE_HEIGHT;
