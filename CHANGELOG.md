@@ -341,7 +341,6 @@ beta be told when the release lands.
 
 ### Known issues
 
-- **This beta is for Minecraft 1.21.11 only.** The 1.21.1 build comes with the stable release.
 - **German and Russian are not finished**: most of 2.1's new text shows in English there for now.
 - **A hash spliff's name reads one level low**: a spliff of two buds and a pinch says II and gives
   III.
