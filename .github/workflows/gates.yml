@@ -1,0 +1,65 @@
+# Every gate on every push, both loaders: the same table `python3 scripts/gates.py` prints at home --
+# the script checks, each loader's game tests with their log gate, each loader's cold data run, the
+# build -- and then the API held to the last release, so no branch can drift red unseen.
+name: Gates
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch makes an older run's answer moot.
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # The release whose API this build must keep (the Fabric jar's; scripts/api_additive.py).
+      # Move it on at each release.
+      API_BASELINE: v2.0.3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Both loaders compiled once before the gates: it fails early on a compile error, and it puts the
+      # game's client jar in Loom's cache, where the recipe-collision gate reads vanilla's recipes.
+      - name: Compile both loaders
+        run: ./gradlew --console=plain :fabric:compileJava :neoforge:compileJava
+
+      - name: Fetch the released jar the API is held to
+        run: |
+          mc=$(sed -n 's/^minecraft_version=//p' gradle.properties)
+          mkdir -p build/baseline
+          curl -fsSL -o build/baseline/released.jar \
+            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${API_BASELINE}/hempdustry-${API_BASELINE#v}%2B${mc}.jar"
+
+      - name: Gates
+        run: python3 scripts/gates.py --released build/baseline/released.jar
+
+      - name: Keep the logs of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-logs
+          path: |
+            build/gates/*.log
+            fabric/build/gametest/logs/
+            neoforge/build/gametest/logs/
+          if-no-files-found: ignore
