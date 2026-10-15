@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.util.SemVer;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.minecraft.gametest.framework.GameTest;
@@ -18,7 +17,7 @@ import java.util.List;
  * the checker read differently would be announced wrongly or not at all, so this holds the two to
  * the same answers: which strings are versions, and how every pair of them sorts.
  */
-public final class SemVerGameTest implements FabricGameTest {
+public final class SemVerGameTest {
 
     /** Every version the mod has shipped or announced, those it is about to, and SemVer's own examples. */
     private static final List<String> VERSIONS = List.of(
@@ -34,7 +33,7 @@ public final class SemVerGameTest implements FabricGameTest {
             "", "v2.0.0", "2.0.x", "x", "2..0", ".2.0", "2.0.", "2.0.0-beta..1", "2.0.0-beta_1",
             "2.0.0-é", "-2.0.0", "2.-1.0", " 2.0.0", "2.0.0 ", "abc", "2.0.0-+", "99999999999.0.0");
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest(template = HempdustryGameTests.EMPTY)
     public void theUpdateCheckerOrdersVersionsLikeFabric(GameTestHelper context) {
         List<String> findings = new ArrayList<>();
         List<String> all = new ArrayList<>(VERSIONS);
