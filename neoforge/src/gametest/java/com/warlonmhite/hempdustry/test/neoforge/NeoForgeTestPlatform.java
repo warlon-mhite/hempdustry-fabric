@@ -25,6 +25,11 @@ public final class NeoForgeTestPlatform implements TestPlatform {
     private AddonProbe probe;
 
     @Override
+    public String loaderName() {
+        return "neoforge";
+    }
+
+    @Override
     public List<RegistryDataLoader.RegistryData<?>> dynamicRegistries() {
         return DataPackRegistriesHooks.getDataPackRegistries();
     }

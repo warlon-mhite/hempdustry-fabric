@@ -25,6 +25,11 @@ public final class NeoForgePlatform implements Platform {
     }
 
     @Override
+    public String loaderName() {
+        return "neoforge";
+    }
+
+    @Override
     public float cropGrowthSpeed(BlockState crop, BlockGetter level, BlockPos pos) {
         return VanillaCrop.growthSpeed(crop, level, pos);
     }

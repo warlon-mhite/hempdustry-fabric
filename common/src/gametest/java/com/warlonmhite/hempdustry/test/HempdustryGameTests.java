@@ -76,6 +76,7 @@ public final class HempdustryGameTests {
             LootGameTest.class,
             PackingGameTest.class,
             PlantStressGameTest.class,
+            PlatformGameTest.class,
             RebalanceGameTest.class,
             SchwagGameTest.class,
             ScorchedHempGameTest.class,

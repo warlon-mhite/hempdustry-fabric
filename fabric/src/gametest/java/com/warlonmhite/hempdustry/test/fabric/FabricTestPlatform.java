@@ -19,6 +19,11 @@ public final class FabricTestPlatform implements TestPlatform {
     private AddonProbe probe;
 
     @Override
+    public String loaderName() {
+        return "fabric";
+    }
+
+    @Override
     public List<RegistryDataLoader.RegistryData<?>> dynamicRegistries() {
         return DynamicRegistries.getDynamicRegistries();
     }

@@ -17,6 +17,9 @@ import java.util.List;
 public interface TestPlatform {
     TestPlatform INSTANCE = Services.load(TestPlatform.class);
 
+    /** The loader this test mod was built for, as Modrinth names it -- written down here, not asked of the mod. */
+    String loaderName();
+
     /**
      * Every datapack registry the game loads. Vanilla's own list leaves out the ones a mod adds, so
      * the strains and the balance files are only in the loader's.
