@@ -45,7 +45,7 @@ The English and French locales are Warlon Mhite's.
 ## Code and data
 
 **Warlon Mhite**, under the [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`) —
-everything in `src/main/java` and the mod's data files.
+everything in `common/src/main/java` and `fabric/src/main/java`, and the mod's data files.
 
 **The AGPL does not restrict commercial use.** Selling free software is expressly permitted, and
 §4 says so in as many words: *"You may charge any price or no price for each copy that you convey."*

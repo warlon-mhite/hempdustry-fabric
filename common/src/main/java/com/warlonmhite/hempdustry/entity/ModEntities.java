@@ -16,8 +16,8 @@ public class ModEntities {
     // own EntityType entirely, with its own entity classes, item, and client renderer.
     //
     // Built with vanilla's own EntityType.Builder rather than FabricEntityTypeBuilder, which is deprecated.
-    // The no-argument build() is Fabric's — it is interface-injected onto the vanilla builder, and is the
-    // vanilla build(String) without the datafixer id a mod has no business inventing.
+    // build(null): no datafixer id, which a mod has no business inventing. It is exactly what Fabric's
+    // own no-argument build() passes, and both loaders skip the data fixer's lookup for it.
     //
     // Every value here matches vanilla's boat exactly (EntityType.BOAT, verified in the 1.21.1 jar), which
     // is the point: a hemp boat should behave like a boat.
@@ -26,14 +26,14 @@ public class ModEntities {
                     .sized(1.375F, 0.5625F)
                     .eyeHeight(0.5625F)
                     .clientTrackingRange(10)
-                    .build());
+                    .build(null));
 
     public static final EntityType<HempChestBoatEntity> HEMP_CHEST_BOAT = register("hemp_chest_boat",
             EntityType.Builder.<HempChestBoatEntity>of(HempChestBoatEntity::new, MobCategory.MISC)
                     .sized(1.375F, 0.5625F)
                     .eyeHeight(0.5625F)
                     .clientTrackingRange(10)
-                    .build());
+                    .build(null));
 
     private static <T extends Entity> EntityType<T> register(String name, EntityType<T> type) {
         return Registry.register(BuiltInRegistries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name), type);

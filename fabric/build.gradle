@@ -1,0 +1,230 @@
+// Fabric's jar: common's sources and resources, compiled and remapped here, plus Fabric's entry
+// points, its side of the platform interfaces, the addon events, datagen and the game tests.
+plugins {
+	id 'multiloader-loader'
+	id 'fabric-loom'
+}
+
+def generated = project(':common').file('src/generated/resources')
+
+loom {
+	// What the mod reaches in vanilla that vanilla keeps closed; the file says what and why. It lives
+	// in common beside the access transformer that says the same to NeoForge.
+	accessWidenerPath = project(':common').file('src/main/resources/hempdustry.accesswidener')
+}
+
+fabricApi {
+	// The output is loader-neutral, so it goes to common, which ships it in every jar -- and so it
+	// is not added to this project's resources a second time.
+	configureDataGeneration {
+		outputDirectory = generated
+		addToResources = false
+	}
+}
+
+// configureDataGeneration() adds its output to the `clean` task, and that is wrong here: the
+// datagen output is committed on purpose (it ships inside the jar, so a clean clone has to build a
+// working mod — see .gitignore). Left alone, `gradlew clean` deletes 446 tracked files and the next
+// `git add -A` quietly commits the deletion; the mod then loads with no models, loot tables,
+// recipes, advancements or worldgen, and the first symptom is a crash on world load rather than
+// anything that names the real problem. `clean` still deletes build/ as normal.
+tasks.named('clean', Delete) {
+	def datagenOutput = generated.absolutePath
+	delete = delete.findAll { it.toString() != datagenOutput }
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	// Mojang's names, the same on Fabric and NeoForge, so one common module can serve both loaders.
+	mappings loom.layered {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
+	}
+	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+
+	// Fabric API. This is technically optional, but you probably want it anyway.
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+	// Recipe viewers. Compiled against, never shipped: each plugin is loaded by its own viewer and
+	// by nothing else, so a player with neither installed never loads a line of that code.
+	modCompileOnly "dev.emi:emi-fabric:${emi_version}:api"
+
+	// jei-*-fabric-api pulls jei-*-common-api-INTERMEDIARY transitively, and that variant is the
+	// one that matters: loom remaps it into this workspace's names like every other mod. Verified
+	// with javap -- the intermediary jar's IRecipeCategory#getTitle returns class_2561.
+	modCompileOnly "mezz.jei:jei-1.21.1-fabric-api:${jei_version}"
+
+	// REI is two artifacts: the api, and the default plugin -- which is where
+	// DefaultCustomShapelessDisplay lives, the shape the packing rows are handed over in. Plus
+	// basic-math, because REI 16's api poms list no dependencies and me.shedaniel.math.Rectangle
+	// has to come from somewhere -- see gradle.properties.
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}"
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}"
+	compileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"
+	modCompileOnly "dev.architectury:architectury-fabric:${architectury_version}"
+
+	// ONE VIEWER AT A TIME IN DEV, and this is not a preference -- it is the only way to test JEI.
+	//
+	// With EMI also installed, JEI still starts, still finds this mod's plugin through the
+	// jei_mod_plugin entrypoint, still constructs it and still calls getPluginUid() on it about
+	// thirty times -- and then never calls a single registration phase. Nothing is logged, and the
+	// plugin looks dead while its code is fine. The cause is EMI: emi.mixins.json declares
+	// "jei.PluginCallerMixin", so EMI mixes into JEI's PluginCaller and suppresses it when both are
+	// present. Remove EMI and every phase fires immediately.
+	//
+	//   ./gradlew :fabric:runClient                  # EMI (default)
+	//   ./gradlew :fabric:runClient -Pviewer=jei     # JEI
+	//   ./gradlew :fabric:runClient -Pviewer=rei     # REI
+	//   ./gradlew :fabric:runClient -Pviewer=none    # none of them
+	//
+	// Players install one of the three, so this costs them nothing.
+	//
+	// -P only reaches a build started from the terminal. A run launched from the IDE uses whatever
+	// the last Gradle sync resolved, which is EMI -- so to test JEI or REI from the IDE, put
+	// `viewer=rei` in gradle.properties (findProperty reads it) or in ~/.gradle/gradle.properties,
+	// and re-sync.
+	def viewer = project.findProperty("viewer") ?: "emi"
+	if (viewer == "emi") {
+		modLocalRuntime "dev.emi:emi-fabric:${emi_version}"
+	} else if (viewer == "jei") {
+		modLocalRuntime "mezz.jei:jei-1.21.1-fabric:${jei_version}"
+	} else if (viewer == "rei") {
+		modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"
+	} else if (viewer != "none") {
+		throw new GradleException("Unknown -Pviewer=${viewer}; use emi, jei, rei or none")
+	}
+}
+
+// Game tests -- real server code against the real registry, no client and no player.
+//
+//   ./gradlew :fabric:runGametest
+//
+// **Tracked, unlike the rest of the dev toolset, and that is the whole point.** These used to live
+// outside the repo and ride in on an init script, which meant there was exactly one copy of the
+// suite and it followed you from branch to branch on checkout. Most tests are written against
+// content that exists on one branch, so on every other branch `runGametest` died at
+// `compileGametestJava` -- before a single test ran -- and the cheapest real check this project has
+// was unavailable on the two branches that actually ship. A source set in here gives each branch
+// exactly its own tests, and merging a feature branch brings its tests with it.
+//
+// **Nothing here reaches the shipped jar.** `jar` and loom's `remapJar` package sourceSets.main and
+// nothing else; this set is never added to either, and never sits on main's compile classpath, so
+// the mod cannot accidentally compile against a test. Its fabric.mod.json declares a separate mod
+// id (`hempdustry-gametest`) that only the gametest run config ever loads.
+//
+// Placed after `dependencies` deliberately: the classpaths below are live configurations, and
+// main's dependencies have to be declared before they are read.
+sourceSets {
+	gametest {
+		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+		runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+	}
+}
+
+loom {
+	runs {
+		gametest {
+			server()
+			name = "Game Test"
+			source sourceSets.gametest
+			vmArg "-Dfabric-api.gametest"
+			vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.get()}/junit.xml"
+			runDir "build/gametest"
+		}
+	}
+}
+
+// The game test server's own log, read after every run. A datapack file the game refuses, a tag
+// that resolves to nothing and a loot table vanilla calls unreachable each say so only there, as a
+// WARN, while every test passes -- the crop tables logged "Unreachable entry!" at every world load
+// for days that way. So a run that logs a warning or an error nobody listed below fails.
+def expectedGametestLog = [
+	// the first batch starts every test in one tick, and on a slower machine that tick runs long --
+	// the server's own timing, not anything the mod logged
+	~/\(Minecraft\) Can't keep up! Is the server overloaded\?/,
+	// a fresh checkout's first run: build/gametest holds no server files yet, and the server says so
+	~/\(Minecraft\) Failed to load properties from file: server\.properties/,
+	~/\(Minecraft\) Failed to load eula\.txt/,
+	// a_broken_config_is_left_alone feeds the loader four broken files on purpose
+	~/\(hempdustry\) .*config\/hempdustry\.json/,
+	// every_config_extreme_keeps_the_numbers_sane pushes every setting past its range, with values
+	// no real config holds -- a shipped default the loader has to clamp still fails the run
+	~/\(hempdustry\) Config \S+ was (-?1000000000|-?1\.0E9|1\.0E-9), clamped to/,
+]
+def gametestLog = file("build/gametest/logs/latest.log")
+tasks.matching { it.name == "runGametest" }.configureEach {
+	doLast {
+		def unexpected = gametestLog.readLines().findAll { line ->
+			(line.contains("/WARN]") || line.contains("/ERROR]")) && !expectedGametestLog.any { line =~ it }
+		}
+		if (unexpected) {
+			throw new GradleException("Every game test passed, but the server logged " + unexpected.size()
+					+ " warning(s) nobody expected (${gametestLog}):\n" + unexpected.join("\n"))
+		}
+	}
+}
+
+def jarVersion = version
+tasks.named('processResources', ProcessResources) {
+	inputs.property "version", jarVersion
+	filesMatching("fabric.mod.json") {
+		expand "version": jarVersion
+	}
+	// NeoForge's form of the access widener, which Fabric never reads.
+	exclude 'META-INF/accesstransformer.cfg'
+}
+
+// Publishing, so an addon can compile against com.warlonmhite.hempdustry.api.
+//
+// There are two mavens and only one of them needs anything here. Modrinth serves every uploaded
+// file as a maven artifact for free, which is the one an addon author will actually use:
+//
+//   repositories { maven { url = "https://api.modrinth.com/maven" } }
+//   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.3+1.21.1" }
+//
+// GitHub Packages is the second, for builds that are not on Modrinth yet. It is only wired up when
+// credentials are actually present, so a clean clone still builds and `publish` still works
+// offline by falling through to the local maven.
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = base.archivesName.get()
+			// components.java is loom's remapped jar plus the sources jar, which is what a
+			// consumer needs: the intermediary-mapped classes a running game actually has.
+			from components.java
+
+			pom {
+				name = "Hempdustry"
+				description = "Minecraft for stoners and hemprepreneurs."
+				url = "https://modrinth.com/mod/hempdustry"
+				licenses {
+					license {
+						// Code and data only. The art and music are CC-BY-NC-SA-4.0 and travel
+						// with CREDITS.md inside the jar — see multiloader-common's `jar` block.
+						name = "AGPL-3.0-only"
+						url = "https://www.gnu.org/licenses/agpl-3.0.txt"
+					}
+				}
+			}
+		}
+	}
+
+	repositories {
+		def githubUser = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+		def githubKey = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+		if (githubUser && githubKey) {
+			maven {
+				name = "GitHubPackages"
+				url = "https://maven.pkg.github.com/warlon-mhite/hempdustry-fabric"
+				credentials {
+					username = githubUser
+					password = githubKey
+				}
+			}
+		}
+		// Always available, and what `publishToMavenLocal` targets: enough for an addon author to
+		// build against an unreleased jar.
+		mavenLocal()
+	}
+}

@@ -1,0 +1,38 @@
+// A loader's project: it compiles common's sources and packs common's resources into its own jar,
+// so the jar a player installs holds the whole mod, every class under the package and name it had
+// before the split -- which is what keeps an addon compiled against an older release linking.
+plugins {
+	id 'multiloader-common'
+}
+
+configurations {
+	commonJava {
+		canBeResolved = true
+	}
+	commonResources {
+		canBeResolved = true
+	}
+}
+
+// common's sources, compiled here against this loader's Minecraft -- not common's jar, which would put
+// every class on the classpath twice.
+dependencies {
+	commonJava project(path: ':common', configuration: 'commonJava')
+	commonResources project(path: ':common', configuration: 'commonResources')
+}
+
+tasks.named('compileJava', JavaCompile) {
+	dependsOn(configurations.commonJava)
+	source(configurations.commonJava)
+}
+
+tasks.named('processResources', ProcessResources) {
+	dependsOn(configurations.commonResources)
+	from(configurations.commonResources)
+}
+
+tasks.named('sourcesJar', Jar) {
+	dependsOn(configurations.commonJava, configurations.commonResources)
+	from(configurations.commonJava)
+	from(configurations.commonResources)
+}

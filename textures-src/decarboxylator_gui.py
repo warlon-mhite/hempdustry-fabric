@@ -7,7 +7,7 @@ and diffable instead of being a binary nobody can change. Re-run it after editin
 
     python3 textures-src/decarboxylator_gui.py
 
-Output: src/main/resources/assets/hempdustry/textures/gui/container/decarboxylator.png
+Output: common/src/main/resources/assets/hempdustry/textures/gui/container/decarboxylator.png
 
 Every piece of chrome comes from `gui_common`, which carries vanilla's own panel, slot, flame and
 arrow art measured out of the client jar — see `check_panel.py`. Nothing here invents a colour.

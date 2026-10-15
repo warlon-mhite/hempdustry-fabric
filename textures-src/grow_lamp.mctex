@@ -22,7 +22,7 @@
 # looked unpowered from every other angle, and in daylight that read as "gives no light".
 #
 #   python3 mctex.py render \
-#     textures-src/grow_lamp.mctex -o src/main/resources/assets/hempdustry/textures --preview
+#     textures-src/grow_lamp.mctex -o common/src/main/resources/assets/hempdustry/textures --preview
 
 @palette default
 . = none

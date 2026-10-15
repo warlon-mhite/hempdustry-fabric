@@ -1,0 +1,48 @@
+// The mod itself, on plain Minecraft: compiled against vanilla only (NeoForm, Mojang's names and
+// Parchment), so nothing here can reach a loader by accident -- an import from Fabric or NeoForge
+// fails to compile. Each loader's project compiles these sources into its own jar; this project's
+// own jar is never shipped.
+plugins {
+	id 'multiloader-common'
+	id 'net.neoforged.moddev'
+}
+
+neoForge {
+	neoFormVersion = neo_form_version
+	// What the mod reaches in vanilla that vanilla keeps closed; NeoForge reads the same file from
+	// the jar. Fabric's form of it is hempdustry.accesswidener, beside it.
+	accessTransformers.from file('src/main/resources/META-INF/accesstransformer.cfg')
+	parchment {
+		minecraftVersion = parchment_minecraft
+		mappingsVersion = parchment_version
+	}
+}
+
+sourceSets.main.resources.srcDir 'src/generated/resources'
+
+dependencies {
+	// The mixins target vanilla, so they live here; both loaders ship Mixin and MixinExtras.
+	compileOnly "org.spongepowered:mixin:${mixin_version}"
+	compileOnly "io.github.llamalad7:mixinextras-common:${mixinextras_version}"
+	// @Nullable and friends; each loader's Minecraft brings them at run time.
+	compileOnly "org.jetbrains:annotations:${jetbrains_annotations_version}"
+}
+
+// What the loaders' projects take from here: the sources, and the resources -- hand-written and
+// generated -- that ship inside their jars.
+configurations {
+	commonJava {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+	commonResources {
+		canBeResolved = false
+		canBeConsumed = true
+	}
+}
+
+artifacts {
+	commonJava file('src/main/java')
+	commonResources file('src/main/resources')
+	commonResources file('src/generated/resources')
+}

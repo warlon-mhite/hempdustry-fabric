@@ -18,10 +18,11 @@ import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-CLIENT = ROOT / "src/main/java/com/warlonmhite/hempdustry/HempdustryClient.java"
-ASSETS = [ROOT / "src/main/resources/assets/hempdustry",
-          ROOT / "src/main/generated/assets/hempdustry"]
+import layout
+
+LAYOUT = layout.of()
+CLIENT = LAYOUT.client
+ASSETS = LAYOUT.assets
 
 # The vanilla parents that put "tintindex": 0 on a plant's faces.
 TINTED_PARENTS = {"minecraft:block/tinted_cross", "minecraft:block/tinted_flower_pot_cross"}

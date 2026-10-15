@@ -21,9 +21,11 @@ import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-GENERATED = ROOT / "src/main/generated"
-ASSETS = [ROOT / "src/main/resources/assets/hempdustry", GENERATED / "assets/hempdustry"]
+import layout
+
+LAYOUT = layout.of()
+GENERATED = LAYOUT.generated
+ASSETS = LAYOUT.assets
 
 # Blockstate properties that mean "which slice of a multi-block plant is this".
 SEGMENT_PROPERTIES = ("half", "segment")
