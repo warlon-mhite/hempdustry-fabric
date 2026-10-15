@@ -13,6 +13,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
+import com.warlonmhite.hempdustry.item.custom.EdibleScheduler;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
@@ -235,6 +236,10 @@ public final class FrozenSurfaceGameTest {
                 lines.add("model_index " + strain.getKey().location() + " " + strain.getValue().modelIndex());
             }
         });
+        // A player's save keeps what the mod attaches to them under the attachment's id, on either
+        // loader -- and only NeoForge lists attachments in a registry, while a release's baseline is
+        // written by Fabric's run. So it is named here, the same on both.
+        lines.add("attachment " + EdibleScheduler.PENDING_ID);
         return lines;
     }
 
