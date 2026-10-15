@@ -6,6 +6,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,5 +40,43 @@ public interface TestPlatform {
 
     /** The odds of catching fire and of burning away, vanilla's {@code igniteOdds} and {@code burnOdds}. */
     record Flammability(int igniteOdds, int burnOdds) {
+    }
+
+    /**
+     * A listener on the loader's own bus for each of the four addon events -- Fabric's
+     * {@code HempdustryEvents}, NeoForge's classes in {@code com.warlonmhite.hempdustry.api} -- which
+     * writes down what each carried. Registered the first time it is asked for, and kept.
+     */
+    AddonProbe addonProbe();
+
+    /** What the addon events carried, as another mod's listener would have heard it. */
+    final class AddonProbe {
+        private final List<Heard> heard = new ArrayList<>();
+        private boolean refuse;
+
+        /** While set, the probe refuses every hit, as a listener may. */
+        public void refuseHits(boolean refuse) {
+            this.refuse = refuse;
+        }
+
+        /** Every event heard since the last call, in order; forgets them. */
+        public List<Heard> take() {
+            List<Heard> taken = List.copyOf(heard);
+            heard.clear();
+            return taken;
+        }
+
+        /** For the loader's listeners: an event, named as Fabric's field is, and its payload in order. */
+        public void heard(String event, Object... payload) {
+            heard.add(new Heard(event, List.of(payload)));
+        }
+
+        /** For the loader's listeners: whether to refuse the hit being asked about. */
+        public boolean refusing() {
+            return refuse;
+        }
+    }
+
+    record Heard(String event, List<Object> payload) {
     }
 }

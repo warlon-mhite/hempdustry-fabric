@@ -47,6 +47,7 @@ public final class HempdustryGameTests {
 
     /** Every test class that runs on every loader. */
     public static final List<Class<?>> CLASSES = List.of(
+            AddonEventGameTest.class,
             AdvancementGameTest.class,
             ApiBridgeGameTest.class,
             BalanceGameTest.class,
