@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:the_loader_names_itself_and_the_mods_version",
+  "structure": "hempdustry-gametest:empty",
+  "max_ticks": 20,
+  "setup_ticks": 0,
+  "required": true
+}

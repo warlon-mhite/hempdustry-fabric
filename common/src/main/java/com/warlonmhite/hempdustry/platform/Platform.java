@@ -16,6 +16,12 @@ public interface Platform {
     String modVersion();
 
     /**
+     * The loader's name as Modrinth files a version under it ({@code fabric}, {@code neoforge}): the
+     * update checker asks for the builds made for the loader it runs on.
+     */
+    String loaderName();
+
+    /**
      * The growth odds the loader's own crops read at {@code pos} for {@code crop}: vanilla's farmland
      * count and crowding halving, which NeoForge reworks to let a modded soil count as farmland. So a
      * hemp crop grows on each loader exactly as wheat does there.

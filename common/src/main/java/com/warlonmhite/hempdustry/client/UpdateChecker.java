@@ -92,10 +92,16 @@ public final class UpdateChecker {
      * one behind, which would have had the checker asking Modrinth for 1.21.1 builds for ever and
      * failing silently, since a check that finds nothing is indistinguishable from one that is
      * up to date. A constant nobody can forget is better than a comment asking them not to.
+     *
+     * <p>The loader is read the same way: it was a {@code "fabric"} literal, which the NeoForge jar
+     * would have sent too -- harmless while both ship the same version the same day, wrong the day a
+     * Fabric build is up and its NeoForge twin is not.
      */
     private static final String MODRINTH_VERSIONS_URL =
             "https://api.modrinth.com/v2/project/" + MODRINTH_PROJECT
-                    + "/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%22"
+                    + "/version?loaders=%5B%22"
+                    + URLEncoder.encode(Services.PLATFORM.loaderName(), StandardCharsets.UTF_8)
+                    + "%22%5D&game_versions=%5B%22"
                     + URLEncoder.encode(gameVersion(), StandardCharsets.UTF_8)
                     + "%22%5D";
 
