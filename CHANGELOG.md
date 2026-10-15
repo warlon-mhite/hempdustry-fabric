@@ -11,6 +11,12 @@ beta be told when the release lands.
 
 ### Added
 
+- **Hempdustry on NeoForge.** The same mod, every block, item, recipe and number of it, now comes in a
+  NeoForge build as well as the Fabric one, for Minecraft 1.21.11 and 1.21.1 alike. Each has its own
+  download, named for its loader (`hempdustry-fabric-…`, `hempdustry-neoforge-…`). On NeoForge the mod
+  needs nothing else; JEI and REI show its pages on both loaders, and EMI as well on 1.21.1. A world is
+  not promised to move from one loader to the other: the mod keeps its own data the same on both, but
+  the loader, and the other mods in a pack, may not.
 - **Hash: the resin, taken off the plant.** A second way to smoke hemp, made the way the trade makes
   it: the powder that falls through a screen is **kief**, and kief pressed with heat is **hashish**.
   Hash is for smoking and only for smoking — nothing in the family goes into the Decarboxylator or
@@ -334,6 +340,14 @@ beta be told when the release lands.
   `Strain.wildFlower()`. 2.0's `seeds()` and `flower()` (air for a strain with no plant), its
   seven-argument constructor, `Strain.effects(int, int)` and `SmokeContents.effects(int)` are still
   there, deprecated, so an addon built against 2.0 keeps working.
+- **For addon authors on NeoForge:** the four addon events are NeoForge events in
+  `com.warlonmhite.hempdustry.api`, posted on `NeoForge.EVENT_BUS`: `AllowSmokeEvent` (cancel it to
+  refuse the hit), `AfterSmokeEvent`, `AfterEatEvent` and `AfterInfuseEvent`, carrying what Fabric's
+  `HempdustryEvents` carry. Nothing changes on Fabric.
+- **On NeoForge, compost chances, furnace fuel and the wild patches are data**, as NeoForge keeps
+  them: the `neoforge:compostables` and `neoforge:furnace_fuels` data maps, and one
+  `neoforge:add_features` biome modifier per wild patch under `data/hempdustry/neoforge/biome_modifier/`,
+  reading the same biome tags as on Fabric. A datapack can change any of them there.
 
 ### Known issues
 
