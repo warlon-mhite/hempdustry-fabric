@@ -1,12 +1,12 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.advancement.ModCriteria;
-import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.Collections;
@@ -106,10 +106,10 @@ public final class Smoking {
      *
      * <p>Lives here rather than at the two call sites so the spliff and the devices cannot drift
      * apart on what a veto means, and so a smokeable added later gets it by using the same door.
-     * See {@link HempdustryEvents#ALLOW_SMOKE}.
+     * See {@link com.warlonmhite.hempdustry.platform.AddonEvents#allowSmoke}.
      */
     public static boolean allowed(Player player, ItemStack stack, SmokeContents contents) {
-        return HempdustryEvents.ALLOW_SMOKE.invoker().allowSmoke(player, contents, stack);
+        return Services.ADDON_EVENTS.allowSmoke(player, contents, stack);
     }
 
     /** Ticks after the hit before the smoke puffs, to line up with the exhale in the sound (~1.5s). */
@@ -223,7 +223,7 @@ public final class Smoking {
         // Last, so a listener sees the hit exactly as the player did — effects on, sound played.
         // The stack is still packed here; a spliff's contents are gone a few lines later, which is
         // why contents is handed over as its own argument.
-        HempdustryEvents.AFTER_SMOKE.invoker().afterSmoke(player, contents, stack);
+        Services.ADDON_EVENTS.afterSmoke(player, contents, stack);
         return greenedOut && contents.dose() >= GreenOut.of(world.registryAccess()).fullFromDose();
     }
 

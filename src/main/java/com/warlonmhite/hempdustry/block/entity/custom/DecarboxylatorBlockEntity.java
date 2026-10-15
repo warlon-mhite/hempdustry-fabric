@@ -4,10 +4,10 @@ import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -16,6 +16,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -53,7 +54,7 @@ import java.util.Map;
  * chain, so the pipeline downstream of here stays a single line of items.
  */
 public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
-        implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
+        implements MenuProvider, ImplementedInventory {
 
     public static final int FUEL_SLOT = 0;
     /** The three tray slots are contiguous from here. */
@@ -350,11 +351,6 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     }
 
     // ----- screen -----
-
-    @Override
-    public BlockPos getScreenOpeningData(ServerPlayer player) {
-        return this.worldPosition;
-    }
 
     @Override
     protected Component getContainerName() {

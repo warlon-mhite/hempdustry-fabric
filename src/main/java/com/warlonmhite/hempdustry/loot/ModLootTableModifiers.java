@@ -2,8 +2,8 @@ package com.warlonmhite.hempdustry.loot;
 
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.advancements.critereon.BlockPredicate;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.LocationPredicate;
@@ -266,8 +266,8 @@ public class ModLootTableModifiers {
     }
 
     public static void modifyLootTables() {
-        LootTableEvents.MODIFY.register((key, tableBuilder, source, registries) -> {
-            if (!source.isBuiltin()) {
+        Services.EVENTS.onLootTableLoad((key, builtIn, registries, table) -> {
+            if (!builtIn) {
                 // Don't touch datapack overrides, only vanilla/mod tables: a pack curator who
                 // replaces a chest table meant to replace it, and an injection they cannot see is
                 // not something to hand them.
@@ -275,11 +275,11 @@ public class ModLootTableModifiers {
                 // KNOWN COST, and do not "fix" it by deleting this guard. Mojang's experimental
                 // feature packs are datapacks too, so Villager Trade Rebalance -- which replaces
                 // desert_pyramid, abandoned_mineshaft, pillager_outpost, ancient_city and
-                // jungle_temple -- arrives here as DATA_PACK, and in such a world those five chests
-                // hold none of ours. LootTableSource has four values (VANILLA, MOD, DATA_PACK,
-                // REPLACED) and none of them tells a Mojang feature pack from a third party's, so
-                // there is no targeted fix through this API; dropping the guard would inject into
-                // every pack's deliberate override instead, which is the worse of the two.
+                // jungle_temple -- arrives here as a datapack's, and in such a world those five
+                // chests hold none of ours. Fabric's LootTableSource has four values (VANILLA, MOD,
+                // DATA_PACK, REPLACED) and none of them tells a Mojang feature pack from a third
+                // party's, so there is no targeted fix through that API; dropping the guard would
+                // inject into every pack's deliberate override instead, which is the worse of the two.
                 // Fabric's game-test world turns every experiment on, which is how this surfaced.
                 return;
             }
@@ -312,30 +312,28 @@ public class ModLootTableModifiers {
                             .apply(ApplyBonusCount.addUniformBonusCount(fortune, 2))
                             .apply(ApplyExplosionDecay.explosionDecay())));
                 }
-                tableBuilder.withPool(pool);
+                table.addPool(pool);
             } else if (CHEST_SOURCES.contains(key)) {
-                tableBuilder.withPool(seedStash(registries, CHEST_SEED_CHANCE, false));
+                table.addPool(seedStash(registries, CHEST_SEED_CHANCE, false));
             } else if (VILLAGE_HOUSE_SOURCES.contains(key)) {
-                tableBuilder.withPool(seedStash(registries, VILLAGE_HOUSE_SEED_CHANCE, false));
+                table.addPool(seedStash(registries, VILLAGE_HOUSE_SEED_CHANCE, false));
             } else if (key.equals(BuiltInLootTables.DESERT_PYRAMID)) {
-                tableBuilder.withPool(seedStash(registries, DESERT_TEMPLE_SEED_CHANCE, true));
+                table.addPool(seedStash(registries, DESERT_TEMPLE_SEED_CHANCE, true));
             } else if (key.equals(BuiltInLootTables.VILLAGE_DESERT_HOUSE)) {
-                tableBuilder.withPool(seedStash(registries, DESERT_HOUSE_SEED_CHANCE, true));
+                table.addPool(seedStash(registries, DESERT_HOUSE_SEED_CHANCE, true));
             } else if (DESERT_ARCHAEOLOGY_SOURCES.contains(key)) {
                 // Into vanilla's one brushing pool, as a weighted entry beside the sherds.
-                tableBuilder.modifyPools(pool -> {
-                    for (Holder.Reference<Strain> strain : Strain.all(registries)) {
-                        strain.value().seedItem().filter(ModLootTableModifiers::isDesertSeed)
-                                .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)
-                                        .setWeight(DESERT_ARCHAEOLOGY_SEED_WEIGHT)));
-                    }
-                });
+                for (Holder.Reference<Strain> strain : Strain.all(registries)) {
+                    strain.value().seedItem().filter(ModLootTableModifiers::isDesertSeed)
+                            .ifPresent(seeds -> table.addToEveryPool(LootItem.lootTableItem(seeds)
+                                    .setWeight(DESERT_ARCHAEOLOGY_SEED_WEIGHT)));
+                }
             }
 
             // Independent of the seed branch above — a shipwreck's supply chest is also a seed chest,
             // and a wreck holding both rope and a few seeds is exactly what a wreck should hold.
             if (FIBER_CHEST_SOURCES.contains(key)) {
-                tableBuilder.withPool(LootPool.lootPool()
+                table.addPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1))
                         .when(LootItemRandomChanceCondition.randomChance(chance(SHIPWRECK_FIBER_CHANCE)))
                         .add(LootItem.lootTableItem(ModItems.HEMP_FIBER)
@@ -344,7 +342,7 @@ public class ModLootTableModifiers {
                         .add(LootItem.lootTableItem(ModItems.HEMP_CANVAS)
                                 .setWeight(SHIPWRECK_CANVAS_WEIGHT)
                                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
-                tableBuilder.withPool(LootPool.lootPool()
+                table.addPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1))
                         .when(LootItemRandomChanceCondition.randomChance(chance(SHIPWRECK_SCHWAG_CHANCE)))
                         .add(LootItem.lootTableItem(ModItems.SCHWAG)
@@ -354,13 +352,13 @@ public class ModLootTableModifiers {
             // Both of these have exactly one pool, so the hemp goes in beside vanilla's own entries
             // as a weight, the way the desert brushing tables take Beldía.
             if (key.equals(BuiltInLootTables.VILLAGE_FISHER)) {
-                tableBuilder.modifyPools(pool -> pool.add(LootItem.lootTableItem(ModItems.TOASTED_HEMP_SEEDS)
+                table.addToEveryPool(LootItem.lootTableItem(ModItems.TOASTED_HEMP_SEEDS)
                         .setWeight(FISHER_BAIT_WEIGHT)
-                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
+                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3))));
             }
             if (key.equals(BuiltInLootTables.FISHING_JUNK)) {
-                tableBuilder.modifyPools(pool -> pool.add(LootItem.lootTableItem(ModItems.HEMP_FIBER)
-                        .setWeight(FISHING_JUNK_FIBER_WEIGHT)));
+                table.addToEveryPool(LootItem.lootTableItem(ModItems.HEMP_FIBER)
+                        .setWeight(FISHING_JUNK_FIBER_WEIGHT));
             }
             // Independent of the seed branch above — the two disc chests are also seed chests.
             // One entry per disc at equal weight inside a single roll, the same shape as the seed
@@ -373,7 +371,7 @@ public class ModLootTableModifiers {
                 for (Item disc : ModItems.MUSIC_DISCS) {
                     pool.add(LootItem.lootTableItem(disc));
                 }
-                tableBuilder.withPool(pool);
+                table.addPool(pool);
             }
         });
     }

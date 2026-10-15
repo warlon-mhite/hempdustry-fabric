@@ -134,6 +134,14 @@ public class ModTags {
         /** Block-side counterpart of {@link #HEMP_STORAGE_BLOCKS}. */
         public static final TagKey<Block> HEMP_STORAGE_BLOCKS_BLOCK = blockTag("storage_blocks/hemp");
 
+        /**
+         * Shears, every mod's: what trims a plant. The loaders fill it (Fabric and NeoForge both
+         * keep {@code c:} tags), so this names it rather than defining it.
+         */
+        public static final TagKey<Item> SHEAR_TOOLS = itemTag("tools/shear");
+        /** Bone meal and every mod's fertiliser, the same way: what feeds a Grow Pot. */
+        public static final TagKey<Item> FERTILIZERS = itemTag("fertilizers");
+
         private static TagKey<Item> itemTag(String path) {
             return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
         }

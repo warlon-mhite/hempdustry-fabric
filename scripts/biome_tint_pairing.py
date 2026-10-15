@@ -3,7 +3,7 @@
 
 A block is only tinted when TWO unrelated things agree: its baked model carries
 `"tintindex": 0` (inherited from minecraft:block/tinted_cross or tinted_flower_pot_cross),
-and HempdustryClient registers a ColorProviderRegistry.BLOCK provider for it. Break either
+and HempdustryClient registers a block colour provider for it (client.blockColor). Break either
 half and nothing errors -- the plant simply renders as drawn, or the provider is never
 asked, and the only symptom is a crop that stubbornly refuses to match its biome. That is
 exactly the class of failure nobody notices in a screenshot.
@@ -28,7 +28,7 @@ TINTED_PARENTS = {"minecraft:block/tinted_cross", "minecraft:block/tinted_flower
 
 
 def registered_blocks():
-    """Block ids passed to every ColorProviderRegistry.BLOCK.register(...) call in HempdustryClient.
+    """Block ids passed to every client.blockColor(...) call in HempdustryClient.
 
     Every call, not the first: the crops have their own provider (it reads the light record) beside
     the one the wild flowers share, and a checker that stopped at the first call reported both
@@ -38,10 +38,10 @@ def registered_blocks():
     and not a biome tint, so a name followed by ``.`` is skipped.
     """
     source = CLIENT.read_text(encoding="utf-8")
-    marker = "ColorProviderRegistry.BLOCK.register("
+    marker = "client.blockColor("
     start = source.find(marker)
     if start < 0:
-        sys.exit("no ColorProviderRegistry.BLOCK.register(...) call in HempdustryClient")
+        sys.exit("no client.blockColor(...) call in HempdustryClient")
     names = set()
     while start >= 0:
         depth, i = 0, source.index("(", start)

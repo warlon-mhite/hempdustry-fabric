@@ -22,8 +22,7 @@ import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import com.warlonmhite.hempdustry.block.custom.SpaceCakeBlock;
 import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
-import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
-import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
+import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -55,6 +54,8 @@ import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.WallHangingSignBlock;
 import net.minecraft.world.level.block.WallSignBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
@@ -68,14 +69,22 @@ import java.util.List;
 import java.util.Map;
 
 import java.util.function.BiFunction;
+import java.util.function.ToIntFunction;
 
 
 public class ModBlocks {
 
-    public static final BlockSetType HEMP_BLOCK_SET_TYPE = BlockSetTypeBuilder.copyOf(BlockSetType.OAK)
-            .register(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"));
-    public static final WoodType HEMP_WOOD_TYPE = WoodTypeBuilder.copyOf(WoodType.OAK)
-            .register(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"), HEMP_BLOCK_SET_TYPE);
+    /** Vanilla's lamp light, which vanilla keeps private: {@code light} while lit, dark otherwise. */
+    private static ToIntFunction<BlockState> litBlockEmission(int light) {
+        return state -> state.getValue(BlockStateProperties.LIT) ? light : 0;
+    }
+
+    // Oak's sounds and behaviour under hemp's name. Registered through the loader: vanilla keeps
+    // both registrations private.
+    public static final BlockSetType HEMP_BLOCK_SET_TYPE = Services.REGISTRATION.registerBlockSetType(
+            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"), BlockSetType.OAK);
+    public static final WoodType HEMP_WOOD_TYPE = Services.REGISTRATION.registerWoodType(
+            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"), WoodType.OAK, HEMP_BLOCK_SET_TYPE);
 
     public static final Block HEMP_BRICKS_BLOCK = registerBlock("hemp_bricks_block",
             new Block(BlockBehaviour.Properties.of().strength(2.0F, 10.0F).sound(SoundType.WOOD)));
@@ -365,7 +374,7 @@ public class ModBlocks {
             new GrowLampBlock(BlockBehaviour.Properties.of()
                     .noOcclusion()
                     .mapColor(MapColor.COLOR_ORANGE)
-                    .lightLevel(Blocks.litBlockEmission(15))
+                    .lightLevel(ModBlocks.litBlockEmission(15))
                     .strength(3.0F, 6.0F)
                     .requiresCorrectToolForDrops()
                     .sound(SoundType.COPPER_BULB)));

@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.mixin.client;
 
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
-import net.minecraft.client.Minecraft;
+import com.warlonmhite.hempdustry.platform.client.ClientServices;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -36,8 +36,7 @@ public abstract class ItemRendererMixin {
                 || !(stack.getItem() instanceof SmokingDeviceItem device) || device.placedBlock() == null) {
             return model;
         }
-        BakedModel inHand = Minecraft.getInstance().getModelManager()
-                .getModel(ModItemProperties.inHandModel(stack.getItem()));
+        BakedModel inHand = ClientServices.CLIENT.extraModel(ModItemProperties.inHandModel(stack.getItem()));
         if (inHand == null) {
             return model;
         }

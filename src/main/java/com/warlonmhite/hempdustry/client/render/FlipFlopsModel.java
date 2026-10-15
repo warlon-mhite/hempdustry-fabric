@@ -1,10 +1,8 @@
 package com.warlonmhite.hempdustry.client.render;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.geom.PartNames;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
@@ -12,29 +10,40 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
 
 /**
- * Flip-flops drawn as flip-flops: a sole under each foot and a thong strap over it, where vanilla
- * would draw boots — the lower legs blown up a pixel all round. Fabric's armour hook replaces the
- * boots layer for this one item.
+ * Flip-flops as flip-flops: a sole under each foot and a thong strap over it, where vanilla would
+ * draw boots — the lower legs blown up a pixel all round. Each loader draws this model in place of
+ * the boots layer for this one item, through its own armour-rendering hook.
  *
  * <p>The model is a whole biped with everything but the legs left empty, so the body's pose copies
  * across in one call ({@code copyPropertiesTo}), the way vanilla's armour models take it, and a baby
  * wearing them is scaled as its boots would be.
  */
-public final class FlipFlopsRenderer implements ArmorRenderer {
-    private static final ResourceLocation TEXTURE =
+public final class FlipFlopsModel {
+    public static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "textures/entity/equipment/flip_flops.png");
 
-    private HumanoidModel<LivingEntity> model;
+    private FlipFlopsModel() {
+    }
+
+    /** The model, baked from its layer. */
+    public static HumanoidModel<LivingEntity> create(EntityModelSet models) {
+        return new HumanoidModel<>(models.bakeLayer(ModEntityModelLayers.FLIP_FLOPS));
+    }
+
+    /** Poses {@code flipFlops} as {@code wearer} stands, showing only the feet. */
+    public static void pose(HumanoidModel<LivingEntity> wearer, HumanoidModel<LivingEntity> flipFlops) {
+        wearer.copyPropertiesTo(flipFlops);
+        flipFlops.setAllVisible(false);
+        flipFlops.rightLeg.visible = true;
+        flipFlops.leftLeg.visible = true;
+    }
 
     /** Leg space: the leg is 4×12×4 from y 0 at the hip, so the foot's underside is y 12. */
-    public static LayerDefinition getTexturedModelData() {
+    public static LayerDefinition createLayer() {
         MeshDefinition data = new MeshDefinition();
         PartDefinition root = data.getRoot();
         for (String empty : new String[]{PartNames.HEAD, PartNames.HAT, PartNames.BODY,
@@ -50,20 +59,5 @@ public final class FlipFlopsRenderer implements ArmorRenderer {
         root.addOrReplaceChild(PartNames.RIGHT_LEG, foot, PartPose.offset(-1.9F, 12.0F, 0.0F));
         root.addOrReplaceChild(PartNames.LEFT_LEG, foot, PartPose.offset(1.9F, 12.0F, 0.0F));
         return LayerDefinition.create(data, 32, 16);
-    }
-
-    @Override
-    public void render(PoseStack matrices, MultiBufferSource vertexConsumers, ItemStack stack,
-                       LivingEntity entity, EquipmentSlot slot, int light, HumanoidModel<LivingEntity> contextModel) {
-        if (model == null) {
-            // The layer is baked with the entity models, after this renderer is registered.
-            model = new HumanoidModel<>(Minecraft.getInstance().getEntityModels()
-                    .bakeLayer(ModEntityModelLayers.FLIP_FLOPS));
-        }
-        contextModel.copyPropertiesTo(model);
-        model.setAllVisible(false);
-        model.rightLeg.visible = true;
-        model.leftLeg.visible = true;
-        ArmorRenderer.renderPart(matrices, vertexConsumers, light, stack, model, TEXTURE);
     }
 }

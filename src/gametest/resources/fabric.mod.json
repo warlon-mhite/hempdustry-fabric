@@ -37,6 +37,7 @@
 			"com.warlonmhite.hempdustry.test.PlantStressGameTest",
 			"com.warlonmhite.hempdustry.test.RebalanceGameTest",
 			"com.warlonmhite.hempdustry.test.SchwagGameTest",
+			"com.warlonmhite.hempdustry.test.SemVerGameTest",
 			"com.warlonmhite.hempdustry.test.ScorchedHempGameTest",
 			"com.warlonmhite.hempdustry.test.SiftingBoxGameTest",
 			"com.warlonmhite.hempdustry.test.SweepGameTest",

@@ -15,26 +15,25 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public class ModBlockEntities {
 
-    // Vanilla's BlockEntityType.Builder, not the deprecated FabricBlockEntityTypeBuilder. The no-argument
-    // build() is Fabric's, interface-injected onto the vanilla builder — it is build(Type) with the
+    // Vanilla's BlockEntityType.Builder, not the deprecated FabricBlockEntityTypeBuilder, with the
     // datafixer type left null, which is what a mod wants.
     public static final BlockEntityType<DecarboxylatorBlockEntity> DECARBOXYLATOR =
             Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                     ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylator"),
                     BlockEntityType.Builder.of(DecarboxylatorBlockEntity::new,
-                            ModBlocks.DECARBOXYLATOR).build());
+                            ModBlocks.DECARBOXYLATOR).build(null));
 
     public static final BlockEntityType<InfuserBlockEntity> INFUSER =
             Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                     ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "infuser"),
                     BlockEntityType.Builder.of(InfuserBlockEntity::new,
-                            ModBlocks.INFUSER).build());
+                            ModBlocks.INFUSER).build(null));
 
     public static final BlockEntityType<HempPressBlockEntity> HEMP_PRESS =
             Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
                     ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_press"),
                     BlockEntityType.Builder.of(HempPressBlockEntity::new,
-                            ModBlocks.HEMP_PRESS).build());
+                            ModBlocks.HEMP_PRESS).build(null));
 
     // One type for every glass: the entity holds components, not anything that differs by colour.
     public static final BlockEntityType<BongBlockEntity> BONG =

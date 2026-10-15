@@ -44,6 +44,11 @@ repositories {
 	}
 }
 
+loom {
+	// What the mod reaches in vanilla that vanilla keeps closed; the file says what and why.
+	accessWidenerPath = file("src/main/resources/hempdustry.accesswidener")
+}
+
 fabricApi {
 	configureDataGeneration()
 }

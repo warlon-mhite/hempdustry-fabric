@@ -3,9 +3,8 @@ package com.warlonmhite.hempdustry.strain;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain.SmokeEffect;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.worldgen.BootstrapContext;
@@ -112,11 +111,10 @@ public class ModStrains {
      * the registry is a client without the mod.
      */
     public static void registerStrains() {
-        DynamicRegistries.registerSynced(Strain.REGISTRY_KEY, Strain.CODEC);
+        Services.REGISTRATION.registerSyncedDynamicRegistry(Strain.REGISTRY_KEY, Strain.CODEC);
         // Checked once, at startup: a datapack is exactly where a clashing index comes from, and the
         // registry is read only when the world opens — /reload keeps the strains it has.
-        ServerLifecycleEvents.SERVER_STARTED.register(server ->
-                validateModelIndices(server.registryAccess()));
+        Services.EVENTS.onServerStarted(server -> validateModelIndices(server.registryAccess()));
         Hempdustry.LOGGER.info("Registering Strains for " + Hempdustry.MOD_ID);
     }
 

@@ -6,13 +6,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionParsingException;
+import com.warlonmhite.hempdustry.platform.Services;
+import com.warlonmhite.hempdustry.platform.client.ClientServices;
+import com.warlonmhite.hempdustry.util.SemVer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -124,7 +123,7 @@ public final class UpdateChecker {
     }
 
     /** A version some source is offering, and where that source says to get it. */
-    private record Candidate(String number, Version version, String homepage) {
+    private record Candidate(String number, SemVer version, String homepage) {
     }
 
     /**
@@ -132,8 +131,8 @@ public final class UpdateChecker {
      *
      * <p><b>The switch is read here rather than at the call site</b> so there is exactly one place
      * that decides, and so nothing about the mod's start-up order has to be remembered: the config
-     * is loaded by {@code Hempdustry.onInitialize}, and Fabric runs every {@code main} entrypoint
-     * before any {@code client} one. If that ever stopped being true the fallback is
+     * is loaded by {@code Hempdustry.init}, and each loader starts the mod before its client
+     * side. If that ever stopped being true the fallback is
      * {@link HempdustryConfig#DEFAULT}, which checks — the safe way round for a switch whose only
      * job is to stop a nag.
      *
@@ -150,8 +149,9 @@ public final class UpdateChecker {
         }
         CompletableFuture.runAsync(UpdateChecker::fetchLatest);
 
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+        ClientServices.CLIENT.onJoinWorld(() -> {
             String latest = availableVersion;
+            Minecraft client = Minecraft.getInstance();
             if (latest != null && client.player != null && NOTIFIED.compareAndSet(false, true)) {
                 client.player.displayClientMessage(updateMessage(latest), false);
             }
@@ -182,10 +182,10 @@ public final class UpdateChecker {
      * case, and an update check is the last thing that should shout.
      */
     private static void fetchLatest() {
-        Version local = parseOrNull(currentVersion());
+        SemVer local = SemVer.parse(currentVersion());
         if (local == null) {
             // Can't compare against a version we can't parse, so say nothing. This is also why a new
-            // version format has to be run through SemanticVersion.parse before shipping it: it
+            // version format has to be run through SemVer.parse before shipping it: it
             // turns the checker off silently, on exactly the build that most needs to announce its
             // successor. See release.md.
             return;
@@ -227,7 +227,7 @@ public final class UpdateChecker {
         if (number == null || !number.isJsonPrimitive()) {
             return null; // no build for this game version yet, which is a perfectly ordinary answer
         }
-        Version parsed = parseOrNull(number.getAsString());
+        SemVer parsed = SemVer.parse(number.getAsString());
         if (parsed == null) {
             Hempdustry.LOGGER.debug("Update manifest: ignoring unparseable version {}", number);
             return null;
@@ -281,7 +281,7 @@ public final class UpdateChecker {
                 continue;
             }
             String number = version.get("version_number").getAsString();
-            Version parsed = parseOrNull(number);
+            SemVer parsed = SemVer.parse(number);
             if (parsed == null) {
                 continue; // not semver, so there is nothing sensible to compare it against
             }
@@ -335,18 +335,6 @@ public final class UpdateChecker {
         return type != null && !type.isJsonNull() && NOTIFY_CHANNELS.contains(type.getAsString());
     }
 
-    /**
-     * Parsed as semver so that build metadata is ignored on comparison — {@code 2.0.0+1.21.1} and
-     * {@code 2.0.0} are the same release, which is what lets the jar carry its game version, and
-     * what lets the manifest write the full jar name a player actually downloaded.
-     */
-    private static @Nullable Version parseOrNull(String version) {
-        try {
-            return SemanticVersion.parse(version);
-        } catch (VersionParsingException e) {
-            return null;
-        }
-    }
 
     /**
       * The Minecraft version this client is running, as both sources key their answers by it.
@@ -360,9 +348,6 @@ public final class UpdateChecker {
     }
 
     private static String currentVersion() {
-        return FabricLoader.getInstance()
-                .getModContainer(Hempdustry.MOD_ID)
-                .map(container -> container.getMetadata().getVersion().getFriendlyString())
-                .orElse("0.0.0");
+        return Services.PLATFORM.modVersion();
     }
 }

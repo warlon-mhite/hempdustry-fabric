@@ -1,9 +1,10 @@
 package com.warlonmhite.hempdustry.item.custom;
 
-import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
+import com.warlonmhite.hempdustry.platform.Services;
+import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -114,9 +115,9 @@ public final class EdibleEffects {
      * it up the ramp.
      *
      * <p><b>This is the one door every edible goes through</b> — {@link EdibleItem} for the ones you
-     * hold and {@code SpaceCakeBlock} for a slice you take off a block — which is why
-     * {@link HempdustryEvents#AFTER_EAT} is fired from here rather than from either call site. An
-     * edible added later joins by using the same door.
+     * hold and {@code SpaceCakeBlock} for a slice you take off a block — which is why the addons'
+     * {@link com.warlonmhite.hempdustry.platform.AddonEvents#afterEat} is fired from here rather than
+     * from either call site. An edible added later joins by using the same door.
      */
     public static void consume(Player player, int tier, Quality quality) {
         if (tier <= 0) {
@@ -131,7 +132,7 @@ public final class EdibleEffects {
 
         // Fired on the swallow, not on the onset: the effects above are queued behind a come-up and
         // then ramp in stages, so there is no single later instant that means "this happened".
-        HempdustryEvents.AFTER_EAT.invoker().onEaten(player, tier, quality);
+        Services.ADDON_EVENTS.afterEat(player, tier, quality);
     }
 
     /**

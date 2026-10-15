@@ -239,7 +239,7 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(ModItems.HEMP_CHEST_BOAT, ModelTemplates.FLAT_ITEM);
 
         // The beanie's icon is the flat sprite; worn, it is the slouchy tam HempBeanieRenderer draws.
-        // Worn, the flip-flops are FlipFlopsRenderer's. Both icons are plain sprites, untrimmable.
+        // Worn, the flip-flops are FlipFlopsModel's. Both icons are plain sprites, untrimmable.
         itemModelGenerator.generateFlatItem(ModItems.HEMP_BEANIE, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.FLIP_FLOPS, ModelTemplates.FLAT_ITEM);
         registerDyeableArmor(itemModelGenerator, ModItems.HEMP_SHIRT, "chestplate");

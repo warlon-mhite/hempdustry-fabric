@@ -4,8 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
-import net.minecraft.client.Minecraft;
+import com.warlonmhite.hempdustry.platform.client.ClientServices;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -17,7 +16,6 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.npc.Villager;
@@ -31,26 +29,28 @@ import java.util.List;
  *
  * <p>Vanilla's head layer never draws an armour helmet as its item, so this does what it does for
  * one, call for call ({@code CustomHeadLayer#render}: the baby scale, the head's rotation,
- * {@link CustomHeadLayer#translateToHead}, the {@code head} display transform), from Fabric's armour
- * hook in place of the helmet layer.
+ * {@link CustomHeadLayer#translateToHead}, the {@code head} display transform), from each loader's
+ * armour hook in place of the helmet layer.
  *
  * <p>The tam is two models and not one because its crown is tipped back 12° about
  * the back of the band, and a model file on this version takes only 0, 22.5 and 45° (22.5° showed
  * the crown's underside beside the face). So the crown's file is drawn level and the tilt is turned
  * here, about the same origin the one-file model names.
  */
-public final class HempBeanieRenderer implements ArmorRenderer {
+public final class HempBeanieRenderer {
     public static final ResourceLocation BAND = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/hemp_beanie_worn_band");
     public static final ResourceLocation CROWN = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/hemp_beanie_worn_crown");
 
     private static final float CROWN_TILT = 12.0F;
 
-    @Override
-    public void render(PoseStack matrices, MultiBufferSource vertexConsumers, ItemStack stack,
-                       LivingEntity entity, EquipmentSlot slot, int light, HumanoidModel<LivingEntity> contextModel) {
-        Minecraft client = Minecraft.getInstance();
-        BakedModel band = client.getModelManager().getModel(BAND);
-        BakedModel crown = client.getModelManager().getModel(CROWN);
+    private HempBeanieRenderer() {
+    }
+
+    /** The tam on {@code entity}'s head, as {@code contextModel} holds it. */
+    public static void render(PoseStack matrices, MultiBufferSource vertexConsumers, ItemStack stack,
+                              LivingEntity entity, int light, HumanoidModel<?> contextModel) {
+        BakedModel band = ClientServices.CLIENT.extraModel(BAND);
+        BakedModel crown = ClientServices.CLIENT.extraModel(CROWN);
         if (band == null || crown == null) {
             return;
         }

@@ -1,8 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -86,12 +84,12 @@ public final class SmokeScheduler {
 
     /** Registers the tick pump. Call once from mod init. */
     public static void init() {
-        ServerTickEvents.END_SERVER_TICK.register(SmokeScheduler::tick);
+        Services.EVENTS.onServerTickEnd(SmokeScheduler::tick);
         // Nothing drains this queue while no server is ticking, so an integrated server shut down
         // with entries still in it would strand them — and every entry keeps its player's UUID alive
         // in a static field for the rest of the process. Clearing on stop also means the next world
         // never inherits the last one's backlog.
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+        Services.EVENTS.onServerStopped(server -> {
             PENDING.clear();
             PENDING_SOUNDS.clear();
             PENDING_EFFECTS.clear();
@@ -100,7 +98,7 @@ public final class SmokeScheduler {
         // with the hit's effects: the respawn is a new, living entity with the same UUID, so the
         // isAlive check below cannot tell. Same fix as EdibleScheduler. `alive` is the End-portal
         // return, which is not a death.
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+        Services.EVENTS.onPlayerRespawn((oldPlayer, newPlayer, alive) -> {
             if (!alive) {
                 PENDING_EFFECTS.removeIf(pending -> pending.player.equals(newPlayer.getUUID()));
             }

@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -63,8 +62,8 @@ public interface GrowMedium extends BonemealableBlock {
      */
     @Nullable
     static ItemInteractionResult tryFeed(ItemStack stack, BlockState state, Level world, BlockPos pos,
-                                    Player player) {
-        if (!stack.is(ConventionalItemTags.FERTILIZERS)
+                                         Player player) {
+        if (!stack.is(ModTags.Conventional.FERTILIZERS)
                 || !(state.getBlock() instanceof GrowMedium medium)
                 || !medium.isValidBonemealTarget(world, pos, state)) {
             return null;

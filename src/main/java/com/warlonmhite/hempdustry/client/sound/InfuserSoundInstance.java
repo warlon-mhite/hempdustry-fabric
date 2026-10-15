@@ -3,8 +3,6 @@ package com.warlonmhite.hempdustry.client.sound;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.sound.ModSounds;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
@@ -46,7 +44,6 @@ import java.util.Map;
  * can stop without this class ever hearing about it. Asking {@link SoundManager#isActive} instead
  * of trusting the map means the loop simply starts again next roll.
  */
-@Environment(EnvType.CLIENT)
 public class InfuserSoundInstance extends AbstractTickableSoundInstance {
 
     /** One live instance per tub. See the class note on why membership is verified, not trusted. */

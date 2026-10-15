@@ -1,0 +1,20 @@
+accessWidener v2 named
+
+# What the mod's own code reaches in vanilla that vanilla keeps closed. Fabric API happens to open
+# all of these for itself too; naming them here means the mod does not lean on that, and the same
+# list is the access transformer NeoForge reads.
+
+# The hemp wood set's blocks are vanilla's, built through constructors vanilla made protected.
+accessible method net/minecraft/world/level/block/StairBlock <init> (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
+accessible method net/minecraft/world/level/block/ButtonBlock <init> (Lnet/minecraft/world/level/block/state/properties/BlockSetType;ILnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
+accessible method net/minecraft/world/level/block/PressurePlateBlock <init> (Lnet/minecraft/world/level/block/state/properties/BlockSetType;Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
+accessible method net/minecraft/world/level/block/DoorBlock <init> (Lnet/minecraft/world/level/block/state/properties/BlockSetType;Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
+accessible method net/minecraft/world/level/block/TrapDoorBlock <init> (Lnet/minecraft/world/level/block/state/properties/BlockSetType;Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
+
+# Which tabs a stack shows in: the creative tab puts showcase stacks in the tab and leaves the
+# search tab the plain ones.
+accessible class net/minecraft/world/item/CreativeModeTab$TabVisibility
+
+# A block entity type is built through vanilla's own builder, from a constructor typed as an
+# interface vanilla keeps private.
+accessible class net/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier

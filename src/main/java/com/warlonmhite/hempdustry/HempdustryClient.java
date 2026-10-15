@@ -7,11 +7,9 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
-import com.warlonmhite.hempdustry.mixin.client.ModelPredicateProviderRegistryAccessor;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import com.warlonmhite.hempdustry.client.UpdateChecker;
 import com.warlonmhite.hempdustry.client.particle.AromaParticle;
@@ -21,32 +19,23 @@ import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import com.warlonmhite.hempdustry.client.render.CompositeItemModel;
-import com.warlonmhite.hempdustry.client.render.FlipFlopsRenderer;
+import com.warlonmhite.hempdustry.client.render.FlipFlopsModel;
 import com.warlonmhite.hempdustry.client.render.HempBeanieRenderer;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.item.ModArmorMaterials;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.particle.ModParticles;
+import com.warlonmhite.hempdustry.platform.client.ClientRegistration;
+import com.warlonmhite.hempdustry.platform.client.ClientServices;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -54,78 +43,68 @@ import net.minecraft.util.FastColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.block.Block;
-import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
-import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 
-public class HempdustryClient implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
+public class HempdustryClient {
+
+    /** Everything the client registers, in order; each loader's client entry point calls it once. */
+    public static void init() {
+        ClientRegistration client = ClientServices.CLIENT;
         UpdateChecker.init();
 
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.HEMP_PLANKS_DOOR, RenderType.cutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.HEMP_PLANKS_TRAPDOOR, RenderType.cutout());
+        client.blockLayer(ModBlocks.HEMP_PLANKS_DOOR, RenderType.cutout());
+        client.blockLayer(ModBlocks.HEMP_PLANKS_TRAPDOOR, RenderType.cutout());
 
 
         // Vanilla's leaves texture, holes and all — solid would fill them in with black.
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.HEMP_LEAVES, RenderType.cutout());
+        client.blockLayer(ModBlocks.HEMP_LEAVES, RenderType.cutout());
 
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.INDICA_CROP, RenderType.cutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.INDICA_FLOWER, RenderType.cutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POTTED_INDICA_FLOWER, RenderType.cutout());
+        client.blockLayer(ModBlocks.INDICA_CROP, RenderType.cutout());
+        client.blockLayer(ModBlocks.INDICA_FLOWER, RenderType.cutout());
+        client.blockLayer(ModBlocks.POTTED_INDICA_FLOWER, RenderType.cutout());
 
         // Stained glass is drawn at partial alpha, so the placed bongs need the translucent pass.
-        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> BlockRenderLayerMap.INSTANCE.putBlock(bong, RenderType.translucent()));
+        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> client.blockLayer(bong, RenderType.translucent()));
 
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.SATIVA_CROP, RenderType.cutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.SATIVA_FLOWER, RenderType.cutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POTTED_SATIVA_FLOWER, RenderType.cutout());
+        client.blockLayer(ModBlocks.SATIVA_CROP, RenderType.cutout());
+        client.blockLayer(ModBlocks.SATIVA_FLOWER, RenderType.cutout());
+        client.blockLayer(ModBlocks.POTTED_SATIVA_FLOWER, RenderType.cutout());
 
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BELDIA_CROP, RenderType.cutout());
+        client.blockLayer(ModBlocks.BELDIA_CROP, RenderType.cutout());
         // The chains the Grow Lamp hangs from are see-through between the links.
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GROW_LAMP, RenderType.cutout());
+        client.blockLayer(ModBlocks.GROW_LAMP, RenderType.cutout());
         // The compost crumbs over the pot's soil are drawn with see-through pixels.
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.GROW_POT, RenderType.cutout());
+        client.blockLayer(ModBlocks.GROW_POT, RenderType.cutout());
 
-        EntityRendererRegistry.register(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
-        EntityRendererRegistry.register(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
+        client.entityRenderer(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
+        client.entityRenderer(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
 
         // Flip-flops are drawn by a model of their own rather than as boots, and the beanie as a
-        // slouchy tam rather than a helmet.
-        EntityModelLayerRegistry.registerModelLayer(ModEntityModelLayers.FLIP_FLOPS,
-                FlipFlopsRenderer::getTexturedModelData);
-        ArmorRenderer.register(new FlipFlopsRenderer(), ModItems.FLIP_FLOPS);
-        ArmorRenderer.register(new HempBeanieRenderer(), ModItems.HEMP_BEANIE);
+        // slouchy tam rather than a helmet: each loader's armour hook draws them.
+        client.modelLayer(ModEntityModelLayers.FLIP_FLOPS, FlipFlopsModel::createLayer);
 
-        MenuScreens.register(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
-        MenuScreens.register(ModScreenHandlers.INFUSER, InfuserScreen::new);
-        MenuScreens.register(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
+        client.menuScreen(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
+        client.menuScreen(ModScreenHandlers.INFUSER, InfuserScreen::new);
+        client.menuScreen(ModScreenHandlers.HEMP_PRESS, HempPressScreen::new);
 
-        ParticleFactoryRegistry.getInstance().register(ModParticles.AROMA, AromaParticle.Factory::new);
+        client.particleProvider(ModParticles.AROMA, AromaParticle.Factory::new);
 
         // The press's platen and capstan move, so a renderer draws them rather than the block model.
-        BlockEntityRenderers.register(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
+        client.blockEntityRenderer(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
         // ...and they are models no block state names, so they have to be asked for by id. So are the
         // bongs' 3D hand models, which no item names either: ItemRendererMixin draws them.
-        ModelLoadingPlugin.register(context -> {
-            context.addModels(HempPressBlockEntityRenderer.PARTS);
-            context.addModels(ModItems.bongs().stream().map(ModItemProperties::inHandModel).toList());
-            context.addModels(HempBeanieRenderer.BAND, HempBeanieRenderer.CROWN);
-            // The press's icon is its four part models at rest, put together as it bakes -- the
-            // composite item model the 1.21.11 build names in data. Its own model, which parents the
-            // frame's, gives the display transforms.
-            context.modifyModelAfterBake().register((model, bake) -> {
-                if (!HempPressBlockEntityRenderer.ICON.equals(bake.resourceId())) {
-                    return model;
-                }
-                return new CompositeItemModel(model, HempPressBlockEntityRenderer.ICON_PARTS.stream()
-                        .map(part -> bake.baker().bake(part, bake.settings())).toList());
-            });
-        });
+        client.extraModels(HempPressBlockEntityRenderer.PARTS);
+        client.extraModels(ModItems.bongs().stream().map(ModItemProperties::inHandModel).toList());
+        client.extraModels(List.of(HempBeanieRenderer.BAND, HempBeanieRenderer.CROWN));
+        // The press's icon is its four part models at rest, put together as it bakes -- the
+        // composite item model the 1.21.11 build names in data. Its own model, which parents the
+        // frame's, gives the display transforms.
+        client.composedModel(HempPressBlockEntityRenderer.ICON, HempPressBlockEntityRenderer.ICON_PARTS,
+                CompositeItemModel::new);
 
-        registerItemProperties();
-        registerItemColors();
+        registerItemProperties(client);
+        registerItemColors(client);
 
-        registerBlockColors();
+        registerBlockColors(client);
 
         // A bong's bubbling is played here, per client, so it can stop when the drawer lets go.
         SmokingDeviceItem.drawSound = drawer -> Minecraft.getInstance().getSoundManager()
@@ -169,8 +148,8 @@ public class HempdustryClient implements ClientModInitializer {
      * block tint. {@link FastColor.ARGB32#lerp} is used for the blend all the same, so the value
      * that leaves this method is a well-formed colour rather than one that only works by luck.
      */
-    private static void registerBlockColors() {
-        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> {
+    private static void registerBlockColors(ClientRegistration client) {
+        client.blockColor((state, view, pos, tintIndex) -> {
             // view/pos are null when a block is coloured outside a world — an inventory render. No
             // biome exists there, so the honest answer is the art as drawn.
             if (tintIndex != 0 || view == null || pos == null) {
@@ -185,7 +164,7 @@ public class HempdustryClient implements ClientModInitializer {
         // blockstate picks those, and a second yellow cue on top would only muddy them.
         // Every segment carries a copy of the record, so this reads the state it was handed and never
         // the world: that is also the broken state a break particle is coloured with.
-        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> {
+        client.blockColor((state, view, pos, tintIndex) -> {
             if (tintIndex != 0 || view == null || pos == null) {
                 return NO_TINT;
             }
@@ -201,7 +180,7 @@ public class HempdustryClient implements ClientModInitializer {
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
         // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour
         // is the hand's, where the item definition has the stack to read.
-        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) ->
+        client.blockColor((state, view, pos, tintIndex) ->
                         tintIndex == 1 ? PLACED_LOAD : NO_TINT,
                 ModBlocks.DEVICE_BLOCKS.values().toArray(Block[]::new));
     }
@@ -243,8 +222,8 @@ public class HempdustryClient implements ClientModInitializer {
      * for whichever entry claims that item, which is a per-frame cost for something no model asks for
      * yet. It belongs with the bud art if that lands, not before.
      */
-    private static void registerItemColors() {
-        ColorProviderRegistry.ITEM.register((stack, tintIndex) -> {
+    private static void registerItemColors(ClientRegistration client) {
+        client.itemColor((stack, tintIndex) -> {
             if (tintIndex != ModItemProperties.LOAD_TINT_INDEX) {
                 return -1;
             }
@@ -258,7 +237,7 @@ public class HempdustryClient implements ClientModInitializer {
         }, tinted());
         // The two garments' icons, as leather's are tinted: the grey cloth (layer 0) takes the dye,
         // or unbleached hemp undyed, and the drawn layer on top stays as drawn.
-        ColorProviderRegistry.ITEM.register((stack, tintIndex) -> tintIndex != 0 ? -1
+        client.itemColor((stack, tintIndex) -> tintIndex != 0 ? -1
                         : DyedItemColor.getOrDefault(stack, ModArmorMaterials.HEMP_UNDYED_COLOR),
                 ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS);
     }
@@ -286,20 +265,21 @@ public class HempdustryClient implements ClientModInitializer {
      * is consumed whole rather than emptied, so there is no legitimate unpacked spliff to render —
      * the empty equivalent is just paper.
      *
-     * <h2>Why {@code strain} is registered the hard way</h2>
+     * <h2>Why {@code strain} is not clamped</h2>
      *
      * {@code ItemProperties.register} only accepts a {@code ClampedItemProperty-
      * Function}, which pins its result to 0..1 — so any index above 1 collapsed onto the first
-     * strain's override. {@code packed} is unaffected, being 0 or 1 by construction, and uses the
-     * public call. {@code strain} goes through
-     * {@link ModelPredicateProviderRegistryAccessor} instead. See that class for the full reasoning.
+     * strain's override. {@code packed} is unaffected, being 0 or 1 by construction, and is a clamped
+     * function like vanilla's. Every property goes onto vanilla's map as given
+     * ({@link ClientRegistration#itemProperty}), so {@code strain} stays a plain one; see
+     * {@code ModelPredicateProviderRegistryAccessor} for the full reasoning.
      *
      * <p>Both properties are registered on the devices even where the mod ships no override for them,
      * because that is what lets a <b>resource pack</b> add per-strain packed art without any code:
      * overrides match with {@code >=}, so a pack lists them ascending exactly as {@code
      * ModModelProvider} does.
      */
-    private static void registerItemProperties() {
+    private static void registerItemProperties(ClientRegistration client) {
         ResourceLocation strainId = ModItemProperties.STRAIN;
         ItemPropertyFunction strain = (stack, world, entity, seed) -> {
             Holder<Strain> loaded =
@@ -307,14 +287,14 @@ public class HempdustryClient implements ClientModInitializer {
             return loaded == null ? 0f : loaded.value().modelIndex();
         };
         for (Item item : smokingGear()) {
-            registerUnclamped(item, strainId, strain);
+            client.itemProperty(item, strainId, strain);
         }
 
         ResourceLocation packedId = ModItemProperties.PACKED;
         ClampedItemPropertyFunction packed = (stack, world, entity, seed) ->
                 stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).isEmpty() ? 0f : 1f;
         for (Item device : everyDevice()) {
-            ItemProperties.register(device, packedId, packed);
+            client.itemProperty(device, packedId, packed);
         }
 
         // The bong's draw, for its 3D hand model: the bow's pulling and pull, measured against the
@@ -329,8 +309,8 @@ public class HempdustryClient implements ClientModInitializer {
             return (stack.getUseDuration(entity) - entity.getUseItemRemainingTicks()) / (float) device.device().drawTicks();
         };
         for (Item bong : ModItems.bongs()) {
-            ItemProperties.register(bong, ModItemProperties.DRAWING, drawing);
-            ItemProperties.register(bong, ModItemProperties.DRAW, draw);
+            client.itemProperty(bong, ModItemProperties.DRAWING, drawing);
+            client.itemProperty(bong, ModItemProperties.DRAW, draw);
         }
     }
 
@@ -365,16 +345,5 @@ public class HempdustryClient implements ClientModInitializer {
         List<Item> items = new ArrayList<>(List.of(smokingGear()));
         items.add(ModItems.MOON_ROCK);
         return items.toArray(Item[]::new);
-    }
-
-    /**
-     * Registers an item property that may return a value above 1, which
-     * {@link ItemProperties#registerGeneric} cannot express. Mirrors what that method does
-     * — {@code computeIfAbsent} then {@code put} — straight onto the backing map.
-     */
-    private static void registerUnclamped(Item item, ResourceLocation id, ItemPropertyFunction provider) {
-        ModelPredicateProviderRegistryAccessor.getItemSpecific()
-                .computeIfAbsent(item, key -> new HashMap<>())
-                .put(id, provider);
     }
 }

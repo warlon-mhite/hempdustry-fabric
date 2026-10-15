@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
-import com.warlonmhite.hempdustry.api.HempdustryEvents;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
@@ -8,14 +7,11 @@ import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.item.custom.Quality;
+import com.warlonmhite.hempdustry.platform.ItemTransfer;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -29,6 +25,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -99,7 +96,7 @@ import org.jetbrains.annotations.Nullable;
  * the player micromanaging which slot held what.
  */
 public class InfuserBlockEntity extends NamedMachineBlockEntity
-        implements ExtendedScreenHandlerFactory<BlockPos>, ImplementedInventory {
+        implements MenuProvider, ImplementedInventory {
 
     /**
      * <b>Retired in 2.0.1.</b> Milk used to go in through a slot here and its empty come back out
@@ -787,19 +784,20 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         // source — so this passes a copy and does the removal itself.
         ItemStack pending = getItem(OUTPUT_SLOT).copy();
 
-        // The Transfer API first, because that is the only thing an AE2 interface, a Modern
-        // Industrialization pipe or any other storage-only neighbour answers to. Fabric's automatic
-        // fallback means this also finds every ordinary Container, so it is the general path and not
-        // a special case.
-        Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, spoutPos, receivingSide);
-        if (storage != null) {
-            if (!insertWhole(storage, pending)) {
-                // A real target that happens to be full. Keep the hopper cadence rather than backing
-                // off — it may have room again in eight ticks.
-                return false;
-            }
+        // The loader's storage API first, because that is the only thing an AE2 interface, a pipe
+        // or any other storage-only neighbour answers to. It also covers every ordinary Container,
+        // so it is the general path and not a special case. All of the preview or none of it: the
+        // batch is closed out by removing the whole preview, so a partial insert would hand a
+        // neighbour one item and destroy the rest.
+        ItemTransfer.Result moved = Services.TRANSFER.insertWhole(world, spoutPos, receivingSide, pending);
+        if (moved == ItemTransfer.Result.MOVED) {
             removeItemNoUpdate(OUTPUT_SLOT);
             return true;
+        }
+        if (moved == ItemTransfer.Result.FULL) {
+            // A real target that happens to be full. Keep the hopper cadence rather than backing
+            // off — it may have room again in eight ticks.
+            return false;
         }
 
         // Nothing exposes a Storage here, so this is the last thing left that can still be a
@@ -819,27 +817,6 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         // check above rather than isEmpty() keeps that from becoming a silent dupe if it ever isn't.
         removeItemNoUpdate(OUTPUT_SLOT);
         return true;
-    }
-
-    /**
-     * Inserts {@code stack} into {@code storage}, <b>all of it or none of it</b>. Returns whether it
-     * went.
-     *
-     * <p>The all-or-nothing rule is the same invariant the {@code Container} path's count check
-     * keeps, and it matters for the same reason: the batch is closed out by removing the whole
-     * preview, so a partial insert would hand a neighbour one item and destroy the rest. A
-     * transaction makes that free — a partial result is simply never committed, and closing without
-     * committing rolls it back.
-     */
-    private static boolean insertWhole(Storage<ItemVariant> storage, ItemStack stack) {
-        try (Transaction transaction = Transaction.openOuter()) {
-            long moved = storage.insert(ItemVariant.of(stack), stack.getCount(), transaction);
-            if (moved < stack.getCount()) {
-                return false;
-            }
-            transaction.commit();
-            return true;
-        }
     }
 
     /**
@@ -887,7 +864,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         // both the slot hook and removeItem fire for one collection (the close-out itself is
         // idempotent, an event is not).
         if (batchHemp() > 0 && level != null) {
-            HempdustryEvents.AFTER_INFUSE.invoker().onInfused(
+            Services.ADDON_EVENTS.afterInfuse(
                     level, worldPosition, strength(), Quality.of(timePercent(), purityPercent()));
         }
         haveMilk = false;
@@ -1069,11 +1046,6 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     }
 
     // ----- screen -----
-
-    @Override
-    public BlockPos getScreenOpeningData(ServerPlayer player) {
-        return this.worldPosition;
-    }
 
     @Override
     protected Component getContainerName() {

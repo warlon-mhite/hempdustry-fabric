@@ -1,17 +1,16 @@
 package com.warlonmhite.hempdustry.world.gen;
 
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.util.ModTags;
 import com.warlonmhite.hempdustry.world.ModPlacedFeatures;
-import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.minecraft.world.level.levelgen.GenerationStep;
 
 
 public class ModFlowerGeneration {
     public static void generateFlowers() {
         // Surface biomes (plains / jungles / swamps + modded equivalents).
-        BiomeModifications.addFeature(
-                BiomeSelectors.tag(ModTags.Biomes.INDICA_FLOWER_GEN),
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.INDICA_FLOWER_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.INDICA_PLACED_KEY
         );
@@ -20,8 +19,8 @@ public class ModFlowerGeneration {
         // UNDERGROUND_DECORATION: lush-cave moss is itself vegetation, so a step earlier the floor is
         // still stone and clay, indica finds no dirt, and the tier placed nothing at all. Added
         // features run after vanilla's in the same step, so the moss is down by the time this runs.
-        BiomeModifications.addFeature(
-                BiomeSelectors.tag(ModTags.Biomes.INDICA_FLOWER_GEN_CAVE),
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.INDICA_FLOWER_GEN_CAVE,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.INDICA_CAVE_PLACED_KEY
         );
@@ -29,25 +28,25 @@ public class ModFlowerGeneration {
         // Wild Lemon Haze — surface only, no cave tier: sativa is a sun plant. Three tiers thinning
         // out as the ground gets harsher. The biome tags behind them are deliberately disjoint, so
         // a biome only ever matches one of these and can't be decorated twice.
-        BiomeModifications.addFeature(
-                BiomeSelectors.tag(ModTags.Biomes.SATIVA_FLOWER_GEN),
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.SATIVA_FLOWER_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.SATIVA_PLACED_KEY
         );
-        BiomeModifications.addFeature(
-                BiomeSelectors.tag(ModTags.Biomes.SATIVA_FLOWER_GEN_SPARSE),
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.SATIVA_FLOWER_GEN_SPARSE,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.SATIVA_SPARSE_PLACED_KEY
         );
-        BiomeModifications.addFeature(
-                BiomeSelectors.tag(ModTags.Biomes.SATIVA_FLOWER_GEN_RARE),
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.SATIVA_FLOWER_GEN_RARE,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.SATIVA_RARE_PLACED_KEY
         );
 
         // Wild Beldía, ripe, on desert riverbanks. Deserts only -- #c:is_desert holds no beach.
-        BiomeModifications.addFeature(
-                BiomeSelectors.tag(ModTags.Biomes.BELDIA_GEN),
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.BELDIA_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.BELDIA_PLACED_KEY
         );

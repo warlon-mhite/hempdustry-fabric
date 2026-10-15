@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
+import com.warlonmhite.hempdustry.platform.client.ClientServices;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -21,8 +22,8 @@ import net.minecraft.resources.ResourceLocation;
  *
  * <p>Everything that stands still is the block model. These two are block models too —
  * {@code block/hemp_press_platen} and {@code block/hemp_press_screw}, authored in the same Blockbench
- * file as the frame — but no block state names them, so nothing would load them on its own. Fabric
- * API's model loading adds them by id ({@link #PARTS}, registered from {@code HempdustryClient}),
+ * file as the frame — but no block state names them, so nothing would load them on its own. The
+ * loader's model loading adds them by id ({@link #PARTS}, registered from {@code HempdustryClient}),
  * and this draws the baked models straight through the block model renderer. The press's own item
  * is the same parts at rest, put together as the models bake ({@link #ICON_PARTS}), so the one in
  * your hand matches the one on the floor.
@@ -85,14 +86,14 @@ public class HempPressBlockEntityRenderer implements BlockEntityRenderer<HempPre
 
         matrices.pushPose();
         matrices.translate(0.0F, -depth * TRAVEL / 16.0F, 0.0F);
-        draw(renderer, client.getModelManager().getModel(PLATEN), matrices, buffer, light, overlay);
+        draw(renderer, ClientServices.CLIENT.extraModel(PLATEN), matrices, buffer, light, overlay);
 
         // A right-hand thread drives down turning clockwise seen from above: a negative turn about +Y,
         // through the rod at the middle of the block.
         matrices.translate(0.5F, 0.0F, 0.5F);
         matrices.mulPose(Axis.YP.rotationDegrees(-depth * TURNS * 360.0F));
         matrices.translate(-0.5F, 0.0F, -0.5F);
-        draw(renderer, client.getModelManager().getModel(SCREW), matrices, buffer, light, overlay);
+        draw(renderer, ClientServices.CLIENT.extraModel(SCREW), matrices, buffer, light, overlay);
         matrices.popPose();
     }
 

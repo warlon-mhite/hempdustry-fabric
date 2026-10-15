@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.config;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -21,8 +21,7 @@ import net.minecraft.network.chat.Component;
 public class ModCommands {
 
     public static void registerCommands() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                dispatcher.register(build()));
+        Services.EVENTS.onRegisterCommands(dispatcher -> dispatcher.register(build()));
         Hempdustry.LOGGER.info("Registering Commands for " + Hempdustry.MOD_ID);
     }
 
