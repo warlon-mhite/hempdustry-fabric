@@ -16,6 +16,8 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
@@ -27,6 +29,12 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 public final class FabricRegistration implements Registration {
+    @Override
+    public <T extends Entity> EntityType<T> entityType(EntityType.Builder<T> builder, ResourceLocation id) {
+        // Fabric API's own build(): no data fixer lookup for an id the game does not know.
+        return builder.build();
+    }
+
     @Override
     public void addValidBlocks(BlockEntityType<?> type, Block... blocks) {
         for (Block block : blocks) {

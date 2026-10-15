@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.balance;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
@@ -29,14 +28,8 @@ public final class ModBalance {
 
     private static final Set<ResourceKey<?>> WARNED = ConcurrentHashMap.newKeySet();
 
-    /**
-     * Synced, like the strains: the creative tab and the recipe viewers show the bowls the server
-     * actually packs.
-     */
+    /** Its three registries are registered with the strains' ({@link Hempdustry#registerDynamicRegistries}). */
     public static void registerBalance() {
-        Services.REGISTRATION.registerSyncedDynamicRegistry(DeviceStats.REGISTRY_KEY, DeviceStats.CODEC);
-        Services.REGISTRATION.registerSyncedDynamicRegistry(EdibleBundle.REGISTRY_KEY, EdibleBundle.CODEC);
-        Services.REGISTRATION.registerSyncedDynamicRegistry(GreenOut.REGISTRY_KEY, GreenOut.CODEC);
         Hempdustry.LOGGER.info("Registering Balance for " + Hempdustry.MOD_ID);
     }
 

@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"package": "com.warlonmhite.hempdustry.neoforge.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"LootPoolAccessor",
+		"LootTableAccessor",
+		"ReloadableServerRegistriesMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

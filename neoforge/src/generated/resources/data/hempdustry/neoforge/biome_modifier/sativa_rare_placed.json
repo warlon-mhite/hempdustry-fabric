@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#hempdustry:sativa_flower_gen_rare",
+  "features": "hempdustry:sativa_rare_placed",
+  "step": "vegetal_decoration"
+}

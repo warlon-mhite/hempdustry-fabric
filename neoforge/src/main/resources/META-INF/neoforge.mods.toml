@@ -1,0 +1,41 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="AGPL-3.0-only AND CC-BY-NC-SA-4.0"
+issueTrackerURL="https://github.com/warlon-mhite/hempdustry-fabric/issues"
+
+[[mods]]
+modId="hempdustry"
+version="${version}"
+displayName="${name}"
+displayURL="https://github.com/warlon-mhite/hempdustry-fabric"
+logoFile="assets/hempdustry/icon.png"
+authors="Warlon Mhite"
+credits="Nefuß (music)"
+description='''${description}'''
+
+# The mixins target vanilla, so they are common's, shared with Fabric; the third config holds what
+# NeoForge needs to do what Fabric's loot event already offers.
+[[mixins]]
+config="hempdustry.mixins.json"
+[[mixins]]
+config="hempdustry.client.mixins.json"
+[[mixins]]
+config="hempdustry.neoforge.mixins.json"
+
+# common's list, the same as Fabric's access widener.
+[[accessTransformers]]
+file="META-INF/accesstransformer.cfg"
+
+[[dependencies.hempdustry]]
+modId="neoforge"
+type="required"
+versionRange="${neo_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.hempdustry]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"

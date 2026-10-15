@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
@@ -230,7 +231,7 @@ public class IndicaCropBlock extends CropBlock {
      * roll is skipped rather than divided by zero. Beldía overrides this, since it grows on sand.
      */
     public float fieldMoisture(LevelReader world, BlockPos pos) {
-        return getGrowthSpeed(this, world, pos);
+        return Services.PLATFORM.cropGrowthSpeed(defaultBlockState(), world, pos);
     }
 
     /**

@@ -17,7 +17,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
-import net.minecraft.world.level.block.ComposterBlock;
 
 /**
  * Scorched hemp: what the furnace makes and the vaporizer hands back, and the Infuser's third input.
@@ -147,7 +146,7 @@ public final class ScorchedHempGameTest {
         }
         context.assertFalse(CauldronInteraction.WATER.map().containsKey(ModItems.SCORCHED_HEMP),
                 "scorched hemp can be washed, which makes it a route to Clean and Perfect butter");
-        context.assertValueEqual(0.3F, ComposterBlock.COMPOSTABLES.getFloat(ModItems.SCORCHED_HEMP),
+        context.assertValueEqual(0.3F, TestPlatform.INSTANCE.compostChance(ModItems.SCORCHED_HEMP),
                 "scorched hemp does not compost at the leaf's 0.3");
         context.succeed();
     }

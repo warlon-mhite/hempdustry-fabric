@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 
 import java.nio.file.Path;
@@ -26,6 +27,12 @@ public interface TestPlatform {
 
     /** The same for this test mod: its classes, its test files and the frozen release baselines. */
     List<Path> testModRoots();
+
+    /**
+     * The chance {@code item} raises a composter's level, as the loader's composter reads it -- a
+     * table in code on Fabric, a data map on NeoForge -- or {@code -1} when it does not compost.
+     */
+    float compostChance(ItemLike item);
 
     /** How readily {@code block} burns, as the loader's fire reads it: zero and zero for a block that does not. */
     Flammability flammability(Block block);

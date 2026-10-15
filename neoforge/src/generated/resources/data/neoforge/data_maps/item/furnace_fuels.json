@@ -1,0 +1,34 @@
+{
+  "values": {
+    "hempdustry:flip_flops": {
+      "burn_time": 200
+    },
+    "hempdustry:hemp_bale": {
+      "burn_time": 450
+    },
+    "hempdustry:hemp_beanie": {
+      "burn_time": 250
+    },
+    "hempdustry:hemp_harem_pants": {
+      "burn_time": 350
+    },
+    "hempdustry:hemp_shirt": {
+      "burn_time": 400
+    },
+    "hempdustry:hemp_stem": {
+      "burn_time": 50
+    },
+    "hempdustry:hemp_wool": {
+      "burn_time": 100
+    },
+    "hempdustry:hempcrete": {
+      "burn_time": 200
+    },
+    "hempdustry:hempcrete_powder_block": {
+      "burn_time": 1800
+    },
+    "hempdustry:retted_hemp_stem": {
+      "burn_time": 50
+    }
+  }
+}

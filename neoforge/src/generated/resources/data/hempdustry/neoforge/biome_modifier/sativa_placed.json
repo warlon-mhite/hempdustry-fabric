@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#hempdustry:sativa_flower_gen",
+  "features": "hempdustry:sativa_placed",
+  "step": "vegetal_decoration"
+}

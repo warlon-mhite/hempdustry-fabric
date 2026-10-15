@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.compat.emi;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
+import dev.emi.emi.api.EmiEntrypoint;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.recipe.EmiCraftingRecipe;
@@ -23,12 +24,14 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 
 /**
- * The EMI half of the recipe-viewer support. Loaded by EMI through the {@code emi} entrypoint in
- * {@code fabric.mod.json} and by nothing else, so a player without EMI never touches this class.
+ * The EMI half of the recipe-viewer support. Loaded by EMI and by nothing else -- through the
+ * {@code emi} entrypoint in {@code fabric.mod.json} on Fabric, by {@link EmiEntrypoint} on NeoForge --
+ * so a player without EMI never touches this class.
  *
  * <p>What is shown, and why each thing is shown that way, is in {@link ViewerRecipes}. This is the
  * adapter.
  */
+@EmiEntrypoint
 public class HempdustryEmiPlugin implements EmiPlugin {
 
     private static final EmiRecipeCategory DECARBOXYLATING =

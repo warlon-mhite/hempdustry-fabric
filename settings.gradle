@@ -16,6 +16,7 @@ pluginManagement {
 // Named here rather than after the checkout's folder, so every worktree builds the same projects.
 rootProject.name = 'hempdustry'
 
-// common: plain Minecraft, no loader -- most of the mod. fabric: Fabric's entry points, its side of
-// the platform interfaces, datagen and the game tests.
-include 'common', 'fabric'
+// common: plain Minecraft, no loader -- most of the mod, and the game tests. fabric and neoforge: each
+// loader's entry points, its side of the platform interfaces and its jar; datagen is Fabric's, but for
+// the few files only NeoForge reads.
+include 'common', 'fabric', 'neoforge'

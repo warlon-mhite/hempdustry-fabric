@@ -1,0 +1,17 @@
+# Game tests for Hempdustry. Dev-only: this is its own source set and never ships inside the mod jar.
+modLoader="javafml"
+loaderVersion="[4,)"
+license="AGPL-3.0-only"
+
+[[mods]]
+modId="hempdustry_gametest"
+version="1.0.0"
+displayName="Hempdustry Game Tests"
+description='''Game tests for Hempdustry, the same ones Fabric runs.'''
+
+[[dependencies.hempdustry_gametest]]
+modId="hempdustry"
+type="required"
+versionRange="[0,)"
+ordering="AFTER"
+side="BOTH"

@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
@@ -76,7 +77,7 @@ public class BeldiaCropBlock extends IndicaCropBlock {
      * Wet farmland's number when the sand has water in reach, and {@code 0} — no growth this tick —
      * when it has none.
      *
-     * <p>The crowding penalty is vanilla's own, read through {@code getGrowthSpeed}: on sand no
+     * <p>The crowding penalty is vanilla's own, read through {@code getGrowthSpeed} (the loader's): on sand no
      * farmland contributes, so that method returns exactly its base of 1, halved to 0.5 when the
      * plant is crowded — and this scales it up to wet farmland's 10 or 5. A field of Beldía therefore
      * wants rows exactly as a field of wheat does.
@@ -88,7 +89,7 @@ public class BeldiaCropBlock extends IndicaCropBlock {
         }
         // ponytail: reads 1 or 0.5 only while the neighbours are sand; farmland beside a Beldía row
         // adds to it and hides the crowding halving. Count the sand ourselves if that ever matters.
-        return getGrowthSpeed(this, world, pos) < 1.0F ? WATERED_MOISTURE / 2 : WATERED_MOISTURE;
+        return Services.PLATFORM.cropGrowthSpeed(defaultBlockState(), world, pos) < 1.0F ? WATERED_MOISTURE / 2 : WATERED_MOISTURE;
     }
 
     /** Whether the ground at {@code floor} counts as watered: a bed of ours answers for itself, sand needs water in reach. */

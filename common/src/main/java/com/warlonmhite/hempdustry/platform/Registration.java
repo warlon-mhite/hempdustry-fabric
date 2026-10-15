@@ -5,6 +5,8 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
@@ -20,6 +22,13 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
  * table of its own for. Called while the mod's content is being registered.
  */
 public interface Registration {
+
+    /**
+     * Builds an entity type of ours, named {@code id}. Vanilla's own build asks the data fixer about
+     * the id and logs an error for one it does not know, which is every mod's: Fabric's build skips
+     * that lookup, and NeoForge's quiets it -- for a real id; a null one it does not survive.
+     */
+    <T extends Entity> EntityType<T> entityType(EntityType.Builder<T> builder, ResourceLocation id);
 
     /**
      * Lets one of vanilla's block entity types live in our blocks too — a sign, a hanging sign.

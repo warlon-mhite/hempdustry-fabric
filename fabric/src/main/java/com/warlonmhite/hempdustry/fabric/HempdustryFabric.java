@@ -7,6 +7,7 @@ import net.fabricmc.api.ModInitializer;
 public class HempdustryFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+        Hempdustry.registerDynamicRegistries();
         Hempdustry.init();
     }
 }

@@ -34,6 +34,18 @@ dependencies {
 	compileOnly "io.github.llamalad7:mixinextras-common:${mixinextras_version}"
 	// @Nullable and friends; each loader's Minecraft brings them at run time.
 	compileOnly "org.jetbrains:annotations:${jetbrains_annotations_version}"
+
+	// The recipe viewers' plugins (compat/) are common's as well, written against each viewer's own
+	// API in Mojang's names: EMI's cross-loader API, JEI's common API, and REI's NeoForge build of its
+	// API -- REI's common one is in Fabric's names. Compile-only, as on the loaders, which compile the
+	// same sources against their own builds of each viewer; a player with none never loads a line of it.
+	compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}:api"
+	compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+	compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"
+	compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:${rei_version}"
+	// What REI 16's API names without bringing along -- see gradle.properties.
+	compileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"
+	compileOnly("dev.architectury:architectury-neoforge:${architectury_version}") { transitive = false }
 }
 
 // What the loaders' projects take from here: the sources, and the resources -- hand-written and

@@ -1,4 +1,4 @@
-package com.warlonmhite.hempdustry.mixin.client;
+package com.warlonmhite.hempdustry.fabric.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -19,6 +19,9 @@ import org.spongepowered.asm.mixin.injection.At;
  * its own colour wins either way. A default {@code dyed_color} on the items would do the same in the
  * world but not at the crafting table, where the dye recipe mixes the colour already there into
  * every new dye, and the cauldron wash would strip it back to brown.
+ *
+ * <p>Fabric's alone: NeoForge rewrites that call into an item hook of its own, which its client entry
+ * point answers for the same two items.
  */
 @Mixin(HumanoidArmorLayer.class)
 public abstract class ArmorFeatureRendererMixin {

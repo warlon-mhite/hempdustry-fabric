@@ -33,8 +33,9 @@ public class ModArmorMaterials {
      * The colour an undyed shirt or pair of harem pants is drawn in: unbleached hemp, the one tint
      * that best gives back the shirt as it was drawn before it took dye. The dyeable textures are
      * grey and this tints them, as leather's brown tints leather's. Vanilla hard-codes that brown for
-     * every dyeable armour layer, so the worn garments take this one through
-     * {@code ArmorFeatureRendererMixin}, and the icons through their colour provider.
+     * every dyeable armour layer, so the worn garments take this one through each loader's armour
+     * hook (Fabric's {@code ArmorFeatureRendererMixin}, NeoForge's item extension), and the icons
+     * through their colour provider.
      */
     public static final int HEMP_UNDYED_COLOR = 0xFFFFDFB7;
 

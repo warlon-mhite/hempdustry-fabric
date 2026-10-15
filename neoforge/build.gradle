@@ -1,0 +1,154 @@
+// NeoForge's jar: common's sources and resources, compiled here, plus NeoForge's entry points, its side
+// of the platform interfaces, and the few data files only NeoForge reads.
+plugins {
+	id 'multiloader-loader'
+	id 'net.neoforged.moddev'
+}
+
+def generated = file('src/generated/resources')
+
+// The game tests' NeoForge half: the test mod's entry point and its TestPlatform. The tests themselves
+// are common's (multiloader-loader compiles them in).
+sourceSets {
+	gametest {
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
+neoForge {
+	version = neo_version
+	// What the mod reaches in vanilla that vanilla keeps closed: common's list, the same as Fabric's
+	// access widener. It ships in the jar from common's resources, where NeoForge looks for it.
+	accessTransformers.from(project(':common').file('src/main/resources/META-INF/accesstransformer.cfg'))
+	parchment {
+		minecraftVersion = parchment_minecraft
+		mappingsVersion = parchment_version
+	}
+
+	mods {
+		hempdustry {
+			sourceSet sourceSets.main
+		}
+		// The game tests' mod, dev-only like Fabric's; a NeoForge mod id cannot hold a hyphen.
+		hempdustry_gametest {
+			sourceSet sourceSets.gametest
+		}
+	}
+
+	runs {
+		client {
+			client()
+			loadedMods = [mods.hempdustry]
+		}
+		server {
+			server()
+			programArgument '--nogui'
+			loadedMods = [mods.hempdustry]
+		}
+		// Every game test, on a headless server that exits with the number of required tests that
+		// failed:  ./gradlew :neoforge:runGameTestServer
+		gameTestServer {
+			type = 'gameTestServer'
+			sourceSet = sourceSets.gametest
+			loadedMods = [mods.hempdustry, mods.hempdustry_gametest]
+			gameDirectory = file('build/gametest')
+		}
+		// The files only NeoForge reads -- compost and fuel data maps, biome modifiers -- written from
+		// the same calls Fabric's registries take, so the two cannot drift apart:
+		//   ./gradlew :neoforge:runData
+		data {
+			data()
+			loadedMods = [mods.hempdustry]
+			programArguments.addAll('--mod', 'hempdustry', '--all', '--output', generated.absolutePath)
+		}
+		configureEach {
+			logLevel = org.slf4j.event.Level.INFO
+		}
+	}
+}
+
+sourceSets.main.resources.srcDir generated
+
+neoForge.addModdingDependenciesTo(sourceSets.gametest)
+
+configurations {
+	// What the dev client runs with and the jar does not ship: the recipe viewer under test.
+	localRuntime
+	runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+	// The three viewers, compiled against and never shipped, as on Fabric: each finds the mod's plugin
+	// on its own (EMI by @EmiEntrypoint, JEI by @JeiPlugin, REI by the annotated plugin in
+	// neoforge/compat/rei).
+	compileOnly "dev.emi:emi-neoforge:${emi_version}:api"
+	compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+	compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"
+	compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:${rei_version}"
+	compileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"
+	compileOnly("dev.architectury:architectury-neoforge:${architectury_version}") { transitive = false }
+
+	// One viewer at a time, as on Fabric:
+	//   ./gradlew :neoforge:runClient                  # EMI on the runtime (default)
+	//   ./gradlew :neoforge:runClient -Pviewer=jei     # JEI instead
+	//   ./gradlew :neoforge:runClient -Pviewer=rei     # REI instead
+	//   ./gradlew :neoforge:runClient -Pviewer=none    # no viewer
+	def viewer = project.findProperty("viewer") ?: "emi"
+	if (viewer == "emi") {
+		localRuntime "dev.emi:emi-neoforge:${emi_version}"
+	} else if (viewer == "jei") {
+		localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+	} else if (viewer == "rei") {
+		localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
+	} else if (viewer != "none") {
+		throw new GradleException("Unknown -Pviewer=${viewer}; use emi, jei, rei or none")
+	}
+}
+
+// The game test server's own log, read after every run, as on Fabric (fabric/build.gradle says why):
+// a run that logs a warning or an error nobody listed here fails.
+def expectedGametestLog = [
+	// the first batch starts every test in one tick, and on a slower machine that tick runs long
+	~/Can't keep up! Is the server overloaded\?/,
+	// a fresh checkout's first run: build/gametest holds no server files yet, and the server says so
+	~/Failed to load properties from file: server\.properties/,
+	~/Failed to load eula\.txt/,
+	// a_broken_config_is_left_alone feeds the loader four broken files on purpose
+	~/\[hempdustry\/\]: .*config\/hempdustry\.json/,
+	// every_config_extreme_keeps_the_numbers_sane pushes every setting past its range
+	~/\[hempdustry\/\]: Config \S+ was (-?1000000000|-?1\.0E9|1\.0E-9), clamped to/,
+	// NeoForge 21.1's dev run sets SharedConstants.IS_RUNNING_IN_IDE, so vanilla's Bootstrap.validate
+	// checks every command for ambiguous arguments and lists vanilla's own /tp ones
+	~/\[net\.minecraft\.commands\.Commands\/\]: Ambiguity between arguments \[teleport, /,
+	// and vanilla reads its own assets out of NeoForge's union filesystem, a scheme it does not expect
+	~/\[net\.minecraft\.server\.packs\.VanillaPackResourcesBuilder\/\]: Assets URL 'union:.*' uses unexpected schema/,
+]
+def gametestLog = file('build/gametest/logs/latest.log')
+tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+	doLast {
+		def unexpected = gametestLog.readLines().findAll { line ->
+			(line.contains('/WARN]') || line.contains('/ERROR]')) && !expectedGametestLog.any { line =~ it }
+		}
+		if (unexpected) {
+			throw new GradleException("Every game test passed, but the server logged " + unexpected.size()
+					+ " warning(s) nobody expected (${gametestLog}):\n" + unexpected.join("\n"))
+		}
+	}
+}
+
+def manifest = [
+	version                : version,
+	name                   : mod_name,
+	description            : mod_description,
+	minecraft_version_range: minecraft_version_range,
+	neo_version_range      : neo_version_range,
+]
+tasks.named('processResources', ProcessResources) {
+	inputs.properties manifest
+	filesMatching('META-INF/neoforge.mods.toml') {
+		expand manifest
+	}
+	// Fabric's form of the access transformer, which NeoForge never reads.
+	exclude 'hempdustry.accesswidener'
+}

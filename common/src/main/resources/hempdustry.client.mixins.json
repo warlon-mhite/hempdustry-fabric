@@ -3,7 +3,6 @@
 	"package": "com.warlonmhite.hempdustry.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ArmorFeatureRendererMixin",
 		"DrawContextMixin",
 		"ItemRendererMixin",
 		"LlamaDecorFeatureRendererMixin",

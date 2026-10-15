@@ -104,14 +104,10 @@ public class ModStrains {
     public static final int THIRD_PARTY_MODEL_INDEX_MIN = 100;
 
     /**
-     * Registers the registry itself. <b>Synced</b>, so a datapack's strain definitions reach every
-     * client without a packet of our own; the tinting and the naming both read the loaded entry.
-     *
-     * <p>No {@code SKIP_WHEN_EMPTY}: the mod's own strains are always present, and a client without
-     * the registry is a client without the mod.
+     * The registry itself is registered with the other datapack registries, before anything else
+     * ({@link Hempdustry#registerDynamicRegistries}).
      */
     public static void registerStrains() {
-        Services.REGISTRATION.registerSyncedDynamicRegistry(Strain.REGISTRY_KEY, Strain.CODEC);
         // Checked once, at startup: a datapack is exactly where a clashing index comes from, and the
         // registry is read only when the world opens — /reload keeps the strains it has.
         Services.EVENTS.onServerStarted(server -> validateModelIndices(server.registryAccess()));
