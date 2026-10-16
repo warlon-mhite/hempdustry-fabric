@@ -229,7 +229,8 @@ beta be told when the release lands.
   own. A trim already on one stays on the item but is not drawn. The shirt and the harem pants still
   take trims.
 - **The Decarboxylator, the Infuser and the Hemp Press keep an anvil name**, like a furnace: it
-  titles the machine's screen, and a broken machine drops with it.
+  titles the machine's screen, a broken machine drops with it, and it comes along when a world moves
+  from Minecraft 1.21.1 to 1.21.11.
 - **Three hemp wool over three planks makes a Hemp Bed now, not a white bed.** Dye the Hemp Bed white
   for the white bed.
 - **A bong hit is drawn, not clicked.** Hold use with a packed bong and it comes up to your mouth

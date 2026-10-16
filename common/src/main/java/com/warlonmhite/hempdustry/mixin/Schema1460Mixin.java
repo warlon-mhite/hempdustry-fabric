@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.util.datafix.fixes.References;
+import net.minecraft.util.datafix.schemas.V1458;
 import net.minecraft.util.datafix.schemas.V1460;
 
 /**
@@ -38,7 +39,10 @@ import net.minecraft.util.datafix.schemas.V1460;
  * what lets the item fixes reach what it carries (an enchanted book in a chest boat changed format
  * on the way to 1.21.11 too). Nothing else about either boat has ever needed fixing. The machines
  * are registered as vanilla registers its furnace: their {@code Items} typed as item stacks, which is
- * the shape {@code ContainerHelper.saveAllItems} writes.
+ * the shape {@code ContainerHelper.saveAllItems} writes, and their {@code CustomName} typed as text.
+ * 1.21.1 saves an anvil name as its JSON string, and 1.21.11 keeps text as tags; the fix between them
+ * rewrites only text it knows is text, so an untyped name came through as the JSON itself, and a
+ * machine named Hemp Kitchen read back as {@code "Hemp Kitchen"}, quotes and all.
  *
  * <h2>Why here</h2>
  *
@@ -69,8 +73,7 @@ public class Schema1460Mixin {
                                              CallbackInfoReturnable<Map<String, Supplier<TypeTemplate>>> cir) {
         Map<String, Supplier<TypeTemplate>> blockEntities = cir.getReturnValue();
         for (String machine : new String[] {"hempdustry:decarboxylator", "hempdustry:infuser", "hempdustry:hemp_press"}) {
-            schema.register(blockEntities, machine,
-                    name -> DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(schema))));
+            schema.register(blockEntities, machine, () -> V1458.nameableInventory(schema));
         }
         // A placed bong is the device item itself, kept as the block entity's own components
         // (BongBlockEntity); being in the table is what lets the fixer reach them. A placed hemp bed

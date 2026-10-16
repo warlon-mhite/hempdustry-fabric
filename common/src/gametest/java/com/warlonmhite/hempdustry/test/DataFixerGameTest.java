@@ -3,18 +3,25 @@ package com.warlonmhite.hempdustry.test;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.Container;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -96,43 +103,58 @@ public final class DataFixerGameTest {
     /**
      * A block chunk as 1.21.1 saved it: one block entity of every type of ours, each enchanted in its
      * own components (a placed bong is the device item itself, kept that way), every container also
-     * holding an enchanted bow, and a vanilla chest holding the bow as the control. Until 2.0.3 the
-     * fixer did not know the machines, so their bows kept the {@code levels} wrapper 1.21.11 cannot
-     * read, and lost their enchantments on load.
+     * holding an enchanted bow, every one that can be named carrying an anvil name, and a vanilla chest
+     * holding the bow and the name as the control. Until 2.0.3 the fixer did not know the machines, so
+     * their bows kept the {@code levels} wrapper 1.21.11 cannot read, and lost their enchantments on
+     * load. Until the machines' {@code CustomName} was typed as text, a name kept 1.21.1's JSON string,
+     * which 1.21.11 reads back as the literal text, quotes and all.
      */
     public static void theMachinesContentsAreUpgraded(GameTestHelper context) {
         Map<Identifier, Boolean> types = new TreeMap<>();
+        Set<Identifier> nameable = new HashSet<>();
         for (Block block : BuiltInRegistries.BLOCK) {
             if (!Sweep.ours(BuiltInRegistries.BLOCK.getKey(block)) || !(block instanceof EntityBlock provider)) continue;
             BlockEntity entity = provider.newBlockEntity(BlockPos.ZERO, block.defaultBlockState());
             if (entity == null) continue;
             Identifier type = BlockEntityType.getKey(entity.getType());
-            if (type != null && Sweep.ours(type)) types.put(type, entity instanceof Container);
+            if (type == null || !Sweep.ours(type)) continue;
+            types.put(type, entity instanceof Container);
+            if (entity instanceof Nameable) nameable.add(type);
         }
         Sweep.atLeast(context, "block entity types of ours", types.size(), 4);
+        Sweep.atLeast(context, "block entity types of ours that keep a name", nameable.size(), 3);
 
         List<Identifier> order = new ArrayList<>(types.keySet());
         StringBuilder chunk = new StringBuilder("{DataVersion:3955,xPos:0,zPos:0,yPos:-4,Status:\"minecraft:full\","
-                + "sections:[],block_entities:[" + machine("minecraft:chest", -1, true));
+                + "sections:[],block_entities:[" + machine("minecraft:chest", -1, true, true));
         for (int i = 0; i < order.size(); i++) {
-            chunk.append(",").append(machine(order.get(i).toString(), i, types.get(order.get(i))));
+            Identifier type = order.get(i);
+            chunk.append(",").append(machine(type.toString(), i, types.get(type), nameable.contains(type)));
         }
         ListTag blockEntities = DataFixTypes.CHUNK.updateToCurrentVersion(context.getLevel().getServer().getFixerUpper(),
                 read(chunk.append("]}").toString()), MINECRAFT_1_21_1).getListOrEmpty("block_entities");
         context.assertValueEqual(order.size() + 1, blockEntities.size(), "the block entities through the fixer");
 
-        // The chest first: if it was not converted, the chunk itself did not go through.
-        context.assertTrue(upgraded(blockEntities.getCompoundOrEmpty(0).getListOrEmpty("Items").getCompoundOrEmpty(0)),
+        // The chest first: if it was not converted, the chunk itself did not go through; if its name
+        // was not, the name below is not the shape 1.21.1 writes, and the machines' names prove nothing.
+        CompoundTag chest = blockEntities.getCompoundOrEmpty(0);
+        context.assertTrue(upgraded(chest.getListOrEmpty("Items").getCompoundOrEmpty(0)),
                 "the control chest's bow kept its 1.21.1 enchantments, so the chunk never went through the fixer");
+        context.assertTrue(NAME.equals(name(context, chest)),
+                "the control chest's name did not come through the fixer: " + chest.get("CustomName"));
         Map<String, String> findings = new TreeMap<>();
         for (int i = 0; i < order.size(); i++) {
+            Identifier type = order.get(i);
             CompoundTag blockEntity = blockEntities.getCompoundOrEmpty(i + 1);
             if (!upgraded(blockEntity)) {
-                findings.put(order.get(i).toString(), "its own components kept their 1.21.1 enchantments: "
+                findings.put(type.toString(), "its own components kept their 1.21.1 enchantments: "
                         + blockEntity.getCompoundOrEmpty("components"));
-            } else if (types.get(order.get(i)) && !upgraded(blockEntity.getListOrEmpty("Items").getCompoundOrEmpty(0))) {
-                findings.put(order.get(i).toString(), "the bow inside kept its 1.21.1 enchantments: "
+            } else if (types.get(type) && !upgraded(blockEntity.getListOrEmpty("Items").getCompoundOrEmpty(0))) {
+                findings.put(type.toString(), "the bow inside kept its 1.21.1 enchantments: "
                         + blockEntity.getListOrEmpty("Items"));
+            } else if (nameable.contains(type) && !NAME.equals(name(context, blockEntity))) {
+                findings.put(type.toString(), "its anvil name reads as \"" + name(context, blockEntity)
+                        + "\" after the fixer: " + blockEntity.get("CustomName"));
             }
         }
         Sweep.report(context, "Every block entity of ours, and what it holds, goes through the data fixer",
@@ -140,18 +162,32 @@ public final class DataFixerGameTest {
         context.succeed();
     }
 
-    private static String machine(String id, int x, boolean holdsItems) {
+    /** The anvil name every nameable block entity carries in the 1.21.1 chunk. */
+    private static final String NAME = "Hemp Kitchen";
+
+    private static String machine(String id, int x, boolean holdsItems, boolean named) {
         String bow = "{Slot:0b,id:\"minecraft:bow\",count:1,"
                 + "components:{\"minecraft:enchantments\":{levels:{\"minecraft:power\":3}}}}";
+        // 1.21.1 saves a name as its JSON, and an anvil's plain name collapses to a JSON string.
         return "{id:\"" + id + "\",x:" + x + ",y:-60,z:0,"
                 + "components:{\"minecraft:enchantments\":{levels:{\"minecraft:unbreaking\":3}}}"
-                + (holdsItems ? ",Items:[" + bow + "]" : "") + "}";
+                + (holdsItems ? ",Items:[" + bow + "]" : "")
+                + (named ? ",CustomName:'\"" + NAME + "\"'" : "") + "}";
     }
 
     /** Whether a stack's or a block entity's enchantments lost the 1.21.1 {@code levels} wrapper. */
     private static boolean upgraded(CompoundTag holder) {
         CompoundTag enchantments = holder.getCompoundOrEmpty("components").getCompoundOrEmpty("minecraft:enchantments");
         return !enchantments.isEmpty() && !enchantments.contains("levels");
+    }
+
+    /** A block entity's name as this version reads it back, or null when it has none it can read. */
+    private static String name(GameTestHelper context, CompoundTag blockEntity) {
+        Tag name = blockEntity.get("CustomName");
+        if (name == null) return null;
+        return ComponentSerialization.CODEC
+                .parse(context.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE), name)
+                .result().map(Component::getString).orElse(null);
     }
 
     private static CompoundTag read(String snbt) {
