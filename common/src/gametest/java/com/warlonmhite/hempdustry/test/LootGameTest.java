@@ -4,16 +4,35 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.loot.LootTableOrigin;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.packs.PackLocationInfo;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.PathPackResources;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.server.packs.resources.MultiPackResourceManager;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -79,6 +98,79 @@ public final class LootGameTest {
     }
 
     /**
+     * Mojang's experiment packs are the game's own, so their chests take hemp as vanilla's do. Villager
+     * Trade Rebalance replaces five chests, three of them ones the mod adds to. On this line vanilla's
+     * game-test server enables the experiment's pack but leaves vanilla's own stacked above it (1.21.11
+     * puts vanilla first, as a world does), so the chests the test world loads are vanilla's: the rule is
+     * asked here of the experiment's copies, stacked over vanilla as a world with the experiment on has
+     * them.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void theExperimentsChestsCountAsTheGames(GameTestHelper context) {
+        MinecraftServer server = context.getLevel().getServer();
+        Pack pack = server.getPackRepository().getPack("trade_rebalance");
+        context.assertTrue(pack != null, "this version has no Trade Rebalance experiment pack");
+        try (PackResources experiment = pack.open()) {
+            List<PackResources> packs = new ArrayList<>(server.getResourceManager().listPacks().toList());
+            packs.add(experiment);
+            ResourceManager withExperiment = new MultiPackResourceManager(PackType.SERVER_DATA, packs);
+            for (ResourceKey<LootTable> key : List.of(BuiltInLootTables.DESERT_PYRAMID,
+                    BuiltInLootTables.ABANDONED_MINESHAFT, BuiltInLootTables.PILLAGER_OUTPOST)) {
+                String from = withExperiment.getResource(file(key.location())).map(found -> found.source().packId()).orElse("no pack");
+                context.assertTrue(from.equals("trade_rebalance"), key.location() + " came from " + from
+                        + " with the experiment on top, not from the experiment's pack");
+                context.assertTrue(LootTableOrigin.fromTheGameOrAMod(withExperiment, key.location()), "the experiment's "
+                        + key.location() + " does not count as the game's: a world with it on would get none of the mod's loot there");
+            }
+        }
+        context.succeed();
+    }
+
+    /**
+     * The rule the mod adds loot by, asked of the packs a real world loads. Vanilla's main pack and
+     * the mod's own are the game's or a mod's (the experiment's, the test above). A datapack laid over them -- built as
+     * the game builds one from a world's folder, a pack with no name the game knows -- replaced the
+     * temple chest on purpose, and the mod leaves it as its author wrote it; the chests it did not
+     * replace are still vanilla's.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void aDatapacksChestIsLeftAlone(GameTestHelper context) {
+        ResourceManager world = context.getLevel().getServer().getResourceManager();
+        ResourceLocation dungeon = BuiltInLootTables.SIMPLE_DUNGEON.location();
+        ResourceLocation temple = BuiltInLootTables.DESERT_PYRAMID.location();
+        ResourceLocation ours = ModBlocks.DECARBOXYLATOR.getLootTable().location();
+        context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, dungeon), "vanilla's dungeon chest does not count as the game's");
+        context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, temple), "vanilla's temple chest does not count as the game's");
+        context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, ours), "the mod's own " + ours + " does not count as a mod's");
+
+        Path folder = context.getLevel().getServer().getServerDirectory().resolve("hempdustry-test-datapack");
+        try {
+            Path chest = folder.resolve("data/minecraft/loot_table/chests/desert_pyramid.json");
+            Files.createDirectories(chest.getParent());
+            Files.writeString(chest, "{\"pools\": []}");
+            // As FolderRepositorySource names a pack it finds in a world's folder: no known pack.
+            PackResources datapack = new PathPackResources(new PackLocationInfo(
+                    "file/hempdustry-test-datapack", Component.literal("hempdustry-test-datapack"), PackSource.WORLD, Optional.empty()), folder);
+            List<PackResources> packs = new ArrayList<>(world.listPacks().toList());
+            packs.add(datapack);
+            ResourceManager withDatapack = new MultiPackResourceManager(PackType.SERVER_DATA, packs);
+            context.assertFalse(LootTableOrigin.fromTheGameOrAMod(withDatapack, temple),
+                    "a datapack's own temple chest counts as the game's: the mod would add to a chest its author replaced");
+            context.assertTrue(LootTableOrigin.fromTheGameOrAMod(withDatapack, dungeon),
+                    "a datapack that replaced the temple chest made vanilla's dungeon chest count as the datapack's");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            try (Stream<Path> files = Files.walk(folder)) {
+                files.sorted(Comparator.reverseOrder()).forEach(path -> path.toFile().delete());
+            } catch (IOException ignored) {
+                // Nothing was written, or it is gone already.
+            }
+        }
+        context.succeed();
+    }
+
+    /**
      * A Sifting Box broken with a batch ready gives the batch back, as a full composter gives its bone
      * meal — which batch following the box's state exactly as a click would — and a box still filling
      * gives only itself.
@@ -138,6 +230,10 @@ public final class LootGameTest {
         int found = count(table, chest, what, ROLLS);
         context.assertTrue(found >= low && found <= high,
                 description + " " + found + " times in " + ROLLS + ", expected " + low + "-" + high);
+    }
+
+    private static ResourceLocation file(ResourceLocation table) {
+        return ResourceLocation.fromNamespaceAndPath(table.getNamespace(), "loot_table/" + table.getPath() + ".json");
     }
 
     private static int count(LootTable table, LootParams params, Predicate<ItemStack> what, int rolls) {

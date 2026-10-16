@@ -264,6 +264,10 @@ beta be told when the release lands.
 - **An edible eaten just before leaving still hits.** What is still on its way is saved with the
   player now, so logging out, or a server restarting, during the wait no longer loses it; the wait
   picks up where it left off when you come back. Dying still loses it, as it always did.
+- **With the Villager Trade Rebalance experiment on, the desert temple, mineshaft and pillager
+  outpost chests hold the mod's loot**: Beldía in the temple, hemp seeds in the other two, on both
+  loaders. The experiment's chests are the game's own and were taken for a datapack's (a known issue
+  since 2.0.1-beta). A chest that a datapack replaces is still left exactly as its author wrote it.
 
 ### Notes for pack makers
 

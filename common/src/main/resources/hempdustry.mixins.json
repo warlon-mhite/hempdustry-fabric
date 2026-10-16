@@ -5,7 +5,8 @@
 	"mixins": [
 		"BeeGrowCropsGoalMixin",
 		"CreeperEntityMixin",
-		"PointOfInterestTypesAccessor"
+		"PointOfInterestTypesAccessor",
+		"ReloadableServerRegistriesMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

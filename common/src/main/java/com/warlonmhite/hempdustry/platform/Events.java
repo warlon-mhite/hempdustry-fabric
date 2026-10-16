@@ -41,8 +41,9 @@ public interface Events {
     @FunctionalInterface
     interface LootTableListener {
         /**
-         * @param builtIn whether the table is vanilla's or a mod's own, as opposed to one a datapack
-         *                put in its place
+         * @param builtIn whether the table is the game's -- vanilla's, or one of Mojang's experiment
+         *                packs' -- or a mod's own, as opposed to one a datapack put in its place
+         *                ({@code LootTableOrigin})
          */
         void onLoad(ResourceKey<LootTable> key, boolean builtIn, HolderLookup.Provider registries, LootTableEditor table);
     }
