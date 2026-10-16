@@ -269,19 +269,11 @@ public class ModLootTableModifiers {
     public static void modifyLootTables() {
         Services.EVENTS.onLootTableLoad((key, builtIn, registries, table) -> {
             if (!builtIn) {
-                // Don't touch datapack overrides, only vanilla/mod tables: a pack curator who
-                // replaces a chest table meant to replace it, and an injection they cannot see is
-                // not something to hand them.
-                //
-                // KNOWN COST, and do not "fix" it by deleting this guard. Mojang's experimental
-                // feature packs are datapacks too, so Villager Trade Rebalance -- which replaces
-                // desert_pyramid, abandoned_mineshaft, pillager_outpost, ancient_city and
-                // jungle_temple -- arrives here as a datapack's, and in such a world those five
-                // chests hold none of ours. Fabric's LootTableSource has four values (VANILLA, MOD,
-                // DATA_PACK, REPLACED) and none of them tells a Mojang feature pack from a third
-                // party's, so there is no targeted fix through that API; dropping the guard would
-                // inject into every pack's deliberate override instead, which is the worse of the two.
-                // Fabric's game-test world turns every experiment on, which is how this surfaced.
+                // Don't touch datapack overrides, only the game's and the mods' tables: a pack
+                // curator who replaces a chest table meant to replace it, and an injection they cannot
+                // see is not something to hand them. Mojang's experiment packs count as the game's --
+                // Villager Trade Rebalance replaces the desert temple, mineshaft and outpost chests,
+                // and a player who turns it on keeps the mod's loot in them (LootTableOrigin).
                 return;
             }
             // A pack curator can override a loot *table* with a datapack, but not an injection like

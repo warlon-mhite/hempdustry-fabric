@@ -1,7 +1,7 @@
-package com.warlonmhite.hempdustry.neoforge.mixin;
+package com.warlonmhite.hempdustry.mixin;
 
 import com.google.gson.JsonElement;
-import com.warlonmhite.hempdustry.neoforge.NeoForgeEvents;
+import com.warlonmhite.hempdustry.loot.LootTableOrigin;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.ReloadableServerRegistries;
@@ -17,7 +17,9 @@ import java.util.concurrent.Executor;
 
 /**
  * Keeps the resources the loot tables are about to be read from, so the loot event can ask which
- * pack a table came from. Fabric's loot event says so itself; NeoForge's does not.
+ * pack a table came from. Neither loader's loot event can tell Mojang's experiment packs from a
+ * datapack: NeoForge's does not say where a table came from, and Fabric's files the experiment packs
+ * with the datapacks.
  */
 @Mixin(ReloadableServerRegistries.class)
 public class ReloadableServerRegistriesMixin {
@@ -25,6 +27,6 @@ public class ReloadableServerRegistriesMixin {
     private static void hempdustry$keepResources(LootDataType<?> type, RegistryOps<JsonElement> ops,
                                                  ResourceManager resources, Executor executor,
                                                  CallbackInfoReturnable<CompletableFuture<WritableRegistry<?>>> cir) {
-        NeoForgeEvents.lootResources = resources;
+        LootTableOrigin.loading = resources;
     }
 }

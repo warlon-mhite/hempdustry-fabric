@@ -6,6 +6,7 @@
 		"BeeGrowCropsGoalMixin",
 		"CreeperEntityMixin",
 		"PointOfInterestTypesAccessor",
+		"ReloadableServerRegistriesMixin",
 		"Schema1460Mixin"
 	],
 	"injectors": {

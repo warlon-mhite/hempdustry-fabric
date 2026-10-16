@@ -140,6 +140,8 @@ public final class HempdustryGameTests {
         register("a_hemp_shelf_is_a_vanilla_shelf", FurnitureGameTest::aHempShelfIsAVanillaShelf);
         register("a_hemp_harness_fits_a_happy_ghast", FurnitureGameTest::aHempHarnessFitsAHappyGhast);
         register("hemp_turns_up_where_it_was_kept", LootGameTest::hempTurnsUpWhereItWasKept);
+        register("the_experiments_chests_hold_hemp_too", LootGameTest::theExperimentsChestsHoldHempToo);
+        register("a_datapacks_chest_is_left_alone", LootGameTest::aDatapacksChestIsLeftAlone);
         register("a_ready_box_gives_its_batch", LootGameTest::aReadyBoxGivesItsBatch);
         register("a_named_machine_keeps_its_name", LootGameTest::aNamedMachineKeepsItsName);
         register("only_the_beanie_keeps_out_the_cold", HempOutfitGameTest::onlyTheBeanieKeepsOutTheCold);

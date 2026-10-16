@@ -233,15 +233,10 @@ public final class BeldiaGameTest {
         expect(context, world, Blocks.TALL_GRASS.getLootTable().orElseThrow(), seeds, false, "hempdustry:sativa_seeds");
         expect(context, world, BuiltInLootTables.SIMPLE_DUNGEON, seeds, false, "hempdustry:indica_seeds");
         expect(context, world, BuiltInLootTables.SHIPWRECK_SUPPLY, seeds, false, "hempdustry:indica_seeds");
-        // The temple chest, unless the Villager Trade Rebalance experiment is on -- Fabric's game-test
-        // world turns every experiment on. That experiment replaces chests/desert_pyramid from a feature
-        // pack, Fabric reports a feature pack as DATA_PACK, and the mod never injects into a datapack's
-        // table: so in such a world the temple holds no Beldía, exactly as the mineshaft and outpost
-        // hold no hemp seed. Known and documented (crops.md, Beldía), not asserted away.
-        if (!world.enabledFeatures().contains(net.minecraft.world.flag.FeatureFlags.TRADE_REBALANCE)) {
-            expect(context, world, BuiltInLootTables.DESERT_PYRAMID, seeds, true, "minecraft:enchanted_golden_apple");
-            expect(context, world, BuiltInLootTables.DESERT_PYRAMID, "hempdustry:indica_seeds", false, null);
-        }
+        // The temple chest. The game-test world has the Villager Trade Rebalance experiment on, so this
+        // is the experiment's copy of it, which takes the seeds as vanilla's does.
+        expect(context, world, BuiltInLootTables.DESERT_PYRAMID, seeds, true, "minecraft:enchanted_golden_apple");
+        expect(context, world, BuiltInLootTables.DESERT_PYRAMID, "hempdustry:indica_seeds", false, null);
         expect(context, world, BuiltInLootTables.DESERT_WELL_ARCHAEOLOGY, seeds, true, "minecraft:arms_up_pottery_sherd");
         expect(context, world, BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY, seeds, true, "minecraft:prize_pottery_sherd");
         // A brushed block keeps one item, so the seeds must be inside vanilla's pool, not beside it.

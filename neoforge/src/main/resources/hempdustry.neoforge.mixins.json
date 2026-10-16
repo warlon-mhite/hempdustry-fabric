@@ -4,8 +4,7 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"LootPoolAccessor",
-		"LootTableAccessor",
-		"ReloadableServerRegistriesMixin"
+		"LootTableAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
