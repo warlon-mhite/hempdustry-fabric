@@ -95,6 +95,15 @@ public final class HempdustryGameTests {
         register("hydro_tray_spends_a_level_per_plant", IndoorGrowGameTest::hydroTraySpendsALevelPerPlant);
         register("tagged_fertiliser_feeds_both_beds", IndoorGrowGameTest::taggedFertiliserFeedsBothBeds);
         register("a_tray_holds_nothing_in_the_nether", IndoorGrowGameTest::aTrayHoldsNothingInTheNether);
+        register("industrial_hemp_is_a_field_crop", IndustrialHempGameTest::industrialHempIsAFieldCrop);
+        register("industrial_hemp_harvests_stems_not_buds", IndustrialHempGameTest::industrialHempHarvestsStemsNotBuds);
+        register("industrial_hemp_gives_schwag_and_is_never_stressed",
+                IndustrialHempGameTest::industrialHempGivesSchwagAndIsNeverStressed);
+        register("ditchweed_grows_beside_water", IndustrialHempGameTest::ditchweedGrowsBesideWater);
+        register("warped_kush_grows_by_nether_rules", WarpedKushGameTest::warpedKushGrowsByNetherRules);
+        register("warped_kush_harvest_and_its_mobs", WarpedKushGameTest::warpedKushHarvestAndItsMobs);
+        register("warped_kush_stays_in_the_nether", WarpedKushGameTest::warpedKushStaysInTheNether);
+        register("wild_warped_kush_grows_ripe", WarpedKushGameTest::wildWarpedKushGrowsRipe);
         register("light_and_pot_change_the_harvest", IndoorGrowGameTest::lightAndPotChangeTheHarvest);
         register("stress_has_more_causes_than_light", PlantStressGameTest::stressHasMoreCausesThanLight);
         register("a_bee_step_is_a_growth_step", PlantStressGameTest::aBeeStepIsAGrowthStep);
