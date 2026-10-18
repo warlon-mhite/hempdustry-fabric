@@ -24,10 +24,11 @@ class Layout:
             #: the Gradle path of the project that runs the game tests, datagen and Fabric's jar
             self.fabric = ":fabric:"
             self.fabric_libs = self.root / "fabric/build/libs"
-            #: NeoForge's project and the few files its own data run writes, on a branch that has it
+            #: NeoForge's project, the few files its own data run writes and its jar, on a branch that has it
             has_neoforge = (self.root / "neoforge").is_dir()
             self.neoforge = ":neoforge:" if has_neoforge else None
             self.neoforge_generated = self.root / "neoforge/src/generated/resources" if has_neoforge else None
+            self.neoforge_libs = self.root / "neoforge/build/libs" if has_neoforge else None
         else:
             self.java = [self.root / "src/main/java"]
             self.resources = self.root / "src/main/resources"
@@ -36,6 +37,7 @@ class Layout:
             self.fabric_libs = self.root / "build/libs"
             self.neoforge = None
             self.neoforge_generated = None
+            self.neoforge_libs = None
         self.client = self.java[0] / "com/warlonmhite/hempdustry/HempdustryClient.java"
         self.assets = [self.resources / "assets/hempdustry", self.generated / "assets/hempdustry"]
 

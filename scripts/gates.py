@@ -4,6 +4,7 @@
     python3 scripts/gates.py                      # every gate
     python3 scripts/gates.py --quick              # leave out the build and the cold datagen
     python3 scripts/gates.py --released <jar>     # and check the API against a released jar
+    python3 scripts/gates.py --released-neoforge <jar>   # ...and NeoForge's against its own
 
 Cheapest first, so a failure shows early:
   - the script checks: lang_coverage, use_with_item_pass, biome_tint_pairing, tall_plant_loot, and
@@ -13,7 +14,10 @@ Cheapest first, so a failure shows early:
   - a cold runDatagen, which has to leave the generated data exactly as it is committed, and the
     same for NeoForge's own data run;
   - the build;
-  - api_additive.py against a released jar, when one is given.
+  - api_additive.py against a released jar, when one is given: Fabric's jar against a Fabric release,
+    NeoForge's against a NeoForge one. The two jars are not comparable with each other (Fabric's
+    descriptors name Minecraft in intermediary, NeoForge's in Mojang's names), and their api packages
+    differ: Fabric's events are Fabric API callbacks, NeoForge's are bus events.
 
 A gate that is not on this branch (an older line has fewer scripts) is skipped and says so. Each
 gate's full output is kept in build/gates/<gate>.log. Exits 1 if any gate failed.
@@ -93,17 +97,29 @@ def gates(args):
             yield "NeoForge cold datagen", cold(LAYOUT.neoforge + "runData", NEOFORGE_GENERATED), last(r"\S")
         yield "build", ["./gradlew", "build", "--console=plain"], last(r"BUILD")
     if args.released:
-        jars = sorted(LAYOUT.fabric_libs.glob("*.jar"), key=lambda p: p.stat().st_mtime)
-        jars = [j for j in jars if not j.name.endswith(("-sources.jar", "-dev.jar"))]
-        yield "API kept", py + [script("api_additive.py"), args.released, str(jars[-1]) if jars else "none"], \
+        yield "API kept", py + [script("api_additive.py"), args.released, newest_jar(LAYOUT.fabric_libs)], \
             last(r"missing")
+    if args.released_neoforge:
+        yield "NeoForge API kept", py + [script("api_additive.py"), args.released_neoforge,
+                                         newest_jar(LAYOUT.neoforge_libs)], last(r"missing")
+
+
+def newest_jar(libs):
+    """The jar the last build left in libs, not its sources: the one a player installs."""
+    jars = sorted(libs.glob("*.jar"), key=lambda p: p.stat().st_mtime)
+    jars = [j for j in jars if not j.name.endswith(("-sources.jar", "-dev.jar"))]
+    return str(jars[-1]) if jars else "none"
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--quick", action="store_true", help="leave out the build and the cold datagen")
     parser.add_argument("--released", metavar="JAR", help="the last release's remapped jar, for the API check")
+    parser.add_argument("--released-neoforge", metavar="JAR",
+                        help="the last release's NeoForge jar, for the same check on NeoForge's jar")
     args = parser.parse_args()
+    if args.released_neoforge and not LAYOUT.neoforge:
+        parser.error("this branch builds no NeoForge jar")
     LOGS.mkdir(parents=True, exist_ok=True)
     results = []
     for name, command, verdict in gates(args):
