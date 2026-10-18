@@ -21,9 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      # The release whose API this build must keep (the Fabric jar's; scripts/api_additive.py).
-      # Move it on at each release.
+      # The releases whose API this build must keep (scripts/api_additive.py), one per loader, since a
+      # Fabric jar and a NeoForge jar cannot be compared with each other: Fabric's since 2.0.0, and
+      # NeoForge's from its first release on (empty until there is one). Move both on at each release.
       API_BASELINE: v2.0.3
+      NEOFORGE_API_BASELINE: ''
     steps:
       - uses: actions/checkout@v4
 
@@ -43,15 +45,42 @@ jobs:
       - name: Compile both loaders
         run: ./gradlew --console=plain :fabric:compileJava :neoforge:compileJava
 
-      - name: Fetch the released jar the API is held to
+      - name: Fetch the released jars the API is held to
         run: |
           mc=$(sed -n 's/^minecraft_version=//p' gradle.properties)
+          version=$(sed -n 's/^mod_version=//p' gradle.properties)
           mkdir -p build/baseline
-          curl -fsSL -o build/baseline/released.jar \
-            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${API_BASELINE}/hempdustry-${API_BASELINE#v}%2B${mc}.jar"
+          # fetch <loader> <tag> <file name>...: the first of those jars the release has for this Minecraft.
+          fetch() {
+            loader=$1 tag=$2
+            shift 2
+            [ -n "$tag" ] || return 0
+            for name in "$@"; do
+              if curl -fsL -o "build/baseline/$loader.jar" \
+                  "https://github.com/${GITHUB_REPOSITORY}/releases/download/$tag/$name%2B$mc.jar"; then
+                return 0
+              fi
+              rm -f "build/baseline/$loader.jar"
+            done
+            # The commit that cuts a release already names it as the baseline, and is pushed before the
+            # release is published: until then the build is the baseline, and there is nothing to hold it to.
+            if [ "${tag#v}" = "$version" ]; then
+              echo "::notice::$tag is the release this build makes; its $loader API is held to it once it is published"
+              return 0
+            fi
+            echo "::error::release $tag has no $loader jar for Minecraft $mc"
+            return 1
+          }
+          # Since 2.1.0 each jar is named for its loader; the 2.0.x jars were Fabric's alone and named for no loader.
+          fetch fabric "$API_BASELINE" "hempdustry-fabric-${API_BASELINE#v}" "hempdustry-${API_BASELINE#v}"
+          fetch neoforge "$NEOFORGE_API_BASELINE" "hempdustry-neoforge-${NEOFORGE_API_BASELINE#v}"
 
       - name: Gates
-        run: python3 scripts/gates.py --released build/baseline/released.jar
+        run: |
+          args=()
+          if [ -f build/baseline/fabric.jar ]; then args+=(--released build/baseline/fabric.jar); fi
+          if [ -f build/baseline/neoforge.jar ]; then args+=(--released-neoforge build/baseline/neoforge.jar); fi
+          python3 scripts/gates.py "${args[@]}"
 
       - name: Keep the logs of a failed run
         if: failure()

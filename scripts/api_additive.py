@@ -9,8 +9,10 @@ Strain from SmokeContents, and so on. Every constructor, method and field those 
 and JVM descriptor, must still be in the new jar, because that is what a compiled addon links
 against. Additions are fine; anything missing is printed and the exit code is 1.
 
-Give it the remapped jars (fabric/build/libs, or a release download) on both sides, so that the Minecraft
-types in the descriptors are the same intermediary names. Needs javap on the PATH.
+Give it two jars of the same loader, so that the Minecraft types in the descriptors are named the
+same way on both sides: Fabric's remapped jars (fabric/build/libs, or a release download), which
+name them in intermediary, or two NeoForge jars (neoforge/build/libs), which use Mojang's names.
+Needs javap on the PATH.
 """
 import re
 import subprocess
