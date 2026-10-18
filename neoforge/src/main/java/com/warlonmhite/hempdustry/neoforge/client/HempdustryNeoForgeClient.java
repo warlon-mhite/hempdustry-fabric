@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.neoforge.client;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.neoforge.NeoForgeRegistration;
 import com.warlonmhite.hempdustry.platform.Services;
@@ -28,6 +29,8 @@ public final class HempdustryNeoForgeClient {
             event.registerItem(new OutfitExtensions(), ModItems.FLIP_FLOPS, ModItems.HEMP_BEANIE);
             // The shirt and the trousers, undyed, in unbleached hemp.
             event.registerItem(new UndyedHempExtensions(), ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS);
+            // The hemp bed's item, with the bed's own renderer.
+            event.registerItem(new HempBedItemExtensions(), ModBlocks.HEMP_BED.asItem());
         });
         modBus.addListener(EntityRenderersEvent.AddLayers.class, HempdustryNeoForgeClient::addOutfitLayer);
         // A sign draws its wood type's texture, which the client looks up from a table of its own.

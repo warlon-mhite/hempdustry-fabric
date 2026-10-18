@@ -4,8 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -15,6 +17,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.BrightnessCombiner;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -39,8 +42,23 @@ public class HempBedBlockEntityRenderer implements BlockEntityRenderer<HempBedBl
     public static final Material TEXTURE = new Material(Sheets.BED_SHEET,
             ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "entity/bed/hemp"));
 
+    /** The block entity the bed item is drawn from: no world, so {@link #render} draws both halves. */
+    private static HempBedBlockEntity itemBed;
+
     private final ModelPart head;
     private final ModelPart foot;
+
+    /**
+     * Draws the bed item. Each loader's item hook calls this, since the item model hands a bed to
+     * vanilla's built-in item renderer, which draws any {@code BedBlock} as the vanilla bed of its
+     * {@code DyeColor} -- a white one, for this bed.
+     */
+    public static void renderItem(PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+        if (itemBed == null) {
+            itemBed = new HempBedBlockEntity(BlockPos.ZERO, ModBlocks.HEMP_BED.defaultBlockState());
+        }
+        Minecraft.getInstance().getBlockEntityRenderDispatcher().renderItem(itemBed, matrices, vertexConsumers, light, overlay);
+    }
 
     public HempBedBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         this.head = context.bakeLayer(ModelLayers.BED_HEAD);

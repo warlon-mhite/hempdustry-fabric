@@ -90,6 +90,9 @@ public class HempdustryClient {
 
         // The press's platen and capstan move, so a renderer draws them rather than the block model.
         client.blockEntityRenderer(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
+        // A bed has no block model: its block entity draws it, like every vanilla bed. Its item is drawn
+        // by the same renderer through each loader's item hook (HempBedBlockEntityRenderer#renderItem).
+        client.blockEntityRenderer(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
         // ...and they are models no block state names, so they have to be asked for by id. So are the
         // bongs' 3D hand models, which no item names either: ItemRendererMixin draws them.
         client.extraModels(HempPressBlockEntityRenderer.PARTS);
