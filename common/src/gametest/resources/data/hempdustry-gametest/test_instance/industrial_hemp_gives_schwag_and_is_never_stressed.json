@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:industrial_hemp_gives_schwag_and_is_never_stressed",
+  "structure": "hempdustry-gametest:empty",
+  "max_ticks": 200,
+  "setup_ticks": 0,
+  "required": true
+}
