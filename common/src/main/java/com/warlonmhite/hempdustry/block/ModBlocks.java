@@ -91,38 +91,38 @@ public class ModBlocks {
 
     public static final Block HEMP_BRICKS_STAIRS = registerBlock("hemp_bricks_stairs",
             new StairBlock(ModBlocks.HEMP_BRICKS_BLOCK.defaultBlockState(),
-                    BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
+                    BlockBehaviour.Properties.ofLegacyCopy(HEMP_BRICKS_BLOCK)));
     public static final Block HEMP_BRICKS_SLAB = registerBlock("hemp_bricks_slab",
-            new SlabBlock(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
+            new SlabBlock(BlockBehaviour.Properties.ofLegacyCopy(HEMP_BRICKS_BLOCK)));
 
     public static final Block HEMP_BRICKS_WALL = registerBlock("hemp_bricks_wall",
-            new WallBlock(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
+            new WallBlock(BlockBehaviour.Properties.ofLegacyCopy(HEMP_BRICKS_BLOCK)));
 
 
     public static final Block HEMP_PLANKS = registerBlock("hemp_planks",
-            new Block(BlockBehaviour.Properties.of().strength(2.0F, 3.0F).sound(SoundType.WOOD)));
+            new Block(BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(2.0F, 3.0F).sound(SoundType.WOOD)));
 
     public static final Block HEMP_PLANKS_STAIRS = registerBlock("hemp_planks_stairs",
             new StairBlock(ModBlocks.HEMP_PLANKS.defaultBlockState(),
-                    BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
+                    BlockBehaviour.Properties.ofLegacyCopy(HEMP_PLANKS)));
     public static final Block HEMP_PLANKS_SLAB = registerBlock("hemp_planks_slab",
-            new SlabBlock(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
+            new SlabBlock(BlockBehaviour.Properties.ofLegacyCopy(HEMP_PLANKS)));
 
     public static final Block HEMP_PLANKS_BUTTON = registerBlock("hemp_planks_button",
-            new ButtonBlock(BlockSetType.OAK, 2, BlockBehaviour.Properties.of().strength(2f).noCollission()));
+            new ButtonBlock(BlockSetType.OAK, 30, BlockBehaviour.Properties.of().noCollission().strength(0.5F).pushReaction(PushReaction.DESTROY)));
     public static final Block HEMP_PLANKS_PRESSURE_PLATE = registerBlock("hemp_planks_pressure_plate",
-            new PressurePlateBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().strength(2f).noCollission()));
+            new PressurePlateBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().forceSolidOn().instrument(NoteBlockInstrument.BASS).noCollission().strength(0.5F).pushReaction(PushReaction.DESTROY)));
 
     public static final Block HEMP_PLANKS_FENCE = registerBlock("hemp_planks_fence",
-            new FenceBlock(BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD)));
+            new FenceBlock(BlockBehaviour.Properties.ofLegacyCopy(HEMP_PLANKS)));
     public static final Block HEMP_PLANKS_FENCE_GATE = registerBlock("hemp_planks_fence_gate",
-            new FenceGateBlock(WoodType.OAK, BlockBehaviour.Properties.of().strength(2f)));
+            new FenceGateBlock(WoodType.OAK, BlockBehaviour.Properties.of().forceSolidOn().instrument(NoteBlockInstrument.BASS).strength(2.0F, 3.0F)));
 
 
     public static final Block HEMP_PLANKS_DOOR = registerBlock("hemp_planks_door",
-            new DoorBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().strength(2f).noOcclusion()));
+            new DoorBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(3.0F).noOcclusion().pushReaction(PushReaction.DESTROY)));
     public static final Block HEMP_PLANKS_TRAPDOOR = registerBlock("hemp_planks_trapdoor",
-            new TrapDoorBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().strength(2f).noOcclusion()));
+            new TrapDoorBlock(BlockSetType.OAK, BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(3.0F).noOcclusion()));
 
     // Signs place their own item specially (SignItem/HangingSignItem reference both the standing and wall
     // block), so these are registered without the usual auto BlockItem.
