@@ -49,9 +49,12 @@ import com.warlonmhite.hempdustry.client.item.StrainTintSource;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModArmorMaterials;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class ModModelProvider extends FabricModelProvider {
@@ -211,6 +214,18 @@ public class ModModelProvider extends FabricModelProvider {
                 TextureMapping.layered(texture(ModStrains.id(plantStrains.get(0)) + "_spliff"),
                         texture("spliff_load")),
                 itemModelGenerator.modelOutput);
+        // A range picks the highest threshold at or below the strain's index, so without a way back
+        // every index above a shipped one would wear that strain's art: the hash family's 3-6 and
+        // anything past Beldía's 7. Right after each piece of art, the index above goes back to the
+        // tinted look — unless it is another strain's art.
+        Set<Integer> shipped = new HashSet<>();
+        plantStrains.forEach(strain -> shipped.add(ModStrains.modelIndex(strain)));
+        for (int index : shipped) {
+            if (!shipped.contains(index + 1)) {
+                spliffArt.add(ItemModelUtils.override(strainTinted(spliffTinted), index + 1));
+            }
+        }
+        spliffArt.sort(Comparator.comparingDouble(RangeSelectItemModel.Entry::threshold));
         itemModelGenerator.itemModelOutput.accept(ModItems.SPLIFF, ItemModelUtils.rangeSelect(
                 new StrainModelIndexProperty(), strainTinted(spliffTinted), spliffArt));
 
