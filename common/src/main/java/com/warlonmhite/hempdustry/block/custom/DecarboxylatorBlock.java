@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Deliberately <b>absent</b> from {@code FlammableBlockRegistry}: an oven that can catch fire is
  * thematically silly, and omission is how vanilla makes a block fireproof (same treatment as the
- * hemp wood set — see CLAUDE.md §3).
+ * hemp wood set).
  */
 public class DecarboxylatorBlock extends BaseEntityBlock {
     public static final MapCodec<DecarboxylatorBlock> CODEC = simpleCodec(DecarboxylatorBlock::new);

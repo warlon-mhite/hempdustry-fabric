@@ -96,7 +96,8 @@ import net.minecraft.world.level.block.Blocks;
  * these were once the same number and that was a bug.
  *
  * <p>Display names live in the lang files under the {@code translation_key} each entry names; the
- * folk sativa/indica <em>effect</em> split is genre furniture, not botany — see CLAUDE.md.
+ * folk sativa/indica <em>effect</em> split is genre furniture, not botany: genetic studies find no
+ * consistent difference between what is sold under the two labels.
  *
  * <h2>This codec is a public contract</h2>
  *
@@ -113,7 +114,8 @@ import net.minecraft.world.level.block.Blocks;
  *   <li>The same applies to {@link SmokeEffect}, which is nested inside this one.</li>
  * </ul>
  *
- * See {@code .claude/docs/compat.md} for the whole frozen-surface list.
+ * The same promise covers every id, tag and data shape a released build had, and the game tests
+ * fail on any of them going missing.
  *
  * <h2>A strain is a smokeable material, not necessarily a plant</h2>
  *

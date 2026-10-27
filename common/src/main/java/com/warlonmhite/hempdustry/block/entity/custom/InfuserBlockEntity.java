@@ -757,7 +757,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      *
      * <p>Taking a batch <em>early</em>, at a grade below its best, is deliberately still not
      * automatable: that trade is only meaningful once cannabutter <em>does</em> something, and it
-     * would need a GUI toggle to express. See the deferred-toggle note in CLAUDE.md §3.
+     * would need a GUI toggle to express, which is deferred until it has a use.
      *
      * <p>Pushing routes through {@link #removeItemNoUpdate}, so it closes the batch out exactly as a player
      * or a hopper taking it would — the one place that guarantee lives.

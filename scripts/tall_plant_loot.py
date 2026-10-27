@@ -5,7 +5,7 @@ A plant that occupies more than one block rolls its loot table TWICE per break: 
 half the player struck, and once as the orphaned half pops off in the neighbour update. A pool
 with no "which half am I" condition therefore pays out twice -- two flowers, or two rolls of a
 seed bonus, from one plant. It is silent, and it errs in the generous direction, so nothing about
-playing the game reveals it (see .claude/docs/crops.md, "the tall-plant loot double-roll").
+playing the game reveals it.
 
 The fix vanilla uses on rose_bush, and this mod uses on both crops and the wild Lemon Haze, is to
 condition the pool on the lower half. This script asserts that every pool of every multi-block

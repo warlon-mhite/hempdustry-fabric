@@ -156,7 +156,7 @@ public class InfuserBlock extends BaseEntityBlock {
      * screen.</b> That is the lectern's rule, and it is what lets a player with milk in hand still
      * look inside a busy tub. The fall-through has to be {@code super}, not {@code PASS}: since
      * 1.21.2 {@code useWithoutItem} only runs after {@code TRY_WITH_EMPTY_HAND}, and plain
-     * {@code PASS} would swallow the click (CLAUDE.md §5).
+     * {@code PASS} would swallow the click.
      *
      * <p>The client predicts from the synced {@link #FILLED} state and the synced recipe, so the arm
      * swings at once; the server decides from the block entity, and if the two ever disagree the

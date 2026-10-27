@@ -234,7 +234,7 @@ public class ModBlocks {
      * Deliberately <b>not</b> in {@code #minecraft:wool}: that tag's only effects are the painting
      * recipe (which belongs to this block explicitly, not by tag — see ModRecipeProvider), the
      * vibration-damping tags, and a 100-tick fuel entry. The latter two are granted directly, so
-     * joining the tag would buy nothing and cost the recipe. See CLAUDE.md's <i>cloth chain</i> note.
+     * joining the tag would buy nothing and cost the recipe.
      * <p>
      * It burns, at 60/60, catching faster than vanilla wool's 30/60 — a deliberate departure from
      * the fireproof hemp plank set and hempcrete. Cloth burns.
@@ -307,8 +307,7 @@ public class ModBlocks {
     // (SuspiciousStewRecipe) and the brown mooshroom gate on the *item* tag
     // #minecraft:small_flowers, which this deliberately does not join — a stew brewed from a raw
     // flower would hand out a status effect with no heat anywhere in the chain, and "heat
-    // activates, raw plant does nothing" is the rule the whole Decarboxylator exists to enforce
-    // (CLAUDE.md §4).
+    // activates, raw plant does nothing" is the rule the whole Decarboxylator exists to enforce.
     //
     // So the argument below is structurally required and functionally dead. It is kept meaningful
     // rather than arbitrary — Mining Fatigue is what the strain does when smoked — purely so that

@@ -18,7 +18,7 @@
 # The [note] about a dark border is accepted knowingly: a door IS a framed
 # object, and the frame is the point.
 #
-#   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+#   python3 mctex.py render \
 #     textures-src/hemp_planks_door.mctex \
 #     -o common/src/main/resources/assets/hempdustry/textures --preview --preview-dir /tmp/tex
 

@@ -27,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * <h2>Why {@code @ModifyExpressionValue}</h2>
  *
  * It composes. {@code @Redirect} would replace the call outright and collide with any other mod
- * touching the same instruction (CLAUDE.md §5); this only adjusts the value that came back, so
+ * touching the same instruction, a start-up crash under strict mixins; this only adjusts the value that came back, so
  * several mods can stack on it. MixinExtras ships inside both loaders, so it costs no dependency —
  * same reasoning as {@code BeeGrowCropsGoalMixin}.
  */

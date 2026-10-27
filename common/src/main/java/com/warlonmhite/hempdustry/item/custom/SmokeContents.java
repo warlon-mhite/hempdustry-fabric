@@ -26,8 +26,8 @@ import net.minecraft.world.effect.MobEffectInstance;
  * data component.
  *
  * <p>This is the mod's answer to {@code minecraft:potion_contents}: <b>one item per device</b> with
- * the strain carried as data, rather than a separate registered item per device × strain. See
- * CLAUDE.md §5b D10. Empty contents means an unpacked device.
+ * the strain carried as data, rather than a separate registered item per device × strain.
+ * Empty contents means an unpacked device.
  *
  * <h2>Why this is a list when nothing mixes yet</h2>
  *
