@@ -360,7 +360,7 @@ beta be told when the release lands.
 
 ### Known issues
 
-- **German and Russian are not finished**: most of 2.1's new text shows in English there for now.
+- **Russian is not finished**: most of 2.1's new text shows in English there for now.
 - **A hash spliff's name reads one level low**: a spliff of two buds and a pinch says II and gives
   III.
 
