@@ -165,6 +165,8 @@ beta be told when the release lands.
   - *Bong Voyage* and *Burnout* count a bong of any colour.
 - **A cannabis leaf banner pattern.** Put a hemp leaf in the loom's pattern slot — you keep it — and
   paint a seven-leaflet leaf onto a banner or a shield, in any of the sixteen colours.
+- **A new painting, *Marley***, 2×2, hand-drawn like the six before it. It hangs from any
+  painting, as they do.
 - **A Hemp Bed.** Three hemp wool over three planks, like any bed, in undyed hemp cloth with a white
   pillow. It works like every other bed — sleep in it, set your spawn, and villagers take it as
   their home — with one difference: **it burns**, at the rate of the hemp wool it is made of. Dye

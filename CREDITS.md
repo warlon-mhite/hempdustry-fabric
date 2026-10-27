@@ -71,7 +71,7 @@ therefore to Hempdustry / Warlon Mhite.
 
 ### The paintings depict real people, and that part is not licensed
 
-The six paintings were **drawn by hand, using photographs as reference**. The pixel art is Warlon
+The seven paintings were **drawn by hand, using photographs as reference**. The pixel art is Warlon
 Mhite's own work and carries the licence above.
 
 **What the licence cannot cover is the subjects.** Names, likenesses, personal image rights and any
