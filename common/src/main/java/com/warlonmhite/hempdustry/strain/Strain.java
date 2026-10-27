@@ -253,13 +253,18 @@ public record Strain(String translationKey, int color, int modelIndex,
      * {@code PackingRecipe.matches}, which the server calls on <em>every</em> crafting-grid change
      * for every player, once per non-device stack in the grid — so going through {@code all} meant
      * up to nine registry copies and nine sorts per click, all to answer a question that is a scan.
-     * Ordering matters where the result is <em>shown</em> (the creative tab, the seed loot pools);
-     * it never matters here.
+     * Ordering matters where the result is <em>shown</em> (the creative tab, the seed loot pools).
+     *
+     * <p>It matters here only when two strains name the same buds, which a datapack may do, and then
+     * a dynamic registry's order is no answer: the same buds could pack as either strain from one
+     * world load to the next. The mod's own strain wins, then the lowest id — one pass with
+     * {@code min}, still no copy and no sort.
      */
     public static Optional<Holder.Reference<Strain>> fromBuds(HolderLookup.Provider registries, Item item) {
         return registry(registries).listElements()
                 .filter(entry -> entry.value().buds() == item)
-                .findFirst();
+                .min(Comparator.comparing((Holder.Reference<Strain> entry) -> !entry.key().identifier().getNamespace().equals(Hempdustry.MOD_ID))
+                        .thenComparing(entry -> entry.key().identifier()));
     }
 
     /**
