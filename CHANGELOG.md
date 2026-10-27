@@ -212,6 +212,18 @@ beta be told when the release lands.
 
 ### Changed
 
+- **A smoking device no longer breaks with hits left in its bowl.** One that repairs, Unbreaking or
+  Mending have put out of step holds on at its last point of durability and breaks on the hit that
+  empties the bowl, so the rest of a bowl is never lost with it.
+- **Hempcrete burns as long as the hemp stem it is crushed from**, 50 ticks rather than 200, and a
+  **Block of Hempcrete Powder is no fuel at all**, as vanilla's concrete powder is not. Turning stems
+  into Hempcrete had quadrupled their fuel, and the powder was the best fuel in the mod.
+- **The hemp plank and brick sets' smaller pieces are as hard and blast-proof as vanilla's.** Stairs,
+  slabs, the wall and the fence match the block they are cut from, and the door, trapdoor and gate
+  match oak's; a creeper no longer takes the stairs and slabs of a Hemp Bricks wall and leaves the
+  wall. The button breaks as fast as a wooden one and stays pressed for 30 ticks like one (it was
+  2); it and the pressure plate pop off when a piston pushes them. The whole set now sits in
+  vanilla's stairs, slab, wall and wooden tags, block and item, and stays fireproof.
 - **When an edible hits depends far more on the batch.** The worse the butter, the wider the wait
   and the later it most likely ends: Perfect still hits at about a minute and a half, give or take
   three seconds; Clean between 1:05 and 2:15, most often around 1:30; Standard between 0:55 and
@@ -263,6 +275,11 @@ beta be told when the release lands.
 
 ### Fixed
 
+- **Turning effects off turns green-outs off too.** With `"effects": { "enabled": false }` a strong
+  hit could still green you out: no effects arrived, but it stripped potion and beacon buffs of the
+  kinds the mod grants and your saturation, and locked smoking for a minute.
+- **When two strains share the same buds**, as a datapack strain may, packing them always gives the
+  mod's own strain, then the lowest id; before, it could change from one world load to the next.
 - **An edible eaten just before leaving still hits.** What is still on its way is saved with the
   player now, so logging out, or a server restarting, during the wait no longer loses it; the wait
   picks up where it left off when you come back. Dying still loses it, as it always did.
