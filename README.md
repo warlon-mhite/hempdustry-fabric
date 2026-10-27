@@ -145,8 +145,8 @@ forty-two advancements, **recipe pages in JEI, EMI and REI** (including the caul
 are not recipes and which nothing else can show you), and translations in twelve locales (five
 English variants and three French, with regional vocabulary rather than copy-paste — Quebec gets
 *gougounes* and its own slang — plus Russian, translated by **MargoxaTheGamer**, and German, Swiss
-German and Austrian German, translated by **Gülps'sch420**; the Russian and German are still
-catching up with what 2.1 adds).
+German and Austrian German, translated by **Gülps'sch420**; the Russian is still catching up
+with what 2.1 adds).
 
 ---
 
