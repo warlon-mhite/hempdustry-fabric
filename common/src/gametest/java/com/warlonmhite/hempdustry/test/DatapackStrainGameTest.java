@@ -27,6 +27,10 @@ import java.util.stream.Stream;
  * tab out of JEI. The tab is common code, so a headless server can build it: here it is built
  * against the world's strains plus a copy of Purple Kush under another id, exactly what such a pack
  * adds.
+ *
+ * <p>And the buds still pack as Purple Kush. A dynamic registry has no defined order, so a lookup
+ * that took whichever strain came first could pack them as the copy on one world load and as Purple
+ * Kush on the next; the copy is registered first here so that lookup fails.
  */
 public final class DatapackStrainGameTest {
 
@@ -38,13 +42,14 @@ public final class DatapackStrainGameTest {
         Strain purpleKush = loaded.getOrThrow(ModStrains.INDICA);
 
         MappedRegistry<Strain> strains = new MappedRegistry<>(Strain.REGISTRY_KEY, Lifecycle.stable());
-        loaded.holders().forEach(entry -> Registry.register(strains, entry.key(), entry.value()));
         // Purple Kush's own definition through the codec a datapack goes through, under another id and
         // translation key (which keeps the record unequal to Purple Kush's); the items are the same.
         JsonObject json = Strain.CODEC.encodeStart(JsonOps.INSTANCE, purpleKush).getOrThrow().getAsJsonObject();
         json.addProperty("translation_key", "strain.hempdustry-gametest.copy");
         Registry.register(strains, ResourceKey.create(Strain.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("hempdustry-gametest", "copy")),
                 Strain.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
+        // Then the real strains, after the copy: a lookup that takes whichever comes first finds the copy.
+        loaded.holders().forEach(entry -> Registry.register(strains, entry.key(), entry.value()));
         strains.freeze();
 
         HolderLookup.Provider withCopy = new HolderLookup.Provider() {
@@ -71,6 +76,10 @@ public final class DatapackStrainGameTest {
                 .filter(stack -> stack.is(purpleKush.buds()))
                 .count();
         context.assertValueEqual(buds, 1L, "the stacks of Purple Kush's buds in the tab");
+
+        // And packing those buds packs Purple Kush, the strain they belong to, not the copy.
+        context.assertTrue(Strain.fromBuds(withCopy, purpleKush.buds()).map(entry -> entry.is(ModStrains.INDICA)).orElse(false),
+                "Purple Kush's buds pack as " + Strain.fromBuds(withCopy, purpleKush.buds()).map(entry -> entry.key().toString()).orElse("nothing"));
         context.succeed();
     }
 }
