@@ -186,8 +186,9 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
             comment(root, "effects", "enabled=false is 'industrial hemp only': no drug effects anywhere. "
                     + "maxLevel caps every effect the mod applies; maxBuffLevel caps only the helpful ones "
                     + "(Speed, Resistance, Absorption...), so a big dose still costs its full Hunger. "
-                    + "Raise maxBuffLevel for a stronger mod in a modded pack. Multipliers are 0.05-10; "
-                    + "greenOutChanceMultiplier 0 disables green-outs, as does greenOut=false.");
+                    + "Raise maxBuffLevel for a stronger mod in a modded pack. The multipliers are 0.05-10, "
+                    + "except cooldownMultiplier, 0-10 (0 is no cooldown), and greenOutChanceMultiplier, 0-100. "
+                    + "greenOutChanceMultiplier 0 disables green-outs, as do greenOut=false and enabled=false.");
             comment(root, "world", "cropGrowthMultiplier and machineSpeedMultiplier are speeds: 2.0 is twice as fast. "
                     + "machineSpeed drives the Decarboxylator and the Hemp Press; the Infuser has its own section. "
                     + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here. "
@@ -197,7 +198,8 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
                     + "20 ticks = 1 second. Defaults are 5 and 15 minutes; the ceiling is 32000 "
                     + "(about 26 minutes), which is as long a simmer as the screen can be told about.");
             comment(root, "loot", "The mod's additions to vanilla loot tables: hemp seeds in grass and chests, "
-                    + "music discs, shipwreck fibre. enabled=false removes all of them.");
+                    + "music discs in chests, shipwreck fibre. enabled=false removes all of them. Creepers "
+                    + "dropping the two discs is the #minecraft:creeper_drop_music_discs tag, not a setting here.");
             Files.createDirectories(path.getParent());
             // disableHtmlEscaping, or every "=" and "'" in the comments is written as \u003d and
             // \u0027 — valid JSON, unreadable prose.
