@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -56,6 +57,23 @@ public final class ConfigGameTest {
             write(path, original);
             HempdustryConfig.load();
         }
+        context.succeed();
+    }
+
+    /**
+     * With effects off, nothing greens a player out. A green-out strips every buff of a kind the mod
+     * grants -- a potion's or a beacon's too -- and the player's saturation, then locks smoking for a
+     * minute; with {@code enabled} false its own effects are filtered to nothing, so a server running
+     * hemp without the drugs lost all that on a strong hit for no reason the player could see.
+     */
+    public static void effectsOffMeansNoGreenOut(GameTestHelper context) {
+        withConfig("{ \"effects\": { \"enabled\": false } }", () -> {
+            for (int oneIn = 1; oneIn <= 100; oneIn++) {
+                int odds = EffectPolicy.greenOutChanceOneIn(oneIn);
+                context.assertTrue(odds == 0, "with effects off a hit still greens out one in " + odds
+                        + " (one in " + oneIn + " at the defaults)");
+            }
+        });
         context.succeed();
     }
 

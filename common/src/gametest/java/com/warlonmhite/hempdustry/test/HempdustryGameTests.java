@@ -125,6 +125,7 @@ public final class HempdustryGameTests {
         register("a_pending_dose_lands_on_time", RebalanceGameTest::aPendingDoseLandsOnTime);
         register("a_bud_with_a_concentrate_reaches_three", RebalanceGameTest::aBudWithAConcentrateReachesThree);
         register("a_broken_config_is_left_alone", ConfigGameTest::aBrokenConfigIsLeftAlone);
+        register("effects_off_means_no_green_out", ConfigGameTest::effectsOffMeansNoGreenOut);
         register("a_hemp_boat_does_not_stop_the_data_fixer", DataFixerGameTest::aHempBoatDoesNotStopTheDataFixer);
         register("one_bud_per_slot_is_the_dose", PackingGameTest::oneBudPerSlotIsTheDose);
         register("a_strain_reusing_items_keeps_the_tab_whole",
