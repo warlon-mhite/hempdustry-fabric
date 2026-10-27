@@ -29,7 +29,7 @@ import net.minecraft.world.level.Level;
  * One instance covers every device × strain × dose by inspecting the grid.
  *
  * <p>The cost of staying special is that neither the recipe book nor JEI/EMI can see this at all,
- * which is why a recipe-viewer plugin is a hard requirement rather than a nicety — CLAUDE.md §5b D11.
+ * which is why a recipe-viewer plugin is a hard requirement rather than a nicety.
  *
  * <h2>Dose is not the same number as the stack count, and the cap is not the same number as dose</h2>
  *

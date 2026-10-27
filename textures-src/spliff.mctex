@@ -6,7 +6,7 @@
 # a warm cream. The ember is fire in both and is left alone.
 #
 # Re-render with:
-#   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+#   python3 mctex.py render \
 #     textures-src/spliff.mctex -o common/src/main/resources/assets/hempdustry/textures \
 #     --preview --preview-dir /tmp/tex-preview
 #

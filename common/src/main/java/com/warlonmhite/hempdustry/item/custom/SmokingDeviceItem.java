@@ -48,7 +48,7 @@ import java.util.List;
 /**
  * A smoking device — wooden pipe, bong or vaporizer — in <em>either</em> state. Empty and packed are the same
  * item; what is loaded lives in the {@code hempdustry:smoke_contents} component, the way a potion
- * carries {@code potion_contents}. See CLAUDE.md §5b D10.
+ * carries {@code potion_contents}.
  *
  * <p>That collapses what used to be one registered item per device × strain, and it makes strain
  * mixing representable at all — a separate item per combination is combinatorially hopeless. Three

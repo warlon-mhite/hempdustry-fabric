@@ -12,7 +12,7 @@
 #
 # No motif: the leaf lives on the door, and every vanilla trapdoor is plain.
 #
-#   python3 .claude/skills/minecraft-texture-painter/scripts/mctex.py render \
+#   python3 mctex.py render \
 #     textures-src/hemp_planks_trapdoor.mctex \
 #     -o common/src/main/resources/assets/hempdustry/textures --preview --preview-dir /tmp/tex
 

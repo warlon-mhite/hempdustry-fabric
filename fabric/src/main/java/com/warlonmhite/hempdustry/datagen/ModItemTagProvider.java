@@ -101,7 +101,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // would hand every mod that expects a rope something four-to-a-stem cheap.
         //
         // `#c:ropes` is the right tag the day the mod has a real hemp_rope item, and it should have
-        // one — rope is the single most archetypal hemp product there is. See CLAUDE.md §5b.
+        // one — rope is the single most archetypal hemp product there is.
         //
         // Nothing in vanilla reads `#c:strings`; the whole value here is other mods' recipes, which
         // now take fibre directly and skip a 1:1 crafting step. No balance change, just less friction.
@@ -226,7 +226,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // c:<parent>/hemp folded into its parent rather than the item shoved in at the top level --
         // see ModTags.Conventional. The parent references are optional, which costs nothing and
         // means a stripped-down Fabric API that omits one cannot take the whole tag down with it
-        // (one unresolvable *required* entry drops every other entry in the file -- CLAUDE.md §5).
+        // (one unresolvable *required* entry drops every other entry in the file).
         getOrCreateTagBuilder(ModTags.Conventional.HEMP_CROPS)
                 .add(ModItems.INDICA_BUDS)
                 .add(ModItems.SATIVA_BUDS)

@@ -235,8 +235,8 @@ public class ModItems {
      * Woven hemp cloth, and the mod's stand-in for leather. Hemp canvas is the oldest use the plant
      * has — the word "canvas" is itself a corruption of "cannabis" — and sailcloth and rope were
      * what states grew hemp for long before anyone smoked it. It substitutes leather in the item
-     * frame and book recipes; see CLAUDE.md for the open question of which other leather recipes
-     * it should reach.
+     * frame and book recipes; which other leather
+     * recipes it should reach is still an open question.
      */
     public static final Item HEMP_CANVAS = registerItem("hemp_canvas", new Item(new Item.Properties()));
     public static final Item HEMPCRETE = registerItem("hempcrete", new Item(new Item.Properties()));
@@ -288,7 +288,7 @@ public class ModItems {
     //
     // Nutrition/saturation are pitched against the vanilla foods each one is
     // modelled on; none of them do anything beyond feeding you yet, which is
-    // the effects pass (CLAUDE.md §5 #14). They are all alwaysEdible, because
+    // the effects pass. They are all alwaysEdible, because
     // an edible you cannot eat when full is an edible you cannot dose with —
     // vanilla marks the golden apple the same way for the same reason.
     // ---------------------------------------------------------------------
@@ -380,7 +380,7 @@ public class ModItems {
 
     // One item each, for every strain and every dose. What is rolled or packed into them lives in
     // the smoke_contents component, the way a potion carries potion_contents — so a new strain adds
-    // no items, no models and no per-device lang keys. See CLAUDE.md §5b D10.
+    // no items, no models and no per-device lang keys.
     public static final Item SPLIFF = registerItem("spliff",
             new SpliffItem(new Item.Properties().rarity(Rarity.COMMON).stacksTo(16)));
 

@@ -19,7 +19,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * A single-use joint. One item for every strain and every dose — what was rolled into it lives in
- * the {@code hempdustry:smoke_contents} component, same as the devices (CLAUDE.md §5b D10).
+ * the {@code hempdustry:smoke_contents} component, same as the devices.
  *
  * <h2>Where it sits</h2>
  *

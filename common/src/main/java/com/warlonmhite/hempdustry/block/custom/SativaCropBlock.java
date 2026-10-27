@@ -45,7 +45,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * <p>Reaching the next height needs the space free. If it isn't, the plant keeps ageing but stays
  * at the height it can fit and fills in later — the shape is reconciled against the age on every
  * growth step rather than being edge-triggered at one exact age, which is what made the pre-rewrite
- * indica crop unrecoverable (CLAUDE.md §8, finding #1).
+ * indica crop unrecoverable.
  */
 public class SativaCropBlock extends CropBlock {
     public static final EnumProperty<TriplePlantSegment> SEGMENT =

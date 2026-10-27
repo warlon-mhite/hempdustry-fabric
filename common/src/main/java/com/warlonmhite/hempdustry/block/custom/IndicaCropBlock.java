@@ -28,7 +28,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * A two-tall crop. Redesigned (approach B, see CLAUDE.md §8) around the vanilla
+ * A two-tall crop. Redesigned around the vanilla
  * double-block pattern: a {@link #HALF} property (LOWER/UPPER) plus the standard
  * {@code age 0..7}. The canonical age lives on the LOWER half; the UPPER half
  * mirrors it. The plant is planted as a single LOWER stalk and grows into its

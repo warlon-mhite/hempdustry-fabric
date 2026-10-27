@@ -191,7 +191,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Vanilla's painting is 8 sticks around #minecraft:wool, so hemp wool is what belongs in
         // the middle — not canvas, which took vanilla's *leather* slot in the item frame below.
         // Those two vanilla recipes are the same 3x3 ring and differ only by the centre item, so
-        // one hemp cloth item per slot is what keeps them from colliding (CLAUDE.md §5 #17).
+        // one hemp cloth item per slot is what keeps them from colliding.
         //
         // An explicit recipe rather than a tag join, since hemp wool deliberately stays out of
         // #minecraft:wool — and note that putting it in that tag would make this recipe and
@@ -210,8 +210,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         //
         // Canvas takes the leather slot and only the leather slot. Vanilla's painting is the same
         // 3x3 ring with wool in the middle instead, so canvas standing in for both would produce
-        // two identical recipes and only one of them could ever fire (it did, and it did — see
-        // CLAUDE.md §5 #17). The painting is hemp wool's, since wool is what vanilla puts there.
+        // two identical recipes and only one of them could ever fire (it did, and it did). The
+        // painting is hemp wool's, since wool is what vanilla puts there.
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, Items.ITEM_FRAME)
                 .pattern("###")
                 .pattern("#X#")
@@ -292,7 +292,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // hempcrete, 504 hemp stem — hundreds of mature plants. That is the whole point. Edibles
         // are meant to be a late goal, not something a player reaches off their first crop the way
         // a spliff is, and the cost has to be paid in the crop itself rather than in some unrelated
-        // ore. See CLAUDE.md's Decarboxylator note for the full chain.
+        // ore.
         //
         // The copper ingot sits top-centre, the same grid position as the copper flue on the
         // finished block's model. Keeping a hempdustry-exclusive ingredient in the pattern is also
@@ -1105,7 +1105,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // over 70% of paper before 1883, and it is still what bible paper and cigarette paper are.
         //
         // This is the canvas recipe with real reach, and it was a deliberate call rather than a
-        // freebie — see CLAUDE.md. Books gate enchanting through bookshelves, so this takes cows off
+        // freebie. Books gate enchanting through bookshelves, so this takes cows off
         // the critical path for an enchanting setup and cascades to lecterns and chiseled bookshelves.
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, Items.BOOK)
                 .requires(Items.PAPER)

@@ -21,7 +21,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
  * applies a single offset, clamped. <b>Yield gets no vote.</b> An earlier design divided strength by
  * the recipe's yield, which rounded to zero on weak batches and made toast strong purely because it
  * came three to a butter — the food economy and the potency ladder are different questions and
- * conflating them was the bug. See CLAUDE.md §5b D13.
+ * conflating them was the bug.
  *
  * <p>Quality copies across unchanged: it is a grade, not a quantity.
  */

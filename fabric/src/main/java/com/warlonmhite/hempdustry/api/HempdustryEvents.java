@@ -34,8 +34,7 @@ import net.minecraft.world.level.Level;
  * release: an event may be added, and never removed or re-shaped. The same promise covers the types
  * these signatures name — {@link SmokeContents}, {@link Quality} and
  * {@code com.warlonmhite.hempdustry.strain.Strain} — which is what makes a listener compilable.
- * Everything else in the mod stays internal and may move without warning; see
- * {@code .claude/docs/compat.md}.
+ * Everything else in the mod stays internal and may move without warning.
  *
  * <h2>Threading and sides</h2>
  *
