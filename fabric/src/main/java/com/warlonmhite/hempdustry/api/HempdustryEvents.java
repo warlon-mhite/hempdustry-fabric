@@ -44,10 +44,15 @@ import net.minecraft.world.level.Level;
  *
  * <h2>Compiling against it</h2>
  *
+ * Once the mod's Modrinth page is public (it is still in review), from Modrinth's maven:
+ *
  * <pre>{@code
  * repositories { maven { url = "https://api.modrinth.com/maven" } }
  * dependencies { modImplementation "maven.modrinth:hempdustry:2.0.3+1.21.11" }
  * }</pre>
+ *
+ * Until then, build the mod's repository with {@code ./gradlew publishToMavenLocal} and depend on
+ * {@code com.warlonmhite.hempdustry:hempdustry-fabric:<version>} from {@code mavenLocal()}.
  */
 public final class HempdustryEvents {
 
