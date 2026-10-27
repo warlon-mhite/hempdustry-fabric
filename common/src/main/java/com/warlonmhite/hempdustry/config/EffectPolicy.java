@@ -150,10 +150,14 @@ public final class EffectPolicy {
      * the buffs skipped, no penalty applied, no sound, no explanation for the three buds. Deciding
      * it here rather than at the roll site is what stops that, because this is the one place that
      * knows a green-out is all debuff.
+     *
+     * <p><b>{@code enabled = false} gives never</b> for the same reason, and more so: every effect is
+     * filtered then, yet a green-out would still strip the buffs and saturation it replaces and
+     * start its lockout.
      */
     public static int greenOutChanceOneIn(int oneIn) {
         Effects config = HempdustryConfig.get().effects();
-        if (oneIn <= 0 || !config.greenOut() || !config.debuffs()
+        if (oneIn <= 0 || !config.enabled() || !config.greenOut() || !config.debuffs()
                 || config.greenOutChanceMultiplier() <= 0) {
             return 0;
         }
