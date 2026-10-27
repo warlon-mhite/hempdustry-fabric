@@ -152,3 +152,32 @@ tasks.named('processResources', ProcessResources) {
 	// Fabric's form of the access transformer, which NeoForge never reads.
 	exclude 'hempdustry.accesswidener'
 }
+
+// Publishing, as on Fabric: `publishToMavenLocal` puts hempdustry-neoforge in the local maven, so an
+// addon can compile against com.warlonmhite.hempdustry.api and the NeoForge events before any public
+// maven carries the mod. NeoForge runs Mojang's names, so the plain jar is what a consumer needs.
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = base.archivesName.get()
+			from components.java
+
+			pom {
+				name = "Hempdustry"
+				description = "Minecraft for stoners and hemprepreneurs."
+				url = "https://github.com/warlon-mhite/hempdustry-fabric"
+				licenses {
+					license {
+						// Code and data only, as on Fabric.
+						name = "AGPL-3.0-only"
+						url = "https://www.gnu.org/licenses/agpl-3.0.txt"
+					}
+				}
+			}
+		}
+	}
+
+	repositories {
+		mavenLocal()
+	}
+}
