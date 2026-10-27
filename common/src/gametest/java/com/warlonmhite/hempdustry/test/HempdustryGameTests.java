@@ -138,6 +138,7 @@ public final class HempdustryGameTests {
         register("the_two_zero_api_still_answers", ApiBridgeGameTest::theTwoZeroApiStillAnswers);
         register("a_hemp_bed_is_a_villagers_home", FurnitureGameTest::aHempBedIsAVillagersHome);
         register("the_bed_burns_the_wood_does_not", FurnitureGameTest::theBedBurnsTheWoodDoesNot);
+        register("hempcrete_burns_no_longer_than_its_stems", FurnitureGameTest::hempcreteBurnsNoLongerThanItsStems);
         register("a_hemp_shelf_is_a_vanilla_shelf", FurnitureGameTest::aHempShelfIsAVanillaShelf);
         register("a_hemp_harness_fits_a_happy_ghast", FurnitureGameTest::aHempHarnessFitsAHappyGhast);
         register("hemp_turns_up_where_it_was_kept", LootGameTest::hempTurnsUpWhereItWasKept);

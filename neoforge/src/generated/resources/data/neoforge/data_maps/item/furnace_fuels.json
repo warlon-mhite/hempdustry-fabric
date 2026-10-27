@@ -22,10 +22,7 @@
       "burn_time": 100
     },
     "hempdustry:hempcrete": {
-      "burn_time": 200
-    },
-    "hempdustry:hempcrete_powder_block": {
-      "burn_time": 1800
+      "burn_time": 50
     },
     "hempdustry:retted_hemp_stem": {
       "burn_time": 50

@@ -94,6 +94,25 @@ public final class FurnitureGameTest {
     }
 
     /**
+     * Hempcrete burns no longer than the stems it is made from, and its powder does not burn at all.
+     *
+     * <p>Four stems make two Hempcrete, and each burned 200 ticks against a stem's 50, so crafting a
+     * stem into Hempcrete quadrupled its fuel, and a Block of Hempcrete Powder at 1800 ticks made
+     * the mod's best fuel out of a building material. Real hempcrete is shiv bound in lime, rated
+     * fire-resistant, and vanilla's concrete powder is no fuel either.
+     */
+    public static void hempcreteBurnsNoLongerThanItsStems(GameTestHelper context) {
+        int stem = context.getLevel().fuelValues().burnDuration(new ItemStack(ModItems.HEMP_STEM));
+        int hempcrete = context.getLevel().fuelValues().burnDuration(new ItemStack(ModItems.HEMPCRETE));
+        context.assertTrue(stem > 0, "a hemp stem is no fuel, so the check below proves nothing");
+        context.assertTrue(2 * hempcrete <= 4 * stem,
+                "two Hempcrete burn " + 2 * hempcrete + " ticks, and the four stems they are made of " + 4 * stem);
+        context.assertTrue(context.getLevel().fuelValues().burnDuration(new ItemStack(ModBlocks.HEMPCRETE_POWDER_BLOCK)) == 0,
+                "a Block of Hempcrete Powder burns in a furnace");
+        context.succeed();
+    }
+
+    /**
      * The Hemp Harness goes on a happy ghast and nothing else, and draws its ropes. Two separate
      * registrations, both silent when missing: the equip data decides who may wear it (a harness
      * without it is a plain item a ghast ignores), and {@code #minecraft:harnesses} is what the
