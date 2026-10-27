@@ -24,8 +24,8 @@ jobs:
       # The releases whose API this build must keep (scripts/api_additive.py), one per loader, since a
       # Fabric jar and a NeoForge jar cannot be compared with each other: Fabric's since 2.0.0, and
       # NeoForge's from its first release on (empty until there is one). Move both on at each release.
-      API_BASELINE: v2.0.3
-      NEOFORGE_API_BASELINE: ''
+      API_BASELINE: v2.1.0
+      NEOFORGE_API_BASELINE: v2.1.0
     steps:
       - uses: actions/checkout@v4
 
