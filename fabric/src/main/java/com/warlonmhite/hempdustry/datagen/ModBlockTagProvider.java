@@ -253,10 +253,13 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         getOrCreateTagBuilder(BlockTags.WOODEN_TRAPDOORS).add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
         getOrCreateTagBuilder(BlockTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
         getOrCreateTagBuilder(BlockTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL);
+        getOrCreateTagBuilder(BlockTags.WOODEN_STAIRS).add(ModBlocks.HEMP_PLANKS_STAIRS);
+        getOrCreateTagBuilder(BlockTags.WOODEN_BUTTONS).add(ModBlocks.HEMP_PLANKS_BUTTON);
+        getOrCreateTagBuilder(BlockTags.WOODEN_PRESSURE_PLATES).add(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
         // Parquet is bamboo mosaic's case: the plain stairs and slab tags, never the wooden ones,
         // which are what the recipes for chests, sticks and the rest ask for.
-        getOrCreateTagBuilder(BlockTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS);
-        getOrCreateTagBuilder(BlockTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB);
+        getOrCreateTagBuilder(BlockTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS).add(ModBlocks.HEMP_BRICKS_STAIRS);
+        getOrCreateTagBuilder(BlockTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB).add(ModBlocks.HEMP_BRICKS_SLAB);
         // What a villager's sleep and wake-up tasks check a bed against.
         getOrCreateTagBuilder(BlockTags.BEDS).add(ModBlocks.HEMP_BED);
 

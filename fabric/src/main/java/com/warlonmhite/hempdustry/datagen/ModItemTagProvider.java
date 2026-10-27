@@ -257,6 +257,16 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
         getOrCreateTagBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         getOrCreateTagBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
+        // The rest of the plank set's wooden tags, as the block side has them. Vanilla makes every one
+        // of them fuel; #minecraft:non_flammable_wood below takes the set out again.
+        getOrCreateTagBuilder(ItemTags.WOODEN_STAIRS).add(ModBlocks.HEMP_PLANKS_STAIRS.asItem());
+        getOrCreateTagBuilder(ItemTags.WOODEN_FENCES).add(ModBlocks.HEMP_PLANKS_FENCE.asItem());
+        getOrCreateTagBuilder(ItemTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE.asItem());
+        getOrCreateTagBuilder(ItemTags.WOODEN_DOORS).add(ModBlocks.HEMP_PLANKS_DOOR.asItem());
+        getOrCreateTagBuilder(ItemTags.WOODEN_TRAPDOORS).add(ModBlocks.HEMP_PLANKS_TRAPDOOR.asItem());
+        getOrCreateTagBuilder(ItemTags.WOODEN_BUTTONS).add(ModBlocks.HEMP_PLANKS_BUTTON.asItem());
+        getOrCreateTagBuilder(ItemTags.WOODEN_PRESSURE_PLATES).add(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE.asItem());
+        getOrCreateTagBuilder(ItemTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL.asItem());
 
         getOrCreateTagBuilder(ItemTags.SIGNS).add(ModItems.HEMP_PLANKS_SIGN);
         getOrCreateTagBuilder(ItemTags.HANGING_SIGNS).add(ModItems.HEMP_PLANKS_HANGING_SIGN);
@@ -282,8 +292,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModBlocks.HEMP_PARQUET_STAIRS.asItem())
                 .add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
 
-        getOrCreateTagBuilder(ItemTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem());
-        getOrCreateTagBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
+        getOrCreateTagBuilder(ItemTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem()).add(ModBlocks.HEMP_BRICKS_STAIRS.asItem());
+        getOrCreateTagBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem()).add(ModBlocks.HEMP_BRICKS_SLAB.asItem());
         getOrCreateTagBuilder(ItemTags.BEDS).add(ModBlocks.HEMP_BED.asItem());
 
         // Every empty device accepts Unbreaking/Mending (and enchants at the table). Packed variants
