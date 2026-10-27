@@ -15,9 +15,9 @@ import net.minecraft.world.item.TooltipFlag;
  *
  * <p>This is a deliberate exception to the "you are not wearing a HUD" principle rather than an
  * oversight. That principle is about not putting a stat panel where an in-world signal would do,
- * and the in-world signals are already carrying their share: the Infuser's bar shows patience and
- * its liquid tint shows dose while the batch is cooking. Once the butter is a stack in your
- * inventory there is no in-world surface left to read, and vanilla's own answer for exactly this
+ * and the in-world signals are already carrying their share: the Infuser's bar shows patience
+ * while the batch is cooking (its liquid shows no dose; a second brew colour is drawn but not
+ * wired). Once the butter is a stack in your inventory there is no in-world surface left to read, and vanilla's own answer for exactly this
  * case is a tooltip line — potions, enchanted books and suspicious stew all do it.
  *
  * <p>Strength is shown as a plain count rather than a tier name because the tier thresholds live in

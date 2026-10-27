@@ -5,8 +5,8 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.Event;
 
 /**
- * Posted when a player eats an edible -- a brownie, a dawamesk, a flapjack, cannabutter toast, bhang,
- * or a slice of Space Cake.
+ * Posted when a player eats an edible -- a brownie, a space cookie, a dawamesk, cannabutter toast,
+ * bhang, or a slice of Space Cake. The Hemp Seed Bar is plain food and never posts it.
  *
  * <p><b>Smoking and eating are two separate doors into the same room, and an addon that watches only
  * {@link AfterSmokeEvent} sees half the traffic.</b> A tolerance or addiction system built on the hit

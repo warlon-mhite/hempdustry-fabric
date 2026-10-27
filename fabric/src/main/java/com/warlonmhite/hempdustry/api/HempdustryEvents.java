@@ -95,8 +95,8 @@ public final class HempdustryEvents {
             });
 
     /**
-     * Fires when a player eats an edible — a brownie, a dawamesk, a flapjack, cannabutter toast,
-     * bhang, or a slice of Space Cake.
+     * Fires when a player eats an edible — a brownie, a space cookie, a dawamesk, cannabutter toast,
+     * bhang, or a slice of Space Cake. The Hemp Seed Bar is plain food and never fires it.
      *
      * <p><b>Smoking and eating are two separate doors into the same room, and an addon that watches
      * only {@link #AFTER_SMOKE} sees half the traffic.</b> A tolerance or addiction system built on
