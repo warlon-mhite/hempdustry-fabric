@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
+import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -88,6 +89,26 @@ public final class FurnitureGameTest {
         }
         context.assertTrue(AbstractFurnaceBlockEntity.isFuel(new ItemStack(Blocks.OAK_SLAB)),
                 "an oak slab is not fuel either, so the check above proves nothing");
+        context.succeed();
+    }
+
+    /**
+     * Hempcrete burns no longer than the stems it is made from, and its powder does not burn at all.
+     *
+     * <p>Four stems make two Hempcrete, and each burned 200 ticks against a stem's 50, so crafting a
+     * stem into Hempcrete quadrupled its fuel, and a Block of Hempcrete Powder at 1800 ticks made
+     * the mod's best fuel out of a building material. Real hempcrete is shiv bound in lime, rated
+     * fire-resistant, and vanilla's concrete powder is no fuel either.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void hempcreteBurnsNoLongerThanItsStems(GameTestHelper context) {
+        int stem = TestPlatform.INSTANCE.burnTime(new ItemStack(ModItems.HEMP_STEM));
+        int hempcrete = TestPlatform.INSTANCE.burnTime(new ItemStack(ModItems.HEMPCRETE));
+        context.assertTrue(stem > 0, "a hemp stem is no fuel, so the check below proves nothing");
+        context.assertTrue(2 * hempcrete <= 4 * stem,
+                "two Hempcrete burn " + 2 * hempcrete + " ticks, and the four stems they are made of " + 4 * stem);
+        context.assertTrue(TestPlatform.INSTANCE.burnTime(new ItemStack(ModBlocks.HEMPCRETE_POWDER_BLOCK)) == 0,
+                "a Block of Hempcrete Powder burns in a furnace");
         context.succeed();
     }
 }

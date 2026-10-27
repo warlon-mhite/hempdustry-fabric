@@ -7,6 +7,8 @@ import com.warlonmhite.hempdustry.api.AfterSmokeEvent;
 import com.warlonmhite.hempdustry.api.AllowSmokeEvent;
 import com.warlonmhite.hempdustry.test.TestPlatform;
 import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -48,6 +50,11 @@ public final class NeoForgeTestPlatform implements TestPlatform {
     public float compostChance(ItemLike item) {
         Compostable compostable = item.asItem().builtInRegistryHolder().getData(NeoForgeDataMaps.COMPOSTABLES);
         return compostable == null ? -1.0F : compostable.chance();
+    }
+
+    @Override
+    public int burnTime(ItemStack stack) {
+        return stack.getBurnTime(RecipeType.SMELTING);
     }
 
     @Override

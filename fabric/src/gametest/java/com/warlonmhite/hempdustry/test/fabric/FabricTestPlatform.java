@@ -6,8 +6,10 @@ import com.warlonmhite.hempdustry.test.HempdustryGameTests;
 import com.warlonmhite.hempdustry.test.TestPlatform;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
+import net.fabricmc.fabric.api.registry.FuelRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ComposterBlock;
@@ -42,6 +44,12 @@ public final class FabricTestPlatform implements TestPlatform {
     public float compostChance(ItemLike item) {
         // Fabric's registry writes vanilla's own table, which the composter reads.
         return ComposterBlock.COMPOSTABLES.getOrDefault(item.asItem(), -1.0F);
+    }
+
+    @Override
+    public int burnTime(ItemStack stack) {
+        Integer ticks = FuelRegistry.INSTANCE.get(stack.getItem());
+        return ticks == null ? 0 : ticks;
     }
 
     @Override

@@ -143,12 +143,13 @@ public class Hempdustry {
 		// Each loader keeps a fuel table of its own, so these are handed over to it.
 		registration.fuel(ModItems.HEMP_STEM, 50);
 		registration.fuel(ModItems.RETTED_HEMP_STEM, 50);
-		registration.fuel(ModItems.HEMPCRETE, 200);
+		// Hempcrete is crushed stem, so it burns as the stem does; set in lime it is a building
+		// material, and the powder block, like vanilla's concrete powder, is no fuel at all.
+		registration.fuel(ModItems.HEMPCRETE, 50);
 		registration.fuel(ModItems.HEMP_HAREM_PANTS, 350);
 		registration.fuel(ModItems.HEMP_BEANIE, 250);
 		registration.fuel(ModItems.HEMP_SHIRT, 400);
 		registration.fuel(ModItems.FLIP_FLOPS, 200);
-		registration.fuel(ModBlocks.HEMPCRETE_POWDER_BLOCK, 1800);
 		registration.fuel(ModBlocks.HEMP_BALE, 450);
 		// 100 ticks, vanilla's rate for #minecraft:wool. Granted directly because hemp wool
 		// deliberately stays out of that tag — see ModBlocks.HEMP_WOOL.

@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 
@@ -37,6 +38,12 @@ public interface TestPlatform {
      * table in code on Fabric, a data map on NeoForge -- or {@code -1} when it does not compost.
      */
     float compostChance(ItemLike item);
+
+    /**
+     * How many ticks {@code stack} burns in a furnace, as the loader's furnace reads it -- Fabric's fuel
+     * registry, NeoForge's data map -- or {@code 0} when it is no fuel.
+     */
+    int burnTime(ItemStack stack);
 
     /** How readily {@code block} burns, as the loader's fire reads it: zero and zero for a block that does not. */
     Flammability flammability(Block block);
