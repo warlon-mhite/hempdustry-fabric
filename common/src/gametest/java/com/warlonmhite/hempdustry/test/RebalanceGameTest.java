@@ -26,6 +26,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 
@@ -154,6 +155,32 @@ public final class RebalanceGameTest {
         // And the hash family's Hunger scales like the plant's.
         List<MobEffectInstance> rosin = hit(SmokeContents.of(strain(context, ModStrains.ROSIN), 3));
         context.assertValueEqual(2, find(rosin, MobEffects.HUNGER).getAmplifier(), "a rosin bowl is Hunger III");
+        context.succeed();
+    }
+
+    /**
+     * A loaded device does not break while hits are left in its bowl: it holds on at its last point
+     * of durability and breaks on the hit that empties the bowl.
+     *
+     * <p>Every device's durability is a whole number of bowls new, but repairs, Unbreaking, Mending
+     * and anvil-combining all put it out of step, and the device used to break on whichever hit
+     * took the last point, taking the rest of the bowl with it.
+     */
+    public static void aLoadedDeviceDoesNotBreakMidBowl(GameTestHelper context) {
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        player.setGameMode(GameType.SURVIVAL);
+        ItemStack pipe = packed(context, ModItems.WOODEN_PIPE, ModStrains.INDICA, 1);
+        int charges = pipe.getOrDefault(ModComponents.CHARGES, 0);
+        pipe.setDamageValue(pipe.getMaxDamage() - 2);
+        player.setItemInHand(InteractionHand.MAIN_HAND, pipe);
+        for (int hit = 1; hit <= charges; hit++) {
+            ItemStack inHand = player.getItemInHand(InteractionHand.MAIN_HAND);
+            context.assertFalse(inHand.isEmpty(), "the pipe broke with " + (charges - hit + 1) + " hits left in its bowl");
+            player.getCooldowns().removeCooldown(BuiltInRegistries.ITEM.getKey(ModItems.WOODEN_PIPE));
+            smoke(context, player, inHand);
+        }
+        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
+                "the pipe outlived the hit that emptied its bowl at no durability");
         context.succeed();
     }
 

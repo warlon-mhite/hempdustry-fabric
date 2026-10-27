@@ -279,13 +279,20 @@ public class SmokingDeviceItem extends Item {
         }
         int remaining = stack.getOrDefault(ModComponents.CHARGES, 0) - 1;
         EquipmentSlot slot = hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
-        stack.hurtAndBreak(1, player, slot);
+        // A device never breaks with hits left in its bowl: the hit that would take its last point
+        // leaves it at one, and the hit that empties the bowl breaks it. Every device's maxDamage
+        // is a whole number of bowls new, but repairs, Unbreaking, Mending and anvil-combining put
+        // durability out of step, and breaking early threw the rest of the bowl away.
+        boolean lastPoint = stack.isDamageableItem() && stack.getDamageValue() + 1 >= stack.getMaxDamage();
+        if (remaining <= 0 || !lastPoint) {
+            stack.hurtAndBreak(1, player, slot);
+        }
         if (remaining <= 0) {
             // The bowl is spent whether or not the device survived the hit, and both halves
-            // of that matter. Every device's maxDamage is a whole number of bowls, so the
-            // shot that breaks one is ALWAYS the last shot of a bowl — for the vaporizer
-            // that is hit 32 of 32, once in the life of every single one. Yielding inside
-            // the isEmpty() guard would have silently eaten that last AVB every time.
+            // of that matter. The shot that breaks a device is always the last shot of a bowl
+            // (above) — for the vaporizer, new, that is hit 32 of 32, once in the life of every
+            // single one. Yielding inside the isEmpty() guard would have silently eaten that
+            // last AVB every time.
             yieldSpent(player, contents);
             if (!stack.isEmpty()) {
                 // Clearing the two components is the whole "revert to empty" — durability

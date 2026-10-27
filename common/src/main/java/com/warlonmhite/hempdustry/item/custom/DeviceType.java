@@ -12,8 +12,9 @@ import net.minecraft.core.particles.ParticleTypes;
  *
  * <p>Durability is measured in <em>hits</em>: a device takes 1 damage per hit and is repaired with
  * the material it's built from. The numbers below keep the original 1:3 pipe:bong fragility ratio
- * and divide into whole bowls (pipe = 4 packs × 2, bong = 6 packs × 4, vaporizer = 16 × 2) so a
- * device never shatters mid-bowl. Tune freely.
+ * and divide into whole bowls (pipe = 4 packs × 2, bong = 6 packs × 4, vaporizer = 16 × 2). A
+ * device never shatters mid-bowl whatever its durability: {@code SmokingDeviceItem#hit} holds it at
+ * one point until the bowl is empty. Tune freely.
  *
  * <p><b>Adding a row here is most of a new device.</b> Everything that iterates devices goes through
  * {@link com.warlonmhite.hempdustry.item.ModItems#devices()} — the creative tab, the model provider
