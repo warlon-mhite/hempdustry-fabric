@@ -51,7 +51,7 @@ import org.jetbrains.annotations.Nullable;
  *   <tr><td>1–3</td><td>yes</td><td>on</td><td><b>{@value #PUMPED_SPEED}× a field</b></td></tr>
  *   <tr><td>1–3</td><td>yes</td><td>off</td><td>still solution: an ordinary field</td></tr>
  *   <tr><td>1–3</td><td>no</td><td>either</td><td>plain water: an ordinary field</td></tr>
- *   <tr><td>0</td><td>—</td><td>—</td><td>a dry bed — slower than plain dirt</td></tr>
+ *   <tr><td>0</td><td>—</td><td>—</td><td>a dry bed — the same as dry farmland</td></tr>
  * </table>
  *
  * <p>A plant that ripens drinks one level, and <b>the nutrients go with the last of the water</b>:

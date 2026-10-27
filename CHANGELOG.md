@@ -43,10 +43,10 @@ beta be told when the release lands.
     gives the same high with half the chance of greening out — smoother, never stronger. Nine pieces
     pack into a **bar** you can set down on a shelf, and you cut pieces back off it with a sword or
     a knife: five cuts, nine pieces, and you watch it shrink as you go.
-  - **Charas** is rubbed off a living plant. Shear a fully grown plant and there is a one-in-four
-    chance of a pinch — once per plant, and the plant stays standing. Every rub also snips off one
-    hemp leaf, which the plant gives one fewer of at harvest. Charas smokes for Slow Falling, and
-    nine of it roll into a **charas ball** that you can pull apart again by hand.
+  - **Charas** is rubbed off a living plant. Shear a ripe plant (its last two growth stages) and
+    there is a one-in-four chance of a pinch — once per plant, and the plant stays standing. Every
+    rub also snips off one hemp leaf, which the plant gives one fewer of at harvest. Charas smokes
+    for Slow Falling, and nine of it roll into a **charas ball** that you can pull apart again by hand.
   - **Rosin** is the most concentrated thing in the mod and the plainest to smoke: the hash high
     without its Night Vision. One piece fills a whole bong bowl. A pipe or a vaporizer will not take
     it.
@@ -140,7 +140,7 @@ beta be told when the release lands.
   - **Each plant that ripens drinks a third of the water**, and the fertiliser drains with the last
     of it — so the rhythm is: fill, feed, three plants.
   - **It is unforgiving.** Plain water or a stopped pump grows at an ordinary field's pace; a dry
-    tray is slower than plain dirt. A dry tray, or a stopped pump over water, can stress a flowering
+    tray grows like dry farmland. A dry tray, or a stopped pump over water, can stress a flowering
     plant. **Nothing ever dies of neglect** — that is vanilla's rule for farmland too. A full tray
     keeps your bucket. A plant in a tray harvests one stem short, like one in a pot, and a tray you
     pick up comes back empty.
@@ -603,7 +603,8 @@ almost everything else is new or works differently.
 - **Decarboxylator**, the mod's first machine: a hemp-brick oven with three trays that cook on their
   own timers. Deliberately expensive; edibles are meant to be a goal rather than a first-day crop.
 - **A water cauldron** does two jobs — rinsing decarboxylated hemp, which decides how good the
-  result can get, and **retting** hemp stems into fibre at a better rate than the crafting grid.
+  result can get, and **retting** hemp stems, which then break into more fibre in the crafting grid
+  than dry ones.
 - **Infuser**, a hempcrete tub that takes its heat from whatever is burning underneath it. A batch
   carries two independent axes — strength and quality — and pours itself into an adjacent container
   through a visible spout once it peaks.

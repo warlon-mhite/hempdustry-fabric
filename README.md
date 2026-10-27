@@ -36,8 +36,8 @@ pipe or bong, and for the cauldron steps.
 
 ### The plant
 
-Three strains, **Purple Kush**, **Lemon Haze** and **Beldía**, each with its own crop, seeds, buds
-and wild flower. They differ in shape and in what they give you rather than in some claimed
+Three strains, **Purple Kush**, **Lemon Haze** and **Beldía**, each with its own crop, seeds and
+buds, and a wild flower for the first two (wild Beldía is the ripe crop itself). They differ in shape and in what they give you rather than in some claimed
 difference of feeling: Purple Kush is a short, leafy two-block plant, Lemon Haze is a three-block one
 that grows slower, wants headroom, and pays out in stems instead of leaves, and Beldía, the old
 landrace of Morocco's Rif, grows on watered sand rather than farmland.
@@ -98,8 +98,8 @@ A four-step chain, and each step is a thing you can see happening:
 1. **Decarboxylator** — a hemp-brick oven with three trays that cook on their own timers. It is
    expensive on purpose; edibles are meant to be a goal, not a first-day crop.
 2. **A water cauldron** — rinse the decarboxylated hemp. Optional, but it decides how good the
-   result can get. (The same cauldron also *rets* hemp stems into fibre, at a better rate than the
-   crafting grid gives you.)
+   result can get. (The same cauldron also *rets* hemp stems, and a retted stem breaks into more
+   fibre in the crafting grid than a dry one: six against four.)
 3. **Infuser** — a hempcrete tub around a cauldron that takes its heat from whatever is burning
    underneath it. A campfire is cheap and always lit; a furnace only works while it is itself busy.
    The batch carries two independent axes, **strength** (how much hemp went in) and **quality** (how
