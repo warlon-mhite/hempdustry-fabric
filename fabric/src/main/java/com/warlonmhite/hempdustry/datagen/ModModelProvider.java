@@ -35,10 +35,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CakeBlock;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class ModModelProvider extends FabricModelProvider {
@@ -197,6 +200,23 @@ public class ModModelProvider extends FabricModelProvider {
         // The per-strain overrides above still win for indica and sativa, which keep their own art
         // untinted. Dropping those overrides would put every strain on this tinted base instead;
         // that is a texture decision, not a code one, and it costs one line here when wanted.
+        //
+        // The last override whose threshold the strain's index reaches wins, so without a way back
+        // every index above a shipped one would wear that strain's art: the hash family's 3-6 and
+        // anything past Beldía's 7. Right after each piece of art, the index above goes back to the
+        // tinted look — unless it is another strain's art. The base model cannot name itself in an
+        // override, so the tinted look is uploaded a second time under its own name for that.
+        ResourceLocation spliffTinted = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/spliff_tinted");
+        uploadTintable(itemModelGenerator, spliffTinted, texture(ModStrains.id(plantStrains.get(0)) + "_spliff"),
+                texture("spliff_load"), List.of());
+        Set<Integer> shipped = new HashSet<>();
+        plantStrains.forEach(strain -> shipped.add(ModStrains.modelIndex(strain)));
+        for (int index : shipped) {
+            if (!shipped.contains(index + 1)) {
+                spliffOverrides.add(new ModelOverride(STRAIN_PREDICATE, index + 1, spliffTinted));
+            }
+        }
+        spliffOverrides.sort(Comparator.comparingDouble(override -> override.predicates().get(STRAIN_PREDICATE).doubleValue()));
         uploadTintable(itemModelGenerator, ModelLocationUtils.getModelLocation(ModItems.SPLIFF),
                 texture(ModStrains.id(plantStrains.get(0)) + "_spliff"),
                 texture("spliff_load"), spliffOverrides);

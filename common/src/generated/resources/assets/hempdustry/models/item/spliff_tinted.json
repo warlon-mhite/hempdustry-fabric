@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [],
+  "textures": {
+    "layer0": "hempdustry:item/indica_spliff",
+    "layer1": "hempdustry:item/spliff_load"
+  }
+}

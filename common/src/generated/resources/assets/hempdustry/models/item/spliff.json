@@ -14,9 +14,21 @@
       }
     },
     {
+      "model": "hempdustry:item/spliff_tinted",
+      "predicate": {
+        "hempdustry:strain": 3
+      }
+    },
+    {
       "model": "hempdustry:item/spliff_beldia",
       "predicate": {
         "hempdustry:strain": 7
+      }
+    },
+    {
+      "model": "hempdustry:item/spliff_tinted",
+      "predicate": {
+        "hempdustry:strain": 8
       }
     }
   ],
