@@ -111,37 +111,37 @@ public class ModBlocks {
             BlockBehaviour.Properties.of().strength(2.0F, 10.0F).sound(SoundType.WOOD));
 
     public static final Block HEMP_BRICKS_STAIRS = registerBlock("hemp_bricks_stairs", settings -> new StairBlock(ModBlocks.HEMP_BRICKS_BLOCK.defaultBlockState(), settings),
-            BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD));
+            BlockBehaviour.Properties.ofLegacyCopy(HEMP_BRICKS_BLOCK));
     public static final Block HEMP_BRICKS_SLAB = registerBlock("hemp_bricks_slab", SlabBlock::new,
-            BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD));
+            BlockBehaviour.Properties.ofLegacyCopy(HEMP_BRICKS_BLOCK));
 
     public static final Block HEMP_BRICKS_WALL = registerBlock("hemp_bricks_wall", WallBlock::new,
-            BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD));
+            BlockBehaviour.Properties.ofLegacyCopy(HEMP_BRICKS_BLOCK));
 
 
     public static final Block HEMP_PLANKS = registerBlock("hemp_planks", Block::new,
-            BlockBehaviour.Properties.of().strength(2.0F, 3.0F).sound(SoundType.WOOD));
+            BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(2.0F, 3.0F).sound(SoundType.WOOD));
 
     public static final Block HEMP_PLANKS_STAIRS = registerBlock("hemp_planks_stairs", settings -> new StairBlock(ModBlocks.HEMP_PLANKS.defaultBlockState(), settings),
-            BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD));
+            BlockBehaviour.Properties.ofLegacyCopy(HEMP_PLANKS));
     public static final Block HEMP_PLANKS_SLAB = registerBlock("hemp_planks_slab", SlabBlock::new,
-            BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD));
+            BlockBehaviour.Properties.ofLegacyCopy(HEMP_PLANKS));
 
-    public static final Block HEMP_PLANKS_BUTTON = registerBlock("hemp_planks_button", settings -> new ButtonBlock(BlockSetType.OAK, 2, settings),
-            BlockBehaviour.Properties.of().strength(2f).noCollision());
+    public static final Block HEMP_PLANKS_BUTTON = registerBlock("hemp_planks_button", settings -> new ButtonBlock(BlockSetType.OAK, 30, settings),
+            BlockBehaviour.Properties.of().noCollision().strength(0.5F).pushReaction(PushReaction.DESTROY));
     public static final Block HEMP_PLANKS_PRESSURE_PLATE = registerBlock("hemp_planks_pressure_plate", settings -> new PressurePlateBlock(BlockSetType.OAK, settings),
-            BlockBehaviour.Properties.of().strength(2f).noCollision());
+            BlockBehaviour.Properties.of().forceSolidOn().instrument(NoteBlockInstrument.BASS).noCollision().strength(0.5F).pushReaction(PushReaction.DESTROY));
 
     public static final Block HEMP_PLANKS_FENCE = registerBlock("hemp_planks_fence", FenceBlock::new,
-            BlockBehaviour.Properties.of().strength(2f).sound(SoundType.WOOD));
+            BlockBehaviour.Properties.ofLegacyCopy(HEMP_PLANKS));
     public static final Block HEMP_PLANKS_FENCE_GATE = registerBlock("hemp_planks_fence_gate", settings -> new FenceGateBlock(WoodType.OAK, settings),
-            BlockBehaviour.Properties.of().strength(2f));
+            BlockBehaviour.Properties.of().forceSolidOn().instrument(NoteBlockInstrument.BASS).strength(2.0F, 3.0F));
 
 
     public static final Block HEMP_PLANKS_DOOR = registerBlock("hemp_planks_door", settings -> new DoorBlock(BlockSetType.OAK, settings),
-            BlockBehaviour.Properties.of().strength(2f).noOcclusion());
+            BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(3.0F).noOcclusion().pushReaction(PushReaction.DESTROY));
     public static final Block HEMP_PLANKS_TRAPDOOR = registerBlock("hemp_planks_trapdoor", settings -> new TrapDoorBlock(BlockSetType.OAK, settings),
-            BlockBehaviour.Properties.of().strength(2f).noOcclusion());
+            BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(3.0F).noOcclusion());
 
     // Signs place their own item specially (SignItem/HangingSignItem reference both the standing and wall
     // block), so these are registered without the usual auto BlockItem.

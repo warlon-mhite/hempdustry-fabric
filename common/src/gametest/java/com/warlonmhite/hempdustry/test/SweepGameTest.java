@@ -72,6 +72,15 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.Repairable;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.PressurePlateBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.ButtonBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -428,6 +437,58 @@ public final class SweepGameTest {
         }
         Sweep.atLeast(context, "enchantable items", checked, 10);
         Sweep.report(context, "Every enchantable item of ours takes an enchantment", findings, Map.of());
+        context.succeed();
+    }
+
+    /**
+     * Every building piece of ours is as hard and as blast-proof as vanilla's: a stair, slab, wall or
+     * fence as the block it is cut from, a door, trapdoor or gate as oak's, and a button or pressure
+     * plate breaks as fast as oak's and pops off when a piston pushes it.
+     *
+     * <p>The plank and brick sets' smaller pieces were all hardness 2 and blast resistance 2, where
+     * the Block of Hemp Bricks resists 10 and the planks 3: a creeper took a brick wall's stairs and
+     * left the wall behind them.
+     */
+    public static void everyBuildingPieceHoldsLikeVanillas(GameTestHelper context) {
+        Map<String, String> findings = new TreeMap<>();
+        int checked = 0;
+        for (Block block : BuiltInRegistries.BLOCK) {
+            Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+            if (!Sweep.ours(id)) continue;
+            Block like = null;
+            if (block instanceof StairBlock || block instanceof SlabBlock || block instanceof WallBlock
+                    || block instanceof FenceBlock) {
+                String base = id.getPath().replaceAll("_(stairs|slab|wall|fence)$", "");
+                for (String path : List.of(base, base + "_block")) {
+                    Identifier candidate = Identifier.fromNamespaceAndPath(id.getNamespace(), path);
+                    if (BuiltInRegistries.BLOCK.containsKey(candidate)) like = BuiltInRegistries.BLOCK.getValue(candidate);
+                }
+                if (like == null) findings.put(id.toString(), "no block it is cut from");
+            } else if (block instanceof DoorBlock) {
+                like = Blocks.OAK_DOOR;
+            } else if (block instanceof TrapDoorBlock) {
+                like = Blocks.OAK_TRAPDOOR;
+            } else if (block instanceof FenceGateBlock) {
+                like = Blocks.OAK_FENCE_GATE;
+            } else if (block instanceof ButtonBlock) {
+                like = Blocks.OAK_BUTTON;
+            } else if (block instanceof PressurePlateBlock) {
+                like = Blocks.OAK_PRESSURE_PLATE;
+            }
+            if (like == null) continue;
+            checked++;
+            if (block.defaultDestroyTime() != like.defaultDestroyTime()
+                    || block.getExplosionResistance() != like.getExplosionResistance()) {
+                findings.put(id.toString(), "hardness " + block.defaultDestroyTime() + ", blast resistance "
+                        + block.getExplosionResistance() + "; " + BuiltInRegistries.BLOCK.getKey(like) + " has "
+                        + like.defaultDestroyTime() + ", " + like.getExplosionResistance());
+            } else if (block.defaultBlockState().getPistonPushReaction() != like.defaultBlockState().getPistonPushReaction()) {
+                findings.put(id.toString(), "a piston " + block.defaultBlockState().getPistonPushReaction() + "s it; "
+                        + BuiltInRegistries.BLOCK.getKey(like) + " it " + like.defaultBlockState().getPistonPushReaction() + "s");
+            }
+        }
+        Sweep.atLeast(context, "building pieces", checked, 12);
+        Sweep.report(context, "Every building piece of ours holds like vanilla's", findings, Map.of());
         context.succeed();
     }
 
