@@ -78,7 +78,10 @@ public final class FurnitureGameTest {
                         + " rather than at the hemp wool it is made of");
 
         for (Block wood : new Block[] {ModBlocks.HEMP_PLANKS_SHELF, ModBlocks.HEMP_PARQUET,
-                ModBlocks.HEMP_PARQUET_STAIRS, ModBlocks.HEMP_PARQUET_SLAB}) {
+                ModBlocks.HEMP_PARQUET_STAIRS, ModBlocks.HEMP_PARQUET_SLAB,
+                ModBlocks.HEMP_PLANKS, ModBlocks.HEMP_PLANKS_STAIRS, ModBlocks.HEMP_PLANKS_SLAB,
+                ModBlocks.HEMP_PLANKS_FENCE, ModBlocks.HEMP_PLANKS_FENCE_GATE, ModBlocks.HEMP_PLANKS_DOOR,
+                ModBlocks.HEMP_PLANKS_TRAPDOOR, ModBlocks.HEMP_PLANKS_BUTTON, ModBlocks.HEMP_PLANKS_PRESSURE_PLATE}) {
             var entry = TestPlatform.INSTANCE.flammability(wood);
             context.assertTrue(entry.igniteOdds() == 0 && entry.burnOdds() == 0,
                     wood + " catches fire, and the hemp plank set is fireproof");

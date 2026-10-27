@@ -263,6 +263,16 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
         valueLookupBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         valueLookupBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
+        // The rest of the plank set's wooden tags, as the block side has them. Vanilla makes every one
+        // of them fuel; #minecraft:non_flammable_wood below takes the set out again.
+        valueLookupBuilder(ItemTags.WOODEN_STAIRS).add(ModBlocks.HEMP_PLANKS_STAIRS.asItem());
+        valueLookupBuilder(ItemTags.WOODEN_FENCES).add(ModBlocks.HEMP_PLANKS_FENCE.asItem());
+        valueLookupBuilder(ItemTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE.asItem());
+        valueLookupBuilder(ItemTags.WOODEN_DOORS).add(ModBlocks.HEMP_PLANKS_DOOR.asItem());
+        valueLookupBuilder(ItemTags.WOODEN_TRAPDOORS).add(ModBlocks.HEMP_PLANKS_TRAPDOOR.asItem());
+        valueLookupBuilder(ItemTags.WOODEN_BUTTONS).add(ModBlocks.HEMP_PLANKS_BUTTON.asItem());
+        valueLookupBuilder(ItemTags.WOODEN_PRESSURE_PLATES).add(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE.asItem());
+        valueLookupBuilder(ItemTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL.asItem());
 
         valueLookupBuilder(ItemTags.SIGNS).add(ModItems.HEMP_PLANKS_SIGN);
         valueLookupBuilder(ItemTags.HANGING_SIGNS).add(ModItems.HEMP_PLANKS_HANGING_SIGN);
@@ -290,8 +300,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModBlocks.HEMP_PARQUET_STAIRS.asItem())
                 .add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
 
-        valueLookupBuilder(ItemTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem());
-        valueLookupBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
+        valueLookupBuilder(ItemTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem()).add(ModBlocks.HEMP_BRICKS_STAIRS.asItem());
+        valueLookupBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem()).add(ModBlocks.HEMP_BRICKS_SLAB.asItem());
         valueLookupBuilder(ItemTags.WOODEN_SHELVES).add(ModBlocks.HEMP_PLANKS_SHELF.asItem());
         valueLookupBuilder(ItemTags.BEDS).add(ModBlocks.HEMP_BED.asItem());
         // Not decoration: a happy ghast's ropes are drawn only for a harness in this tag.

@@ -47,6 +47,7 @@ import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
@@ -489,6 +490,67 @@ public final class SweepGameTest {
         }
         Sweep.atLeast(context, "building pieces", checked, 12);
         Sweep.report(context, "Every building piece of ours holds like vanilla's", findings, Map.of());
+        context.succeed();
+    }
+
+    /**
+     * Every building piece of ours is in the tags vanilla puts its own kind in: the umbrella tag
+     * ({@code #stairs}, {@code #buttons}, ...) for all of them, and the wooden one as well for the
+     * plank set's, on the block and on the item.
+     *
+     * <p>The hemp plank stairs, button and pressure plate were in no wooden tag and the brick stairs
+     * and slab in no tag at all, so anything keyed on them -- another mod's "any wooden stairs", a
+     * recipe-book group -- skipped them.
+     */
+    public static void everyBuildingPieceIsTaggedLikeVanillas(GameTestHelper context) {
+        Map<String, String> findings = new TreeMap<>();
+        int checked = 0;
+        for (Block block : BuiltInRegistries.BLOCK) {
+            Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+            if (!Sweep.ours(id) || block.asItem() == Items.AIR) continue;
+            boolean wooden = id.getPath().startsWith("hemp_planks_");
+            List<TagKey<Block>> blockTags = new ArrayList<>();
+            List<TagKey<Item>> itemTags = new ArrayList<>();
+            if (block instanceof StairBlock) {
+                blockTags.add(wooden ? BlockTags.WOODEN_STAIRS : BlockTags.STAIRS);
+                itemTags.add(wooden ? ItemTags.WOODEN_STAIRS : ItemTags.STAIRS);
+            } else if (block instanceof SlabBlock) {
+                blockTags.add(wooden ? BlockTags.WOODEN_SLABS : BlockTags.SLABS);
+                itemTags.add(wooden ? ItemTags.WOODEN_SLABS : ItemTags.SLABS);
+            } else if (block instanceof WallBlock) {
+                blockTags.add(BlockTags.WALLS);
+                itemTags.add(ItemTags.WALLS);
+            } else if (block instanceof FenceBlock) {
+                blockTags.add(BlockTags.WOODEN_FENCES);
+                itemTags.add(ItemTags.WOODEN_FENCES);
+            } else if (block instanceof FenceGateBlock) {
+                blockTags.add(BlockTags.FENCE_GATES);
+                itemTags.add(ItemTags.FENCE_GATES);
+            } else if (block instanceof DoorBlock) {
+                blockTags.add(BlockTags.WOODEN_DOORS);
+                itemTags.add(ItemTags.WOODEN_DOORS);
+            } else if (block instanceof TrapDoorBlock) {
+                blockTags.add(BlockTags.WOODEN_TRAPDOORS);
+                itemTags.add(ItemTags.WOODEN_TRAPDOORS);
+            } else if (block instanceof ButtonBlock) {
+                blockTags.add(BlockTags.WOODEN_BUTTONS);
+                itemTags.add(ItemTags.WOODEN_BUTTONS);
+            } else if (block instanceof PressurePlateBlock) {
+                blockTags.add(BlockTags.WOODEN_PRESSURE_PLATES);
+                itemTags.add(ItemTags.WOODEN_PRESSURE_PLATES);
+            } else {
+                continue;
+            }
+            checked++;
+            for (TagKey<Block> tag : blockTags) {
+                if (!block.defaultBlockState().is(tag)) findings.put(id + " block", "not in #" + tag.location());
+            }
+            for (TagKey<Item> tag : itemTags) {
+                if (!new ItemStack(block).is(tag)) findings.put(id + " item", "not in #" + tag.location());
+            }
+        }
+        Sweep.atLeast(context, "building pieces", checked, 12);
+        Sweep.report(context, "Every building piece of ours is tagged like vanilla's", findings, Map.of());
         context.succeed();
     }
 

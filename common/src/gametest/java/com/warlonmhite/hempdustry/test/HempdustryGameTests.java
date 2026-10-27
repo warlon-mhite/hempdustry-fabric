@@ -167,6 +167,7 @@ public final class HempdustryGameTests {
         register("every_enchantable_item_takes_an_enchantment",
                 SweepGameTest::everyEnchantableItemTakesAnEnchantment);
         register("every_building_piece_holds_like_vanillas", SweepGameTest::everyBuildingPieceHoldsLikeVanillas);
+        register("every_building_piece_is_tagged_like_vanillas", SweepGameTest::everyBuildingPieceIsTaggedLikeVanillas);
         register("every_sound_is_mono_and_on_disk", SweepGameTest::everySoundIsMonoAndOnDisk);
         register("the_frozen_surface_holds", FrozenSurfaceGameTest::theFrozenSurfaceHolds);
         register("old_data_still_loads", FrozenSurfaceGameTest::oldDataStillLoads);

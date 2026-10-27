@@ -244,10 +244,13 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         valueLookupBuilder(BlockTags.WOODEN_TRAPDOORS).add(ModBlocks.HEMP_PLANKS_TRAPDOOR);
         valueLookupBuilder(BlockTags.FENCE_GATES).add(ModBlocks.HEMP_PLANKS_FENCE_GATE);
         valueLookupBuilder(BlockTags.WALLS).add(ModBlocks.HEMP_BRICKS_WALL);
+        valueLookupBuilder(BlockTags.WOODEN_STAIRS).add(ModBlocks.HEMP_PLANKS_STAIRS);
+        valueLookupBuilder(BlockTags.WOODEN_BUTTONS).add(ModBlocks.HEMP_PLANKS_BUTTON);
+        valueLookupBuilder(BlockTags.WOODEN_PRESSURE_PLATES).add(ModBlocks.HEMP_PLANKS_PRESSURE_PLATE);
         // Parquet is bamboo mosaic's case: the plain stairs and slab tags, never the wooden ones,
         // which are what the recipes for chests, sticks and the rest ask for.
-        valueLookupBuilder(BlockTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS);
-        valueLookupBuilder(BlockTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB);
+        valueLookupBuilder(BlockTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS).add(ModBlocks.HEMP_BRICKS_STAIRS);
+        valueLookupBuilder(BlockTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB).add(ModBlocks.HEMP_BRICKS_SLAB);
         valueLookupBuilder(BlockTags.WOODEN_SHELVES).add(ModBlocks.HEMP_PLANKS_SHELF);
         // What a villager's sleep and wake-up tasks check a bed against.
         valueLookupBuilder(BlockTags.BEDS).add(ModBlocks.HEMP_BED);
