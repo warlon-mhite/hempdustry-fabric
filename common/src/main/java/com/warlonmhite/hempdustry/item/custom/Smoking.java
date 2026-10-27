@@ -115,7 +115,7 @@ public final class Smoking {
         return Services.ADDON_EVENTS.allowSmoke(player, contents, stack);
     }
 
-    /** Ticks after the hit before the smoke puffs, to line up with the exhale in the sound (~1.5s). */
+    /** Ticks after the hit before the smoke puffs, to line up with the exhale in the sound (38 ticks, about 1.9 s). */
     private static final int EXHALE_DELAY_TICKS = 38;
 
     /**

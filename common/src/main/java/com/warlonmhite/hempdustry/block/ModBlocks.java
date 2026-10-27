@@ -236,8 +236,8 @@ public class ModBlocks {
      * vibration-damping tags, and a 100-tick fuel entry. The latter two are granted directly, so
      * joining the tag would buy nothing and cost the recipe. See CLAUDE.md's <i>cloth chain</i> note.
      * <p>
-     * It burns, at vanilla wool's 30/60 — a deliberate departure from the fireproof hemp plank set
-     * and hempcrete. Cloth burns.
+     * It burns, at 60/60, catching faster than vanilla wool's 30/60 — a deliberate departure from
+     * the fireproof hemp plank set and hempcrete. Cloth burns.
      */
     public static final Block HEMP_WOOL = registerBlock("hemp_wool", Block::new,
             BlockBehaviour.Properties.of()

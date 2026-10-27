@@ -467,9 +467,10 @@ public class SiftingBoxBlock extends Block {
      * third strain's buds are siftable the day the strain exists and a datapack can widen either
      * side without touching code.
      *
-     * <p>There is no third rate for resin any more. <b>The box does not re-sift</b>: the ice wash
-     * replaced that pass, and it is the honest version of it — what a further sieve buys is
-     * cleanliness, which is exactly what the wash buys.
+     * <p>There is no third rate for resin any more. <b>The box does not re-sift resin</b>: the ice
+     * wash replaced that pass, and it is the honest version of it — what a further sieve buys is
+     * cleanliness, which is exactly what the wash buys. Kief is another matter: a dry box re-sifts
+     * it into filtered kief at {@link #KIEF_CHANCE}.
      */
     private static float sieveChance(ItemStack stack) {
         if (stack.is(ModTags.Items.SIFTABLE_RESINOUS)) {

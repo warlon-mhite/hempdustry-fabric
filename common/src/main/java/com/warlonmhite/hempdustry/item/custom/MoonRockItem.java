@@ -30,8 +30,8 @@ import net.minecraft.world.item.component.TooltipDisplay;
  *
  * The component is a <b>two-entry load</b>: the plant at 3 and hashish at 1. Packing it copies that
  * load straight onto the device, which makes it the only hit in the mod that is a strain at level
- * III <em>and</em> the hash body at once — a bong of three buds is level III with no hash, a hash
- * spliff has the hash but only level II.
+ * III <em>and</em> the hash body at once without pairing — a bong of three buds stops at level II
+ * since the cap and has no hash, a hash spliff has the hash but only level II.
  *
  * <p>It goes in a bong and nowhere else, and no rule had to be written for that either: the plant
  * entry is 3 and only the bong's {@code maxDose} is 3. See {@code PackingRecipe}.

@@ -14,7 +14,7 @@ import net.minecraft.util.ExtraCodecs;
 
 /**
  * How one smokeable smokes, as data: {@code data/<namespace>/hempdustry/device/<id>.json}, one file
- * for the pipe, the bong (all seventeen bongs share it), the vaporizer and the spliff.
+ * for the pipe, the bong (all eighteen bongs share it: clear, tinted and the sixteen stained), the vaporizer and the spliff.
  *
  * <p>Every chance is a 1-in-N where 0 means never. {@code green_out_factor} widens the green-out
  * odds the way a strain's does — 2 halves the risk, 0 or below rules it out — and it is the
