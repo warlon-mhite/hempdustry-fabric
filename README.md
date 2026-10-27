@@ -142,7 +142,7 @@ Hemp is a fibre crop first, and the mod treats it that way.
 
 ### Odds and ends
 
-Six paintings, a cannabis-leaf banner pattern, two music discs with original tracks by **Nefuß**,
+Seven paintings, a cannabis-leaf banner pattern, two music discs with original tracks by **Nefuß**,
 forty-two advancements, **recipe pages in both JEI and REI** (including the cauldron steps, which
 are not recipes and which nothing else can show you), and translations in twelve locales (five
 English variants and three French, with regional vocabulary rather than copy-paste — Quebec gets

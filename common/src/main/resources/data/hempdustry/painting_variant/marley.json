@@ -1,0 +1,13 @@
+{
+  "asset_id": "hempdustry:marley",
+  "author": {
+    "color": "gray",
+    "translate": "painting.hempdustry.marley.author"
+  },
+  "height": 2,
+  "title": {
+    "color": "yellow",
+    "translate": "painting.hempdustry.marley.title"
+  },
+  "width": 2
+}
