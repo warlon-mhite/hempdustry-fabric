@@ -46,7 +46,6 @@ public final class NeoForgeRegistration implements Registration {
     private final Pending<DataPackRegistryEvent.NewRegistry> dynamicRegistries = new Pending<>("datapack registries");
     private final Pending<BlockEntityTypeAddBlocksEvent> validBlocks = new Pending<>("block entity blocks");
     private final Set<RecipeType<?>> syncedRecipes = new LinkedHashSet<>();
-    private final List<WoodType> woodTypes = new ArrayList<>();
     private final Map<ItemLike, Float> compostables = new LinkedHashMap<>();
     private final Map<ItemLike, Integer> fuels = new LinkedHashMap<>();
     private final List<Feature> features = new ArrayList<>();
@@ -76,10 +75,8 @@ public final class NeoForgeRegistration implements Registration {
 
     @Override
     public WoodType registerWoodType(Identifier id, WoodType template, BlockSetType setType) {
-        WoodType type = WoodType.register(new WoodType(id.toString(), setType, template.soundType(),
+        return WoodType.register(new WoodType(id.toString(), setType, template.soundType(),
                 template.hangingSignSoundType(), template.fenceGateClose(), template.fenceGateOpen()));
-        woodTypes.add(type);
-        return type;
     }
 
     @Override
@@ -128,11 +125,6 @@ public final class NeoForgeRegistration implements Registration {
 
     void onDatapackSync(OnDatapackSyncEvent event) {
         event.sendRecipes(syncedRecipes);
-    }
-
-    /** The wood types registered, which a client has to know to draw their signs. */
-    public List<WoodType> woodTypes() {
-        return Collections.unmodifiableList(woodTypes);
     }
 
     public Map<ItemLike, Float> compostables() {

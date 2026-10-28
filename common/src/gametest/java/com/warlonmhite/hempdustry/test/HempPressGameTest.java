@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -51,7 +52,7 @@ public final class HempPressGameTest {
 
     private static int rosinOnTheFloor(GameTestHelper context) {
         int total = 0;
-        for (ItemEntity entity : context.getEntities(EntityType.ITEM)) {
+        for (ItemEntity entity : context.getEntities(EntityTypes.ITEM)) {
             if (entity.getItem().is(ModItems.ROSIN)) {
                 total += entity.getItem().getCount();
             }

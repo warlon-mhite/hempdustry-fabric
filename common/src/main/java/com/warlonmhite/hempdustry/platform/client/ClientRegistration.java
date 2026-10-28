@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.platform.client;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.client.color.block.BlockColor;
+import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
@@ -11,7 +11,6 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperty;
 import net.minecraft.core.particles.ParticleOptions;
@@ -27,6 +26,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -35,9 +35,6 @@ import java.util.function.Supplier;
  * and some are only open while the loader says so. Called once, while the client starts.
  */
 public interface ClientRegistration {
-
-    /** Draws {@code block} in {@code layer} rather than solid — cut-out holes, see-through glass. */
-    void blockLayer(Block block, ChunkSectionLayer layer);
 
     void modelLayer(ModelLayerLocation layer, Supplier<LayerDefinition> definition);
 
@@ -52,7 +49,8 @@ public interface ClientRegistration {
     <T extends ParticleOptions> void particleProvider(
             ParticleType<T> type, Function<SpriteSet, ParticleProvider<T>> provider);
 
-    void blockColor(BlockColor color, Block... blocks);
+    /** The tint sources a block model's {@code tintindex} picks from, in order, for each of {@code blocks}. */
+    void blockTint(List<BlockTintSource> tints, Block... blocks);
 
     /** A numeric item-model property of our own, named in client item definitions by {@code id}. */
     void rangeSelectProperty(Identifier id, MapCodec<? extends RangeSelectItemModelProperty> codec);

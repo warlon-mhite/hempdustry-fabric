@@ -350,7 +350,7 @@ public class SiftingBoxBlock extends Block {
                     : "hempdustry.sifting_box.no_kief_in_plant";
         }
         if (key != null) {
-            player.displayClientMessage(Component.translatable(key), true);
+            player.sendOverlayMessage(Component.translatable(key));
         }
     }
 
@@ -507,7 +507,7 @@ public class SiftingBoxBlock extends Block {
      * level and a coin flip on a second. A level past full is simply lost, as in a composter.
      */
     private static void sift(ServerLevel world, BlockPos pos, BlockState state, int level, float chance) {
-        int steps = (int) chance + (world.random.nextFloat() < chance - (int) chance ? 1 : 0);
+        int steps = (int) chance + (world.getRandom().nextFloat() < chance - (int) chance ? 1 : 0);
         if (steps > 0) {
             int next = Math.min(FULL_LEVEL, level + steps);
             // Reaching FULL_LEVEL schedules the settle in onPlace, which this call runs.
@@ -535,7 +535,7 @@ public class SiftingBoxBlock extends Block {
         } else {
             yield = state.getValue(FILLED) ? ModItems.BUBBLE_HASH : ModItems.KIEF;
         }
-        Vec3 spawn = Vec3.atLowerCornerWithOffset(pos, 0.5, 1.01, 0.5).offsetRandom(world.random, 0.7F);
+        Vec3 spawn = Vec3.atLowerCornerWithOffset(pos, 0.5, 1.01, 0.5).offsetRandom(world.getRandom(), 0.7F);
         ItemEntity dropped = new ItemEntity(world, spawn.x(), spawn.y(), spawn.z(),
                 new ItemStack(yield, YIELD));
         dropped.setDefaultPickUpDelay();

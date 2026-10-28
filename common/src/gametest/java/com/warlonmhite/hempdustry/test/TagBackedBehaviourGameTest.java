@@ -16,6 +16,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.equine.Horse;
 import net.minecraft.world.entity.animal.equine.Llama;
@@ -134,13 +135,13 @@ public final class TagBackedBehaviourGameTest {
      */
     public static void aLlamaWearsHempCarpet(GameTestHelper context) {
         ItemStack carpet = new ItemStack(ModBlocks.HEMP_CARPET);
-        Llama llama = context.spawn(EntityType.LLAMA, new BlockPos(1, 1, 1));
+        Llama llama = context.spawn(EntityTypes.LLAMA, new BlockPos(1, 1, 1));
         llama.setTamed(true);
         context.assertTrue(llama.isEquippableInSlot(carpet, EquipmentSlot.BODY), "a tamed llama will not wear hemp carpet");
-        TraderLlama trader = context.spawn(EntityType.TRADER_LLAMA, new BlockPos(3, 1, 1));
+        TraderLlama trader = context.spawn(EntityTypes.TRADER_LLAMA, new BlockPos(3, 1, 1));
         trader.setTamed(true);
         context.assertTrue(trader.isEquippableInSlot(carpet, EquipmentSlot.BODY), "a trader llama will not wear hemp carpet");
-        Horse horse = context.spawn(EntityType.HORSE, new BlockPos(5, 1, 1));
+        Horse horse = context.spawn(EntityTypes.HORSE, new BlockPos(5, 1, 1));
         horse.setTamed(true);
         context.assertFalse(horse.isEquippableInSlot(carpet, EquipmentSlot.BODY),
                 "a horse will wear hemp carpet, so its equip data lets in more than llamas");

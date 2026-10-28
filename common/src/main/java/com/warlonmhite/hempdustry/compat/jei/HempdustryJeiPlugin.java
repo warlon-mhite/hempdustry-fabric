@@ -18,10 +18,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
@@ -152,12 +154,14 @@ public class HempdustryJeiPlugin implements IModPlugin {
                     .toList();
             List<SlotDisplay> slots = packing.inputs().stream().map(HempdustryJeiPlugin::display).toList();
             RecipeDisplay display = new ShapelessCraftingRecipeDisplay(slots,
-                    new SlotDisplay.ItemStackSlotDisplay(packing.output()),
+                    new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(packing.output())),
                     new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE));
             // A RecipeHolder is keyed by a ResourceKey<Recipe<?>> since 1.21.4, and a shapeless
             // recipe takes a plain List rather than a NonNullList.
             out.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, packing.id()),
-                    new ShapelessRecipe("", CraftingBookCategory.MISC, packing.output(), ingredients) {
+                    new ShapelessRecipe(new Recipe.CommonInfo(true),
+                            new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+                            ItemStackTemplate.fromNonEmptyStack(packing.output()), ingredients) {
                         @Override
                         public List<RecipeDisplay> display() {
                             return List.of(display);
@@ -170,10 +174,11 @@ public class HempdustryJeiPlugin implements IModPlugin {
     /** One slot's stacks, exactly as given: a single stack, or a list JEI cycles through. */
     private static SlotDisplay display(List<ItemStack> stacks) {
         if (stacks.size() == 1) {
-            return new SlotDisplay.ItemStackSlotDisplay(stacks.getFirst());
+            return new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(stacks.getFirst()));
         }
         return new SlotDisplay.Composite(stacks.stream()
-                .<SlotDisplay>map(SlotDisplay.ItemStackSlotDisplay::new).toList());
+                .<SlotDisplay>map(stack -> new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(stack)))
+                .toList());
     }
 
     @Override

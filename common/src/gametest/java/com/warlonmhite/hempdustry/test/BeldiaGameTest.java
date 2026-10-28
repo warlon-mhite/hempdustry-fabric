@@ -14,7 +14,7 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
-import com.warlonmhite.hempdustry.world.ModConfiguredFeatures;
+import com.warlonmhite.hempdustry.world.ModPlacedFeatures;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -265,10 +265,20 @@ public final class BeldiaGameTest {
                 context.setBlock(new BlockPos(x, 3, z), Blocks.AIR);
             }
         }
-        var feature = world.registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE)
-                .getOrThrow(ModConfiguredFeatures.BELDIA_KEY).value();
+        // One plant, as the patch places it once it has scattered to a spot: the column and every
+        // filter after the scatter, without the rarity, the heightmap and the scatter itself. And the
+        // patch from its centre on: the tries, the scatter and the same filters.
+        var beldia = world.registryAccess().lookupOrThrow(Registries.PLACED_FEATURE)
+                .getOrThrow(ModPlacedFeatures.BELDIA_PLACED_KEY).value();
         net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create(11L);
-        var plant = ((net.minecraft.world.level.levelgen.feature.configurations.RandomPatchConfiguration) feature.config()).feature().value();
+        int scatter = 0;
+        while (!(beldia.placement().get(scatter) instanceof net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement)) {
+            scatter++;
+        }
+        var plant = new net.minecraft.world.level.levelgen.placement.PlacedFeature(beldia.feature(),
+                beldia.placement().subList(scatter + 1, beldia.placement().size()));
+        var patch = new net.minecraft.world.level.levelgen.placement.PlacedFeature(beldia.feature(),
+                beldia.placement().subList(scatter - 1, beldia.placement().size()));
         var generator = world.getChunkSource().getGenerator();
 
         // Outside a Beldía biome, even the perfect spot is refused.
@@ -311,7 +321,7 @@ public final class BeldiaGameTest {
         context.setBlock(new BlockPos(2, 1, 3), Blocks.SAND);
 
         for (int i = 0; i < 20; i++) {
-            feature.place(world, generator, random, context.absolutePos(new BlockPos(4, 2, 4)));
+            patch.place(world, generator, random, context.absolutePos(new BlockPos(4, 2, 4)));
         }
         int placed = 0;
         for (int x = 0; x <= 8; x++) {

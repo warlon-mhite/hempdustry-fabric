@@ -4,16 +4,16 @@ import com.mojang.serialization.Codec;
 import com.warlonmhite.hempdustry.platform.Registration;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
-import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
+import net.fabricmc.fabric.api.registry.CompostableRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
+import net.fabricmc.fabric.api.registry.FuelValueEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -46,7 +46,7 @@ public final class FabricRegistration implements Registration {
     @Override
     public void addValidBlocks(BlockEntityType<?> type, Block... blocks) {
         for (Block block : blocks) {
-            ((FabricBlockEntityType) type).addSupportedBlock(block);
+            ((FabricBlockEntityType) type).addValidBlock(block);
         }
     }
 
@@ -72,18 +72,18 @@ public final class FabricRegistration implements Registration {
 
     @Override
     public CreativeModeTab.Builder creativeTabBuilder() {
-        return FabricItemGroup.builder();
+        return FabricCreativeModeTab.builder();
     }
 
     @Override
     public void compostable(ItemLike item, float chance) {
-        CompostingChanceRegistry.INSTANCE.add(item, chance);
+        CompostableRegistry.INSTANCE.add(item, chance);
     }
 
     @Override
     public void fuel(ItemLike item, int ticks) {
         if (fuels.isEmpty()) {
-            FuelRegistryEvents.BUILD.register((builder, context) -> fuels.forEach(builder::add));
+            FuelValueEvents.BUILD.register((builder, context) -> fuels.forEach(builder::add));
         }
         fuels.put(item, ticks);
     }

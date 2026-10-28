@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.screen.custom;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -43,7 +43,8 @@ public class DecarboxylatorScreen extends AbstractContainerScreen<Decarboxylator
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractBackground(context, mouseX, mouseY, delta);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
         context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
@@ -65,11 +66,5 @@ public class DecarboxylatorScreen extends AbstractContainerScreen<Decarboxylator
                 context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + ARROW_X, arrowY, ARROW_U, ARROW_V, filled, ARROW_H, 256, 256);
             }
         }
-    }
-
-    @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        this.renderTooltip(context, mouseX, mouseY);
     }
 }

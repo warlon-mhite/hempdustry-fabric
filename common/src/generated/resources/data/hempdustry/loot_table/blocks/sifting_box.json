@@ -2,7 +2,6 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "condition": "minecraft:survives_explosion"
@@ -17,7 +16,6 @@
       "rolls": 1.0
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:sifting_box",
@@ -44,7 +42,6 @@
               ],
               "functions": [
                 {
-                  "add": false,
                   "count": 9.0,
                   "function": "minecraft:set_count"
                 }
@@ -64,7 +61,6 @@
               ],
               "functions": [
                 {
-                  "add": false,
                   "count": 9.0,
                   "function": "minecraft:set_count"
                 }
@@ -75,7 +71,6 @@
               "type": "minecraft:item",
               "functions": [
                 {
-                  "add": false,
                   "count": 9.0,
                   "function": "minecraft:set_count"
                 }

@@ -159,7 +159,7 @@ public final class UpdateChecker {
             String latest = availableVersion;
             Minecraft client = Minecraft.getInstance();
             if (latest != null && client.player != null && NOTIFIED.compareAndSet(false, true)) {
-                client.player.displayClientMessage(updateMessage(latest), false);
+                client.player.sendSystemMessage(updateMessage(latest));
             }
         });
     }

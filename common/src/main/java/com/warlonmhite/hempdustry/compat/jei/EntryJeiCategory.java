@@ -12,7 +12,7 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -127,14 +127,14 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     }
 
     @Override
-    public void draw(ViewerRecipes.Entry entry, IRecipeSlotsView slots, GuiGraphics context,
+    public void draw(ViewerRecipes.Entry entry, IRecipeSlotsView slots, GuiGraphicsExtractor context,
                      double mouseX, double mouseY) {
         arrow.draw(context, PADDING + MAX_INPUTS * SLOT + 4, 1);
         int y = SLOT + PADDING;
         for (Component note : entry.notes()) {
-            // ARGB, and the alpha byte is not optional: since 1.21.6 drawString skips a colour whose
+            // ARGB, and the alpha byte is not optional: since 1.21.6 a text draw skips a colour whose
             // alpha is 0, so a bare 0x555555 drew every note on every page as nothing at all.
-            context.drawString(Minecraft.getInstance().font, note, 1, y, NOTE_COLOR, false);
+            context.text(Minecraft.getInstance().font, note, 1, y, NOTE_COLOR, false);
             y += LINE_HEIGHT;
         }
     }

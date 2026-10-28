@@ -3,12 +3,11 @@ package com.warlonmhite.hempdustry.fabric.client;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.platform.client.ClientRegistration;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.minecraft.client.color.block.BlockColor;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
+import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -21,7 +20,6 @@ import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperties;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperty;
@@ -36,18 +34,14 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class FabricClientRegistration implements ClientRegistration {
     @Override
-    public void blockLayer(Block block, ChunkSectionLayer layer) {
-        BlockRenderLayerMap.putBlock(block, layer);
-    }
-
-    @Override
     public void modelLayer(ModelLayerLocation layer, Supplier<LayerDefinition> definition) {
-        EntityModelLayerRegistry.registerModelLayer(layer, definition::get);
+        ModelLayerRegistry.registerModelLayer(layer, definition::get);
     }
 
     @Override
@@ -70,12 +64,12 @@ public final class FabricClientRegistration implements ClientRegistration {
     @Override
     public <T extends ParticleOptions> void particleProvider(
             ParticleType<T> type, Function<SpriteSet, ParticleProvider<T>> provider) {
-        ParticleFactoryRegistry.getInstance().register(type, provider::apply);
+        ParticleProviderRegistry.getInstance().register(type, provider::apply);
     }
 
     @Override
-    public void blockColor(BlockColor color, Block... blocks) {
-        ColorProviderRegistry.BLOCK.register(color, blocks);
+    public void blockTint(List<BlockTintSource> tints, Block... blocks) {
+        BlockColorRegistry.register(tints, blocks);
     }
 
     @Override

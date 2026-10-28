@@ -317,7 +317,7 @@ public final class Defoliation {
      */
     private static void refuse(Level world, Player player, String key) {
         if (!world.isClientSide()) {
-            player.displayClientMessage(Component.translatable(key), true);
+            player.sendOverlayMessage(Component.translatable(key));
         }
     }
 }

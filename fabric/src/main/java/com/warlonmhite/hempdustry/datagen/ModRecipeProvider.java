@@ -20,15 +20,17 @@ import com.warlonmhite.hempdustry.recipe.InfusedShapelessRecipe;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
+import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.data.recipes.CustomCraftingRecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
@@ -40,11 +42,13 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CookingBookCategory;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.DyeRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
@@ -63,7 +67,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      */
     public static final int FIBER_PER_RETTED_STEM = 6;
 
-    public ModRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+    public ModRecipeProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
@@ -409,7 +413,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // ContainerCarried, not shapeless: WATER_BUCKET carries craftRemainder(BUCKET), so a plain
         // recipe would hand an empty bucket back *and* leave one inside the hemp milk. Same
         // duplication bhang had. The bucket carries through instead.
-        offerContainerCarried(id("hemp_milk_bucket"), new ItemStack(ModItems.HEMP_MILK_BUCKET),
+        offerContainerCarried(id("hemp_milk_bucket"), new ItemStackTemplate(ModItems.HEMP_MILK_BUCKET),
                 ModTags.Items.HEMP_SEEDS,
                 List.of(ofTag(ModTags.Items.HEMP_SEEDS),
                         ofTag(ModTags.Items.HEMP_SEEDS),
@@ -560,19 +564,19 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 continue;
             }
             offerDecarboxylating(Ingredient.of(strain.buds()),
-                    new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.BUDS_OUTPUT),
+                    new ItemStackTemplate(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.BUDS_OUTPUT),
                     BuiltInRegistries.ITEM.getKey(strain.buds()).getPath());
         }
         // Fan leaf: bulk trim, worth a quarter of a bud, and strain-agnostic like everything else
         // downstream of the oven.
         offerDecarboxylating(Ingredient.of(ModItems.HEMP_LEAF),
-                new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.LEAF_OUTPUT),
+                new ItemStackTemplate(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.LEAF_OUTPUT),
                 "hemp_leaf");
         // Schwag: a bud, at half a bud. The oven is the careful heat, so it never makes scorched
         // hemp out of anything -- that is the furnace's product, and schwag burns to it there like
         // any other bud.
         offerDecarboxylating(Ingredient.of(ModItems.SCHWAG),
-                new ItemStack(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.SCHWAG_OUTPUT),
+                new ItemStackTemplate(ModItems.DECARBOXYLATED_HEMP, DecarboxylatorBlockEntity.SCHWAG_OUTPUT),
                 "schwag");
 
         // The furnace's answer to the same heat: ANY PLANT PART, ONE SCORCHED HEMP, ALWAYS ONE.
@@ -603,7 +607,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         }
         SimpleCookingRecipeBuilder scorching = SimpleCookingRecipeBuilder.smelting(
                 Ingredient.of(scorchable.toArray(ItemLike[]::new)),
-                RecipeCategory.MISC, ModItems.SCORCHED_HEMP, 0.1F, 200);
+                RecipeCategory.MISC, CookingBookCategory.MISC, ModItems.SCORCHED_HEMP, 0.1F, 200);
         for (ItemLike input : scorchable) {
             scorching.unlockedBy(getHasName(input), has(input));
         }
@@ -701,7 +705,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 Ingredient.of(ModItems.DECARBOXYLATED_HEMP),
                 Ingredient.of(ModItems.WASHED_DECARBOXYLATED_HEMP),
                 java.util.Optional.of(Ingredient.of(ModItems.SCORCHED_HEMP)),
-                new ItemStack(ModItems.CANNABUTTER)), null);
+                new ItemStackTemplate(ModItems.CANNABUTTER)), null);
 
         // The Hemp Press. THE MOD'S OWN MACHINE GRAMMAR IS "a vanilla utility block wrapped in a
         // ring of hempdustry material" -- the Decarboxylator is 8 hemp bricks round a copper ingot,
@@ -774,20 +778,20 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // tools. The Sifting Box used to do both, which was only ever defensible while there was no
         // press. Now there is one, and the vessel makes powder.
         offerPressing(Ingredient.of(ModItems.KIEF),
-                new ItemStack(ModItems.HASHISH), "hashish");
+                new ItemStackTemplate(ModItems.HASHISH), "hashish");
 
         // The washed powder presses to the blonde slab. Same step, cleaner input -- and the
         // cleanliness is the whole payoff for the ice room, cashed out here as filtered hashish's
         // halved green-out rather than as a bigger number.
         offerPressing(Ingredient.of(ModItems.BUBBLE_HASH),
-                new ItemStack(ModItems.FILTERED_HASHISH), "filtered_hashish");
+                new ItemStackTemplate(ModItems.FILTERED_HASHISH), "filtered_hashish");
 
         // The dry road's blonde, pressed. It lands on the SAME item the washed powder does, because
         // the two buy the same thing -- smoothness, which is the only purity axis the mod has -- and
         // pressing is pressing. What separates the roads is price, not product: see
         // SiftingBoxBlock.KIEF_CHANCE, which is where the dry one is made to hurt.
         offerPressing(Ingredient.of(ModItems.FILTERED_KIEF),
-                new ItemStack(ModItems.FILTERED_HASHISH), "filtered_hashish_from_filtered_kief");
+                new ItemStackTemplate(ModItems.FILTERED_HASHISH), "filtered_hashish_from_filtered_kief");
 
         // Rosin, 1:1. Pressing hash is the highest-yield step in the whole chain -- 60-90% in life,
         // against 10-30% off flower -- so near enough one for one is the honest number, and it is
@@ -800,7 +804,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // keeps the press to one thing to learn per input, with no second route that exists only to
         // be worse than the first.
         offerPressing(Ingredient.of(ModItems.FILTERED_HASHISH),
-                new ItemStack(ModItems.ROSIN, HempPressBlockEntity.ROSIN_OUTPUT),
+                new ItemStackTemplate(ModItems.ROSIN, HempPressBlockEntity.ROSIN_OUTPUT),
                 "rosin");
 
         // Breaking and scutching, which is the job materials.md has wanted off the crafting grid
@@ -810,7 +814,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // balance change to shipped content with nothing to do with concentrates; making the press
         // simply better at it is additive, and is what a machine is for.
         offerPressing(Ingredient.of(ModItems.RETTED_HEMP_STEM),
-                new ItemStack(ModItems.HEMP_FIBER, HempPressBlockEntity.PRESSED_FIBER_OUTPUT),
+                new ItemStackTemplate(ModItems.HEMP_FIBER, HempPressBlockEntity.PRESSED_FIBER_OUTPUT),
                 "hemp_fiber");
 
         // ---------------------------------------------------------------------
@@ -1012,6 +1016,12 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
                 .save(output, id("hemp_harem_pants"));
 
+        // Dyed as leather is: since 26.1 vanilla gives each dyeable piece a dye recipe of its own
+        // (there is no #minecraft:dyeable to join), and a water cauldron washes it out again
+        // (#minecraft:cauldron_can_remove_dye, ModItemTagProvider).
+        offerDyed(ModItems.HEMP_SHIRT);
+        offerDyed(ModItems.HEMP_HAREM_PANTS);
+
         shaped(RecipeCategory.COMBAT, ModItems.FLIP_FLOPS)
                 .pattern("# #")
                 .pattern("# #")
@@ -1066,7 +1076,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .unlockedBy(getHasName(ModItems.HEMP_MILK_BUCKET), has(ModItems.HEMP_MILK_BUCKET))
                 .save(output, id("cake"));
 
-        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ModItems.HEMP_STEM), RecipeCategory.MISC, Items.GREEN_DYE, 1.0F, 200)
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(ModItems.HEMP_STEM), RecipeCategory.MISC, CookingBookCategory.MISC,
+                        Items.DYE.green(), 1.0F, 200)
                 .group("dye")
                 .unlockedBy(getHasName(ModItems.HEMP_STEM), has(ModItems.HEMP_STEM))
                 .save(output, id("green_dye"));
@@ -1100,7 +1111,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         for (DyeColor color : ModBlocks.DYE_ORDER) {
             Item bed = BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(color.getName() + "_bed"));
             shapeless(RecipeCategory.DECORATIONS, bed)
-                    .requires(DyeItem.byColor(color))
+                    .requires(Items.DYE.pick(color))
                     .requires(ModBlocks.HEMP_BED)
                     .group("bed_dye")
                     .unlockedBy(getHasName(ModBlocks.HEMP_BED), has(ModBlocks.HEMP_BED))
@@ -1114,7 +1125,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         for (DyeColor color : ModBlocks.DYE_ORDER) {
             Item harness = BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(color.getName() + "_harness"));
             shapeless(RecipeCategory.TOOLS, harness)
-                    .requires(DyeItem.byColor(color))
+                    .requires(Items.DYE.pick(color))
                     .requires(ModItems.HEMP_HARNESS)
                     .group("harness_dye")
                     .unlockedBy(getHasName(ModItems.HEMP_HARNESS), has(ModItems.HEMP_HARNESS))
@@ -1171,22 +1182,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Blue/brown dye assignments are corrected here (the hand-written JSONs
         // had them swapped).
         // ---------------------------------------------------------------------
-        offerConcretePowder(Items.WHITE_DYE, Items.WHITE_CONCRETE_POWDER);
-        offerConcretePowder(Items.ORANGE_DYE, Items.ORANGE_CONCRETE_POWDER);
-        offerConcretePowder(Items.MAGENTA_DYE, Items.MAGENTA_CONCRETE_POWDER);
-        offerConcretePowder(Items.LIGHT_BLUE_DYE, Items.LIGHT_BLUE_CONCRETE_POWDER);
-        offerConcretePowder(Items.YELLOW_DYE, Items.YELLOW_CONCRETE_POWDER);
-        offerConcretePowder(Items.LIME_DYE, Items.LIME_CONCRETE_POWDER);
-        offerConcretePowder(Items.PINK_DYE, Items.PINK_CONCRETE_POWDER);
-        offerConcretePowder(Items.GRAY_DYE, Items.GRAY_CONCRETE_POWDER);
-        offerConcretePowder(Items.LIGHT_GRAY_DYE, Items.LIGHT_GRAY_CONCRETE_POWDER);
-        offerConcretePowder(Items.CYAN_DYE, Items.CYAN_CONCRETE_POWDER);
-        offerConcretePowder(Items.PURPLE_DYE, Items.PURPLE_CONCRETE_POWDER);
-        offerConcretePowder(Items.BLUE_DYE, Items.BLUE_CONCRETE_POWDER);
-        offerConcretePowder(Items.BROWN_DYE, Items.BROWN_CONCRETE_POWDER);
-        offerConcretePowder(Items.GREEN_DYE, Items.GREEN_CONCRETE_POWDER);
-        offerConcretePowder(Items.RED_DYE, Items.RED_CONCRETE_POWDER);
-        offerConcretePowder(Items.BLACK_DYE, Items.BLACK_CONCRETE_POWDER);
+        for (DyeColor color : ModBlocks.DYE_ORDER) {
+            offerConcretePowder(Items.DYE.pick(color), Items.CONCRETE_POWDER.pick(color));
+        }
     }
 
     private void offerConcretePowder(ItemLike dye, ItemLike result) {
@@ -1206,7 +1204,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * <p>No unlock advancement: machine recipes are not in the recipe book, so there is nothing an
      * advancement could reveal. See {@code DecarboxylatingRecipe}.
      */
-    private void offerDecarboxylating(Ingredient input, ItemStack result, String name) {
+    private void offerDecarboxylating(Ingredient input, ItemStackTemplate result, String name) {
         output.accept(id("decarboxylating/" + name), new DecarboxylatingRecipe(input, result), null);
     }
 
@@ -1217,7 +1215,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * <p>No unlock advancement: machine recipes are not in the recipe book, so there is nothing an
      * advancement could reveal. See {@link PressingRecipe}.
      */
-    private void offerPressing(Ingredient input, ItemStack result, String name) {
+    private void offerPressing(Ingredient input, ItemStackTemplate result, String name) {
         output.accept(id("pressing/" + name), new PressingRecipe(input, result), null);
     }
 
@@ -1237,10 +1235,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      */
     private void offerMoonRock(Holder.Reference<Strain> strain, Holder.Reference<Strain> coat,
                                String coatName, Ingredient coatIngredient) {
-        ItemStack result = ModItems.moonRock(strain, coat);
+        ItemStackTemplate result = withContents(ModItems.MOON_ROCK, ModItems.moonRockContents(strain, coat));
         ResourceKey<Recipe<?>> recipeId = id("moon_rock_" + ModStrains.id(strain.key())
                 + "_" + coatName);
-        ShapelessRecipe recipe = new ShapelessRecipe("moon_rock", CraftingBookCategory.MISC, result,
+        ShapelessRecipe recipe = new ShapelessRecipe(new Recipe.CommonInfo(true), book("moon_rock"), result,
                 List.of(Ingredient.of(strain.value().buds()),
                         Ingredient.of(ModItems.ROSIN),
                         coatIngredient));
@@ -1261,6 +1259,20 @@ public class ModRecipeProvider extends FabricRecipeProvider {
     }
 
     /** A recipe is addressed by a {@code ResourceKey<Recipe<?>>} since 1.21.4, not a bare id. */
+    /** Vanilla's {@code dyedItem} under our own namespace: any of {@code #minecraft:dyes} tints {@code target}. */
+    private void offerDyed(Item target) {
+        CustomCraftingRecipeBuilder.customCrafting(RecipeCategory.MISC, (commonInfo, bookInfo) -> new DyeRecipe(
+                        commonInfo, bookInfo, Ingredient.of(target), tag(ItemTags.DYES), new ItemStackTemplate(target)))
+                .unlockedBy(getHasName(target), has(target))
+                .group("dyed_armor")
+                .save(output, id(getItemName(target) + "_dyed"));
+    }
+
+    /** A hand-built crafting recipe's book entry: the misc tab, in {@code group}. */
+    private static CraftingRecipe.CraftingBookInfo book(String group) {
+        return new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, group);
+    }
+
     private static ResourceKey<Recipe<?>> id(String path) {
         return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, path));
     }
@@ -1275,8 +1287,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * the usual unlock advancement so the recipe book discovers it on picking up the buds.
      */
     private void offerSpliff(Holder.Reference<Strain> strain, int dose) {
-        ItemStack result = new ItemStack(ModItems.SPLIFF);
-        result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
+        ItemStackTemplate result = withContents(ModItems.SPLIFF, SmokeContents.of(strain, dose));
 
         Item budItem = strain.value().buds();
         String buds = String.valueOf('B').repeat(dose);
@@ -1286,7 +1297,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 buds, paper);
 
         ResourceKey<Recipe<?>> recipeId = id("spliff_" + ModStrains.id(strain.key()) + "_" + dose);
-        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingBookCategory.MISC, raw, result);
+        ShapedRecipe recipe = new ShapedRecipe(new Recipe.CommonInfo(true), book("spliff"), raw, result);
         output.accept(recipeId, recipe, output.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
                 .addCriterion(getHasName(budItem), has(budItem))
@@ -1311,8 +1322,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      */
     private void offerHashSpliff(Holder.Reference<Strain> strain, Holder.Reference<Strain> hash,
                                  int buds) {
-        ItemStack result = new ItemStack(ModItems.SPLIFF);
-        result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, buds, hash, 1));
+        ItemStackTemplate result = withContents(ModItems.SPLIFF, SmokeContents.of(strain, buds, hash, 1));
 
         Item hashItem = hash.value().buds();
         // The pinch in the middle: "BH" at one bud, "BHB" at two. A joint is rolled with the hash
@@ -1327,7 +1337,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
         ResourceKey<Recipe<?>> recipeId = id("spliff_" + ModStrains.id(strain.key())
                 + "_with_" + ModStrains.id(hash.key()) + "_" + (buds + 1));
-        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingBookCategory.MISC, raw, result);
+        ShapedRecipe recipe = new ShapedRecipe(new Recipe.CommonInfo(true), book("spliff"), raw, result);
         output.accept(recipeId, recipe, output.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
                 .addCriterion(getHasName(hashItem), has(hashItem))
@@ -1342,18 +1352,28 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * only emit vanilla's serializer, and still emits the usual unlock advancement so the recipe
      * book discovers it normally.
      */
-    /** A result stack with a fixed dose baked in, for edibles that inherit nothing. */
-    private static ItemStack dosed(ItemLike item, int potency, Quality quality) {
-        ItemStack stack = new ItemStack(item);
-        stack.set(ModComponents.POTENCY, potency);
-        stack.set(ModComponents.QUALITY, quality);
-        return stack;
+    /** A result with a fixed dose baked in, for edibles that inherit nothing. */
+    private static ItemStackTemplate dosed(ItemLike item, int potency, Quality quality) {
+        return new ItemStackTemplate(item.asItem(), DataComponentPatch.builder()
+                .set(ModComponents.POTENCY, potency)
+                .set(ModComponents.QUALITY, quality)
+                .build());
+    }
+
+    /**
+     * One {@code item} carrying {@code contents}. A result is a template since 26.1, built straight
+     * from its components: a data generator runs before any {@code ItemStack} can be made.
+     */
+    private static ItemStackTemplate withContents(Item item, SmokeContents contents) {
+        return new ItemStackTemplate(item, DataComponentPatch.builder()
+                .set(ModComponents.SMOKE_CONTENTS, contents)
+                .build());
     }
 
     private void offerContainerCarried(ResourceKey<Recipe<?>> recipeId,
-                                       ItemStack result, ItemLike unlockedBy,
+                                       ItemStackTemplate result, ItemLike unlockedBy,
                                        List<Ingredient> inputs) {
-        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingBookCategory.MISC,
+        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe(new Recipe.CommonInfo(true), book(""),
                 result, inputs);
         output.accept(recipeId, recipe, output.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
@@ -1369,9 +1389,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * hardcoded as the unlock.
      */
     private void offerContainerCarried(ResourceKey<Recipe<?>> recipeId,
-                                       ItemStack result, TagKey<Item> unlockedByTag,
+                                       ItemStackTemplate result, TagKey<Item> unlockedByTag,
                                        List<Ingredient> inputs) {
-        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe("", CraftingBookCategory.MISC,
+        ContainerCarriedRecipe recipe = new ContainerCarriedRecipe(new Recipe.CommonInfo(true), book(""),
                 result, inputs);
         output.accept(recipeId, recipe, output.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
@@ -1390,7 +1410,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      */
     private void offerFoodCooking(String name, Ingredient input,
                                   ItemLike result, TagKey<Item> unlockedByTag, float experience) {
-        SimpleCookingRecipeBuilder.smelting(input, RecipeCategory.FOOD, result, experience, 200)
+        SimpleCookingRecipeBuilder.smelting(input, RecipeCategory.FOOD, CookingBookCategory.FOOD, result, experience, 200)
                 .unlockedBy("has_hemp_seeds", has(unlockedByTag))
                 .save(output, id(name));
         SimpleCookingRecipeBuilder.smoking(input, RecipeCategory.FOOD, result, experience, 100)
@@ -1416,16 +1436,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
     private void offerInfusedShaped(ResourceKey<Recipe<?>> recipeId,
                                     ItemLike output, int count,
                                     Map<Character, Ingredient> key, String... pattern) {
-        offerInfused(recipeId, new InfusedShapedRecipe("", CraftingBookCategory.MISC,
-                ShapedRecipePattern.of(key, pattern), new ItemStack(output, count),
+        offerInfused(recipeId, new InfusedShapedRecipe(new Recipe.CommonInfo(true), book(""),
+                ShapedRecipePattern.of(key, pattern), new ItemStackTemplate(output.asItem(), count),
                 ModItems.potencyOffsetOf(output)));
     }
 
     private void offerInfusedShapeless(ResourceKey<Recipe<?>> recipeId,
                                        ItemLike output, int count,
                                        List<Ingredient> inputs) {
-        offerInfused(recipeId, new InfusedShapelessRecipe("", CraftingBookCategory.MISC,
-                new ItemStack(output, count), inputs, ModItems.potencyOffsetOf(output)));
+        offerInfused(recipeId, new InfusedShapelessRecipe(new Recipe.CommonInfo(true), book(""),
+                new ItemStackTemplate(output.asItem(), count), inputs, ModItems.potencyOffsetOf(output)));
     }
 
     private void offerInfused(ResourceKey<Recipe<?>> recipeId, net.minecraft.world.item.crafting.Recipe<?> recipe) {

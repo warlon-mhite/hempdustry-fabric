@@ -5,19 +5,27 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.BlockItemTags;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import java.util.concurrent.CompletableFuture;
 
-public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
-    public ModItemTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> completableFuture) {
+public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
+    public ModItemTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> completableFuture) {
         super(output, completableFuture);
+    }
+
+    /** {@code tag}'s builder, taking items rather than their keys (see {@link ValueTagAppender}). */
+    private ValueTagAppender<Item> valueLookupBuilder(TagKey<Item> tag) {
+        return new ValueTagAppender<>(builder(tag), BuiltInRegistries.ITEM);
     }
 
     @Override
@@ -149,11 +157,11 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // Walking on powder snow is a different check, leather boots by name, so flip-flops sink.
         valueLookupBuilder(ItemTags.FREEZE_IMMUNE_WEARABLES).add(ModItems.HEMP_BEANIE);
 
-        // The two garments take dye, through vanilla's own armour-dye recipe, which reads this tag.
-        // The beanie keeps its stripes and the flip-flops their soles: a single tint over them would
-        // flatten the one and muddy the other. The cauldron wash is registered item by item, as
-        // vanilla registers leather's (ModCauldronBehaviors).
-        valueLookupBuilder(ItemTags.DYEABLE)
+        // The two garments take dye -- a dye recipe each, as vanilla gives each leather piece since
+        // 26.1 (ModRecipeProvider) -- and a water cauldron washes it out, which is this tag. The
+        // beanie keeps its stripes and the flip-flops their soles: a single tint over them would
+        // flatten the one and muddy the other.
+        valueLookupBuilder(ItemTags.CAULDRON_CAN_REMOVE_DYE)
                 .add(ModItems.HEMP_SHIRT)
                 .add(ModItems.HEMP_HAREM_PANTS);
 
@@ -300,8 +308,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModBlocks.HEMP_PARQUET_STAIRS.asItem())
                 .add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
 
-        valueLookupBuilder(ItemTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem()).add(ModBlocks.HEMP_BRICKS_STAIRS.asItem());
-        valueLookupBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem()).add(ModBlocks.HEMP_BRICKS_SLAB.asItem());
+        valueLookupBuilder(BlockItemTags.STAIRS.item()).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem()).add(ModBlocks.HEMP_BRICKS_STAIRS.asItem());
+        valueLookupBuilder(BlockItemTags.SLABS.item()).add(ModBlocks.HEMP_PARQUET_SLAB.asItem()).add(ModBlocks.HEMP_BRICKS_SLAB.asItem());
         valueLookupBuilder(ItemTags.WOODEN_SHELVES).add(ModBlocks.HEMP_PLANKS_SHELF.asItem());
         valueLookupBuilder(ItemTags.BEDS).add(ModBlocks.HEMP_BED.asItem());
         // Not decoration: a happy ghast's ropes are drawn only for a harness in this tag.

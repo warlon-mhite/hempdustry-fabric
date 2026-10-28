@@ -108,9 +108,9 @@ public final class HempOutfitGameTest {
     /** {@code item} beside a green dye in the crafting grid, crafted; empty if nothing matched. */
     private static ItemStack dye(ServerLevel world, Item item) {
         CraftingInput grid = CraftingInput.of(2, 1,
-                List.of(new ItemStack(item), new ItemStack(Items.GREEN_DYE)));
+                List.of(new ItemStack(item), new ItemStack(Items.DYE.green())));
         return world.recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid, world)
-                .map(entry -> entry.value().assemble(grid, world.registryAccess()))
+                .map(entry -> entry.value().assemble(grid))
                 .orElse(ItemStack.EMPTY);
     }
 }

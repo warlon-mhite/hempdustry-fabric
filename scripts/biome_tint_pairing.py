@@ -3,7 +3,8 @@
 
 A block is only tinted when TWO unrelated things agree: its baked model carries
 `"tintindex": 0` (inherited from minecraft:block/tinted_cross or tinted_flower_pot_cross),
-and HempdustryClient registers a block colour provider for it (client.blockColor). Break either
+and HempdustryClient registers a block colour provider for it (client.blockColor up to 1.21.11,
+client.blockTint since 26.1, when vanilla's BlockColor became BlockTintSource). Break either
 half and nothing errors -- the plant simply renders as drawn, or the provider is never
 asked, and the only symptom is a crop that stubbornly refuses to match its biome. That is
 exactly the class of failure nobody notices in a screenshot.
@@ -29,7 +30,7 @@ TINTED_PARENTS = {"minecraft:block/tinted_cross", "minecraft:block/tinted_flower
 
 
 def registered_blocks():
-    """Block ids passed to every client.blockColor(...) call in HempdustryClient.
+    """Block ids passed to every client.blockColor(...) or client.blockTint(...) call in HempdustryClient.
 
     Every call, not the first: the crops have their own provider (it reads the light record) beside
     the one the wild flowers share, and a checker that stopped at the first call reported both
@@ -39,12 +40,11 @@ def registered_blocks():
     and not a biome tint, so a name followed by ``.`` is skipped.
     """
     source = CLIENT.read_text(encoding="utf-8")
-    marker = "client.blockColor("
-    start = source.find(marker)
-    if start < 0:
-        sys.exit("no client.blockColor(...) call in HempdustryClient")
+    calls = [m.start() for m in re.finditer(r"client\.block(?:Color|Tint)\(", source)]
+    if not calls:
+        sys.exit("no client.blockColor(...) or client.blockTint(...) call in HempdustryClient")
     names = set()
-    while start >= 0:
+    for start in calls:
         depth, i = 0, source.index("(", start)
         for i in range(i, len(source)):
             depth += (source[i] == "(") - (source[i] == ")")
@@ -53,7 +53,6 @@ def registered_blocks():
         args = source[start:i]
         args = args[args.rfind("}") + 1:]
         names |= {name.lower() for name in re.findall(r"ModBlocks\.([A-Z0-9_]+)\b(?!\.)", args)}
-        start = source.find(marker, i)
     return names
 
 

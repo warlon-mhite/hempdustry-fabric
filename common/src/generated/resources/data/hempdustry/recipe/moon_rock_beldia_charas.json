@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "misc",
   "group": "moon_rock",
   "ingredients": [
     "hempdustry:beldia_buds",
@@ -22,7 +21,6 @@
         ]
       }
     },
-    "count": 1,
     "id": "hempdustry:moon_rock"
   }
 }

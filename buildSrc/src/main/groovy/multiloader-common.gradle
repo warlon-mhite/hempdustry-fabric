@@ -1,4 +1,4 @@
-// What every project of the mod shares: Java 21, the repositories, the version and the jar's licences.
+// What every project of the mod shares: Java 25, the repositories, the version and the jar's licences.
 plugins {
 	id 'java-library'
 	id 'maven-publish'
@@ -17,7 +17,7 @@ base {
 }
 
 java {
-	toolchain.languageVersion = JavaLanguageVersion.of(21)
+	toolchain.languageVersion = JavaLanguageVersion.of(25)
 	withSourcesJar()
 }
 
@@ -53,7 +53,7 @@ repositories {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	options.release = 21
+	options.release = 25
 	// Pinned rather than inherited: several source files carry non-ASCII characters, and the
 	// platform default differs on a Windows contributor's machine.
 	options.encoding = 'UTF-8'

@@ -1,4 +1,4 @@
-accessWidener v2 named
+accessWidener v2 official
 
 # What the mod's own code reaches in vanilla that vanilla keeps closed. Fabric API happens to open
 # all of these for itself too; naming them here means the mod does not lean on that, and the same
@@ -14,3 +14,12 @@ accessible method net/minecraft/world/level/block/TrapDoorBlock <init> (Lnet/min
 # Which tabs a stack shows in: the creative tab puts showcase stacks in the tab and leaves the
 # search tab the plain ones.
 accessible class net/minecraft/world/item/CreativeModeTab$TabVisibility
+# The output the tab's items are handed to, protected since 26.1.
+accessible class net/minecraft/world/item/CreativeModeTab$Output
+
+# The water cauldron's interactions: since 26.1 they live in a dispatcher whose put is package-private,
+# and vanilla's own registrations are its only callers.
+accessible method net/minecraft/core/cauldron/CauldronInteraction$Dispatcher put (Lnet/minecraft/world/item/Item;Lnet/minecraft/core/cauldron/CauldronInteraction;)V
+
+# A block's fire odds on NeoForge, which reads vanilla's own table (Fabric has a registry for it).
+accessible method net/minecraft/world/level/block/FireBlock setFlammable (Lnet/minecraft/world/level/block/Block;II)V

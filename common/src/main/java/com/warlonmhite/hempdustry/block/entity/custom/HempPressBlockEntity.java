@@ -156,7 +156,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         }
         SingleRecipeInput input = new SingleRecipeInput(stack);
         return Services.RECIPES.firstMatch(world, ModRecipes.PRESSING_TYPE, input)
-                .map(entry -> entry.value().assemble(input, world.registryAccess()))
+                .map(entry -> entry.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 

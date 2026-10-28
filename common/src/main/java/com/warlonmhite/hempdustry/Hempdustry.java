@@ -33,7 +33,7 @@ import com.warlonmhite.hempdustry.world.gen.ModWorldGeneration;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.level.block.BedBlock;
-import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.BlockEntityTypes;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,12 +158,12 @@ public class Hempdustry {
 
 		registerFlammables(registration);
 
-		registration.addValidBlocks(BlockEntityType.SIGN, ModBlocks.HEMP_PLANKS_SIGN);
-		registration.addValidBlocks(BlockEntityType.SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN);
-		registration.addValidBlocks(BlockEntityType.HANGING_SIGN, ModBlocks.HEMP_PLANKS_HANGING_SIGN);
-		registration.addValidBlocks(BlockEntityType.HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
+		registration.addValidBlocks(BlockEntityTypes.SIGN, ModBlocks.HEMP_PLANKS_SIGN);
+		registration.addValidBlocks(BlockEntityTypes.SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN);
+		registration.addValidBlocks(BlockEntityTypes.HANGING_SIGN, ModBlocks.HEMP_PLANKS_HANGING_SIGN);
+		registration.addValidBlocks(BlockEntityTypes.HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
 		// The shelf is vanilla's block and keeps vanilla's block entity, and so its renderer.
-		registration.addValidBlocks(BlockEntityType.SHELF, ModBlocks.HEMP_PLANKS_SHELF);
+		registration.addValidBlocks(BlockEntityTypes.SHELF, ModBlocks.HEMP_PLANKS_SHELF);
 
 		// A villager's home is any bed head, the way vanilla lists its own sixteen.
 		PointOfInterestTypesAccessor.hempdustry$registerStates(

@@ -2,10 +2,10 @@ package com.warlonmhite.hempdustry.recipe;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
@@ -34,7 +34,7 @@ import net.minecraft.world.level.Level;
  * <p>Not in the recipe book: the book only knows the crafting types, and a machine recipe there would
  * be an entry the player could not click. Recipe viewers read the type directly.
  */
-public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
+public record DecarboxylatingRecipe(Ingredient ingredient, ItemStackTemplate result)
         implements Recipe<SingleRecipeInput> {
 
     @Override
@@ -43,8 +43,8 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
     }
 
     @Override
-    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider lookup) {
-        return result.copy();
+    public ItemStack assemble(SingleRecipeInput input) {
+        return result.create();
     }
 
     /** One slot, one ingredient — the shape a recipe viewer reads off this. */
@@ -56,6 +56,16 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
     @Override
     public boolean isSpecial() {
         return true;
+    }
+
+    @Override
+    public boolean showNotification() {
+        return true;
+    }
+
+    @Override
+    public String group() {
+        return "";
     }
 
     /**
@@ -77,25 +87,14 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
         return ModRecipes.DECARBOXYLATING_TYPE;
     }
 
-    public static class Serializer implements RecipeSerializer<DecarboxylatingRecipe> {
-        private static final MapCodec<DecarboxylatingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.CODEC.fieldOf("ingredient").forGetter(DecarboxylatingRecipe::ingredient),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(DecarboxylatingRecipe::result)
-        ).apply(instance, DecarboxylatingRecipe::new));
+    /** The recipe's JSON; {@link ModRecipes} makes its serializer of this and {@link #STREAM_CODEC}. */
+    public static final MapCodec<DecarboxylatingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Ingredient.CODEC.fieldOf("ingredient").forGetter(DecarboxylatingRecipe::ingredient),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(DecarboxylatingRecipe::result)
+    ).apply(instance, DecarboxylatingRecipe::new));
 
-        private static final StreamCodec<RegistryFriendlyByteBuf, DecarboxylatingRecipe> PACKET_CODEC = StreamCodec.composite(
-                Ingredient.CONTENTS_STREAM_CODEC, DecarboxylatingRecipe::ingredient,
-                ItemStack.STREAM_CODEC, DecarboxylatingRecipe::result,
-                DecarboxylatingRecipe::new);
-
-        @Override
-        public MapCodec<DecarboxylatingRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, DecarboxylatingRecipe> streamCodec() {
-            return PACKET_CODEC;
-        }
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, DecarboxylatingRecipe> STREAM_CODEC = StreamCodec.composite(
+            Ingredient.CONTENTS_STREAM_CODEC, DecarboxylatingRecipe::ingredient,
+            ItemStackTemplate.STREAM_CODEC, DecarboxylatingRecipe::result,
+            DecarboxylatingRecipe::new);
 }

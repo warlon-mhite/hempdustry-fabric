@@ -14,6 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -22,14 +23,13 @@ import net.minecraft.world.level.storage.loot.ValidationContext;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntries;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntry;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
-import net.minecraft.world.level.storage.loot.entries.LootPoolEntryType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 public class ModLootEntryTypes {
 
-    public static final LootPoolEntryType SPOILING = Registry.register(BuiltInRegistries.LOOT_POOL_ENTRY_TYPE,
-            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "spoiling"), new LootPoolEntryType(SpoilingEntry.CODEC));
+    public static final MapCodec<SpoilingEntry> SPOILING = Registry.register(BuiltInRegistries.LOOT_POOL_ENTRY_TYPE,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "spoiling"), SpoilingEntry.CODEC);
 
     public static void registerLootEntryTypes() {
         Hempdustry.LOGGER.info("Registering Loot Entry Types for " + Hempdustry.MOD_ID);
@@ -100,7 +100,7 @@ public class ModLootEntryTypes {
         }
 
         @Override
-        public LootPoolEntryType getType() {
+        public MapCodec<SpoilingEntry> codec() {
             return SPOILING;
         }
 
@@ -153,7 +153,7 @@ public class ModLootEntryTypes {
         }
 
         private int level(LootContext context) {
-            ItemStack tool = context.getOptionalParameter(LootContextParams.TOOL);
+            ItemInstance tool = context.getOptionalParameter(LootContextParams.TOOL);
             return enchantment.isPresent() && tool != null ? EnchantmentHelper.getItemEnchantmentLevel(enchantment.get(), tool) : 0;
         }
 

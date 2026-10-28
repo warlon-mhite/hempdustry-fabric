@@ -49,6 +49,6 @@ public class SativaFlower extends DoublePlantBlock {
 
     @Override
     protected boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
-        return floor.is(BlockTags.DRY_VEGETATION_MAY_PLACE_ON) || super.mayPlaceOn(floor, world, pos);
+        return floor.is(BlockTags.SUPPORTS_DRY_VEGETATION) || super.mayPlaceOn(floor, world, pos);
     }
 }

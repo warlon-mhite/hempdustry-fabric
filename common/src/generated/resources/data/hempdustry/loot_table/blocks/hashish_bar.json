@@ -2,7 +2,6 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -21,7 +20,6 @@
       "rolls": 1.0
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -36,7 +34,6 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
               "count": 7.0,
               "function": "minecraft:set_count"
             }
@@ -47,7 +44,6 @@
       "rolls": 1.0
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -62,7 +58,6 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
               "count": 5.0,
               "function": "minecraft:set_count"
             }
@@ -73,7 +68,6 @@
       "rolls": 1.0
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -88,7 +82,6 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
               "count": 3.0,
               "function": "minecraft:set_count"
             }
@@ -99,7 +92,6 @@
       "rolls": 1.0
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -114,7 +106,6 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
               "count": 1.0,
               "function": "minecraft:set_count"
             }

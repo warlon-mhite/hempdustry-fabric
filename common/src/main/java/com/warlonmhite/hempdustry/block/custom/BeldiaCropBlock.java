@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
  * <h2>Water: farmland's reach, farmland's forgiveness</h2>
  *
  * The water it needs is anywhere in <b>farmland's own hydration box</b> around the sand — four blocks
- * out, level with the sand or one above ({@code FarmBlock#isNearWater}) — so there is one rule
+ * out, level with the sand or one above ({@code FarmlandBlock#isNearWater}) — so there is one rule
  * for a player to learn, not two. It is asked in two places and <b>never in {@code canSurvive}</b>:
  *
  * <ul>
@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class BeldiaCropBlock extends IndicaCropBlock {
 
-    /** Farmland's hydration reach, horizontally ({@code FarmBlock#isNearWater}). */
+    /** Farmland's hydration reach, horizontally ({@code FarmlandBlock#isNearWater}). */
     public static final int WATER_REACH = 4;
 
     /** A lone plant on sand with water in reach reads as a lone plant on wet farmland. */

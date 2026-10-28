@@ -5,7 +5,6 @@ import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -19,7 +18,7 @@ public class ModRecipes {
     public static final RecipeSerializer<PackingRecipe> PACKING = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "packing"),
-            new CustomRecipe.Serializer<>(PackingRecipe::new));
+            new RecipeSerializer<>(PackingRecipe.MAP_CODEC, PackingRecipe.STREAM_CODEC));
 
     /**
      * Shapeless, but the ingredients' containers travel into the result rather than being handed
@@ -29,7 +28,7 @@ public class ModRecipes {
     public static final RecipeSerializer<ContainerCarriedRecipe> CONTAINER_CARRIED = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "container_carried"),
-            new ContainerCarriedRecipe.Serializer());
+            new RecipeSerializer<>(ContainerCarriedRecipe.MAP_CODEC, ContainerCarriedRecipe.STREAM_CODEC));
 
     /**
      * Shaped and shapeless recipes that carry cannabutter's potency and quality onto the edible they
@@ -39,12 +38,12 @@ public class ModRecipes {
     public static final RecipeSerializer<InfusedShapedRecipe> INFUSED_SHAPED = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "infused_shaped"),
-            new InfusedShapedRecipe.Serializer());
+            new RecipeSerializer<>(InfusedShapedRecipe.MAP_CODEC, InfusedShapedRecipe.STREAM_CODEC));
 
     public static final RecipeSerializer<InfusedShapelessRecipe> INFUSED_SHAPELESS = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "infused_shapeless"),
-            new InfusedShapelessRecipe.Serializer());
+            new RecipeSerializer<>(InfusedShapelessRecipe.MAP_CODEC, InfusedShapelessRecipe.STREAM_CODEC));
 
     /**
      * The two machines' conversions, as real recipe types.
@@ -66,7 +65,7 @@ public class ModRecipes {
     public static final RecipeSerializer<DecarboxylatingRecipe> DECARBOXYLATING = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylating"),
-            new DecarboxylatingRecipe.Serializer());
+            new RecipeSerializer<>(DecarboxylatingRecipe.MAP_CODEC, DecarboxylatingRecipe.STREAM_CODEC));
 
     public static final RecipeType<InfusingRecipe> INFUSING_TYPE = Registry.register(
             BuiltInRegistries.RECIPE_TYPE,
@@ -76,7 +75,7 @@ public class ModRecipes {
     public static final RecipeSerializer<InfusingRecipe> INFUSING = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "infusing"),
-            new InfusingRecipe.Serializer());
+            new RecipeSerializer<>(InfusingRecipe.MAP_CODEC, InfusingRecipe.STREAM_CODEC));
 
     /** What the Hemp Press turns into what — the third machine recipe type. See {@link PressingRecipe}. */
     public static final RecipeType<PressingRecipe> PRESSING_TYPE = Registry.register(
@@ -87,7 +86,7 @@ public class ModRecipes {
     public static final RecipeSerializer<PressingRecipe> PRESSING = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "pressing"),
-            new PressingRecipe.Serializer());
+            new RecipeSerializer<>(PressingRecipe.MAP_CODEC, PressingRecipe.STREAM_CODEC));
 
     /**
      * A bare {@code RecipeType}, ready to be registered.
@@ -129,5 +128,6 @@ public class ModRecipes {
         Services.REGISTRATION.syncRecipes(DECARBOXYLATING_TYPE, DECARBOXYLATING);
         Services.REGISTRATION.syncRecipes(INFUSING_TYPE, INFUSING);
         Services.REGISTRATION.syncRecipes(PRESSING_TYPE, PRESSING);
+        PackingRecipe.trackServerRegistries();
     }
 }

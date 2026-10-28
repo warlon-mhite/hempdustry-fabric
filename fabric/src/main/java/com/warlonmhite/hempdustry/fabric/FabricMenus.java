@@ -1,8 +1,8 @@
 package com.warlonmhite.hempdustry.fabric;
 
 import com.warlonmhite.hempdustry.platform.Menus;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,7 +17,7 @@ public final class FabricMenus implements Menus {
     @Override
     public <T extends AbstractContainerMenu, D> MenuType<T> menuType(
             Factory<T, D> factory, StreamCodec<? super RegistryFriendlyByteBuf, D> codec) {
-        return new ExtendedScreenHandlerType<>(factory::create, codec);
+        return new ExtendedMenuType<>(factory::create, codec);
     }
 
     @Override
@@ -26,7 +26,7 @@ public final class FabricMenus implements Menus {
     }
 
     /** {@code provider} in every respect, with {@code data} to write to the opening packet. */
-    private record WithData<D>(MenuProvider provider, D data) implements ExtendedScreenHandlerFactory<D> {
+    private record WithData<D>(MenuProvider provider, D data) implements ExtendedMenuProvider<D> {
         @Override
         public D getScreenOpeningData(ServerPlayer player) {
             return data;

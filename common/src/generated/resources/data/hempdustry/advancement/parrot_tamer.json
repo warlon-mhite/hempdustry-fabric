@@ -8,7 +8,7 @@
             "condition": "minecraft:entity_properties",
             "entity": "this",
             "predicate": {
-              "type": "minecraft:parrot"
+              "minecraft:entity_type": "minecraft:parrot"
             }
           }
         ],
@@ -25,7 +25,7 @@
             "condition": "minecraft:entity_properties",
             "entity": "this",
             "predicate": {
-              "type": "minecraft:parrot"
+              "minecraft:entity_type": "minecraft:parrot"
             }
           }
         ]
@@ -39,7 +39,6 @@
       "translate": "advancements.hempdustry.parrot_tamer.description"
     },
     "icon": {
-      "count": 1,
       "id": "minecraft:feather"
     },
     "title": {

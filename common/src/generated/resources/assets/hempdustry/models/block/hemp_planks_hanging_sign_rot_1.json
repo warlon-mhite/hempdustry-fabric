@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_hanging_sign_rot_1",
+  "textures": {
+    "all": "hempdustry:block/hemp_planks_hanging_sign",
+    "particle": "hempdustry:block/hemp_planks"
+  }
+}

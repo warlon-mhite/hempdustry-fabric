@@ -12,7 +12,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.util.ModTags;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.advancements.Advancement;
@@ -20,19 +20,19 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.DisplayInfo;
-import net.minecraft.advancements.criterion.BlockPredicate;
-import net.minecraft.advancements.criterion.ConsumeItemTrigger;
-import net.minecraft.advancements.criterion.DataComponentMatchers;
-import net.minecraft.advancements.criterion.EntityPredicate;
-import net.minecraft.advancements.criterion.InventoryChangeTrigger;
-import net.minecraft.advancements.criterion.ItemDurabilityTrigger;
-import net.minecraft.advancements.criterion.ItemPredicate;
-import net.minecraft.advancements.criterion.ItemUsedOnLocationTrigger;
-import net.minecraft.advancements.criterion.LocationPredicate;
-import net.minecraft.advancements.criterion.MinMaxBounds;
-import net.minecraft.advancements.criterion.PlayerInteractTrigger;
-import net.minecraft.advancements.criterion.StatePropertiesPredicate;
-import net.minecraft.advancements.criterion.TameAnimalTrigger;
+import net.minecraft.advancements.predicates.BlockPredicate;
+import net.minecraft.advancements.triggers.ConsumeItemTrigger;
+import net.minecraft.advancements.predicates.DataComponentMatchers;
+import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.advancements.triggers.InventoryChangeTrigger;
+import net.minecraft.advancements.triggers.ItemDurabilityTrigger;
+import net.minecraft.advancements.predicates.ItemPredicate;
+import net.minecraft.advancements.triggers.ItemUsedOnLocationTrigger;
+import net.minecraft.advancements.predicates.LocationPredicate;
+import net.minecraft.advancements.predicates.MinMaxBounds;
+import net.minecraft.advancements.triggers.PlayerInteractTrigger;
+import net.minecraft.advancements.predicates.StatePropertiesPredicate;
+import net.minecraft.advancements.triggers.TameAnimalTrigger;
 import net.minecraft.core.ClientAsset;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
@@ -41,9 +41,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
     private static final ClientAsset.ResourceTexture BACKGROUND = new ClientAsset.ResourceTexture(
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/hempcrete_powder_block"));
 
-    public ModAdvancementProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
+    public ModAdvancementProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(output, registryLookup);
     }
 
@@ -111,7 +111,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
 
     private static DisplayInfo display(ItemLike icon, String id, AdvancementType frame,
                                               boolean hidden) {
-        return new DisplayInfo(new ItemStack(icon),
+        return new DisplayInfo(new ItemStackTemplate(icon.asItem()),
                 Component.translatable("advancements.hempdustry." + id + ".title"),
                 Component.translatable("advancements.hempdustry." + id + ".description"),
                 Optional.of(BACKGROUND), frame, true, true, hidden);
@@ -252,11 +252,11 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         Advancement.Builder.advancement()
                 .display(display(Items.FEATHER, "parrot_tamer", AdvancementType.TASK))
                 .addCriterion("tamed_a_parrot", TameAnimalTrigger.TriggerInstance.tamedAnimal(
-                        EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityType.PARROT)))
+                        EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityTypes.PARROT)))
                 .addCriterion("fed_a_parrot_hemp_seeds", PlayerInteractTrigger.TriggerInstance.itemUsedOnEntity(
                         ItemPredicate.Builder.item().of(items(registryLookup), ModTags.Items.HEMP_SEEDS),
                         Optional.of(EntityPredicate.wrap(
-                                EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityType.PARROT)))))
+                                EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityTypes.PARROT)))))
                 .parent(rootAdvancement)
                 .save(consumer, Hempdustry.MOD_ID + ":parrot_tamer");
 
@@ -303,7 +303,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // ticks of a day genuinely *are* the 420 ticks after getting up. It also catches anyone who
         // stayed up through the night and lit one at sunrise, which is if anything more on-theme.
         Advancement.Builder.advancement()
-                .display(display(Items.RED_BED, "wake_and_bake", AdvancementType.CHALLENGE, true))
+                .display(display(Items.BED.red(), "wake_and_bake", AdvancementType.CHALLENGE, true))
                 .addCriterion("smoked_at_dawn", SmokeCriterion.Conditions.during(0L, 420L))
                 .parent(firstContact)
                 .save(consumer, Hempdustry.MOD_ID + ":wake_and_bake");

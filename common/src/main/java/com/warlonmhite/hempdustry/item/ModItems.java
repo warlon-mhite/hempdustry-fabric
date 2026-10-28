@@ -91,7 +91,8 @@ public class ModItems {
      * {@link ModTags.BannerPatterns#HEMP_LEAF_PATTERN_ITEM}.
      */
     public static final Item HEMP_LEAF = registerItem("hemp_leaf", settings -> new Item(
-            settings.component(DataComponents.PROVIDES_BANNER_PATTERNS, ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM)));
+            settings.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS,
+                    context -> context.getOrThrow(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM))));
 
     // The cannabutter chain's two intermediates. Both are strain-agnostic: every strain's buds and
     // the leaf all decarboxylate to the same thing, so the pipeline downstream stays a single line
@@ -662,9 +663,13 @@ public class ModItems {
     /** The exact stack {@code ModRecipeProvider} bakes, so the tab and the recipe cannot disagree. */
     public static ItemStack moonRock(Holder<Strain> strain, Holder<Strain> hashish) {
         ItemStack stack = new ItemStack(MOON_ROCK);
-        stack.set(ModComponents.SMOKE_CONTENTS,
-                SmokeContents.of(strain, MOON_ROCK_DOSE, hashish, MOON_ROCK_HASH_DOSE));
+        stack.set(ModComponents.SMOKE_CONTENTS, moonRockContents(strain, hashish));
         return stack;
+    }
+
+    /** What a moon rock of {@code strain} coated in {@code hashish} carries: one place says it. */
+    public static SmokeContents moonRockContents(Holder<Strain> strain, Holder<Strain> hashish) {
+        return SmokeContents.of(strain, MOON_ROCK_DOSE, hashish, MOON_ROCK_HASH_DOSE);
     }
 
     /**

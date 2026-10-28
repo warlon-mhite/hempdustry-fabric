@@ -107,7 +107,7 @@ public final class ViewerRecipes {
         List<Entry> out = new ArrayList<>();
         for (RecipeHolder<DecarboxylatingRecipe> entry : ModRecipes.allOfType(world, ModRecipes.DECARBOXYLATING_TYPE)) {
             DecarboxylatingRecipe recipe = entry.value();
-            out.add(new Entry(entry.id().identifier(), List.of(recipe.ingredient()), recipe.result(),
+            out.add(new Entry(entry.id().identifier(), List.of(recipe.ingredient()), recipe.result().create(),
                     List.of(Component.translatable("hempdustry.category.decarboxylating.info",
                             seconds(DecarboxylatorBlockEntity.cookTime()))),
                     false));
@@ -147,7 +147,7 @@ public final class ViewerRecipes {
                 notes.add(Component.translatable("hempdustry.category.infusing.scorched",
                         InfuserBlockEntity.SCORCHED_PER_STRENGTH));
             });
-            out.add(new Entry(entry.id().identifier(), inputs, recipe.result(), notes, false));
+            out.add(new Entry(entry.id().identifier(), inputs, recipe.result().create(), notes, false));
         }
         return out;
     }
@@ -157,7 +157,7 @@ public final class ViewerRecipes {
         List<Entry> out = new ArrayList<>();
         for (RecipeHolder<PressingRecipe> entry : ModRecipes.allOfType(world, ModRecipes.PRESSING_TYPE)) {
             PressingRecipe recipe = entry.value();
-            out.add(new Entry(entry.id().identifier(), List.of(recipe.ingredient()), recipe.result(),
+            out.add(new Entry(entry.id().identifier(), List.of(recipe.ingredient()), recipe.result().create(),
                     List.of(Component.translatable("hempdustry.category.pressing.heat"),
                             Component.translatable("hempdustry.category.pressing.info",
                                     seconds(HempPressBlockEntity.pressTime()))),

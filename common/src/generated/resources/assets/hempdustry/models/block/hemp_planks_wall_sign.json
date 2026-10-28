@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_wall_sign",
+  "textures": {
+    "all": "hempdustry:block/hemp_planks_sign",
+    "particle": "hempdustry:block/hemp_planks"
+  }
+}

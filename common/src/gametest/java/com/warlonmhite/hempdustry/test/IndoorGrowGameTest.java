@@ -27,7 +27,7 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -202,8 +202,8 @@ public final class IndoorGrowGameTest {
         classify(context, ModBlocks.GROW_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit Grow Lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit redstone lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit redstone lamp");
-        classify(context, Blocks.COPPER_BULB.defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit copper bulb");
-        classify(context, Blocks.OXIDIZED_COPPER_BULB.defaultBlockState().setValue(BlockStateProperties.LIT, true),
+        classify(context, Blocks.COPPER_BULB.weathering().unaffected().defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit copper bulb");
+        classify(context, Blocks.COPPER_BULB.weathering().oxidized().defaultBlockState().setValue(BlockStateProperties.LIT, true),
                 GrowLight.NATURAL, "a lit oxidised copper bulb (light 4)");
         classify(context, Blocks.GLOWSTONE.defaultBlockState(), GrowLight.AMBIENT, "glowstone");
         classify(context, Blocks.SEA_LANTERN.defaultBlockState(), GrowLight.AMBIENT, "a sea lantern");
@@ -544,7 +544,7 @@ public final class IndoorGrowGameTest {
     // ----- helpers -----
 
     private static BlockState moistFarmland() {
-        return Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE);
+        return Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE);
     }
 
     private static BlockState litGrowLamp() {

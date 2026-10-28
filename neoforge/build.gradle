@@ -21,10 +21,6 @@ neoForge {
 	// What the mod reaches in vanilla that vanilla keeps closed: common's list, the same as Fabric's
 	// access widener. It ships in the jar from common's resources, where NeoForge looks for it.
 	accessTransformers.from(project(':common').file('src/main/resources/META-INF/accesstransformer.cfg'))
-	parchment {
-		minecraftVersion = parchment_minecraft
-		mappingsVersion = parchment_version
-	}
 
 	mods {
 		hempdustry {

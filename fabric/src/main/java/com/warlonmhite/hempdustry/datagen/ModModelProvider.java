@@ -8,11 +8,12 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.math.Transformation;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
@@ -32,10 +33,11 @@ import net.minecraft.client.renderer.item.SelectItemModel;
 import net.minecraft.client.renderer.item.properties.numeric.UseDuration;
 import net.minecraft.client.renderer.item.properties.select.DisplayContext;
 import net.minecraft.client.renderer.item.properties.select.TrimMaterialProperty;
-import net.minecraft.client.renderer.special.BedSpecialRenderer;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.BlockFamily;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
@@ -43,6 +45,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CakeBlock;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import com.warlonmhite.hempdustry.client.item.StrainModelIndexProperty;
 import com.warlonmhite.hempdustry.client.item.StrainTintSource;
@@ -56,6 +59,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import org.joml.Vector3f;
 
 public class ModModelProvider extends FabricModelProvider {
     /**
@@ -67,7 +71,7 @@ public class ModModelProvider extends FabricModelProvider {
      */
     private final CompletableFuture<HolderLookup.Provider> registryLookup;
 
-    public ModModelProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
+    public ModModelProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(output);
         this.registryLookup = registryLookup;
     }
@@ -76,6 +80,14 @@ public class ModModelProvider extends FabricModelProvider {
     public void generateBlockStateModels(BlockModelGenerators blockStateModelGenerator) {
         BlockModelGenerators.BlockFamilyProvider hempBricksPool = blockStateModelGenerator.family(ModBlocks.HEMP_BRICKS_BLOCK);
         BlockModelGenerators.BlockFamilyProvider hempPlanksPool = blockStateModelGenerator.family(ModBlocks.HEMP_PLANKS);
+        // The signs, as vanilla makes its own since 26.2: block models on the sign templates, every
+        // rotation and the wall form, from block/hemp_planks_sign and block/hemp_planks_hanging_sign
+        // (the old entity sheets cut the way vanilla cut its woods'), and the flat items. The hanging
+        // sign is the custom kind, its particle the planks: hemp has no stripped log to take it from.
+        hempPlanksPool.generateFor(new BlockFamily.Builder(ModBlocks.HEMP_PLANKS)
+                .sign(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN)
+                .customHangingSign(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN)
+                .getFamily());
         blockStateModelGenerator.createTrivialCube(ModBlocks.HEMPCRETE_BLOCK);
         blockStateModelGenerator.createTrivialCube(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         // Vanilla's own wool+carpet helper — the carpet model reuses the wool texture, same as
@@ -262,8 +274,6 @@ public class ModModelProvider extends FabricModelProvider {
                 itemModelGenerator.modelOutput);
         itemModelGenerator.itemModelOutput.accept(ModItems.MOON_ROCK, strainTinted(moonRock));
 
-        itemModelGenerator.generateFlatItem(ModItems.HEMP_PLANKS_SIGN, ModelTemplates.FLAT_ITEM);
-        itemModelGenerator.generateFlatItem(ModItems.HEMP_PLANKS_HANGING_SIGN, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.HEMP_HARNESS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.HEMP_BOAT, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.HEMP_CHEST_BOAT, ModelTemplates.FLAT_ITEM);
@@ -293,15 +303,16 @@ public class ModModelProvider extends FabricModelProvider {
      */
     private static void registerDyeableArmor(ItemModelGenerators generator, Item item, Identifier trimPrefix) {
         Identifier model = ModelLocationUtils.getModelLocation(item);
-        Identifier cloth = TextureMapping.getItemTexture(item, "_dyeable");
-        Identifier drawn = TextureMapping.getItemTexture(item);
+        Material cloth = TextureMapping.getItemTexture(item, "_dyeable");
+        Material drawn = TextureMapping.getItemTexture(item);
         Dye dye = new Dye(ModArmorMaterials.HEMP_UNDYED_COLOR);
         List<SelectItemModel.SwitchCase<ResourceKey<TrimMaterial>>> trims = new ArrayList<>();
         for (ItemModelGenerators.TrimMaterialData trim : ItemModelGenerators.TRIM_MATERIAL_MODELS) {
             Identifier trimmed = model.withSuffix("_" + trim.assets().base().suffix() + "_trim");
-            Identifier trimTexture = trimPrefix.withSuffix(
-                    "_" + trim.assets().assetId(ModArmorMaterials.HEMP_EQUIPMENT_ASSET).suffix());
-            generator.generateLayeredItem(trimmed, cloth, drawn, trimTexture);
+            Material trimTexture = new Material(trimPrefix.withSuffix(
+                    "_" + trim.assets().assetId(ModArmorMaterials.HEMP_EQUIPMENT_ASSET).suffix()));
+            ModelTemplates.THREE_LAYERED_ITEM.create(trimmed, TextureMapping.layered(cloth, drawn, trimTexture),
+                    generator.modelOutput);
             trims.add(ItemModelUtils.when(trim.materialKey(), ItemModelUtils.tintedModel(trimmed, dye)));
         }
         Identifier plain = ModelTemplates.TWO_LAYERED_ITEM.create(model, TextureMapping.layered(cloth, drawn),
@@ -397,7 +408,7 @@ public class ModModelProvider extends FabricModelProvider {
             .toList();
 
     private static TextureMapping bongTextures(String name) {
-        return new TextureMapping().put(BONG_SHEET, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/" + name));
+        return new TextureMapping().put(BONG_SHEET, new Material(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/" + name)));
     }
 
     /**
@@ -426,15 +437,15 @@ public class ModModelProvider extends FabricModelProvider {
     /** White: a tint is a multiply, so this leaves a layer exactly as it was drawn. */
     private static final int NO_TINT = 0xFFFFFF;
 
-    private static Identifier texture(String name) {
-        return Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/" + name);
+    private static Material texture(String name) {
+        return new Material(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/" + name));
     }
 
     private static Identifier spliffModel(ResourceKey<Strain> strain) {
         return Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/spliff_" + ModStrains.id(strain));
     }
 
-    private static void uploadGenerated(ItemModelGenerators generator, Identifier modelId, Identifier texture) {
+    private static void uploadGenerated(ItemModelGenerators generator, Identifier modelId, Material texture) {
         ModelTemplates.FLAT_ITEM.create(modelId, TextureMapping.layer0(texture), generator.modelOutput);
     }
 
@@ -448,19 +459,33 @@ public class ModModelProvider extends FabricModelProvider {
      * to the generator's model collector.
      */
     /**
-     * Vanilla's {@code registerBed}, which only takes a {@code DyeColor}. The block points at
-     * vanilla's own particle-only {@code block/bed} model, as all sixteen beds do (the renderer draws
-     * the bed); the item is vanilla's {@code minecraft:bed} special model given the hemp texture by
-     * id, with hemp wool for its particle the way each vanilla bed item uses its wool.
+     * Vanilla's {@code createBed}, which only takes a {@code DyeColor}: since 26.2 a bed is a block
+     * model, a head and a foot made from the bed templates and seven face textures of its own
+     * ({@code block/hemp_bed_<part>_<face>}, cut from the old entity texture exactly as vanilla cut
+     * its beds'), turned to each facing; the headboard end and the underside are vanilla's shared
+     * {@code bed_head_north} and {@code bed_down}. The item is the two halves laid end to end.
      */
     private static void registerHempBed(BlockModelGenerators generator) {
-        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(ModBlocks.HEMP_BED,
-                BlockModelGenerators.plainVariant(ModelLocationUtils.decorateBlockModelLocation("bed"))));
-        Item bed = ModBlocks.HEMP_BED.asItem();
-        Identifier model = ModelTemplates.BED_INVENTORY.create(ModelLocationUtils.getModelLocation(bed),
-                TextureMapping.particle(ModBlocks.HEMP_WOOL), generator.modelOutput);
-        generator.itemModelOutput.accept(bed, ItemModelUtils.specialModel(model,
-                new BedSpecialRenderer.Unbaked(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp"))));
+        Block bed = ModBlocks.HEMP_BED;
+        Identifier head = ModelTemplates.BED_HEAD.createWithSuffix(bed, "_" + BedPart.HEAD,
+                TextureMapping.bed(bed, BedPart.HEAD), generator.modelOutput);
+        Identifier foot = ModelTemplates.BED_FOOT.createWithSuffix(bed, "_" + BedPart.FOOT,
+                TextureMapping.bed(bed, BedPart.FOOT), generator.modelOutput);
+        MultiVariant headModel = BlockModelGenerators.plainVariant(head);
+        MultiVariant footModel = BlockModelGenerators.plainVariant(foot);
+        generator.blockStateOutput.accept(MultiVariantGenerator.dispatch(bed).with(
+                PropertyDispatch.initial(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.BED_PART)
+                        .select(Direction.NORTH, BedPart.HEAD, headModel)
+                        .select(Direction.SOUTH, BedPart.HEAD, headModel.with(BlockModelGenerators.Y_ROT_180))
+                        .select(Direction.EAST, BedPart.HEAD, headModel.with(BlockModelGenerators.Y_ROT_90))
+                        .select(Direction.WEST, BedPart.HEAD, headModel.with(BlockModelGenerators.Y_ROT_270))
+                        .select(Direction.NORTH, BedPart.FOOT, footModel)
+                        .select(Direction.SOUTH, BedPart.FOOT, footModel.with(BlockModelGenerators.Y_ROT_180))
+                        .select(Direction.EAST, BedPart.FOOT, footModel.with(BlockModelGenerators.Y_ROT_90))
+                        .select(Direction.WEST, BedPart.FOOT, footModel.with(BlockModelGenerators.Y_ROT_270))));
+        Transformation footTransformation = new Transformation(new Vector3f(0.0F, 0.0F, 1.0F), null, null, null);
+        generator.itemModelOutput.accept(bed.asItem(), ItemModelUtils.composite(
+                ItemModelUtils.plainModel(head), ItemModelUtils.plainModel(foot, footTransformation)));
     }
 
     private static void registerSpaceCake(BlockModelGenerators generator) {
@@ -477,7 +502,7 @@ public class ModModelProvider extends FabricModelProvider {
         // The item is the whole, uneaten cake, exactly as vanilla's cake item is.
         generator.registerSimpleItemModel(ModBlocks.SPACE_CAKE.asItem(),
                 ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(ModBlocks.SPACE_CAKE.asItem()),
-                        TextureMapping.layer0(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/space_cake")),
+                        TextureMapping.layer0(new Material(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/space_cake"))),
                         generator.modelOutput));
     }
 

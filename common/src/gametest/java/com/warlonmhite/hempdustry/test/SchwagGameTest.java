@@ -196,16 +196,14 @@ public final class SchwagGameTest {
         ServerLevel world = context.getLevel();
         ItemStack oven = world.recipeAccess()
                 .getRecipeFor(ModRecipes.DECARBOXYLATING_TYPE, new SingleRecipeInput(new ItemStack(ModItems.SCHWAG)), world)
-                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(ModItems.SCHWAG)),
-                        world.registryAccess()))
+                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(ModItems.SCHWAG))))
                 .orElse(ItemStack.EMPTY);
         context.assertTrue(oven.is(ModItems.DECARBOXYLATED_HEMP) && oven.getCount() == 2,
                 "the oven made " + oven + " of a schwag, not 2 decarboxylated hemp");
 
         ItemStack furnace = world.recipeAccess()
                 .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(new ItemStack(ModItems.SCHWAG)), world)
-                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(ModItems.SCHWAG)),
-                        world.registryAccess()))
+                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(ModItems.SCHWAG))))
                 .orElse(ItemStack.EMPTY);
         context.assertTrue(furnace.is(ModItems.SCORCHED_HEMP) && furnace.getCount() == 1,
                 "a furnace made " + furnace + " of a schwag, not one scorched hemp");
@@ -220,7 +218,7 @@ public final class SchwagGameTest {
             CraftingInput grid = CraftingInput.of(3, 3, slots);
             int wanted = dose;
             ItemStack spliff = world.recipeAccess().getRecipeFor(RecipeType.CRAFTING, grid, world)
-                    .map(entry -> entry.value().assemble(grid, world.registryAccess()))
+                    .map(entry -> entry.value().assemble(grid))
                     .orElse(ItemStack.EMPTY);
             SmokeContents contents = spliff.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
             context.assertTrue(spliff.is(ModItems.SPLIFF) && contents.dose() == wanted

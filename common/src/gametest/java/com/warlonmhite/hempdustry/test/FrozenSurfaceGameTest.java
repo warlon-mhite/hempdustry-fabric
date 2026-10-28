@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.SharedConstants;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -49,6 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -105,7 +107,7 @@ public final class FrozenSurfaceGameTest {
         }
         Sweep.atLeast(context, "release baselines in frozen/", baselines, 1);
         Sweep.atLeast(context, "frozen lines in this build", surface.size(), 1000);
-        Sweep.report(context, "Everything a public release froze is still here", findings, retired());
+        Sweep.report(context, "Everything a public release froze is still here", findings, retired(false));
         context.succeed();
     }
 
@@ -126,13 +128,27 @@ public final class FrozenSurfaceGameTest {
         Map<String, String> findings = new TreeMap<>();
         int files = 0;
         int releases = 0;
+        int sameGameReleases = 0;
         for (Map.Entry<String, Path> file : frozenFiles().entrySet()) {
             if (!file.getKey().endsWith(".json")) continue;
             releases++;
             String release = file.getKey().replace(".json", "");
             JsonObject old = Sweep.json(file.getValue()).getAsJsonObject();
 
-            for (Map.Entry<String, JsonElement> data : old.getAsJsonObject("data").entrySet()) {
+            // A data file is written for one Minecraft. Vanilla reshapes its own data from one
+            // version to the next (26.1 took random_patch out of worldgen, 26.2 rewrote entity
+            // predicates), so a datapack is remade for each, and a release's files are held to the
+            // Minecraft it was built for. Stacks, block entities and the config are what a world
+            // and a config folder carry across versions, and are held to every release.
+            JsonElement builtFor = old.get("minecraft");
+            if (builtFor == null) {
+                findings.put(release + " minecraft", "the capture does not say which Minecraft it was taken on");
+                continue;
+            }
+            boolean sameGame = builtFor.getAsString().equals(SharedConstants.getCurrentVersion().name());
+            if (sameGame) sameGameReleases++;
+            for (Map.Entry<String, JsonElement> data : sameGame ? old.getAsJsonObject("data").entrySet()
+                    : Set.<Map.Entry<String, JsonElement>>of()) {
                 files++;
                 Codec<?> codec = codecFor(data.getKey());
                 if (codec == null) {
@@ -164,6 +180,11 @@ public final class FrozenSurfaceGameTest {
                     findings.put(key, "the block is gone");
                     continue;
                 }
+                if (!block.defaultBlockState().hasBlockEntity()) {
+                    // Not loaded: the game would log an unknown type as an error, which fails the run.
+                    findings.put(key, "the block has no block entity any more");
+                    continue;
+                }
                 CompoundTag before = nbt(save.getValue().getAsString());
                 BlockEntity loaded = BlockEntity.loadStatic(pos, block.defaultBlockState(), before.copy(), registries);
                 if (loaded == null) {
@@ -182,9 +203,9 @@ public final class FrozenSurfaceGameTest {
                 }
             });
         }
-        Sweep.atLeast(context, "released data files", files, 300);
+        Sweep.atLeast(context, "released data files", files, sameGameReleases > 0 ? 300 : 0);
         Sweep.atLeast(context, "releases in frozen/", releases, 1);
-        Sweep.report(context, "What a public release wrote still loads", findings, Map.of());
+        Sweep.report(context, "What a public release wrote still loads", findings, retired(true));
         context.succeed();
     }
 
@@ -262,6 +283,7 @@ public final class FrozenSurfaceGameTest {
         ServerLevel world = context.getLevel();
         RegistryAccess registries = world.registryAccess();
         JsonObject out = new JsonObject();
+        out.addProperty("minecraft", SharedConstants.getCurrentVersion().name());
 
         JsonObject data = new JsonObject();
         Sweep.modFiles().forEach((file, path) -> {
@@ -357,14 +379,18 @@ public final class FrozenSurfaceGameTest {
         return copy;
     }
 
-    /** {@code frozen/retired.txt}: a line each, then two spaces, a {@code #} and how old worlds survive it. */
-    private static Map<String, String> retired() {
+    /**
+     * {@code frozen/retired.txt}: a line each, then two spaces, a {@code #} and how old worlds survive it.
+     * A line that opens with a release ({@code 2.1.0 hempdustry:hemp_bed}) excuses a finding of
+     * {@link #oldDataStillLoads}, any other a frozen line; {@code oldData} picks which.
+     */
+    private static Map<String, String> retired(boolean oldData) {
         Map<String, String> retired = new TreeMap<>();
         Path file = frozenFiles().get("retired.txt");
         if (file == null) return retired;
         for (String line : text(file).lines().toList()) {
             int reason = line.indexOf("  # ");
-            if (!line.isBlank() && !line.startsWith("#")) {
+            if (!line.isBlank() && !line.startsWith("#") && Character.isDigit(line.charAt(0)) == oldData) {
                 retired.put(reason < 0 ? line.strip() : line.substring(0, reason).strip(),
                         reason < 0 ? "(no reason given)" : line.substring(reason + 4).strip());
             }

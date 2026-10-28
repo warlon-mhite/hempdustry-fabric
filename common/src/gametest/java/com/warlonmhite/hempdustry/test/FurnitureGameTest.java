@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
-import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,6 +9,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
@@ -45,8 +45,6 @@ public final class FurnitureGameTest {
         context.setBlock(foot, headState.setValue(BedBlock.PART, BedPart.FOOT));
         context.setBlock(head, headState);
 
-        // Throws if the head has no block entity of ours, which is the one the bed is drawn from.
-        context.getBlockEntity(head, HempBedBlockEntity.class);
         context.assertTrue(headState.is(BlockTags.BEDS),
                 "the hemp bed is not in #minecraft:beds, which a villager's sleep task checks");
 
@@ -121,12 +119,12 @@ public final class FurnitureGameTest {
      */
     public static void aHempHarnessFitsAHappyGhast(GameTestHelper context) {
         ItemStack harness = new ItemStack(ModItems.HEMP_HARNESS);
-        HappyGhast ghast = context.spawn(EntityType.HAPPY_GHAST, new BlockPos(2, 2, 2));
+        HappyGhast ghast = context.spawn(EntityTypes.HAPPY_GHAST, new BlockPos(2, 2, 2));
         context.assertTrue(ghast.isEquippableInSlot(harness, EquipmentSlot.BODY),
                 "a happy ghast will not wear the Hemp Harness");
         context.assertTrue(harness.is(ItemTags.HARNESSES),
                 "the Hemp Harness is not in #minecraft:harnesses, so a ghast wearing it draws no ropes");
-        var llama = context.spawn(EntityType.LLAMA, new BlockPos(5, 1, 5));
+        var llama = context.spawn(EntityTypes.LLAMA, new BlockPos(5, 1, 5));
         llama.setTamed(true);
         context.assertFalse(llama.isEquippableInSlot(harness, EquipmentSlot.BODY),
                 "a llama will wear the Hemp Harness, so its equip data lets in more than a ghast");

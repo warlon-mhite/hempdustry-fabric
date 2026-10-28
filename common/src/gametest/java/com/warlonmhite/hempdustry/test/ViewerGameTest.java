@@ -11,7 +11,6 @@ import java.util.List;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
@@ -26,7 +25,7 @@ public final class ViewerGameTest {
 
     public static void everyPackingRowIsARealCraft(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe packing = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe packing = PackingRecipe.INSTANCE;
         List<ViewerRecipes.Packing> rows = ViewerRecipes.packing(world.registryAccess());
         context.assertFalse(rows.isEmpty(), "the viewers are shown no packing rows at all");
 

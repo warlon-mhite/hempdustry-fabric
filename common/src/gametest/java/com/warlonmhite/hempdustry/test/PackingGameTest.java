@@ -11,7 +11,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
@@ -26,7 +25,7 @@ public final class PackingGameTest {
     public static void oneBudPerSlotIsTheDose(GameTestHelper context) {
         HolderLookup.Provider registries = context.getLevel().registryAccess();
         Item buds = registries.lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA).value().buds();
-        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe recipe = PackingRecipe.INSTANCE;
 
         int stacked = dose(recipe, registries, new ItemStack(ModItems.BONG), new ItemStack(buds, 3));
         context.assertValueEqual(1, stacked, "the dose from three buds stacked in one slot");

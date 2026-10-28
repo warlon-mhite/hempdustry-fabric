@@ -15,7 +15,6 @@ import com.warlonmhite.hempdustry.client.sound.BongDrawSoundInstance;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
-import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -26,12 +25,18 @@ import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
+import java.util.List;
+import java.util.Set;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.model.object.boat.BoatModel;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 
 public class HempdustryClient {
 
@@ -40,29 +45,9 @@ public class HempdustryClient {
         ClientRegistration client = ClientServices.CLIENT;
         UpdateChecker.init();
 
-        client.blockLayer(ModBlocks.HEMP_PLANKS_DOOR, ChunkSectionLayer.CUTOUT);
-        client.blockLayer(ModBlocks.HEMP_PLANKS_TRAPDOOR, ChunkSectionLayer.CUTOUT);
-
-
-        // Vanilla's leaves texture, holes and all — solid would fill them in with black.
-        client.blockLayer(ModBlocks.HEMP_LEAVES, ChunkSectionLayer.CUTOUT);
-
-        client.blockLayer(ModBlocks.INDICA_CROP, ChunkSectionLayer.CUTOUT);
-        client.blockLayer(ModBlocks.INDICA_FLOWER, ChunkSectionLayer.CUTOUT);
-        client.blockLayer(ModBlocks.POTTED_INDICA_FLOWER, ChunkSectionLayer.CUTOUT);
-
-        // Stained glass is drawn at partial alpha, so the placed bongs need the translucent pass.
-        ModBlocks.DEVICE_BLOCKS.values().forEach(bong -> client.blockLayer(bong, ChunkSectionLayer.TRANSLUCENT));
-
-        client.blockLayer(ModBlocks.SATIVA_CROP, ChunkSectionLayer.CUTOUT);
-        client.blockLayer(ModBlocks.SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
-        client.blockLayer(ModBlocks.POTTED_SATIVA_FLOWER, ChunkSectionLayer.CUTOUT);
-
-        client.blockLayer(ModBlocks.BELDIA_CROP, ChunkSectionLayer.CUTOUT);
-        // The chains the Grow Lamp hangs from are see-through between the links.
-        client.blockLayer(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
-        // The compost crumbs over the pot's soil are drawn with see-through pixels.
-        client.blockLayer(ModBlocks.GROW_POT, ChunkSectionLayer.CUTOUT);
+        // Which pass a block is drawn in -- solid, cut-out or translucent -- is read off its textures
+        // since 26.1, quad by quad: the door's and the leaves' holes, the bongs' stained glass, the
+        // Grow Lamp's chains and the pot's compost crumbs each pick their own, with nothing to declare.
 
         client.modelLayer(ModEntityModelLayers.HEMP_BOAT,
                 BoatModel::createBoatModel);
@@ -83,8 +68,6 @@ public class HempdustryClient {
 
         // The press's platen and capstan move, so a renderer draws them rather than the block model.
         client.blockEntityRenderer(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
-        // A bed has no block model: its block entity draws it, like every vanilla bed.
-        client.blockEntityRenderer(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
 
         registerItemModelHooks(client);
         registerBlockColors(client);
@@ -95,9 +78,9 @@ public class HempdustryClient {
     }
 
     /** Neutral white: multiplied into a texel it changes nothing, which is what "no tint" means. */
-    private static final int NO_TINT = 0xFFFFFF;
+    private static final int NO_TINT = 0xFFFFFFFF;
     /** Where a lamp-grown plant's tint is pulled: a deeper, bluer green. */
-    private static final int LAMP_GROWN_TINT = 0x3C7A56;
+    private static final int LAMP_GROWN_TINT = 0xFF3C7A56;
 
     /**
      * Pulls the living plants part-way towards the grass colour of the biome they stand in, so a
@@ -121,25 +104,28 @@ public class HempdustryClient {
      * The bud, seed and flower <b>items</b> are untouched — their models declare no tint index, so
      * an item in a hand or a slot looks exactly as drawn, with no biome to ask about anyway.
      *
-     * <p>Break and step particles follow this automatically — {@code TerrainParticle} multiplies
-     * itself by {@code BlockColors.getColor(state, world, pos, 0)} — <b>but they are coloured with
-     * the broken state, not the world's</b>: by then {@code pos} may hold air on this client. So a
-     * provider here reads the plant off {@code state} and asks the world for nothing but its biome.
+     * <p>Break and step particles follow this automatically — a tint source's
+     * {@code colorAsTerrainParticle} is its {@code colorInWorld} unless it says otherwise — <b>but
+     * they are coloured with the broken state, not the world's</b>: by then {@code pos} may hold air
+     * on this client. So a source here reads the plant off {@code state} and asks the world for
+     * nothing but its biome. Outside a world ({@code color}, the general context) there is no biome,
+     * and the honest answer is the art as drawn.
      *
-     * <p>Returning ARGB is deliberate but, unlike the item tint above, the alpha byte is
-     * <em>ignored</em> here — {@code ModelBlockRenderer} reads only the three colour bytes off a
-     * block tint. {@link ARGB#srgbLerp} is used for the blend all the same, so the value
-     * that leaves this method is a well-formed colour rather than one that only works by luck.
+     * <p>Every colour is opaque ARGB, as vanilla's own tint sources return; {@link ARGB#srgbLerp}
+     * does the blend, so the value that leaves here is a well-formed colour.
      */
     private static void registerBlockColors(ClientRegistration client) {
-        client.blockColor((state, view, pos, tintIndex) -> {
-            // view/pos are null when a block is coloured outside a world — an inventory render. No
-            // biome exists there, so the honest answer is the art as drawn.
-            if (tintIndex != 0 || view == null || pos == null) {
+        client.blockTint(List.of(new BlockTintSource() {
+            @Override
+            public int color(BlockState state) {
                 return NO_TINT;
             }
-            return biomeTint(BiomeColors.getAverageGrassColor(view, pos));
-        }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
+
+            @Override
+            public int colorInWorld(BlockState state, BlockAndTintGetter view, BlockPos pos) {
+                return biomeTint(BiomeColors.getAverageGrassColor(view, pos));
+            }
+        }), ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER,
                 ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
         // The crops take the same biome tint, then show the light they grew under: a lamp-grown
         // plant a shade deeper. A STRESSED plant is not tinted at all — it has textures of its own,
@@ -147,28 +133,37 @@ public class HempdustryClient {
         // blockstate picks those, and a second yellow cue on top would only muddy them.
         // Every segment carries a copy of the record, so this reads the state it was handed and never
         // the world: that is also the broken state a break particle is coloured with.
-        client.blockColor((state, view, pos, tintIndex) -> {
-            if (tintIndex != 0 || view == null || pos == null) {
+        client.blockTint(List.of(new BlockTintSource() {
+            @Override
+            public int color(BlockState state) {
                 return NO_TINT;
             }
-            // Beldía is drawn in its own colours, so it skips the biome and keeps only the light
-            // cue: a desert's grass colour is a dry olive that would turn a sand-grown plant to straw
-            // (and a potted one would change colour with the room it stands in).
-            int tint = state.is(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getAverageGrassColor(view, pos));
-            GrowLight light = state.getValue(GrowLight.PROPERTY);
-            return light.artificial() && light != GrowLight.STRESSED
-                    ? ARGB.srgbLerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
-        }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP);
+
+            @Override
+            public int colorInWorld(BlockState state, BlockAndTintGetter view, BlockPos pos) {
+                // Beldía is drawn in its own colours, so it skips the biome and keeps only the light
+                // cue: a desert's grass colour is a dry olive that would turn a sand-grown plant to
+                // straw (and a potted one would change colour with the room it stands in).
+                int tint = state.is(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getAverageGrassColor(view, pos));
+                GrowLight light = state.getValue(GrowLight.PROPERTY);
+                return light.artificial() && light != GrowLight.STRESSED
+                        ? ARGB.srgbLerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
+            }
+
+            @Override
+            public Set<Property<?>> relevantProperties() {
+                return Set.of(GrowLight.PROPERTY);
+            }
+        }), ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
         // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour
         // is the hand's, where the item definition has the stack to read.
-        client.blockColor((state, view, pos, tintIndex) ->
-                        tintIndex == 1 ? PLACED_LOAD : NO_TINT,
+        client.blockTint(List.of(state -> NO_TINT, state -> PLACED_LOAD),
                 ModBlocks.DEVICE_BLOCKS.values().toArray(Block[]::new));
     }
 
-    private static final int PLACED_LOAD = 0x6F8F3A;
+    private static final int PLACED_LOAD = 0xFF6F8F3A;
 
     /**
      * {@code grassColor} blended towards white by {@code 1 - client.biomeTintStrength}.

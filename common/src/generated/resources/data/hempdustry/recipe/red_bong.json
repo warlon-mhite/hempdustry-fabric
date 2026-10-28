@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "group": "bong",
   "key": {
     "G": "minecraft:red_stained_glass",
@@ -14,7 +13,6 @@
     " G "
   ],
   "result": {
-    "count": 1,
     "id": "hempdustry:red_bong"
   }
 }

@@ -116,7 +116,7 @@ public final class DataFixerGameTest {
             if (!Sweep.ours(BuiltInRegistries.BLOCK.getKey(block)) || !(block instanceof EntityBlock provider)) continue;
             BlockEntity entity = provider.newBlockEntity(BlockPos.ZERO, block.defaultBlockState());
             if (entity == null) continue;
-            Identifier type = BlockEntityType.getKey(entity.getType());
+            Identifier type = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType());
             if (type == null || !Sweep.ours(type)) continue;
             types.put(type, entity instanceof Container);
             if (entity instanceof Nameable) nameable.add(type);

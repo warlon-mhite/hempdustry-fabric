@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_dye",
+  "dye": "#minecraft:dyes",
+  "group": "dyed_armor",
+  "result": {
+    "id": "hempdustry:hemp_harem_pants"
+  },
+  "target": "hempdustry:hemp_harem_pants"
+}

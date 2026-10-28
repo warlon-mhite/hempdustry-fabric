@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.screen.custom;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -74,7 +74,8 @@ public class InfuserScreen extends AbstractContainerScreen<InfuserScreenHandler>
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractBackground(context, mouseX, mouseY, delta);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
         context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
@@ -112,15 +113,9 @@ public class InfuserScreen extends AbstractContainerScreen<InfuserScreenHandler>
     }
 
     /** Places a mark sprite at {@code fraction} along the bar, clamped so it never overhangs the end. */
-    private void drawMark(GuiGraphics context, int x, int y, float fraction,
+    private void drawMark(GuiGraphicsExtractor context, int x, int y, float fraction,
                           int u, int v, int width, int height) {
         int offset = Mth.clamp(Math.round(fraction * BAR_W) - (width / 2), 0, BAR_W - width);
         context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BAR_X + offset, y + BAR_Y - 1, u, v, width, height, 256, 256);
-    }
-
-    @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        this.renderTooltip(context, mouseX, mouseY);
     }
 }

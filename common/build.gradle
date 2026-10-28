@@ -1,5 +1,5 @@
-// The mod itself, on plain Minecraft: compiled against vanilla only (NeoForm, Mojang's names and
-// Parchment), so nothing here can reach a loader by accident -- an import from Fabric or NeoForge
+// The mod itself, on plain Minecraft: compiled against vanilla only (NeoForm, the names the game
+// ships with), so nothing here can reach a loader by accident -- an import from Fabric or NeoForge
 // fails to compile. Each loader's project compiles these sources into its own jar; this project's
 // own jar is never shipped.
 plugins {
@@ -12,10 +12,6 @@ neoForge {
 	// What the mod reaches in vanilla that vanilla keeps closed; NeoForge reads the same file from
 	// the jar. Fabric's form of it is hempdustry.accesswidener, beside it.
 	accessTransformers.from file('src/main/resources/META-INF/accesstransformer.cfg')
-	parchment {
-		minecraftVersion = parchment_minecraft
-		mappingsVersion = parchment_version
-	}
 }
 
 sourceSets.main.resources.srcDir 'src/generated/resources'

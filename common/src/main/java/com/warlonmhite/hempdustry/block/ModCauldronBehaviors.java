@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.block;
 
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.cauldron.CauldronInteraction;
+import net.minecraft.core.cauldron.CauldronInteractions;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -10,7 +10,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -50,8 +49,10 @@ import net.minecraft.world.level.gameevent.GameEvent;
  * even in otherwise fully automated bases, and it is what keeps the dry crafting route worth having:
  * retting is strictly hand work.
  *
- * <p>Registered by mutating {@link CauldronInteraction#WATER}'s map, which is the
- * supported extension point.
+ * <p>Registered on {@link CauldronInteractions#WATER}, the water cauldron's dispatcher; its {@code put}
+ * is opened in the access widener and transformer. A dyed shirt or pair of harem pants washes out
+ * with no entry here: both are in {@code #minecraft:cauldron_can_remove_dye}, which vanilla's own
+ * wash reads.
  */
 public final class ModCauldronBehaviors {
     /** Decarboxylated hemp one level of water will rinse. Three levels (a bucket) covers a 64 stack. */
@@ -64,21 +65,12 @@ public final class ModCauldronBehaviors {
     }
 
     public static void registerCauldronBehaviors() {
-        CauldronInteraction.WATER.map()
-                .put(ModItems.HEMP_STEM, (state, world, pos, player, hand, stack) ->
-                        soak(state, world, pos, player, stack,
-                                ModItems.RETTED_HEMP_STEM, RET_PER_LEVEL));
-        CauldronInteraction.WATER.map()
-                .put(ModItems.DECARBOXYLATED_HEMP, (state, world, pos, player, hand, stack) ->
-                        soak(state, world, pos, player, stack,
-                                ModItems.WASHED_DECARBOXYLATED_HEMP, WASH_PER_LEVEL));
-
-        // A dyed shirt or pair of harem pants washes out as leather does. Vanilla lists its dyeable
-        // armour one item at a time and keeps the wash itself private, so the leather chestplate's
-        // entry is borrowed: it reads #minecraft:dyeable and the dyed_color component, nothing else.
-        CauldronInteraction washOutDye = CauldronInteraction.WATER.map().get(Items.LEATHER_CHESTPLATE);
-        CauldronInteraction.WATER.map().put(ModItems.HEMP_SHIRT, washOutDye);
-        CauldronInteraction.WATER.map().put(ModItems.HEMP_HAREM_PANTS, washOutDye);
+        CauldronInteractions.WATER.put(ModItems.HEMP_STEM, (state, world, pos, player, hand, stack) ->
+                soak(state, world, pos, player, stack,
+                        ModItems.RETTED_HEMP_STEM, RET_PER_LEVEL));
+        CauldronInteractions.WATER.put(ModItems.DECARBOXYLATED_HEMP, (state, world, pos, player, hand, stack) ->
+                soak(state, world, pos, player, stack,
+                        ModItems.WASHED_DECARBOXYLATED_HEMP, WASH_PER_LEVEL));
     }
 
     /**

@@ -203,7 +203,7 @@ public final class Smoking {
         // an item predicate for "Pipe Dream" and "Bong Voyage" — so all this does is hand over the
         // time of day (tick 0 = 6:00 AM) and the stack, still packed at this point.
         if (player instanceof ServerPlayer serverPlayer) {
-            ModCriteria.SMOKE.trigger(serverPlayer, world.getDayTime() % 24000L, stack);
+            ModCriteria.SMOKE.trigger(serverPlayer, world.getOverworldClockTime() % 24000L, stack);
         }
 
         if (!world.isClientSide()) {

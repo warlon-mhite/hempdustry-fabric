@@ -1,6 +1,5 @@
 {
   "type": "hempdustry:container_carried",
-  "category": "misc",
   "ingredients": [
     "hempdustry:decarboxylated_hemp",
     "hempdustry:decarboxylated_hemp",
@@ -12,7 +11,6 @@
       "hempdustry:potency": 1,
       "hempdustry:quality": "rough"
     },
-    "count": 1,
     "id": "hempdustry:bhang_bucket"
   }
 }

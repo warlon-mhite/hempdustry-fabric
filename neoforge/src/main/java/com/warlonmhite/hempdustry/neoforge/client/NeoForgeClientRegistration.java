@@ -4,7 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.HempdustryClient;
 import com.warlonmhite.hempdustry.neoforge.Pending;
 import com.warlonmhite.hempdustry.platform.client.ClientRegistration;
-import net.minecraft.client.color.block.BlockColor;
+import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
@@ -12,10 +12,8 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperty;
 import net.minecraft.core.particles.ParticleOptions;
@@ -38,6 +36,7 @@ import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -48,27 +47,23 @@ import java.util.function.Supplier;
  * then takes what was left for it ({@link Pending}).
  */
 public final class NeoForgeClientRegistration implements ClientRegistration {
-    private final Pending<FMLClientSetupEvent> blockLayers = new Pending<>("block render layers");
     private final Pending<EntityRenderersEvent.RegisterLayerDefinitions> modelLayers = new Pending<>("model layers");
     private final Pending<EntityRenderersEvent.RegisterRenderers> renderers = new Pending<>("renderers");
     private final Pending<RegisterMenuScreensEvent> screens = new Pending<>("menu screens");
     private final Pending<RegisterParticleProvidersEvent> particles = new Pending<>("particle providers");
-    private final Pending<RegisterColorHandlersEvent.Block> blockColors = new Pending<>("block colours");
+    private final Pending<RegisterColorHandlersEvent.BlockTintSources> blockTints = new Pending<>("block tints");
     private final Pending<RegisterRangeSelectItemModelPropertyEvent> itemProperties = new Pending<>("item model properties");
     private final Pending<RegisterColorHandlersEvent.ItemTintSources> tintSources = new Pending<>("item tint sources");
     private boolean registered;
 
     /** Listens for every event the client's registrations go to; called by the client's entry point. */
     void listen(IEventBus modBus) {
-        modBus.addListener(FMLClientSetupEvent.class, event -> {
-            init();
-            event.enqueueWork(() -> blockLayers.handOver(event));
-        });
+        modBus.addListener(FMLClientSetupEvent.class, event -> init());
         modBus.addListener(EntityRenderersEvent.RegisterLayerDefinitions.class, event -> init().modelLayers.handOver(event));
         modBus.addListener(EntityRenderersEvent.RegisterRenderers.class, event -> init().renderers.handOver(event));
         modBus.addListener(RegisterMenuScreensEvent.class, event -> init().screens.handOver(event));
         modBus.addListener(RegisterParticleProvidersEvent.class, event -> init().particles.handOver(event));
-        modBus.addListener(RegisterColorHandlersEvent.Block.class, event -> init().blockColors.handOver(event));
+        modBus.addListener(RegisterColorHandlersEvent.BlockTintSources.class, event -> init().blockTints.handOver(event));
         modBus.addListener(RegisterRangeSelectItemModelPropertyEvent.class, event -> init().itemProperties.handOver(event));
         modBus.addListener(RegisterColorHandlersEvent.ItemTintSources.class, event -> init().tintSources.handOver(event));
     }
@@ -79,11 +74,6 @@ public final class NeoForgeClientRegistration implements ClientRegistration {
             HempdustryClient.init();
         }
         return this;
-    }
-
-    @Override
-    public void blockLayer(Block block, ChunkSectionLayer layer) {
-        blockLayers.add(event -> ItemBlockRenderTypes.setRenderLayer(block, layer));
     }
 
     @Override
@@ -115,8 +105,8 @@ public final class NeoForgeClientRegistration implements ClientRegistration {
     }
 
     @Override
-    public void blockColor(BlockColor color, Block... blocks) {
-        blockColors.add(event -> event.register(color, blocks));
+    public void blockTint(List<BlockTintSource> tints, Block... blocks) {
+        blockTints.add(event -> event.register(tints, blocks));
     }
 
     @Override

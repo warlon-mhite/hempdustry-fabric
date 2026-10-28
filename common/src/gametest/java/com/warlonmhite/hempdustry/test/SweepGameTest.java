@@ -46,7 +46,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockItemTags;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FeatureTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
@@ -59,6 +61,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.DyeRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -126,7 +129,8 @@ public final class SweepGameTest {
 
     /**
      * Every recipe of ours is the only recipe its ingredients make — by hand, only one of two recipes
-     * that take the same grid is ever made, and which one flips when any recipe is added.
+     * that take the same grid is ever made, and which one flips when any recipe is added. A second
+     * recipe that makes the very same stack from that grid is no disagreement, and passes.
      *
      * <p>{@code hempdustry:stick_from_planks} made six sticks from two hemp planks in the recipe book
      * and four by hand, on every line, until 2026-09-19; {@code recipe_collisions.py} compares tags as
@@ -149,10 +153,17 @@ public final class SweepGameTest {
             if (type == RecipeType.STONECUTTING) continue;
             boolean itself = false;
             List<String> others = new ArrayList<>();
+            ItemStack ours = matches(sample.recipe().value(), sample.input(), world)
+                    ? craft(sample.recipe().value(), sample.input(), world) : ItemStack.EMPTY;
             for (RecipeHolder<?> candidate : byType.get(type)) {
                 if (matches(candidate.value(), sample.input(), world)) {
                     if (candidate == sample.recipe()) itself = true;
-                    else others.add(candidate.id().identifier().toString());
+                    // Two recipes making the very same stack from one grid cannot disagree, whichever
+                    // the book or a hand-placed grid picks. NeoForge (since 26.1) ships vanilla's book,
+                    // bundle and item frame on #c:leathers, which hemp canvas joins, beside our own.
+                    else if (!ItemStack.matches(ours, craft(candidate.value(), sample.input(), world))) {
+                        others.add(candidate.id().identifier().toString());
+                    }
                 }
             }
             String id = sample.recipe().id().identifier().toString();
@@ -513,10 +524,10 @@ public final class SweepGameTest {
             List<TagKey<Item>> itemTags = new ArrayList<>();
             if (block instanceof StairBlock) {
                 blockTags.add(wooden ? BlockTags.WOODEN_STAIRS : BlockTags.STAIRS);
-                itemTags.add(wooden ? ItemTags.WOODEN_STAIRS : ItemTags.STAIRS);
+                itemTags.add(wooden ? ItemTags.WOODEN_STAIRS : BlockItemTags.STAIRS.item());
             } else if (block instanceof SlabBlock) {
                 blockTags.add(wooden ? BlockTags.WOODEN_SLABS : BlockTags.SLABS);
-                itemTags.add(wooden ? ItemTags.WOODEN_SLABS : ItemTags.SLABS);
+                itemTags.add(wooden ? ItemTags.WOODEN_SLABS : BlockItemTags.SLABS.item());
             } else if (block instanceof WallBlock) {
                 blockTags.add(BlockTags.WALLS);
                 itemTags.add(ItemTags.WALLS);
@@ -716,10 +727,11 @@ public final class SweepGameTest {
                 }
             }
         }
-        registries.lookupOrThrow(Registries.CONFIGURED_FEATURE).entrySet().forEach(entry -> {
-            if (Sweep.ours(entry.getKey().identifier())
-                    && entry.getValue().getFeatures().anyMatch(feature -> feature.feature() == Feature.FLOWER)) {
-                findings.put("flower feature: " + entry.getKey().identifier(), "is or holds a Feature.FLOWER — use RANDOM_PATCH");
+        // Bone meal on grass grows only #minecraft:can_spawn_from_bone_meal (26.1), so none of ours may
+        // be in it: a wild plant, and so free seeds, from a stack of bone meal.
+        registries.lookupOrThrow(Registries.CONFIGURED_FEATURE).listElements().forEach(entry -> {
+            if (Sweep.ours(entry.key().identifier()) && entry.is(FeatureTags.CAN_SPAWN_FROM_BONE_MEAL)) {
+                findings.put("bone-meal feature: " + entry.key().identifier(), "is in #minecraft:can_spawn_from_bone_meal");
             }
         });
         for (Block block : BuiltInRegistries.BLOCK) {
@@ -845,8 +857,9 @@ public final class SweepGameTest {
                     slots.add(ingredient.map(SweepGameTest::choices).orElse(List.of(ItemStack.EMPTY)));
                 }
                 grids(entry, shaped.getWidth(), shaped.getHeight(), slots, everyChoice, samples, findings);
-            } else if (recipe instanceof ShapelessRecipe shapeless) {
-                for (Ingredient ingredient : shapeless.placementInfo().ingredients()) slots.add(choices(ingredient));
+            } else if (recipe instanceof ShapelessRecipe || recipe instanceof DyeRecipe) {
+                // A dye recipe is shapeless too: the piece and one dye is the smallest grid it takes.
+                for (Ingredient ingredient : recipe.placementInfo().ingredients()) slots.add(choices(ingredient));
                 grids(entry, 3, 3, slots, everyChoice, samples, findings);
             } else if (recipe instanceof PackingRecipe) {
                 // A special recipe lists no ingredients; the rows the recipe viewers draw are every load it packs.
@@ -921,7 +934,7 @@ public final class SweepGameTest {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static ItemStack craft(Recipe<?> recipe, RecipeInput input, ServerLevel world) {
-        return ((Recipe) recipe).assemble(input, world.registryAccess());
+        return ((Recipe) recipe).assemble(input);
     }
 
     private static boolean sameStacks(List<ItemStack> a, List<ItemStack> b) {

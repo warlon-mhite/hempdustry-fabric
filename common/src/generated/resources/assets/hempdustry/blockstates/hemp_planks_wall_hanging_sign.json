@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "hempdustry:block/hemp_planks_wall_hanging_sign",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "hempdustry:block/hemp_planks_wall_hanging_sign",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "hempdustry:block/hemp_planks_wall_hanging_sign"
+    },
+    "facing=west": {
+      "model": "hempdustry:block/hemp_planks_wall_hanging_sign",
+      "y": 90
+    }
+  }
+}

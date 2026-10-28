@@ -21,6 +21,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -175,7 +176,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         // Through the synchronized view, so this answers on a client too — the screen's tray slots
         // ask the same question. See ModRecipes#allOfType.
         return Services.RECIPES.firstMatch(world, ModRecipes.DECARBOXYLATING_TYPE, input)
-                .map(entry -> entry.value().assemble(input, world.registryAccess()))
+                .map(entry -> entry.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -228,8 +229,9 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
                 fuel.shrink(1);
                 if (fuel.isEmpty()) {
                     // Buckets and the like leave their empty container behind, as in a furnace.
-                    // getCraftingRemainder returns an ItemStack since 1.21.2, empty rather than null.
-                    setItem(FUEL_SLOT, before.getCraftingRemainder().copy());
+                    // getCraftingRemainder is a template since 26.1, null when there is none.
+                    ItemStackTemplate remainder = before.getCraftingRemainder();
+                    setItem(FUEL_SLOT, remainder != null ? remainder.create() : ItemStack.EMPTY);
                 }
                 dirty = true;
             }

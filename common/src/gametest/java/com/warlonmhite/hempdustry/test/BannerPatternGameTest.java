@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
 import java.util.List;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -45,9 +46,10 @@ public final class BannerPatternGameTest {
     public static void hempLeafIsALoomPatternItem(GameTestHelper context) {
         ItemStack leaf = new ItemStack(ModItems.HEMP_LEAF);
 
-        TagKey<BannerPattern> provided = leaf.get(DataComponents.PROVIDES_BANNER_PATTERNS);
-        context.assertTrue(provided != null,
+        HolderSet<BannerPattern> providedSet = leaf.get(DataComponents.PROVIDES_BANNER_PATTERNS);
+        context.assertTrue(providedSet != null,
                 "hemp_leaf has no provides_banner_patterns component, so a loom will never offer it");
+        TagKey<BannerPattern> provided = providedSet.unwrapKey().orElse(null);
         context.assertTrue(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM.equals(provided),
                 "hemp_leaf points at " + provided + " rather than the mod's own pattern tag");
 

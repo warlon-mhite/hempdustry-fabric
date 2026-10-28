@@ -6,7 +6,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
@@ -49,14 +49,14 @@ public final class PlantStress {
 
     /**
      * The odds that one growth step stresses a flowering plant standing on {@code floor}. A bed of ours
-     * answers for itself; farmland only once it is bone dry, which vanilla's {@code FarmBlock} only
+     * answers for itself; farmland only once it is bone dry, which vanilla's {@code FarmlandBlock} only
      * lets happen after about seven random ticks with no water in reach and no rain.
      */
     public static float ofGround(BlockState floor) {
         if (floor.getBlock() instanceof GrowMedium medium) {
             return medium.stress(floor);
         }
-        return floor.is(Blocks.FARMLAND) && floor.getValue(FarmBlock.MOISTURE) == 0 ? DRY_FIELD : 0.0F;
+        return floor.is(Blocks.FARMLAND) && floor.getValue(FarmlandBlock.MOISTURE) == 0 ? DRY_FIELD : 0.0F;
     }
 
     /**

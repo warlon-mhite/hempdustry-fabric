@@ -1,6 +1,5 @@
 {
   "type": "hempdustry:infused_shaped",
-  "category": "misc",
   "key": {
     "B": "hempdustry:cannabutter",
     "E": "minecraft:egg",
@@ -14,7 +13,6 @@
     "FFF"
   ],
   "result": {
-    "count": 1,
     "id": "hempdustry:space_cake"
   }
 }

@@ -6,11 +6,11 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.Optional;
-import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.criterion.ContextAwarePredicate;
-import net.minecraft.advancements.criterion.EntityPredicate;
-import net.minecraft.advancements.criterion.ItemPredicate;
-import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
+import net.minecraft.advancements.triggers.Criterion;
+import net.minecraft.advancements.predicates.ContextAwarePredicate;
+import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.advancements.predicates.ItemPredicate;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -36,7 +36,7 @@ public class SmokeCriterion extends SimpleCriterionTrigger<SmokeCriterion.Condit
     /**
      * Call from the server side after a hit lands.
      *
-     * @param timeOfDay the world's time of day, already reduced to {@code getDayTime() % 24000}
+     * @param timeOfDay the world's time of day, already reduced to {@code getOverworldClockTime() % 24000}
      *                  (tick 0 = 6:00 AM, 1000 ticks per in-game hour).
      */
     public void trigger(ServerPlayer player, long timeOfDay, ItemStack stack) {

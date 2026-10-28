@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
@@ -98,13 +99,13 @@ public final class CreativeTabGameTest {
         // rock coats were craftable and in no list.
         for (RecipeHolder<?> entry : world.getServer().getRecipeManager().getRecipes()) {
             for (RecipeDisplay shown : entry.value().display()) {
-                if (!(shown.result() instanceof SlotDisplay.ItemStackSlotDisplay(ItemStack made))
+                if (!(shown.result() instanceof SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate made))
                         || !(made.is(ModItems.SPLIFF) || made.is(ModItems.MOON_ROCK))) {
                     continue;
                 }
                 boolean listed = false;
                 for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems()) {
-                    if (ItemStack.isSameItemSameComponents(stack, made)) {
+                    if (ItemStack.isSameItemSameComponents(stack, made.create())) {
                         listed = true;
                         break;
                     }

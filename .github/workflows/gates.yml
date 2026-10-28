@@ -22,17 +22,25 @@ jobs:
     timeout-minutes: 90
     env:
       # The releases whose API this build must keep (scripts/api_additive.py), one per loader, since a
-      # Fabric jar and a NeoForge jar cannot be compared with each other: Fabric's since 2.0.0, and
-      # NeoForge's from its first release on (empty until there is one). Move both on at each release.
-      API_BASELINE: v2.1.0
-      NEOFORGE_API_BASELINE: v2.1.0
+      # Fabric jar and a NeoForge jar cannot be compared with each other. Empty on a Minecraft line
+      # until its first release: an addon built against a jar for another Minecraft cannot load on
+      # this one whatever the mod keeps, so this line's first release is its first baseline.
+      API_BASELINE: ""
+      NEOFORGE_API_BASELINE: ""
     steps:
       - uses: actions/checkout@v4
 
+      # 25 for the game and Gradle; 21 as well, because ModDevGradle runs its NeoForm tools on a Java 21
+      # toolchain whatever the game needs. The last version listed is the one JAVA_HOME points at.
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: |
+            21
+            25
+
+      - name: Let Gradle find both JDKs
+        run: mkdir -p ~/.gradle && echo "org.gradle.java.installations.fromEnv=JAVA_HOME_21_X64,JAVA_HOME_25_X64" >> ~/.gradle/gradle.properties
 
       - uses: actions/setup-python@v5
         with:

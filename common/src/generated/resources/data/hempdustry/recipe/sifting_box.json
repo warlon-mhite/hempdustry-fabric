@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "B": "minecraft:iron_bars",
     "C": "hempdustry:hemp_canvas",
@@ -12,7 +11,6 @@
     "PPP"
   ],
   "result": {
-    "count": 1,
     "id": "hempdustry:sifting_box"
   }
 }

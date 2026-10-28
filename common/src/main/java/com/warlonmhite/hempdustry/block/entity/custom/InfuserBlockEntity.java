@@ -31,6 +31,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -529,9 +530,9 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * mod's milks answer {@code BUCKET} here, so nothing changes for either.
      */
     public static ItemStack emptiedContainer(ItemStack milk) {
-        // getCraftingRemainder is an ItemStack since 1.21.2 — empty, not null, when there is none.
-        ItemStack remainder = milk.getItem().getCraftingRemainder();
-        return remainder.isEmpty() ? new ItemStack(Items.BUCKET) : remainder.copy();
+        // getCraftingRemainder is a template since 26.1 — null when there is none.
+        ItemStackTemplate remainder = milk.getItem().getCraftingRemainder();
+        return remainder == null ? new ItemStack(Items.BUCKET) : remainder.create();
     }
 
     /**
@@ -709,7 +710,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * rather than being part of it.
      */
     private ItemStack previewStack(InfusingRecipe recipe, int strength, Quality quality) {
-        ItemStack butter = recipe.result().copy();
+        ItemStack butter = recipe.result().create();
         butter.set(ModComponents.STRENGTH, strength);
         butter.set(ModComponents.QUALITY, quality);
         return butter;
@@ -717,8 +718,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
 
     /** Whether {@code shown} is already the preview a batch of this strength and grade wants. */
     private static boolean showsPreview(ItemStack shown, InfusingRecipe recipe, int strength, Quality quality) {
-        return shown.is(recipe.result().getItem())
-                && shown.getCount() == recipe.result().getCount()
+        return shown.is(recipe.result().item())
+                && shown.getCount() == recipe.result().count()
                 && Integer.valueOf(strength).equals(shown.get(ModComponents.STRENGTH))
                 && shown.get(ModComponents.QUALITY) == quality;
     }

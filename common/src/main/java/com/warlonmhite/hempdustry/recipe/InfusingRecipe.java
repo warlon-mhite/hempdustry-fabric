@@ -4,10 +4,10 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
@@ -46,7 +46,7 @@ import java.util.Optional;
  * and the only sane reading of "there is no conversion".
  */
 public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient washedHemp,
-                             Optional<Ingredient> scorchedHemp, ItemStack result)
+                             Optional<Ingredient> scorchedHemp, ItemStackTemplate result)
         implements Recipe<SingleRecipeInput> {
 
     /**
@@ -74,8 +74,8 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     }
 
     @Override
-    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider lookup) {
-        return result.copy();
+    public ItemStack assemble(SingleRecipeInput input) {
+        return result.create();
     }
 
     /** The things the tub accepts, in the order the screen lays them out. */
@@ -88,6 +88,16 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     @Override
     public boolean isSpecial() {
         return true;
+    }
+
+    @Override
+    public boolean showNotification() {
+        return true;
+    }
+
+    @Override
+    public String group() {
+        return "";
     }
 
     /** Never shown — see {@link DecarboxylatingRecipe#recipeBookCategory()}. */
@@ -118,33 +128,22 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
                 .map(ItemStack::new).orElse(ItemStack.EMPTY);
     }
 
-    public static class Serializer implements RecipeSerializer<InfusingRecipe> {
-        private static final MapCodec<InfusingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.CODEC.fieldOf("container").forGetter(InfusingRecipe::container),
-                Ingredient.CODEC.fieldOf("hemp").forGetter(InfusingRecipe::hemp),
-                Ingredient.CODEC.fieldOf("washed_hemp").forGetter(InfusingRecipe::washedHemp),
-                // Optional: see the class notes. Every infusing.json written before it existed
-                // still parses, and means "this tub takes no scorched hemp".
-                Ingredient.CODEC.optionalFieldOf("scorched_hemp").forGetter(InfusingRecipe::scorchedHemp),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
-        ).apply(instance, InfusingRecipe::new));
+    /** The recipe's JSON; {@link ModRecipes} makes its serializer of this and {@link #STREAM_CODEC}. */
+    public static final MapCodec<InfusingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Ingredient.CODEC.fieldOf("container").forGetter(InfusingRecipe::container),
+            Ingredient.CODEC.fieldOf("hemp").forGetter(InfusingRecipe::hemp),
+            Ingredient.CODEC.fieldOf("washed_hemp").forGetter(InfusingRecipe::washedHemp),
+            // Optional: see the class notes. Every infusing.json written before it existed
+            // still parses, and means "this tub takes no scorched hemp".
+            Ingredient.CODEC.optionalFieldOf("scorched_hemp").forGetter(InfusingRecipe::scorchedHemp),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
+    ).apply(instance, InfusingRecipe::new));
 
-        private static final StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> PACKET_CODEC = StreamCodec.composite(
-                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::container,
-                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::hemp,
-                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::washedHemp,
-                Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC, InfusingRecipe::scorchedHemp,
-                ItemStack.STREAM_CODEC, InfusingRecipe::result,
-                InfusingRecipe::new);
-
-        @Override
-        public MapCodec<InfusingRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> streamCodec() {
-            return PACKET_CODEC;
-        }
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> STREAM_CODEC = StreamCodec.composite(
+            Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::container,
+            Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::hemp,
+            Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::washedHemp,
+            Ingredient.OPTIONAL_CONTENTS_STREAM_CODEC, InfusingRecipe::scorchedHemp,
+            ItemStackTemplate.STREAM_CODEC, InfusingRecipe::result,
+            InfusingRecipe::new);
 }

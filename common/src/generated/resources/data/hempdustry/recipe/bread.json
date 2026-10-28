@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": "hempdustry:hemp_flour",
     "W": "minecraft:water_bucket"
@@ -10,7 +9,6 @@
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "minecraft:bread"
   }
 }

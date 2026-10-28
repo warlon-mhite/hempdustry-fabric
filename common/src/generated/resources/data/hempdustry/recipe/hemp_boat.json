@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "group": "boat",
   "key": {
     "#": "hempdustry:hemp_planks"
@@ -10,7 +9,6 @@
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "hempdustry:hemp_boat"
   }
 }

@@ -17,7 +17,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.level.GameType;
 
@@ -171,7 +170,7 @@ public final class VaporizerGameTest {
      */
     public static void vaporizerRefusesTwoBuds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe recipe = PackingRecipe.INSTANCE;
         Item buds = strain(world).value().buds();
 
         CraftingInput one = grid(new ItemStack(ModItems.VAPORIZER), buds, 1);

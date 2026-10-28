@@ -14,7 +14,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
@@ -39,7 +38,7 @@ public final class ConcentrateGameTest {
      */
     public static void oneRosinFillsABong(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe recipe = PackingRecipe.INSTANCE;
         ItemStack rosin = new ItemStack(ModItems.ROSIN);
 
         CraftingInput one = grid(new ItemStack(ModItems.BONG), rosin);
@@ -91,7 +90,7 @@ public final class ConcentrateGameTest {
      */
     public static void moonRockPacksAsATwoEntryBowl(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe recipe = PackingRecipe.INSTANCE;
         Holder<Strain> indica = strain(world, ModStrains.INDICA);
         Holder<Strain> hashish = strain(world, ModStrains.HASHISH);
         ItemStack moonRock = ModItems.moonRock(indica, hashish);

@@ -1,6 +1,5 @@
 {
   "type": "hempdustry:infused_shapeless",
-  "category": "misc",
   "ingredients": [
     "hempdustry:cannabutter",
     "minecraft:sugar",
@@ -9,7 +8,6 @@
   ],
   "offset": 1,
   "result": {
-    "count": 1,
     "id": "hempdustry:dawamesk"
   }
 }

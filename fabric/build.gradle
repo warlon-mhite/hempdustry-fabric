@@ -1,8 +1,8 @@
-// Fabric's jar: common's sources and resources, compiled and remapped here, plus Fabric's entry
+// Fabric's jar: common's sources and resources, compiled here, plus Fabric's entry
 // points, its side of the platform interfaces, the addon events, datagen and the game tests.
 plugins {
 	id 'multiloader-loader'
-	id 'fabric-loom'
+	id 'net.fabricmc.fabric-loom'
 }
 
 def generated = project(':common').file('src/generated/resources')
@@ -39,31 +39,30 @@ tasks.named('clean', Delete) {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${minecraft_version}"
-	// Mojang's names, the same on Fabric and NeoForge, so one common module can serve both loaders.
-	mappings loom.layered {
-		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
-	}
-	modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+	// No mappings: from 26.1 the game ships in Mojang's names, the ones NeoForge and common use, and
+	// Loom no longer remaps anything -- mods are plain dependencies.
+	implementation "net.fabricmc:fabric-loader:${loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 
 	// The two viewers, compiled against and never shipped: each plugin is loaded by that viewer's
 	// own entrypoint and by nothing else, so a player with neither never loads a line of that code.
 	//
-	// EMI is absent on purpose -- see the note in gradle.properties. It has no 1.21.11 build.
-	//
-	// jei-*-fabric-api pulls jei-*-common-api-INTERMEDIARY transitively, and that variant is the
-	// one that matters: loom remaps it into this workspace's names like every other mod.
-	modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
+	// EMI is absent on purpose -- see the note in gradle.properties. It has no 26.x build.
+	compileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
 
 	// REI is two artifacts: the api, and the default plugin -- which is where
 	// DefaultCustomShapelessDisplay lives, the shape the packing rows are handed over in. Left
 	// transitive on purpose: me.shedaniel.math.Rectangle, which every DisplayCategory signature
 	// names, ships inside architectury rather than inside REI.
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}"
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}"
+	compileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}"
+	compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}"
+	// ...which on 26.x it no longer is on Fabric: REI's Fabric api lists its dependencies for the
+	// runtime only, so the compile names the two the plugins see -- architectury (the FluidStack in
+	// EntryIngredients) and cloth's basic-math (me.shedaniel.math), at the versions REI depends on.
+	compileOnly "dev.architectury:architectury-fabric:${architectury_version}"
+	compileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"
 
 	//   ./gradlew :fabric:runClient                  # JEI on the runtime (default)
 	//   ./gradlew :fabric:runClient -Pviewer=rei     # REI instead
@@ -78,9 +77,9 @@ dependencies {
 	// and re-sync.
 	def viewer = project.findProperty("viewer") ?: "jei"
 	if (viewer == "jei") {
-		modLocalRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+		localRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
 	} else if (viewer == "rei") {
-		modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"
+		localRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"
 	} else if (viewer != "none") {
 		throw new GradleException("Unknown -Pviewer=${viewer}; use jei, rei or none")
 	}
@@ -102,8 +101,8 @@ dependencies {
 // by every loader; this set compiles them in (multiloader-loader) beside Fabric's test entry point,
 // its TestPlatform and the one test only Fabric can answer.
 //
-// **Nothing here reaches the shipped jar.** `jar` and loom's `remapJar` package sourceSets.main and
-// nothing else; this set is never added to either, and never sits on main's compile classpath, so
+// **Nothing here reaches the shipped jar.** `jar` packages sourceSets.main and
+// nothing else; this set is never added to it, and never sits on main's compile classpath, so
 // the mod cannot accidentally compile against a test. Its fabric.mod.json declares a separate mod
 // id (`hempdustry-gametest`) that only the gametest run config ever loads.
 //
@@ -176,7 +175,7 @@ tasks.named('processResources', ProcessResources) {
 // Modrinth page is public (it is still in review, so this resolves nowhere yet):
 //
 //   repositories { maven { url = "https://api.modrinth.com/maven" } }
-//   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.3+1.21.11" }
+//   dependencies { implementation "maven.modrinth:hempdustry:2.1.0+26.2" }
 //
 // Until then: build this repository with `./gradlew publishToMavenLocal`, add mavenLocal() to the
 // addon's repositories and depend on com.warlonmhite.hempdustry:hempdustry-fabric:<version>
@@ -189,8 +188,8 @@ publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
 			artifactId = base.archivesName.get()
-			// components.java is loom's remapped jar plus the sources jar, which is what a
-			// consumer needs: the intermediary-mapped classes a running game actually has.
+			// components.java is the jar plus the sources jar: Mojang's names, which is what a
+			// running 26.x game has, so a consumer needs nothing remapped.
 			from components.java
 
 			pom {

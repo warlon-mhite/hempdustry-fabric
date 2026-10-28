@@ -32,6 +32,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BedItem;
 import net.minecraft.world.item.BlockItem;
@@ -87,7 +88,7 @@ public class ModBlocks {
 
     /** Vanilla's leaves rule, which vanilla keeps private: only ocelots and parrots spawn on leaves. */
     private static boolean ocelotOrParrot(BlockState state, BlockGetter level, BlockPos pos, EntityType<?> type) {
-        return type == EntityType.OCELOT || type == EntityType.PARROT;
+        return type == EntityTypes.OCELOT || type == EntityTypes.PARROT;
     }
 
     /** Vanilla's "no" for a block's state, which vanilla keeps private: leaves never suffocate, block the view or conduct redstone. */
@@ -271,7 +272,7 @@ public class ModBlocks {
                             .setEquipSound(SoundEvents.LLAMA_SWAG)
                             .setAsset(ResourceKey.create(EquipmentAssets.ROOT_ID,
                                     Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_carpet")))
-                            .setAllowedEntities(EntityType.LLAMA, EntityType.TRADER_LLAMA)
+                            .setAllowedEntities(EntityTypes.LLAMA, EntityTypes.TRADER_LLAMA)
                             .setCanBeSheared(true)
                             .setShearingSound(SoundEvents.LLAMA_CARPET_UNEQUIP)
                             .build()));

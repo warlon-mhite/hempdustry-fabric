@@ -1,6 +1,5 @@
 {
   "type": "hempdustry:infused_shapeless",
-  "category": "misc",
   "ingredients": [
     "minecraft:bread",
     "hempdustry:cannabutter"

@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/template_bed_foot",
+  "textures": {
+    "east": "hempdustry:block/hemp_bed_foot_east",
+    "south": "hempdustry:block/hemp_bed_foot_south",
+    "up": "hempdustry:block/hemp_bed_foot_up",
+    "west": "hempdustry:block/hemp_bed_foot_west"
+  }
+}

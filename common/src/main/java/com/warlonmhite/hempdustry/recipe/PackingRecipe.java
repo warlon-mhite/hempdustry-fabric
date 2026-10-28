@@ -1,16 +1,19 @@
 package com.warlonmhite.hempdustry.recipe;
 
+import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.MoonRockItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -50,8 +53,24 @@ import net.minecraft.world.level.Level;
  * {@code maxDose} is 3, so rosin and moon rocks fit nothing else. No rule says so; the numbers do.
  */
 public class PackingRecipe extends CustomRecipe {
-    public PackingRecipe(CraftingBookCategory category) {
-        super(category);
+    /** One instance packs everything, so the recipe's JSON carries nothing but its type. */
+    public static final PackingRecipe INSTANCE = new PackingRecipe();
+    public static final MapCodec<PackingRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
+    public static final StreamCodec<RegistryFriendlyByteBuf, PackingRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+
+    /**
+     * The running server's registries, for {@link #assemble}: which strain a bud is and how many hits
+     * a device's bowl holds are datapack registries, and since 26.1 a recipe is no longer handed them
+     * when it builds its result. Vanilla only ever assembles a crafting result on the server (the
+     * client is sent the stack), so the server's are the right ones; with no server running there is
+     * nothing to pack. Set and cleared by {@link #trackServerRegistries()}.
+     */
+    private static volatile HolderLookup.Provider serverRegistries;
+
+    /** Keeps {@link #serverRegistries} to the server that is running, from start to stop. */
+    static void trackServerRegistries() {
+        Services.EVENTS.onServerStarted(server -> serverRegistries = server.registryAccess());
+        Services.EVENTS.onServerStopped(server -> serverRegistries = null);
     }
 
     @Override
@@ -60,6 +79,12 @@ public class PackingRecipe extends CustomRecipe {
     }
 
     @Override
+    public ItemStack assemble(CraftingInput input) {
+        HolderLookup.Provider lookup = serverRegistries;
+        return lookup == null ? ItemStack.EMPTY : assemble(input, lookup);
+    }
+
+    /** The packed device {@code input} makes, read against {@code lookup}'s strains and devices. */
     public ItemStack assemble(CraftingInput input, HolderLookup.Provider lookup) {
         Match match = find(input, lookup);
         if (match == null) {

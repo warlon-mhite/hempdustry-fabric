@@ -2,10 +2,10 @@ package com.warlonmhite.hempdustry.recipe;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
@@ -31,7 +31,7 @@ import net.minecraft.world.level.Level;
  * <p>Not in the recipe book: the book only knows the crafting types, and a machine recipe there
  * would be an entry the player could not click. Recipe viewers read the type directly.
  */
-public record PressingRecipe(Ingredient ingredient, ItemStack result)
+public record PressingRecipe(Ingredient ingredient, ItemStackTemplate result)
         implements Recipe<SingleRecipeInput> {
 
     @Override
@@ -40,8 +40,8 @@ public record PressingRecipe(Ingredient ingredient, ItemStack result)
     }
 
     @Override
-    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider lookup) {
-        return result.copy();
+    public ItemStack assemble(SingleRecipeInput input) {
+        return result.create();
     }
 
     @Override
@@ -52,6 +52,16 @@ public record PressingRecipe(Ingredient ingredient, ItemStack result)
     @Override
     public boolean isSpecial() {
         return true;
+    }
+
+    @Override
+    public boolean showNotification() {
+        return true;
+    }
+
+    @Override
+    public String group() {
+        return "";
     }
 
     /** Never shown — {@code Recipe} demands one, so this is the harmless answer. */
@@ -70,25 +80,14 @@ public record PressingRecipe(Ingredient ingredient, ItemStack result)
         return ModRecipes.PRESSING_TYPE;
     }
 
-    public static class Serializer implements RecipeSerializer<PressingRecipe> {
-        private static final MapCodec<PressingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.CODEC.fieldOf("ingredient").forGetter(PressingRecipe::ingredient),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(PressingRecipe::result)
-        ).apply(instance, PressingRecipe::new));
+    /** The recipe's JSON; {@link ModRecipes} makes its serializer of this and {@link #STREAM_CODEC}. */
+    public static final MapCodec<PressingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Ingredient.CODEC.fieldOf("ingredient").forGetter(PressingRecipe::ingredient),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(PressingRecipe::result)
+    ).apply(instance, PressingRecipe::new));
 
-        private static final StreamCodec<RegistryFriendlyByteBuf, PressingRecipe> PACKET_CODEC = StreamCodec.composite(
-                Ingredient.CONTENTS_STREAM_CODEC, PressingRecipe::ingredient,
-                ItemStack.STREAM_CODEC, PressingRecipe::result,
-                PressingRecipe::new);
-
-        @Override
-        public MapCodec<PressingRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, PressingRecipe> streamCodec() {
-            return PACKET_CODEC;
-        }
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, PressingRecipe> STREAM_CODEC = StreamCodec.composite(
+            Ingredient.CONTENTS_STREAM_CODEC, PressingRecipe::ingredient,
+            ItemStackTemplate.STREAM_CODEC, PressingRecipe::result,
+            PressingRecipe::new);
 }

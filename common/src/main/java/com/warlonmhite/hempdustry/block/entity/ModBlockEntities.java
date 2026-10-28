@@ -4,7 +4,6 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
-import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.platform.Services;
@@ -42,12 +41,6 @@ public class ModBlockEntities {
                     Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "bong"),
                     Services.REGISTRATION.blockEntityType(BongBlockEntity::new,
                             ModBlocks.DEVICE_BLOCKS.values().toArray(Block[]::new)));
-
-    public static final BlockEntityType<HempBedBlockEntity> HEMP_BED =
-            Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                    Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_bed"),
-                    Services.REGISTRATION.blockEntityType(HempBedBlockEntity::new,
-                            ModBlocks.HEMP_BED));
 
     public static void registerBlockEntities() {
         Hempdustry.LOGGER.info("Registering Block Entities for " + Hempdustry.MOD_ID);

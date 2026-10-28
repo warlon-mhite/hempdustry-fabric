@@ -82,7 +82,7 @@ public class HempBoatItem extends Item {
                 ? new HempChestBoatEntity(world, pos.x, pos.y, pos.z)
                 : new HempBoatEntity(world, pos.x, pos.y, pos.z);
         if (world instanceof ServerLevel serverWorld) {
-            EntityType.createDefaultStackConfig(serverWorld, stack, player).accept(boatEntity);
+            EntityType.<AbstractBoat>createDefaultStackConfig(serverWorld, stack, player).apply(boatEntity);
         }
         return boatEntity;
     }

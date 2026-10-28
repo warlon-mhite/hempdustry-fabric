@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DispenserBlock;
-import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.entity.DispenserBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -71,7 +71,7 @@ public final class PlantStressGameTest {
         BlockState tray = ModBlocks.HYDRO_TRAY.defaultBlockState();
         odds(context, dryField, PlantStress.DRY_FIELD, "bone-dry farmland");
         odds(context, moist(), 0.0F, "moist farmland");
-        odds(context, dryField.setValue(FarmBlock.MOISTURE, 1), 0.0F, "farmland drying out but not yet dry");
+        odds(context, dryField.setValue(FarmlandBlock.MOISTURE, 1), 0.0F, "farmland drying out but not yet dry");
         odds(context, Blocks.SAND.defaultBlockState(), 0.0F, "sand");
         odds(context, pot, PlantStress.DRY_BED, "a dry Grow Pot");
         odds(context, pot.setValue(GrowPotBlock.WATERED, true), 0.0F, "a watered Grow Pot");
@@ -326,7 +326,7 @@ public final class PlantStressGameTest {
     }
 
     private static BlockState moist() {
-        return Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE);
+        return Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE);
     }
 
     private static ItemStack waterBottle() {

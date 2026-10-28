@@ -9,6 +9,7 @@ import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.cauldron.CauldronInteraction;
+import net.minecraft.core.cauldron.CauldronInteractions;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -141,7 +142,7 @@ public final class ScorchedHempGameTest {
         for (Item resin : new Item[]{ModItems.HASHISH, ModItems.CHARAS, ModItems.FILTERED_HASHISH, ModItems.ROSIN}) {
             context.assertTrue(smeltsTo(context, resin).isEmpty(), resin + " smelts — hash reaches the Infuser");
         }
-        context.assertFalse(CauldronInteraction.WATER.map().containsKey(ModItems.SCORCHED_HEMP),
+        context.assertTrue(CauldronInteractions.WATER.get(new ItemStack(ModItems.SCORCHED_HEMP)) == CauldronInteraction.DEFAULT,
                 "scorched hemp can be washed, which makes it a route to Clean and Perfect butter");
         context.assertValueEqual(TestPlatform.INSTANCE.compostChance(ModItems.SCORCHED_HEMP), 0.3F,
                 "scorched hemp does not compost at the leaf's 0.3");
@@ -178,8 +179,7 @@ public final class ScorchedHempGameTest {
     private static ItemStack smeltsTo(GameTestHelper context, Item input) {
         return context.getLevel().recipeAccess()
                 .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(new ItemStack(input)), context.getLevel())
-                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(input)),
-                        context.getLevel().registryAccess()))
+                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(input))))
                 .orElse(ItemStack.EMPTY);
     }
 }

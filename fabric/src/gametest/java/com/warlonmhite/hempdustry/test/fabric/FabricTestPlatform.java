@@ -48,7 +48,7 @@ public final class FabricTestPlatform implements TestPlatform {
     public Flammability flammability(Block block) {
         // Fabric calls them burn and spread: the odds of catching fire, and of burning away.
         FlammableBlockRegistry.Entry entry = FlammableBlockRegistry.getDefaultInstance().get(block);
-        return entry == null ? new Flammability(0, 0) : new Flammability(entry.getBurnChance(), entry.getSpreadChance());
+        return entry == null ? new Flammability(0, 0) : new Flammability(entry.getIgniteOdds(), entry.getBurnOdds());
     }
 
     @Override

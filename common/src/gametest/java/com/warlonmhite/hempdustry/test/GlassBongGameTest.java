@@ -18,7 +18,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
@@ -33,7 +32,7 @@ public final class GlassBongGameTest {
 
     public static void everyColouredBongIsABong(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe packing = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe packing = PackingRecipe.INSTANCE;
         Item buds = world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY)
                 .getOrThrow(ModStrains.INDICA).value().buds();
 

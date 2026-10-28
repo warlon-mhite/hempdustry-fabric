@@ -7,6 +7,7 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.monster.Creeper;
@@ -100,7 +101,7 @@ public final class CreeperSeeksHempGameTest {
         // An indifferent creeper never notices, however many times it looks. Alone in the field:
         // with another creeper in it the "taken" rule refuses first and this proves nothing.
         creeper.discard();
-        Creeper indifferent = context.spawn(EntityType.CREEPER, CENTRE.offset(-1, 0, -1));
+        Creeper indifferent = context.spawn(EntityTypes.CREEPER, CENTRE.offset(-1, 0, -1));
         indifferent.setUUID(new UUID(0L, 1L));
         SeekHempCropGoal indifferentGoal = goalOf(indifferent);
         for (int glance = 0; glance < 2000; glance++) {
@@ -130,7 +131,7 @@ public final class CreeperSeeksHempGameTest {
     /** A creeper whose UUID puts it in the half that notices hemp. */
     private static Creeper interested(GameTestHelper context, BlockPos at) {
         // spawn, NOT spawnWithNoFreeWill: GameTestHelper.spawnWithNoFreeWill strips every goal off the mob.
-        Creeper creeper = context.spawn(EntityType.CREEPER, at);
+        Creeper creeper = context.spawn(EntityTypes.CREEPER, at);
         creeper.setUUID(new UUID(creeper.getUUID().getMostSignificantBits(), 2L));
         context.assertTrue(SeekHempCropGoal.caresAboutHemp(creeper), "test setup: UUID parity");
         return creeper;
