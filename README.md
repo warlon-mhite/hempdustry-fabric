@@ -144,8 +144,7 @@ Seven paintings, a cannabis-leaf banner pattern, two music discs with original t
 forty-two advancements, **recipe pages in JEI, EMI and REI** (including the cauldron steps, which
 are not recipes and which nothing else can show you), and translations in twelve locales (five
 English variants and three French, with regional vocabulary rather than copy-paste — Quebec gets
-*gougounes* and its own slang — plus Russian, translated by **MargoxaTheGamer**, and German, Swiss
-German and Austrian German, translated by **Gülps'sch420**; the Russian is still catching up
+*gougounes* and its own slang — plus Russian, translated by **MargoxaTheGamer**, and German and Swiss German, translated by **Gülps'sch420**; the Russian is still catching up
 with what 2.1 adds).
 
 ---
@@ -196,7 +195,12 @@ The two music discs are **[Nefuß](https://nefu1.bandcamp.com/)** — *Moonlight
 The Russian translation is **MargoxaTheGamer**'s, translated by hand from English.
 
 The German translation is **Gülps'sch420**'s — German and Swiss German, translated by hand from
-English, with the Austrian locale adapted from her German.
+English.
+
+American English and French are Warlon Mhite's. The other regional locales (British, Canadian,
+Australian and New Zealand English, Canadian and Swiss French, and Austrian German) were adapted with
+a Large Language Model from those and from Gülps'sch420's German, and no native speaker has read them
+yet.
 
 Some of the textures were drawn by a commissioned pixel artist who asked not to be credited by name.
 Everything else is Warlon Mhite's.
