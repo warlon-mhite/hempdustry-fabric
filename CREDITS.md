@@ -37,10 +37,14 @@ hand from English. A translation is part of the mod's data and carries the same 
 licence as the rest of it.
 
 **Gülps'sch420** — the German translation (`assets/hempdustry/lang/de_de.json`) and the Swiss
-German one (`de_ch.json`), translated by hand from English. The Austrian locale (`de_at.json`) is
-adapted from her German. Same licence, for the same reason.
+German one (`de_ch.json`), translated by hand from English. Same licence, for the same reason.
 
-The English and French locales are Warlon Mhite's.
+**Warlon Mhite** — American English (`en_us.json`) and French (`fr_fr.json`).
+
+The other regional locales were adapted with a Large Language Model and no native speaker has read
+them yet: British, Canadian, Australian and New Zealand English (`en_gb`, `en_ca`, `en_au`, `en_nz`)
+and Canadian and Swiss French (`fr_ca`, `fr_ch`) from Warlon Mhite's English and French, and Austrian
+German (`de_at`) from Gülps'sch420's German. Corrections from people who speak them are welcome.
 
 ## Code and data
 
