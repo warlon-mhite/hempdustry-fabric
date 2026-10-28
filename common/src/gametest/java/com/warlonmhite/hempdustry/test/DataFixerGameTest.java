@@ -162,6 +162,29 @@ public final class DataFixerGameTest {
         context.succeed();
     }
 
+    /**
+     * A hemp bed saved before 26.2 comes out of the fixer without its block entity, as vanilla's beds do
+     * (schema 4885): 26.2 draws a bed from its block model, the type is gone, and an entry left behind
+     * would be refused as an unknown type, with an error in the log, every time its chunk loads. A vanilla
+     * bed beside it shows the fix ran, and a chest that it took nothing else with it.
+     */
+    public static void anOldHempBedLosesItsBlockEntity(GameTestHelper context) {
+        String chunk = "{DataVersion:3955,xPos:0,zPos:0,yPos:-4,Status:\"minecraft:full\",sections:[],block_entities:["
+                + "{id:\"minecraft:bed\",x:0,y:-60,z:0},"
+                + "{id:\"hempdustry:hemp_bed\",x:1,y:-60,z:0,CustomName:'\"" + NAME + "\"'},"
+                + machine("minecraft:chest", 2, true, true) + "]}";
+        ListTag blockEntities = DataFixTypes.CHUNK.updateToCurrentVersion(context.getLevel().getServer().getFixerUpper(),
+                read(chunk), MINECRAFT_1_21_1).getListOrEmpty("block_entities");
+        List<String> left = new ArrayList<>();
+        for (int i = 0; i < blockEntities.size(); i++) left.add(blockEntities.getCompoundOrEmpty(i).getStringOr("id", "?"));
+        context.assertTrue(!left.contains("minecraft:bed"),
+                "vanilla's bed kept its block entity, so the chunk never reached schema 4885: " + left);
+        context.assertTrue(!left.contains("hempdustry:hemp_bed"),
+                "the hemp bed kept its block entity through the fixer, which 26.2 no longer has a type for: " + left);
+        context.assertValueEqual(List.of("minecraft:chest"), left, "the block entities left after the fixer");
+        context.succeed();
+    }
+
     /** The anvil name every nameable block entity carries in the 1.21.1 chunk. */
     private static final String NAME = "Hemp Kitchen";
 
