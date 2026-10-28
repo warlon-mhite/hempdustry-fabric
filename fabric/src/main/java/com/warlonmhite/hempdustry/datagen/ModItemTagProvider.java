@@ -157,6 +157,11 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         // Walking on powder snow is a different check, leather boots by name, so flip-flops sink.
         valueLookupBuilder(ItemTags.FREEZE_IMMUNE_WEARABLES).add(ModItems.HEMP_BEANIE);
 
+        // The leaf is a banner pattern item, beside vanilla's ten. Since 26.1 the loom's pattern slot
+        // takes an item only when it is in this tag *and* carries provides_banner_patterns (1.21.11
+        // read the component alone), so without it the leaf stays in the hotbar.
+        valueLookupBuilder(ItemTags.LOOM_PATTERNS).add(ModItems.HEMP_LEAF);
+
         // The two garments take dye -- a dye recipe each, as vanilla gives each leather piece since
         // 26.1 (ModRecipeProvider) -- and a water cauldron washes it out, which is this tag. The
         // beanie keeps its stripes and the flip-flops their soles: a single tint over them would
