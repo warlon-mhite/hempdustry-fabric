@@ -13,10 +13,11 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -40,8 +41,10 @@ import org.jetbrains.annotations.Nullable;
 public class HempPressBlockEntityRenderer
         implements BlockEntityRenderer<HempPressBlockEntity, HempPressBlockEntityRenderer.State> {
 
-    private static final ItemStack PLATEN = part("hemp_press_platen");
-    private static final ItemStack SCREW = part("hemp_press_screw");
+    // Templates, made into stacks only when a press is drawn: since 26.1 no ItemStack can exist before a
+    // world has bound the items' components, and this class loads with the client's first resource reload.
+    private static final ItemStackTemplate PLATEN = part("hemp_press_platen");
+    private static final ItemStackTemplate SCREW = part("hemp_press_screw");
 
     /** Pixels the platen travels: from under the crossbeam down onto the packet. */
     private static final float TRAVEL = 4.0F;
@@ -58,10 +61,10 @@ public class HempPressBlockEntityRenderer
         this.itemModels = context.itemModelResolver();
     }
 
-    private static ItemStack part(String model) {
-        ItemStack stack = new ItemStack(Items.STICK);
-        stack.set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, model));
-        return stack;
+    private static ItemStackTemplate part(String model) {
+        return new ItemStackTemplate(Items.STICK, DataComponentPatch.builder()
+                .set(DataComponents.ITEM_MODEL, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, model))
+                .build());
     }
 
     public static class State extends BlockEntityRenderState {
@@ -80,8 +83,8 @@ public class HempPressBlockEntityRenderer
     public void extractRenderState(HempPressBlockEntity press, State state, float tickDelta, Vec3 cameraPos,
                                   @Nullable ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
         BlockEntityRenderer.super.extractRenderState(press, state, tickDelta, cameraPos, crumblingOverlay);
-        itemModels.updateForTopItem(state.platen, PLATEN, ItemDisplayContext.NONE, press.getLevel(), null, 0);
-        itemModels.updateForTopItem(state.screw, SCREW, ItemDisplayContext.NONE, press.getLevel(), null, 0);
+        itemModels.updateForTopItem(state.platen, PLATEN.create(), ItemDisplayContext.NONE, press.getLevel(), null, 0);
+        itemModels.updateForTopItem(state.screw, SCREW.create(), ItemDisplayContext.NONE, press.getLevel(), null, 0);
         float ticks = press.strokeTicks(tickDelta);
         state.depth = ticks < 0 ? 0.0F : depth(ticks / HempPressBlockEntity.pressTime());
     }

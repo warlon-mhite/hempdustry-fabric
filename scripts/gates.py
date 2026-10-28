@@ -85,6 +85,7 @@ def gates(args):
     yield "plain PASS", py + [script("use_with_item_pass.py")], last(r"PASS")
     yield "biome tint pairing", py + [script("biome_tint_pairing.py")], last(r"tinted|OK|offend")
     yield "tall plant loot", py + [script("tall_plant_loot.py")], last(r"OK|pool")
+    yield "static stacks", py + [script("static_stacks.py")], last(r"static item stacks")
     yield "recipe collisions", py + [script("recipe_collisions.py"), GENERATED, str(vanilla_data())], \
         last(r"scanned|collision")
     tests_verdict = lambda output: last(r"nobody expected")(output) or last(r"required tests")(output) or last(r"BUILD")(output)
