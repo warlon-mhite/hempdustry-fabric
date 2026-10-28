@@ -77,7 +77,7 @@ dependencies {
 	// and re-sync.
 	def viewer = project.findProperty("viewer") ?: "jei"
 	if (viewer == "jei") {
-		localRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+		localRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_runtime_version}"
 	} else if (viewer == "rei") {
 		localRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"
 	} else if (viewer != "none") {
@@ -144,6 +144,9 @@ def expectedGametestLog = [
 	// every_config_extreme_keeps_the_numbers_sane pushes every setting past its range, with values
 	// no real config holds -- a shipped default the loader has to clamp still fails the run
 	~/\(hempdustry\) Config \S+ was (-?1000000000|-?1\.0E9|1\.0E-9), clamped to/,
+	// JEI's Fabric build (30.47, the run's viewer) carries a mixin for Amecs, another mod's key
+	// modifiers, and Mixin says once that the class is missing when Amecs is not installed
+	~/\(FabricLoader\/Mixin\) Error loading class: de\/siphalor\/amecs\//,
 ]
 def gametestLog = file("build/gametest/logs/latest.log")
 tasks.matching { it.name == "runGametest" }.configureEach {

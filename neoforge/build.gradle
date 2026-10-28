@@ -86,7 +86,11 @@ dependencies {
 	//   ./gradlew :neoforge:runClient -Pviewer=none    # no viewer
 	def viewer = project.findProperty("viewer") ?: "jei"
 	if (viewer == "jei") {
-		localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+		localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_runtime_version}") {
+			// JEI carries this library inside its own jar, which is how a player gets it; the copy its
+			// POM adds as well makes NeoForge's jar-in-jar selection warn at every start
+			exclude group: "net.mezzdev.config", module: "mezz_config-${minecraft_version}-neoforge"
+		}
 	} else if (viewer == "rei") {
 		localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
 	} else if (viewer != "none") {
