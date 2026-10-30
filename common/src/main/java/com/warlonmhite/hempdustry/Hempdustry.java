@@ -19,6 +19,7 @@ import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.item.custom.EdibleScheduler;
+import com.warlonmhite.hempdustry.item.custom.JellyLegs;
 import com.warlonmhite.hempdustry.item.custom.SmokeScheduler;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -75,6 +76,7 @@ public class Hempdustry {
 		ModRecipes.registerRecipes();
 		SmokeScheduler.init();
 		EdibleScheduler.init();
+		JellyLegs.init();
 		ModLootTableModifiers.modifyLootTables();
 		ModItemGroups.registerItemGroups();
 		ModItems.registerModItems();
