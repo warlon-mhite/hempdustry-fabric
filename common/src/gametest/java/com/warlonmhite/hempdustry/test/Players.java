@@ -1,9 +1,16 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.mojang.authlib.GameProfile;
+import io.netty.channel.embedded.EmbeddedChannel;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
@@ -24,8 +31,20 @@ final class Players {
     private Players() {
     }
 
+    /**
+     * A survival player joined to the test's level, the way {@code GameTestHelper#makeMockServerPlayerInLevel}
+     * joins one — but that one answers {@code gameMode()} with CREATIVE whatever its game mode is, so
+     * every {@code isCreative()} check in the mod took the creative branch under test; and 26.2 marks it
+     * for removal. This one's game mode is its own.
+     */
     static ServerPlayer survival(GameTestHelper context) {
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerLevel level = context.getLevel();
+        CommonListenerCookie cookie = CommonListenerCookie.createInitial(
+                new GameProfile(UUID.randomUUID(), "test-mock-player"), false);
+        ServerPlayer player = new ServerPlayer(level.getServer(), level, cookie.gameProfile(), cookie.clientInformation());
+        Connection connection = new Connection(PacketFlow.SERVERBOUND);
+        new EmbeddedChannel(connection);
+        level.getServer().getPlayerList().placeNewPlayer(connection, player, cookie);
         player.setGameMode(GameType.SURVIVAL);
         return player;
     }

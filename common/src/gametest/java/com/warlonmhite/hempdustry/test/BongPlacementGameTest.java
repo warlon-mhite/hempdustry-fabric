@@ -22,7 +22,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -44,8 +43,7 @@ public final class BongPlacementGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void bongStandsAndComesBackWhole(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         Item red = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
                 net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("hempdustry", "red_bong"));
 

@@ -110,7 +110,7 @@ public final class ScorchedHempGameTest {
     public void allScorchedBatchIsDoneAtTheMinimum(GameTestHelper context) {
         InfuserBlockEntity infuser = tub(context, A, InfuserBlockEntity.minTime(), 0, 0,
                 InfuserBlockEntity.BATCH_CAP);
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.survival(context);
 
         context.runAtTickTime(3, () -> {
             context.assertTrue(infuser.isAtBestQuality(),
