@@ -37,6 +37,12 @@ import net.minecraft.core.ClientAsset;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentExactPredicate;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.advancements.predicates.FoodPredicate;
+import net.minecraft.advancements.predicates.MobEffectsPredicate;
+import net.minecraft.advancements.predicates.entity.PlayerPredicate;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -307,6 +313,27 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .addCriterion("smoked_at_dawn", SmokeCriterion.Conditions.during(0L, 420L))
                 .parent(firstContact)
                 .save(consumer, Hempdustry.MOD_ID + ":wake_and_bake");
+
+        // The munchies: eat while smoking's Hunger is on you and the food bar is at 6 or under, the
+        // point where FoodData#hasEnoughFood stops letting you sprint. consume_item fires before the
+        // food lands (Consumable#onConsume), so the bar it reads is the empty one. Any food counts,
+        // which is what the munchies are; drinks and potions do not, having no food component.
+        Advancement.Builder.advancement()
+                .display(display(Items.COOKIE, "the_munchies", AdvancementType.TASK))
+                .addCriterion("ate_with_the_munchies", CriteriaTriggers.CONSUME_ITEM.createCriterion(
+                        new ConsumeItemTrigger.TriggerInstance(
+                                Optional.of(EntityPredicate.wrap(EntityPredicate.Builder.entity()
+                                        .effects(MobEffectsPredicate.Builder.effects().and(MobEffects.HUNGER))
+                                        .player(PlayerPredicate.Builder.player()
+                                                .setFood(FoodPredicate.Builder.food()
+                                                        .withLevel(MinMaxBounds.Ints.atMost(6)).build())
+                                                .build()))),
+                                Optional.of(ItemPredicate.Builder.item()
+                                        .withComponents(DataComponentMatchers.Builder.components()
+                                                .any(DataComponents.FOOD).build())
+                                        .build()))))
+                .parent(firstContact)
+                .save(consumer, Hempdustry.MOD_ID + ":the_munchies");
 
         // The device ladder. An ItemPredicate rather than a device field on the criterion — the
         // stack handed to the trigger is still the packed one, and since packing is a component on

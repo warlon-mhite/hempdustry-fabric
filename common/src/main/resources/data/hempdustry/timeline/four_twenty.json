@@ -1,0 +1,10 @@
+{
+  "clock": "minecraft:overworld",
+  "period_ticks": 24000,
+  "time_markers": {
+    "hempdustry:four_twenty": {
+      "show_in_commands": true,
+      "ticks": 10333
+    }
+  }
+}

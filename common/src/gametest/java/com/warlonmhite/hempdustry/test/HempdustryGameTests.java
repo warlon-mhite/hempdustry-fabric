@@ -185,6 +185,9 @@ public final class HempdustryGameTests {
                 LangGameTest::everyTranslationKeepsItsPlaceholders);
         register("hemp_takes_any_soil_in_vanillas_crop_tags", SoilTagsGameTest::hempTakesAnySoilInVanillasCropTags);
         register("a_hemp_bale_makes_a_footbag", FootbagGameTest::aHempBaleMakesAFootbag);
+        register("four_twenty_is_a_time_marker", FourTwentyGameTest::fourTwentyIsATimeMarker);
+        register("the_munchies_want_hunger_and_an_empty_stomach",
+                FourTwentyGameTest::theMunchiesWantHungerAndAnEmptyStomach);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

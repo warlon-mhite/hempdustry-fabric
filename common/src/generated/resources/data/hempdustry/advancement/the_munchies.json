@@ -1,0 +1,51 @@
+{
+  "parent": "hempdustry:first_contact",
+  "criteria": {
+    "ate_with_the_munchies": {
+      "conditions": {
+        "item": {
+          "predicates": {
+            "minecraft:food": {}
+          }
+        },
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "minecraft:effects": {
+                "minecraft:hunger": {}
+              },
+              "minecraft:type_specific/player": {
+                "food": {
+                  "level": {
+                    "max": 6
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:consume_item"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.the_munchies.description"
+    },
+    "icon": {
+      "id": "minecraft:cookie"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.the_munchies.title"
+    }
+  },
+  "requirements": [
+    [
+      "ate_with_the_munchies"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
