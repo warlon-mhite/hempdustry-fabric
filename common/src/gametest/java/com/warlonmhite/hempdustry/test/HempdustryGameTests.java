@@ -183,6 +183,7 @@ public final class HempdustryGameTests {
         register("every_tooltip_names_a_real_key", LangGameTest::everyTooltipNamesARealKey);
         register("every_translation_keeps_its_placeholders",
                 LangGameTest::everyTranslationKeepsItsPlaceholders);
+        register("hemp_takes_any_soil_in_vanillas_crop_tags", SoilTagsGameTest::hempTakesAnySoilInVanillasCropTags);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */
