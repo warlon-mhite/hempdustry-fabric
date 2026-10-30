@@ -97,8 +97,7 @@ public final class BeldiaGameTest {
         // Planting through the real click: a seed goes down on watered sand, and dry sand refuses it
         // without eating the seed.
         context.setBlock(SOIL, Blocks.SAND);
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         ItemStack seeds = new ItemStack(ModItems.BELDIA_SEEDS, 4);
         plant(player, world, soil, seeds);
         context.assertTrue(world.getBlockState(crop).is(ModBlocks.BELDIA_CROP), "a seed would not go down on watered sand");
@@ -199,8 +198,7 @@ public final class BeldiaGameTest {
         context.assertTrue(beldia.value().coughFactor() == 0.5F, "Beldía does not cough at twice the odds");
         int length = DeviceType.PIPE.builtInStats().durationTicks();
 
-        ServerPlayer smoker = context.makeMockServerPlayerInLevel();
-        smoker.setGameMode(GameType.SURVIVAL);
+        ServerPlayer smoker = Players.survival(context);
         smoke(smoker, world, beldia);
         MobEffectInstance invisible = smoker.getEffect(MobEffects.INVISIBILITY);
         context.assertTrue(invisible != null && invisible.getDuration() == length,
@@ -208,8 +206,7 @@ public final class BeldiaGameTest {
         context.assertTrue(smoker.hasEffect(MobEffects.HUNGER), "the hit did not give Hunger");
         context.assertTrue(!smoker.hasEffect(MobEffects.BLINDNESS), "Blindness landed with the hit, not the exhale");
 
-        ServerPlayer dies = context.makeMockServerPlayerInLevel();
-        dies.setGameMode(GameType.SURVIVAL);
+        ServerPlayer dies = Players.survival(context);
         smoke(dies, world, beldia);
         dies.kill(world);
         ServerPlayer respawned = world.getServer().getPlayerList().respawn(dies, false, Entity.RemovalReason.KILLED);

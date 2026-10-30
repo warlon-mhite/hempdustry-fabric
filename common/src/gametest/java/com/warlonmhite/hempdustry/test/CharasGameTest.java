@@ -15,7 +15,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -51,8 +50,7 @@ public final class CharasGameTest {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
 
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         // Creative-mode shears would still take damage in survival; a fresh stack each time keeps
         // the tool out of the measurement entirely.
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
@@ -157,8 +155,7 @@ public final class CharasGameTest {
                 .get(Identifier.fromNamespaceAndPath("hempdustry", "trim_season"));
         context.assertTrue(trimSeason != null, "hempdustry:trim_season is not loaded at all");
 
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         ItemStack shears = new ItemStack(Items.SHEARS);
         player.setItemInHand(InteractionHand.MAIN_HAND, shears);
         context.assertTrue(!player.getAdvancements().getOrStartProgress(trimSeason).isDone(),

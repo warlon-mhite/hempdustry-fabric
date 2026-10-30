@@ -13,7 +13,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
-import net.minecraft.world.level.GameType;
 
 /**
  * A bong is drawn, not clicked: the hit lands at the end of the hold, and letting go spends nothing.
@@ -27,8 +26,7 @@ public final class BongRipGameTest {
 
     public static void bongIsDrawnNotClicked(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
 
         ItemStack bong = packed(world, ModItems.BONG, DeviceType.BONG);
         player.setItemInHand(InteractionHand.MAIN_HAND, bong);
@@ -55,8 +53,7 @@ public final class BongRipGameTest {
 
         // The control: the pipe still hits on the click, and never enters a draw. A fresh player,
         // because the cooldown the bong just started covers every smokeable, the pipe included.
-        ServerPlayer other = context.makeMockServerPlayerInLevel();
-        other.setGameMode(GameType.SURVIVAL);
+        ServerPlayer other = Players.survival(context);
         ItemStack pipe = packed(world, ModItems.WOODEN_PIPE, DeviceType.PIPE);
         other.setItemInHand(InteractionHand.MAIN_HAND, pipe);
         other.gameMode.useItem(other, world, pipe, InteractionHand.MAIN_HAND);

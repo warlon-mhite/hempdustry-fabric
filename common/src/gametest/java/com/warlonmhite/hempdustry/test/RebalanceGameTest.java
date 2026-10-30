@@ -26,7 +26,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 
@@ -49,6 +48,8 @@ public final class RebalanceGameTest {
             ServerPlayer player = freshPlayer(context);
             player.getFoodData().setSaturation(5f);
             ItemStack spliff = packed(context, ModItems.SPLIFF, ModStrains.SATIVA, 3);
+            // A survival hit burns one spliff; the one left in hand carries the lockout.
+            spliff.setCount(2);
             smoke(context, player, spliff);
             if (player.hasEffect(MobEffects.SPEED)) {
                 clean = player;
@@ -167,8 +168,7 @@ public final class RebalanceGameTest {
      * took the last point, taking the rest of the bowl with it.
      */
     public static void aLoadedDeviceDoesNotBreakMidBowl(GameTestHelper context) {
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         ItemStack pipe = packed(context, ModItems.WOODEN_PIPE, ModStrains.INDICA, 1);
         int charges = pipe.getOrDefault(ModComponents.CHARGES, 0);
         pipe.setDamageValue(pipe.getMaxDamage() - 2);
@@ -285,7 +285,7 @@ public final class RebalanceGameTest {
     // ---------------------------------------------------------------------
 
     private static ServerPlayer freshPlayer(GameTestHelper context) {
-        return context.makeMockServerPlayerInLevel();
+        return Players.survival(context);
     }
 
     private static ServerPlayer highPlayer(GameTestHelper context) {

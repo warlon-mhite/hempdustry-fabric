@@ -32,7 +32,7 @@ public final class AddonEventGameTest {
 
     public static void theAddonEventsReachAListener(GameTestHelper context) {
         TestPlatform.AddonProbe probe = TestPlatform.INSTANCE.addonProbe();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.survival(context);
         // Everything here happens inside this one call, so no other test's events land in between.
         probe.take();
 

@@ -15,7 +15,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.entity.DispenserBlockEntity;
@@ -39,9 +38,7 @@ public final class InfuserPourGameTest {
     private static final BlockPos PULSE = new BlockPos(0, 2, 1);
 
     private static ServerPlayer survivalPlayer(GameTestHelper context) {
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
-        return player;
+        return Players.survival(context);
     }
 
     /**
