@@ -24,7 +24,8 @@ import java.util.WeakHashMap;
  *
  * <p>NeoForge poses an armour model with the wearer's state when it draws it, so the flip-flops are
  * one model per body model they stand in for, which poses that body model and takes its legs' pose --
- * what Fabric's hook does for the same item.
+ * what Fabric's hook does for the same item. On a baby the body model is vanilla's baby armour, which
+ * the baby's pair is drawn for.
  */
 final class FlipFlopsExtensions implements IClientItemExtensions {
     private final Map<HumanoidModel<?>, OnLegs> models = new WeakHashMap<>();
@@ -42,7 +43,9 @@ final class FlipFlopsExtensions implements IClientItemExtensions {
             this.models.clear();
             bakedFrom = models;
         }
-        return this.models.computeIfAbsent(body, b -> new OnLegs(models.bakeLayer(ModEntityModelLayers.FLIP_FLOPS), b));
+        boolean baby = layerType == EquipmentClientInfo.LayerType.HUMANOID_BABY;
+        return this.models.computeIfAbsent(body, b -> new OnLegs(
+                models.bakeLayer(baby ? ModEntityModelLayers.FLIP_FLOPS_BABY : ModEntityModelLayers.FLIP_FLOPS), b));
     }
 
     @Override

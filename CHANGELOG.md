@@ -28,6 +28,9 @@ These build on things Minecraft 26.1 and 26.2 added, so the 1.21.11 and 1.21.1 b
   footbag, only the sliding is felt.
 - **Hemp grows on other mods' farmland.** Any soil another mod adds to Minecraft's own crop-soil tags
   takes hemp seeds and grows them as it grows wheat, on Fabric and NeoForge alike.
+- **The hemp outfit in baby sizes.** Since Minecraft 26.1 babies wear armour cut to their own size. A
+  baby zombie, husk, drowned, zombie villager or piglin that picks up a hemp shirt, harem pants or
+  flip-flops now wears a baby-sized one, dyed like the original, as it does with leather.
 
 ## [2.1.0] — 2026-10-27
 

@@ -18,6 +18,9 @@ public final class ModEntityModelLayers {
     /** The flip-flops' soles and straps, drawn in place of boots (FlipFlopsModel). */
     public static final ModelLayerLocation FLIP_FLOPS =
             new ModelLayerLocation(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "flip_flops"), "main");
+    /** The same on a baby's feet (FlipFlopsModel#createBabyLayer). */
+    public static final ModelLayerLocation FLIP_FLOPS_BABY =
+            new ModelLayerLocation(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "flip_flops"), "baby");
 
     private ModEntityModelLayers() {
     }

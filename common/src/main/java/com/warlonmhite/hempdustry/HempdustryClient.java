@@ -59,6 +59,7 @@ public class HempdustryClient {
         // Flip-flops are drawn by a model of their own rather than as boots (the beanie needs no
         // code: vanilla draws a head item with no equipment model as its item model).
         client.modelLayer(ModEntityModelLayers.FLIP_FLOPS, FlipFlopsModel::createLayer);
+        client.modelLayer(ModEntityModelLayers.FLIP_FLOPS_BABY, FlipFlopsModel::createBabyLayer);
 
         client.menuScreen(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         client.menuScreen(ModScreenHandlers.INFUSER, InfuserScreen::new);

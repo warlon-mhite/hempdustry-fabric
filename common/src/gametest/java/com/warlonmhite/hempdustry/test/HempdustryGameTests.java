@@ -189,6 +189,7 @@ public final class HempdustryGameTests {
         register("the_munchies_want_hunger_and_an_empty_stomach",
                 FourTwentyGameTest::theMunchiesWantHungerAndAnEmptyStomach);
         register("a_green_out_softens_the_legs_while_it_slows", JellyLegsGameTest::aGreenOutSoftensTheLegsWhileItSlows);
+        register("every_outfit_comes_in_a_baby_size", BabyLayerGameTest::everyOutfitComesInABabySize);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */
