@@ -180,12 +180,11 @@ public class HempdustryJeiPlugin implements IModPlugin {
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         // The block you stand in front of. JEI shows these beside the category and lets a player
         // click one to get to its recipes from the item itself.
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.DECARBOXYLATOR), decarboxylating.getRecipeType());
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.INFUSER), infusing.getRecipeType());
-        registration.addRecipeCatalyst(new ItemStack(Blocks.WATER_CAULDRON), cauldron.getRecipeType());
-        registration.addRecipeCatalyst(new ItemStack(Blocks.CAULDRON), cauldron.getRecipeType());
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.HEMP_PRESS), pressing.getRecipeType());
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.SIFTING_BOX), sifting.getRecipeType());
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.SIFTING_BOX), iceOLator.getRecipeType());
+        registration.addCraftingStation(decarboxylating.getRecipeType(), ModBlocks.DECARBOXYLATOR);
+        registration.addCraftingStation(infusing.getRecipeType(), ModBlocks.INFUSER);
+        registration.addCraftingStation(cauldron.getRecipeType(), Blocks.WATER_CAULDRON, Blocks.CAULDRON);
+        registration.addCraftingStation(pressing.getRecipeType(), ModBlocks.HEMP_PRESS);
+        registration.addCraftingStation(sifting.getRecipeType(), ModBlocks.SIFTING_BOX);
+        registration.addCraftingStation(iceOLator.getRecipeType(), ModBlocks.SIFTING_BOX);
     }
 }
