@@ -18,7 +18,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.level.GameType;
 
 /**
  * The two things about the vaporizer that fail <em>silently</em>.
@@ -49,10 +48,9 @@ public final class VaporizerGameTest {
      */
     public static void vaporizerBowlReturnsOneAvb(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
         // Survival, because the whole mechanic lives in the branch creative mode skips: creative
         // spends no charges, so the bowl would never finish and this test would pass on anything.
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
 
         Holder<Strain> strain = strain(world);
 
@@ -121,8 +119,7 @@ public final class VaporizerGameTest {
      */
     public static void vaporizerOnlyReturnsWhatGrewOnAPlant(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
 
         smokeABowl(player, world, strain(world, ModStrains.HASHISH));
         context.assertValueEqual(count(player, ModItems.SCORCHED_HEMP), 0,

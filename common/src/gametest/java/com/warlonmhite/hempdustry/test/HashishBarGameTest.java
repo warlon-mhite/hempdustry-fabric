@@ -13,7 +13,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameType;
 
 /**
  * The hashish bar: the cut, what breaking a part-cut bar gives back, and whether the blade tag
@@ -82,8 +81,7 @@ public final class HashishBarGameTest {
     public static void brokenBarDropsWhatIsLeft(GameTestHelper context) {
         context.setBlock(BAR, ModBlocks.HASHISH_BAR.defaultBlockState()
                 .setValue(HashishBarBlock.CUTS, 2));
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         context.getLevel().destroyBlock(context.absolutePos(BAR), true, player);
 

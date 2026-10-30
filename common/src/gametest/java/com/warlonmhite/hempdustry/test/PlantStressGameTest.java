@@ -21,7 +21,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.BlockItemStateProperties;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -181,8 +180,7 @@ public final class PlantStressGameTest {
         ServerLevel world = context.getLevel();
         BlockPos soil = context.absolutePos(SOIL);
         GrowPotBlock pot = (GrowPotBlock) ModBlocks.GROW_POT;
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         BlockHitResult onPot = new BlockHitResult(Vec3.atCenterOf(soil), Direction.UP, soil, false);
 
         // Water decides the moisture; food only works in water.

@@ -21,7 +21,6 @@ import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
@@ -131,8 +130,7 @@ public final class IndoorGrowGameTest {
                 "a plant that sprouted with no lamp earned " + record(context) + " by getting one later");
 
         // The Grow Lamp's leaf share, read off the plant's record: two leaves a trim, not one.
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         int lampLeaves = trimLeaves(context, player, GrowLight.GROW_LAMP);
         int plainLeaves = trimLeaves(context, player, GrowLight.LAMP);
         context.assertTrue(lampLeaves == 2, "trimming a Grow Lamp plant dropped " + lampLeaves + " leaves, not 2");
@@ -333,8 +331,7 @@ public final class IndoorGrowGameTest {
     public static void aWaterBucketFillsATray(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(SOIL);
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         context.setBlock(SOIL, ModBlocks.HYDRO_TRAY);
         context.setBlock(CROP, Blocks.AIR);
 
@@ -405,8 +402,7 @@ public final class IndoorGrowGameTest {
     public static void taggedFertiliserFeedsBothBeds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(SOIL);
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
-        player.setGameMode(GameType.SURVIVAL);
+        ServerPlayer player = Players.survival(context);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
 
         for (Block bed : new Block[]{ModBlocks.GROW_POT, ModBlocks.HYDRO_TRAY}) {
