@@ -350,6 +350,14 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         // granted separately — see ModBlockTagProvider for why #wool_carpets is safe to join.
         valueLookupBuilder(ItemTags.WOOL_CARPETS)
                 .add(ModBlocks.HEMP_CARPET.asItem());
+
+        // A sulfur cube that swallows a hemp bale becomes a footbag (data/hempdustry/
+        // sulfur_cube_archetype/footbag.json). The archetype only says how a cube moves; whether a
+        // cube takes the block at all is #minecraft:sulfur_cube_swallowable, so the tag joins it.
+        valueLookupBuilder(ModTags.Items.FOOTBAG)
+                .add(ModBlocks.HEMP_BALE.asItem());
+        valueLookupBuilder(ItemTags.SULFUR_CUBE_SWALLOWABLE)
+                .addTag(ModTags.Items.FOOTBAG);
         }
     }
 

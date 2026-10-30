@@ -1,0 +1,46 @@
+{
+  "attribute_modifiers": [
+    {
+      "amount": -1.0,
+      "attribute": "minecraft:knockback_resistance",
+      "id": "hempdustry:footbag_add_knockback_resistance",
+      "operation": "add_value"
+    },
+    {
+      "amount": -1.0,
+      "attribute": "minecraft:explosion_knockback_resistance",
+      "id": "hempdustry:footbag_add_explosion_knockback_resistance",
+      "operation": "add_value"
+    },
+    {
+      "amount": 0.0,
+      "attribute": "minecraft:bounciness",
+      "id": "hempdustry:footbag_add_bounciness",
+      "operation": "add_value"
+    },
+    {
+      "amount": 1.0,
+      "attribute": "minecraft:friction_modifier",
+      "id": "hempdustry:footbag_mul_friction_modifier",
+      "operation": "add_multiplied_total"
+    },
+    {
+      "amount": -0.9,
+      "attribute": "minecraft:air_drag_modifier",
+      "id": "hempdustry:footbag_mul_air_drag_modifier",
+      "operation": "add_multiplied_total"
+    }
+  ],
+  "buoyant": true,
+  "items": "#hempdustry:sulfur_cube_archetype/footbag",
+  "knockback_modifiers": {
+    "horizontal_power": 0.15,
+    "vertical_power": 0.25
+  },
+  "sound_settings": {
+    "hit_sound": "minecraft:entity.sulfur_cube.light.hit",
+    "push_sound": "minecraft:entity.sulfur_cube.light.push",
+    "push_sound_cooldown": 0.7,
+    "push_sound_impulse_threshold": 0.2
+  }
+}

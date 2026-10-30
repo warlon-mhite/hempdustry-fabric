@@ -108,6 +108,14 @@ public class ModTags {
          * is the id Farmer's Delight and its kin actually use.
          */
         public static final TagKey<Item> HASH_CUTTERS = createTag("hash_cutters");
+
+        /**
+         * What turns a sulfur cube into a footbag: the {@code items} of the
+         * {@code hempdustry:footbag} archetype, named the way vanilla names its twelve
+         * ({@code #minecraft:sulfur_cube_archetype/<name>}). A cube swallows only what
+         * {@code #minecraft:sulfur_cube_swallowable} lists, so this tag is in that one too.
+         */
+        public static final TagKey<Item> FOOTBAG = createTag("sulfur_cube_archetype/footbag");
         private static TagKey<Item> createTag(String name) {
             return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }
