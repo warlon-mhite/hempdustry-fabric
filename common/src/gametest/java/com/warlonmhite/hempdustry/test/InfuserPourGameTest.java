@@ -40,7 +40,7 @@ public final class InfuserPourGameTest {
     private static final BlockPos PULSE = new BlockPos(0, 2, 1);
 
     private static ServerPlayer survivalPlayer(GameTestHelper context) {
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         return player;
     }

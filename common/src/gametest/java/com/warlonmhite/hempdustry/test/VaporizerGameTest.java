@@ -56,7 +56,7 @@ public final class VaporizerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void vaporizerBowlReturnsOneAvb(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         // Survival, because the whole mechanic lives in the branch creative mode skips: creative
         // spends no charges, so the bowl would never finish and this test would pass on anything.
         player.setGameMode(GameType.SURVIVAL);
@@ -129,7 +129,7 @@ public final class VaporizerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void vaporizerOnlyReturnsWhatGrewOnAPlant(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
 
         smokeABowl(player, world, strain(world, ModStrains.HASHISH));
@@ -164,7 +164,7 @@ public final class VaporizerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void vaporizerBowlOnAFullInventoryDropsItsAvb(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         BlockPos feet = context.absolutePos(new BlockPos(4, 1, 4));
         player.moveTo(feet.getX() + 0.5, feet.getY(), feet.getZ() + 0.5, 0, 0);

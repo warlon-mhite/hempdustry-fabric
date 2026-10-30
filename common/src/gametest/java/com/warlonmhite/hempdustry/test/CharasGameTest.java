@@ -53,7 +53,7 @@ public final class CharasGameTest {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
 
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         // Creative-mode shears would still take damage in survival; a fresh stack each time keeps
         // the tool out of the measurement entirely.
@@ -160,7 +160,7 @@ public final class CharasGameTest {
                 .getAdvancement(new ResourceLocation("hempdustry", "trim_season"));
         context.assertTrue(trimSeason != null, "hempdustry:trim_season is not loaded at all");
 
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         ItemStack shears = new ItemStack(Items.SHEARS);
         player.setItemInHand(InteractionHand.MAIN_HAND, shears);

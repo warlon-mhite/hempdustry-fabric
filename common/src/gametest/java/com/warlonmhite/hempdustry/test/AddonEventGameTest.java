@@ -30,7 +30,7 @@ public final class AddonEventGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void theAddonEventsReachAListener(GameTestHelper context) {
         TestPlatform.AddonProbe probe = TestPlatform.INSTANCE.addonProbe();
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         // Everything here happens inside this one call, so no other test's events land in between.
         probe.take();
 

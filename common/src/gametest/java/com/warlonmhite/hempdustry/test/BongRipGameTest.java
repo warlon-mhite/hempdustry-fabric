@@ -29,7 +29,7 @@ public final class BongRipGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void bongIsDrawnNotClicked(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
 
         ItemStack bong = packed(world, ModItems.BONG, DeviceType.BONG);
@@ -57,7 +57,7 @@ public final class BongRipGameTest {
 
         // The control: the pipe still hits on the click, and never enters a draw. A fresh player,
         // because the cooldown the bong just started covers every smokeable, the pipe included.
-        ServerPlayer other = Players.mock(context);
+        ServerPlayer other = Players.survival(context);
         other.setGameMode(GameType.SURVIVAL);
         ItemStack pipe = packed(world, ModItems.WOODEN_PIPE, DeviceType.PIPE);
         other.setItemInHand(InteractionHand.MAIN_HAND, pipe);

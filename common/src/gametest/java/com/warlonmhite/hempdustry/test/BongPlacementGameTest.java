@@ -45,7 +45,7 @@ public final class BongPlacementGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void bongStandsAndComesBackWhole(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         Item red = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
                 new net.minecraft.resources.ResourceLocation("hempdustry", "red_bong"));

@@ -133,7 +133,7 @@ public final class IndoorGrowGameTest {
                 "a plant that sprouted with no lamp earned " + record(context) + " by getting one later");
 
         // The Grow Lamp's leaf share, read off the plant's record: two leaves a trim, not one.
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         int lampLeaves = trimLeaves(context, player, GrowLight.GROW_LAMP);
         int plainLeaves = trimLeaves(context, player, GrowLight.LAMP);
@@ -338,7 +338,7 @@ public final class IndoorGrowGameTest {
     public void aWaterBucketFillsATray(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(SOIL);
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         context.setBlock(SOIL, ModBlocks.HYDRO_TRAY);
         context.setBlock(CROP, Blocks.AIR);
@@ -412,7 +412,7 @@ public final class IndoorGrowGameTest {
     public void taggedFertiliserFeedsBothBeds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(SOIL);
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
 

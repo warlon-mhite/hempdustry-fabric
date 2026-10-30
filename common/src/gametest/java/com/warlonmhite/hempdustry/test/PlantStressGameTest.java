@@ -184,7 +184,7 @@ public final class PlantStressGameTest {
         ServerLevel world = context.getLevel();
         BlockPos soil = context.absolutePos(SOIL);
         GrowPotBlock pot = (GrowPotBlock) ModBlocks.GROW_POT;
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         BlockHitResult onPot = new BlockHitResult(Vec3.atCenterOf(soil), Direction.UP, soil, false);
 

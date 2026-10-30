@@ -85,7 +85,7 @@ public final class HashishBarGameTest {
     public void brokenBarDropsWhatIsLeft(GameTestHelper context) {
         context.setBlock(BAR, ModBlocks.HASHISH_BAR.defaultBlockState()
                 .setValue(HashishBarBlock.CUTS, 2));
-        ServerPlayer player = Players.mock(context);
+        ServerPlayer player = Players.survival(context);
         player.setGameMode(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         context.getLevel().destroyBlock(context.absolutePos(BAR), true, player);
