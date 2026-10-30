@@ -8,8 +8,8 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -23,7 +23,7 @@ import java.util.List;
  * One {@link ViewerRecipes.Entry} drawn as a JEI page: the inputs in a row, an arrow, the output,
  * and the entry's notes underneath.
  *
- * <p>One class serving every category — they differ only in their {@link RecipeType}, title
+ * <p>One class serving every category — they differ only in their {@link IRecipeType}, title
  * and icon, all of which are constructor arguments. The layout maths is the same for each and the
  * EMI side draws it identically; see {@link ViewerRecipes} for why both viewers read one model.
  */
@@ -40,7 +40,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     /** The note lines' grey, opaque: an ARGB colour with no alpha byte is drawn as nothing. */
     private static final int NOTE_COLOR = 0xFF555555;
 
-    private final RecipeType<ViewerRecipes.Entry> type;
+    private final IRecipeType<ViewerRecipes.Entry> type;
     private final Component title;
     private final IDrawable icon;
     private final IDrawableStatic arrow;
@@ -53,7 +53,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private String measuredIn = "";
 
     public EntryJeiCategory(IGuiHelper guiHelper, Identifier id, ItemStack icon, int noteLines) {
-        this.type = new RecipeType<>(id, ViewerRecipes.Entry.class);
+        this.type = IRecipeType.create(id, ViewerRecipes.Entry.class);
         this.title = Component.translatable("hempdustry.category." + id.getPath());
         this.icon = guiHelper.createDrawableItemStack(icon);
         this.arrow = guiHelper.getRecipeArrow();
@@ -62,7 +62,7 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     }
 
     @Override
-    public RecipeType<ViewerRecipes.Entry> getRecipeType() {
+    public IRecipeType<ViewerRecipes.Entry> getRecipeType() {
         return type;
     }
 
@@ -116,14 +116,14 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
         for (Ingredient input : entry.inputs()) {
             builder.addSlot(RecipeIngredientRole.INPUT, x, 0)
                     .setBackground(slot, -1, -1)
-                    .addIngredients(input);
+                    .add(input);
             x += SLOT;
         }
         // Measured from the widest entry rather than from this one, so the output column does not
         // jump between pages of the same category.
         builder.addSlot(RecipeIngredientRole.OUTPUT, PADDING + MAX_INPUTS * SLOT + ARROW_WIDTH, 0)
                 .setBackground(slot, -1, -1)
-                .addItemStack(entry.output());
+                .add(entry.output());
     }
 
     @Override
