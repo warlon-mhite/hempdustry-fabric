@@ -9,7 +9,25 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.1.0.
+### Added — on Minecraft 26.2 only
+
+These build on things Minecraft 26.1 and 26.2 added, so the 1.21.11 and 1.21.1 builds do not have them.
+
+- **The footbag.** Feed a hemp bale to a large sulfur cube and it becomes a footbag: it does not
+  bounce, it stops where it lands, it floats, and a kick pops it up rather than away, about two blocks
+  for a punch, so a few friends can keep it in the air. Shears take the bale back out, as with any
+  cube. On NeoForge every sulfur cube, vanilla's own included, is kicked about half as hard as on
+  Fabric for now, which NeoForge 26.2.0.93 does to all of them.
+- **4:20 on the clock.** `/time set hempdustry:four_twenty` sits beside `day`, `noon` and `night`, and
+  puts the Overworld at 4:20 in the afternoon, right in the middle of *Blaze It!*'s window.
+- **The Munchies**, a new advancement under *First Contact*: eat something while under Hunger and too
+  hungry to sprint.
+- **Jelly legs.** A green-out takes the ground from under you while it slows you: your feet slide a
+  little when you stop, and a hit sends you further. Standing still is safe; a fight or a cliff edge is
+  not. A squelch and a puff of slime say when it starts. On NeoForge, for the same reason as the
+  footbag, only the sliding is felt.
+- **Hemp grows on other mods' farmland.** Any soil another mod adds to Minecraft's own crop-soil tags
+  takes hemp seeds and grows them as it grows wheat, on Fabric and NeoForge alike.
 
 ## [2.1.0] — 2026-10-27
 
