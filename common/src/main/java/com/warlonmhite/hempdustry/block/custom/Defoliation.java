@@ -173,7 +173,7 @@ public final class Defoliation {
      */
     public static BlockState unworked(BlockState state) {
         return state.setValue(TRIMMED_EARLY, false).setValue(TRIMMED_LATE, false).setValue(RUBBED, false)
-                .setValue(GrowLight.PROPERTY, GrowLight.NATURAL);
+                .setValue(GrowLight.PROPERTY, GrowLight.NATURAL).setValue(Mildew.PROPERTY, Mildew.CLEAN);
     }
 
     /**
@@ -194,7 +194,8 @@ public final class Defoliation {
         return to.setValue(TRIMMED_EARLY, from.getValue(TRIMMED_EARLY))
                 .setValue(TRIMMED_LATE, from.getValue(TRIMMED_LATE))
                 .setValue(RUBBED, from.getValue(RUBBED))
-                .setValue(GrowLight.PROPERTY, from.getValue(GrowLight.PROPERTY));
+                .setValue(GrowLight.PROPERTY, from.getValue(GrowLight.PROPERTY))
+                .setValue(Mildew.PROPERTY, from.getValue(Mildew.PROPERTY));
     }
 
     /**
@@ -261,11 +262,20 @@ public final class Defoliation {
             // The flag first, then the leaf. The flag is what the loot table reads to take this leaf
             // back off the harvest, so the leaf is only ever handed over together with it.
             world.setBlock(lowerPos, lowerState.setValue(window, true), Block.UPDATE_CLIENTS);
+            // A trim of a mildewed plant takes the diseased leaves away: the mildew goes, the cut
+            // still counts as the window's trim, and no leaf is handed over -- the harvest still takes
+            // its leaf back for the flag, so the sick leaf is lost, as it is in a real grow room.
+            boolean cure = !rub && lowerState.getValue(Mildew.PROPERTY) == Mildew.MILDEWED;
+            if (cure) {
+                Mildew.write(world, lowerPos, Mildew.CLEAN);
+            }
             // A Grow Lamp plant has leaf to spare: a TRIM of one hands over a second leaf, which the
             // harvest does not take back. Read off the plant's record, never off the lamp.
             GrowLight light = lowerState.getValue(GrowLight.PROPERTY);
-            int leaves = !rub && light == GrowLight.GROW_LAMP ? 2 : 1;
-            Block.popResource(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF, leaves));
+            int leaves = cure ? 0 : !rub && light == GrowLight.GROW_LAMP ? 2 : 1;
+            if (leaves > 0) {
+                Block.popResource(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF, leaves));
+            }
             if (rub) {
                 // The age is untouched, and the charas is a roll on top of the leaf.
                 //

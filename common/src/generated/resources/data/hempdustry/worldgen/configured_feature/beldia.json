@@ -17,6 +17,7 @@
               "age": "7",
               "condition": "natural",
               "half": "lower",
+              "mildew": "clean",
               "rubbed": "false",
               "trimmed_early": "false",
               "trimmed_late": "false"
@@ -34,6 +35,7 @@
               "age": "7",
               "condition": "natural",
               "half": "upper",
+              "mildew": "clean",
               "rubbed": "false",
               "trimmed_early": "false",
               "trimmed_late": "false"

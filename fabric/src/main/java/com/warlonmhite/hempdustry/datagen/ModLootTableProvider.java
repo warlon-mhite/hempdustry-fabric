@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.Mildew;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
@@ -152,6 +153,13 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
      */
     private static final Float[] HEALTHY_SCHWAG_CHANCES = {0.02F, 0.0F};
     private static final Float[] STRESSED_SCHWAG_CHANCES = {0.25F, 0.20F, 0.15F, 0.10F};
+    /**
+     * Mildew costs what stress does to the buds and nothing else: no bud short and no seeds, since
+     * mildew does not make a plant hermaphrodite. A plant reached by the sulfur gas while it
+     * flowered spoils less. Fortune softens both the way it softens stress. See {@code Mildew}.
+     */
+    private static final Float[] MILDEWED_SCHWAG_CHANCES = STRESSED_SCHWAG_CHANCES;
+    private static final Float[] SULFURED_SCHWAG_CHANCES = {0.10F, 0.08F, 0.06F, 0.04F};
 
     /** The flags that move the buds, one bud each: the two trims, and only those. */
     private static final BooleanProperty[] TRIMS = {Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE};
@@ -323,6 +331,8 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         LootItemCondition.Builder oneCut = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 1, TRIMS);
         LootItemCondition.Builder twoCuts = workedBucket(crop, lowerPredicate, ageProperty, maxAge, 2, TRIMS);
         LootItemCondition.Builder stressed = grewUnder(crop, lowerPredicate, ageProperty, maxAge, GrowLight.STRESSED);
+        LootItemCondition.Builder mildewed = carries(crop, lowerPredicate, ageProperty, maxAge, Mildew.MILDEWED);
+        LootItemCondition.Builder sulfured = carries(crop, lowerPredicate, ageProperty, maxAge, Mildew.SULFURED);
         LootItemCondition.Builder inABed = LocationCheck.checkLocation(
                 LocationPredicate.Builder.location().setBlock(BlockPredicate.Builder.block()
                         .of(this.registries.lookupOrThrow(Registries.BLOCK),
@@ -338,10 +348,17 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                                 // A STRESSED plant first: one bud short of whatever its trims earned,
                                 // and every bud it keeps may have gone to schwag. Every other ripe
                                 // plant risks the poisonous potato's one bad item, which any Fortune
-                                // clears. See SCHWAG_*_CHANCES.
-                                .add(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS - 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, stressed), fortune)
-                                        .otherwise(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, stressed), fortune))
-                                        .otherwise(stressedBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, stressed), fortune))
+                                // clears. See SCHWAG_*_CHANCES. Mildew and sulfur come after stress, so
+                                // a plant with both takes the worse odds, never the sum.
+                                .add(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS - 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, stressed), fortune, STRESSED_SCHWAG_CHANCES)
+                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, stressed), fortune, STRESSED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, stressed), fortune, STRESSED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
                                         .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), zeroCuts, fortune))
                                         .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), oneCut, fortune))
                                         .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), twoCuts, fortune))
@@ -433,6 +450,13 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                 .setProperties(lowerPredicate.get().hasProperty(ageProperty, maxAge).hasProperty(GrowLight.PROPERTY, light));
     }
 
+    /** "This plant is a mature LOWER that carries {@code mildew}." */
+    private static LootItemCondition.Builder carries(Block crop, Supplier<StatePropertiesPredicate.Builder> lowerPredicate,
+                                                 IntegerProperty ageProperty, int maxAge, Mildew mildew) {
+        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop)
+                .setProperties(lowerPredicate.get().hasProperty(ageProperty, maxAge).hasProperty(Mildew.PROPERTY, mildew));
+    }
+
     /**
      * A healthy ripe plant's buds: one of them turns to schwag {@link #HEALTHY_SCHWAG_CHANCES} of the
      * time. Only the main bud pool is wrapped, and exactly one of its alternatives fires, so that is
@@ -447,19 +471,19 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
     }
 
     /**
-     * A stressed plant's buds: each one turns to schwag at {@link #STRESSED_SCHWAG_CHANCES}.
+     * A stressed, mildewed or sulfured plant's buds: each one turns to schwag at {@code chances}.
      *
      * <p>Both wrappers carry the bucket's condition <b>themselves</b>, and the buds inside carry none:
      * they sit in an {@code alternatives} chain, and vanilla's validation reads only the conditions of
      * the chain's own children. With them on the buds, every later alternative was reported as an
      * "Unreachable entry!" — three warnings at every world load, though the drops were right.
      */
-    private static LootPoolEntryContainer.Builder<?> stressedBuds(LootPoolSingletonContainer.Builder<?> buds, LootItemCondition.Builder bucket,
-                                                        Holder<Enchantment> fortune) {
+    private static LootPoolEntryContainer.Builder<?> spoiledBuds(LootPoolSingletonContainer.Builder<?> buds, LootItemCondition.Builder bucket,
+                                                       Holder<Enchantment> fortune, Float[] chances) {
         return ModLootEntryTypes.SpoilingEntry.builder(buds, ModItems.SCHWAG)
                 .when(bucket)
                 .enchantment(fortune)
-                .eachItem(STRESSED_SCHWAG_CHANCES);
+                .eachItem(chances);
     }
 
     /** A flat bonus: no Fortune, which already scales the plant's own drops. */

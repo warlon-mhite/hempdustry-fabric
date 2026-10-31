@@ -215,6 +215,12 @@ public class ModTags {
          * joins wherever that tag exists, and a datapack can widen or narrow it here.
          */
         public static final TagKey<Block> BELDIA_SOIL = createTag("beldia_soil");
+        /**
+         * Hemp crops that never catch powdery mildew — see {@code Mildew}. Empty in the mod: real
+         * cultivars do differ (seven of twelve resisted it in one trial), but which named strain
+         * does is folklore, so none of ours claims it. It is here for a datapack or an addon crop.
+         */
+        public static final TagKey<Block> MILDEW_RESISTANT = createTag("mildew_resistant");
         private static TagKey<Block> createTag(String name) {
             return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }

@@ -1,0 +1,6 @@
+{
+  "parent": "hempdustry:block/crop_overlay",
+  "textures": {
+    "overlay": "hempdustry:block/beldia_crop_stage2_sulfur"
+  }
+}

@@ -193,7 +193,9 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
                     + "machineSpeed drives the Decarboxylator and the Hemp Press; the Infuser has its own section. "
                     + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here. "
                     + "creepersSeekHemp=false stops creepers now and then wandering into grown, open-sky hemp fields; the goal is still "
-                    + "added to them, it simply never starts, so it takes effect on the next /hempdustry reload.");
+                    + "added to them, it simply never starts, so it takes effect on the next /hempdustry reload. "
+                    + "mildew=false keeps powdery mildew out of roofed grows: no plant catches it, and a plant "
+                    + "that has it is clean again on its next random tick.");
             comment(root, "infuser", "Ticks. minTime is the earliest a batch can be pulled, fullTime a full simmer. "
                     + "20 ticks = 1 second. Defaults are 5 and 15 minutes; the ceiling is 32000 "
                     + "(about 26 minutes), which is as long a simmer as the screen can be told about.");
@@ -353,22 +355,27 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @param cropGrowthMultiplier     growth speed for both crops; 2.0 grows twice as fast
      * @param machineSpeedMultiplier   the Decarboxylator's and the Hemp Press's speed (the Infuser has its own section)
      * @param creepersSeekHemp         whether creepers now and then wander into open hemp fields
+     * @param mildew                   whether hemp under a roof can catch powdery mildew. A switch for
+     *                                 the same reason as the creepers: it is behaviour in code, with no
+     *                                 tag or table a datapack could empty instead
      */
-    public record World(double cropGrowthMultiplier, double machineSpeedMultiplier, boolean creepersSeekHemp) {
+    public record World(double cropGrowthMultiplier, double machineSpeedMultiplier, boolean creepersSeekHemp,
+                        boolean mildew) {
 
-        public static final World DEFAULT = new World(1.0, 1.0, true);
+        public static final World DEFAULT = new World(1.0, 1.0, true, true);
 
         public static final Codec<World> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.DOUBLE.fieldOf("cropGrowthMultiplier").forGetter(World::cropGrowthMultiplier),
                 Codec.DOUBLE.fieldOf("machineSpeedMultiplier").forGetter(World::machineSpeedMultiplier),
-                Codec.BOOL.fieldOf("creepersSeekHemp").forGetter(World::creepersSeekHemp)
+                Codec.BOOL.fieldOf("creepersSeekHemp").forGetter(World::creepersSeekHemp),
+                Codec.BOOL.fieldOf("mildew").forGetter(World::mildew)
         ).apply(instance, World::new));
 
         World clamped() {
             return new World(
                     clampDouble("world.cropGrowthMultiplier", cropGrowthMultiplier, 0.05, 20.0),
                     clampDouble("world.machineSpeedMultiplier", machineSpeedMultiplier, 0.05, 20.0),
-                    creepersSeekHemp);
+                    creepersSeekHemp, mildew);
         }
     }
 

@@ -102,11 +102,13 @@ public class SativaCropBlock extends CropBlock {
     }
 
     /**
-     * A segment above the LOWER, carrying a copy of the plant's light record, for the same reason as
-     * on {@link IndicaCropBlock}: whatever draws a block reads only that block.
+     * A segment above the LOWER, carrying a copy of the plant's records — its light and its mildew —
+     * from {@code lower}, for the same reason as on {@link IndicaCropBlock}: whatever draws a block
+     * reads only that block.
      */
-    private BlockState stateFor(int age, TriplePlantSegment segment, GrowLight light) {
-        return this.stateFor(age, segment).setValue(GrowLight.PROPERTY, light);
+    private BlockState stateFor(int age, TriplePlantSegment segment, BlockState lower) {
+        return this.stateFor(age, segment).setValue(GrowLight.PROPERTY, lower.getValue(GrowLight.PROPERTY))
+                .setValue(Mildew.PROPERTY, lower.getValue(Mildew.PROPERTY));
     }
 
     /** Farmland, or one of the mod's beds — a Grow Pot or a Hydro Tray. */
@@ -254,9 +256,10 @@ public class SativaCropBlock extends CropBlock {
         // writes themselves did nothing (an identical state early-outs in LevelChunk#setBlockState)
         // but each still paid a chunk lookup. isShapeSettled answers the same question in one or
         // two block reads.
-        if (grown != age || !this.isShapeSettled(world, pos, age, state.getValue(GrowLight.PROPERTY))) {
+        if (grown != age || !this.isShapeSettled(world, pos, age, state)) {
             this.setAge(world, pos, grown, 0.0F, random);
         }
+        Mildew.randomTick(world, pos, random);
     }
 
     /**
@@ -268,9 +271,9 @@ public class SativaCropBlock extends CropBlock {
      * <em>exactly</em> "setAge would be a no-op", and two separately-worded versions of that would
      * drift the first time the height table changed. (The LOWER needs no check — setAge writes it
      * back through {@link Defoliation#carryOver}, which at an unchanged age reproduces the state
-     * that is already there.) {@code light} is the LOWER's record, which every segment above copies.
+     * that is already there.) {@code lower} is the LOWER, whose records every segment above copies.
      */
-    private boolean isShapeSettled(LevelReader world, BlockPos pos, int age, GrowLight light) {
+    private boolean isShapeSettled(LevelReader world, BlockPos pos, int age, BlockState lower) {
         if (age < TWO_TALL_AGE) {
             return true; // a single stalk: nothing above is ever written this young
         }
@@ -281,13 +284,13 @@ public class SativaCropBlock extends CropBlock {
         if (age >= THREE_TALL_AGE) {
             BlockState top = world.getBlockState(pos.above(2));
             if (canOccupy(top)) {
-                return mid == this.stateFor(age, TriplePlantSegment.MIDDLE, light)
-                        && top == this.stateFor(age, TriplePlantSegment.UPPER, light);
+                return mid == this.stateFor(age, TriplePlantSegment.MIDDLE, lower)
+                        && top == this.stateFor(age, TriplePlantSegment.UPPER, lower);
             }
         }
         // Two tall — either because that is all the age calls for, or because the third block is
         // blocked and setAge falls back to the two-tall branch.
-        return mid == this.stateFor(age, TriplePlantSegment.UPPER, light);
+        return mid == this.stateFor(age, TriplePlantSegment.UPPER, lower);
     }
 
     // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block. Only the LOWER
@@ -351,7 +354,9 @@ public class SativaCropBlock extends CropBlock {
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, TriplePlantSegment.LOWER));
         if (newAge > currentAge && current.is(this)) {
             lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
-                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random));
+                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 3, extraStress, random))
+                    .setValue(Mildew.PROPERTY, Mildew.afterStep(world, pos, current,
+                            current.getValue(Mildew.PROPERTY), random));
             if (newAge == this.getMaxAge()) {
                 BlockPos floorPos = pos.below();
                 BlockState floor = world.getBlockState(floorPos);
@@ -365,15 +370,14 @@ public class SativaCropBlock extends CropBlock {
         BlockPos midPos = pos.above();
         BlockPos topPos = pos.above(2);
         boolean midFree = this.canOccupy(world, midPos);
-        GrowLight light = lower.getValue(GrowLight.PROPERTY);
 
         if (newAge >= THREE_TALL_AGE && midFree && this.canOccupy(world, topPos)) {
             // Bottom-up: the new UPPER needs the MIDDLE under it to already be in place, otherwise
             // its canSurvive fails and the neighbour update wipes it straight back out.
-            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.MIDDLE, light), Block.UPDATE_CLIENTS);
-            world.setBlock(topPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.UPDATE_CLIENTS);
+            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.MIDDLE, lower), Block.UPDATE_CLIENTS);
+            world.setBlock(topPos, this.stateFor(newAge, TriplePlantSegment.UPPER, lower), Block.UPDATE_CLIENTS);
         } else if (newAge >= TWO_TALL_AGE && midFree) {
-            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.UPDATE_CLIENTS);
+            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.UPPER, lower), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -431,6 +435,7 @@ public class SativaCropBlock extends CropBlock {
         if (state.getValue(AGE) >= this.getMaxAge()) {
             RipeAroma.randomDisplayTick(world, pos, random);
         }
+        Mildew.animateTick(state, world, pos, random);
     }
 
     // ----- harvesting -----
@@ -494,6 +499,6 @@ public class SativaCropBlock extends CropBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(AGE, SEGMENT, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED,
-                GrowLight.PROPERTY);
+                GrowLight.PROPERTY, Mildew.PROPERTY);
     }
 }

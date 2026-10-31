@@ -31,6 +31,16 @@ These build on things Minecraft 26.1 and 26.2 added, so the 1.21.11 and 1.21.1 b
 - **The hemp outfit in baby sizes.** Since Minecraft 26.1 babies wear armour cut to their own size. A
   baby zombie, husk, drowned, zombie villager or piglin that picks up a hemp shirt, harem pants or
   flip-flops now wears a baby-sized one, dyed like the original, as it does with leather.
+- **Powdery mildew.** Hemp grown under a roof (glass included) can catch mildew now and then: white
+  powder on the leaves, and spores drifting off it. It spreads to the plants right beside it, never
+  across a gap, and never kills a plant; at harvest a quarter of a mildewed plant's buds come out as
+  schwag (less with Fortune). Shears clear it in a trim window, throwing the sick leaf away. Or keep
+  it off with Minecraft's own sulfur: potent sulfur under water gives off a gas, and no plant it
+  reaches catches mildew, or keeps it. But a plant gassed while it flowers is left sulfured, and a
+  tenth of its buds turn to schwag, so switch the gas off (take the water away) once your plants
+  flower. Fields never get mildew. `world.mildew` in the config turns it all off, and the
+  `#hempdustry:mildew_resistant` block tag lets a datapack or an addon name a crop that never
+  catches it.
 
 ## [2.1.0] — 2026-10-27
 

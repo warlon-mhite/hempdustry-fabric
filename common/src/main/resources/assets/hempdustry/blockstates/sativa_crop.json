@@ -347,6 +347,486 @@
       "apply": {
         "model": "hempdustry:block/sativa_crop_stage7_top_stressed"
       }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "0",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage0_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "0",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage0_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "0",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "0",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "0",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "0",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "1",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage1_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "1",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage1_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "1",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "1",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "1",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "1",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "2",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage2_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "2",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage2_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "2",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "2",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "2",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "2",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "3",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage3_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "3",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage3_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "3",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "3",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "3",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "3",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "4",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_bottom_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "4",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_bottom_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "4",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "4",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "4",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "4",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage4_top_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "5",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage5_bottom_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "5",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage5_bottom_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "5",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "5",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "5",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage5_top_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "5",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage5_top_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "6",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_bottom_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "6",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_bottom_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "6",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "6",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_middle_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "6",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_top_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "6",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage6_top_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "7",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage7_bottom_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "lower",
+        "age": "7",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage7_bottom_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "7",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage7_middle_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "middle",
+        "age": "7",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage7_middle_sulfur"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "7",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage7_top_mildew"
+      }
+    },
+    {
+      "when": {
+        "segment": "upper",
+        "age": "7",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/sativa_crop_stage7_top_sulfur"
+      }
     }
   ]
 }

@@ -159,6 +159,8 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(ModBlocks.HYDRO_TRAY);
 
         valueLookupBuilder(ModTags.Blocks.GROW_LAMPS).add(ModBlocks.GROW_LAMP);
+        // Empty on purpose, so the file exists for a datapack or an addon crop to join: see Mildew.
+        valueLookupBuilder(ModTags.Blocks.MILDEW_RESISTANT);
         // Light 15 with no business counting as a light over a plant. The fire tags rather than the
         // blocks by name, so a modded campfire or fire joins by joining vanilla's tag.
         valueLookupBuilder(ModTags.Blocks.NOT_GROW_LIGHTS)

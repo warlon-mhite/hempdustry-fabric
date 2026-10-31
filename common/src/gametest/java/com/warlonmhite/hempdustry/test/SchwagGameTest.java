@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.Mildew;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import com.warlonmhite.hempdustry.component.ModComponents;
@@ -143,6 +144,53 @@ public final class SchwagGameTest {
                 context.assertTrue(Math.abs(share - expected[level]) < 0.035F, crop + " at Fortune " + level
                         + ": " + schwag + " of " + (buds + schwag) + " stressed buds spoiled (" + share
                         + "), expected " + expected[level]);
+            }
+        }
+        context.succeed();
+    }
+
+    /**
+     * Mildew costs buds to schwag and nothing else: a mildewed plant's buds and schwag add up to a
+     * healthy plant's on every seed (no bud short, unlike stress), and each spoils at stress's 25%,
+     * 20%, 15%, 10%; a sulfured one's at 10%, 8%, 6%, 4%. A plant both stressed and mildewed is a
+     * stressed plant — the worse odds, never the sum.
+     */
+    public static void mildewedBudsSpoilOneByOne(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        float[][] expected = {{0.25F, 0.20F, 0.15F, 0.10F}, {0.10F, 0.08F, 0.06F, 0.04F}};
+        Mildew[] kinds = {Mildew.MILDEWED, Mildew.SULFURED};
+        for (BlockState ripe : ripeLowers()) {
+            String crop = ripe.getBlock().getDescriptionId();
+            for (int kind = 0; kind < kinds.length; kind++) {
+                BlockState sick = ripe.setValue(Mildew.PROPERTY, kinds[kind]);
+                for (int level = 0; level < expected[kind].length; level++) {
+                    Random seeds = new Random(SEED_SOURCE);
+                    int buds = 0;
+                    int schwag = 0;
+                    for (int i = 0; i < PLANTS; i++) {
+                        long seed = seeds.nextLong();
+                        int[] got = harvest(world, context, sick, seed, level);
+                        int[] well = harvest(world, context, ripe, seed, level);
+                        context.assertValueEqual(got[0] + got[1], well[0] + well[1], crop + " " + kinds[kind]
+                                + " at Fortune " + level + ": its buds and schwag came to " + (got[0] + got[1])
+                                + " against a healthy plant's " + (well[0] + well[1]) + " — mildew costs no bud");
+                        buds += got[0];
+                        schwag += got[1];
+                    }
+                    float share = schwag / (float) (buds + schwag);
+                    context.assertTrue(Math.abs(share - expected[kind][level]) < 0.035F, crop + " " + kinds[kind]
+                            + " at Fortune " + level + ": " + schwag + " of " + (buds + schwag) + " buds spoiled ("
+                            + share + "), expected " + expected[kind][level]);
+                }
+            }
+            Random seeds = new Random(SEED_SOURCE);
+            BlockState stressed = ripe.setValue(GrowLight.PROPERTY, GrowLight.STRESSED);
+            for (int i = 0; i < 200; i++) {
+                long seed = seeds.nextLong();
+                int[] both = harvest(world, context, stressed.setValue(Mildew.PROPERTY, Mildew.MILDEWED), seed, 0);
+                int[] alone = harvest(world, context, stressed, seed, 0);
+                context.assertTrue(both[0] == alone[0] && both[1] == alone[1], crop
+                        + ": a stressed, mildewed plant did not harvest as a stressed one");
             }
         }
         context.succeed();

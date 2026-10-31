@@ -231,6 +231,326 @@
       "apply": {
         "model": "hempdustry:block/indica_crop_stage11_stressed"
       }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "0",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage0_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "0",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage0_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "0",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "0",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "1",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage1_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "1",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage1_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "1",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "1",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "2",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage2_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "2",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage2_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "2",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "2",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "3",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage3_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "3",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage3_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "3",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "3",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "4",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage4_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "4",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage4_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "4",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "4",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage8_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "5",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage5_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "5",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage5_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "5",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage9_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "5",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage9_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "6",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage6_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "6",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage6_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "6",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage10_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "6",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage10_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "7",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage7_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "age": "7",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage7_sulfur"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "7",
+        "mildew": "mildewed"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage11_mildew"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "age": "7",
+        "mildew": "sulfured"
+      },
+      "apply": {
+        "model": "hempdustry:block/indica_crop_stage11_sulfur"
+      }
     }
   ]
 }

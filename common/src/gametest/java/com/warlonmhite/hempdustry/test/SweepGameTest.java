@@ -417,7 +417,9 @@ public final class SweepGameTest {
             }
         }
         Sweep.atLeast(context, "tags in ModTags", tags, 20);
-        Sweep.report(context, "Every tag the mod names has something in it", findings, Map.of());
+        Sweep.report(context, "Every tag the mod names has something in it", findings, Map.of(
+                "#hempdustry:mildew_resistant", "empty on purpose: which named strain resists mildew is folklore, "
+                        + "so no crop of ours claims it; the tag is for a datapack or an addon crop"));
         context.succeed();
     }
 
