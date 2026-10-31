@@ -62,8 +62,8 @@ import java.util.stream.Stream;
  * shipped, instead of against a list someone keeps by hand.
  *
  * <p><b>How a release is frozen.</b> Every run writes what this build freezes to
- * {@code build/gametest/frozen/<version>.txt} (every id, state value, criterion name, asset path and
- * config key — one per line) and {@code <version>.json} (every data file, every stack the creative tab
+ * {@code build/gametest/frozen/<version>+<minecraft>.txt} (every id, state value, criterion name, asset path and
+ * config key — one per line) and {@code <version>+<minecraft>.json} (every data file, every stack the creative tab
  * builds, every block entity's save, the default config). Cutting a release copies the two into
  * {@code src/gametest/resources/frozen/}, and from then on every later build is checked against them.
  * 2.0.3's were captured from its release tag; 2.0.2's held nothing 2.0.3's does not, so they are
@@ -92,7 +92,7 @@ public final class FrozenSurfaceGameTest {
     public static void theFrozenSurfaceHolds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         SortedSet<String> surface = surface(world);
-        String version = version();
+        String version = version() + "+" + SharedConstants.getCurrentVersion().name();
         write("frozen/" + version + ".txt", String.join("\n", surface) + "\n");
         write("frozen/" + version + ".json", new GsonBuilder().disableHtmlEscaping().create().toJson(capture(context)));
 
