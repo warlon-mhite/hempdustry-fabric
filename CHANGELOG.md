@@ -9,6 +9,12 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
+Nothing yet — everything below shipped in 2.1.0+26.2.
+
+## [2.1.0+26.2] — 2026-11-02
+
+2.1.0 for Minecraft 26.2: everything in [2.1.0], and the additions below.
+
 ### Added — on Minecraft 26.2 only
 
 These build on things Minecraft 26.1 and 26.2 added, so the 1.21.11 and 1.21.1 builds do not have them.
@@ -816,7 +822,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B26.2...HEAD
+[2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.1.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.3
 [2.0.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.2

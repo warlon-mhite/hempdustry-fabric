@@ -2,14 +2,14 @@
 
 *Minecraft for stoners and hemprepreneurs.*
 
-A hemp and cannabis mod for **Minecraft 1.21.11** on **Fabric** and **NeoForge**. Grow it, harvest it, smoke it, cook with
+A hemp and cannabis mod for **Minecraft 26.2** on **Fabric** and **NeoForge**. Grow it, harvest it, smoke it, cook with
 it or use it as a building material, because that is most of what hemp has
 actually been for over the last five thousand years.
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-brightgreen)](https://www.minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.2-brightgreen)](https://www.minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-lightgrey)](https://fabricmc.net/)
 [![NeoForge](https://img.shields.io/badge/Loader-NeoForge-lightgrey)](https://neoforged.net/)
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/)
+[![Java](https://img.shields.io/badge/Java-25-orange)](https://adoptium.net/)
 [![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
 [![Art & music](https://img.shields.io/badge/Art%20%26%20music-CC%20BY--NC--SA%204.0-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
@@ -17,13 +17,13 @@ actually been for over the last five thousand years.
 
 **Needs:** on Fabric, [Fabric Loader](https://fabricmc.net/use/) and [Fabric API](https://modrinth.com/mod/fabric-api);
 on NeoForge, [NeoForge](https://neoforged.net/) and nothing else. Each loader has its own download,
-named for it (`hempdustry-fabric-…`, `hempdustry-neoforge-…`). JEI or REI is optional, and with either one the mod adds pages for its machines, for packing a pipe
+named for it (`hempdustry-fabric-…`, `hempdustry-neoforge-…`). JEI or REI (REI on Fabric only, for now) is optional, and with either one the mod adds pages for its machines, for packing a pipe
 or bong, and for the cauldron steps. On a dedicated server, JEI shows Hempdustry's crafting recipes
 only if JEI is installed on the server too: since Minecraft 1.21.2 a server no longer sends players
 its recipes. The machine and packing pages show either way.
 
 > **Status: version 2.1.0, stable**
-> This is a rewrite, for Fabric and NeoForge on 1.21.11, of an older Forge 1.16 mod (GanjaCraft) built with
+> This is a rewrite, for Fabric and NeoForge on 26.2, of an older Forge 1.16 mod (GanjaCraft) built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
 >
@@ -153,7 +153,7 @@ with what 2.1 adds).
 
 ## Building from source
 
-Requires **JDK 21**.
+Requires **JDK 25**.
 
 ```bash
 ./gradlew build                        # both jars: fabric/build/libs/ and neoforge/build/libs/
