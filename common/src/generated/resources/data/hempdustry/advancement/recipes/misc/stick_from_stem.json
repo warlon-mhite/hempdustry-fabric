@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:stick_from_stem"
+        "recipes": "hempdustry:stick_from_stem"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_bricks_wall"
+        "recipes": "hempdustry:hemp_bricks_wall"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

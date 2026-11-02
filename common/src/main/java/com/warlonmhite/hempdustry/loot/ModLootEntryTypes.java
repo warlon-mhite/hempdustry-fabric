@@ -23,6 +23,7 @@ import net.minecraft.world.level.storage.loot.ValidationContext;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntries;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntry;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
@@ -80,7 +81,7 @@ public class ModLootEntryTypes {
                 Enchantment.CODEC.optionalFieldOf("enchantment").forGetter(entry -> entry.enchantment),
                 CHANCES.optionalFieldOf("one_item_chances", List.of()).forGetter(entry -> entry.oneItemChances),
                 CHANCES.optionalFieldOf("each_item_chances", List.of()).forGetter(entry -> entry.eachItemChances)
-        ).and(commonFields(instance).t1()).apply(instance, SpoilingEntry::new));
+        ).and(commonFields(instance)).apply(instance, SpoilingEntry::new));
 
         private final LootPoolEntryContainer child;
         private final Item into;
@@ -90,8 +91,9 @@ public class ModLootEntryTypes {
 
         private SpoilingEntry(LootPoolEntryContainer child, Item into, Optional<Holder<Enchantment>> enchantment,
                               List<Float> oneItemChances, List<Float> eachItemChances,
-                              List<LootItemCondition> conditions) {
-            super(conditions);
+                              Optional<Holder<LootItemCondition>> condition,
+                              Optional<Holder<LootItemFunction>> modifier) {
+            super(condition, modifier);
             this.child = child;
             this.into = into;
             this.enchantment = enchantment;
@@ -111,10 +113,7 @@ public class ModLootEntryTypes {
         }
 
         @Override
-        public boolean expand(LootContext context, Consumer<LootPoolEntry> choiceConsumer) {
-            if (!canRun(context)) {
-                return false;
-            }
+        protected boolean expandRaw(LootContext context, Consumer<LootPoolEntry> choiceConsumer) {
             return child.expand(context, choice -> choiceConsumer.accept(new LootPoolEntry() {
                 @Override
                 public int getWeight(float luck) {
@@ -153,7 +152,7 @@ public class ModLootEntryTypes {
         }
 
         private int level(LootContext context) {
-            ItemInstance tool = context.getOptionalParameter(LootContextParams.TOOL);
+            ItemInstance tool = context.getOptional(LootContextParams.TOOL);
             return enchantment.isPresent() && tool != null ? EnchantmentHelper.getItemEnchantmentLevel(enchantment.get(), tool) : 0;
         }
 
@@ -200,7 +199,7 @@ public class ModLootEntryTypes {
             @Override
             public LootPoolEntryContainer build() {
                 return new SpoilingEntry(child.build(), into, enchantment, oneItemChances, eachItemChances,
-                        getConditions());
+                        getCondition(), getModifier());
             }
         }
     }

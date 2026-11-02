@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:spliff_sativa_with_charas_2"
+        "recipes": "hempdustry:spliff_sativa_with_charas_2"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

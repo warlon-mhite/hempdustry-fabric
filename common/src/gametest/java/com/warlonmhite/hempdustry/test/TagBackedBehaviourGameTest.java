@@ -91,7 +91,7 @@ public final class TagBackedBehaviourGameTest {
     }
 
     private static void assertComposts(GameTestHelper context, Block block, float expected, String why) {
-        float actual = TestPlatform.INSTANCE.compostChance(block.asItem());
+        float actual = FuelAndCompost.compostChance(context, block.asItem());
         context.assertTrue(actual > 0.0F,
                 block.asItem() + " has no composting chance at all — a composter will refuse it");
         context.assertTrue(Math.abs(actual - expected) < 0.0001F,

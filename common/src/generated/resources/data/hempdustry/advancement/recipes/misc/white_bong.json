@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:white_bong"
+        "recipes": "hempdustry:white_bong"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

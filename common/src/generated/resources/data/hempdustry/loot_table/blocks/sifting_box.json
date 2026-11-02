@@ -2,85 +2,71 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ],
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
       "entries": [
         {
           "type": "minecraft:item",
           "name": "hempdustry:sifting_box"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "conditions": [
-        {
-          "block": "hempdustry:sifting_box",
-          "condition": "minecraft:block_state_property",
-          "properties": {
-            "level": "8"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:sifting_box",
+        "state": {
+          "level": "8"
         }
-      ],
+      },
       "entries": [
         {
           "type": "minecraft:alternatives",
           "children": [
             {
               "type": "minecraft:item",
-              "conditions": [
-                {
-                  "block": "hempdustry:sifting_box",
-                  "condition": "minecraft:block_state_property",
-                  "properties": {
-                    "content": "kief"
-                  }
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:sifting_box",
+                "state": {
+                  "content": "kief"
                 }
-              ],
-              "functions": [
-                {
-                  "count": 9.0,
-                  "function": "minecraft:set_count"
-                }
-              ],
+              },
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 9
+              },
               "name": "hempdustry:filtered_kief"
             },
             {
               "type": "minecraft:item",
-              "conditions": [
-                {
-                  "block": "hempdustry:sifting_box",
-                  "condition": "minecraft:block_state_property",
-                  "properties": {
-                    "filled": "true"
-                  }
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:sifting_box",
+                "state": {
+                  "filled": "true"
                 }
-              ],
-              "functions": [
-                {
-                  "count": 9.0,
-                  "function": "minecraft:set_count"
-                }
-              ],
+              },
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 9
+              },
               "name": "hempdustry:bubble_hash"
             },
             {
               "type": "minecraft:item",
-              "functions": [
-                {
-                  "count": 9.0,
-                  "function": "minecraft:set_count"
-                }
-              ],
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 9
+              },
               "name": "hempdustry:kief"
             }
           ]
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ]
 }

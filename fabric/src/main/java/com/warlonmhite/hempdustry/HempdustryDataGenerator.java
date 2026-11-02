@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.datagen.*;
+import com.warlonmhite.hempdustry.item.ModFuelAndCompost;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.world.ModConfiguredFeatures;
@@ -35,7 +36,13 @@ public class HempdustryDataGenerator implements DataGeneratorEntrypoint {
 		registryBuilder.add(DeviceStats.REGISTRY_KEY, DeviceStats::bootstrap);
 		registryBuilder.add(EdibleBundle.REGISTRY_KEY, EdibleBundle::bootstrap);
 		registryBuilder.add(GreenOut.REGISTRY_KEY, GreenOut::bootstrap);
-		registryBuilder.add(Registries.CONFIGURED_FEATURE, ModConfiguredFeatures::bootstrap);
+		registryBuilder.add(Registries.FEATURE, ModConfiguredFeatures::bootstrap);
 		registryBuilder.add(Registries.PLACED_FEATURE, ModPlacedFeatures::bootstrap);
+	}
+
+	/** Reloadable since 26.3, beside loot tables and recipes: the fuel and compost numbers. */
+	@Override
+	public void buildReloadableRegistry(RegistrySetBuilder registryBuilder) {
+		registryBuilder.add(Registries.CONTEXT_INT_PROVIDER, ModFuelAndCompost::bootstrap);
 	}
 }

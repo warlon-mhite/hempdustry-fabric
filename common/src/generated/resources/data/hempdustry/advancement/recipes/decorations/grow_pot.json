@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:grow_pot"
+        "recipes": "hempdustry:grow_pot"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

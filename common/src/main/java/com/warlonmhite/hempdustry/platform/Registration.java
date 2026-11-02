@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.platform;
 
 import com.mojang.serialization.Codec;
+import com.warlonmhite.hempdustry.item.ModFuelAndCompost;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -57,11 +58,18 @@ public interface Registration {
     /** A builder for a creative tab of our own, placed and paged by the loader. */
     CreativeModeTab.Builder creativeTabBuilder();
 
-    /** Makes {@code item} compostable with the given chance of raising the composter's level. */
-    void compostable(ItemLike item, float chance);
+    /**
+     * Makes {@code item} compostable with the given chance of raising the composter's level. The
+     * same on every loader since 26.3, an item component: {@link ModFuelAndCompost}.
+     */
+    default void compostable(ItemLike item, float chance) {
+        ModFuelAndCompost.compostable(item, chance);
+    }
 
-    /** Makes {@code item} burn in a furnace for {@code ticks}. */
-    void fuel(ItemLike item, int ticks);
+    /** Makes {@code item} burn in a furnace for {@code ticks}; like compost, {@link ModFuelAndCompost}. */
+    default void fuel(ItemLike item, int ticks) {
+        ModFuelAndCompost.fuel(item, ticks);
+    }
 
     /** Makes {@code block} catch fire ({@code igniteOdds}) and burn away ({@code burnOdds}) like vanilla's. */
     void flammable(Block block, int igniteOdds, int burnOdds);

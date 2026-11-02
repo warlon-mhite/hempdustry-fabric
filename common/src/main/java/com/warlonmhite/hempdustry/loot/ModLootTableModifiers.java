@@ -10,7 +10,7 @@ import net.minecraft.advancements.predicates.LocationPredicate;
 import net.minecraft.advancements.predicates.StatePropertiesPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
@@ -33,15 +33,14 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.AllOfCondition;
 import net.minecraft.world.level.storage.loot.predicates.AnyOfCondition;
 import net.minecraft.world.level.storage.loot.predicates.LocationCheck;
-import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
+import net.minecraft.world.level.storage.loot.predicates.MatchBlock;
 import net.minecraft.world.level.storage.loot.predicates.MatchTool;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import java.util.Map;
 import java.util.Set;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 
 /**
  * Runtime tweaks to vanilla loot tables.
@@ -159,7 +158,7 @@ public class ModLootTableModifiers {
      * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
      * {@code HolderGetter}, which only exists once the registries are loaded.
      */
-    private static LootItemCondition.Builder withoutShears(HolderLookup.Provider registries) {
+    private static LootItemCondition.Builder withoutShears(HolderGetter.Provider registries) {
         return MatchTool.toolMatches(ItemPredicate.Builder.item()
                 .of(registries.lookupOrThrow(Registries.ITEM), Items.SHEARS)).invert();
     }
@@ -206,23 +205,23 @@ public class ModLootTableModifiers {
      * Both halves are covered rather than only the lower, so it makes no difference which end of the
      * plant the player swings at, exactly as vanilla's own two pools arrange.
      */
-    private static LootItemCondition.Builder onlyTheHalfThatWasBroken(HolderLookup.Provider registries,
+    private static LootItemCondition.Builder onlyTheHalfThatWasBroken(HolderGetter.Provider registries,
                                                                   Block plant) {
         return AnyOfCondition.anyOf(
-                AllOfCondition.allOf(half(plant, DoubleBlockHalf.LOWER),
+                AllOfCondition.allOf(half(registries, plant, DoubleBlockHalf.LOWER),
                         partnerAt(registries, plant, DoubleBlockHalf.UPPER, 1)),
-                AllOfCondition.allOf(half(plant, DoubleBlockHalf.UPPER),
+                AllOfCondition.allOf(half(registries, plant, DoubleBlockHalf.UPPER),
                         partnerAt(registries, plant, DoubleBlockHalf.LOWER, -1)));
     }
 
     /** "The block being broken is {@code plant}, on this half." */
-    private static LootItemCondition.Builder half(Block plant, DoubleBlockHalf which) {
-        return LootItemBlockStatePropertyCondition.hasBlockStateProperties(plant)
-                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(DoublePlantBlock.HALF, which));
+    private static LootItemCondition.Builder half(HolderGetter.Provider registries, Block plant, DoubleBlockHalf which) {
+        return MatchBlock.blockMatches(registries.lookupOrThrow(Registries.BLOCK), plant,
+                StatePropertiesPredicate.Builder.properties().hasProperty(DoublePlantBlock.HALF, which));
     }
 
     /** "{@code offsetY} away there is still a {@code plant} on the other half." */
-    private static LootItemCondition.Builder partnerAt(HolderLookup.Provider registries, Block plant,
+    private static LootItemCondition.Builder partnerAt(HolderGetter.Provider registries, Block plant,
                                                    DoubleBlockHalf which, int offsetY) {
         return LocationCheck.checkLocation(
                 LocationPredicate.Builder.location().setBlock(BlockPredicate.Builder.block()
@@ -249,14 +248,14 @@ public class ModLootTableModifiers {
      * desert plant is found in the desert. Driven off the loaded strain registry, so a datapack strain
      * appears here without touching this file.
      */
-    private static LootPool.Builder seedStash(HolderLookup.Provider registries, float base, boolean desert) {
+    private static LootPool.Builder seedStash(HolderGetter.Provider registries, float base, boolean desert) {
         LootPool.Builder pool = LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1))
+                .setRolls(ContextIntProviders.exactly(1))
                 .when(LootItemRandomChanceCondition.randomChance(chance(base)));
         for (Holder.Reference<Strain> strain : Strain.all(registries)) {
             strain.value().seedItem().filter(seeds -> isDesertSeed(seeds) == desert)
                     .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)
-                            .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
+                            .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 3)))));
         }
         return pool;
     }
@@ -289,7 +288,7 @@ public class ModLootTableModifiers {
                 // finding a hemp seed stays GRASS_SEED_CHANCE no matter how many strains exist, and
                 // which strain you get is a coin flip. (A pool picks exactly one of its entries.)
                 LootPool.Builder pool = LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
+                        .setRolls(ContextIntProviders.exactly(1))
                         .when(onlyTheHalfThatWasBroken(registries, GRASS_SOURCES.get(key)))
                         .when(withoutShears(registries))
                         .when(LootItemRandomChanceCondition.randomChance(chance(GRASS_SEED_CHANCE)));
@@ -327,19 +326,19 @@ public class ModLootTableModifiers {
             // and a wreck holding both rope and a few seeds is exactly what a wreck should hold.
             if (FIBER_CHEST_SOURCES.contains(key)) {
                 table.addPool(LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
+                        .setRolls(ContextIntProviders.exactly(1))
                         .when(LootItemRandomChanceCondition.randomChance(chance(SHIPWRECK_FIBER_CHANCE)))
                         .add(LootItem.lootTableItem(ModItems.HEMP_FIBER)
                                 .setWeight(SHIPWRECK_FIBER_WEIGHT)
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 4))))
+                                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 4))))
                         .add(LootItem.lootTableItem(ModItems.HEMP_CANVAS)
                                 .setWeight(SHIPWRECK_CANVAS_WEIGHT)
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
+                                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 3)))));
                 table.addPool(LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
+                        .setRolls(ContextIntProviders.exactly(1))
                         .when(LootItemRandomChanceCondition.randomChance(chance(SHIPWRECK_SCHWAG_CHANCE)))
                         .add(LootItem.lootTableItem(ModItems.SCHWAG)
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 4)))));
+                                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 4)))));
             }
 
             // Both of these have exactly one pool, so the hemp goes in beside vanilla's own entries
@@ -347,7 +346,7 @@ public class ModLootTableModifiers {
             if (key.equals(BuiltInLootTables.VILLAGE_FISHER)) {
                 table.addToEveryPool(LootItem.lootTableItem(ModItems.TOASTED_HEMP_SEEDS)
                         .setWeight(FISHER_BAIT_WEIGHT)
-                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3))));
+                        .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 3))));
             }
             if (key.equals(BuiltInLootTables.FISHING_JUNK)) {
                 table.addToEveryPool(LootItem.lootTableItem(ModItems.HEMP_FIBER)
@@ -359,7 +358,7 @@ public class ModLootTableModifiers {
             // many we ship, and which one you get is a coin flip.
             if (DISC_CHEST_SOURCES.contains(key)) {
                 LootPool.Builder pool = LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
+                        .setRolls(ContextIntProviders.exactly(1))
                         .when(LootItemRandomChanceCondition.randomChance(chance(CHEST_DISC_CHANCE)));
                 for (Item disc : ModItems.MUSIC_DISCS) {
                     pool.add(LootItem.lootTableItem(disc));

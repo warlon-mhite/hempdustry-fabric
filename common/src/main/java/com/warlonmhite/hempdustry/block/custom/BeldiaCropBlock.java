@@ -9,6 +9,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,8 +70,8 @@ public class BeldiaCropBlock extends IndicaCropBlock {
 
     /** Bone meal is growth too, and a dry plant does not grow. */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
-        return super.isValidBonemealTarget(world, pos, state) && isWatered(world, pos.below());
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
+        return super.isValidBonemealTarget(world, pos, state, source) && isWatered(world, pos.below());
     }
 
     /**

@@ -7,8 +7,8 @@ import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import java.util.Optional;
 import net.minecraft.advancements.triggers.Criterion;
 import net.minecraft.advancements.predicates.BlockPredicate;
-import net.minecraft.advancements.predicates.ContextAwarePredicate;
-import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.advancements.predicates.MinMaxBounds;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.core.BlockPos;
@@ -75,11 +75,11 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
      * The optional fields are additive: a criterion written before {@code condition} and {@code bed}
      * existed decodes with both empty and means exactly what it meant.
      */
-    public record Conditions(Optional<ContextAwarePredicate> player, MinMaxBounds.Ints cuts,
+    public record Conditions(Optional<Holder<LootItemCondition>> player, MinMaxBounds.Ints cuts,
                              Optional<GrowLight> light, Optional<BlockPredicate> bed)
             implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
+                LootItemCondition.CODEC.optionalFieldOf("player").forGetter(Conditions::player),
                 MinMaxBounds.Ints.CODEC.optionalFieldOf("cuts", MinMaxBounds.Ints.ANY).forGetter(Conditions::cuts),
                 LIGHT_CODEC.optionalFieldOf("condition").forGetter(Conditions::light),
                 BlockPredicate.CODEC.optionalFieldOf("bed").forGetter(Conditions::bed)

@@ -3,15 +3,13 @@
   "criteria": {
     "fed_a_parrot_hemp_seeds": {
       "conditions": {
-        "entity": [
-          {
-            "condition": "minecraft:entity_properties",
-            "entity": "this",
-            "predicate": {
-              "minecraft:entity_type": "minecraft:parrot"
-            }
+        "entity": {
+          "type": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "minecraft:entity_type": "minecraft:parrot"
           }
-        ],
+        },
         "item": {
           "items": "#hempdustry:hemp_seeds"
         }
@@ -20,21 +18,18 @@
     },
     "tamed_a_parrot": {
       "conditions": {
-        "entity": [
-          {
-            "condition": "minecraft:entity_properties",
-            "entity": "this",
-            "predicate": {
-              "minecraft:entity_type": "minecraft:parrot"
-            }
+        "entity": {
+          "type": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "minecraft:entity_type": "minecraft:parrot"
           }
-        ]
+        }
       },
       "trigger": "minecraft:tame_animal"
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.parrot_tamer.description"
     },

@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.platform.Services;
@@ -57,8 +56,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * makes a block fireproof.
  */
 public class HempPressBlock extends BaseEntityBlock {
-    public static final MapCodec<HempPressBlock> CODEC = simpleCodec(HempPressBlock::new);
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /**
      * Whether the block underneath is hot. Named {@code LIT} because that is what every heated
@@ -96,11 +93,6 @@ public class HempPressBlock extends BaseEntityBlock {
                 .setValue(FACING, Direction.NORTH)
                 .setValue(LIT, false)
                 .setValue(PRESSING, false));
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

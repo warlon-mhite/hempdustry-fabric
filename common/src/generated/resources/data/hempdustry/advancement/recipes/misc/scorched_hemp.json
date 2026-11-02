@@ -53,7 +53,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:scorched_hemp"
+        "recipes": "hempdustry:scorched_hemp"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

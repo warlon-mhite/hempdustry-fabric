@@ -16,8 +16,9 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.BlockEntityTypeAddBlocksEvent;
+import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.registries.DataPackRegistryEvent;
+import net.neoforged.neoforge.registries.NewDatapackRegistryEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
@@ -28,7 +29,7 @@ public final class HempdustryNeoForge {
     public HempdustryNeoForge(IEventBus modBus) {
         NeoForgeRegistration registration = (NeoForgeRegistration) Services.REGISTRATION;
         // NeoForge asks for the datapack registries before any registry event.
-        modBus.addListener(DataPackRegistryEvent.NewRegistry.class, event -> {
+        modBus.addListener(NewDatapackRegistryEvent.class, event -> {
             Hempdustry.registerDynamicRegistries();
             registration.onNewDatapackRegistries(event);
         });
@@ -42,6 +43,7 @@ public final class HempdustryNeoForge {
             }
         });
         modBus.addListener(BlockEntityTypeAddBlocksEvent.class, registration::onAddBlocks);
+        modBus.addListener(ModifyDefaultComponentsEvent.class, registration::onModifyDefaultComponents);
         modBus.addListener(RegisterCapabilitiesEvent.class, HempdustryNeoForge::exposeContainers);
         modBus.addListener(GatherDataEvent.Client.class, NeoForgeData::gather);
         NeoForge.EVENT_BUS.addListener(OnDatapackSyncEvent.class, registration::onDatapackSync);

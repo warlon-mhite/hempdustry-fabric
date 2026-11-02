@@ -3,79 +3,87 @@
   "criteria": {
     "sheared_hemp_crop": {
       "conditions": {
-        "location": [
-          {
-            "condition": "minecraft:location_check",
-            "predicate": {
-              "block": {
-                "blocks": "#hempdustry:hemp_crops",
-                "state": {
-                  "age": "3"
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "#hempdustry:hemp_crops",
+                  "state": {
+                    "age": "3"
+                  }
                 }
               }
+            },
+            {
+              "type": "minecraft:match_tool",
+              "predicate": {
+                "items": "#c:tools/shear"
+              }
             }
-          },
-          {
-            "condition": "minecraft:match_tool",
-            "predicate": {
-              "items": "#c:tools/shear"
-            }
-          }
-        ]
+          ]
+        }
       },
       "trigger": "minecraft:item_used_on_block"
     },
     "sheared_hemp_crop_age_4": {
       "conditions": {
-        "location": [
-          {
-            "condition": "minecraft:location_check",
-            "predicate": {
-              "block": {
-                "blocks": "#hempdustry:hemp_crops",
-                "state": {
-                  "age": "4"
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "#hempdustry:hemp_crops",
+                  "state": {
+                    "age": "4"
+                  }
                 }
               }
+            },
+            {
+              "type": "minecraft:match_tool",
+              "predicate": {
+                "items": "#c:tools/shear"
+              }
             }
-          },
-          {
-            "condition": "minecraft:match_tool",
-            "predicate": {
-              "items": "#c:tools/shear"
-            }
-          }
-        ]
+          ]
+        }
       },
       "trigger": "minecraft:item_used_on_block"
     },
     "sheared_hemp_crop_age_5": {
       "conditions": {
-        "location": [
-          {
-            "condition": "minecraft:location_check",
-            "predicate": {
-              "block": {
-                "blocks": "#hempdustry:hemp_crops",
-                "state": {
-                  "age": "5"
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "#hempdustry:hemp_crops",
+                  "state": {
+                    "age": "5"
+                  }
                 }
               }
+            },
+            {
+              "type": "minecraft:match_tool",
+              "predicate": {
+                "items": "#c:tools/shear"
+              }
             }
-          },
-          {
-            "condition": "minecraft:match_tool",
-            "predicate": {
-              "items": "#c:tools/shear"
-            }
-          }
-        ]
+          ]
+        }
       },
       "trigger": "minecraft:item_used_on_block"
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.trim_season.description"
     },

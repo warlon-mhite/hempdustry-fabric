@@ -34,7 +34,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.BedItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -91,7 +90,7 @@ public class ModBlocks {
         return type == EntityTypes.OCELOT || type == EntityTypes.PARROT;
     }
 
-    /** Vanilla's "no" for a block's state, which vanilla keeps private: leaves never suffocate, block the view or conduct redstone. */
+    /** Vanilla's "no" for a block's state, which vanilla keeps private: leaves never suffocate or conduct redstone. */
     private static boolean never(BlockState state, BlockGetter level, BlockPos pos) {
         return false;
     }
@@ -129,9 +128,9 @@ public class ModBlocks {
             BlockBehaviour.Properties.ofLegacyCopy(HEMP_PLANKS));
 
     public static final Block HEMP_PLANKS_BUTTON = registerBlock("hemp_planks_button", settings -> new ButtonBlock(BlockSetType.OAK, 30, settings),
-            BlockBehaviour.Properties.of().noCollision().strength(0.5F).pushReaction(PushReaction.DESTROY));
+            BlockBehaviour.Properties.of().noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
     public static final Block HEMP_PLANKS_PRESSURE_PLATE = registerBlock("hemp_planks_pressure_plate", settings -> new PressurePlateBlock(BlockSetType.OAK, settings),
-            BlockBehaviour.Properties.of().forceSolidOn().instrument(NoteBlockInstrument.BASS).noCollision().strength(0.5F).pushReaction(PushReaction.DESTROY));
+            BlockBehaviour.Properties.of().forceSolidOn().instrument(NoteBlockInstrument.BASS).noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
 
     public static final Block HEMP_PLANKS_FENCE = registerBlock("hemp_planks_fence", FenceBlock::new,
             BlockBehaviour.Properties.ofLegacyCopy(HEMP_PLANKS));
@@ -140,7 +139,7 @@ public class ModBlocks {
 
 
     public static final Block HEMP_PLANKS_DOOR = registerBlock("hemp_planks_door", settings -> new DoorBlock(BlockSetType.OAK, settings),
-            BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(3.0F).noOcclusion().pushReaction(PushReaction.DESTROY));
+            BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(3.0F).noOcclusion().pushReaction(PushReaction.POPPED));
     public static final Block HEMP_PLANKS_TRAPDOOR = registerBlock("hemp_planks_trapdoor", settings -> new TrapDoorBlock(BlockSetType.OAK, settings),
             BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BASS).strength(3.0F).noOcclusion());
 
@@ -222,9 +221,8 @@ public class ModBlocks {
                     .ignitedByLava()
                     .isValidSpawn(ModBlocks::ocelotOrParrot)
                     .isSuffocating(ModBlocks::never)
-                    .isViewBlocking(ModBlocks::never)
                     .isRedstoneConductor(ModBlocks::never)
-                    .pushReaction(PushReaction.DESTROY));
+                    .pushReaction(PushReaction.POPPED));
 
 
     /**
@@ -291,8 +289,8 @@ public class ModBlocks {
                     .strength(0.2F)
                     .noOcclusion()
                     .ignitedByLava()
-                    .pushReaction(PushReaction.DESTROY),
-            BedItem::new,
+                    .pushReaction(PushReaction.POPPED),
+            BlockItem::new,
             new Item.Properties().stacksTo(1));
 
 
@@ -455,7 +453,7 @@ public class ModBlocks {
      *
      * <p>{@code SoundType.HONEY_BLOCK} is the reuse: sticky, soft, resinous, and a sound group that
      * already exists. {@code noOcclusion} because the bar is 4 px tall and must not cull whatever it
-     * sits next to. {@code PushReaction.DESTROY} because a partially-cut bar carries state a
+     * sits next to. {@code PushReaction.POPPED} because a partially-cut bar carries state a
      * piston cannot move, which is what vanilla does to cake for the same reason.
      *
      * <p><b>Deliberately not in {@code #minecraft:enderman_holdable}</b>, same reasoning as the
@@ -472,7 +470,7 @@ public class ModBlocks {
                     .strength(0.5F)
                     .sound(SoundType.HONEY_BLOCK)
                     .noOcclusion()
-                    .pushReaction(PushReaction.DESTROY));
+                    .pushReaction(PushReaction.POPPED));
 
     /**
      * The blonde bar — nine filtered hashish, crafted together. Properties copied from
@@ -485,7 +483,7 @@ public class ModBlocks {
                     .strength(0.5F)
                     .sound(SoundType.HONEY_BLOCK)
                     .noOcclusion()
-                    .pushReaction(PushReaction.DESTROY));
+                    .pushReaction(PushReaction.POPPED));
 
     /**
      * Nine charas, rolled together. <b>A ball and not a bar, and that is the whole point.</b>
@@ -507,7 +505,7 @@ public class ModBlocks {
                     .strength(0.5F)
                     .sound(SoundType.HONEY_BLOCK)
                     .noOcclusion()
-                    .pushReaction(PushReaction.DESTROY));
+                    .pushReaction(PushReaction.POPPED));
 
     /**
      * Space Cake — vanilla's cake, baked with cannabutter. Copies {@code Blocks.CAKE}'s settings
@@ -551,7 +549,7 @@ public class ModBlocks {
                     .instabreak()
                     .noOcclusion()
                     .sound(SoundType.GLASS)
-                    .pushReaction(PushReaction.DESTROY)
+                    .pushReaction(PushReaction.POPPED)
                     .overrideDescription("item." + Hempdustry.MOD_ID + "." + name)));
         }
         return Collections.unmodifiableMap(blocks);

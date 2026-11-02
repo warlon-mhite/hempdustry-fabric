@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -21,6 +20,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -71,8 +71,6 @@ import org.jetbrains.annotations.Nullable;
  * scorching dimension gets it for free — and the Grow Pot is left owning hemp in the Nether.
  */
 public class HydroTrayBlock extends Block implements GrowMedium {
-    public static final MapCodec<HydroTrayBlock> CODEC = simpleCodec(HydroTrayBlock::new);
-
     public static final int MAX_LEVEL = 3;
     /** Water in the reservoir; one level is drunk per plant that ripens. */
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, MAX_LEVEL);
@@ -93,11 +91,6 @@ public class HydroTrayBlock extends Block implements GrowMedium {
         super(settings);
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(LEVEL, 0).setValue(FED, false).setValue(POWERED, false).setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends Block> codec() {
-        return CODEC;
     }
 
     // ----- the bed -----
@@ -166,17 +159,17 @@ public class HydroTrayBlock extends Block implements GrowMedium {
 
     /** Nutrients need water to go into: an empty tray cannot be fed, and a fed one is already mixed. */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
         return state.getValue(LEVEL) > 0 && !state.getValue(FED) && !boilsAway(world, pos);
     }
 
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
         return true;
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
         world.setBlock(pos, state.setValue(FED, true), Block.UPDATE_CLIENTS);
     }
 

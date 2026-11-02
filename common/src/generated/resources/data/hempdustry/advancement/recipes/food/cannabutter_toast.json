@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:cannabutter_toast"
+        "recipes": "hempdustry:cannabutter_toast"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -53,9 +53,9 @@ public final class FootbagGameTest {
         double bareFriction = cube.getAttributeValue(Attributes.FRICTION_MODIFIER);
         cube.setItemSlot(EquipmentSlot.BODY, bale);
         // The cube applies an archetype when it notices its new body item, on its next tick.
-        // Knockback resistance is asked for its modifier, not its value: vanilla 26.2 lets the attribute go
-        // down to -2, but NeoForge 26.2.0.93 replaces it with an attribute whose floor is still 0, so there
-        // the -1 every cube archetype adds reads as 0, vanilla's cubes as much as this one.
+        // Knockback resistance is asked for its modifier, not its value: vanilla lets the attribute go
+        // down to -2, but NeoForge 26.2 replaced it with an attribute whose floor was still 0, so there
+        // the -1 every cube archetype adds read as 0 (NeoForge 26.3 has vanilla's floor again).
         Identifier kickModifier = Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "footbag_add_knockback_resistance");
         context.succeedWhen(() -> {
             context.assertTrue(cube.getAttribute(Attributes.KNOCKBACK_RESISTANCE).hasModifier(kickModifier),

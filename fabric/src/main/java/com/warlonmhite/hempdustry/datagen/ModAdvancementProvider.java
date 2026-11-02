@@ -115,16 +115,27 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         return ages;
     }
 
+    /** The tab's own root, the one advancement that carries the tab's background since 26.3. */
+    private static DisplayInfo rootDisplay(ItemLike icon, String id, AdvancementType frame) {
+        return display(icon, id, frame, false, Optional.of(BACKGROUND));
+    }
+
     private static DisplayInfo display(ItemLike icon, String id, AdvancementType frame,
                                               boolean hidden) {
-        return new DisplayInfo(new ItemStackTemplate(icon.asItem()),
-                Component.translatable("advancements.hempdustry." + id + ".title"),
-                Component.translatable("advancements.hempdustry." + id + ".description"),
-                Optional.of(BACKGROUND), frame, true, true, hidden);
+        // Since 26.3 a child that names a background fails to load: the tab's is the root's alone.
+        return display(icon, id, frame, hidden, Optional.empty());
     }
 
     private static DisplayInfo display(ItemLike icon, String id, AdvancementType frame) {
         return display(icon, id, frame, false);
+    }
+
+    private static DisplayInfo display(ItemLike icon, String id, AdvancementType frame, boolean hidden,
+                                       Optional<ClientAsset.ResourceTexture> background) {
+        return new DisplayInfo(new ItemStackTemplate(icon.asItem()),
+                Component.translatable("advancements.hempdustry." + id + ".title"),
+                Component.translatable("advancements.hempdustry." + id + ".description"),
+                background, frame, true, true, hidden);
     }
 
     @Override
@@ -136,23 +147,23 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // which is what `chill_set` below wants, and the opposite of what this one does.)
         // A future strain joins the tag in ModItemTagProvider and is picked up here for free.
         AdvancementHolder rootAdvancement = Advancement.Builder.advancement()
-                .display(display(ModItems.INDICA_SEEDS, "hempdustry", AdvancementType.TASK))
+                .display(rootDisplay(ModItems.INDICA_SEEDS, "hempdustry", AdvancementType.TASK))
                 .addCriterion("has_hemp_seeds", InventoryChangeTrigger.TriggerInstance.hasItems(
                         ItemPredicate.Builder.item().of(items(registryLookup), ModTags.Items.HEMP_SEEDS)))
-                .save(consumer, Hempdustry.MOD_ID + ":hempdustry");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hempdustry"));
 
 
         Advancement.Builder.advancement()
                 .display(display(ModItems.INDICA_BUDS, "indica_strain", AdvancementType.TASK))
                 .addCriterion("has_indica_buds", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.INDICA_BUDS))
                 .parent(rootAdvancement)
-                .save(consumer, Hempdustry.MOD_ID + ":indica_strain");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "indica_strain"));
 
         Advancement.Builder.advancement()
                 .display(display(ModItems.SATIVA_BUDS, "sativa_strain", AdvancementType.TASK))
                 .addCriterion("has_sativa_buds", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.SATIVA_BUDS))
                 .parent(rootAdvancement)
-                .save(consumer, Hempdustry.MOD_ID + ":sativa_strain");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "sativa_strain"));
 
         // The strains' sour sibling, beside them: nobody grows schwag, so it has no node of its own
         // in the cultivation branch. Vanilla's poisonous potato earns its keep the same way, as a
@@ -161,7 +172,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.SCHWAG, "schwag", AdvancementType.TASK))
                 .addCriterion("has_schwag", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.SCHWAG))
                 .parent(rootAdvancement)
-                .save(consumer, Hempdustry.MOD_ID + ":schwag");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "schwag"));
 
         // Beldía's node sits with the other two strains. Obtaining the buds is the criterion, so a
         // wild desert plant counts as much as a grown one.
@@ -169,7 +180,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.BELDIA_BUDS, "kif_country", AdvancementType.TASK))
                 .addCriterion("has_beldia_buds", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.BELDIA_BUDS))
                 .parent(rootAdvancement)
-                .save(consumer, Hempdustry.MOD_ID + ":kif_country");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "kif_country"));
 
         // ---------------------------------------------------------------------
         // Cultivation
@@ -219,7 +230,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 // ANY of the trim ages, not all of them. Without this an advancement ANDs its
                 // criteria and "Trim Season" would silently demand a cut in every window.
                 .requirements(AdvancementRequirements.Strategy.OR)
-                .save(consumer, Hempdustry.MOD_ID + ":trim_season");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "trim_season"));
 
         // TASK, not GOAL. Vanilla spends GOAL six times in the whole game, always on a large
         // deliberate investment (a full beacon, a cured villager); the closest analogues to "do the
@@ -229,7 +240,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.HEMP_LEAF, "perfect_cut", AdvancementType.TASK))
                 .addCriterion("harvested_fully_trimmed", HarvestHempCriterion.Conditions.fullyTrimmed())
                 .parent(trimSeason)
-                .save(consumer, Hempdustry.MOD_ID + ":perfect_cut");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "perfect_cut"));
 
         // Charas only comes off a ripe plant met with shears, and at 1 in 4 a player who tried it
         // once and got nothing has no reason to try again. The description is what teaches it.
@@ -237,7 +248,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.CHARAS, "sticky_fingers", AdvancementType.TASK))
                 .addCriterion("has_charas", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.CHARAS))
                 .parent(trimSeason)
-                .save(consumer, Hempdustry.MOD_ID + ":sticky_fingers");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "sticky_fingers"));
 
         // The furnace road into the Infuser: a leaf and a furnace, no bricks at all, which is why it
         // hangs here, where leaves first pile up. Obtaining the item is the criterion — the
@@ -247,7 +258,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.SCORCHED_HEMP, "well_done", AdvancementType.TASK))
                 .addCriterion("has_scorched_hemp", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.SCORCHED_HEMP))
                 .parent(trimSeason)
-                .save(consumer, Hempdustry.MOD_ID + ":well_done");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "well_done"));
 
         // Two criteria, ANDed (which is what an advancement does with several criteria by default),
         // because neither says the whole thing on its own. minecraft:tame_animal carries no item —
@@ -264,7 +275,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                         Optional.of(EntityPredicate.wrap(
                                 EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityTypes.PARROT)))))
                 .parent(rootAdvancement)
-                .save(consumer, Hempdustry.MOD_ID + ":parrot_tamer");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "parrot_tamer"));
 
         // The seed's other life: food with no THC in it. Off the root because a seed is all it takes,
         // and keyed on a tag so a new seed food needs no edit here. Hulled hemp seed is sold as
@@ -274,7 +285,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .addCriterion("ate_a_hemp_seed_food", ConsumeItemTrigger.TriggerInstance.usedItem(
                         ItemPredicate.Builder.item().of(items(registryLookup), ModTags.Items.HEMP_SEED_FOODS)))
                 .parent(rootAdvancement)
-                .save(consumer, Hempdustry.MOD_ID + ":hemp_hearts");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_hearts"));
 
         // ---------------------------------------------------------------------
         // Smoking
@@ -292,7 +303,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.SPLIFF, "first_contact", AdvancementType.TASK))
                 .addCriterion("took_a_hit", SmokeCriterion.Conditions.any())
                 .parent(rootAdvancement)
-                .save(consumer, Hempdustry.MOD_ID + ":first_contact");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "first_contact"));
 
         // Hidden easter-egg: take a hit while the in-game clock reads ~4:20 PM. Vanilla day = 24000
         // ticks, tick 0 = 6:00 AM, 1000 ticks/hour → 4:20 PM = 10333. Window ±210 ticks (10123–10543,
@@ -302,7 +313,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(Items.CLOCK, "blaze_it", AdvancementType.CHALLENGE, true))
                 .addCriterion("smoked_at_420", SmokeCriterion.Conditions.during(10123L, 10543L))
                 .parent(firstContact)
-                .save(consumer, Hempdustry.MOD_ID + ":blaze_it");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "blaze_it"));
 
         // The other end of the same joke, and it needs no bed-tracking to work: ServerLevel sets the
         // time on wake to (t + 24000) - (t + 24000) % 24000, i.e. exactly tick 0. So the first 420
@@ -312,7 +323,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(Items.BED.red(), "wake_and_bake", AdvancementType.CHALLENGE, true))
                 .addCriterion("smoked_at_dawn", SmokeCriterion.Conditions.during(0L, 420L))
                 .parent(firstContact)
-                .save(consumer, Hempdustry.MOD_ID + ":wake_and_bake");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "wake_and_bake"));
 
         // The munchies: eat while smoking's Hunger is on you and the food bar is at 6 or under, the
         // point where FoodData#hasEnoughFood stops letting you sprint. consume_item fires before the
@@ -333,7 +344,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                                                 .any(DataComponents.FOOD).build())
                                         .build()))))
                 .parent(firstContact)
-                .save(consumer, Hempdustry.MOD_ID + ":the_munchies");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "the_munchies"));
 
         // The device ladder. An ItemPredicate rather than a device field on the criterion — the
         // stack handed to the trigger is still the packed one, and since packing is a component on
@@ -343,14 +354,14 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.WOODEN_PIPE, "pipe_dream", AdvancementType.TASK))
                 .addCriterion("smoked_a_pipe", SmokeCriterion.Conditions.with(registryLookup, ModItems.WOODEN_PIPE))
                 .parent(firstContact)
-                .save(consumer, Hempdustry.MOD_ID + ":pipe_dream");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "pipe_dream"));
 
         Advancement.Builder.advancement()
                 .display(display(ModItems.BONG, "bong_voyage", AdvancementType.TASK))
                 .addCriterion("smoked_a_bong", SmokeCriterion.Conditions.with(registryLookup,
                         ModItems.bongs().toArray(Item[]::new)))
                 .parent(pipeDream)
-                .save(consumer, Hempdustry.MOD_ID + ":bong_voyage");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "bong_voyage"));
 
         // Durability is measured in hits, so "ran it into the ground" is literally readable off the
         // vanilla criterion: ItemStack#damage passes the *new damage* value, and the conditions test
@@ -369,13 +380,13 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                                         ModItems.bongs().stream()).toArray(Item[]::new)).build()),
                         MinMaxBounds.Ints.atMost(0)))
                 .parent(pipeDream)
-                .save(consumer, Hempdustry.MOD_ID + ":burnout");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "burnout"));
 
         Advancement.Builder.advancement()
                 .display(display(ModItems.VAPORIZER, "vapor_trail", AdvancementType.TASK))
                 .addCriterion("smoked_a_vaporizer", SmokeCriterion.Conditions.with(registryLookup, ModItems.VAPORIZER))
                 .parent(firstContact)
-                .save(consumer, Hempdustry.MOD_ID + ":vapor_trail");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "vapor_trail"));
 
         // A joke, so hidden, and under the schwag node rather than First Contact: smoking it needs
         // it first. Keyed on the strain, not the device, so any smokeable counts.
@@ -383,7 +394,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(Items.EMERALD, "you_get_what_you_pay_for", AdvancementType.TASK, true))
                 .addCriterion("smoked_schwag", SmokeCriterion.Conditions.of(ModStrains.SCHWAG))
                 .parent(schwag)
-                .save(consumer, Hempdustry.MOD_ID + ":you_get_what_you_pay_for");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "you_get_what_you_pay_for"));
 
         // ---------------------------------------------------------------------
         // Industry
@@ -393,13 +404,13 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.HEMP_STEM, "hemprepreneurs", AdvancementType.TASK))
                 .addCriterion("has_hemp_stem", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.HEMP_STEM))
                 .parent(rootAdvancement)
-                .save(consumer, Hempdustry.MOD_ID + ":hemprepreneurs");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemprepreneurs"));
 
         AdvancementHolder hempBuilder = Advancement.Builder.advancement()
                 .display(display(ModItems.HEMP_BRICK, "hemp_builder", AdvancementType.TASK))
                 .addCriterion("has_hemp_brick", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.HEMP_BRICK))
                 .parent(hemprepreneurs)
-                .save(consumer, Hempdustry.MOD_ID + ":hemp_builder");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_builder"));
 
         // ---------------------------------------------------------------------
         // Growing indoors
@@ -409,9 +420,9 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // player must already have done, so everything indoors follows from the bricks.
         AdvancementHolder pothead = Advancement.Builder.advancement()
                 .display(display(ModBlocks.GROW_POT, "pothead", AdvancementType.TASK))
-                .addCriterion("placed_a_grow_pot", ItemUsedOnLocationTrigger.TriggerInstance.placedBlock(ModBlocks.GROW_POT))
+                .addCriterion("placed_a_grow_pot", ItemUsedOnLocationTrigger.TriggerInstance.placedBlock(registryLookup.lookupOrThrow(Registries.BLOCK), ModBlocks.GROW_POT))
                 .parent(hempBuilder)
-                .save(consumer, Hempdustry.MOD_ID + ":pothead");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "pothead"));
 
         // Siblings, because a tray needs a pot and no lamp. Both read the plant, never the room: the
         // light is the record the plant kept (a lamp moved over at the end changes nothing), and the
@@ -422,13 +433,13 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModBlocks.HYDRO_TRAY, "sea_of_green", AdvancementType.TASK))
                 .addCriterion("harvested_from_a_tray", HarvestHempCriterion.Conditions.grownIn(hydroTray))
                 .parent(pothead)
-                .save(consumer, Hempdustry.MOD_ID + ":sea_of_green");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "sea_of_green"));
 
         AdvancementHolder midnightSun = Advancement.Builder.advancement()
                 .display(display(ModBlocks.GROW_LAMP, "midnight_sun", AdvancementType.TASK))
                 .addCriterion("harvested_under_a_grow_lamp", HarvestHempCriterion.Conditions.grownUnder(GrowLight.GROW_LAMP))
                 .parent(pothead)
-                .save(consumer, Hempdustry.MOD_ID + ":midnight_sun");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "midnight_sun"));
 
         // The second GOAL. Everything the indoor set offers, on one plant: trimmed in both windows,
         // under a Grow Lamp it never lost (losing it would have turned the record STRESSED), in a
@@ -439,7 +450,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .addCriterion("harvested_top_shelf", HarvestHempCriterion.Conditions.create(
                         MinMaxBounds.Ints.exactly(2), Optional.of(GrowLight.GROW_LAMP), Optional.of(hydroTray.build())))
                 .parent(midnightSun)
-                .save(consumer, Hempdustry.MOD_ID + ":top_shelf");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "top_shelf"));
 
         // A GOAL, and it earns it the way vanilla's create_full_beacon does: the Decarboxylator is 7
         // hemp bricks *blocks* — 504 hemp stem, roughly 252 indica or 126 sativa mature plants. The
@@ -448,7 +459,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModBlocks.DECARBOXYLATOR, "activation_energy", AdvancementType.GOAL))
                 .addCriterion("has_decarboxylator", InventoryChangeTrigger.TriggerInstance.hasItems(ModBlocks.DECARBOXYLATOR))
                 .parent(hempBuilder)
-                .save(consumer, Hempdustry.MOD_ID + ":activation_energy");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "activation_energy"));
 
         // Bhang skips the butter: decarboxylated hemp goes straight into milk, so it hangs off the
         // oven rather than off the Infuser branch.
@@ -456,7 +467,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.BHANG_BUCKET, "got_bhang", AdvancementType.TASK))
                 .addCriterion("drank_bhang", ConsumeItemTrigger.TriggerInstance.usedItem(items(registryLookup), ModItems.BHANG_BUCKET))
                 .parent(activationEnergy)
-                .save(consumer, Hempdustry.MOD_ID + ":got_bhang");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "got_bhang"));
 
         // Deliberately the only step between owning the machine and this node. "You decarboxylated
         // something" is an unavoidable consequence of building the oven, not a discovery of its own,
@@ -465,13 +476,13 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.WASHED_DECARBOXYLATED_HEMP, "rinse_cycle", AdvancementType.TASK))
                 .addCriterion("has_washed_hemp", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.WASHED_DECARBOXYLATED_HEMP))
                 .parent(activationEnergy)
-                .save(consumer, Hempdustry.MOD_ID + ":rinse_cycle");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "rinse_cycle"));
 
         AdvancementHolder cannabutter = Advancement.Builder.advancement()
                 .display(display(ModItems.CANNABUTTER, "butter_late_than_never", AdvancementType.TASK))
                 .addCriterion("has_cannabutter", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.CANNABUTTER))
                 .parent(rinseCycle)
-                .save(consumer, Hempdustry.MOD_ID + ":butter_late_than_never");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "butter_late_than_never"));
 
         // The payoff node for the whole four-step chain. Keyed on the #hempdustry:edibles tag so a
         // future edible needs no edit here — and note Space Cake is legitimately absent from that
@@ -481,7 +492,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .addCriterion("ate_an_edible", ConsumeItemTrigger.TriggerInstance.usedItem(
                         ItemPredicate.Builder.item().of(items(registryLookup), ModTags.Items.EDIBLES)))
                 .parent(cannabutter)
-                .save(consumer, Hempdustry.MOD_ID + ":give_it_an_hour");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "give_it_an_hour"));
 
         // Perfect is the one grade gated on *both* dials maxed — every item washed and a full
         // simmer — so it is a genuine mastery feat rather than a milestone, which is what CHALLENGE
@@ -496,7 +507,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                                         DataComponentExactPredicate.expect(ModComponents.QUALITY, Quality.PERFECT),
                                         Map.of()))))
                 .parent(cannabutter)
-                .save(consumer, Hempdustry.MOD_ID + ":perfect_batch");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "perfect_batch"));
 
         // The Club des Hachichins met at the Hôtel Pimodan in 1840s Paris — Gautier, Baudelaire,
         // Dumas — and what they ate was dawamesk, the Algerian hash jam. Cannabutter is its base
@@ -505,7 +516,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.DAWAMESK, "club_des_hashischins", AdvancementType.TASK))
                 .addCriterion("ate_dawamesk", ConsumeItemTrigger.TriggerInstance.usedItem(items(registryLookup), ModItems.DAWAMESK))
                 .parent(cannabutter)
-                .save(consumer, Hempdustry.MOD_ID + ":club_des_hashischins");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "club_des_hashischins"));
 
         // ---------------------------------------------------------------------
         // Textiles
@@ -515,7 +526,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.HEMP_FIBER, "green_threads", AdvancementType.TASK))
                 .addCriterion("has_hemp_fiber", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.HEMP_FIBER))
                 .parent(hemprepreneurs)
-                .save(consumer, Hempdustry.MOD_ID + ":green_threads");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "green_threads"));
 
         Advancement.Builder.advancement()
                 .display(display(ModItems.HEMP_BEANIE, "chill_set", AdvancementType.TASK))
@@ -526,7 +537,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                         ModItems.FLIP_FLOPS
                 ))
                 .parent(greenThreads)
-                .save(consumer, Hempdustry.MOD_ID + ":chill_set");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "chill_set"));
 
         // ---------------------------------------------------------------------
         // Extraction
@@ -539,13 +550,13 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.KIEF, "its_not_pollen", AdvancementType.TASK))
                 .addCriterion("has_kief", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.KIEF))
                 .parent(greenThreads)
-                .save(consumer, Hempdustry.MOD_ID + ":its_not_pollen");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "its_not_pollen"));
 
         AdvancementHolder hotOffThePress = Advancement.Builder.advancement()
                 .display(display(ModBlocks.HASHISH_BAR, "hot_off_the_press", AdvancementType.TASK))
                 .addCriterion("has_hashish_bar", InventoryChangeTrigger.TriggerInstance.hasItems(ModBlocks.HASHISH_BAR))
                 .parent(itsNotPollen)
-                .save(consumer, Hempdustry.MOD_ID + ":hot_off_the_press");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hot_off_the_press"));
 
         // Keyed on the cut itself, as its description says, and not on holding hashish: the press
         // makes hashish before there is any bar, so holding it fired on the first pressing, ahead of
@@ -557,19 +568,19 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                                 .of(registryLookup.lookupOrThrow(Registries.BLOCK), ModBlocks.HASHISH_BAR)),
                         ItemPredicate.Builder.item().of(items(registryLookup), ModTags.Items.HASH_CUTTERS)))
                 .parent(hotOffThePress)
-                .save(consumer, Hempdustry.MOD_ID + ":cloud_nine");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "cloud_nine"));
 
         Advancement.Builder.advancement()
                 .display(display(ModItems.MOON_ROCK, "one_small_step", AdvancementType.TASK))
                 .addCriterion("has_moon_rock", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.MOON_ROCK))
                 .parent(cloudNine)
-                .save(consumer, Hempdustry.MOD_ID + ":one_small_step");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "one_small_step"));
 
         AdvancementHolder doubleZero = Advancement.Builder.advancement()
                 .display(display(ModItems.FILTERED_HASHISH, "double_zero", AdvancementType.TASK))
                 .addCriterion("has_filtered_hashish", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.FILTERED_HASHISH))
                 .parent(hotOffThePress)
-                .save(consumer, Hempdustry.MOD_ID + ":double_zero");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "double_zero"));
 
         // Under Double Zero, not under the ice wash: rosin is pressed from filtered hashish, which
         // the dry road reaches too.
@@ -577,7 +588,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.ROSIN, "under_pressure", AdvancementType.TASK))
                 .addCriterion("has_rosin", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.ROSIN))
                 .parent(doubleZero)
-                .save(consumer, Hempdustry.MOD_ID + ":under_pressure");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "under_pressure"));
 
         // A TASK, not a GOAL: plain ice from a snowy biome runs the wash, so it is a build but not an
         // investment. Packed and blue ice only make it better.
@@ -585,7 +596,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .display(display(ModItems.BUBBLE_HASH, "see_you_ice_o_later", AdvancementType.TASK))
                 .addCriterion("has_bubble_hash", InventoryChangeTrigger.TriggerInstance.hasItems(ModItems.BUBBLE_HASH))
                 .parent(itsNotPollen)
-                .save(consumer, Hempdustry.MOD_ID + ":see_you_ice_o_later");
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "see_you_ice_o_later"));
 
         // One criterion per resin, ANDed by default, so each may be obtained at any time.
         // TriggerInstance.hasItems(a, b, c…) would demand all five in the inventory at once instead.
@@ -597,6 +608,6 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
             aroundTheWorld.addCriterion("has_" + BuiltInRegistries.ITEM.getKey(resin).getPath(),
                     InventoryChangeTrigger.TriggerInstance.hasItems(resin));
         }
-        aroundTheWorld.save(consumer, Hempdustry.MOD_ID + ":around_the_world_in_80_grams");
+        aroundTheWorld.save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "around_the_world_in_80_grams"));
     }
 }

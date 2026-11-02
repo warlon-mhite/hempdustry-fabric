@@ -2,118 +2,100 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "conditions": [
-        {
-          "block": "hempdustry:hashish_bar",
-          "condition": "minecraft:block_state_property",
-          "properties": {
-            "cuts": "0"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:hashish_bar",
+        "state": {
+          "cuts": "0"
         }
-      ],
+      },
       "entries": [
         {
           "type": "minecraft:item",
           "name": "hempdustry:hashish_bar"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "conditions": [
-        {
-          "block": "hempdustry:hashish_bar",
-          "condition": "minecraft:block_state_property",
-          "properties": {
-            "cuts": "1"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:hashish_bar",
+        "state": {
+          "cuts": "1"
         }
-      ],
+      },
       "entries": [
         {
           "type": "minecraft:item",
-          "functions": [
-            {
-              "count": 7.0,
-              "function": "minecraft:set_count"
-            }
-          ],
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": 7
+          },
           "name": "hempdustry:hashish"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "conditions": [
-        {
-          "block": "hempdustry:hashish_bar",
-          "condition": "minecraft:block_state_property",
-          "properties": {
-            "cuts": "2"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:hashish_bar",
+        "state": {
+          "cuts": "2"
         }
-      ],
+      },
       "entries": [
         {
           "type": "minecraft:item",
-          "functions": [
-            {
-              "count": 5.0,
-              "function": "minecraft:set_count"
-            }
-          ],
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": 5
+          },
           "name": "hempdustry:hashish"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "conditions": [
-        {
-          "block": "hempdustry:hashish_bar",
-          "condition": "minecraft:block_state_property",
-          "properties": {
-            "cuts": "3"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:hashish_bar",
+        "state": {
+          "cuts": "3"
         }
-      ],
+      },
       "entries": [
         {
           "type": "minecraft:item",
-          "functions": [
-            {
-              "count": 3.0,
-              "function": "minecraft:set_count"
-            }
-          ],
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": 3
+          },
           "name": "hempdustry:hashish"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "conditions": [
-        {
-          "block": "hempdustry:hashish_bar",
-          "condition": "minecraft:block_state_property",
-          "properties": {
-            "cuts": "4"
-          }
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:hashish_bar",
+        "state": {
+          "cuts": "4"
         }
-      ],
+      },
       "entries": [
         {
           "type": "minecraft:item",
-          "functions": [
-            {
-              "count": 1.0,
-              "function": "minecraft:set_count"
-            }
-          ],
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": 1
+          },
           "name": "hempdustry:hashish"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ]
 }

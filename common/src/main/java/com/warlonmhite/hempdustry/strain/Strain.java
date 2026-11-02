@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,7 +17,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.RegistryFixedCodec;
+import net.minecraft.core.registries.codec.RegistryFixedCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -241,7 +242,27 @@ public record Strain(String translationKey, int color, int modelIndex,
      * loot pools, so an unstable order would shuffle the tab between launches.
      */
     public static List<Holder.Reference<Strain>> all(HolderLookup.Provider registries) {
-        List<Holder.Reference<Strain>> out = new ArrayList<>(registry(registries).listElements().toList());
+        return sorted(registry(registries));
+    }
+
+    /**
+     * {@link #all}, from the registries a loot table is loaded with. Since 26.3 a loader may hand those
+     * over as bare getters (NeoForge's loot table event does): the strain registry, loaded before any
+     * loot table, is a full lookup underneath, and a getter that cannot list is refused rather than
+     * read as no strains.
+     */
+    public static List<Holder.Reference<Strain>> all(HolderGetter.Provider registries) {
+        if (registries instanceof HolderLookup.Provider lookup) {
+            return all(lookup);
+        }
+        if (registries.lookupOrThrow(REGISTRY_KEY) instanceof HolderLookup<Strain> strains) {
+            return sorted(strains);
+        }
+        throw new IllegalStateException("the strain registry cannot be listed from " + registries);
+    }
+
+    private static List<Holder.Reference<Strain>> sorted(HolderLookup<Strain> strains) {
+        List<Holder.Reference<Strain>> out = new ArrayList<>(strains.listElements().toList());
         out.sort(Comparator.comparingInt((Holder.Reference<Strain> entry) -> entry.value().modelIndex())
                 .thenComparing(entry -> entry.key().identifier()));
         return out;

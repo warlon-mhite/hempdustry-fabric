@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.client.sound.InfuserSoundInstance;
@@ -73,8 +72,6 @@ import org.jetbrains.annotations.Nullable;
  * <p>Deliberately absent from {@code FlammableBlockRegistry}, like the rest of the mod's machinery.
  */
 public class InfuserBlock extends BaseEntityBlock {
-    public static final MapCodec<InfuserBlock> CODEC = simpleCodec(InfuserBlock::new);
-
     /**
      * Which way the spout points. <b>This is the block teaching its own automation rule.</b> The
      * Infuser cannot be drained by a hopper underneath — that block is where its heat comes from —
@@ -112,11 +109,6 @@ public class InfuserBlock extends BaseEntityBlock {
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

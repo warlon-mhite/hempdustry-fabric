@@ -27,8 +27,9 @@ import net.minecraft.world.entity.player.Player;
  * {@code LivingEntity#computeModifiedFriction} is {@code 1 - (1 - friction) * modifier}, so at 0.6
  * stone's 0.6 reads 0.76, a third of the way to ice's 0.98. The attribute is synced, which matters:
  * a player's own movement is worked out on their client. {@code knockback_resistance} at -0.5 makes
- * knockback half as strong again ({@code LivingEntity#knockback} multiplies by {@code 1 - resistance});
- * NeoForge 26.2.0.93 still floors that attribute at 0, so there only the sliding is felt.
+ * knockback half as strong again ({@code LivingEntity#knockback} multiplies by {@code 1 - resistance}).
+ * NeoForge 26.2 floored that attribute at 0, so there only the sliding was felt; NeoForge 26.3 lets it
+ * go down to vanilla's -2.
  *
  * <p><b>Riding on the green-out's Slowness rather than a status effect of its own</b>, so there is no
  * new effect id to freeze and nothing new on the HUD: the legs go soft when the green-out lands and

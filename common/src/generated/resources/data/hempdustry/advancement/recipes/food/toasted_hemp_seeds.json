@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:toasted_hemp_seeds"
+        "recipes": "hempdustry:toasted_hemp_seeds"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

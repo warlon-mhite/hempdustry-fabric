@@ -9,7 +9,6 @@
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.you_get_what_you_pay_for.description"
     },

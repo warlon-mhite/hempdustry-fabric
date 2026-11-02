@@ -6,6 +6,7 @@ import net.minecraft.core.cauldron.CauldronInteractions;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -104,7 +105,7 @@ public final class ModCauldronBehaviors {
             } else {
                 stack.shrink(toProcess);
                 // toProcess is capped by the input stack, so this never exceeds one legal stack.
-                player.getInventory().placeItemBackInInventory(new ItemStack(output, toProcess));
+                player.getInventory().placeItemBackInInventory(new ItemStack(output, toProcess), Prediction.SERVER_ONLY);
             }
             player.awardStat(Stats.USE_CAULDRON);
             player.awardStat(Stats.ITEM_USED.get(input));

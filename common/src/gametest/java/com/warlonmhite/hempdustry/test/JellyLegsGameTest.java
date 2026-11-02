@@ -28,7 +28,7 @@ public final class JellyLegsGameTest {
         double sliding = player.getAttributeValue(Attributes.FRICTION_MODIFIER);
         context.assertTrue(Math.abs(sliding - steady * 0.6) < 1.0E-9,
                 "a green-out's friction is " + sliding + ", not 0.6 of a steady player's " + steady);
-        // By the modifier, not the value: NeoForge 26.2.0.93 floors knockback resistance at 0.
+        // By the modifier, not the value: NeoForge 26.2 floored knockback resistance at 0.
         context.assertTrue(player.getAttribute(Attributes.KNOCKBACK_RESISTANCE).hasModifier(JellyLegs.ID),
                 "a green-out did not make the player easier to knock back");
 

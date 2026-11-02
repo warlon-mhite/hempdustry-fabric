@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:lime_bed_from_hemp_bed"
+        "recipes": "hempdustry:lime_bed_from_hemp_bed"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

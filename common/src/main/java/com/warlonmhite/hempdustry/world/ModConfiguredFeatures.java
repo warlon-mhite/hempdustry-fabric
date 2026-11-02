@@ -13,11 +13,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
-import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.BlockColumnFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.configurations.BlockColumnConfiguration;
-import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
-import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
+import net.minecraft.world.level.levelgen.feature.SimpleBlockFeature;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import java.util.List;
 
@@ -33,18 +31,18 @@ import java.util.List;
  */
 public class ModConfiguredFeatures {
 
-    public static final ResourceKey<ConfiguredFeature<?, ?>> INDICA_KEY = registerKey("indica");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> INDICA_CAVE_KEY = registerKey("indica_cave");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> SATIVA_KEY = registerKey("sativa");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> SATIVA_SPARSE_KEY = registerKey("sativa_sparse");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> SATIVA_RARE_KEY = registerKey("sativa_rare");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> BELDIA_KEY = registerKey("beldia");
+    public static final ResourceKey<Feature> INDICA_KEY = registerKey("indica");
+    public static final ResourceKey<Feature> INDICA_CAVE_KEY = registerKey("indica_cave");
+    public static final ResourceKey<Feature> SATIVA_KEY = registerKey("sativa");
+    public static final ResourceKey<Feature> SATIVA_SPARSE_KEY = registerKey("sativa_sparse");
+    public static final ResourceKey<Feature> SATIVA_RARE_KEY = registerKey("sativa_rare");
+    public static final ResourceKey<Feature> BELDIA_KEY = registerKey("beldia");
 
-    public static ResourceKey<ConfiguredFeature<?, ?>> registerKey(String name) {
-        return ResourceKey.create(Registries.CONFIGURED_FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
+    public static ResourceKey<Feature> registerKey(String name) {
+        return ResourceKey.create(Registries.FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
     }
 
-    public static void bootstrap(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+    public static void bootstrap(BootstrapContext<Feature> context) {
         // Surface: a wild plant, scattered into a patch by its placed feature.
         register(context, INDICA_KEY, flower(ModBlocks.INDICA_FLOWER));
 
@@ -67,15 +65,15 @@ public class ModConfiguredFeatures {
         register(context, SATIVA_RARE_KEY, flower(ModBlocks.SATIVA_FLOWER));
 
         // Wild Beldía is the crop itself, ripe, standing where sugar cane would: on sand with water
-        // right beside it, so a desert riverbank. BLOCK_COLUMN puts the LOWER and the UPPER down
+        // right beside it, so a desert riverbank. A block column puts the LOWER and the UPPER down
         // together, and the placed feature's filter wants air for both, so a plant is never cut
         // short to a lone half. Where it may stand is the placed feature's to say.
         BlockState ripe = ModBlocks.BELDIA_CROP.defaultBlockState().setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
-        register(context, BELDIA_KEY, Feature.BLOCK_COLUMN, new BlockColumnConfiguration(List.of(
-                BlockColumnConfiguration.layer(ConstantInt.of(1),
-                        BlockStateProvider.simple(ripe.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER))),
-                BlockColumnConfiguration.layer(ConstantInt.of(1),
-                        BlockStateProvider.simple(ripe.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
+        register(context, BELDIA_KEY, new BlockColumnFeature(List.of(
+                BlockColumnFeature.layer(ConstantInt.of(1),
+                        BlockStateProvider.of(ripe.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER))),
+                BlockColumnFeature.layer(ConstantInt.of(1),
+                        BlockStateProvider.of(ripe.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)))),
                 Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false));
     }
 
@@ -84,17 +82,12 @@ public class ModConfiguredFeatures {
      * on grass grows only the features in that tag, so a wild plant — and so free seeds — never comes
      * out of a stack of bone meal.
      */
-    private static ConfiguredFeature<?, ?> flower(Block flower) {
-        return new ConfiguredFeature<>(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(flower)));
+    private static Feature flower(Block flower) {
+        return new SimpleBlockFeature(BlockStateProvider.of(flower));
     }
 
-    private static void register(BootstrapContext<ConfiguredFeature<?, ?>> context,
-                                 ResourceKey<ConfiguredFeature<?, ?>> key, ConfiguredFeature<?, ?> feature) {
+    private static void register(BootstrapContext<Feature> context,
+                                 ResourceKey<Feature> key, Feature feature) {
         context.register(key, feature);
-    }
-
-    private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstrapContext<ConfiguredFeature<?, ?>> context,
-                                                                                   ResourceKey<ConfiguredFeature<?, ?>> key, F feature, FC configuration) {
-        context.register(key, new ConfiguredFeature<>(feature, configuration));
     }
 }

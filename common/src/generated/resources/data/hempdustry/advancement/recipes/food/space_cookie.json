@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:space_cookie"
+        "recipes": "hempdustry:space_cookie"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

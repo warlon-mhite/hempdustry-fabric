@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:bread"
+        "recipes": "hempdustry:bread"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

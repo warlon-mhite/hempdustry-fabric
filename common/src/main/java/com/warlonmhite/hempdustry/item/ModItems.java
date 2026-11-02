@@ -26,6 +26,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
@@ -46,7 +47,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.SignItem;
+import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAssets;
@@ -220,7 +221,7 @@ public class ModItems {
      */
     public static final Item MOON_ROCK = registerItem("moon_rock", settings -> new MoonRockItem(settings));
 
-    public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign", settings -> new SignItem(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN, settings.stacksTo(16)));
+    public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign", settings -> new StandingAndWallBlockItem(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN, Direction.DOWN, settings.stacksTo(16)));
     public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign", settings -> new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, settings.stacksTo(16)));
 
     public static final Item HEMP_BOAT = registerItem("hemp_boat", settings -> new HempBoatItem(false, settings.stacksTo(1)));

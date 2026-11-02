@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.platform;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,7 +45,7 @@ public interface Events {
          *                packs' -- or a mod's own, as opposed to one a datapack put in its place
          *                ({@code LootTableOrigin})
          */
-        void onLoad(ResourceKey<LootTable> key, boolean builtIn, HolderLookup.Provider registries, LootTableEditor table);
+        void onLoad(ResourceKey<LootTable> key, boolean builtIn, HolderGetter.Provider registries, LootTableEditor table);
     }
 
     /** The two things the mod does to a table it did not write. */

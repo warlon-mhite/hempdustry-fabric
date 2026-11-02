@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:moon_rock_sativa_charas"
+        "recipes": "hempdustry:moon_rock_sativa_charas"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

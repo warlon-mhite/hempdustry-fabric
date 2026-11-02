@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
@@ -112,8 +111,6 @@ import org.jetbrains.annotations.Nullable;
  * on purpose; it changes nothing already written.
  */
 public class SiftingBoxBlock extends Block {
-
-    public static final MapCodec<SiftingBoxBlock> CODEC = simpleCodec(SiftingBoxBlock::new);
 
     /** Vanilla's own 0–8 property, so the blockstate reads exactly like a composter's. */
     public static final IntegerProperty LEVEL = BlockStateProperties.LEVEL_COMPOSTER;
@@ -240,11 +237,6 @@ public class SiftingBoxBlock extends Block {
         // because its values are ImmutableSet.of(true, false) -- the trap that shipped pre-trimmed
         // seeds for two days. A box that starts full of water is the same bug.
         registerDefaultState(defaultBlockState().setValue(LEVEL, 0).setValue(FILLED, false).setValue(CONTENT, Content.PLANT));
-    }
-
-    @Override
-    protected MapCodec<? extends SiftingBoxBlock> codec() {
-        return CODEC;
     }
 
     @Override

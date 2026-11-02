@@ -8,10 +8,13 @@ import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -22,12 +25,18 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.component.CookingFuel;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -184,19 +193,32 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         return !resultFor(world, stack).isEmpty();
     }
 
+    /**
+     * Whether {@code stack} burns here: whatever carries a cooking fuel, the component vanilla's
+     * furnaces ask since 26.3 -- so the mod's own fuels (hemp stem, bales, the armour set) work here
+     * for free. {@code world} is unused now; the signature is the one the menu and the tests share.
+     */
     public static boolean isFuel(@Nullable Level world, ItemStack stack) {
-        return world != null && world.fuelValues().isFuel(stack);
+        return stack.has(DataComponents.COOKING_FUEL);
     }
 
     /**
-     * Burn time of a fuel item, via the same map vanilla furnaces use — so the mod's own
-     * {@code FuelValues} entries (hemp stem, bales, the armour set) work here for free.
+     * Burn time of a fuel item, resolved the way a furnace resolves it: a fuel's time is a number
+     * provider read against this block (a blast furnace halves vanilla's own), so it needs the
+     * same container-process context vanilla's furnaces build.
      */
-    private static int burnTimeOf(@Nullable Level world, ItemStack stack) {
-        if (world == null || stack.isEmpty()) {
+    private int burnTimeOf(@Nullable Level world, ItemStack stack) {
+        if (!(world instanceof ServerLevel server) || stack.isEmpty()) {
             return 0;
         }
-        return world.fuelValues().burnDuration(stack);
+        LootContext context = new LootContext.Builder(new LootParams.Builder(server)
+                .withParameter(LootContextParams.BLOCK_STATE, getBlockState())
+                .withParameter(LootContextParams.BLOCK_ENTITY, this)
+                .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(getBlockPos()))
+                .withParameter(LootContextParams.CONTAINER, this)
+                .create(LootContextParamSets.CONTAINER_PROCESS))
+                .create(Optional.empty());
+        return ResolvableInt.getFromItem(stack, DataComponents.COOKING_FUEL, CookingFuel::burnTime, context, 0);
     }
 
     // ----- ticking -----

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_harem_pants_dyed"
+        "recipes": "hempdustry:hemp_harem_pants_dyed"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

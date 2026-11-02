@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_fiber_from_retted_hemp_stem"
+        "recipes": "hempdustry:hemp_fiber_from_retted_hemp_stem"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

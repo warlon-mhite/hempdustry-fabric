@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_leaf_from_leaves"
+        "recipes": "hempdustry:hemp_leaf_from_leaves"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

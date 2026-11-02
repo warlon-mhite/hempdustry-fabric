@@ -11,13 +11,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementFilter;
-import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 public class ModPlacementModifiers {
 
-    public static final PlacementModifierType<InBeldiaBiomePlacementModifier> IN_BELDIA_BIOME =
+    public static final MapCodec<InBeldiaBiomePlacementModifier> IN_BELDIA_BIOME =
             Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "in_beldia_biome"),
-                    () -> InBeldiaBiomePlacementModifier.CODEC);
+                    InBeldiaBiomePlacementModifier.CODEC);
 
     public static void registerPlacementModifiers() {
         Hempdustry.LOGGER.info("Registering Placement Modifiers for " + Hempdustry.MOD_ID);
@@ -35,7 +34,7 @@ public class ModPlacementModifiers {
      * vanilla's zoom jitter and can answer for a neighbouring cell — a border is exactly where that
      * lies.
      */
-    public static final class InBeldiaBiomePlacementModifier extends PlacementFilter {
+    public static final class InBeldiaBiomePlacementModifier implements PlacementFilter {
         public static final InBeldiaBiomePlacementModifier INSTANCE = new InBeldiaBiomePlacementModifier();
         public static final MapCodec<InBeldiaBiomePlacementModifier> CODEC = MapCodec.unit(() -> INSTANCE);
 
@@ -43,14 +42,14 @@ public class ModPlacementModifiers {
         }
 
         @Override
-        protected boolean shouldPlace(PlacementContext context, RandomSource random, BlockPos pos) {
+        public boolean shouldPlace(PlacementContext context, RandomSource random, BlockPos pos) {
             return context.getLevel().getNoiseBiome(QuartPos.fromBlock(pos.getX()),
                     QuartPos.fromBlock(pos.getY()), QuartPos.fromBlock(pos.getZ())).is(ModTags.Biomes.BELDIA_GEN);
         }
 
         @Override
-        public PlacementModifierType<?> type() {
-            return IN_BELDIA_BIOME;
+        public MapCodec<InBeldiaBiomePlacementModifier> codec() {
+            return CODEC;
         }
     }
 }

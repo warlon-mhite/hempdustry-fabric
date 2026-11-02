@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
@@ -21,6 +20,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -60,8 +60,6 @@ import org.jetbrains.annotations.Nullable;
  * honey); the water is not, and a freshly crafted pot starts dry and empty.
  */
 public class GrowPotBlock extends Block implements GrowMedium {
-    public static final MapCodec<GrowPotBlock> CODEC = simpleCodec(GrowPotBlock::new);
-
     public static final int MAX_FERTILITY = 3;
     public static final IntegerProperty FERTILITY = IntegerProperty.create("fertility", 0, MAX_FERTILITY);
     public static final BooleanProperty WATERED = BooleanProperty.create("watered");
@@ -81,11 +79,6 @@ public class GrowPotBlock extends Block implements GrowMedium {
         super(settings);
         // WATERED spelled out: a BooleanProperty left out of the default state defaults to true.
         this.registerDefaultState(this.stateDefinition.any().setValue(FERTILITY, 0).setValue(WATERED, false));
-    }
-
-    @Override
-    protected MapCodec<? extends Block> codec() {
-        return CODEC;
     }
 
     public static boolean isPot(BlockState state) {
@@ -201,17 +194,17 @@ public class GrowPotBlock extends Block implements GrowMedium {
     // ----- bone meal feeds the soil -----
 
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
         return state.getValue(FERTILITY) < MAX_FERTILITY;
     }
 
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
         return true;
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
         world.setBlock(pos, state.setValue(FERTILITY, state.getValue(FERTILITY) + 1), Block.UPDATE_CLIENTS);
     }
 

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_wool"
+        "recipes": "hempdustry:hemp_wool"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:grow_lamp"
+        "recipes": "hempdustry:grow_lamp"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

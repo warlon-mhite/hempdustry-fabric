@@ -12,7 +12,6 @@
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.wake_and_bake.description"
     },

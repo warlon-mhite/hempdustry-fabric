@@ -89,7 +89,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.AABB;
@@ -731,7 +730,7 @@ public final class SweepGameTest {
         }
         // Bone meal on grass grows only #minecraft:can_spawn_from_bone_meal (26.1), so none of ours may
         // be in it: a wild plant, and so free seeds, from a stack of bone meal.
-        registries.lookupOrThrow(Registries.CONFIGURED_FEATURE).listElements().forEach(entry -> {
+        registries.lookupOrThrow(Registries.FEATURE).listElements().forEach(entry -> {
             if (Sweep.ours(entry.key().identifier()) && entry.is(FeatureTags.CAN_SPAWN_FROM_BONE_MEAL)) {
                 findings.put("bone-meal feature: " + entry.key().identifier(), "is in #minecraft:can_spawn_from_bone_meal");
             }
@@ -784,9 +783,9 @@ public final class SweepGameTest {
                     else ourBlockDrops.put(block, drops);
                 });
         // A block worldgen places can be broken where it stands.
-        world.registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE).entrySet().forEach(feature -> {
+        world.registryAccess().lookupOrThrow(Registries.FEATURE).entrySet().forEach(feature -> {
             if (!Sweep.ours(feature.getKey().identifier())) return;
-            for (String placed : ids(ConfiguredFeature.DIRECT_CODEC.encodeStart(json, feature.getValue()).getOrThrow().toString())) {
+            for (String placed : ids(Feature.DIRECT_CODEC.encodeStart(json, feature.getValue()).getOrThrow().toString())) {
                 BuiltInRegistries.BLOCK.getOptional(Identifier.parse(placed)).map(ourBlockDrops::get).ifPresent(had::addAll);
             }
         });

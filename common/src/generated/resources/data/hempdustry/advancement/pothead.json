@@ -3,18 +3,15 @@
   "criteria": {
     "placed_a_grow_pot": {
       "conditions": {
-        "location": [
-          {
-            "block": "hempdustry:grow_pot",
-            "condition": "minecraft:block_state_property"
-          }
-        ]
+        "location": {
+          "type": "minecraft:match_block",
+          "blocks": "hempdustry:grow_pot"
+        }
       },
       "trigger": "minecraft:placed_block"
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.pothead.description"
     },

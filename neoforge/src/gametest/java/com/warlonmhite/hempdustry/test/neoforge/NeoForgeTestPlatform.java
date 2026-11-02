@@ -7,16 +7,12 @@ import com.warlonmhite.hempdustry.api.AfterSmokeEvent;
 import com.warlonmhite.hempdustry.api.AllowSmokeEvent;
 import com.warlonmhite.hempdustry.test.TestPlatform;
 import net.minecraft.resources.RegistryDataLoader;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.registries.DataPackRegistriesHooks;
-import net.neoforged.neoforge.registries.datamaps.builtin.Compostable;
-import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -31,7 +27,8 @@ public final class NeoForgeTestPlatform implements TestPlatform {
 
     @Override
     public List<RegistryDataLoader.RegistryData<?>> dynamicRegistries() {
-        return DataPackRegistriesHooks.getDataPackRegistries();
+        // NeoForge keeps vanilla's own list open and adds the mods' world registries to it.
+        return RegistryDataLoader.WORLD_REGISTRIES;
     }
 
     @Override
@@ -44,11 +41,6 @@ public final class NeoForgeTestPlatform implements TestPlatform {
         return roots(NeoForgeGameTests.MOD_ID);
     }
 
-    @Override
-    public float compostChance(ItemLike item) {
-        Compostable compostable = item.asItem().builtInRegistryHolder().getData(NeoForgeDataMaps.COMPOSTABLES);
-        return compostable == null ? -1.0F : compostable.chance();
-    }
 
     @Override
     public Flammability flammability(Block block) {

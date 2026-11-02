@@ -144,7 +144,7 @@ public final class ScorchedHempGameTest {
         }
         context.assertTrue(CauldronInteractions.WATER.get(new ItemStack(ModItems.SCORCHED_HEMP)) == CauldronInteraction.DEFAULT,
                 "scorched hemp can be washed, which makes it a route to Clean and Perfect butter");
-        context.assertValueEqual(TestPlatform.INSTANCE.compostChance(ModItems.SCORCHED_HEMP), 0.3F,
+        context.assertValueEqual(FuelAndCompost.compostChance(context, ModItems.SCORCHED_HEMP), 0.3F,
                 "scorched hemp does not compost at the leaf's 0.3");
         context.succeed();
     }

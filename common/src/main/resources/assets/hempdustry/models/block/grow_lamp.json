@@ -104,7 +104,7 @@
         "axis": "y",
         "angle": 45
       },
-      "shade": false,
+      "shade_direction_override": "up",
       "faces": {
         "north": {
           "uv": [
@@ -146,7 +146,7 @@
         "axis": "y",
         "angle": 45
       },
-      "shade": false,
+      "shade_direction_override": "up",
       "faces": {
         "west": {
           "uv": [
@@ -188,7 +188,7 @@
         "axis": "y",
         "angle": 45
       },
-      "shade": false,
+      "shade_direction_override": "up",
       "faces": {
         "north": {
           "uv": [
@@ -230,7 +230,7 @@
         "axis": "y",
         "angle": 45
       },
-      "shade": false,
+      "shade_direction_override": "up",
       "faces": {
         "west": {
           "uv": [

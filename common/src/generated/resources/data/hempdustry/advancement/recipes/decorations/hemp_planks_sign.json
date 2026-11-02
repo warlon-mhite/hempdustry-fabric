@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_planks_sign"
+        "recipes": "hempdustry:hemp_planks_sign"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

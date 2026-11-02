@@ -97,8 +97,8 @@ public final class LangGameTest {
         for (Quality quality : Quality.values()) read.add(quality.getTranslationKey());
         for (AdvancementHolder entry : world.getServer().getAdvancements().getAllAdvancements()) {
             entry.value().display().ifPresent(display -> {
-                keys(display.getTitle(), read);
-                keys(display.getDescription(), read);
+                keys(display.title(), read);
+                keys(display.description(), read);
             });
         }
         BuiltInRegistries.ITEM.getTags().forEach(tag -> {

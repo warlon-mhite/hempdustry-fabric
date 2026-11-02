@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:bhang_bucket"
+        "recipes": "hempdustry:bhang_bucket"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -22,6 +22,7 @@ import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
@@ -37,6 +38,7 @@ import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.ItemTags;
@@ -79,8 +81,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
      * entries).
      */
     @Override
-    protected RecipeProvider createRecipeProvider(HolderLookup.Provider registries, RecipeOutput exporter) {
-        return new Generator(registries, exporter);
+    protected RecipeProvider createRecipeProvider(HolderLookup.Provider registries, BootstrapContext<Recipe<?>> recipes,
+                                                  BootstrapContext<Advancement> advancements) {
+        return new Generator(registries, recipes, advancements);
     }
 
     @Override
@@ -89,8 +92,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
     }
 
     private static class Generator extends RecipeProvider {
-        Generator(HolderLookup.Provider registries, RecipeOutput exporter) {
-            super(registries, exporter);
+        /**
+         * Since 26.3 a recipe provider writes into the recipe and advancement registries being built
+         * and keeps no lookup of its own; the strains and tags it reads come from this one.
+         */
+        private final HolderLookup.Provider registries;
+
+        Generator(HolderLookup.Provider registries, BootstrapContext<Recipe<?>> recipes,
+                  BootstrapContext<Advancement> advancements) {
+            super(recipes, advancements);
+            this.registries = registries;
         }
 
     @Override
@@ -1243,7 +1254,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.of(ModItems.ROSIN),
                         coatIngredient));
         output.accept(recipeId, recipe, output.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(output.lookup(Registries.RECIPE).getOrThrow(recipeId)))
                 .addCriterion(getHasName(ModItems.ROSIN), has(ModItems.ROSIN))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
                 .requirements(AdvancementRequirements.Strategy.OR)
@@ -1299,7 +1310,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         ResourceKey<Recipe<?>> recipeId = id("spliff_" + ModStrains.id(strain.key()) + "_" + dose);
         ShapedRecipe recipe = new ShapedRecipe(new Recipe.CommonInfo(true), book("spliff"), raw, result);
         output.accept(recipeId, recipe, output.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(output.lookup(Registries.RECIPE).getOrThrow(recipeId)))
                 .addCriterion(getHasName(budItem), has(budItem))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
                 .requirements(AdvancementRequirements.Strategy.OR)
@@ -1339,7 +1350,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 + "_with_" + ModStrains.id(hash.key()) + "_" + (buds + 1));
         ShapedRecipe recipe = new ShapedRecipe(new Recipe.CommonInfo(true), book("spliff"), raw, result);
         output.accept(recipeId, recipe, output.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(output.lookup(Registries.RECIPE).getOrThrow(recipeId)))
                 .addCriterion(getHasName(hashItem), has(hashItem))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
                 .requirements(AdvancementRequirements.Strategy.OR)
@@ -1376,7 +1387,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         ContainerCarriedRecipe recipe = new ContainerCarriedRecipe(new Recipe.CommonInfo(true), book(""),
                 result, inputs);
         output.accept(recipeId, recipe, output.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(output.lookup(Registries.RECIPE).getOrThrow(recipeId)))
                 .addCriterion(getHasName(unlockedBy), has(unlockedBy))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
                 .requirements(AdvancementRequirements.Strategy.OR)
@@ -1394,7 +1405,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         ContainerCarriedRecipe recipe = new ContainerCarriedRecipe(new Recipe.CommonInfo(true), book(""),
                 result, inputs);
         output.accept(recipeId, recipe, output.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(output.lookup(Registries.RECIPE).getOrThrow(recipeId)))
                 .addCriterion("has_hemp_seeds", has(unlockedByTag))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
                 .requirements(AdvancementRequirements.Strategy.OR)
@@ -1450,7 +1461,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
     private void offerInfused(ResourceKey<Recipe<?>> recipeId, net.minecraft.world.item.crafting.Recipe<?> recipe) {
         output.accept(recipeId, recipe, output.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(output.lookup(Registries.RECIPE).getOrThrow(recipeId)))
                 .addCriterion(getHasName(ModItems.CANNABUTTER), has(ModItems.CANNABUTTER))
                 .rewards(AdvancementRewards.Builder.recipe(recipeId))
                 .requirements(AdvancementRequirements.Strategy.OR)

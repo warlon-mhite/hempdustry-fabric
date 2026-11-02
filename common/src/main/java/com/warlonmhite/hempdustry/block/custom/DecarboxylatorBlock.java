@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.platform.Services;
@@ -48,8 +47,6 @@ import org.jetbrains.annotations.Nullable;
  * hemp wood set).
  */
 public class DecarboxylatorBlock extends BaseEntityBlock {
-    public static final MapCodec<DecarboxylatorBlock> CODEC = simpleCodec(DecarboxylatorBlock::new);
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
@@ -58,11 +55,6 @@ public class DecarboxylatorBlock extends BaseEntityBlock {
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(LIT, false));
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

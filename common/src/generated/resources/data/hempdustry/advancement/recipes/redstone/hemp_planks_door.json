@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_planks_door"
+        "recipes": "hempdustry:hemp_planks_door"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

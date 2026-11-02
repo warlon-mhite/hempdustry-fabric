@@ -73,13 +73,29 @@ def multi_block_plants():
     return found
 
 
+def checks_segment(condition, prop):
+    """True when this condition alone pins the plant's segment, in either loot format.
+
+    Up to 26.2 a pool lists `conditions`, each a `block_state_property` with `properties`; since 26.3
+    a pool has one `condition`, a `match_block` with `state`, or an `all_of` of several (any one of
+    its terms pinning the segment pins the whole). A checker that read only the old form would find
+    no guard anywhere and say so, or, worse, read nothing the day the form changed again."""
+    if condition.get("condition") == "minecraft:block_state_property":
+        return prop in condition.get("properties", {})
+    kind = condition.get("type")
+    if kind == "minecraft:match_block":
+        return prop in condition.get("state", {})
+    if kind == "minecraft:all_of":
+        return any(checks_segment(term, prop) for term in condition.get("terms", []))
+    return False
+
+
 def guarded(pool, prop):
     """True when this pool cannot fire for every segment of the plant."""
-    for condition in pool.get("conditions", []):
-        if condition.get("condition") == "minecraft:block_state_property" \
-                and prop in condition.get("properties", {}):
-            return True
-    return False
+    conditions = list(pool.get("conditions", []))
+    if "condition" in pool:
+        conditions.append(pool["condition"])
+    return any(checks_segment(condition, prop) for condition in conditions)
 
 
 def main():

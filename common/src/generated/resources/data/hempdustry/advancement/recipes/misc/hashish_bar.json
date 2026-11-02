@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hashish_bar"
+        "recipes": "hempdustry:hashish_bar"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

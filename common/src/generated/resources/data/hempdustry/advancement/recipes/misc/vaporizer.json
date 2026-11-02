@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:vaporizer"
+        "recipes": "hempdustry:vaporizer"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

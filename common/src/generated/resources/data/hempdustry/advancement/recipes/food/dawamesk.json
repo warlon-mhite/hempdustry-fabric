@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:dawamesk"
+        "recipes": "hempdustry:dawamesk"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

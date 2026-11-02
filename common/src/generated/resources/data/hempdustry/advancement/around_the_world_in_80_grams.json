@@ -53,7 +53,6 @@
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.around_the_world_in_80_grams.description"
     },

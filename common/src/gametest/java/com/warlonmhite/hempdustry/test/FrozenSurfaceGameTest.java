@@ -43,6 +43,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -89,6 +90,26 @@ public final class FrozenSurfaceGameTest {
      * lost there fires again the next time the item is picked up, and the recipe line beside it is
      * what is frozen.
      */
+    /**
+     * Registries Minecraft renamed while every id in them stayed, old name to new. 26.3 folded the
+     * configured features into the features: {@code worldgen/configured_feature} became
+     * {@code worldgen/feature}, and {@code hempdustry:indica} and the rest moved with it, ids kept. A
+     * release's line is looked for under the registry's name today, so the ids stay held.
+     */
+    private static final Map<String, String> RENAMED_REGISTRIES = Map.of(
+            "minecraft:worldgen/configured_feature", "minecraft:worldgen/feature");
+
+    /** {@code line} as this build writes it, if its registry has been renamed since. */
+    private static String renamed(String line) {
+        for (Map.Entry<String, String> registry : RENAMED_REGISTRIES.entrySet()) {
+            for (String kind : new String[] {"registry ", "entry ", "tag "}) {
+                String old = kind + registry.getKey();
+                if (line.equals(old) || line.startsWith(old + " ")) return kind + registry.getValue() + line.substring(old.length());
+            }
+        }
+        return line;
+    }
+
     public static void theFrozenSurfaceHolds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         SortedSet<String> surface = surface(world);
@@ -102,7 +123,7 @@ public final class FrozenSurfaceGameTest {
             if (!file.getKey().endsWith(".txt") || file.getKey().equals("retired.txt")) continue;
             baselines++;
             for (String line : text(file.getValue()).lines().filter(line -> !line.isBlank()).toList()) {
-                if (!surface.contains(line)) findings.putIfAbsent(line, "frozen by " + file.getKey() + ", gone from this build");
+                if (!surface.contains(renamed(line))) findings.putIfAbsent(line, "frozen by " + file.getKey() + ", gone from this build");
             }
         }
         Sweep.atLeast(context, "release baselines in frozen/", baselines, 1);
@@ -125,6 +146,11 @@ public final class FrozenSurfaceGameTest {
         ServerLevel world = context.getLevel();
         RegistryAccess registries = world.registryAccess();
         DynamicOps<JsonElement> json = registries.createSerializationContext(JsonOps.INSTANCE);
+        // Data files are read the way the server reads a datapack: since 26.3 recipes and predicates
+        // are reloadable registries an advancement or a loot table may name, and only the reloadable
+        // lookup holds them beside the world's own.
+        DynamicOps<JsonElement> dataJson = world.getServer().reloadableRegistries().lookup()
+                .createSerializationContext(JsonOps.INSTANCE);
         Map<String, String> findings = new TreeMap<>();
         int files = 0;
         int releases = 0;
@@ -155,7 +181,7 @@ public final class FrozenSurfaceGameTest {
                     findings.put(release + " " + data.getKey(), "the test cannot tell what this file is: teach codecFor() its folder");
                     continue;
                 }
-                DataResult<?> decoded = codec.parse(json, data.getValue());
+                DataResult<?> decoded = codec.parse(dataJson, data.getValue());
                 if (decoded.isError()) {
                     findings.put(release + " " + data.getKey(), "no longer decodes: " + decoded.error().orElseThrow().message());
                 }
@@ -336,6 +362,8 @@ public final class FrozenSurfaceGameTest {
         if (inside.startsWith("recipe/")) return Recipe.CODEC;
         if (inside.startsWith("advancement/")) return Advancement.CODEC;
         if (inside.startsWith("loot_table/")) return LootTable.DIRECT_CODEC;
+        // Since 26.3 the fuel and compost numbers (ModFuelAndCompost).
+        if (inside.startsWith("context_int_provider/")) return ContextIntProviders.DIRECT_CODEC;
         // The loader's list, not vanilla's: a mod's dynamic registry is in the loader's alone. Its
         // files live under <namespace>/<path>, data/<pack>/hempdustry/strain/ for strains.
         for (RegistryDataLoader.RegistryData<?> registry : TestPlatform.INSTANCE.dynamicRegistries()) {

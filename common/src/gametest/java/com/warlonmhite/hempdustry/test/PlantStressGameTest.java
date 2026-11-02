@@ -24,6 +24,7 @@ import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
@@ -260,7 +261,7 @@ public final class PlantStressGameTest {
         // The plant drinks when it ripens, and eats with it.
         plant(context, ModBlocks.INDICA_CROP, fedWet, 6, GrowLight.NATURAL);
         BlockPos crop = context.absolutePos(CROP);
-        ((CropBlock) ModBlocks.INDICA_CROP).performBonemeal(world, MISS, crop, world.getBlockState(crop));
+        ((CropBlock) ModBlocks.INDICA_CROP).performBonemeal(world, MISS, crop, world.getBlockState(crop), BonemealSource.INTERACTION);
         BlockState after = context.getBlockState(SOIL);
         context.assertTrue(!after.getValue(GrowPotBlock.WATERED) && after.getValue(GrowPotBlock.FERTILITY) == 2,
                 "a plant ripening in a pot left it " + after + " — it drinks the water and eats one charge");
@@ -366,7 +367,7 @@ public final class PlantStressGameTest {
         plant(context, crop, soil, age, record);
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
-        ((CropBlock) crop).performBonemeal(world, roll, pos, world.getBlockState(pos));
+        ((CropBlock) crop).performBonemeal(world, roll, pos, world.getBlockState(pos), BonemealSource.INTERACTION);
         context.assertTrue(context.getBlockState(CROP).getValue(BlockStateProperties.AGE_7) == age + 1,
                 "the step did not grow the plant, so this probe proves nothing");
         return context.getBlockState(CROP).getValue(GrowLight.PROPERTY);

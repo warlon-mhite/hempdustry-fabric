@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:moon_rock_beldia_hashish"
+        "recipes": "hempdustry:moon_rock_beldia_hashish"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

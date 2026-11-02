@@ -17,17 +17,15 @@ import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.WeightedListInt;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
-import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.level.levelgen.placement.BiomeFilter;
 import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter;
 import net.minecraft.world.level.levelgen.placement.CountPlacement;
 import net.minecraft.world.level.levelgen.placement.EnvironmentScanPlacement;
 import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
+import net.minecraft.world.level.levelgen.placement.OffsetPlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
-import net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement;
 import net.minecraft.world.level.levelgen.placement.RarityFilter;
 import net.minecraft.world.level.material.Fluids;
 import java.util.List;
@@ -68,12 +66,12 @@ public class ModPlacedFeatures {
     }
 
     public static void bootstrap(BootstrapContext<PlacedFeature> context) {
-        var configured = context.lookup(Registries.CONFIGURED_FEATURE);
+        var features = context.lookup(Registries.FEATURE);
 
         // Surface: 1 patch per 48 chunks in valid biomes. The wild plant is the main seed source,
         // so this is what decides how soon a player can start a farm: one find, not one per hill.
         register(context, INDICA_PLACED_KEY,
-                configured.getOrThrow(ModConfiguredFeatures.INDICA_KEY), wildPatch(48, WILD_TRIES));
+                features.getOrThrow(ModConfiguredFeatures.INDICA_KEY), wildPatch(48, WILD_TRIES));
 
         // Caves: scatter single flowers on cave floors. Mirrors vanilla lush-caves
         // vegetation placement (scan down to a solid floor through air, then sit one
@@ -91,13 +89,13 @@ public class ModPlacedFeatures {
         // not "replaceable" -- water is replaceable (a flower in the pool), and so is tall grass,
         // whose top half would be left floating.
         register(context, INDICA_CAVE_PLACED_KEY,
-                configured.getOrThrow(ModConfiguredFeatures.INDICA_CAVE_KEY),
+                features.getOrThrow(ModConfiguredFeatures.INDICA_CAVE_KEY),
                 CountPlacement.of(64),
                 InSquarePlacement.spread(),
                 PlacementUtils.RANGE_BOTTOM_TO_MAX_TERRAIN_HEIGHT,
                 EnvironmentScanPlacement.scanningFor(Direction.DOWN, BlockPredicate.solid(),
                         BlockPredicate.matchesBlocks(Blocks.AIR, Blocks.MOSS_CARPET, Blocks.SHORT_GRASS), 12),
-                RandomOffsetPlacement.vertical(ConstantInt.of(1)),
+                OffsetPlacement.vertical(ConstantInt.of(1)),
                 BiomeFilter.biome());
 
         // Wild Lemon Haze, surface only, in three tiers that get rarer as the ground gets harsher
@@ -109,11 +107,11 @@ public class ModPlacedFeatures {
         //   arid scrub     1 patch / 128 chunks, 1-3 plants
         //   badlands       1 patch / 256 chunks, a plant or none
         register(context, SATIVA_PLACED_KEY,
-                configured.getOrThrow(ModConfiguredFeatures.SATIVA_KEY), wildPatch(64, WILD_TRIES));
+                features.getOrThrow(ModConfiguredFeatures.SATIVA_KEY), wildPatch(64, WILD_TRIES));
         register(context, SATIVA_SPARSE_PLACED_KEY,
-                configured.getOrThrow(ModConfiguredFeatures.SATIVA_SPARSE_KEY), wildPatch(128, ConstantInt.of(6)));
+                features.getOrThrow(ModConfiguredFeatures.SATIVA_SPARSE_KEY), wildPatch(128, ConstantInt.of(6)));
         register(context, SATIVA_RARE_PLACED_KEY,
-                configured.getOrThrow(ModConfiguredFeatures.SATIVA_RARE_KEY), wildPatch(256, ConstantInt.of(3)));
+                features.getOrThrow(ModConfiguredFeatures.SATIVA_RARE_KEY), wildPatch(256, ConstantInt.of(3)));
 
         // Wild Beldía: an attempt every few desert chunks, but the attempt only grows where sand meets
         // water, so in practice a riverbank find. The seeds' real home is the desert temple.
@@ -124,22 +122,22 @@ public class ModPlacedFeatures {
         // offsets from nearWaterPredicate. InBeldiaBiome then checks each plant's own biome,
         // since the patch spreads past its centre's -- see that class. A desert shore grows it too.
         register(context, BELDIA_PLACED_KEY,
-                configured.getOrThrow(ModConfiguredFeatures.BELDIA_KEY),
+                features.getOrThrow(ModConfiguredFeatures.BELDIA_KEY),
                 RarityFilter.onAverageOnceEvery(BELDIA_RARITY),
                 InSquarePlacement.spread(),
                 PlacementUtils.HEIGHTMAP,
                 BiomeFilter.biome(),
                 CountPlacement.of(BELDIA_TRIES),
-                RandomOffsetPlacement.ofTriangle(4, 0),
+                OffsetPlacement.ofTriangle(4, 0),
                 BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
                         BlockPredicate.ONLY_IN_AIR_PREDICATE,
-                        BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), Blocks.AIR),
+                        BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), List.of(Blocks.AIR)),
                         BlockPredicate.matchesTag(new Vec3i(0, -1, 0), ModTags.Blocks.BELDIA_SOIL),
                         BlockPredicate.anyOf(
-                                BlockPredicate.matchesFluids(new Vec3i(1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
-                                BlockPredicate.matchesFluids(new Vec3i(-1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
-                                BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), Fluids.WATER, Fluids.FLOWING_WATER),
-                                BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), Fluids.WATER, Fluids.FLOWING_WATER)))),
+                                BlockPredicate.matchesFluids(new Vec3i(1, -1, 0), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
+                                BlockPredicate.matchesFluids(new Vec3i(-1, -1, 0), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
+                                BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), List.of(Fluids.WATER, Fluids.FLOWING_WATER)),
+                                BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), List.of(Fluids.WATER, Fluids.FLOWING_WATER))))),
                 ModPlacementModifiers.InBeldiaBiomePlacementModifier.INSTANCE);
     }
 
@@ -155,20 +153,14 @@ public class ModPlacedFeatures {
                 PlacementUtils.HEIGHTMAP,
                 BiomeFilter.biome(),
                 CountPlacement.of(tries),
-                RandomOffsetPlacement.ofTriangle(6, 2),
+                OffsetPlacement.ofTriangle(6, 2),
                 BlockPredicateFilter.forPredicate(BlockPredicate.ONLY_IN_AIR_PREDICATE)};
     }
 
 
 
-    private static void register(BootstrapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key, Holder<ConfiguredFeature<?, ?>> configuration,
-                                 List<PlacementModifier> modifiers) {
-        context.register(key, new PlacedFeature(configuration, List.copyOf(modifiers)));
-    }
-
-    private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstrapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key,
-                                                                                   Holder<ConfiguredFeature<?, ?>> configuration,
-                                                                                   PlacementModifier... modifiers) {
-        register(context, key, configuration, List.of(modifiers));
+    private static void register(BootstrapContext<PlacedFeature> context, ResourceKey<PlacedFeature> key, Holder<Feature> feature,
+                                 PlacementModifier... modifiers) {
+        context.register(key, new PlacedFeature(feature, List.of(modifiers)));
     }
 }

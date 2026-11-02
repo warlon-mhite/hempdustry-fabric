@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:magenta_bong"
+        "recipes": "hempdustry:magenta_bong"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

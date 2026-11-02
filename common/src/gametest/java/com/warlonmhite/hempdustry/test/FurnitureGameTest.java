@@ -8,7 +8,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
@@ -83,10 +82,10 @@ public final class FurnitureGameTest {
             var entry = TestPlatform.INSTANCE.flammability(wood);
             context.assertTrue(entry.igniteOdds() == 0 && entry.burnOdds() == 0,
                     wood + " catches fire, and the hemp plank set is fireproof");
-            context.assertFalse(context.getLevel().fuelValues().isFuel(new ItemStack(wood)),
+            context.assertFalse(FuelAndCompost.isFuel(wood),
                     wood + " burns in a furnace, and the hemp plank set is fireproof");
         }
-        context.assertTrue(context.getLevel().fuelValues().isFuel(new ItemStack(Blocks.OAK_SHELF)),
+        context.assertTrue(FuelAndCompost.isFuel(Blocks.OAK_SHELF),
                 "an oak shelf is not fuel either, so the check above proves nothing");
         context.succeed();
     }
@@ -100,12 +99,12 @@ public final class FurnitureGameTest {
      * fire-resistant, and vanilla's concrete powder is no fuel either.
      */
     public static void hempcreteBurnsNoLongerThanItsStems(GameTestHelper context) {
-        int stem = context.getLevel().fuelValues().burnDuration(new ItemStack(ModItems.HEMP_STEM));
-        int hempcrete = context.getLevel().fuelValues().burnDuration(new ItemStack(ModItems.HEMPCRETE));
+        int stem = FuelAndCompost.burnTime(context, ModItems.HEMP_STEM);
+        int hempcrete = FuelAndCompost.burnTime(context, ModItems.HEMPCRETE);
         context.assertTrue(stem > 0, "a hemp stem is no fuel, so the check below proves nothing");
         context.assertTrue(2 * hempcrete <= 4 * stem,
                 "two Hempcrete burn " + 2 * hempcrete + " ticks, and the four stems they are made of " + 4 * stem);
-        context.assertTrue(context.getLevel().fuelValues().burnDuration(new ItemStack(ModBlocks.HEMPCRETE_POWDER_BLOCK)) == 0,
+        context.assertTrue(FuelAndCompost.burnTime(context, ModBlocks.HEMPCRETE_POWDER_BLOCK) == 0,
                 "a Block of Hempcrete Powder burns in a furnace");
         context.succeed();
     }

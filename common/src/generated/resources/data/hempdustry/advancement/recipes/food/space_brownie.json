@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:space_brownie"
+        "recipes": "hempdustry:space_brownie"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

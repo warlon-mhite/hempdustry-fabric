@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """List the work one Minecraft line has and another has not taken yet.
 
-The mod is built for more than one Minecraft at a time, one branch each (2.1 for 1.21.11, 26.2-2.1
-for 26.2, 1.21.1-2.1 for 1.21.1), and a change made on one line is carried to the others as a twin:
-the same change, rewritten where the game's code differs, under the same subject. A cherry-pick keeps
-the subject on its own, and that is all this script pairs on. Everything since the two branches split
-that has no twin on the other side is listed, oldest first.
+The mod is built for more than one Minecraft at a time, one branch each (2.1 for 1.21.11, 26.3-2.1
+for 26.3; 26.2-2.1 and 1.21.1-2.1 take patches), and a change made on one line is carried to the
+others as a twin: the same change, rewritten where the game's code differs, under the same subject.
+A cherry-pick keeps the subject on its own, and that is all this script pairs on. Everything since
+the two branches split that has no twin on the other side is listed, oldest first.
 
 A change that belongs to one line only -- the port itself, a fix for something only one Minecraft
 does -- says so with a trailer in its message, and is listed apart instead of as missing:
 
-    Line-only: 26.2
+    Line-only: 26.3
 
 Usage:
     python3 scripts/twins.py OTHER            # this checkout's branch against OTHER

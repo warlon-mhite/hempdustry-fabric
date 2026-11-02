@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:painting"
+        "recipes": "hempdustry:painting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

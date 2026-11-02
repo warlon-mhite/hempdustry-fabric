@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_harness"
+        "recipes": "hempdustry:hemp_harness"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

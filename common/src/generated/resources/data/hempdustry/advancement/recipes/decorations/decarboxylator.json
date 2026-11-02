@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:decarboxylator"
+        "recipes": "hempdustry:decarboxylator"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

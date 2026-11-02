@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:flip_flops"
+        "recipes": "hempdustry:flip_flops"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

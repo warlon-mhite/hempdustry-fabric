@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -35,8 +34,6 @@ import org.jetbrains.annotations.Nullable;
  * edge strip from every angle.
  */
 public class GrowLampBlock extends RedstoneLampBlock {
-    public static final MapCodec<RedstoneLampBlock> CODEC = simpleCodec(GrowLampBlock::new);
-
     /** The panel, and the two chains it hangs from, as the model draws them. */
     private static final VoxelShape SHAPE = Shapes.or(
             Block.box(1.0D, 4.0D, 1.0D, 15.0D, 7.0D, 15.0D),
@@ -45,11 +42,6 @@ public class GrowLampBlock extends RedstoneLampBlock {
 
     public GrowLampBlock(Properties settings) {
         super(settings);
-    }
-
-    @Override
-    public MapCodec<RedstoneLampBlock> codec() {
-        return CODEC;
     }
 
     /** Vanilla's placement (lit if already powered), refused where there is no ceiling to hang from. */

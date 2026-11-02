@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.world.item.Item;
 
@@ -21,15 +20,8 @@ import net.minecraft.world.item.Item;
  */
 public class FilteredHashishBarBlock extends HashishBarBlock {
 
-    public static final MapCodec<FilteredHashishBarBlock> CODEC = simpleCodec(FilteredHashishBarBlock::new);
-
     public FilteredHashishBarBlock(Properties settings) {
         super(settings);
-    }
-
-    @Override
-    protected MapCodec<? extends HashishBarBlock> codec() {
-        return CODEC;
     }
 
     @Override

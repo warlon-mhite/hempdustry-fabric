@@ -13,7 +13,6 @@
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.hot_off_the_press.description"
     },

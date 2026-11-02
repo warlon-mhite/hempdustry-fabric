@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:sifting_box"
+        "recipes": "hempdustry:sifting_box"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

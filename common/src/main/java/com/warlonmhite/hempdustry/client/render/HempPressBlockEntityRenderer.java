@@ -115,7 +115,7 @@ public class HempPressBlockEntityRenderer
         state.platen.submit(matrices, queue, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 
         // A right-hand thread drives down turning clockwise seen from above: a negative turn about +Y.
-        matrices.mulPose(Axis.YP.rotationDegrees(-state.depth * TURNS * 360.0F));
+        matrices.rotate(Axis.YP.rotationDegrees(-state.depth * TURNS * 360.0F));
         state.screw.submit(matrices, queue, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         matrices.popPose();
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hydro_tray"
+        "recipes": "hempdustry:hydro_tray"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

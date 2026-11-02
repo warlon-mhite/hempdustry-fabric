@@ -3,28 +3,30 @@
   "criteria": {
     "cut_a_hashish_bar": {
       "conditions": {
-        "location": [
-          {
-            "condition": "minecraft:location_check",
-            "predicate": {
-              "block": {
-                "blocks": "hempdustry:hashish_bar"
+        "location": {
+          "type": "minecraft:all_of",
+          "terms": [
+            {
+              "type": "minecraft:location_check",
+              "predicate": {
+                "block": {
+                  "blocks": "hempdustry:hashish_bar"
+                }
+              }
+            },
+            {
+              "type": "minecraft:match_tool",
+              "predicate": {
+                "items": "#hempdustry:hash_cutters"
               }
             }
-          },
-          {
-            "condition": "minecraft:match_tool",
-            "predicate": {
-              "items": "#hempdustry:hash_cutters"
-            }
-          }
-        ]
+          ]
+        }
       },
       "trigger": "minecraft:item_used_on_block"
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.cloud_nine.description"
     },

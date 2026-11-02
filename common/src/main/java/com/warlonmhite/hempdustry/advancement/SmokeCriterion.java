@@ -7,8 +7,8 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.Optional;
 import net.minecraft.advancements.triggers.Criterion;
-import net.minecraft.advancements.predicates.ContextAwarePredicate;
-import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.core.HolderLookup;
@@ -48,11 +48,11 @@ public class SmokeCriterion extends SimpleCriterionTrigger<SmokeCriterion.Condit
         return Conditions.CODEC;
     }
 
-    public record Conditions(Optional<ContextAwarePredicate> player, Optional<ItemPredicate> item,
+    public record Conditions(Optional<Holder<LootItemCondition>> player, Optional<ItemPredicate> item,
                              Optional<TimeWindow> time, Optional<ResourceKey<Strain>> strain)
             implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
+                LootItemCondition.CODEC.optionalFieldOf("player").forGetter(Conditions::player),
                 ItemPredicate.CODEC.optionalFieldOf("item").forGetter(Conditions::item),
                 TimeWindow.CODEC.optionalFieldOf("time").forGetter(Conditions::time),
                 ResourceKey.codec(Strain.REGISTRY_KEY).optionalFieldOf("strain").forGetter(Conditions::strain)

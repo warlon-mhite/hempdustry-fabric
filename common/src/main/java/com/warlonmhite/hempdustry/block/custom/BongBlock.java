@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import org.jetbrains.annotations.Nullable;
@@ -36,8 +35,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * components until the block is broken.
  */
 public class BongBlock extends BaseEntityBlock {
-    public static final MapCodec<BongBlock> CODEC = simpleCodec(BongBlock::new);
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /**
      * A bowl is loaded — only the model reads it; the load itself is in the block entity with
@@ -56,11 +53,6 @@ public class BongBlock extends BaseEntityBlock {
     public BongBlock(Properties settings) {
         super(settings);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(PACKED, false));
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

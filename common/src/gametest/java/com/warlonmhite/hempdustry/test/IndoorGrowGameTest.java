@@ -25,6 +25,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -441,8 +442,8 @@ public final class IndoorGrowGameTest {
         // A watered tray, so the test is about the dimension and not about being empty.
         BlockState watered = ModBlocks.HYDRO_TRAY.defaultBlockState().setValue(HydroTrayBlock.LEVEL, 3);
         HydroTrayBlock tray = (HydroTrayBlock) ModBlocks.HYDRO_TRAY;
-        context.assertTrue(tray.isValidBonemealTarget(overworld, pos, watered), "a watered tray cannot be fed in the overworld");
-        context.assertTrue(!tray.isValidBonemealTarget(nether, netherPos, watered), "a tray in the Nether can still be fed");
+        context.assertTrue(tray.isValidBonemealTarget(overworld, pos, watered, BonemealSource.INTERACTION), "a watered tray cannot be fed in the overworld");
+        context.assertTrue(!tray.isValidBonemealTarget(nether, netherPos, watered, BonemealSource.INTERACTION), "a tray in the Nether can still be fed");
 
         nether.setBlockAndUpdate(netherPos, ModBlocks.HYDRO_TRAY.defaultBlockState());
         context.assertTrue(!HydroTrayBlock.fill(nether, netherPos, nether.getBlockState(netherPos)),

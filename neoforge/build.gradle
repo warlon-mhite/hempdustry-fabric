@@ -93,6 +93,8 @@ dependencies {
 		}
 	} else if (viewer == "rei") {
 		localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
+		// newer than the one REI's POM names, which crashes this NeoForge (gradle.properties says why)
+		localRuntime "dev.architectury:architectury-neoforge:${architectury_runtime_version}"
 	} else if (viewer != "none") {
 		throw new GradleException("Unknown -Pviewer=${viewer}; use jei, rei or none")
 	}

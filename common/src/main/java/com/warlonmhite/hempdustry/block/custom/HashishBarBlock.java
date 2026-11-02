@@ -74,8 +74,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class HashishBarBlock extends Block {
 
-    public static final MapCodec<HashishBarBlock> CODEC = simpleCodec(HashishBarBlock::new);
-
     /** How many cuts have been taken out of this bar, 0–4. At 4 the next cut removes the block. */
     public static final IntegerProperty CUTS = IntegerProperty.create("cuts", 0, 4);
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -115,10 +113,9 @@ public class HashishBarBlock extends Block {
      * What a cut off this bar yields. Overridden by {@link FilteredHashishBarBlock}, which is the
      * whole of the difference between the two bars — everything else, geometry included, is shared.
      *
-     * <p>A method rather than a constructor field so both blocks keep a plain
-     * {@code Properties}-only constructor and therefore {@code simpleCodec}, which is the one-liner
-     * form of a block's {@code MapCodec}. A field would mean hand-rolling a {@code RecordCodecBuilder}
-     * twice for a value neither block ever varies at runtime.
+     * <p>A method rather than a constructor field so both blocks keep the plain
+     * {@code Properties}-only constructor every other block has, for a value neither block ever
+     * varies at runtime.
      */
     protected Item piece() {
         return ModItems.HASHISH;
@@ -130,11 +127,6 @@ public class HashishBarBlock extends Block {
         // (left out of the default state, a boolean comes back true): writing it means the next
         // person does not have to go and check.
         registerDefaultState(defaultBlockState().setValue(CUTS, 0).setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends HashishBarBlock> codec() {
-        return CODEC;
     }
 
     @Override

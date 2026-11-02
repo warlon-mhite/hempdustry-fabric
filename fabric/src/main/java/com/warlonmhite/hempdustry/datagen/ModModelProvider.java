@@ -5,7 +5,6 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.BongBlock;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.ModItems;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.math.Transformation;
@@ -308,9 +307,10 @@ public class ModModelProvider extends FabricModelProvider {
         Dye dye = new Dye(ModArmorMaterials.HEMP_UNDYED_COLOR);
         List<SelectItemModel.SwitchCase<ResourceKey<TrimMaterial>>> trims = new ArrayList<>();
         for (ItemModelGenerators.TrimMaterialData trim : ItemModelGenerators.TRIM_MATERIAL_MODELS) {
-            Identifier trimmed = model.withSuffix("_" + trim.assets().base().suffix() + "_trim");
-            Material trimTexture = new Material(trimPrefix.withSuffix(
-                    "_" + trim.assets().assetId(ModArmorMaterials.HEMP_EQUIPMENT_ASSET).suffix()));
+            // No trim material swaps its palette on hemp (vanilla's darker iron and copper are for
+            // their own armour), so a trim draws in its own palette here.
+            Identifier trimmed = model.withSuffix("_" + trim.palette().suffix() + "_trim");
+            Material trimTexture = new Material(trimPrefix.withSuffix("_" + trim.palette().suffix()));
             ModelTemplates.THREE_LAYERED_ITEM.create(trimmed, TextureMapping.layered(cloth, drawn, trimTexture),
                     generator.modelOutput);
             trims.add(ItemModelUtils.when(trim.materialKey(), ItemModelUtils.tintedModel(trimmed, dye)));

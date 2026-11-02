@@ -269,7 +269,7 @@ public final class BeldiaGameTest {
                 .getOrThrow(ModPlacedFeatures.BELDIA_PLACED_KEY).value();
         net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create(11L);
         int scatter = 0;
-        while (!(beldia.placement().get(scatter) instanceof net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement)) {
+        while (!(beldia.placement().get(scatter) instanceof net.minecraft.world.level.levelgen.placement.OffsetPlacement)) {
             scatter++;
         }
         var plant = new net.minecraft.world.level.levelgen.placement.PlacedFeature(beldia.feature(),

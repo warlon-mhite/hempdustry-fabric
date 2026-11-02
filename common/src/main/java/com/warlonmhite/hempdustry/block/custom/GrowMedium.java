@@ -8,6 +8,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
@@ -65,11 +66,11 @@ public interface GrowMedium extends BonemealableBlock {
                                 Player player) {
         if (!stack.is(ModTags.Conventional.FERTILIZERS)
                 || !(state.getBlock() instanceof GrowMedium medium)
-                || !medium.isValidBonemealTarget(world, pos, state)) {
+                || !medium.isValidBonemealTarget(world, pos, state, BonemealSource.INTERACTION)) {
             return null;
         }
         if (world instanceof ServerLevel server) {
-            medium.performBonemeal(server, server.getRandom(), pos, state);
+            medium.performBonemeal(server, server.getRandom(), pos, state, BonemealSource.INTERACTION);
             stack.consume(1, player);
             // Vanilla's own "that was fertilised" feedback, the event BoneMealItem fires.
             server.levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, pos, 0);

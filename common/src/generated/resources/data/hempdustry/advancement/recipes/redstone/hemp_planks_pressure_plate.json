@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:hemp_planks_pressure_plate"
+        "recipes": "hempdustry:hemp_planks_pressure_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

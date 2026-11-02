@@ -1,27 +1,28 @@
 package com.warlonmhite.hempdustry.fabric;
 
 import com.mojang.serialization.Codec;
+import com.warlonmhite.hempdustry.item.ModFuelAndCompost;
 import com.warlonmhite.hempdustry.platform.Registration;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
+import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization;
-import net.fabricmc.fabric.api.registry.CompostableRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.fabricmc.fabric.api.registry.FuelValueEvents;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -31,12 +32,17 @@ import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 public final class FabricRegistration implements Registration {
-    /** Handed to every fuel-table build, in the order they were registered. */
-    private final Map<ItemLike, Integer> fuels = new LinkedHashMap<>();
+    public FabricRegistration() {
+        // Fuel and compost are item components since 26.3, set when the items' defaults are built,
+        // after every mod has registered its own.
+        DefaultItemComponentEvents.MODIFY.register(context -> ModFuelAndCompost.defaults(new ModFuelAndCompost.DefaultComponents() {
+            @Override
+            public <T> void set(Item item, DataComponentType<T> type, T value) {
+                context.modify(item, builder -> builder.set(type, value));
+            }
+        }));
+    }
 
     @Override
     public <T extends BlockEntity> BlockEntityType<T> blockEntityType(BlockEntityFactory<? extends T> factory, Block... blocks) {
@@ -73,19 +79,6 @@ public final class FabricRegistration implements Registration {
     @Override
     public CreativeModeTab.Builder creativeTabBuilder() {
         return FabricCreativeModeTab.builder();
-    }
-
-    @Override
-    public void compostable(ItemLike item, float chance) {
-        CompostableRegistry.INSTANCE.add(item, chance);
-    }
-
-    @Override
-    public void fuel(ItemLike item, int ticks) {
-        if (fuels.isEmpty()) {
-            FuelValueEvents.BUILD.register((builder, context) -> fuels.forEach(builder::add));
-        }
-        fuels.put(item, ticks);
     }
 
     @Override

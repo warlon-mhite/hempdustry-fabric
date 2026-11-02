@@ -7,8 +7,9 @@
     python3 scripts/gates.py --released-neoforge <jar>   # ...and NeoForge's against its own
 
 Cheapest first, so a failure shows early:
-  - the script checks: lang_coverage, use_with_item_pass, biome_tint_pairing, tall_plant_loot, and
-    recipe_collisions against vanilla's own recipes, read out of the game jar in the Gradle cache;
+  - the script checks: lang_coverage, use_with_item_pass, biome_tint_pairing, tall_plant_loot,
+    model_keys against the game jar's model reader, and recipe_collisions against vanilla's own
+    recipes, both read out of the game jar in the Gradle cache;
   - runGametest, which also fails on any WARN or ERROR in the server's log nobody listed -- on
     Fabric, and on NeoForge when the branch has it;
   - a cold runDatagen, which has to leave the generated data exactly as it is committed, and the
@@ -85,6 +86,7 @@ def gates(args):
     yield "plain PASS", py + [script("use_with_item_pass.py")], last(r"PASS")
     yield "biome tint pairing", py + [script("biome_tint_pairing.py")], last(r"tinted|OK|offend")
     yield "tall plant loot", py + [script("tall_plant_loot.py")], last(r"OK|pool")
+    yield "model keys", py + [script("model_keys.py")], last(r"model keys|time\(s\)|moved|no game jar")
     yield "static stacks", py + [script("static_stacks.py")], last(r"static item stacks")
     yield "recipe collisions", py + [script("recipe_collisions.py"), GENERATED, str(vanilla_data())], \
         last(r"scanned|collision")

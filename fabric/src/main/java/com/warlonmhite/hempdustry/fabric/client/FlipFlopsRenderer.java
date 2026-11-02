@@ -8,6 +8,7 @@ import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Unit;
@@ -37,11 +38,11 @@ public final class FlipFlopsRenderer implements ArmorRenderer {
         boolean baby = FlipFlopsModel.wornByABaby(state);
         Model<Unit> model = baby ? babyModel : this.model;
         HumanoidModel<HumanoidRenderState> legs = baby ? babyLegs : contextModel;
+        // An enchanted pair draws its glint in the same pass since 26.3, as vanilla's own armour does.
+        RenderType type = stack.hasFoil()
+                ? RenderTypes.armorCutoutNoCullGlint(FlipFlopsModel.TEXTURE)
+                : RenderTypes.armorCutoutNoCull(FlipFlopsModel.TEXTURE);
         ArmorRenderer.submitTransformCopyingModel(legs, state, model, Unit.INSTANCE, false, queue, matrices,
-                RenderTypes.armorCutoutNoCull(FlipFlopsModel.TEXTURE), light, OverlayTexture.NO_OVERLAY, state.outlineColor, null);
-        if (stack.hasFoil()) {
-            ArmorRenderer.submitTransformCopyingModel(legs, state, model, Unit.INSTANCE, false, queue, matrices,
-                    RenderTypes.armorEntityGlint(), light, OverlayTexture.NO_OVERLAY, state.outlineColor, null);
-        }
+                type, light, OverlayTexture.NO_OVERLAY, state.outlineColor);
     }
 }

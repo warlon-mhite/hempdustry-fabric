@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
 import net.minecraft.world.level.block.PotentSulfurBlock;
@@ -155,7 +156,7 @@ public final class MildewGameTest {
 
         // No onset in the gas, whatever the roll.
         sow(context, near, ModBlocks.INDICA_CROP, 2, Mildew.CLEAN);
-        ((CropBlock) ModBlocks.INDICA_CROP).performBonemeal(world, HIT, lower, world.getBlockState(lower));
+        ((CropBlock) ModBlocks.INDICA_CROP).performBonemeal(world, HIT, lower, world.getBlockState(lower), BonemealSource.INTERACTION);
         expect(context, context.getBlockState(near).getValue(Mildew.PROPERTY), Mildew.CLEAN, "a growth step in the gas");
 
         // A wall between the pool and the plant keeps the gas off it.
@@ -231,7 +232,7 @@ public final class MildewGameTest {
         plant(context, crop, age, Mildew.CLEAN);
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
-        ((CropBlock) crop).performBonemeal(world, roll, pos, world.getBlockState(pos));
+        ((CropBlock) crop).performBonemeal(world, roll, pos, world.getBlockState(pos), BonemealSource.INTERACTION);
         context.assertTrue(context.getBlockState(CROP).getValue(BlockStateProperties.AGE_7) == age + 1,
                 "the step did not grow the plant, so this probe proves nothing");
         return context.getBlockState(CROP).getValue(Mildew.PROPERTY);

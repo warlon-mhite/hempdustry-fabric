@@ -1,15 +1,17 @@
 package com.warlonmhite.hempdustry.neoforge;
 
 import com.mojang.serialization.Codec;
+import com.warlonmhite.hempdustry.item.ModFuelAndCompost;
 import com.warlonmhite.hempdustry.platform.Registration;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -22,14 +24,13 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.neoforged.neoforge.event.BlockEntityTypeAddBlocksEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.registries.DataPackRegistryEvent;
+import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
+import net.neoforged.neoforge.registries.NewDatapackRegistryEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,16 +39,15 @@ import java.util.Set;
  * here and handed over when its event comes ({@link Pending}), and a call that arrives after its event
  * has gone fails loudly rather than doing nothing.
  *
- * <p>Compost chances, fuel times and the features added to biomes are data on NeoForge, read from
- * the mod's datapack, so here they are only written down: the data generator turns them into those
- * files ({@code NeoForgeData}), and the files are committed.
+ * <p>The features added to biomes are data on NeoForge, read from the mod's datapack, so here they
+ * are only written down: the data generator turns them into those files ({@code NeoForgeData}), and
+ * the files are committed. Compost chances and fuel times were data maps too until 26.3 made them
+ * item components, set here as each item's defaults ({@link ModFuelAndCompost}).
  */
 public final class NeoForgeRegistration implements Registration {
-    private final Pending<DataPackRegistryEvent.NewRegistry> dynamicRegistries = new Pending<>("datapack registries");
+    private final Pending<NewDatapackRegistryEvent> dynamicRegistries = new Pending<>("datapack registries");
     private final Pending<BlockEntityTypeAddBlocksEvent> validBlocks = new Pending<>("block entity blocks");
     private final Set<RecipeType<?>> syncedRecipes = new LinkedHashSet<>();
-    private final Map<ItemLike, Float> compostables = new LinkedHashMap<>();
-    private final Map<ItemLike, Integer> fuels = new LinkedHashMap<>();
     private final List<Feature> features = new ArrayList<>();
 
     /** A feature added to every biome in a tag, at a step: what one biome modifier file says. */
@@ -81,7 +81,7 @@ public final class NeoForgeRegistration implements Registration {
 
     @Override
     public <T> void registerSyncedDynamicRegistry(ResourceKey<Registry<T>> key, Codec<T> codec) {
-        dynamicRegistries.add(event -> event.dataPackRegistry(key, codec, codec));
+        dynamicRegistries.add(event -> event.worldRegistry(key, codec, codec));
     }
 
     @Override
@@ -95,16 +95,6 @@ public final class NeoForgeRegistration implements Registration {
     }
 
     @Override
-    public void compostable(ItemLike item, float chance) {
-        compostables.put(item, chance);
-    }
-
-    @Override
-    public void fuel(ItemLike item, int ticks) {
-        fuels.put(item, ticks);
-    }
-
-    @Override
     public void flammable(Block block, int igniteOdds, int burnOdds) {
         // Vanilla's own table, which NeoForge's fire reads unless a block says otherwise.
         ((FireBlock) Blocks.FIRE).setFlammable(block, igniteOdds, burnOdds);
@@ -115,7 +105,7 @@ public final class NeoForgeRegistration implements Registration {
         features.add(new Feature(biomes, step, feature));
     }
 
-    void onNewDatapackRegistries(DataPackRegistryEvent.NewRegistry event) {
+    void onNewDatapackRegistries(NewDatapackRegistryEvent event) {
         dynamicRegistries.handOver(event);
     }
 
@@ -127,12 +117,13 @@ public final class NeoForgeRegistration implements Registration {
         event.sendRecipes(syncedRecipes);
     }
 
-    public Map<ItemLike, Float> compostables() {
-        return Collections.unmodifiableMap(compostables);
-    }
-
-    public Map<ItemLike, Integer> fuels() {
-        return Collections.unmodifiableMap(fuels);
+    void onModifyDefaultComponents(ModifyDefaultComponentsEvent event) {
+        ModFuelAndCompost.defaults(new ModFuelAndCompost.DefaultComponents() {
+            @Override
+            public <T> void set(Item item, DataComponentType<T> type, T value) {
+                event.modify(item, (builder, registries, ignored) -> builder.set(type, value));
+            }
+        });
     }
 
     public List<Feature> features() {

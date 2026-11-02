@@ -15,6 +15,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -169,7 +170,7 @@ public class SativaCropBlock extends CropBlock {
      * and unlike the random tick it has no light check to incidentally stop it.
      */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
         return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
     }
 
@@ -302,7 +303,7 @@ public class SativaCropBlock extends CropBlock {
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
         this.boneMeal(world, pos, state, random);
     }
 
@@ -326,7 +327,7 @@ public class SativaCropBlock extends CropBlock {
      * (see {@code BoneMealItem.useOnFertilizable}), so a false here is a wasted application.
      */
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
         return random.nextInt(BONEMEAL_FAILURE_CHANCE) != 0;
     }
 

@@ -8,30 +8,27 @@
             "minecraft:food": {}
           }
         },
-        "player": [
-          {
-            "condition": "minecraft:entity_properties",
-            "entity": "this",
-            "predicate": {
-              "minecraft:effects": {
-                "minecraft:hunger": {}
-              },
-              "minecraft:type_specific/player": {
-                "food": {
-                  "level": {
-                    "max": 6
-                  }
+        "player": {
+          "type": "minecraft:entity_properties",
+          "entity": "this",
+          "predicate": {
+            "minecraft:effects": {
+              "minecraft:hunger": {}
+            },
+            "minecraft:type_specific/player": {
+              "food": {
+                "level": {
+                  "max": 6
                 }
               }
             }
           }
-        ]
+        }
       },
       "trigger": "minecraft:consume_item"
     }
   },
   "display": {
-    "background": "hempdustry:block/hempcrete_powder_block",
     "description": {
       "translate": "advancements.hempdustry.the_munchies.description"
     },

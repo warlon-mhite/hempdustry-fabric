@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "hempdustry:gray_concrete_powder"
+        "recipes": "hempdustry:gray_concrete_powder"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
