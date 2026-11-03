@@ -9,7 +9,25 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.1.0+26.2.
+Nothing yet — everything below shipped in 2.1.0+26.3.
+
+## [2.1.0+26.3] — 2026-11-04
+
+2.1.0 for Minecraft 26.3: everything in [2.1.0+26.2], and the changes below. A world from 2.1.0+26.2
+opens on it and keeps everything in it.
+
+### Changed — on Minecraft 26.3
+
+- **REI on NeoForge.** REI shows the mod's pages on NeoForge too now, as JEI does. It needs
+  Architectury API 22.0.5 or newer: with 22.0.3, NeoForge 26.3 does not start at all, whatever else is
+  installed.
+- **The footbag and jelly legs on NeoForge** work as on Fabric again: NeoForge 26.3 lets a mob be
+  knocked back harder than normal, as Minecraft does, so a punch pops a footbag about two blocks on both
+  loaders, and a green-out's hit sends you further on NeoForge too.
+- **Burn times and compost chances are datapack entries.** Minecraft 26.3 made fuel and compost part of
+  each item. Hempdustry's values are the same as before, now written as
+  `hempdustry:cooking/time_<ticks>` and `hempdustry:compostable/chance_<percent>` in the
+  `context_int_provider` registry, so a datapack can retune hemp's without touching vanilla's.
 
 ## [2.1.0+26.2] — 2026-11-02
 
@@ -822,7 +840,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B26.2...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B26.3...HEAD
+[2.1.0+26.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.1.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.3
