@@ -18,7 +18,14 @@ sourceSets {
 }
 
 legacyForge {
-	version = forge_version
+	enable {
+		forgeVersion = forge_version
+		// Minecraft is decompiled and rebuilt with Parchment's names on every machine. ModDevGradle skips
+		// that on CI (CI=true), and the binary jar it uses instead names constructor parameters alike, so
+		// javac -- which reads those names while the mixin processor runs -- fails every anonymous
+		// subclass of a vanilla class ("variable o is already defined").
+		disableRecompilation = false
+	}
 	// What the mod reaches in vanilla that vanilla keeps closed: common's list, the same as Fabric's
 	// access widener. It ships in the jar from common's resources, where Forge looks for it.
 	accessTransformers.from(project(':common').file('src/main/resources/META-INF/accesstransformer.cfg'))
