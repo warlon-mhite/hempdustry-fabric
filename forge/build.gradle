@@ -148,6 +148,8 @@ def expectedGametestLog = [
 	// a fresh checkout's first run: build/gametest holds no server files yet, and the server says so
 	~/Failed to load properties from file: server\.properties/,
 	~/Failed to load eula\.txt/,
+	// ...and Forge writes its own loader config there the first time
+	~/\[net\.minecraftforge\.fml\.loading\.FMLConfig\/CORE\]: Configuration file .*\/config\/fml\.toml is not correct\. Correcting/,
 	// a_broken_config_is_left_alone feeds the loader four broken files on purpose
 	~/\[hempdustry\/\]: .*config\/hempdustry\.json/,
 	// every_config_extreme_keeps_the_numbers_sane pushes every setting past its range
