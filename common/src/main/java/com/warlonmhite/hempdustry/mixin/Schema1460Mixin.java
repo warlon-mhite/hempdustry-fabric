@@ -1,0 +1,85 @@
+package com.warlonmhite.hempdustry.mixin;
+
+import com.mojang.datafixers.DSL;
+import com.mojang.datafixers.schemas.Schema;
+import com.mojang.datafixers.types.templates.TypeTemplate;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Map;
+import java.util.function.Supplier;
+import net.minecraft.util.datafix.fixes.References;
+import net.minecraft.util.datafix.schemas.V1460;
+
+/**
+ * Tells vanilla's data fixer what the two hemp boats, the three machines and a placed bong are, so a world moved to a
+ * newer Minecraft is upgraded around them instead of stopping at them, and what they hold is upgraded
+ * too.
+ *
+ * <p>When a world saved by an older version is opened, every entity chunk goes through the data
+ * fixer, which reads each entity by its {@code id} against the schema's table of entity types. An
+ * id it has never heard of does not fail on its own: <b>the whole chunk's {@code Entities} list
+ * fails to read, and the chunk is passed through unfixed</b>. So a hemp boat left the vanilla
+ * entities beside it in their old format. Measured on 1.20.1 to 1.21.1: an armour stand in the same
+ * chunk as a hemp boat lost the trim on its shirt, while a llama one chunk over came through whole;
+ * the chest boat's own stacks lost their counts and everything they carried, since the stack fixes
+ * never reached them.
+ *
+ * <p>Block entities fail more quietly: an unknown one is passed through on its own and the chunk
+ * around it is fixed. But nothing inside it is, so the items in a Decarboxylator or an Infuser kept
+ * their 1.20.1 shape, which this version reads as one item and nothing more: five decarboxylated hemp
+ * came up as one, and an enchanted bow in an oven's fuel slot lost its enchantment, while the same
+ * stacks in a vanilla chest were converted.
+ *
+ * <p>The fix is to be in the table. Our two boats are registered the way vanilla registers its own:
+ * the boat as a plain entity, the chest boat with its {@code Items} typed as item stacks, which is
+ * what lets the item fixes reach what it carries (an enchanted book in a chest boat changed format
+ * on the way to 1.21.11 too). Nothing else about either boat has ever needed fixing. The machines
+ * are registered as vanilla registers its furnace: their {@code Items} typed as item stacks, which is
+ * the shape {@code ContainerHelper.saveAllItems} writes. (A kept name needs nothing: it is a JSON
+ * string on 1.20.1 and here alike, and this version's schemas have no text type; the newer lines'
+ * own copy of this class types it.)
+ *
+ * <h2>Why here</h2>
+ *
+ * Schema 1460 is the last one that builds its entity and block entity tables from scratch; every
+ * later schema asks its parent for the table and edits it, and DFU's own
+ * {@code Schema#registerEntities} and {@code #registerBlockEntities} are exactly that call. So this
+ * runs once per later schema, each time for that schema, and our ids are in every table from 1460 to
+ * the current one. Nothing is stored and no fix is added: a hemp boat's or a
+ * machine's own data passes through untouched, and only the vanilla data around and inside them is
+ * now fixed as it always should have been. Worlds that never change version never run any of this.
+ *
+ * <p>{@code remap = false} on the injectors because both methods are DFU's, not Minecraft's, and have
+ * no mapping; the class itself is still remapped through the refmap.
+ */
+@Mixin(V1460.class)
+public class Schema1460Mixin {
+    @Inject(method = "registerEntities", at = @At("RETURN"), remap = false)
+    private void hempdustry$registerHempBoats(Schema schema,
+                                              CallbackInfoReturnable<Map<String, Supplier<TypeTemplate>>> cir) {
+        Map<String, Supplier<TypeTemplate>> entities = cir.getReturnValue();
+        schema.registerSimple(entities, "hempdustry:hemp_boat");
+        schema.register(entities, "hempdustry:hemp_chest_boat",
+                name -> DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(schema))));
+    }
+
+    @Inject(method = "registerBlockEntities", at = @At("RETURN"), remap = false)
+    private void hempdustry$registerMachines(Schema schema,
+                                             CallbackInfoReturnable<Map<String, Supplier<TypeTemplate>>> cir) {
+        Map<String, Supplier<TypeTemplate>> blockEntities = cir.getReturnValue();
+        for (String machine : new String[] {"hempdustry:decarboxylator", "hempdustry:infuser", "hempdustry:hemp_press"}) {
+            schema.register(blockEntities, machine,
+                    name -> DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(schema))));
+        }
+        // A placed bong is the device item itself, kept as the block entity's own components
+        // (BongBlockEntity); being in the table is what lets the fixer reach them. On 1.20.1 it was
+        // kept as a whole stack under Item, typed here so the item fixes carry it across. A placed
+        // hemp bed keeps whatever its item carried that the bed does not read, an anvil name among them.
+        schema.register(blockEntities, "hempdustry:bong",
+                name -> DSL.optionalFields("Item", References.ITEM_STACK.in(schema)));
+        schema.registerSimple(blockEntities, "hempdustry:hemp_bed");
+    }
+}

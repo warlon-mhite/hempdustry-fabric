@@ -61,6 +61,7 @@ public final class HempdustryGameTests {
             CreativeTabGameTest.class,
             CreeperSeeksHempGameTest.class,
             CropGrowthGameTest.class,
+            DataFixerGameTest.class,
             DatapackStrainGameTest.class,
             DefoliationGameTest.class,
             FrozenSurfaceGameTest.class,

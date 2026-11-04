@@ -5,8 +5,10 @@
 	"mixins": [
 		"BeeGrowCropsGoalMixin",
 		"CreeperEntityMixin",
+		"ItemStackComponentizationFixMixin",
 		"PointOfInterestTypesAccessor",
-		"ReloadableServerRegistriesMixin"
+		"ReloadableServerRegistriesMixin",
+		"Schema1460Mixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

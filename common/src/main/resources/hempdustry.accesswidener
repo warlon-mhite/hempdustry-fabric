@@ -18,3 +18,6 @@ accessible class net/minecraft/world/item/CreativeModeTab$TabVisibility
 # A block entity type is built through vanilla's own builder, from a constructor typed as an
 # interface vanilla keeps private.
 accessible class net/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier
+
+# A stack's data inside vanilla's 1.20.5 item fix, which ItemStackComponentizationFixMixin adds to.
+accessible class net/minecraft/util/datafix/fixes/ItemStackComponentizationFix$ItemStackData
