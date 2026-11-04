@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import net.minecraft.world.InteractionResult;
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
+import com.warlonmhite.hempdustry.block.ItemUse;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -7,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -34,7 +36,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * mirrors it. The plant is planted as a single LOWER stalk and grows into its
  * two-tall form once the lower half reaches {@link #DOUBLE_BLOCK_AGE}.
  */
-public class IndicaCropBlock extends CropBlock {
+public class IndicaCropBlock extends CropBlock implements ItemUse {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     public static final IntegerProperty AGE = BlockStateProperties.AGE_7;
     /** Highest age value; a lower half at this age is mature. Matches {@code BlockStateProperties.AGE_7}. */
@@ -87,17 +89,17 @@ public class IndicaCropBlock extends CropBlock {
 
     /** Farmland, or one of the mod's beds — a Grow Pot or a Hydro Tray. */
     @Override
-    protected boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
+    public boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
         return super.mayPlaceOn(floor, world, pos) || floor.getBlock() instanceof GrowMedium;
     }
 
     @Override
-    protected ItemLike getBaseSeedId() {
+    public ItemLike getBaseSeedId() {
         return ModItems.INDICA_SEEDS;
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
             return UPPER_SHAPE;
         }
@@ -111,7 +113,7 @@ public class IndicaCropBlock extends CropBlock {
     // updateShape (inherited) breaks either half as soon as canSurvive
     // fails, so removing the lower half cascades to the upper.
     @Override
-    protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+    public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
             BlockState below = world.getBlockState(pos.below());
             return below.is(this) && below.getValue(HALF) == DoubleBlockHalf.LOWER;
@@ -122,7 +124,7 @@ public class IndicaCropBlock extends CropBlock {
     // ----- growth -----
     // Only the lower half is fertile and random-ticks; it drives the whole plant.
     @Override
-    protected boolean isRandomlyTicking(BlockState state) {
+    public boolean isRandomlyTicking(BlockState state) {
         // Deliberately not gated on `age < maxAge`: the tick is also what repairs a plant whose
         // upper half is missing or stale (see randomTick), which can happen at max age too. Vanilla
         // crops do stop here, so this is a cost vanilla does not pay — which is why randomTick
@@ -138,7 +140,7 @@ public class IndicaCropBlock extends CropBlock {
      * has no light check to incidentally stop it.
      */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
         return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
     }
 
@@ -186,7 +188,7 @@ public class IndicaCropBlock extends CropBlock {
     }
 
     @Override
-    protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
         if (!isLower(state)) {
             return;
         }
@@ -289,7 +291,7 @@ public class IndicaCropBlock extends CropBlock {
      * growth cycle if MAX_AGE is reworked.
      */
     @Override
-    protected int getBonemealAgeIncrease(Level world) {
+    public int getBonemealAgeIncrease(Level world) {
         return 1;
     }
 
@@ -353,6 +355,14 @@ public class IndicaCropBlock extends CropBlock {
 
     // ----- defoliation -----
 
+    /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.dispatch(useItemOn(player.getItemInHand(hand), state, level, pos, player, hand, hit), hand,
+                () -> InteractionResult.PASS);
+    }
+
     /**
      * Shearing a growing plant takes a fan leaf and shifts its eventual harvest towards buds. The
      * work is shared with the sativa crop in {@link Defoliation}; all this override does is resolve
@@ -363,8 +373,7 @@ public class IndicaCropBlock extends CropBlock {
      * item: 1.21 offers the held stack and hand directly here, which is also what makes shearing
      * work from the off-hand.
      */
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+    public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                              Player player, InteractionHand hand, BlockHitResult hit) {
         BlockPos lowerPos = isLower(state) ? pos : pos.below();
         BlockState lower = world.getBlockState(lowerPos);
@@ -380,7 +389,7 @@ public class IndicaCropBlock extends CropBlock {
                 return result;
             }
         }
-        return super.useItemOn(stack, state, world, pos, player, hand, hit);
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     // ----- the smell of a ripe plant -----
@@ -406,7 +415,7 @@ public class IndicaCropBlock extends CropBlock {
     // table only drops for the lower half, so we drop the lower's loot (when an upper
     // half is broken directly) and remove the partner without letting it drop.
     @Override
-    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (!world.isClientSide) {
             // The trim flags and the canonical age both live on the LOWER half, so the harvest
             // criterion is fed from there whichever half the player actually broke.
@@ -434,16 +443,16 @@ public class IndicaCropBlock extends CropBlock {
                 }
             }
         }
-        return super.playerWillDestroy(world, pos, state, player);
+        super.playerWillDestroy(world, pos, state, player);
     }
 
     @Override
-    protected IntegerProperty getAgeProperty() {
+    public IntegerProperty getAgeProperty() {
         return AGE;
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(AGE, HALF, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED,
                 GrowLight.PROPERTY);
     }

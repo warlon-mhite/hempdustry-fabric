@@ -31,7 +31,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import com.warlonmhite.hempdustry.util.ModTags;
 import java.util.ArrayList;
@@ -71,13 +70,13 @@ public final class ViewerRecipes {
     private ViewerRecipes() {
     }
 
-    public static final ResourceLocation DECARBOXYLATING = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylating");
-    public static final ResourceLocation INFUSING = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "infusing");
-    public static final ResourceLocation CAULDRON = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "cauldron");
-    public static final ResourceLocation PRESSING = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "pressing");
-    public static final ResourceLocation SIFTING = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "sifting");
-    public static final ResourceLocation ICE_O_LATOR = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "ice_o_lator");
-    public static final ResourceLocation WORLD = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "world");
+    public static final ResourceLocation DECARBOXYLATING = new ResourceLocation(Hempdustry.MOD_ID, "decarboxylating");
+    public static final ResourceLocation INFUSING = new ResourceLocation(Hempdustry.MOD_ID, "infusing");
+    public static final ResourceLocation CAULDRON = new ResourceLocation(Hempdustry.MOD_ID, "cauldron");
+    public static final ResourceLocation PRESSING = new ResourceLocation(Hempdustry.MOD_ID, "pressing");
+    public static final ResourceLocation SIFTING = new ResourceLocation(Hempdustry.MOD_ID, "sifting");
+    public static final ResourceLocation ICE_O_LATOR = new ResourceLocation(Hempdustry.MOD_ID, "ice_o_lator");
+    public static final ResourceLocation WORLD = new ResourceLocation(Hempdustry.MOD_ID, "world");
 
     /**
      * One row in a viewer: what goes in, what comes out, and the lines of text that carry whatever
@@ -104,9 +103,8 @@ public final class ViewerRecipes {
     /** Every tray-load the oven will accept, read from {@code hempdustry:decarboxylating}. */
     public static List<Entry> decarboxylating(RecipeManager recipes) {
         List<Entry> out = new ArrayList<>();
-        for (RecipeHolder<DecarboxylatingRecipe> entry : recipes.getAllRecipesFor(ModRecipes.DECARBOXYLATING_TYPE)) {
-            DecarboxylatingRecipe recipe = entry.value();
-            out.add(new Entry(entry.id(), List.of(recipe.ingredient()), recipe.result(),
+        for (DecarboxylatingRecipe recipe : recipes.getAllRecipesFor(ModRecipes.DECARBOXYLATING_TYPE)) {
+            out.add(new Entry(recipe.getId(), List.of(recipe.ingredient()), recipe.result(),
                     List.of(Component.translatable("hempdustry.category.decarboxylating.info",
                             seconds(DecarboxylatorBlockEntity.cookTime()))),
                     false));
@@ -129,8 +127,7 @@ public final class ViewerRecipes {
      */
     public static List<Entry> infusing(RecipeManager recipes) {
         List<Entry> out = new ArrayList<>();
-        for (RecipeHolder<InfusingRecipe> entry : recipes.getAllRecipesFor(ModRecipes.INFUSING_TYPE)) {
-            InfusingRecipe recipe = entry.value();
+        for (InfusingRecipe recipe : recipes.getAllRecipesFor(ModRecipes.INFUSING_TYPE)) {
             List<Ingredient> inputs = new ArrayList<>(List.of(recipe.container(), recipe.hemp(), recipe.washedHemp()));
             List<Component> notes = new ArrayList<>(List.of(Component.translatable("hempdustry.category.infusing.pour"),
                     Component.translatable("hempdustry.category.infusing.heat"),
@@ -146,7 +143,7 @@ public final class ViewerRecipes {
                 notes.add(Component.translatable("hempdustry.category.infusing.scorched",
                         InfuserBlockEntity.SCORCHED_PER_STRENGTH));
             });
-            out.add(new Entry(entry.id(), inputs, recipe.result(), notes, false));
+            out.add(new Entry(recipe.getId(), inputs, recipe.result(), notes, false));
         }
         return out;
     }
@@ -154,9 +151,8 @@ public final class ViewerRecipes {
     /** Every squeeze the press will take, read from {@code hempdustry:pressing}. */
     public static List<Entry> pressing(RecipeManager recipes) {
         List<Entry> out = new ArrayList<>();
-        for (RecipeHolder<PressingRecipe> entry : recipes.getAllRecipesFor(ModRecipes.PRESSING_TYPE)) {
-            PressingRecipe recipe = entry.value();
-            out.add(new Entry(entry.id(), List.of(recipe.ingredient()), recipe.result(),
+        for (PressingRecipe recipe : recipes.getAllRecipesFor(ModRecipes.PRESSING_TYPE)) {
+            out.add(new Entry(recipe.getId(), List.of(recipe.ingredient()), recipe.result(),
                     List.of(Component.translatable("hempdustry.category.pressing.heat"),
                             Component.translatable("hempdustry.category.pressing.info",
                                     seconds(HempPressBlockEntity.pressTime()))),
@@ -190,7 +186,7 @@ public final class ViewerRecipes {
     }
 
     private static Entry screen(TagKey<Item> input, float chance, Item output, String name) {
-        return new Entry(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "sifting/" + name),
+        return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "sifting/" + name),
                 List.of(ofTag(input)),
                 new ItemStack(output, SiftingBoxBlock.YIELD),
                 List.of(Component.translatable("hempdustry.category.sifting.info",
@@ -220,7 +216,7 @@ public final class ViewerRecipes {
     private static Entry wash(Item jacket, float rate, TagKey<Item> buds, float budChance, String idPrefix) {
         int budCount = Math.round(SiftingBoxBlock.FULL_LEVEL / (budChance * rate));
         int leaves = Math.round(SiftingBoxBlock.FULL_LEVEL / (SiftingBoxBlock.TRIM_CHANCE * rate));
-        return new Entry(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "ice_o_lator/" + idPrefix + BuiltInRegistries.ITEM.getKey(jacket).getPath()),
+        return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "ice_o_lator/" + idPrefix + BuiltInRegistries.ITEM.getKey(jacket).getPath()),
                 List.of(ofTag(buds),
                         Ingredient.of(Items.WATER_BUCKET),
                         Ingredient.of(jacket)),
@@ -258,7 +254,7 @@ public final class ViewerRecipes {
     }
 
     private static Entry soak(String name, Item input, Item output, int perLevel) {
-        return new Entry(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "cauldron/" + name),
+        return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "cauldron/" + name),
                 List.of(Ingredient.of(input), Ingredient.of(Items.WATER_BUCKET)),
                 new ItemStack(output),
                 List.of(Component.translatable("hempdustry.category.cauldron.info", perLevel)),
@@ -280,7 +276,7 @@ public final class ViewerRecipes {
                 .flatMap(strain -> strain.value().seedItem().stream()).toList();
         List<Item> spendable = strains.stream().filter(ModStrains::isPlantMatter)
                 .map(strain -> strain.value().buds()).toList();
-        Ingredient shears = ofTag(ModTags.Conventional.SHEAR_TOOLS);
+        Ingredient shears = ofTag(ModTags.Items.SHEARS);
 
         List<Entry> out = new ArrayList<>();
         // A datapack can take every plant away, and a row with an empty slot shows nothing, so the
@@ -321,7 +317,7 @@ public final class ViewerRecipes {
     }
 
     private static Entry inWorld(String name, List<Ingredient> inputs, ItemStack output, Component... notes) {
-        return new Entry(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "world/" + name), inputs, output,
+        return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "world/" + name), inputs, output,
                 List.of(notes), true);
     }
 
@@ -408,8 +404,8 @@ public final class ViewerRecipes {
     private static Packing packed(Holder.Reference<Strain> strain, Item device,
                                   DeviceType type, int dose, int hits) {
         ItemStack result = new ItemStack(device);
-        result.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
-        result.set(ModComponents.CHARGES, hits);
+        ModComponents.SMOKE_CONTENTS.set(result, SmokeContents.of(strain, dose));
+        ModComponents.CHARGES.set(result, hits);
 
         List<List<ItemStack>> inputs = new ArrayList<>();
         inputs.add(anyOf(type, device));
@@ -418,7 +414,7 @@ public final class ViewerRecipes {
         for (int i = 0; i < items; i++) {
             inputs.add(List.of(new ItemStack(strain.value().buds())));
         }
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID,
+        ResourceLocation id = new ResourceLocation(Hempdustry.MOD_ID,
                 "packing/" + strain.key().location().getPath() + "/"
                         + type.name().toLowerCase(java.util.Locale.ROOT) + "_" + dose);
         return new Packing(id, inputs, result);
@@ -434,10 +430,9 @@ public final class ViewerRecipes {
                                           int hits) {
         ItemStack moonRock = ModItems.moonRock(strain, coat);
         ItemStack result = new ItemStack(device);
-        result.set(ModComponents.SMOKE_CONTENTS,
-                moonRock.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY));
-        result.set(ModComponents.CHARGES, hits);
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID,
+        ModComponents.SMOKE_CONTENTS.set(result, ModComponents.SMOKE_CONTENTS.getOrDefault(moonRock, SmokeContents.EMPTY));
+        ModComponents.CHARGES.set(result, hits);
+        ResourceLocation id = new ResourceLocation(Hempdustry.MOD_ID,
                 "packing/" + strain.key().location().getPath() + "/"
                         + type.name().toLowerCase(java.util.Locale.ROOT) + "_moon_rock_"
                         + coat.key().location().getPath());
@@ -468,7 +463,7 @@ public final class ViewerRecipes {
      * path.
      */
     public static ResourceLocation synthetic(ResourceLocation id) {
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "/" + id.getPath());
+        return new ResourceLocation(id.getNamespace(), "/" + id.getPath());
     }
 
     /**
@@ -490,7 +485,7 @@ public final class ViewerRecipes {
      * <p>An empty device answers the empty string, which is what both viewers read as "no subtype".
      */
     public static String smokeKey(ItemStack stack) {
-        SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
+        SmokeContents contents = ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY);
         if (contents.isEmpty()) {
             return "";
         }

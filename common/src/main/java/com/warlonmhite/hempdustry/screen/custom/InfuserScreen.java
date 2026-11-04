@@ -29,7 +29,7 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class InfuserScreen extends AbstractContainerScreen<InfuserScreenHandler> {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "textures/gui/container/infuser.png");
+            new ResourceLocation(Hempdustry.MOD_ID, "textures/gui/container/infuser.png");
 
     // Sprite regions in the 256x256 sheet, right of the 176x166 panel.
     private static final int BAR_U = 176, BAR_V = 0, BAR_W = 44, BAR_H = 5;

@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -31,12 +33,12 @@ public class CannabutterItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
-        Quality quality = stack.get(ModComponents.QUALITY);
+    public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
+        Quality quality = ModComponents.QUALITY.get(stack);
         if (quality != null) {
             tooltip.add(Component.translatable(quality.getTranslationKey()).withStyle(colourOf(quality)));
         }
-        Integer strength = stack.get(ModComponents.STRENGTH);
+        Integer strength = ModComponents.STRENGTH.get(stack);
         if (strength != null) {
             tooltip.add(Component.translatable("item.hempdustry.cannabutter.strength", strength)
                     .withStyle(ChatFormatting.GRAY));

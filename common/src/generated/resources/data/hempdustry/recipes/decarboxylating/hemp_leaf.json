@@ -1,0 +1,9 @@
+{
+  "type": "hempdustry:decarboxylating",
+  "ingredient": {
+    "item": "hempdustry:hemp_leaf"
+  },
+  "result": {
+    "item": "hempdustry:decarboxylated_hemp"
+  }
+}

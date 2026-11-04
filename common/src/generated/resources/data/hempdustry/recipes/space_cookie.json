@@ -1,0 +1,24 @@
+{
+  "type": "hempdustry:infused_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "hempdustry:cannabutter"
+    },
+    "C": {
+      "item": "minecraft:cocoa_beans"
+    },
+    "F": {
+      "item": "hempdustry:hemp_flour"
+    }
+  },
+  "offset": -1,
+  "pattern": [
+    "FCF",
+    " B "
+  ],
+  "result": {
+    "count": 8,
+    "item": "hempdustry:space_cookie"
+  }
+}

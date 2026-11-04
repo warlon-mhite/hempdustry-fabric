@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.balance;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,7 +40,8 @@ public final class ModBalance {
      * with the numbers the mod shipped with, and says so once rather than on every hit.
      */
     static <T> T entry(HolderLookup.Provider registries, ResourceKey<T> key, T builtIn) {
-        return registries.lookup(key.registryKey())
+        ResourceKey<Registry<T>> registryKey = ResourceKey.createRegistryKey(key.registry());
+        return registries.<T>lookup(registryKey)
                 .flatMap(registry -> registry.get(key))
                 .map(Holder.Reference::value)
                 .orElseGet(() -> {

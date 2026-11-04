@@ -10,13 +10,13 @@ import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
  * The two loads that are not "one bud, one dose", asserted against the <b>real</b>
@@ -41,7 +41,7 @@ public final class ConcentrateGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void oneRosinFillsABong(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe recipe = new PackingRecipe(new ResourceLocation("hempdustry", "packing"), CraftingBookCategory.MISC);
         ItemStack rosin = new ItemStack(ModItems.ROSIN);
 
         CraftingInput one = grid(new ItemStack(ModItems.BONG), rosin);
@@ -49,13 +49,13 @@ public final class ConcentrateGameTest {
                 "a bong and one rosin is not a packing recipe at all");
 
         ItemStack packed = recipe.assemble(one, world.registryAccess());
-        SmokeContents load = packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-        context.assertValueEqual(3, load.dose(),
+        SmokeContents load = ModComponents.SMOKE_CONTENTS.getOrDefault(packed, SmokeContents.EMPTY);
+        Line.equal(context, 3, load.dose(),
                 "one rosin did not pack as dose 3 — dose_per_item is not being read");
-        context.assertValueEqual(3, load.primaryCount(),
+        Line.equal(context, 3, load.primaryCount(),
                 "the load's level is not III, so the item's name would lie about what it does");
-        context.assertValueEqual(DeviceType.BONG.builtInBowl().hits(),
-                packed.getOrDefault(ModComponents.CHARGES, 0), "packing did not load a full bowl");
+        Line.equal(context, DeviceType.BONG.builtInBowl().hits(),
+                ModComponents.CHARGES.getOrDefault(packed, 0), "packing did not load a full bowl");
 
         // Two rosin is dose 6, over the bong's cap. A dab is THE dose, not a step on a ladder.
         context.assertTrue(!recipe.matches(grid(new ItemStack(ModItems.BONG), rosin, rosin), world),
@@ -94,7 +94,7 @@ public final class ConcentrateGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void moonRockPacksAsATwoEntryBowl(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe recipe = new PackingRecipe(new ResourceLocation("hempdustry", "packing"), CraftingBookCategory.MISC);
         Holder<Strain> indica = strain(world, ModStrains.INDICA);
         Holder<Strain> hashish = strain(world, ModStrains.HASHISH);
         ItemStack moonRock = ModItems.moonRock(indica, hashish);
@@ -104,19 +104,19 @@ public final class ConcentrateGameTest {
                 "a bong and one moon rock is not a packing recipe at all");
 
         ItemStack packed = recipe.assemble(one, world.registryAccess());
-        SmokeContents load = packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-        context.assertValueEqual(2, load.entries().size(),
+        SmokeContents load = ModComponents.SMOKE_CONTENTS.getOrDefault(packed, SmokeContents.EMPTY);
+        Line.equal(context, 2, load.entries().size(),
                 "the moon rock's two-entry load did not carry onto the bong");
-        context.assertValueEqual(ModItems.MOON_ROCK_DOSE, load.primaryCount(),
+        Line.equal(context, ModItems.MOON_ROCK_DOSE, load.primaryCount(),
                 "the plant is not the primary entry at level III");
-        context.assertValueEqual(ModItems.MOON_ROCK_DOSE + ModItems.MOON_ROCK_HASH_DOSE, load.dose(),
+        Line.equal(context, ModItems.MOON_ROCK_DOSE + ModItems.MOON_ROCK_HASH_DOSE, load.dose(),
                 "the hashish coat did not come along");
         context.assertTrue(load.hashAdditive().isPresent(),
                 "the load has no hash additive, so the tooltip would not name the coat");
         context.assertTrue(load.primaryStrain() == indica,
                 "the moon rock packed as something other than its own plant strain");
-        context.assertValueEqual(DeviceType.BONG.builtInBowl().hits(),
-                packed.getOrDefault(ModComponents.CHARGES, 0), "packing did not load a full bowl");
+        Line.equal(context, DeviceType.BONG.builtInBowl().hits(),
+                ModComponents.CHARGES.getOrDefault(packed, 0), "packing did not load a full bowl");
 
         // A pipe is maxDose 2 against the plant entry's 3. No rule was written for this; the cap
         // being on the largest entry rather than the total is what does it.

@@ -1,0 +1,39 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "has_sativa_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "hempdustry:sativa_buds"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.sativa_strain.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:sativa_buds"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.sativa_strain.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_sativa_buds"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

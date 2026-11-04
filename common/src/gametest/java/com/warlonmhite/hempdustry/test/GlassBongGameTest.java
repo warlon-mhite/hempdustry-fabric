@@ -18,7 +18,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
 
 /**
  * A coloured bong is a bong in everything but its glass.
@@ -33,11 +32,11 @@ public final class GlassBongGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void everyColouredBongIsABong(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe packing = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe packing = new PackingRecipe(new ResourceLocation("hempdustry", "packing"), CraftingBookCategory.MISC);
         Item buds = world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY)
                 .getOrThrow(ModStrains.INDICA).value().buds();
 
-        context.assertValueEqual(17, ModItems.COLORED_BONGS.size(),
+        Line.equal(context, 17, ModItems.COLORED_BONGS.size(),
                 "there are not sixteen stained bongs and a tinted one");
         for (Item bong : ModItems.COLORED_BONGS) {
             String name = BuiltInRegistries.ITEM.getKey(bong).getPath();
@@ -49,9 +48,9 @@ public final class GlassBongGameTest {
             context.assertTrue(packing.matches(grid, world), name + " refused a dose-3 bowl");
             ItemStack packed = packing.assemble(grid, world.registryAccess());
             context.assertTrue(packed.is(bong), name + " packed into a different item");
-            context.assertValueEqual(DeviceType.BONG.builtInBowl().hits(), packed.getOrDefault(ModComponents.CHARGES, 0),
+            Line.equal(context, DeviceType.BONG.builtInBowl().hits(), ModComponents.CHARGES.getOrDefault(packed, 0),
                     name + " did not load a bong's bowl");
-            context.assertValueEqual(3, packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).dose(),
+            Line.equal(context, 3, ModComponents.SMOKE_CONTENTS.getOrDefault(packed, SmokeContents.EMPTY).dose(),
                     name + " did not load three buds");
 
             String key = packed.getHoverName().getContents() instanceof TranslatableContents t ? t.getKey() : "";
@@ -59,10 +58,10 @@ public final class GlassBongGameTest {
                     name + " packed names itself from " + key + ", which no locale defines");
 
             context.assertTrue(world.getServer().getRecipeManager().byKey(
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name)).isPresent(), "nothing crafts " + name);
+                    new ResourceLocation(Hempdustry.MOD_ID, name)).isPresent(), "nothing crafts " + name);
 
             String color = name.substring(0, name.length() - "_bong".length());
-            Item glass = BuiltInRegistries.ITEM.get(ResourceLocation.withDefaultNamespace(
+            Item glass = BuiltInRegistries.ITEM.get(new ResourceLocation(
                     color.equals("tinted") ? "tinted_glass" : color + "_stained_glass"));
             context.assertTrue(bong.isValidRepairItem(new ItemStack(bong), new ItemStack(glass)),
                     name + " does not repair with " + BuiltInRegistries.ITEM.getKey(glass));

@@ -38,8 +38,8 @@ import java.util.List;
  * here, about the same origin the one-file model names.
  */
 public final class HempBeanieRenderer {
-    public static final ResourceLocation BAND = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/hemp_beanie_worn_band");
-    public static final ResourceLocation CROWN = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/hemp_beanie_worn_crown");
+    public static final ResourceLocation BAND = new ResourceLocation(Hempdustry.MOD_ID, "item/hemp_beanie_worn_band");
+    public static final ResourceLocation CROWN = new ResourceLocation(Hempdustry.MOD_ID, "item/hemp_beanie_worn_crown");
 
     private static final float CROWN_TILT = 12.0F;
 
@@ -87,7 +87,7 @@ public final class HempBeanieRenderer {
 
     private static void draw(List<BakedQuad> quads, PoseStack matrices, VertexConsumer buffer, int light) {
         for (BakedQuad quad : quads) {
-            buffer.putBulkData(matrices.last(), quad, 1.0F, 1.0F, 1.0F, 1.0F, light, OverlayTexture.NO_OVERLAY);
+            buffer.putBulkData(matrices.last(), quad, 1.0F, 1.0F, 1.0F, light, OverlayTexture.NO_OVERLAY);
         }
     }
 }

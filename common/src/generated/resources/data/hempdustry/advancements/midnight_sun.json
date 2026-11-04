@@ -1,0 +1,33 @@
+{
+  "parent": "hempdustry:pothead",
+  "criteria": {
+    "harvested_under_a_grow_lamp": {
+      "conditions": {
+        "condition": "grow_lamp"
+      },
+      "trigger": "hempdustry:harvest_hemp"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.midnight_sun.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:grow_lamp"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.midnight_sun.title"
+    }
+  },
+  "requirements": [
+    [
+      "harvested_under_a_grow_lamp"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

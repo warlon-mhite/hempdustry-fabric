@@ -1,10 +1,12 @@
 package com.warlonmhite.hempdustry;
 
+import com.warlonmhite.hempdustry.entity.ModAnimalFood;
 import com.warlonmhite.hempdustry.advancement.ModCriteria;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.balance.ModBalance;
+import com.warlonmhite.hempdustry.block.ModBannerPatterns;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
 import com.warlonmhite.hempdustry.block.ModDispenserBehaviors;
@@ -18,13 +20,13 @@ import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
+import com.warlonmhite.hempdustry.entity.ModPaintings;
 import com.warlonmhite.hempdustry.item.custom.EdibleScheduler;
 import com.warlonmhite.hempdustry.item.custom.SmokeScheduler;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.loot.ModLootEntryTypes;
 import com.warlonmhite.hempdustry.loot.ModLootTableModifiers;
-import com.warlonmhite.hempdustry.mixin.PointOfInterestTypesAccessor;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.particle.ModParticles;
@@ -62,6 +64,14 @@ public class Hempdustry {
 		registration.registerSyncedDynamicRegistry(GreenOut.REGISTRY_KEY, GreenOut.CODEC);
 	}
 
+	/**
+	 * What touches vanilla's own tables once everything is registered: Forge's common setup, on the main
+	 * thread; on Fabric, straight after {@link #init}.
+	 */
+	public static void setup() {
+		ModAnimalFood.register();
+	}
+
 	/** Registers everything else, in order; each loader's entry point calls it once. */
 	public static void init() {
 		Registration registration = Services.REGISTRATION;
@@ -77,6 +87,8 @@ public class Hempdustry {
 		EdibleScheduler.init();
 		ModLootTableModifiers.modifyLootTables();
 		ModItemGroups.registerItemGroups();
+		ModBannerPatterns.registerBannerPatterns();
+		ModPaintings.registerPaintings();
 		ModItems.registerModItems();
 		ModBlocks.registerModBlocks();
 		ModBlockEntities.registerBlockEntities();
@@ -162,8 +174,7 @@ public class Hempdustry {
 		registration.addValidBlocks(BlockEntityType.HANGING_SIGN, ModBlocks.HEMP_PLANKS_HANGING_SIGN);
 		registration.addValidBlocks(BlockEntityType.HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
 		// A villager's home is any bed head, the way vanilla lists its own sixteen.
-		PointOfInterestTypesAccessor.hempdustry$registerStates(
-				BuiltInRegistries.POINT_OF_INTEREST_TYPE.getHolderOrThrow(PoiTypes.HOME),
+		registration.addPointOfInterestStates(PoiTypes.HOME,
 				ModBlocks.HEMP_BED.getStateDefinition().getPossibleStates().stream()
 						.filter(state -> state.getValue(BedBlock.PART) == BedPart.HEAD)
 						.collect(Collectors.toUnmodifiableSet()));

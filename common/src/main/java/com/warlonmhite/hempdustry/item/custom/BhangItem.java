@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import net.minecraft.world.level.Level;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
@@ -9,8 +12,8 @@ import net.minecraft.world.item.UseAnim;
  * edibles set, and the only one that skips cannabutter entirely.
  *
  * <p>Kept and drunk from the bucket, exactly as vanilla milk is: {@code stacksTo(1)}, and finishing
- * it hands the bucket back — via {@code FoodProperties.Builder.usingConvertsTo}, which is how 1.21.1's
- * own stews return their bowls, rather than a hand-written {@code finishUsingItem}. That is a real drawback next to the stackable edibles — one serving per
+ * it hands the bucket back, as vanilla's milk bucket does (1.20.1's food has no
+ * {@code usingConvertsTo}, so {@link #finishUsingItem} does it). That is a real drawback next to the stackable edibles — one serving per
  * inventory slot — and it is the right one for the crudest preparation in the set.
  *
  * <h2>Why it takes decarboxylated hemp rather than cannabutter</h2>
@@ -57,12 +60,27 @@ public class BhangItem extends EdibleItem {
     }
 
     @Override
+    public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
+        ItemStack left = super.finishUsingItem(stack, world, user);
+        if (!(user instanceof Player player) || player.getAbilities().instabuild) {
+            return left;
+        }
+        if (left.isEmpty()) {
+            return new ItemStack(Items.BUCKET);
+        }
+        if (!player.getInventory().add(new ItemStack(Items.BUCKET))) {
+            player.drop(new ItemStack(Items.BUCKET), false);
+        }
+        return left;
+    }
+
+    @Override
     public UseAnim getUseAnimation(ItemStack stack) {
         return UseAnim.DRINK;
     }
 
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity user) {
+    public int getUseDuration(ItemStack stack) {
         return MAX_USE_TIME;
     }
 

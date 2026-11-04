@@ -9,6 +9,7 @@ import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -18,7 +19,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.level.GameType;
 
 /**
@@ -51,7 +51,7 @@ public final class VaporizerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void vaporizerBowlReturnsOneAvb(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         // Survival, because the whole mechanic lives in the branch creative mode skips: creative
         // spends no charges, so the bowl would never finish and this test would pass on anything.
         player.setGameMode(GameType.SURVIVAL);
@@ -59,24 +59,24 @@ public final class VaporizerGameTest {
         Holder<Strain> strain = strain(world);
 
         ItemStack vaporizer = packed(ModItems.VAPORIZER, strain, DeviceType.VAPORIZER);
-        context.assertValueEqual(2, vaporizer.getOrDefault(ModComponents.CHARGES, 0),
+        Line.equal(context, 2, ModComponents.CHARGES.getOrDefault(vaporizer, 0),
                 "a vaporizer bowl is not two hits");
 
         player.setItemInHand(InteractionHand.MAIN_HAND, vaporizer);
         hit(player, world, InteractionHand.MAIN_HAND);
-        context.assertValueEqual(0, count(player, ModItems.SCORCHED_HEMP),
+        Line.equal(context, 0, count(player, ModItems.SCORCHED_HEMP),
                 "the vaporizer paid out AVB after one hit — the yield is per bowl, not per hit");
-        context.assertValueEqual(1, player.getItemInHand(InteractionHand.MAIN_HAND)
-                        .getOrDefault(ModComponents.CHARGES, 0),
+        Line.equal(context, 1,
+                ModComponents.CHARGES.getOrDefault(player.getItemInHand(InteractionHand.MAIN_HAND), 0),
                 "the first hit did not spend exactly one charge");
 
         hit(player, world, InteractionHand.MAIN_HAND);
         ItemStack spent = player.getItemInHand(InteractionHand.MAIN_HAND);
-        context.assertValueEqual(1, count(player, ModItems.SCORCHED_HEMP),
+        Line.equal(context, 1, count(player, ModItems.SCORCHED_HEMP),
                 "a finished vaporizer bowl did not hand back exactly one scorched hemp");
-        context.assertTrue(!spent.has(ModComponents.SMOKE_CONTENTS),
+        context.assertTrue(!ModComponents.SMOKE_CONTENTS.has(spent),
                 "the finished bowl left its contents on the vaporizer");
-        context.assertTrue(!spent.has(ModComponents.CHARGES),
+        context.assertTrue(!ModComponents.CHARGES.has(spent),
                 "the finished bowl left its charges on the vaporizer");
         context.assertTrue(spent.getDamageValue() == 2,
                 "two hits did not cost two durability");
@@ -88,9 +88,9 @@ public final class VaporizerGameTest {
         for (int i = 0; i < DeviceType.PIPE.builtInBowl().hits(); i++) {
             hit(player, world, InteractionHand.MAIN_HAND);
         }
-        context.assertTrue(!player.getItemInHand(InteractionHand.MAIN_HAND).has(ModComponents.CHARGES),
+        context.assertTrue(!ModComponents.CHARGES.has(player.getItemInHand(InteractionHand.MAIN_HAND)),
                 "the pipe's bowl did not finish, so this half proves nothing");
-        context.assertValueEqual(1, count(player, ModItems.SCORCHED_HEMP),
+        Line.equal(context, 1, count(player, ModItems.SCORCHED_HEMP),
                 "a finished pipe bowl handed back AVB — spentYield is not being read");
 
         // End of life, and it is not a corner case: maxDamage is a whole number of bowls, so the
@@ -105,7 +105,7 @@ public final class VaporizerGameTest {
         }
         context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
                 "the vaporizer did not break on its last hit, so this half proves nothing");
-        context.assertValueEqual(2, count(player, ModItems.SCORCHED_HEMP),
+        Line.equal(context, 2, count(player, ModItems.SCORCHED_HEMP),
                 "a vaporizer that broke on the hit that finished its bowl ate the AVB");
         context.succeed();
     }
@@ -124,27 +124,27 @@ public final class VaporizerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void vaporizerOnlyReturnsWhatGrewOnAPlant(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
 
         smokeABowl(player, world, strain(world, ModStrains.HASHISH));
-        context.assertValueEqual(0, count(player, ModItems.SCORCHED_HEMP),
+        Line.equal(context, 0, count(player, ModItems.SCORCHED_HEMP),
                 "a bowl of hashish handed back scorched hemp — hash walks into the Infuser");
-        context.assertValueEqual(0, count(player, ModItems.DECARBOXYLATED_HEMP),
+        Line.equal(context, 0, count(player, ModItems.DECARBOXYLATED_HEMP),
                 "a bowl of hashish handed back decarboxylated hemp — hash walks into the Infuser");
 
         smokeABowl(player, world, strain(world, ModStrains.SCORCHED_HEMP));
-        context.assertValueEqual(0, count(player, ModItems.SCORCHED_HEMP),
+        Line.equal(context, 0, count(player, ModItems.SCORCHED_HEMP),
                 "a bowl of scorched hemp handed back more scorched hemp — the bowl never ends");
 
         // Schwag is plant matter with no plant of its own, which is the one case the plant predicate
         // would get wrong: a spoiled bud still leaves a spent one.
         smokeABowl(player, world, strain(world, ModStrains.SCHWAG));
-        context.assertValueEqual(count(player, ModItems.SCORCHED_HEMP), 1,
+        Line.equal(context, count(player, ModItems.SCORCHED_HEMP), 1,
                 "a bowl of schwag handed nothing back — it grew on a plant like any bud");
 
         smokeABowl(player, world, strain(world));
-        context.assertValueEqual(2, count(player, ModItems.SCORCHED_HEMP),
+        Line.equal(context, 2, count(player, ModItems.SCORCHED_HEMP),
                 "a bowl of buds handed nothing back, so the refusals above prove nothing");
         context.succeed();
     }
@@ -174,16 +174,16 @@ public final class VaporizerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void vaporizerRefusesTwoBuds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe recipe = new PackingRecipe(new ResourceLocation("hempdustry", "packing"), CraftingBookCategory.MISC);
         Item buds = strain(world).value().buds();
 
         CraftingInput one = grid(new ItemStack(ModItems.VAPORIZER), buds, 1);
         context.assertTrue(recipe.matches(one, world),
                 "a vaporizer and one bud is not a packing recipe at all");
         ItemStack packed = recipe.assemble(one, world.registryAccess());
-        context.assertValueEqual(DeviceType.VAPORIZER.builtInBowl().hits(),
-                packed.getOrDefault(ModComponents.CHARGES, 0), "packing did not load a full bowl");
-        context.assertValueEqual(1, packed.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY)
+        Line.equal(context, DeviceType.VAPORIZER.builtInBowl().hits(),
+                ModComponents.CHARGES.getOrDefault(packed, 0), "packing did not load a full bowl");
+        Line.equal(context, 1, ModComponents.SMOKE_CONTENTS.getOrDefault(packed, SmokeContents.EMPTY)
                 .dose(), "packing a vaporizer with one bud did not give dose 1");
 
         context.assertTrue(!recipe.matches(grid(new ItemStack(ModItems.VAPORIZER), buds, 2), world),
@@ -202,8 +202,8 @@ public final class VaporizerGameTest {
 
     private static ItemStack packed(Item device, Holder<Strain> strain, DeviceType type) {
         ItemStack stack = new ItemStack(device);
-        stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, 1));
-        stack.set(ModComponents.CHARGES, type.builtInBowl().hits());
+        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(strain, 1));
+        ModComponents.CHARGES.set(stack, type.builtInBowl().hits());
         return stack;
     }
 

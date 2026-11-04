@@ -206,7 +206,7 @@ public class ModModelProvider extends FabricModelProvider {
         // anything past Beldía's 7. Right after each piece of art, the index above goes back to the
         // tinted look — unless it is another strain's art. The base model cannot name itself in an
         // override, so the tinted look is uploaded a second time under its own name for that.
-        ResourceLocation spliffTinted = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/spliff_tinted");
+        ResourceLocation spliffTinted = new ResourceLocation(Hempdustry.MOD_ID, "item/spliff_tinted");
         uploadTintable(itemModelGenerator, spliffTinted, texture(ModStrains.id(plantStrains.get(0)) + "_spliff"),
                 texture("spliff_load"), List.of());
         Set<Integer> shipped = new HashSet<>();
@@ -293,7 +293,7 @@ public class ModModelProvider extends FabricModelProvider {
             String material = TRIM_MATERIALS.get(i);
             ResourceLocation trimmed = model.withSuffix("_" + material + "_trim");
             generator.generateLayeredItem(trimmed, cloth, drawn,
-                    ResourceLocation.withDefaultNamespace("trims/items/" + trimSlot + "_trim_" + material));
+                    new ResourceLocation("trims/items/" + trimSlot + "_trim_" + material));
             trims.add(new ModelOverride(Map.of(ItemModelGenerators.TRIM_TYPE_PREDICATE_ID, (i + 1) / 10.0F), trimmed));
         }
         generator.output.accept(model, () -> {
@@ -341,7 +341,7 @@ public class ModModelProvider extends FabricModelProvider {
      */
     private static void registerDevice(ItemModelGenerators generator, Item item, String art,
                                        String packedModelName, String loadTexture) {
-        ResourceLocation packedModel = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/" + packedModelName);
+        ResourceLocation packedModel = new ResourceLocation(Hempdustry.MOD_ID, "item/" + packedModelName);
         ModelTemplates.TWO_LAYERED_ITEM.create(packedModel,
                 TextureMapping.layered(texture(art), texture(loadTexture)), generator.output);
         uploadWithOverrides(generator, ModelLocationUtils.getModelLocation(item),
@@ -352,7 +352,7 @@ public class ModModelProvider extends FabricModelProvider {
         }
         // The placed packed bong's own model (registerBongBlocks), so the hand and the table show
         // the same bowl -- tinted by the strain here, where there is a stack to ask.
-        ResourceLocation packedInHand = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/" + name + "_packed");
+        ResourceLocation packedInHand = new ResourceLocation(Hempdustry.MOD_ID, "block/" + name + "_packed");
         // The draw, in the bow's grammar: while it is being used, the bong steps through the
         // stages on how far into the draw it is -- smoke gathering over the water, then climbing
         // the neck -- exactly as a bow steps through pulling_0..2. Thresholds at a quarter, a half
@@ -361,28 +361,28 @@ public class ModModelProvider extends FabricModelProvider {
         overrides.add(ModelOverride.of(packedInHand, PACKED_PREDICATE, 1));
         for (int stage = 1; stage <= BONG_DRAW_TEMPLATES.size(); stage++) {
             ResourceLocation model = BONG_DRAW_TEMPLATES.get(stage - 1).create(
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/" + packedModelName + "_drawing_" + stage),
+                    new ResourceLocation(Hempdustry.MOD_ID, "item/" + packedModelName + "_drawing_" + stage),
                     bongTextures(name), generator.output);
             overrides.add(ModelOverride.of(model, PACKED_PREDICATE, 1, ModItemProperties.DRAWING, 1,
                     ModItemProperties.DRAW, stage / (BONG_DRAW_TEMPLATES.size() + 1f)));
         }
         uploadParented(generator, ModItemProperties.inHandModel(item),
-                ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/" + name), overrides);
+                new ResourceLocation(Hempdustry.MOD_ID, "block/" + name), overrides);
     }
 
     // The placed bong, hand-written once as block/bong_template.json and re-textured per glass.
     private static final TextureSlot BONG_SHEET = TextureSlot.create("bong");
     private static final ModelTemplate BONG_TEMPLATE = new ModelTemplate(
-            Optional.of(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/bong_template")), Optional.empty(), BONG_SHEET);
+            Optional.of(new ResourceLocation(Hempdustry.MOD_ID, "block/bong_template")), Optional.empty(), BONG_SHEET);
     private static final ModelTemplate BONG_PACKED_TEMPLATE = new ModelTemplate(
-            Optional.of(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/bong_template_packed")), Optional.empty(), BONG_SHEET);
+            Optional.of(new ResourceLocation(Hempdustry.MOD_ID, "item/bong_template_packed")), Optional.empty(), BONG_SHEET);
     private static final List<ModelTemplate> BONG_DRAW_TEMPLATES = java.util.stream.IntStream.rangeClosed(1, 3)
-            .mapToObj(stage -> new ModelTemplate(Optional.of(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID,
+            .mapToObj(stage -> new ModelTemplate(Optional.of(new ResourceLocation(Hempdustry.MOD_ID,
                     "item/bong_template_draw_" + stage)), Optional.empty(), BONG_SHEET))
             .toList();
 
     private static TextureMapping bongTextures(String name) {
-        return new TextureMapping().put(BONG_SHEET, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/" + name));
+        return new TextureMapping().put(BONG_SHEET, new ResourceLocation(Hempdustry.MOD_ID, "block/" + name));
     }
 
     /**
@@ -410,11 +410,11 @@ public class ModModelProvider extends FabricModelProvider {
     }
 
     private static ResourceLocation texture(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/" + name);
+        return new ResourceLocation(Hempdustry.MOD_ID, "item/" + name);
     }
 
     private static ResourceLocation spliffModel(ResourceKey<Strain> strain) {
-        return ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/spliff_" + ModStrains.id(strain));
+        return new ResourceLocation(Hempdustry.MOD_ID, "item/spliff_" + ModStrains.id(strain));
     }
 
     private static void uploadGenerated(ItemModelGenerators generator, ResourceLocation modelId, ResourceLocation texture) {
@@ -533,15 +533,15 @@ public class ModModelProvider extends FabricModelProvider {
         PropertyDispatch.C1<Integer> variants = PropertyDispatch.property(CakeBlock.BITES);
         for (int bites = 0; bites <= CakeBlock.MAX_BITES; bites++) {
             String suffix = bites == 0 ? "" : "_slice" + bites;
-            ResourceLocation model = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/space_cake" + suffix);
-            uploadRetextured(generator, model, ResourceLocation.withDefaultNamespace("block/cake" + suffix), bites > 0);
+            ResourceLocation model = new ResourceLocation(Hempdustry.MOD_ID, "block/space_cake" + suffix);
+            uploadRetextured(generator, model, new ResourceLocation("block/cake" + suffix), bites > 0);
             variants.select(bites, Variant.variant().with(VariantProperties.MODEL, model));
         }
         generator.blockStateOutput.accept(
                 MultiVariantGenerator.multiVariant(ModBlocks.SPACE_CAKE).with(variants));
         // The item is the whole, uneaten cake, exactly as vanilla's cake item is.
         ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(ModBlocks.SPACE_CAKE.asItem()),
-                TextureMapping.layer0(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/space_cake")),
+                TextureMapping.layer0(new ResourceLocation(Hempdustry.MOD_ID, "item/space_cake")),
                 generator.modelOutput);
     }
 

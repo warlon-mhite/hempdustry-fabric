@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.platform.Services;
+import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.balance.GreenOut;
@@ -91,9 +93,9 @@ public class SmokingDeviceItem extends Item {
         this.repairMaterial = repairMaterial;
         Smoking.registerSmokeable(this);
         if (placed != null) {
-            // What BlockItem#appendBlocks does at registration. Block#asItem reads this map, and it
+            // What BlockItem#registerBlocks does at registration. Block#asItem reads this map, and it
             // is how pick-block and the block's loot table find their way back to the device.
-            Item.BY_BLOCK.put(placed, this);
+            Services.REGISTRATION.blockItem(placed, this);
         }
     }
 
@@ -103,7 +105,7 @@ public class SmokingDeviceItem extends Item {
 
     /** What is currently loaded, or {@link SmokeContents#EMPTY} for an unpacked device. */
     public static SmokeContents contentsOf(ItemStack stack) {
-        return stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
+        return ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY);
     }
 
     @Override
@@ -143,7 +145,7 @@ public class SmokingDeviceItem extends Item {
      * plain click and needs no line.
      */
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+    public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
         super.appendHoverText(stack, context, tooltip, type);
         if (placed != null && !contentsOf(stack).isEmpty()) {
             tooltip.add(Component.translatable("hempdustry.bong.set_down").withStyle(ChatFormatting.GRAY));
@@ -185,9 +187,8 @@ public class SmokingDeviceItem extends Item {
             return InteractionResult.FAIL;
         }
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity != null) {
-            blockEntity.applyComponentsFromItemStack(stack);
-            blockEntity.setChanged();
+        if (blockEntity instanceof BongBlockEntity bong) {
+            bong.takeFrom(stack);
         }
         placed.setPlacedBy(world, pos, state, player, stack);
         if (player instanceof ServerPlayer serverPlayer) {
@@ -197,7 +198,9 @@ public class SmokingDeviceItem extends Item {
         world.playSound(player, pos, sounds.getPlaceSound(), SoundSource.BLOCKS,
                 (sounds.getVolume() + 1f) / 2f, sounds.getPitch() * 0.8f);
         world.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(player, state));
-        stack.consume(1, player);
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
         return InteractionResult.sidedSuccess(world.isClientSide);
     }
 
@@ -252,7 +255,7 @@ public class SmokingDeviceItem extends Item {
     // answer comes from a consumable component this device does not have. 0 and NONE for every
     // device that hits on the click, which is what they were before.
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity user) {
+    public int getUseDuration(ItemStack stack) {
         return device.drawTicks();
     }
 
@@ -274,7 +277,7 @@ public class SmokingDeviceItem extends Item {
 
     @Override
     public void onUseTick(Level world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        int drawn = getUseDuration(stack, user) - remainingUseTicks;
+        int drawn = getUseDuration(stack) - remainingUseTicks;
         if (world.isClientSide()) {
             // The first tick of a draw, on every client that can see it: a remote player's draw
             // ticks here too, from the use flag the server syncs.
@@ -314,7 +317,7 @@ public class SmokingDeviceItem extends Item {
         if (player.getAbilities().instabuild) {
             return;
         }
-        int remaining = stack.getOrDefault(ModComponents.CHARGES, 0) - 1;
+        int remaining = ModComponents.CHARGES.getOrDefault(stack, 0) - 1;
         EquipmentSlot slot = hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
         // A device never breaks with hits left in its bowl: the hit that would take its last point
         // leaves it at one, and the hit that empties the bowl breaks it. Every device's maxDamage
@@ -322,7 +325,7 @@ public class SmokingDeviceItem extends Item {
         // durability out of step, and breaking early threw the rest of the bowl away.
         boolean lastPoint = stack.isDamageableItem() && stack.getDamageValue() + 1 >= stack.getMaxDamage();
         if (remaining <= 0 || !lastPoint) {
-            stack.hurtAndBreak(1, player, slot);
+            stack.hurtAndBreak(1, player, broken -> broken.broadcastBreakEvent(slot));
         }
         if (remaining <= 0) {
             // The bowl is spent whether or not the device survived the hit, and both halves
@@ -334,11 +337,11 @@ public class SmokingDeviceItem extends Item {
             if (!stack.isEmpty()) {
                 // Clearing the two components is the whole "revert to empty" — durability
                 // and enchantments are already where they need to be.
-                stack.remove(ModComponents.SMOKE_CONTENTS);
-                stack.remove(ModComponents.CHARGES);
+                ModComponents.SMOKE_CONTENTS.remove(stack);
+                ModComponents.CHARGES.remove(stack);
             }
         } else if (!stack.isEmpty()) {
-            stack.set(ModComponents.CHARGES, remaining);
+            ModComponents.CHARGES.set(stack, remaining);
         }
     }
 
@@ -360,7 +363,7 @@ public class SmokingDeviceItem extends Item {
      * spilling — the yield can never be lost to a full hotbar.
      */
     private void yieldSpent(Player player, SmokeContents contents) {
-        int yield = DeviceStats.bowl(player.registryAccess(), device).spentYield();
+        int yield = DeviceStats.bowl(player.level().registryAccess(), device).spentYield();
         if (yield > 0 && contents.entries().stream()
                 .allMatch(entry -> ModStrains.isPlantMatter(entry.strain()))) {
             player.addItem(new ItemStack(ModItems.SCORCHED_HEMP, yield));

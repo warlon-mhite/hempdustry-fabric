@@ -136,7 +136,9 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
 
     /** The defaults as JSON, which is the base every file is read on top of. */
     private static JsonObject defaultJson() {
-        return CODEC.encodeStart(JsonOps.INSTANCE, DEFAULT).getOrThrow().getAsJsonObject();
+        return CODEC.encodeStart(JsonOps.INSTANCE, DEFAULT).getOrThrow(false, error -> {
+            throw new IllegalStateException(error);
+        }).getAsJsonObject();
     }
 
     /**
@@ -174,7 +176,9 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      */
     private static void write(Path path, HempdustryConfig config) {
         try {
-            JsonElement encoded = CODEC.encodeStart(JsonOps.INSTANCE, config).getOrThrow();
+            JsonElement encoded = CODEC.encodeStart(JsonOps.INSTANCE, config).getOrThrow(false, error -> {
+                throw new IllegalStateException(error);
+            });
             JsonObject root = encoded.getAsJsonObject();
             comment(root, "client", "Read by a client, sent to nobody. updateCheck=false stops this client "
                     + "checking for a newer release on start-up; a dedicated server never asks. "

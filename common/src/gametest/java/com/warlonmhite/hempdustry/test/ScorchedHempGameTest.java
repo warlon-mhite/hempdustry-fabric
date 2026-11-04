@@ -16,7 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.SimpleContainer;
 
 /**
  * Scorched hemp: what the furnace makes and the vaporizer hands back, and the Infuser's third input.
@@ -54,17 +54,17 @@ public final class ScorchedHempGameTest {
         InfuserBlockEntity plain = tub(context, D, full, InfuserBlockEntity.BATCH_CAP, 0, 0);
 
         context.runAtTickTime(3, () -> {
-            context.assertValueEqual(6, strength(allScorched),
+            Line.equal(context, 6, strength(allScorched),
                     "a full batch of scorched hemp was not strength 6 — it is not being counted a quarter");
-            context.assertValueEqual(1, EdibleEffects.tierFromStrength(strength(allScorched)),
+            Line.equal(context, 1, EdibleEffects.tierFromStrength(strength(allScorched)),
                     "a full batch of scorched hemp reached a potency tier above I — the furnace skips the oven");
-            context.assertValueEqual(1, strength(oneScorched),
+            Line.equal(context, 1, strength(oneScorched),
                     "one scorched hemp made an empty butter — the quarter is not rounding up");
-            context.assertValueEqual(5, strength(mixed),
+            Line.equal(context, 5, strength(mixed),
                     "4 decarboxylated + 4 scorched was not 4 + 1");
             // The control: plain hemp still counts one each, so the numbers above are the scorched
             // weighting and not the tub under-counting everything.
-            context.assertValueEqual(InfuserBlockEntity.BATCH_CAP, strength(plain),
+            Line.equal(context, InfuserBlockEntity.BATCH_CAP, strength(plain),
                     "plain decarboxylated hemp stopped counting one each");
             context.succeed();
         });
@@ -84,15 +84,15 @@ public final class ScorchedHempGameTest {
         InfuserBlockEntity allWashed = tub(context, D, full, 0, InfuserBlockEntity.BATCH_CAP, 0);
 
         context.runAtTickTime(3, () -> {
-            context.assertValueEqual(Quality.ROUGH, quality(allScorched),
+            Line.equal(context, Quality.ROUGH, quality(allScorched),
                     "an all-scorched batch at a full simmer was not Rough — purity is being clamped at zero");
-            context.assertValueEqual(Quality.STANDARD, quality(washedAndScorched),
+            Line.equal(context, Quality.STANDARD, quality(washedAndScorched),
                     "half washed, half scorched at a full simmer did not net out to plain hemp's Standard");
             // The two controls: plain hemp still reaches Standard on patience alone, so scorched
             // really is the worse of the two, and a spotless batch still reaches Perfect.
-            context.assertValueEqual(Quality.STANDARD, quality(allUnwashed),
+            Line.equal(context, Quality.STANDARD, quality(allUnwashed),
                     "an all-unwashed batch at a full simmer was not Standard, so the Rough above proves nothing");
-            context.assertValueEqual(Quality.PERFECT, quality(allWashed),
+            Line.equal(context, Quality.PERFECT, quality(allWashed),
                     "an all-washed full simmer was not Perfect — the Perfect gate broke");
             context.succeed();
         });
@@ -110,12 +110,12 @@ public final class ScorchedHempGameTest {
     public void allScorchedBatchIsDoneAtTheMinimum(GameTestHelper context) {
         InfuserBlockEntity infuser = tub(context, A, InfuserBlockEntity.minTime(), 0, 0,
                 InfuserBlockEntity.BATCH_CAP);
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
 
         context.runAtTickTime(3, () -> {
             context.assertTrue(infuser.isAtBestQuality(),
                     "an all-scorched batch at the minimum was not at its best grade, so the spout would wait for nothing");
-            context.assertValueEqual(15, infuser.getComparatorOutput(),
+            Line.equal(context, 15, infuser.getComparatorOutput(),
                     "the comparator did not read 15 for a batch with nothing left to wait for");
 
             InfuserScreenHandler menu = (InfuserScreenHandler) infuser.createMenu(0, player.getInventory(), player);
@@ -137,16 +137,16 @@ public final class ScorchedHempGameTest {
         for (Item plant : new Item[]{ModItems.HEMP_LEAF, ModItems.INDICA_BUDS, ModItems.SATIVA_BUDS, ModItems.SCHWAG}) {
             context.assertTrue(smeltsTo(context, plant).is(ModItems.SCORCHED_HEMP),
                     plant + " did not smelt to scorched hemp");
-            context.assertValueEqual(1, smeltsTo(context, plant).getCount(),
+            Line.equal(context, 1, smeltsTo(context, plant).getCount(),
                     plant + " smelted to more than one scorched hemp — the oven's four-per-bud is the point");
         }
         // Hash never reaches butter, and a furnace would otherwise be the door it walks through.
         for (Item resin : new Item[]{ModItems.HASHISH, ModItems.CHARAS, ModItems.FILTERED_HASHISH, ModItems.ROSIN}) {
             context.assertTrue(smeltsTo(context, resin).isEmpty(), resin + " smelts — hash reaches the Infuser");
         }
-        context.assertFalse(CauldronInteraction.WATER.map().containsKey(ModItems.SCORCHED_HEMP),
+        context.assertFalse(CauldronInteraction.WATER.containsKey(ModItems.SCORCHED_HEMP),
                 "scorched hemp can be washed, which makes it a route to Clean and Perfect butter");
-        context.assertValueEqual(0.3F, TestPlatform.INSTANCE.compostChance(ModItems.SCORCHED_HEMP),
+        Line.equal(context, 0.3F, TestPlatform.INSTANCE.compostChance(ModItems.SCORCHED_HEMP),
                 "scorched hemp does not compost at the leaf's 0.3");
         context.succeed();
     }
@@ -155,14 +155,14 @@ public final class ScorchedHempGameTest {
     private static InfuserBlockEntity tub(GameTestHelper context, BlockPos pos, int progress,
                                           int unwashed, int washed, int scorched) {
         context.setBlock(pos, ModBlocks.INFUSER);
-        InfuserBlockEntity infuser = context.<InfuserBlockEntity>getBlockEntity(pos);
+        InfuserBlockEntity infuser = ((InfuserBlockEntity) context.getBlockEntity(pos));
         CompoundTag nbt = new CompoundTag();
         nbt.putInt("Progress", progress);
         nbt.putBoolean("HaveMilk", true);
         nbt.putInt("BatchUnwashed", unwashed);
         nbt.putInt("BatchWashed", washed);
         nbt.putInt("BatchScorched", scorched);
-        infuser.loadWithComponents(nbt, context.getLevel().registryAccess());
+        infuser.load(nbt);
         return infuser;
     }
 
@@ -171,17 +171,17 @@ public final class ScorchedHempGameTest {
     }
 
     private static int strength(InfuserBlockEntity infuser) {
-        return preview(infuser).getOrDefault(ModComponents.STRENGTH, 0);
+        return ModComponents.STRENGTH.getOrDefault(preview(infuser), 0);
     }
 
     private static Quality quality(InfuserBlockEntity infuser) {
-        return preview(infuser).get(ModComponents.QUALITY);
+        return ModComponents.QUALITY.get(preview(infuser));
     }
 
     private static ItemStack smeltsTo(GameTestHelper context, Item input) {
         return context.getLevel().getRecipeManager()
-                .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(new ItemStack(input)), context.getLevel())
-                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(input)),
+                .getRecipeFor(RecipeType.SMELTING, new SimpleContainer(new ItemStack(input)), context.getLevel())
+                .map(entry -> entry.assemble(new SimpleContainer(new ItemStack(input)),
                         context.getLevel().registryAccess()))
                 .orElse(ItemStack.EMPTY);
     }

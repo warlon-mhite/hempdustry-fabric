@@ -40,7 +40,7 @@ public final class InfuserPourGameTest {
     private static final BlockPos PULSE = new BlockPos(0, 2, 1);
 
     private static ServerPlayer survivalPlayer(GameTestHelper context) {
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         return player;
     }
@@ -69,7 +69,7 @@ public final class InfuserPourGameTest {
         // Anything that is not milk opens the screen, exactly as a right-click always has.
         rightClick(context, player, new ItemStack(Items.IRON_PICKAXE));
         context.assertTrue(screenOpen(player), "right-clicking with a pickaxe did not open the screen");
-        context.assertValueEqual(player.containerMenu.slots.size(), 3 + 36,
+        Line.equal(context, player.containerMenu.slots.size(), 3 + 36,
                 "the menu should hold the two hemp slots, the preview and the player's 36 — a milk or bucket slot is back");
         player.closeContainer();
 
@@ -127,7 +127,7 @@ public final class InfuserPourGameTest {
         context.runAtTickTime(20, () -> {
             context.assertTrue(dispenser.getItem(0).is(Items.MILK_BUCKET),
                     "a dispenser facing a full tub did not keep its milk: slot 0 holds " + dispenser.getItem(0));
-            context.assertValueEqual(count(context, Items.MILK_BUCKET), 0, "milk was dropped in front of a full tub");
+            Line.equal(context, count(context, Items.MILK_BUCKET), 0, "milk was dropped in front of a full tub");
 
             context.setBlock(TUB, Blocks.AIR);
             context.pulseRedstone(PULSE, 1);
@@ -136,7 +136,7 @@ public final class InfuserPourGameTest {
         context.runAtTickTime(30, () -> {
             context.assertTrue(dispenser.getItem(0).isEmpty(),
                     "with no tub in front the milk was not dispensed at all: slot 0 holds " + dispenser.getItem(0));
-            context.assertValueEqual(count(context, Items.MILK_BUCKET), 1,
+            Line.equal(context, count(context, Items.MILK_BUCKET), 1,
                     "with no tub in front the milk was not dropped, as vanilla does");
             context.succeed();
         });
@@ -159,8 +159,8 @@ public final class InfuserPourGameTest {
                     "the old milk slot still holds " + infuser.getItem(InfuserBlockEntity.RETIRED_MILK_SLOT));
             context.assertTrue(infuser.getItem(InfuserBlockEntity.RETIRED_BUCKET_SLOT).isEmpty(),
                     "the old bucket slot still holds " + infuser.getItem(InfuserBlockEntity.RETIRED_BUCKET_SLOT));
-            context.assertValueEqual(count(context, Items.MILK_BUCKET), 1, "the parked milk bucket was not handed back");
-            context.assertValueEqual(count(context, Items.BUCKET), 3, "the parked empties were not all handed back");
+            Line.equal(context, count(context, Items.MILK_BUCKET), 1, "the parked milk bucket was not handed back");
+            Line.equal(context, count(context, Items.BUCKET), 3, "the parked empties were not all handed back");
             context.assertFalse(filled(context), "the parked milk was poured in rather than handed back");
             context.succeed();
         });
@@ -168,7 +168,7 @@ public final class InfuserPourGameTest {
 
     private static int count(GameTestHelper context, Item item) {
         int total = 0;
-        for (ItemEntity entity : context.getEntities(EntityType.ITEM)) {
+        for (ItemEntity entity : Line.entities(context, EntityType.ITEM)) {
             if (entity.getItem().is(item)) {
                 total += entity.getItem().getCount();
             }

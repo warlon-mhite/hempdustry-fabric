@@ -1,6 +1,6 @@
 package com.warlonmhite.hempdustry.world;
 
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 public class ModPlacementModifiers {
 
     public static final PlacementModifierType<InBeldiaBiomePlacementModifier> IN_BELDIA_BIOME =
-            Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "in_beldia_biome"),
+            Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, new ResourceLocation(Hempdustry.MOD_ID, "in_beldia_biome"),
                     () -> InBeldiaBiomePlacementModifier.CODEC);
 
     public static void registerPlacementModifiers() {
@@ -37,7 +37,7 @@ public class ModPlacementModifiers {
      */
     public static final class InBeldiaBiomePlacementModifier extends PlacementFilter {
         public static final InBeldiaBiomePlacementModifier INSTANCE = new InBeldiaBiomePlacementModifier();
-        public static final MapCodec<InBeldiaBiomePlacementModifier> CODEC = MapCodec.unit(() -> INSTANCE);
+        public static final Codec<InBeldiaBiomePlacementModifier> CODEC = Codec.unit(() -> INSTANCE);
 
         private InBeldiaBiomePlacementModifier() {
         }

@@ -1,18 +1,17 @@
 package com.warlonmhite.hempdustry.recipe;
 
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.block.ModBlocks;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 
 /**
@@ -33,16 +32,17 @@ import net.minecraft.world.level.Level;
  * <p>Not in the recipe book: the book only knows the crafting types, and a machine recipe there would
  * be an entry the player could not click. Recipe viewers read the type directly.
  */
-public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
-        implements Recipe<SingleRecipeInput> {
+public record DecarboxylatingRecipe(ResourceLocation id, Ingredient ingredient, ItemStack result)
+        implements Recipe<Container> {
 
+    /** The input sits in the container's first slot. */
     @Override
-    public boolean matches(SingleRecipeInput input, Level world) {
-        return ingredient.test(input.item());
+    public boolean matches(Container input, Level world) {
+        return ingredient.test(input.getItem(0));
     }
 
     @Override
-    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider lookup) {
+    public ItemStack assemble(Container input, RegistryAccess registries) {
         return result.copy();
     }
 
@@ -53,7 +53,7 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider lookup) {
+    public ItemStack getResultItem(RegistryAccess registries) {
         return result;
     }
 
@@ -75,6 +75,11 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
     }
 
     @Override
+    public ResourceLocation getId() {
+        return id;
+    }
+
+    @Override
     public RecipeSerializer<?> getSerializer() {
         return ModRecipes.DECARBOXYLATING;
     }
@@ -85,24 +90,20 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStack result)
     }
 
     public static class Serializer implements RecipeSerializer<DecarboxylatingRecipe> {
-        private static final MapCodec<DecarboxylatingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.CODEC_NONEMPTY.fieldOf("ingredient").forGetter(DecarboxylatingRecipe::ingredient),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(DecarboxylatingRecipe::result)
-        ).apply(instance, DecarboxylatingRecipe::new));
-
-        private static final StreamCodec<RegistryFriendlyByteBuf, DecarboxylatingRecipe> PACKET_CODEC = StreamCodec.composite(
-                Ingredient.CONTENTS_STREAM_CODEC, DecarboxylatingRecipe::ingredient,
-                ItemStack.STREAM_CODEC, DecarboxylatingRecipe::result,
-                DecarboxylatingRecipe::new);
-
         @Override
-        public MapCodec<DecarboxylatingRecipe> codec() {
-            return CODEC;
+        public DecarboxylatingRecipe fromJson(ResourceLocation id, JsonObject json) {
+            return new DecarboxylatingRecipe(id, RecipeJson.ingredient(json, "ingredient"), RecipeJson.result(json, "result"));
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, DecarboxylatingRecipe> streamCodec() {
-            return PACKET_CODEC;
+        public DecarboxylatingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            return new DecarboxylatingRecipe(id, Ingredient.fromNetwork(buf), buf.readItem());
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, DecarboxylatingRecipe recipe) {
+            recipe.ingredient().toNetwork(buf);
+            buf.writeItem(recipe.result());
         }
     }
 }

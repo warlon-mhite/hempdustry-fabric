@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 1.0,
+  "group": "dye",
+  "ingredient": {
+    "item": "hempdustry:hemp_stem"
+  },
+  "result": "minecraft:green_dye"
+}

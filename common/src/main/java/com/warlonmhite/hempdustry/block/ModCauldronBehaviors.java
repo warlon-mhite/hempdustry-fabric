@@ -3,10 +3,10 @@ package com.warlonmhite.hempdustry.block;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.cauldron.CauldronInteraction;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -63,11 +63,11 @@ public final class ModCauldronBehaviors {
     }
 
     public static void registerCauldronBehaviors() {
-        CauldronInteraction.WATER.map()
+        CauldronInteraction.WATER
                 .put(ModItems.HEMP_STEM, (state, world, pos, player, hand, stack) ->
                         soak(state, world, pos, player, stack,
                                 ModItems.RETTED_HEMP_STEM, RET_PER_LEVEL));
-        CauldronInteraction.WATER.map()
+        CauldronInteraction.WATER
                 .put(ModItems.DECARBOXYLATED_HEMP, (state, world, pos, player, hand, stack) ->
                         soak(state, world, pos, player, stack,
                                 ModItems.WASHED_DECARBOXYLATED_HEMP, WASH_PER_LEVEL));
@@ -75,24 +75,24 @@ public final class ModCauldronBehaviors {
         // A dyed shirt or pair of harem pants washes out as leather does. Vanilla lists its dyeable
         // armour one item at a time, so ours go in the same way, with vanilla's own wash: it reads
         // #minecraft:dyeable and the dyed_color component, nothing else.
-        CauldronInteraction.WATER.map().put(ModItems.HEMP_SHIRT, CauldronInteraction.DYED_ITEM);
-        CauldronInteraction.WATER.map().put(ModItems.HEMP_HAREM_PANTS, CauldronInteraction.DYED_ITEM);
+        CauldronInteraction.WATER.put(ModItems.HEMP_SHIRT, CauldronInteraction.DYED_ITEM);
+        CauldronInteraction.WATER.put(ModItems.HEMP_HAREM_PANTS, CauldronInteraction.DYED_ITEM);
     }
 
     /**
      * Turns as much of {@code stack} into {@code output} as the cauldron's water can cover, one for
      * one, and spends the water levels used.
      */
-    private static ItemInteractionResult soak(BlockState state, Level world, BlockPos pos, Player player,
+    private static InteractionResult soak(BlockState state, Level world, BlockPos pos, Player player,
                                          ItemStack stack, Item output, int itemsPerLevel) {
         int levelsAvailable = state.getValue(LayeredCauldronBlock.LEVEL);
         if (levelsAvailable <= 0) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
 
         int toProcess = Math.min(stack.getCount(), levelsAvailable * itemsPerLevel);
         if (toProcess <= 0) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         int levelsUsed = Math.min(levelsAvailable, ceilDiv(toProcess, itemsPerLevel));
 
@@ -122,7 +122,7 @@ public final class ModCauldronBehaviors {
             world.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
             world.gameEvent(null, GameEvent.FLUID_PICKUP, pos);
         }
-        return ItemInteractionResult.sidedSuccess(world.isClientSide);
+        return InteractionResult.sidedSuccess(world.isClientSide);
     }
 
     private static int ceilDiv(int value, int divisor) {

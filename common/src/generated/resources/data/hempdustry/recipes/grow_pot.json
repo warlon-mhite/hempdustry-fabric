@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "hempdustry:hemp_brick"
+    },
+    "D": {
+      "tag": "minecraft:dirt"
+    }
+  },
+  "pattern": [
+    "B B",
+    "BDB",
+    " B "
+  ],
+  "result": {
+    "item": "hempdustry:grow_pot"
+  },
+  "show_notification": true
+}

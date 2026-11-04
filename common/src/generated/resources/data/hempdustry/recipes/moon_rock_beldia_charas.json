@@ -1,0 +1,20 @@
+{
+  "type": "hempdustry:crafting_shapeless",
+  "category": "misc",
+  "group": "moon_rock",
+  "ingredients": [
+    {
+      "item": "hempdustry:beldia_buds"
+    },
+    {
+      "item": "hempdustry:rosin"
+    },
+    {
+      "item": "hempdustry:charas"
+    }
+  ],
+  "result": {
+    "item": "hempdustry:moon_rock",
+    "nbt": "{\"hempdustry:smoke_contents\":{entries:[{count:3,strain:\"hempdustry:beldia\"},{count:1,strain:\"hempdustry:charas\"}]}}"
+  }
+}

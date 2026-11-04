@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
@@ -41,7 +42,7 @@ public class EdibleItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+    public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
         EdibleEffects.appendTooltip(stack, tooltip);
     }
 }

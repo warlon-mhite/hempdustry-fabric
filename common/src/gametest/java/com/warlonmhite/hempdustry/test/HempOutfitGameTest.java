@@ -1,11 +1,11 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.world.item.DyeableLeatherItem;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.Smoking;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -16,8 +16,6 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.DyedItemColor;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
@@ -41,7 +39,7 @@ public final class HempOutfitGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void onlyTheBeanieKeepsOutTheCold(GameTestHelper context) {
-        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        Player player = Line.mockPlayer(context, GameType.SURVIVAL);
         player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ModItems.HEMP_BEANIE));
         context.assertFalse(player.canFreeze(), "a player in a hemp beanie still freezes in powder snow");
 
@@ -62,24 +60,26 @@ public final class HempOutfitGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void theGarmentsTakeDyeAndWashOut(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        Player player = Line.mockPlayer(context, GameType.SURVIVAL);
         BlockPos cauldron = new BlockPos(1, 1, 1);
         BlockPos pos = context.absolutePos(cauldron);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
 
         for (Item garment : List.of(ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS)) {
             ItemStack dyed = dye(world, garment);
-            DyedItemColor colour = dyed.get(DataComponents.DYED_COLOR);
-            // The dye's colour carries full alpha and the component does not, so compare RGB only.
-            context.assertTrue(dyed.is(garment) && colour != null
-                            && (colour.rgb() & 0xFFFFFF) == (DyeColor.GREEN.getTextureDiffuseColor() & 0xFFFFFF),
-                    garment + " and green dye made " + dyed + " (" + colour + "), not a green " + garment);
+            DyeableLeatherItem cloth = (DyeableLeatherItem) garment;
+            // One dye on undyed cloth is that dye's colour, as vanilla's armour-dye recipe mixes it.
+            float[] green = DyeColor.GREEN.getTextureDiffuseColors();
+            int expected = ((int) (green[0] * 255.0F) << 16) | ((int) (green[1] * 255.0F) << 8) | (int) (green[2] * 255.0F);
+            context.assertTrue(dyed.is(garment) && cloth.hasCustomColor(dyed) && cloth.getColor(dyed) == expected,
+                    garment + " and green dye made " + dyed + " (" + Integer.toHexString(cloth.getColor(dyed))
+                            + "), not a green " + garment);
 
             context.setBlock(cauldron, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
-            world.getBlockState(pos).useItemOn(dyed, world, player, InteractionHand.MAIN_HAND, hit);
-            context.assertFalse(dyed.has(DataComponents.DYED_COLOR),
+            Line.useItemOn(world.getBlockState(pos),dyed, world, player, InteractionHand.MAIN_HAND, hit);
+            context.assertFalse(cloth.hasCustomColor(dyed),
                     "a water cauldron did not wash the dye out of " + garment);
-            context.assertValueEqual(context.getBlockState(cauldron).getValue(LayeredCauldronBlock.LEVEL), 2,
+            Line.equal(context, context.getBlockState(cauldron).getValue(LayeredCauldronBlock.LEVEL), 2,
                     "the cauldron's water level after washing " + garment);
         }
         for (Item kept : List.of(ModItems.HEMP_BEANIE, ModItems.FLIP_FLOPS)) {
@@ -95,16 +95,16 @@ public final class HempOutfitGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void aFullOutfitEasesTheHarshSmoke(GameTestHelper context) {
-        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        Player player = Line.mockPlayer(context, GameType.SURVIVAL);
         player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ModItems.HEMP_BEANIE));
         player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ModItems.HEMP_SHIRT));
         player.setItemSlot(EquipmentSlot.LEGS, new ItemStack(ModItems.HEMP_HAREM_PANTS));
-        context.assertValueEqual(Smoking.easedByOutfit(player, 3), 3, "a 1-in-3 roll under three pieces of the outfit");
+        Line.equal(context, Smoking.easedByOutfit(player, 3), 3, "a 1-in-3 roll under three pieces of the outfit");
 
         player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ModItems.FLIP_FLOPS));
-        context.assertValueEqual(Smoking.easedByOutfit(player, 3), 6, "a 1-in-3 roll under the full outfit");
-        context.assertValueEqual(Smoking.easedByOutfit(player, 0), 0, "a switched-off roll under the full outfit");
-        context.assertValueEqual(Smoking.easedByOutfit(player, Integer.MAX_VALUE), Integer.MAX_VALUE,
+        Line.equal(context, Smoking.easedByOutfit(player, 3), 6, "a 1-in-3 roll under the full outfit");
+        Line.equal(context, Smoking.easedByOutfit(player, 0), 0, "a switched-off roll under the full outfit");
+        Line.equal(context, Smoking.easedByOutfit(player, Integer.MAX_VALUE), Integer.MAX_VALUE,
                 "the largest 1-in-N under the full outfit");
         context.succeed();
     }
@@ -114,7 +114,7 @@ public final class HempOutfitGameTest {
         CraftingInput grid = CraftingInput.of(2, 1,
                 List.of(new ItemStack(item), new ItemStack(Items.GREEN_DYE)));
         return world.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, world)
-                .map(entry -> entry.value().assemble(grid, world.registryAccess()))
+                .map(entry -> entry.assemble(grid, world.registryAccess()))
                 .orElse(ItemStack.EMPTY);
     }
 }

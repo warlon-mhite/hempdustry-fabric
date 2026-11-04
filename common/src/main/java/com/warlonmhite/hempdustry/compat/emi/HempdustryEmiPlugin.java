@@ -114,7 +114,7 @@ public class HempdustryEmiPlugin implements EmiPlugin {
         }
         ViewerRecipes.info().forEach((item, text) -> registry.addRecipe(new EmiInfoRecipe(
                 List.of(EmiStack.of(item)), List.of(text),
-                ViewerRecipes.synthetic(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "info/" + BuiltInRegistries.ITEM.getKey(item).getPath())))));
+                ViewerRecipes.synthetic(new ResourceLocation(Hempdustry.MOD_ID, "info/" + BuiltInRegistries.ITEM.getKey(item).getPath())))));
 
         // In the World and packing both read the strain registry, which only a joined world has.
         HolderLookup.Provider registries = registries();

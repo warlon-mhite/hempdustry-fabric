@@ -69,10 +69,12 @@ def item_ids():
 def item_tags():
     tags = set()
     for root in SOURCES:
-        for p in root.glob("data/*/tags/item/**/*.json"):
-            ns = p.relative_to(root / "data").parts[0]
-            path = p.relative_to(root / "data" / ns / "tags/item").with_suffix("")
-            tags.add(f"{ns}.{'.'.join(path.parts)}")
+        # tags/item/ since 1.21, tags/items/ on the 1.20.1 line
+        for folder in ("tags/item", "tags/items"):
+            for p in root.glob(f"data/*/{folder}/**/*.json"):
+                ns = p.relative_to(root / "data").parts[0]
+                path = p.relative_to(root / "data" / ns / folder).with_suffix("")
+                tags.add(f"{ns}.{'.'.join(path.parts)}")
     return tags
 
 
@@ -112,6 +114,9 @@ def main():
     for root in SOURCES:
         for p in root.glob("data/*/banner_pattern/*.json"):
             named.add(json.loads(p.read_text())["translation_key"].split(".", 1)[1])
+        # 1.20.1 has no pattern data: a built-in pattern is named after its id, which its art shares
+        for p in root.glob("assets/hempdustry/textures/entity/banner/*.png"):
+            named.add(f"minecraft.banner.hempdustry.{p.stem}")
     orphans = [k for k in lang if k.startswith(("item.", "block.")) and not any(
         k.split(".", 1)[1] == n or k.split(".", 1)[1].startswith(n + ".") for n in named)]
     orphans += [k for k in lang if k.startswith("tag.item.") and k[len("tag.item."):] not in tags]

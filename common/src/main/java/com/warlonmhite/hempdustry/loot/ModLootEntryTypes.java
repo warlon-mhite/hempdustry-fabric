@@ -1,9 +1,13 @@
 package com.warlonmhite.hempdustry.loot;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSyntaxException;
 import com.warlonmhite.hempdustry.Hempdustry;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -11,6 +15,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +23,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.ValidationContext;
-import net.minecraft.world.level.storage.loot.entries.LootPoolEntries;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntry;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryType;
@@ -28,7 +32,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 public class ModLootEntryTypes {
 
     public static final LootPoolEntryType SPOILING = Registry.register(BuiltInRegistries.LOOT_POOL_ENTRY_TYPE,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "spoiling"), new LootPoolEntryType(SpoilingEntry.CODEC));
+            new ResourceLocation(Hempdustry.MOD_ID, "spoiling"), new LootPoolEntryType(new SpoilingEntry.Serializer()));
 
     public static void registerLootEntryTypes() {
         Hempdustry.LOGGER.info("Registering Loot Entry Types for " + Hempdustry.MOD_ID);
@@ -70,26 +74,15 @@ public class ModLootEntryTypes {
      * what they are — the property every matched-seed harvest test leans on.
      */
     public static final class SpoilingEntry extends LootPoolEntryContainer {
-        // Above CODEC: a record codec is built eagerly, and a field declared below it is still null.
-        private static final Codec<List<Float>> CHANCES = Codec.floatRange(0.0F, 1.0F).listOf();
-
-        public static final MapCodec<SpoilingEntry> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                LootPoolEntries.CODEC.fieldOf("child").forGetter(entry -> entry.child),
-                BuiltInRegistries.ITEM.byNameCodec().fieldOf("into").forGetter(entry -> entry.into),
-                Enchantment.CODEC.optionalFieldOf("enchantment").forGetter(entry -> entry.enchantment),
-                CHANCES.optionalFieldOf("one_item_chances", List.of()).forGetter(entry -> entry.oneItemChances),
-                CHANCES.optionalFieldOf("each_item_chances", List.of()).forGetter(entry -> entry.eachItemChances)
-        ).and(commonFields(instance).t1()).apply(instance, SpoilingEntry::new));
-
         private final LootPoolEntryContainer child;
         private final Item into;
-        private final Optional<Holder<Enchantment>> enchantment;
+        private final Optional<Enchantment> enchantment;
         private final List<Float> oneItemChances;
         private final List<Float> eachItemChances;
 
-        private SpoilingEntry(LootPoolEntryContainer child, Item into, Optional<Holder<Enchantment>> enchantment,
+        private SpoilingEntry(LootPoolEntryContainer child, Item into, Optional<Enchantment> enchantment,
                               List<Float> oneItemChances, List<Float> eachItemChances,
-                              List<LootItemCondition> conditions) {
+                              LootItemCondition[] conditions) {
             super(conditions);
             this.child = child;
             this.into = into;
@@ -160,6 +153,60 @@ public class ModLootEntryTypes {
             return chances.isEmpty() ? 0.0F : chances.get(Math.min(level, chances.size() - 1));
         }
 
+        /** The entry's JSON, as the comment above shows it; 1.20.1 reads loot through Gson, not codecs. */
+        public static final class Serializer extends LootPoolEntryContainer.Serializer<SpoilingEntry> {
+            @Override
+            public void serializeCustom(JsonObject json, SpoilingEntry entry, JsonSerializationContext context) {
+                json.add("child", context.serialize(entry.child));
+                json.addProperty("into", BuiltInRegistries.ITEM.getKey(entry.into).toString());
+                entry.enchantment.ifPresent(enchantment ->
+                        json.addProperty("enchantment", String.valueOf(BuiltInRegistries.ENCHANTMENT.getKey(enchantment))));
+                writeChances(json, "one_item_chances", entry.oneItemChances);
+                writeChances(json, "each_item_chances", entry.eachItemChances);
+            }
+
+            @Override
+            public SpoilingEntry deserializeCustom(JsonObject json, JsonDeserializationContext context,
+                                                   LootItemCondition[] conditions) {
+                LootPoolEntryContainer child = GsonHelper.getAsObject(json, "child", context, LootPoolEntryContainer.class);
+                ResourceLocation intoId = new ResourceLocation(GsonHelper.getAsString(json, "into"));
+                Item into = BuiltInRegistries.ITEM.getOptional(intoId)
+                        .orElseThrow(() -> new JsonSyntaxException("Unknown item '" + intoId + "'"));
+                Optional<Enchantment> enchantment = Optional.empty();
+                if (json.has("enchantment")) {
+                    ResourceLocation id = new ResourceLocation(GsonHelper.getAsString(json, "enchantment"));
+                    enchantment = Optional.of(BuiltInRegistries.ENCHANTMENT.getOptional(id)
+                            .orElseThrow(() -> new JsonSyntaxException("Unknown enchantment '" + id + "'")));
+                }
+                return new SpoilingEntry(child, into, enchantment, readChances(json, "one_item_chances"),
+                        readChances(json, "each_item_chances"), conditions);
+            }
+
+            private static void writeChances(JsonObject json, String field, List<Float> chances) {
+                if (chances.isEmpty()) {
+                    return;
+                }
+                JsonArray array = new JsonArray();
+                chances.forEach(array::add);
+                json.add(field, array);
+            }
+
+            private static List<Float> readChances(JsonObject json, String field) {
+                if (!json.has(field)) {
+                    return List.of();
+                }
+                List<Float> chances = new ArrayList<>();
+                for (JsonElement element : GsonHelper.getAsJsonArray(json, field)) {
+                    float chance = GsonHelper.convertToFloat(element, field);
+                    if (chance < 0.0F || chance > 1.0F) {
+                        throw new JsonSyntaxException(field + ": " + chance + " is outside [0, 1]");
+                    }
+                    chances.add(chance);
+                }
+                return chances;
+            }
+        }
+
         public static com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder builder(LootPoolEntryContainer.Builder<?> child, Item into) {
             return new com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder(child, into);
         }
@@ -167,7 +214,7 @@ public class ModLootEntryTypes {
         public static final class Builder extends LootPoolEntryContainer.Builder<com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder> {
             private final LootPoolEntryContainer.Builder<?> child;
             private final Item into;
-            private Optional<Holder<Enchantment>> enchantment = Optional.empty();
+            private Optional<Enchantment> enchantment = Optional.empty();
             private List<Float> oneItemChances = List.of();
             private List<Float> eachItemChances = List.of();
 
@@ -176,7 +223,7 @@ public class ModLootEntryTypes {
                 this.into = into;
             }
 
-            public com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder enchantment(Holder<Enchantment> enchantment) {
+            public com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder enchantment(Enchantment enchantment) {
                 this.enchantment = Optional.of(enchantment);
                 return this;
             }

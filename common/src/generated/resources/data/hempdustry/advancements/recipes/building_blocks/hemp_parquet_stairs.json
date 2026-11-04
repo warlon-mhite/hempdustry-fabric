@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_hemp_parquet": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "hempdustry:hemp_parquet"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "hempdustry:hemp_parquet_stairs"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_hemp_parquet",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:hemp_parquet_stairs"
+    ]
+  },
+  "sends_telemetry_event": false
+}

@@ -5,14 +5,14 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.inventory.CraftingContainer;
 
 /**
  * Carries cannabutter's two axes onto whatever is baked with it.
  *
  * <p><b>Why this cannot be a plain recipe.</b> A vanilla crafting recipe's result is a fixed
  * {@link ItemStack} — there is no hook for reading an ingredient's components and writing them onto
- * the output. Only a recipe class that overrides {@code craft} can see the grid, which is why
+ * the output. Only a recipe class that overrides {@code assemble} can see the grid, which is why
  * {@link InfusedShapedRecipe} and {@link InfusedShapelessRecipe} exist at all.
  *
  * <h2>Strength divides into tiers; the offset is the edible's own identity</h2>
@@ -34,22 +34,21 @@ public final class Infusion {
      * {@code result}. Returns the result untouched if there is no butter in the grid, which keeps a
      * malformed match harmless rather than throwing.
      */
-    public static ItemStack transfer(CraftingInput input, ItemStack result, int offset) {
+    public static ItemStack transfer(CraftingContainer input, ItemStack result, int offset) {
         ItemStack butter = findButter(input);
         if (butter.isEmpty()) {
             return result;
         }
-        int strength = butter.getOrDefault(ModComponents.STRENGTH, 1);
-        Quality quality = butter.getOrDefault(ModComponents.QUALITY, Quality.ROUGH);
+        int strength = ModComponents.STRENGTH.getOrDefault(butter, 1);
+        Quality quality = ModComponents.QUALITY.getOrDefault(butter, Quality.ROUGH);
 
-        result.set(ModComponents.POTENCY,
-                EdibleEffects.applyOffset(EdibleEffects.tierFromStrength(strength), offset));
-        result.set(ModComponents.QUALITY, quality);
+        ModComponents.POTENCY.set(result, EdibleEffects.applyOffset(EdibleEffects.tierFromStrength(strength), offset));
+        ModComponents.QUALITY.set(result, quality);
         return result;
     }
 
-    private static ItemStack findButter(CraftingInput input) {
-        for (int slot = 0; slot < input.size(); slot++) {
+    private static ItemStack findButter(CraftingContainer input) {
+        for (int slot = 0; slot < input.getContainerSize(); slot++) {
             ItemStack stack = input.getItem(slot);
             if (stack.is(ModItems.CANNABUTTER)) {
                 return stack;

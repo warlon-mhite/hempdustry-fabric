@@ -43,16 +43,16 @@ public final class HempPressGameTest {
     private static HempPressBlockEntity heatedPress(GameTestHelper context, BlockPos pos, Direction facing) {
         context.setBlock(pos.below(), Blocks.CAMPFIRE);
         context.setBlock(pos, ModBlocks.HEMP_PRESS.defaultBlockState().setValue(HempPressBlock.FACING, facing));
-        return context.<HempPressBlockEntity>getBlockEntity(pos);
+        return ((HempPressBlockEntity) context.getBlockEntity(pos));
     }
 
     private static int rosinIn(GameTestHelper context, BlockPos barrel) {
-        return context.<BarrelBlockEntity>getBlockEntity(barrel).countItem(ModItems.ROSIN);
+        return ((BarrelBlockEntity) context.getBlockEntity(barrel)).countItem(ModItems.ROSIN);
     }
 
     private static int rosinOnTheFloor(GameTestHelper context) {
         int total = 0;
-        for (ItemEntity entity : context.getEntities(EntityType.ITEM)) {
+        for (ItemEntity entity : Line.entities(context, EntityType.ITEM)) {
             if (entity.getItem().is(ModItems.ROSIN)) {
                 total += entity.getItem().getCount();
             }
@@ -78,14 +78,14 @@ public final class HempPressGameTest {
         // press has looked behind itself twice.
         context.runAtTickTime(40, () -> {
             context.assertTrue(press.isHeated(), "the campfire under the press does not heat it, so this rig tests nothing");
-            context.assertValueEqual(rosinIn(context, BEHIND), 3, "the rosin in the barrel behind the press");
-            context.assertValueEqual(NOT_BEHIND.stream().mapToInt(pos -> rosinIn(context, pos)).sum(), 0,
+            Line.equal(context, rosinIn(context, BEHIND), 3, "the rosin in the barrel behind the press");
+            Line.equal(context, NOT_BEHIND.stream().mapToInt(pos -> rosinIn(context, pos)).sum(), 0,
                     "the rosin poured out of the front or a side");
             context.assertTrue(press.getItem(HempPressBlockEntity.OUTPUT_SLOT).isEmpty(),
                     "the press still holds " + press.getItem(HempPressBlockEntity.OUTPUT_SLOT));
-            context.assertValueEqual(lone.getItem(HempPressBlockEntity.OUTPUT_SLOT).getCount(), 3,
+            Line.equal(context, lone.getItem(HempPressBlockEntity.OUTPUT_SLOT).getCount(), 3,
                     "the rosin kept by a press with nothing behind it");
-            context.assertValueEqual(rosinOnTheFloor(context), 0, "the rosin thrown on the floor");
+            Line.equal(context, rosinOnTheFloor(context), 0, "the rosin thrown on the floor");
             context.succeed();
         });
     }
@@ -103,7 +103,7 @@ public final class HempPressGameTest {
         first.setItem(HempPressBlockEntity.INPUT_SLOT, new ItemStack(ModItems.BUBBLE_HASH));
 
         // Retried every tick until it holds; succeedIf is the one that must hold on tick 0.
-        context.succeedWhen(() -> context.assertValueEqual(rosinIn(context, LAST), 1,
+        context.succeedWhen(() -> Line.equal(context, rosinIn(context, LAST), 1,
                 "the rosin in the barrel behind the second press"));
     }
 }

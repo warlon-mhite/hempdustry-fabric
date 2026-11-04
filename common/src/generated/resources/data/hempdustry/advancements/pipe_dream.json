@@ -1,0 +1,38 @@
+{
+  "parent": "hempdustry:first_contact",
+  "criteria": {
+    "smoked_a_pipe": {
+      "conditions": {
+        "item": {
+          "items": [
+            "hempdustry:wooden_pipe"
+          ]
+        }
+      },
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.pipe_dream.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:wooden_pipe",
+      "nbt": "{Damage:0}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.pipe_dream.title"
+    }
+  },
+  "requirements": [
+    [
+      "smoked_a_pipe"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

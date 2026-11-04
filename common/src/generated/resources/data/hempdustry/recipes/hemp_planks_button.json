@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "hempdustry:hemp_planks"
+    }
+  ],
+  "result": {
+    "item": "hempdustry:hemp_planks_button"
+  }
+}

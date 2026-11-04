@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * Registers the game tests: every {@code @GameTest} method of {@link #CLASSES}, on every loader.
  *
  * <p>On this version a test is an annotated method, and each loader reads the annotation its own way
- * -- Fabric takes the template as a structure id, NeoForge prefixes it with a namespace and the
+ * -- Fabric takes the template as a structure id, Forge prefixes it with a namespace and the
  * class's name unless told otherwise in annotations of its own. So neither reads ours: each loader's
  * test mod hands {@link #register} the classes, and the tests become vanilla's {@code TestFunction}s
  * here, named and placed the way Fabric names them -- {@code hempdustry-gametest:<class>.<method>},
@@ -48,6 +48,7 @@ public final class HempdustryGameTests {
     /** Every test class that runs on every loader. */
     public static final List<Class<?>> CLASSES = List.of(
             AddonEventGameTest.class,
+            AnimalFoodGameTest.class,
             AdvancementGameTest.class,
             ApiBridgeGameTest.class,
             BalanceGameTest.class,
@@ -112,8 +113,8 @@ public final class HempdustryGameTests {
                 + "." + method.getName().toLowerCase(Locale.ROOT);
         return new TestFunction(test.batch(), name, test.template().isEmpty() ? name : test.template(),
                 StructureUtils.getRotationForRotationSteps(test.rotationSteps()), test.timeoutTicks(),
-                test.setupTicks(), test.required(), test.manualOnly(), test.attempts(), test.requiredSuccesses(),
-                test.skyAccess(), helper -> invoke(method, helper));
+                test.setupTicks(), test.required(), test.requiredSuccesses(), test.attempts(),
+                helper -> invoke(method, helper));
     }
 
     /** As vanilla's own test consumer: a fresh instance per run, and an assertion thrown as itself. */

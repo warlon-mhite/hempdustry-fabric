@@ -1,12 +1,13 @@
 """Where a checkout keeps the mod's code and data, for the scripts that read them.
 
-Since 2.1 the mod is a common project plus one project per loader (common/, fabric/, neoforge/);
+Since 2.1 the mod is a common project plus one project per loader (common/, fabric/, neoforge/ -- forge/
+on the 1.20.1 line, where the second loader is Forge 47);
 before that it was one project. A checkout of either shape reads the same, so a script pointed at an older
 branch's checkout still works.
 """
 import pathlib
 
-LOADERS = ("fabric", "neoforge")
+LOADERS = ("fabric", "neoforge", "forge")
 
 
 class Layout:
@@ -24,11 +25,12 @@ class Layout:
             #: the Gradle path of the project that runs the game tests, datagen and Fabric's jar
             self.fabric = ":fabric:"
             self.fabric_libs = self.root / "fabric/build/libs"
-            #: NeoForge's project, the few files its own data run writes and its jar, on a branch that has it
-            has_neoforge = (self.root / "neoforge").is_dir()
-            self.neoforge = ":neoforge:" if has_neoforge else None
-            self.neoforge_generated = self.root / "neoforge/src/generated/resources" if has_neoforge else None
-            self.neoforge_libs = self.root / "neoforge/build/libs" if has_neoforge else None
+            #: the second loader's project (NeoForge's, or Forge's on the 1.20.1 line), the few files its own
+            #: data run writes and its jar, on a branch that has one
+            second = next((d for d in ("neoforge", "forge") if (self.root / d).is_dir()), None)
+            self.neoforge = f":{second}:" if second else None
+            self.neoforge_generated = self.root / second / "src/generated/resources" if second else None
+            self.neoforge_libs = self.root / second / "build/libs" if second else None
         else:
             self.java = [self.root / "src/main/java"]
             self.resources = self.root / "src/main/resources"

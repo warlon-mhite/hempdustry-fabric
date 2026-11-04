@@ -9,7 +9,7 @@ def generated = project(':common').file('src/generated/resources')
 
 loom {
 	// What the mod reaches in vanilla that vanilla keeps closed; the file says what and why. It lives
-	// in common beside the access transformer that says the same to NeoForge.
+	// in common beside the access transformer that says the same to Forge.
 	accessWidenerPath = project(':common').file('src/main/resources/hempdustry.accesswidener')
 }
 
@@ -36,7 +36,7 @@ tasks.named('clean', Delete) {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${minecraft_version}"
-	// Mojang's names, the same on Fabric and NeoForge, so one common module can serve both loaders.
+	// Mojang's names, the same on Fabric and Forge, so one common module can serve both loaders.
 	mappings loom.layered {
 		officialMojangMappings()
 		parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
@@ -53,11 +53,11 @@ dependencies {
 	// jei-*-fabric-api pulls jei-*-common-api-INTERMEDIARY transitively, and that variant is the
 	// one that matters: loom remaps it into this workspace's names like every other mod. Verified
 	// with javap -- the intermediary jar's IRecipeCategory#getTitle returns class_2561.
-	modCompileOnly "mezz.jei:jei-1.21.1-fabric-api:${jei_version}"
+	modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
 
 	// REI is two artifacts: the api, and the default plugin -- which is where
 	// DefaultCustomShapelessDisplay lives, the shape the packing rows are handed over in. Plus
-	// basic-math, because REI 16's api poms list no dependencies and me.shedaniel.math.Rectangle
+	// basic-math, because REI's api poms list no dependencies and me.shedaniel.math.Rectangle
 	// has to come from somewhere -- see gradle.properties.
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}"
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}"
@@ -88,7 +88,7 @@ dependencies {
 	if (viewer == "emi") {
 		modLocalRuntime "dev.emi:emi-fabric:${emi_version}"
 	} else if (viewer == "jei") {
-		modLocalRuntime "mezz.jei:jei-1.21.1-fabric:${jei_version}"
+		modLocalRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
 	} else if (viewer == "rei") {
 		modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${rei_version}"
 	} else if (viewer != "none") {
@@ -175,8 +175,14 @@ tasks.named('processResources', ProcessResources) {
 	filesMatching("fabric.mod.json") {
 		expand manifest
 	}
-	// NeoForge's form of the access widener, which Fabric never reads.
+	// Forge's form of the access widener, which Fabric never reads.
 	exclude 'META-INF/accesstransformer.cfg'
+	// The mixin configs name the refmap Forge 47 reads its mixins' targets from. Loom remaps the
+	// mixins themselves in Fabric's jar and writes no refmap, so on Fabric the line only makes Mixin
+	// warn that the file is missing.
+	filesMatching('hempdustry*.mixins.json') {
+		filter { String line -> line.contains('"refmap"') ? null : line }
+	}
 }
 
 // Publishing, so an addon can compile against com.warlonmhite.hempdustry.api.
@@ -190,7 +196,7 @@ tasks.named('processResources', ProcessResources) {
 //
 // Until then: build this repository with `./gradlew publishToMavenLocal`, add mavenLocal() to the
 // addon's repositories and depend on com.warlonmhite.hempdustry:hempdustry-fabric:<version>
-// (hempdustry-neoforge on NeoForge).
+// (hempdustry-forge on Forge).
 //
 // GitHub Packages is the second, for builds that are not on Modrinth yet. It is only wired up when
 // credentials are actually present, so a clean clone still builds and `publish` still works

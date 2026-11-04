@@ -33,14 +33,14 @@ public final class InfuserBreakGameTest {
         InfuserBlockEntity simmering = place(context, SIMMERING, InfuserBlockEntity.minTime() / 2);
         simmering.setItem(InfuserBlockEntity.FIRST_HEMP_SLOT, new ItemStack(ModItems.DECARBOXYLATED_HEMP, 3));
         context.getLevel().destroyBlock(context.absolutePos(SIMMERING), false);
-        context.assertValueEqual(count(context, ModItems.DECARBOXYLATED_HEMP), 8,
+        Line.equal(context, count(context, ModItems.DECARBOXYLATED_HEMP), 8,
                 "the hemp spilled by a simmering tub with 3 in its slot and 5 in its batch");
 
         InfuserBlockEntity ready = place(context, READY, InfuserBlockEntity.minTime());
         ready.setItem(InfuserBlockEntity.OUTPUT_SLOT, new ItemStack(ModItems.CANNABUTTER));
         context.getLevel().destroyBlock(context.absolutePos(READY), false);
-        context.assertValueEqual(count(context, ModItems.CANNABUTTER), 0, "the cannabutter a ready tub dropped");
-        context.assertValueEqual(count(context, ModItems.DECARBOXYLATED_HEMP), 13,
+        Line.equal(context, count(context, ModItems.CANNABUTTER), 0, "the cannabutter a ready tub dropped");
+        Line.equal(context, count(context, ModItems.DECARBOXYLATED_HEMP), 13,
                 "the hemp on the ground once the ready tub, 5 in its batch, was broken too");
         context.succeed();
     }
@@ -48,10 +48,9 @@ public final class InfuserBreakGameTest {
     /** A tub with milk in and five unwashed hemp absorbed, as a save would hold it. */
     static InfuserBlockEntity place(GameTestHelper context, BlockPos pos, int progress) {
         context.setBlock(pos, ModBlocks.INFUSER);
-        InfuserBlockEntity infuser = context.<InfuserBlockEntity>getBlockEntity(pos);
+        InfuserBlockEntity infuser = ((InfuserBlockEntity) context.getBlockEntity(pos));
         try {
-            infuser.loadWithComponents(TagParser.parseTag("{Progress:" + progress + ",HaveMilk:1b,BatchUnwashed:5}"),
-                    context.getLevel().registryAccess());
+            infuser.load(TagParser.parseTag("{Progress:" + progress + ",HaveMilk:1b,BatchUnwashed:5}"));
         } catch (CommandSyntaxException e) {
             throw new IllegalStateException(e);
         }
@@ -60,7 +59,7 @@ public final class InfuserBreakGameTest {
 
     private static int count(GameTestHelper context, Item item) {
         int total = 0;
-        for (ItemEntity entity : context.getEntities(EntityType.ITEM)) {
+        for (ItemEntity entity : Line.entities(context, EntityType.ITEM)) {
             if (entity.getItem().is(item)) {
                 total += entity.getItem().getCount();
             }

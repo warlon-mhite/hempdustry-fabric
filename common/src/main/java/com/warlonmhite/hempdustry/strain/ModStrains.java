@@ -7,7 +7,7 @@ import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain.SmokeEffect;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffects;
@@ -178,7 +178,7 @@ public class ModStrains {
         return key.location().getPath();
     }
 
-    public static void bootstrap(BootstrapContext<Strain> context) {
+    public static void bootstrap(BootstapContext<Strain> context) {
         // Purple Kush — the body high: hard to hurt, hard to get anything done.
         //
         // The colour is every tinted Purple Kush load (pipe, bong, vaporizer LED, moon rock), and a
@@ -383,6 +383,6 @@ public class ModStrains {
     private static final int SCHWAG_POISON_MAX_AMPLIFIER = 1;
 
     private static ResourceKey<Strain> key(String name) {
-        return ResourceKey.create(Strain.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
+        return ResourceKey.create(Strain.REGISTRY_KEY, new ResourceLocation(Hempdustry.MOD_ID, name));
     }
 }

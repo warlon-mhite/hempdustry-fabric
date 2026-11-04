@@ -1,0 +1,39 @@
+{
+  "parent": "hempdustry:its_not_pollen",
+  "criteria": {
+    "has_hashish_bar": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "hempdustry:hashish_bar"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.hot_off_the_press.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:hashish_bar"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.hot_off_the_press.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_hashish_bar"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

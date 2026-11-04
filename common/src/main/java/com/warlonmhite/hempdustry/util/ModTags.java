@@ -21,7 +21,7 @@ public class ModTags {
         public static final TagKey<Biome> SATIVA_FLOWER_GEN_RARE = createTag("sativa_flower_gen_rare");
         public static final TagKey<Biome> BELDIA_GEN = createTag("beldia_gen");
         private static TagKey<Biome> createTag(String name) {
-            return TagKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
+            return TagKey.create(Registries.BIOME, new ResourceLocation(Hempdustry.MOD_ID, name));
         }
     }
 
@@ -93,8 +93,9 @@ public class ModTags {
          * <p>The tag <b>file</b> is where the danger is. It names {@code #c:tools/knife}, which no
          * vanilla item joins, so on a client with no cooking mod installed it does not resolve — and
          * <b>one unresolvable required entry drops the whole tag</b>, taking {@code #minecraft:swords}
-         * with it and leaving the bar uncuttable with nothing but a server-log line to say why. Both
-         * entries are therefore {@code "required": false}. This is exactly how {@code #c:is_lush}
+         * with it and leaving the bar uncuttable with nothing but a server-log line to say why. Every
+         * entry is therefore {@code "required": false}. On 1.20.1 the file also names the knives' tags
+         * of that version, {@code #c:tools/knives} and {@code #forge:tools/knives}. This is exactly how {@code #c:is_lush}
          * stopped wild indica generating in caves.
          *
          * <p>Hand-written rather than datagen'd because there is no {@code KNIFE_TOOLS} constant on
@@ -103,8 +104,17 @@ public class ModTags {
          * is the id Farmer's Delight and its kin actually use.
          */
         public static final TagKey<Item> HASH_CUTTERS = createTag("hash_cutters");
+
+        /**
+         * Shears, every mod's: what trims a plant. On the newer lines this is {@code #c:tools/shear},
+         * which both loaders fill; on 1.20.1 no one convention tag holds them all, so the mod's own tag
+         * takes vanilla's shears and each convention's, optionally.
+         */
+        public static final TagKey<Item> SHEARS = createTag("shears");
+        /** Bone meal and every mod's fertiliser, the same way: what feeds a Grow Pot. */
+        public static final TagKey<Item> FERTILIZERS = createTag("fertilizers");
         private static TagKey<Item> createTag(String name) {
-            return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
+            return TagKey.create(Registries.ITEM, new ResourceLocation(Hempdustry.MOD_ID, name));
         }
     }
 
@@ -134,20 +144,12 @@ public class ModTags {
         /** Block-side counterpart of {@link #HEMP_STORAGE_BLOCKS}. */
         public static final TagKey<Block> HEMP_STORAGE_BLOCKS_BLOCK = blockTag("storage_blocks/hemp");
 
-        /**
-         * Shears, every mod's: what trims a plant. The loaders fill it (Fabric and NeoForge both
-         * keep {@code c:} tags), so this names it rather than defining it.
-         */
-        public static final TagKey<Item> SHEAR_TOOLS = itemTag("tools/shear");
-        /** Bone meal and every mod's fertiliser, the same way: what feeds a Grow Pot. */
-        public static final TagKey<Item> FERTILIZERS = itemTag("fertilizers");
-
         private static TagKey<Item> itemTag(String path) {
-            return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+            return TagKey.create(Registries.ITEM, new ResourceLocation("c", path));
         }
 
         private static TagKey<Block> blockTag(String path) {
-            return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", path));
+            return TagKey.create(Registries.BLOCK, new ResourceLocation("c", path));
         }
     }
 
@@ -167,7 +169,7 @@ public class ModTags {
          * and the same leaf unlocks both, with no code change.
          */
         public static final TagKey<BannerPattern> HEMP_LEAF_PATTERN_ITEM =
-                TagKey.create(Registries.BANNER_PATTERN, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "pattern_item/hemp_leaf"));
+                TagKey.create(Registries.BANNER_PATTERN, new ResourceLocation(Hempdustry.MOD_ID, "pattern_item/hemp_leaf"));
 
         private BannerPatterns() {
         }
@@ -203,7 +205,7 @@ public class ModTags {
          */
         public static final TagKey<Block> BELDIA_SOIL = createTag("beldia_soil");
         private static TagKey<Block> createTag(String name) {
-            return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
+            return TagKey.create(Registries.BLOCK, new ResourceLocation(Hempdustry.MOD_ID, name));
         }
     }
 }

@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import net.minecraft.Util;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -32,7 +32,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
@@ -108,17 +110,23 @@ public final class LangGameTest {
             read.add(painting.toLanguageKey("painting", "title"));
             read.add(painting.toLanguageKey("painting", "author"));
         }
-        registries.registryOrThrow(Registries.JUKEBOX_SONG).forEach(song -> keys(song.description(), read));
-        registries.registryOrThrow(Registries.BANNER_PATTERN).forEach(pattern -> {
-            for (DyeColor colour : DyeColor.values()) read.add(pattern.translationKey() + "." + colour.getSerializedName());
-        });
+        // On this version a disc's "Now Playing" line is its item's .desc key (RecordItem), and a
+        // banner pattern's name per colour is built from its id (BannerItem).
+        for (Item item : BuiltInRegistries.ITEM) {
+            if (item instanceof RecordItem disc && Sweep.ours(BuiltInRegistries.ITEM.getKey(item))) keys(disc.getDisplayName(), read);
+        }
+        for (ResourceLocation pattern : registries.registryOrThrow(Registries.BANNER_PATTERN).keySet()) {
+            for (DyeColor colour : DyeColor.values()) {
+                read.add("block.minecraft.banner." + pattern.toShortLanguageKey() + "." + colour.getName());
+            }
+        }
         registries.registryOrThrow(Strain.REGISTRY_KEY).forEach(strain -> read.add(strain.translationKey()));
         for (Quality quality : Quality.values()) read.add(quality.getTranslationKey());
-        for (AdvancementHolder entry : world.getServer().getAdvancements().getAllAdvancements()) {
-            entry.value().display().ifPresent(display -> {
-                keys(display.getTitle(), read);
-                keys(display.getDescription(), read);
-            });
+        for (Advancement entry : world.getServer().getAdvancements().getAllAdvancements()) {
+            if (entry.getDisplay() != null) {
+                keys(entry.getDisplay().getTitle(), read);
+                keys(entry.getDisplay().getDescription(), read);
+            }
         }
         BuiltInRegistries.ITEM.getTagNames().forEach(tag -> {
             ResourceLocation id = tag.location();
@@ -142,7 +150,7 @@ public final class LangGameTest {
             } else if (name.equals("assets/hempdustry/sounds.json")) {
                 // The client reads a subtitle only for a sound event the server registered.
                 Sweep.json(file).getAsJsonObject().entrySet().forEach(e -> {
-                    if (BuiltInRegistries.SOUND_EVENT.containsKey(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, e.getKey()))
+                    if (BuiltInRegistries.SOUND_EVENT.containsKey(new ResourceLocation(Hempdustry.MOD_ID, e.getKey()))
                             && e.getValue().getAsJsonObject().has("subtitle")) {
                         read.add(e.getValue().getAsJsonObject().get("subtitle").getAsString());
                     }
@@ -182,13 +190,15 @@ public final class LangGameTest {
                 world.enabledFeatures(), true, world.registryAccess()));
         Set<String> ours = Sweep.json(Sweep.modFiles().get("assets/hempdustry/lang/en_us.json")).getAsJsonObject().keySet();
         Map<String, String> findings = new TreeMap<>();
+        // A player in this world, so a tooltip that reads the world reads this one.
+        Player reader = Players.survival(context);
         int lines = 0;
         for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems()) {
             String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
             for (TooltipFlag type : List.of(TooltipFlag.NORMAL, TooltipFlag.ADVANCED)) {
                 List<Component> tooltip;
                 try {
-                    tooltip = stack.getTooltipLines(Item.TooltipContext.of(world), null, type);
+                    tooltip = stack.getTooltipLines(reader, type);
                 } catch (RuntimeException | LinkageError e) {
                     findings.putIfAbsent(id, "building its tooltip threw " + e);
                     continue;

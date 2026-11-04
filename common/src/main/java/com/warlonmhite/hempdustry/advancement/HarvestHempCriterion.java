@@ -1,20 +1,23 @@
 package com.warlonmhite.hempdustry.advancement;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import java.util.Optional;
-import net.minecraft.advancements.Criterion;
+import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
 import net.minecraft.advancements.critereon.BlockPredicate;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.critereon.DeserializationContext;
 import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.advancements.critereon.SerializationContext;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.StringRepresentable;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -42,15 +45,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * was fed, in the same vocabulary as {@code minecraft:location}.
  */
 public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCriterion.Conditions> {
+    static final ResourceLocation ID = new ResourceLocation(Hempdustry.MOD_ID, "harvest_hemp");
 
-    /**
-     * Call from the server side when a mature plant is broken, having resolved it down to its LOWER
-     * segment (which is the only one carrying {@code AGE}, the trim flags and the light record).
-     * Call it <b>before</b> the plant is removed: the bed is read from under it.
-     *
-     * <p>Silently does nothing for a non-player or for a state without the trim properties, so a
-     * caller can hand it whatever it has resolved without pre-checking.
-     */
     public static void trigger(Player player, ServerLevel world, BlockPos lowerPos, BlockState lowerState) {
         if (!(player instanceof ServerPlayer serverPlayer)
                 || !lowerState.hasProperty(Defoliation.TRIMMED_EARLY)) {
@@ -64,52 +60,85 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
     }
 
     @Override
-    public Codec<Conditions> codec() {
-        return Conditions.CODEC;
+    public ResourceLocation getId() {
+        return ID;
     }
 
-    /** The record's own names ({@code "grow_lamp"}, {@code "stressed"}…), as the blockstate spells them. */
-    private static final Codec<GrowLight> LIGHT_CODEC = StringRepresentable.fromEnum(GrowLight::values);
+    @Override
+    protected Conditions createInstance(JsonObject json, ContextAwarePredicate player, DeserializationContext context) {
+        Optional<GrowLight> light = Optional.empty();
+        if (json.has("condition")) {
+            String name = GsonHelper.getAsString(json, "condition");
+            light = Optional.of(java.util.Arrays.stream(GrowLight.values())
+                    .filter(value -> value.getSerializedName().equals(name)).findFirst()
+                    .orElseThrow(() -> new JsonSyntaxException("Unknown condition '" + name + "'")));
+        }
+        return new Conditions(player,
+                MinMaxBounds.Ints.fromJson(json.get("cuts")),
+                light,
+                json.has("bed") ? Optional.of(BlockPredicate.fromJson(json.get("bed"))) : Optional.empty());
+    }
 
     /**
      * The optional fields are additive: a criterion written before {@code condition} and {@code bed}
      * existed decodes with both empty and means exactly what it meant.
      */
-    public record Conditions(Optional<ContextAwarePredicate> player, MinMaxBounds.Ints cuts,
-                             Optional<GrowLight> light, Optional<BlockPredicate> bed)
-            implements SimpleCriterionTrigger.SimpleInstance {
-        public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("cuts", MinMaxBounds.Ints.ANY).forGetter(Conditions::cuts),
-                LIGHT_CODEC.optionalFieldOf("condition").forGetter(Conditions::light),
-                BlockPredicate.CODEC.optionalFieldOf("bed").forGetter(Conditions::bed)
-        ).apply(instance, Conditions::new));
+    public static class Conditions extends AbstractCriterionTriggerInstance {
+        private final MinMaxBounds.Ints cuts;
+        private final Optional<GrowLight> light;
+        private final Optional<BlockPredicate> bed;
 
-        /** A plant with no light record (a crop without the property) never matches a light filter. */
+        public Conditions(ContextAwarePredicate player, MinMaxBounds.Ints cuts, Optional<GrowLight> light,
+                          Optional<BlockPredicate> bed) {
+            super(ID, player);
+            this.cuts = cuts;
+            this.light = light;
+            this.bed = bed;
+        }
+
+        public MinMaxBounds.Ints cuts() {
+            return cuts;
+        }
+
+        public Optional<GrowLight> light() {
+            return light;
+        }
+
+        public Optional<BlockPredicate> bed() {
+            return bed;
+        }
+
         public boolean matches(int cuts, Optional<GrowLight> light, ServerLevel world, BlockPos bedPos) {
             return this.cuts.matches(cuts)
                     && (this.light.isEmpty() || this.light.equals(light))
                     && (this.bed.isEmpty() || this.bed.get().matches(world, bedPos));
         }
 
-        /** Only counts a harvest of a plant cut in <b>both</b> windows. */
-        public static Criterion<Conditions> fullyTrimmed() {
+        @Override
+        public JsonObject serializeToJson(SerializationContext context) {
+            JsonObject json = super.serializeToJson(context);
+            if (!cuts.isAny()) {
+                json.add("cuts", cuts.serializeToJson());
+            }
+            light.ifPresent(value -> json.addProperty("condition", value.getSerializedName()));
+            bed.ifPresent(predicate -> json.add("bed", predicate.serializeToJson()));
+            return json;
+        }
+
+        public static Conditions fullyTrimmed() {
             return create(MinMaxBounds.Ints.exactly(2), Optional.empty(), Optional.empty());
         }
 
-        /** Only counts a plant that kept {@code light} as its {@code condition} all the way to harvest. */
-        public static Criterion<Conditions> grownUnder(GrowLight light) {
+        public static Conditions grownUnder(GrowLight light) {
             return create(MinMaxBounds.Ints.ANY, Optional.of(light), Optional.empty());
         }
 
-        /** Only counts a plant whose bed — the block under it — matches {@code bed}. */
-        public static Criterion<Conditions> grownIn(BlockPredicate.Builder bed) {
+        public static Conditions grownIn(BlockPredicate.Builder bed) {
             return create(MinMaxBounds.Ints.ANY, Optional.empty(), Optional.of(bed.build()));
         }
 
-        public static Criterion<Conditions> create(MinMaxBounds.Ints cuts, Optional<GrowLight> light,
-                                                              Optional<BlockPredicate> bed) {
-            return ModCriteria.HARVEST_HEMP.createCriterion(new Conditions(Optional.empty(), cuts, light, bed));
+        public static Conditions create(MinMaxBounds.Ints cuts, Optional<GrowLight> light, Optional<BlockPredicate> bed) {
+            return new Conditions(ContextAwarePredicate.ANY, cuts, light, bed);
         }
     }
 }

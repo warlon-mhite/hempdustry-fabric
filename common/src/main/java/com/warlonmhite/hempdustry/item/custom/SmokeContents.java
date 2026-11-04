@@ -12,12 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.random.RandomGenerator;
 import net.minecraft.core.Holder;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 
@@ -98,14 +95,15 @@ public record SmokeContents(List<Entry> entries) {
     /**
      * Writes the record form; reads either it or the original bare list.
      *
-     * <p>{@code Codec.withAlternative} encodes through the primary and, on decode, tries the primary
+     * <p>{@code Codec.either} with the record form first encodes through the primary and, on decode, tries the primary
      * and falls back to the alternative — so every stack written by a pre-2.0.0 development build
      * still loads, for ever, and no migration step is needed. The alternative costs one line and can
      * never be removed without breaking those stacks, which is the whole point of adding it before
      * release rather than after.
      */
-    public static final Codec<SmokeContents> CODEC = Codec.withAlternative(
-            RECORD_CODEC, ENTRIES_CODEC.xmap(SmokeContents::new, SmokeContents::entries));
+    public static final Codec<SmokeContents> CODEC = Codec.either(
+                    RECORD_CODEC, ENTRIES_CODEC.xmap(SmokeContents::new, SmokeContents::entries))
+            .xmap(either -> either.map(contents -> contents, contents -> contents), Either::left);
 
     /**
      * Keeps the entries that resolved and complains once about any that did not.
@@ -129,9 +127,6 @@ public record SmokeContents(List<Entry> entries) {
         return kept;
     }
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, SmokeContents> PACKET_CODEC =
-            Entry.PACKET_CODEC.apply(ByteBufCodecs.list())
-                    .map(SmokeContents::new, SmokeContents::entries);
 
     /**
      * A single strain's share of the load.
@@ -147,10 +142,6 @@ public record SmokeContents(List<Entry> entries) {
                 Codec.INT.fieldOf("count").forGetter(Entry::count)
         ).apply(instance, Entry::new));
 
-        public static final StreamCodec<RegistryFriendlyByteBuf, Entry> PACKET_CODEC = StreamCodec.composite(
-                Strain.ENTRY_PACKET_CODEC, Entry::strain,
-                ByteBufCodecs.VAR_INT, Entry::count,
-                Entry::new);
     }
 
     /** A single-strain load. */
@@ -380,7 +371,7 @@ public record SmokeContents(List<Entry> entries) {
             if (strain.wildFlower().isPresent()) {
                 bud = true;
             } else if (strain.smokeEffects().stream().anyMatch(effect ->
-                    effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL)) {
+                    effect.effect().getCategory() == MobEffectCategory.BENEFICIAL)) {
                 concentrate = true;
             }
         }

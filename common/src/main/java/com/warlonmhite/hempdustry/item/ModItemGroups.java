@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.component.StackRegistries;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -73,12 +74,13 @@ import java.util.function.Consumer;
  */
 public class ModItemGroups {
     public static final CreativeModeTab HEMPDUSTRY_ITEMS_GROUP = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hempdustry_items"),
+            new ResourceLocation(Hempdustry.MOD_ID, "hempdustry_items"),
             // The leaf, not a strain's buds: it is the plant's iconic silhouette, it is the one
             // strain-agnostic part, and it stays right when a third strain lands.
             Services.REGISTRATION.creativeTabBuilder().icon(() -> new ItemStack(ModItems.HEMP_LEAF))
                     .title(Component.translatable("itemgroup.hempdustry"))
-                    .displayItems((displayContext, entries) -> {
+                    // Stacks built here carry strains of the lookup the tab is given (StackRegistries).
+                    .displayItems((displayContext, entries) -> StackRegistries.with(displayContext.holders(), () -> {
                         // --- The plant -------------------------------------------------
                         // One run per kind, in the strain registry's own stable order, so a strain
                         // added or edited by a datapack slots into all three runs without touching
@@ -248,7 +250,7 @@ public class ModItemGroups {
                         entries.accept(ModItems.HEMP_BOAT);
                         entries.accept(ModItems.HEMP_CHEST_BOAT);
                         ModItems.MUSIC_DISCS.forEach(entries::accept);
-                    }).build());
+                    })).build());
 
     public static void registerItemGroups(){
         Hempdustry.LOGGER.info("Registering Item Groups for "+ Hempdustry.MOD_ID);

@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -36,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
  * edge strip from every angle.
  */
 public class GrowLampBlock extends RedstoneLampBlock {
-    public static final MapCodec<RedstoneLampBlock> CODEC = simpleCodec(GrowLampBlock::new);
 
     /** The panel, and the two chains it hangs from, as the model draws them. */
     private static final VoxelShape SHAPE = Shapes.or(
@@ -46,11 +44,6 @@ public class GrowLampBlock extends RedstoneLampBlock {
 
     public GrowLampBlock(Properties settings) {
         super(settings);
-    }
-
-    @Override
-    public MapCodec<RedstoneLampBlock> codec() {
-        return CODEC;
     }
 
     /** Vanilla's placement (lit if already powered), refused where there is no ceiling to hang from. */
@@ -63,12 +56,12 @@ public class GrowLampBlock extends RedstoneLampBlock {
 
     /** The same test a hanging lantern makes: something under the block above to hang the chains from. */
     @Override
-    protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+    public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         return Block.canSupportCenter(world, pos.above(), Direction.DOWN);
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
                                                    LevelAccessor world, BlockPos pos, BlockPos neighborPos) {
         return direction == Direction.UP && !state.canSurvive(world, pos)
                 ? Blocks.AIR.defaultBlockState()
@@ -76,7 +69,7 @@ public class GrowLampBlock extends RedstoneLampBlock {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 

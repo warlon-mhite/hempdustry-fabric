@@ -32,17 +32,17 @@ import net.minecraft.resources.ResourceLocation;
  */
 public class HempPressBlockEntityRenderer implements BlockEntityRenderer<HempPressBlockEntity> {
 
-    private static final ResourceLocation PLATEN = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/hemp_press_platen");
-    private static final ResourceLocation SCREW = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/hemp_press_screw");
+    private static final ResourceLocation PLATEN = new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press_platen");
+    private static final ResourceLocation SCREW = new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press_screw");
 
     /** The models this draws, for the model loader to bake. */
     public static final List<ResourceLocation> PARTS = List.of(PLATEN, SCREW);
 
     /** The press's item model, drawn as {@link #ICON_PARTS} put together ({@code CompositeItemModel}). */
-    public static final ResourceLocation ICON = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "item/hemp_press");
+    public static final ResourceLocation ICON = new ResourceLocation(Hempdustry.MOD_ID, "item/hemp_press");
     /** The whole press at rest: the frame, the bed plate, then these two where the stroke starts. */
-    public static final List<ResourceLocation> ICON_PARTS = List.of(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/hemp_press"),
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "block/hemp_press_plate"), PLATEN, SCREW);
+    public static final List<ResourceLocation> ICON_PARTS = List.of(new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press"),
+            new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press_plate"), PLATEN, SCREW);
 
     /** Pixels the platen travels: from under the crossbeam down onto the packet. */
     private static final float TRAVEL = 4.0F;

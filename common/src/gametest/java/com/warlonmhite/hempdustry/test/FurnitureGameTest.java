@@ -46,7 +46,7 @@ public final class FurnitureGameTest {
         context.setBlock(head, headState);
 
         // Throws if the head has no block entity of ours, which is the one the bed is drawn from.
-        context.<HempBedBlockEntity>getBlockEntity(head);
+        HempBedBlockEntity bed = (HempBedBlockEntity) context.getBlockEntity(head);
         context.assertTrue(headState.is(BlockTags.BEDS),
                 "the hemp bed is not in #minecraft:beds, which a villager's sleep task checks");
 

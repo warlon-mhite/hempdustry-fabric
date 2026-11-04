@@ -23,6 +23,7 @@ import com.warlonmhite.hempdustry.client.render.CompositeItemModel;
 import com.warlonmhite.hempdustry.client.render.FlipFlopsModel;
 import com.warlonmhite.hempdustry.client.render.HempBeanieRenderer;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
+import com.warlonmhite.hempdustry.component.StackRegistries;
 import com.warlonmhite.hempdustry.item.ModArmorMaterials;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.particle.ModParticles;
@@ -32,6 +33,7 @@ import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreen;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreen;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreen;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.RenderType;
@@ -41,7 +43,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.level.block.Block;
 
 public class HempdustryClient {
@@ -50,6 +52,11 @@ public class HempdustryClient {
     public static void init() {
         ClientRegistration client = ClientServices.CLIENT;
         UpdateChecker.init();
+        // A stack's strain resolves, on the client, against the registries its server sent.
+        StackRegistries.client(() -> {
+            ClientPacketListener connection = Minecraft.getInstance().getConnection();
+            return connection == null ? null : connection.registryAccess();
+        });
 
         client.blockLayer(ModBlocks.HEMP_PLANKS_DOOR, RenderType.cutout());
         client.blockLayer(ModBlocks.HEMP_PLANKS_TRAPDOOR, RenderType.cutout());
@@ -230,18 +237,18 @@ public class HempdustryClient {
             if (tintIndex != ModItemProperties.LOAD_TINT_INDEX) {
                 return -1;
             }
-            SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
-            // opaque() is load-bearing, not decoration. ItemRenderer feeds this value's ALPHA byte
+            SmokeContents contents = ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY);
+            // The opaque alpha is load-bearing, not decoration. ItemRenderer feeds this value's ALPHA byte
             // straight into the vertex alpha (ItemRenderer:197), and a strain's colour is 24-bit RGB
             // out of its JSON — so returning it raw means alpha 0x00 and a layer that draws nothing
             // at all. The symptom is a packed device looking exactly like an empty one, with no
             // error anywhere. Every vanilla tint does the same wrap: potions, spawn eggs, maps.
-            return contents.isEmpty() ? -1 : FastColor.ARGB32.opaque(contents.color());
+            return contents.isEmpty() ? -1 : 0xFF000000 | contents.color();
         }, tinted());
         // The two garments' icons, as leather's are tinted: the grey cloth (layer 0) takes the dye,
         // or unbleached hemp undyed, and the drawn layer on top stays as drawn.
         client.itemColor((stack, tintIndex) -> tintIndex != 0 ? -1
-                        : DyedItemColor.getOrDefault(stack, ModArmorMaterials.HEMP_UNDYED_COLOR),
+                        : ((DyeableLeatherItem) stack.getItem()).getColor(stack),
                 ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS);
     }
 
@@ -286,7 +293,7 @@ public class HempdustryClient {
         ResourceLocation strainId = ModItemProperties.STRAIN;
         ItemPropertyFunction strain = (stack, world, entity, seed) -> {
             Holder<Strain> loaded =
-                    stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).primaryStrain();
+                    ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).primaryStrain();
             return loaded == null ? 0f : loaded.value().modelIndex();
         };
         for (Item item : smokingGear()) {
@@ -295,7 +302,7 @@ public class HempdustryClient {
 
         ResourceLocation packedId = ModItemProperties.PACKED;
         ClampedItemPropertyFunction packed = (stack, world, entity, seed) ->
-                stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).isEmpty() ? 0f : 1f;
+                ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).isEmpty() ? 0f : 1f;
         for (Item device : everyDevice()) {
             client.itemProperty(device, packedId, packed);
         }
@@ -309,7 +316,7 @@ public class HempdustryClient {
                     || !(stack.getItem() instanceof SmokingDeviceItem device) || device.device().drawTicks() <= 0) {
                 return 0f;
             }
-            return (stack.getUseDuration(entity) - entity.getUseItemRemainingTicks()) / (float) device.device().drawTicks();
+            return (stack.getUseDuration() - entity.getUseItemRemainingTicks()) / (float) device.device().drawTicks();
         };
         for (Item bong : ModItems.bongs()) {
             client.itemProperty(bong, ModItemProperties.DRAWING, drawing);

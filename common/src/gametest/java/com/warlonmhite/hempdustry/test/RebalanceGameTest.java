@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
@@ -53,31 +54,31 @@ public final class RebalanceGameTest {
                 clean = player;
             } else {
                 sawGreenOut = true;
-                long lockout = spliff.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L) - context.getLevel().getGameTime();
-                context.assertValueEqual((long) EffectPolicy.cooldown(GreenOut.BUILT_IN.lockoutTicks()), lockout,
+                long lockout = ModComponents.COOLDOWN_UNTIL.getOrDefault(spliff, 0L) - context.getLevel().getGameTime();
+                Line.equal(context, (long) EffectPolicy.cooldown(GreenOut.BUILT_IN.lockoutTicks()), lockout,
                         "a full green-out locks smoking out for its minute, not the spliff's own cooldown");
-                context.assertValueEqual(0f, player.getFoodData().getSaturationLevel(),
+                Line.equal(context, 0f, player.getFoodData().getSaturationLevel(),
                         "a full green-out empties the saturation");
-                context.assertValueEqual(1, level(player, MobEffects.MOVEMENT_SLOWDOWN),
+                Line.equal(context, 1, level(player, MobEffects.MOVEMENT_SLOWDOWN),
                         "a full green-out still lands its own Slowness II");
             }
         }
         context.assertTrue(clean != null && sawGreenOut, "saw both a clean hit and a green-out in " + TRIES);
 
         // Level II of the buffs, level III of the costs, for half as long again.
-        context.assertValueEqual(1, level(clean, MobEffects.MOVEMENT_SPEED), "Speed stops at II");
-        context.assertValueEqual(1, level(clean, MobEffects.DIG_SPEED), "Haste stops at II");
-        context.assertValueEqual(2, level(clean, MobEffects.WEAKNESS), "Weakness still follows the dose");
-        context.assertValueEqual(2, level(clean, MobEffects.HUNGER), "Hunger follows the dose to III");
-        context.assertValueEqual(clean.getEffect(MobEffects.MOVEMENT_SPEED).getDuration(), EffectPolicy.duration(1350),
+        Line.equal(context, 1, level(clean, MobEffects.MOVEMENT_SPEED), "Speed stops at II");
+        Line.equal(context, 1, level(clean, MobEffects.DIG_SPEED), "Haste stops at II");
+        Line.equal(context, 2, level(clean, MobEffects.WEAKNESS), "Weakness still follows the dose");
+        Line.equal(context, 2, level(clean, MobEffects.HUNGER), "Hunger follows the dose to III");
+        Line.equal(context, clean.getEffect(MobEffects.MOVEMENT_SPEED).getDuration(), EffectPolicy.duration(1350),
                 "the third bud buys half the spliff's duration again");
 
         // Below the cap nothing is extended, and Hunger is the dose.
         ServerPlayer piper = freshPlayer(context);
         smokeUntilClean(context, piper, ModItems.WOODEN_PIPE, ModStrains.INDICA, 2);
-        context.assertValueEqual(1, level(piper, MobEffects.DAMAGE_RESISTANCE), "a pipe of two is Resistance II");
-        context.assertValueEqual(1, level(piper, MobEffects.HUNGER), "a pipe of two is Hunger II");
-        context.assertValueEqual(EffectPolicy.duration(700), piper.getEffect(MobEffects.DAMAGE_RESISTANCE).getDuration(),
+        Line.equal(context, 1, level(piper, MobEffects.DAMAGE_RESISTANCE), "a pipe of two is Resistance II");
+        Line.equal(context, 1, level(piper, MobEffects.HUNGER), "a pipe of two is Hunger II");
+        Line.equal(context, EffectPolicy.duration(700), piper.getEffect(MobEffects.DAMAGE_RESISTANCE).getDuration(),
                 "a dose at the cap keeps the pipe's own duration");
         context.succeed();
     }
@@ -92,17 +93,17 @@ public final class RebalanceGameTest {
         ConfigGameTest.withConfig("{ \"effects\": { \"maxLevel\": 1 } }", () -> {
             ServerPlayer piper = freshPlayer(context);
             smokeUntilClean(context, piper, ModItems.WOODEN_PIPE, ModStrains.INDICA, 2);
-            context.assertValueEqual(0, level(piper, MobEffects.DAMAGE_RESISTANCE), "maxLevel 1 holds Resistance at I");
-            context.assertValueEqual(0, level(piper, MobEffects.DIG_SLOWDOWN), "and the cost with it");
-            context.assertValueEqual(EffectPolicy.duration(1050), piper.getEffect(MobEffects.DAMAGE_RESISTANCE).getDuration(),
+            Line.equal(context, 0, level(piper, MobEffects.DAMAGE_RESISTANCE), "maxLevel 1 holds Resistance at I");
+            Line.equal(context, 0, level(piper, MobEffects.DIG_SLOWDOWN), "and the cost with it");
+            Line.equal(context, EffectPolicy.duration(1050), piper.getEffect(MobEffects.DAMAGE_RESISTANCE).getDuration(),
                     "a second bud past the lowered cap buys half the pipe's duration again");
 
             // Pairing lifts maxBuffLevel, never maxLevel, so a paired bud turns into time there too.
             List<MobEffectInstance> paired = hit(new SmokeContents(List.of(
                     new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
                     new SmokeContents.Entry(strain(context, ModStrains.HASHISH), 1))));
-            context.assertValueEqual(find(paired, MobEffects.MOVEMENT_SPEED).getAmplifier(), 0, "maxLevel 1 holds paired Speed at I");
-            context.assertValueEqual(find(paired, MobEffects.MOVEMENT_SPEED).getDuration(), EffectPolicy.duration(1350),
+            Line.equal(context, find(paired, MobEffects.MOVEMENT_SPEED).getAmplifier(), 0, "maxLevel 1 holds paired Speed at I");
+            Line.equal(context, find(paired, MobEffects.MOVEMENT_SPEED).getDuration(), EffectPolicy.duration(1350),
                     "a paired second bud past the lowered cap buys time as well");
         });
         context.succeed();
@@ -116,16 +117,16 @@ public final class RebalanceGameTest {
         context.assertFalse(full.hasEffect(MobEffects.ABSORPTION), "an edible's buff ends");
         context.assertTrue(full.hasEffect(MobEffects.FIRE_RESISTANCE),
                 "a potion of a type the mod never grants is left alone");
-        context.assertValueEqual(0f, full.getFoodData().getSaturationLevel(), "the saturation goes");
-        context.assertValueEqual(600, full.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "thirty seconds of it");
+        Line.equal(context, 0f, full.getFoodData().getSaturationLevel(), "the saturation goes");
+        Line.equal(context, 600, full.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "thirty seconds of it");
 
         // The spins take nothing away.
         ServerPlayer spins = highPlayer(context);
         Smoking.greenOut(spins, 2);
         context.assertTrue(spins.hasEffect(MobEffects.MOVEMENT_SPEED), "the spins leave the high running");
         context.assertTrue(spins.hasEffect(MobEffects.ABSORPTION), "and the edible's");
-        context.assertValueEqual(5f, spins.getFoodData().getSaturationLevel(), "and the saturation");
-        context.assertValueEqual(300, spins.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "fifteen seconds of it");
+        Line.equal(context, 5f, spins.getFoodData().getSaturationLevel(), "and the saturation");
+        Line.equal(context, 300, spins.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "fifteen seconds of it");
         context.succeed();
     }
 
@@ -136,27 +137,27 @@ public final class RebalanceGameTest {
         List<MobEffectInstance> paired = hit(new SmokeContents(List.of(
                 new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
                 new SmokeContents.Entry(strain(context, ModStrains.HASHISH), 1))));
-        context.assertValueEqual(find(paired, MobEffects.MOVEMENT_SPEED).getAmplifier(), 2, "paired Speed reaches III");
-        context.assertValueEqual(find(paired, MobEffects.DIG_SPEED).getAmplifier(), 2, "paired Haste reaches III");
-        context.assertValueEqual(find(paired, MobEffects.WEAKNESS).getAmplifier(), 1, "the cost is the bud's dose, not raised");
-        context.assertValueEqual(find(paired, MobEffects.DAMAGE_RESISTANCE).getAmplifier(), 0, "the hash's own buff is its own count");
+        Line.equal(context, find(paired, MobEffects.MOVEMENT_SPEED).getAmplifier(), 2, "paired Speed reaches III");
+        Line.equal(context, find(paired, MobEffects.DIG_SPEED).getAmplifier(), 2, "paired Haste reaches III");
+        Line.equal(context, find(paired, MobEffects.WEAKNESS).getAmplifier(), 1, "the cost is the bud's dose, not raised");
+        Line.equal(context, find(paired, MobEffects.DAMAGE_RESISTANCE).getAmplifier(), 0, "the hash's own buff is its own count");
 
         // Once: three buds and a whole rosin bowl still stop at III, and the rosin at the plain cap.
         List<MobEffectInstance> heavy = hit(new SmokeContents(List.of(
                 new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 3),
                 new SmokeContents.Entry(strain(context, ModStrains.ROSIN), 3))));
-        context.assertValueEqual(find(heavy, MobEffects.MOVEMENT_SPEED).getAmplifier(), 2, "the bonus is once, not per concentrate");
-        context.assertValueEqual(find(heavy, MobEffects.DAMAGE_RESISTANCE).getAmplifier(), 1, "rosin's own Resistance stays at II");
+        Line.equal(context, find(heavy, MobEffects.MOVEMENT_SPEED).getAmplifier(), 2, "the bonus is once, not per concentrate");
+        Line.equal(context, find(heavy, MobEffects.DAMAGE_RESISTANCE).getAmplifier(), 1, "rosin's own Resistance stays at II");
 
         // Scorched hemp is no concentrate: no buff of its own, so it lifts nothing.
         List<MobEffectInstance> scorched = hit(new SmokeContents(List.of(
                 new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
                 new SmokeContents.Entry(strain(context, ModStrains.SCORCHED_HEMP), 1))));
-        context.assertValueEqual(find(scorched, MobEffects.MOVEMENT_SPEED).getAmplifier(), 1, "scorched hemp does not pair");
+        Line.equal(context, find(scorched, MobEffects.MOVEMENT_SPEED).getAmplifier(), 1, "scorched hemp does not pair");
 
         // And the hash family's Hunger scales like the plant's.
         List<MobEffectInstance> rosin = hit(SmokeContents.of(strain(context, ModStrains.ROSIN), 3));
-        context.assertValueEqual(find(rosin, MobEffects.HUNGER).getAmplifier(), 2, "a rosin bowl is Hunger III");
+        Line.equal(context, find(rosin, MobEffects.HUNGER).getAmplifier(), 2, "a rosin bowl is Hunger III");
         context.succeed();
     }
 
@@ -170,10 +171,10 @@ public final class RebalanceGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void aLoadedDeviceDoesNotBreakMidBowl(GameTestHelper context) {
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         ItemStack pipe = packed(context, ModItems.WOODEN_PIPE, ModStrains.INDICA, 1);
-        int charges = pipe.getOrDefault(ModComponents.CHARGES, 0);
+        int charges = ModComponents.CHARGES.getOrDefault(pipe, 0);
         pipe.setDamageValue(pipe.getMaxDamage() - 2);
         player.setItemInHand(InteractionHand.MAIN_HAND, pipe);
         for (int hit = 1; hit <= charges; hit++) {
@@ -191,21 +192,21 @@ public final class RebalanceGameTest {
     public void ediblesBuyTimeNotLevel(GameTestHelper context) {
         List<MobEffectInstance> perfect = allowed(EdibleEffects.bundle(EdibleBundle.BUILT_IN, 4, Quality.PERFECT, 0));
         int full = EdibleEffects.durationTicks(EdibleBundle.BUILT_IN, Quality.PERFECT);
-        context.assertValueEqual(1, find(perfect, MobEffects.ABSORPTION).getAmplifier(), "Absorption stops at II");
-        context.assertValueEqual(0, find(perfect, MobEffects.DAMAGE_RESISTANCE).getAmplifier(), "Resistance I at tier IV");
-        context.assertValueEqual(0, find(perfect, MobEffects.REGENERATION).getAmplifier(), "Regeneration I");
-        context.assertValueEqual(0, find(perfect, MobEffects.MOVEMENT_SLOWDOWN).getAmplifier(), "Perfect is Slowness I");
-        context.assertValueEqual(full, find(perfect, MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "tier IV runs the full time");
+        Line.equal(context, 1, find(perfect, MobEffects.ABSORPTION).getAmplifier(), "Absorption stops at II");
+        Line.equal(context, 0, find(perfect, MobEffects.DAMAGE_RESISTANCE).getAmplifier(), "Resistance I at tier IV");
+        Line.equal(context, 0, find(perfect, MobEffects.REGENERATION).getAmplifier(), "Regeneration I");
+        Line.equal(context, 0, find(perfect, MobEffects.MOVEMENT_SLOWDOWN).getAmplifier(), "Perfect is Slowness I");
+        Line.equal(context, full, find(perfect, MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "tier IV runs the full time");
         context.assertTrue(find(perfect, MobEffects.HUNGER).getDuration() > full / 2,
                 "the munchies last the high, not a minute");
 
         List<MobEffectInstance> rough = allowed(EdibleEffects.bundle(EdibleBundle.BUILT_IN, 4, Quality.ROUGH, 0));
-        context.assertValueEqual(1, find(rough, MobEffects.MOVEMENT_SLOWDOWN).getAmplifier(), "a Rough tier IV is Slowness II");
+        Line.equal(context, 1, find(rough, MobEffects.MOVEMENT_SLOWDOWN).getAmplifier(), "a Rough tier IV is Slowness II");
 
         List<MobEffectInstance> weak = allowed(EdibleEffects.bundle(EdibleBundle.BUILT_IN, 1, Quality.PERFECT, 0));
-        context.assertValueEqual(full * 5 / 8, find(weak, MobEffects.MOVEMENT_SLOWDOWN).getDuration(),
+        Line.equal(context, full * 5 / 8, find(weak, MobEffects.MOVEMENT_SLOWDOWN).getDuration(),
                 "tier I lasts five eighths of tier IV");
-        context.assertValueEqual(0, find(weak, MobEffects.ABSORPTION).getAmplifier(), "tier I is Absorption I");
+        Line.equal(context, 0, find(weak, MobEffects.ABSORPTION).getAmplifier(), "tier I is Absorption I");
         context.succeed();
     }
 
@@ -262,14 +263,14 @@ public final class RebalanceGameTest {
         ServerPlayer eater = freshPlayer(context);
         EdibleEffects.consume(eater, 4, Quality.PERFECT);
         List<EdibleScheduler.Pending> waiting = EdibleScheduler.pending(eater);
-        context.assertValueEqual(waiting.size(), EdibleBundle.BUILT_IN.effects().size(), "doses waiting after eating a tier-IV edible");
+        Line.equal(context, waiting.size(), EdibleBundle.BUILT_IN.effects().size(), "doses waiting after eating a tier-IV edible");
         context.assertTrue(eater.getActiveEffects().isEmpty(), "an edible landed the moment it was eaten");
 
         CompoundTag saved = eater.saveWithoutId(new CompoundTag());
         ServerPlayer back = freshPlayer(context);
         context.assertTrue(EdibleScheduler.pending(back).isEmpty(), "a fresh player already has doses waiting");
         back.load(saved);
-        context.assertValueEqual(EdibleScheduler.pending(back), waiting, "the doses read back from the save");
+        Line.equal(context, EdibleScheduler.pending(back), waiting, "the doses read back from the save");
         context.succeed();
     }
 
@@ -290,7 +291,7 @@ public final class RebalanceGameTest {
     // ---------------------------------------------------------------------
 
     private static ServerPlayer freshPlayer(GameTestHelper context) {
-        return context.makeMockServerPlayerInLevel();
+        return Players.mock(context);
     }
 
     private static ServerPlayer highPlayer(GameTestHelper context) {
@@ -314,8 +315,8 @@ public final class RebalanceGameTest {
     private static ItemStack packed(GameTestHelper context, Item device, ResourceKey<Strain> strain, int dose) {
         Holder<Strain> entry = strain(context, strain);
         ItemStack stack = new ItemStack(device);
-        stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(entry, dose));
-        stack.set(ModComponents.CHARGES, 4);
+        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(entry, dose));
+        ModComponents.CHARGES.set(stack, 4);
         return stack;
     }
 
@@ -323,7 +324,7 @@ public final class RebalanceGameTest {
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         stack.getItem().use(context.getLevel(), player, InteractionHand.MAIN_HAND);
         // A bong's hit lands at the end of its draw, not on the click: finish the draw.
-        if (stack.getUseDuration(player) > 0) {
+        if (stack.getUseDuration() > 0) {
             stack.getItem().finishUsingItem(stack, context.getLevel(), player);
         }
     }
@@ -341,7 +342,7 @@ public final class RebalanceGameTest {
         context.fail("never a clean hit in " + TRIES);
     }
 
-    private static int level(ServerPlayer player, Holder<MobEffect> effect) {
+    private static int level(ServerPlayer player, MobEffect effect) {
         MobEffectInstance instance = player.getEffect(effect);
         return instance == null ? -1 : instance.getAmplifier();
     }
@@ -350,8 +351,8 @@ public final class RebalanceGameTest {
         return EffectPolicy.filterKeepingDuration(bundle.stream().map(EdibleEffects.Dose::effect).toList());
     }
 
-    private static MobEffectInstance find(List<MobEffectInstance> effects, Holder<MobEffect> type) {
+    private static MobEffectInstance find(List<MobEffectInstance> effects, MobEffect type) {
         return effects.stream().filter(e -> e.getEffect().equals(type)).findFirst()
-                .orElseThrow(() -> new AssertionError("no " + type.getRegisteredName() + " in the bundle"));
+                .orElseThrow(() -> new AssertionError("no " + BuiltInRegistries.MOB_EFFECT.getKey(type) + " in the bundle"));
     }
 }

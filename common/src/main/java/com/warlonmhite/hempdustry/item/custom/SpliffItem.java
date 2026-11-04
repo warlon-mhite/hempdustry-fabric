@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import org.jetbrains.annotations.Nullable;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
@@ -48,7 +49,7 @@ public class SpliffItem extends Item {
 
     @Override
     public Component getName(ItemStack stack) {
-        SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
+        SmokeContents contents = ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY);
         return contents.isEmpty()
                 ? super.getName(stack)
                 : SmokeContents.packedName(this.getDescriptionId() + ".packed", contents);
@@ -68,9 +69,9 @@ public class SpliffItem extends Item {
      * something the player did on purpose.
      */
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+    public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
         super.appendHoverText(stack, context, tooltip, type);
-        stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).hashAdditive()
+        ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).hashAdditive()
                 .ifPresent(hash -> tooltip.add(
                         Component.translatable("hempdustry.spliff.with",
                                         Component.translatable(hash.value().translationKey()))
@@ -80,7 +81,7 @@ public class SpliffItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
+        SmokeContents contents = ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY);
         if (contents.isEmpty() || player.getCooldowns().isOnCooldown(this)) {
             return InteractionResultHolder.pass(stack);
         }

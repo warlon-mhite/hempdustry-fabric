@@ -3,11 +3,8 @@ package com.warlonmhite.hempdustry.sound;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.item.JukeboxSong;
 
 public class ModSounds {
 
@@ -31,23 +28,15 @@ public class ModSounds {
      */
     public static final SoundEvent INFUSER_SIMMER = registerSoundEvent("infuser_simmer");
 
-    // Music discs, vanilla-style: the sound event is a normal registry entry, but the *song*
-    // (length, comparator output, "Now Playing" label) is a datapack entry in the JUKEBOX_SONG
-    // dynamic registry — see resources/data/hempdustry/jukebox_song/.
+    // Music discs, vanilla 1.20.1-style: the sound event is a normal registry entry, and the disc
+    // item itself (a RecordItem, ModItems) carries the length and comparator output.
     public static final SoundEvent MUSIC_DISC_MOONLIGHT = registerSoundEvent("music_disc.moonlight");
-    public static final ResourceKey<JukeboxSong> MOONLIGHT_SONG = jukeboxSong("moonlight");
 
     public static final SoundEvent MUSIC_DISC_ROBADOB = registerSoundEvent("music_disc.robadob");
-    public static final ResourceKey<JukeboxSong> ROBADOB_SONG = jukeboxSong("robadob");
 
     private static SoundEvent registerSoundEvent(String id) {
-        ResourceLocation identifier = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, id);
+        ResourceLocation identifier = new ResourceLocation(Hempdustry.MOD_ID, id);
         return Registry.register(BuiltInRegistries.SOUND_EVENT, identifier, SoundEvent.createVariableRangeEvent(identifier));
-    }
-
-    /** Key into the JUKEBOX_SONG dynamic registry; the entry itself lives in {@code data/…/jukebox_song/}. */
-    private static ResourceKey<JukeboxSong> jukeboxSong(String id) {
-        return ResourceKey.create(Registries.JUKEBOX_SONG, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, id));
     }
 
     public static void registerSounds(){

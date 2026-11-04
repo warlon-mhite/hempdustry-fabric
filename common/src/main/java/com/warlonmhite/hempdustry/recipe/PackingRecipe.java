@@ -9,9 +9,11 @@ import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -50,17 +52,17 @@ import net.minecraft.world.level.Level;
  * {@code maxDose} is 3, so rosin and moon rocks fit nothing else. No rule says so; the numbers do.
  */
 public class PackingRecipe extends CustomRecipe {
-    public PackingRecipe(CraftingBookCategory category) {
-        super(category);
+    public PackingRecipe(ResourceLocation id, CraftingBookCategory category) {
+        super(id, category);
     }
 
     @Override
-    public boolean matches(CraftingInput input, Level world) {
+    public boolean matches(CraftingContainer input, Level world) {
         return find(input, world.registryAccess()) != null;
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider lookup) {
+    public ItemStack assemble(CraftingContainer input, RegistryAccess lookup) {
         Match match = find(input, lookup);
         if (match == null) {
             return ItemStack.EMPTY;
@@ -69,8 +71,8 @@ public class PackingRecipe extends CustomRecipe {
         // Copying the stack rather than building a fresh one is what carries durability and
         // enchantments through. Packing is now just two components being set on the same item.
         ItemStack packed = match.device.copyWithCount(1);
-        packed.set(ModComponents.SMOKE_CONTENTS, match.contents);
-        packed.set(ModComponents.CHARGES, DeviceStats.bowl(lookup, device).hits());
+        ModComponents.SMOKE_CONTENTS.set(packed, match.contents);
+        ModComponents.CHARGES.set(packed, DeviceStats.bowl(lookup, device).hits());
         return packed;
     }
 
@@ -91,7 +93,7 @@ public class PackingRecipe extends CustomRecipe {
      * <p>An already-packed device is rejected deliberately: allowing it would silently discard the
      * bowl already in there along with whatever charges were left on it.
      */
-    private static Match find(CraftingInput input, HolderLookup.Provider registries) {
+    private static Match find(CraftingContainer input, HolderLookup.Provider registries) {
         ItemStack device = ItemStack.EMPTY;
         // A moon rock arrives with its load already built -- the plant at 3 and a pinch of hashish --
         // so it is copied across rather than counted. It is the one item in the grid that IS a bowl,
@@ -99,7 +101,7 @@ public class PackingRecipe extends CustomRecipe {
         SmokeContents preloaded = null;
         Holder<Strain> strain = null;
         int dose = 0;
-        for (int i = 0; i < input.size(); i++) {
+        for (int i = 0; i < input.getContainerSize(); i++) {
             ItemStack stack = input.getItem(i);
             if (stack.isEmpty()) {
                 continue;
@@ -110,7 +112,7 @@ public class PackingRecipe extends CustomRecipe {
                 }
                 device = stack;
             } else if (stack.getItem() instanceof MoonRockItem) {
-                SmokeContents load = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
+                SmokeContents load = ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY);
                 // A stack of them packs one, like a stack of buds: crafting takes one from the slot.
                 if (preloaded != null || load.isEmpty()) {
                     return null; // two of them, or one that carries nothing

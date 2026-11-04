@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import net.minecraft.world.InteractionResult;
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
+import com.warlonmhite.hempdustry.block.ItemUse;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -7,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -47,7 +49,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * growth step rather than being edge-triggered at one exact age, which is what made the pre-rewrite
  * indica crop unrecoverable.
  */
-public class SativaCropBlock extends CropBlock {
+public class SativaCropBlock extends CropBlock implements ItemUse {
     public static final EnumProperty<TriplePlantSegment> SEGMENT =
             EnumProperty.create("segment", TriplePlantSegment.class);
     public static final IntegerProperty AGE = BlockStateProperties.AGE_7;
@@ -111,17 +113,17 @@ public class SativaCropBlock extends CropBlock {
 
     /** Farmland, or one of the mod's beds — a Grow Pot or a Hydro Tray. */
     @Override
-    protected boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
+    public boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
         return super.mayPlaceOn(floor, world, pos) || floor.getBlock() instanceof GrowMedium;
     }
 
     @Override
-    protected ItemLike getBaseSeedId() {
+    public ItemLike getBaseSeedId() {
         return ModItems.SATIVA_SEEDS;
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return switch (state.getValue(SEGMENT)) {
             case UPPER -> UPPER_SHAPE;
             case MIDDLE -> MIDDLE_SHAPE;
@@ -136,7 +138,7 @@ public class SativaCropBlock extends CropBlock {
     // own. The LOWER segment uses the standard crop rule (enough light + farmland below), which
     // is also what stops a seed being planted onto an existing plant.
     @Override
-    protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+    public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         BlockState below = world.getBlockState(pos.below());
         return switch (state.getValue(SEGMENT)) {
             // The UPPER sits on the LOWER while the plant is two tall, and on the MIDDLE once
@@ -150,7 +152,7 @@ public class SativaCropBlock extends CropBlock {
     // ----- growth -----
     // Only the LOWER segment is fertile and random-ticks; it drives the whole plant.
     @Override
-    protected boolean isRandomlyTicking(BlockState state) {
+    public boolean isRandomlyTicking(BlockState state) {
         // Deliberately *not* gated on `age < maxAge` the way vanilla's crops are. A plant that hit
         // age 7 while something was sitting two blocks above it is mature but a block short, and
         // this tick is what lets it finish once the space is cleared instead of staying stunted
@@ -167,7 +169,7 @@ public class SativaCropBlock extends CropBlock {
      * and unlike the random tick it has no light check to incidentally stop it.
      */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
         return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
     }
 
@@ -220,7 +222,7 @@ public class SativaCropBlock extends CropBlock {
     }
 
     @Override
-    protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
         if (!isLower(state)) {
             return;
         }
@@ -314,7 +316,7 @@ public class SativaCropBlock extends CropBlock {
 
     /** A flat one stage per successful bonemeal, for the same reasons as {@link IndicaCropBlock}. */
     @Override
-    protected int getBonemealAgeIncrease(Level world) {
+    public int getBonemealAgeIncrease(Level world) {
         return 1;
     }
 
@@ -389,14 +391,21 @@ public class SativaCropBlock extends CropBlock {
 
     // ----- defoliation -----
 
+    /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.dispatch(useItemOn(player.getItemInHand(hand), state, level, pos, player, hand, hit), hand,
+                () -> InteractionResult.PASS);
+    }
+
     /**
      * Shearing a growing plant takes a fan leaf and shifts its eventual harvest towards buds, the
      * same as on {@link IndicaCropBlock}; the logic lives in {@link Defoliation}. Any of the three
      * segments can be clicked — {@link #findLowerPos} resolves to the LOWER, which is where the age
      * and the trim flags are kept.
      */
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+    public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                              Player player, InteractionHand hand, BlockHitResult hit) {
         BlockPos lowerPos = this.findLowerPos(world, pos, state);
         BlockState lower = world.getBlockState(lowerPos);
@@ -412,7 +421,7 @@ public class SativaCropBlock extends CropBlock {
                 return result;
             }
         }
-        return super.useItemOn(stack, state, world, pos, player, hand, hit);
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     // ----- the smell of a ripe plant -----
@@ -438,7 +447,7 @@ public class SativaCropBlock extends CropBlock {
     // drops for the LOWER segment, so we drop the LOWER's loot by hand when the player broke one
     // of the others, and clear the rest of the stack top-down with drops suppressed.
     @Override
-    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (!world.isClientSide) {
             BlockPos lowerPos = this.findLowerPos(world, pos, state);
             BlockState lower = world.getBlockState(lowerPos);
@@ -465,7 +474,7 @@ public class SativaCropBlock extends CropBlock {
                 }
             }
         }
-        return super.playerWillDestroy(world, pos, state, player);
+        super.playerWillDestroy(world, pos, state, player);
     }
 
     /**
@@ -487,12 +496,12 @@ public class SativaCropBlock extends CropBlock {
     }
 
     @Override
-    protected IntegerProperty getAgeProperty() {
+    public IntegerProperty getAgeProperty() {
         return AGE;
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(AGE, SEGMENT, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED,
                 GrowLight.PROPERTY);
     }

@@ -56,9 +56,8 @@ public final class ApiBridgeGameTest {
     }
 
     private static void assertHas(GameTestHelper context, List<MobEffectInstance> effects,
-                                  Holder<MobEffect> effect, String what) {
-        ResourceKey<MobEffect> key = effect.unwrapKey().orElseThrow();
-        context.assertTrue(effects.stream().anyMatch(instance -> instance.getEffect().is(key)),
+                                  MobEffect effect, String what) {
+        context.assertTrue(effects.stream().anyMatch(instance -> instance.getEffect() == effect),
                 what + " is missing: " + effects);
     }
 }

@@ -1,0 +1,33 @@
+{
+  "parent": "hempdustry:schwag",
+  "criteria": {
+    "smoked_schwag": {
+      "conditions": {
+        "strain": "hempdustry:schwag"
+      },
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.you_get_what_you_pay_for.description"
+    },
+    "frame": "task",
+    "hidden": true,
+    "icon": {
+      "item": "minecraft:emerald"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.you_get_what_you_pay_for.title"
+    }
+  },
+  "requirements": [
+    [
+      "smoked_schwag"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

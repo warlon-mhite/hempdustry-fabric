@@ -1,0 +1,32 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="AGPL-3.0-only AND CC-BY-NC-SA-4.0"
+issueTrackerURL="https://github.com/warlon-mhite/hempdustry-fabric/issues"
+
+[[mods]]
+modId="hempdustry"
+version="${version}"
+displayName="${name}"
+displayURL="https://github.com/warlon-mhite/hempdustry-fabric"
+logoFile="assets/hempdustry/icon.png"
+authors="Warlon Mhite"
+credits="Nefuß (music)"
+description='''${description}'''
+
+# The mixin configs (common's two, shared with Fabric, and the one holding what Forge needs to do what
+# Fabric's loot event already offers) are named in the jar's manifest, where Forge 47 looks for them;
+# the access transformer is META-INF/accesstransformer.cfg, where it looks by default.
+
+[[dependencies.hempdustry]]
+modId="forge"
+mandatory=true
+versionRange="${forge_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.hempdustry]]
+modId="minecraft"
+mandatory=true
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"

@@ -24,7 +24,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
@@ -154,10 +154,10 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         if (world == null || stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        SingleRecipeInput input = new SingleRecipeInput(stack);
+        SimpleContainer input = new SimpleContainer(stack);
         return world.getRecipeManager()
                 .getRecipeFor(ModRecipes.PRESSING_TYPE, input, world)
-                .map(entry -> entry.value().assemble(input, world.registryAccess()))
+                .map(recipe -> recipe.assemble(input, world.registryAccess()))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -212,7 +212,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         if (output.isEmpty()) {
             return result.getCount() <= result.getMaxStackSize();
         }
-        return ItemStack.isSameItemSameComponents(output, result)
+        return ItemStack.isSameItemSameTags(output, result)
                 && output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
@@ -364,7 +364,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
     // ----- screen -----
 
     @Override
-    protected Component getContainerName() {
+    public Component getContainerName() {
         return Component.translatable("block.hempdustry.hemp_press");
     }
 
@@ -377,17 +377,17 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
     // ----- persistence -----
 
     @Override
-    protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider registryLookup) {
-        super.saveAdditional(nbt, registryLookup);
-        ContainerHelper.saveAllItems(nbt, inventory, registryLookup);
+    public void saveAdditional(CompoundTag nbt) {
+        super.saveAdditional(nbt);
+        ContainerHelper.saveAllItems(nbt, inventory);
         nbt.putInt("Progress", progress);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag nbt, HolderLookup.Provider registryLookup) {
-        super.loadAdditional(nbt, registryLookup);
+    public void load(CompoundTag nbt) {
+        super.load(nbt);
         inventory.clear();
-        ContainerHelper.loadAllItems(nbt, inventory, registryLookup);
+        ContainerHelper.loadAllItems(nbt, inventory);
         progress = nbt.getInt("Progress");
         // `heated` is deliberately not persisted: it is a fact about the block below, and the first
         // tick after load reads it. Saving it would let a press come back hot over a cold campfire.

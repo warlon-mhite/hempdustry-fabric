@@ -1,10 +1,10 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -63,14 +63,16 @@ public interface GrowMedium extends BonemealableBlock {
     @Nullable
     static ItemInteractionResult tryFeed(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player) {
-        if (!stack.is(ModTags.Conventional.FERTILIZERS)
+        if (!stack.is(ModTags.Items.FERTILIZERS)
                 || !(state.getBlock() instanceof GrowMedium medium)
-                || !medium.isValidBonemealTarget(world, pos, state)) {
+                || !medium.isValidBonemealTarget(world, pos, state, world.isClientSide)) {
             return null;
         }
         if (world instanceof ServerLevel server) {
             medium.performBonemeal(server, server.getRandom(), pos, state);
-            stack.consume(1, player);
+            if (!player.getAbilities().instabuild) {
+                stack.shrink(1);
+            }
             // Vanilla's own "that was fertilised" feedback, the event BoneMealItem fires.
             server.levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, pos, 0);
         }

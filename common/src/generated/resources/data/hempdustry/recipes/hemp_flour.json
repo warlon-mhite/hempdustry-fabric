@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "hempdustry:hemp_seeds"
+    }
+  ],
+  "result": {
+    "item": "hempdustry:hemp_flour"
+  }
+}

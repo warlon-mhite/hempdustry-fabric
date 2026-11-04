@@ -3,7 +3,7 @@ package com.warlonmhite.hempdustry.platform;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.loot.LootPool;
@@ -20,6 +20,9 @@ public interface Events {
 
     /** Once the server has started and its registries are loaded. */
     void onServerStarted(Consumer<MinecraftServer> listener);
+
+    /** Before the server loads its worlds: the first moment its registries are there to read. */
+    void onServerStarting(Consumer<MinecraftServer> listener);
 
     /** Once the server has stopped. An integrated server stops whenever a world is closed. */
     void onServerStopped(Consumer<MinecraftServer> listener);
@@ -41,11 +44,11 @@ public interface Events {
     @FunctionalInterface
     interface LootTableListener {
         /**
-         * @param builtIn whether the table is the game's -- vanilla's, or one of Mojang's experiment
-         *                packs' -- or a mod's own, as opposed to one a datapack put in its place
+         * @param builtIn whether the table is the game's -- vanilla's, or one of its feature packs'
+         *                -- or a mod's own, as opposed to one a datapack put in its place
          *                ({@code LootTableOrigin})
          */
-        void onLoad(ResourceKey<LootTable> key, boolean builtIn, HolderLookup.Provider registries, LootTableEditor table);
+        void onLoad(ResourceLocation key, boolean builtIn, HolderLookup.Provider registries, LootTableEditor table);
     }
 
     /** The two things the mod does to a table it did not write. */

@@ -47,16 +47,12 @@
 		{
 			"config": "hempdustry.client.mixins.json",
 			"environment": "client"
-		},
-		{
-			"config": "hempdustry.fabric.client.mixins.json",
-			"environment": "client"
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.16.5",
-		"minecraft": ">=1.21.1 <1.21.2",
-		"java": ">=21",
-		"fabric-api": ">=0.105.0"
+		"fabricloader": ">=0.15.11",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": ">=0.92.2"
 	}
 }

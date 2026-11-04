@@ -1,0 +1,39 @@
+{
+  "parent": "hempdustry:cloud_nine",
+  "criteria": {
+    "has_moon_rock": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "hempdustry:moon_rock"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.one_small_step.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:moon_rock"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.one_small_step.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_moon_rock"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

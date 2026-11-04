@@ -1,0 +1,38 @@
+{
+  "parent": "hempdustry:hemp_builder",
+  "criteria": {
+    "placed_a_grow_pot": {
+      "conditions": {
+        "location": [
+          {
+            "block": "hempdustry:grow_pot",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.pothead.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:grow_pot"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.pothead.title"
+    }
+  },
+  "requirements": [
+    [
+      "placed_a_grow_pot"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,12 +1,13 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
+import com.warlonmhite.hempdustry.block.ItemUse;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -46,7 +47,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * that would let a player quietly convert a Space Cake into an ordinary candle cake — losing ours and
  * duplicating vanilla's — and would throw the dose away with it.
  */
-public class SpaceCakeBlock extends CakeBlock {
+public class SpaceCakeBlock extends CakeBlock implements ItemUse {
     /** Dose per bite. <b>0 is inert</b>, for a cake placed without a component. */
     public static final IntegerProperty POTENCY = IntegerProperty.create("potency", 0, EdibleEffects.MAX_TIER);
     /** Carried so a cake baked from a Perfect batch is still a Perfect cake once it is placed. */
@@ -60,7 +61,7 @@ public class SpaceCakeBlock extends CakeBlock {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(POTENCY, QUALITY);
     }
@@ -73,24 +74,43 @@ public class SpaceCakeBlock extends CakeBlock {
                 .setValue(QUALITY, EdibleEffects.qualityOf(stack));
     }
 
+    /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.dispatch(useItemOn(player.getItemInHand(hand), state, level, pos, player, hand, hit), hand,
+                () -> useWithoutItem(state, level, pos, player, hit));
+    }
+
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player,
                                  BlockHitResult hit) {
         // Read the dose off the pre-use state: super may take a bite and rewrite the block.
         int potency = state.getValue(POTENCY);
         Quality quality = state.getValue(QUALITY);
-        InteractionResult result = super.useWithoutItem(state, world, pos, player, hit);
+        InteractionResult result = eatLikeACake(state, world, pos, player);
         if (result.consumesAction() && !world.isClientSide) {
             EdibleEffects.consume(player, potency, quality);
         }
         return result;
     }
 
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+    public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                              Player player, InteractionHand hand, BlockHitResult hit) {
         // Deliberately never the candle branch. Falling through to useWithoutItem means a player holding any
         // item still gets to eat, which is what they meant by right-clicking a cake.
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    /** Vanilla's cake taking a bite: {@code CakeBlock#use} past its candle branch, as 1.20.1 writes it. */
+    private static InteractionResult eatLikeACake(BlockState state, Level world, BlockPos pos, Player player) {
+        if (world.isClientSide) {
+            if (eat(world, pos, state, player).consumesAction()) {
+                return InteractionResult.SUCCESS;
+            }
+            if (player.getMainHandItem().isEmpty()) {
+                return InteractionResult.CONSUME;
+            }
+        }
+        return eat(world, pos, state, player);
     }
 }

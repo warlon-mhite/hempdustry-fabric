@@ -1,0 +1,18 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.warlonmhite.hempdustry.forge.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"refmap": "hempdustry.refmap.json",
+	"mixins": [
+		"LootPoolAccessor",
+		"LootTableAccessor"
+	],
+	"client": [
+		"client.BlockEntityWithoutLevelRendererMixin",
+		"client.HumanoidArmorLayerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

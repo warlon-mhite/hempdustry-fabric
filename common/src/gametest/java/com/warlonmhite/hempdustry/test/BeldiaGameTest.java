@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.resources.ResourceLocation;
+import java.util.List;
+import net.minecraft.world.level.storage.loot.LootDataType;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -102,7 +105,7 @@ public final class BeldiaGameTest {
         // Planting through the real click: a seed goes down on watered sand, and dry sand refuses it
         // without eating the seed.
         context.setBlock(SOIL, Blocks.SAND);
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         ItemStack seeds = new ItemStack(ModItems.BELDIA_SEEDS, 4);
         plant(player, world, soil, seeds);
@@ -172,21 +175,21 @@ public final class BeldiaGameTest {
         BlockPos boxRel = new BlockPos(5, 1, 5);
         BlockPos box = context.absolutePos(boxRel);
         context.setBlock(boxRel, ModBlocks.SIFTING_BOX.defaultBlockState());
-        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        Player player = Line.mockPlayer(context, GameType.SURVIVAL);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(box), Direction.UP, box, false);
         ItemStack buds = new ItemStack(ModItems.BELDIA_BUDS, 64);
         for (int i = 0; i < 3; i++) {
-            world.getBlockState(box).useItemOn(buds, world, player, InteractionHand.MAIN_HAND, hit);
+            Line.useItemOn(world.getBlockState(box),buds, world, player, InteractionHand.MAIN_HAND, hit);
         }
         context.assertTrue(context.getBlockState(boxRel).getValue(SiftingBoxBlock.LEVEL) == 6,
                 "three Beldía buds moved the screen to " + context.getBlockState(boxRel).getValue(SiftingBoxBlock.LEVEL) + ", expected 6");
         // A Purple Kush bud still moves it one, and shares the screen: both are plant matter.
-        world.getBlockState(box).useItemOn(new ItemStack(ModItems.INDICA_BUDS, 4), world, player, InteractionHand.MAIN_HAND, hit);
+        Line.useItemOn(world.getBlockState(box),new ItemStack(ModItems.INDICA_BUDS, 4), world, player, InteractionHand.MAIN_HAND, hit);
         context.assertTrue(context.getBlockState(boxRel).getValue(SiftingBoxBlock.LEVEL) == SiftingBoxBlock.FULL_LEVEL,
                 "a Purple Kush bud on top of three Beldía did not fill the screen");
         context.setBlock(boxRel, ModBlocks.SIFTING_BOX.defaultBlockState());
         for (int i = 0; i < 4; i++) {
-            world.getBlockState(box).useItemOn(buds, world, player, InteractionHand.MAIN_HAND, hit);
+            Line.useItemOn(world.getBlockState(box),buds, world, player, InteractionHand.MAIN_HAND, hit);
         }
         context.assertTrue(context.getBlockState(boxRel).getValue(SiftingBoxBlock.LEVEL) == SiftingBoxBlock.FULL_LEVEL,
                 "four Beldía buds did not fill the screen");
@@ -206,7 +209,7 @@ public final class BeldiaGameTest {
         context.assertTrue(beldia.value().coughFactor() == 0.5F, "Beldía does not cough at twice the odds");
         int length = DeviceType.PIPE.builtInStats().durationTicks();
 
-        ServerPlayer smoker = context.makeMockServerPlayerInLevel();
+        ServerPlayer smoker = Players.mock(context);
         smoker.setGameMode(GameType.SURVIVAL);
         smoke(smoker, world, beldia);
         MobEffectInstance invisible = smoker.getEffect(MobEffects.INVISIBILITY);
@@ -215,11 +218,11 @@ public final class BeldiaGameTest {
         context.assertTrue(smoker.hasEffect(MobEffects.HUNGER), "the hit did not give Hunger");
         context.assertTrue(!smoker.hasEffect(MobEffects.BLINDNESS), "Blindness landed with the hit, not the exhale");
 
-        ServerPlayer dies = context.makeMockServerPlayerInLevel();
+        ServerPlayer dies = Players.mock(context);
         dies.setGameMode(GameType.SURVIVAL);
         smoke(dies, world, beldia);
         dies.kill();
-        ServerPlayer respawned = world.getServer().getPlayerList().respawn(dies, false, Entity.RemovalReason.KILLED);
+        ServerPlayer respawned = world.getServer().getPlayerList().respawn(dies, false);
 
         context.runAtTickTime(EXHALE_TICKS + 5, () -> {
             MobEffectInstance blind = smoker.getEffect(MobEffects.BLINDNESS);
@@ -241,18 +244,16 @@ public final class BeldiaGameTest {
         expect(context, world, Blocks.TALL_GRASS.getLootTable(), seeds, false, "hempdustry:sativa_seeds");
         expect(context, world, BuiltInLootTables.SIMPLE_DUNGEON, seeds, false, "hempdustry:indica_seeds");
         expect(context, world, BuiltInLootTables.SHIPWRECK_SUPPLY, seeds, false, "hempdustry:indica_seeds");
-        // The temple chest. The game-test world enables the Villager Trade Rebalance experiment's pack
-        // but, on this line, leaves vanilla's own stacked above it, so this is vanilla's copy; the
-        // experiment's is LootGameTest's.
+        // The temple chest; 1.20.1 has no experiment pack replacing it.
         expect(context, world, BuiltInLootTables.DESERT_PYRAMID, seeds, true, "minecraft:enchanted_golden_apple");
         expect(context, world, BuiltInLootTables.DESERT_PYRAMID, "hempdustry:indica_seeds", false, null);
         expect(context, world, BuiltInLootTables.DESERT_WELL_ARCHAEOLOGY, seeds, true, "minecraft:arms_up_pottery_sherd");
         expect(context, world, BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY, seeds, true, "minecraft:prize_pottery_sherd");
         // A brushed block keeps one item, so the seeds must be inside vanilla's pool, not beside it.
-        for (ResourceKey<LootTable> key : new ResourceKey[]{BuiltInLootTables.DESERT_WELL_ARCHAEOLOGY, BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY}) {
+        for (ResourceLocation key : List.of(BuiltInLootTables.DESERT_WELL_ARCHAEOLOGY, BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY)) {
             JsonObject json = encode(world, key).getAsJsonObject();
             context.assertTrue(json.getAsJsonArray("pools").size() == 1,
-                    key.location() + " has " + json.getAsJsonArray("pools").size() + " pools — brushing would drop only the first");
+                    key + " has " + json.getAsJsonArray("pools").size() + " pools — brushing would drop only the first");
         }
         context.succeed();
     }
@@ -367,8 +368,8 @@ public final class BeldiaGameTest {
 
     private static void smoke(ServerPlayer player, ServerLevel world, Holder<Strain> strain) {
         ItemStack pipe = new ItemStack(ModItems.WOODEN_PIPE);
-        pipe.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, 1));
-        pipe.set(ModComponents.CHARGES, DeviceType.PIPE.builtInBowl().hits());
+        ModComponents.SMOKE_CONTENTS.set(pipe, SmokeContents.of(strain, 1));
+        ModComponents.CHARGES.set(pipe, DeviceType.PIPE.builtInBowl().hits());
         player.setItemInHand(InteractionHand.MAIN_HAND, pipe);
         player.getCooldowns().removeCooldown(ModItems.WOODEN_PIPE);
         player.gameMode.useItem(player, world, pipe, InteractionHand.MAIN_HAND);
@@ -381,7 +382,7 @@ public final class BeldiaGameTest {
     }
 
     private static LootTable table(ServerLevel world, Block block) {
-        return world.getServer().reloadableRegistries().getLootTable(block.getLootTable());
+        return world.getServer().getLootData().getLootTable(block.getLootTable());
     }
 
     /** {buds, leaves, seeds, stems} from one roll. */
@@ -407,19 +408,19 @@ public final class BeldiaGameTest {
         return counts;
     }
 
-    private static com.google.gson.JsonElement encode(ServerLevel world, ResourceKey<LootTable> key) {
-        LootTable table = world.getServer().reloadableRegistries().getLootTable(key);
-        return LootTable.DIRECT_CODEC.encodeStart(world.registryAccess().createSerializationContext(JsonOps.INSTANCE), table).getOrThrow();
+    private static com.google.gson.JsonElement encode(ServerLevel world, ResourceLocation key) {
+        LootTable table = world.getServer().getLootData().getLootTable(key);
+        return LootDataType.TABLE.parser().toJsonTree(table);
     }
 
     /** As in WarpedKushGameTest: the encoded table names {@code item}, or does not, beside a control that it must. */
-    private static void expect(GameTestHelper context, ServerLevel world, ResourceKey<LootTable> key, String item,
+    private static void expect(GameTestHelper context, ServerLevel world, ResourceLocation key, String item,
                                boolean present, String control) {
         String json = encode(world, key).toString();
         context.assertTrue(json.contains("\"" + item + "\"") == present,
-                key.location() + (present ? " does not name " : " names ") + item);
+                key + (present ? " does not name " : " names ") + item);
         if (control != null) {
-            context.assertTrue(json.contains("\"" + control + "\""), key.location() + " does not name its control " + control);
+            context.assertTrue(json.contains("\"" + control + "\""), key + " does not name its control " + control);
         }
     }
 }

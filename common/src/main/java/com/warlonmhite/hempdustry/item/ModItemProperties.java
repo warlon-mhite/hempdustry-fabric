@@ -36,14 +36,14 @@ import net.minecraft.world.item.Item;
 public final class ModItemProperties {
 
     /** {@code hempdustry:packed} — 0 when the device is empty, 1 when something is loaded. */
-    public static final ResourceLocation PACKED = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "packed");
+    public static final ResourceLocation PACKED = new ResourceLocation(Hempdustry.MOD_ID, "packed");
 
     /** {@code hempdustry:strain} — the loaded strain's {@code model_index}; 0 for "no bespoke art". */
-    public static final ResourceLocation STRAIN = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "strain");
+    public static final ResourceLocation STRAIN = new ResourceLocation(Hempdustry.MOD_ID, "strain");
     /** 1 while this stack is the one being drawn on, as the bow's {@code pulling}. */
-    public static final ResourceLocation DRAWING = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "drawing");
+    public static final ResourceLocation DRAWING = new ResourceLocation(Hempdustry.MOD_ID, "drawing");
     /** How far into a bong's draw, 0 to 1 — the bow's {@code pull}, against the draw's own length. */
-    public static final ResourceLocation DRAW = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "draw");
+    public static final ResourceLocation DRAW = new ResourceLocation(Hempdustry.MOD_ID, "draw");
 
     /**
      * The 3D hand model of a device that stands as a block — the placed bong, with the packed switch.
@@ -52,7 +52,7 @@ public final class ModItemProperties {
      */
     public static ResourceLocation inHandModel(Item item) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "item/" + id.getPath() + "_in_hand");
+        return new ResourceLocation(id.getNamespace(), "item/" + id.getPath() + "_in_hand");
     }
 
     /**

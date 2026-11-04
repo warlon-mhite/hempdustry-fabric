@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.loot;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -16,8 +17,14 @@ import org.jetbrains.annotations.Nullable;
  * pack it came from, and whether the game knows that pack.
  */
 public final class LootTableOrigin {
-    /** The resources the loot tables are being read from, kept by {@code ReloadableServerRegistriesMixin}. */
+    /** The resources the loot tables are being read from, kept by {@code LootDataManagerMixin}. */
     public static volatile @Nullable ResourceManager loading;
+
+    /**
+     * The registries the loot tables are being loaded against, kept by
+     * {@code ReloadableServerResourcesMixin}: the world's strains, which the mod's loot is built from.
+     */
+    public static volatile @Nullable RegistryAccess registries;
 
     private LootTableOrigin() {
     }
@@ -33,13 +40,13 @@ public final class LootTableOrigin {
      * A table with no file at all was built in code by whoever registered it, and counts as theirs.
      */
     public static boolean fromTheGameOrAMod(ResourceManager resources, ResourceLocation table) {
-        return resources.getResource(ResourceLocation.fromNamespaceAndPath(table.getNamespace(), "loot_table/" + table.getPath() + ".json"))
+        return resources.getResource(new ResourceLocation(table.getNamespace(), "loot_tables/" + table.getPath() + ".json"))
                 .map(LootTableOrigin::fromTheGameOrAMod)
                 .orElse(true);
     }
 
-    /** Whether {@code file} came from a pack the game knows by name. */
+    /** Whether {@code file} came from a pack other than a folder datapack. */
     public static boolean fromTheGameOrAMod(Resource file) {
-        return file.source().location().knownPackInfo().isPresent();
+        return !file.sourcePackId().startsWith("file/");
     }
 }

@@ -1,5 +1,11 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.Connection;
+import java.util.UUID;
+import io.netty.channel.embedded.EmbeddedChannel;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -24,8 +30,33 @@ final class Players {
     private Players() {
     }
 
+    /**
+     * Vanilla's mock player ({@code GameTestHelper#makeMockServerPlayerInLevel}), joined through a
+     * connection with a channel under it. Vanilla's has none, and Forge's player list reads the
+     * channel as the player joins; the channel here is a local one that keeps what is sent to it.
+     * Answers CREATIVE to {@code isCreative()} whatever its game mode, as vanilla's does.
+     */
+    static ServerPlayer mock(GameTestHelper context) {
+        ServerLevel level = context.getLevel();
+        ServerPlayer player = new ServerPlayer(level.getServer(), level, new GameProfile(UUID.randomUUID(), "test-mock-player")) {
+            @Override
+            public boolean isSpectator() {
+                return false;
+            }
+
+            @Override
+            public boolean isCreative() {
+                return true;
+            }
+        };
+        Connection connection = new Connection(PacketFlow.SERVERBOUND);
+        new EmbeddedChannel(connection);
+        level.getServer().getPlayerList().placeNewPlayer(connection, player);
+        return player;
+    }
+
     static ServerPlayer survival(GameTestHelper context) {
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = mock(context);
         player.setGameMode(GameType.SURVIVAL);
         return player;
     }

@@ -1,15 +1,15 @@
-// The mod itself, on plain Minecraft: compiled against vanilla only (NeoForm, Mojang's names and
-// Parchment), so nothing here can reach a loader by accident -- an import from Fabric or NeoForge
+// The mod itself, on plain Minecraft: compiled against vanilla only (MCP's 1.20.1 config, Mojang's
+// names and Parchment), so nothing here can reach a loader by accident -- an import from Fabric or Forge
 // fails to compile. Each loader's project compiles these sources into its own jar; this project's
 // own jar is never shipped.
 plugins {
 	id 'multiloader-common'
-	id 'net.neoforged.moddev'
+	id 'net.neoforged.moddev.legacyforge'
 }
 
-neoForge {
-	neoFormVersion = neo_form_version
-	// What the mod reaches in vanilla that vanilla keeps closed; NeoForge reads the same file from
+legacyForge {
+	mcpVersion = mcp_version
+	// What the mod reaches in vanilla that vanilla keeps closed; Forge reads the same file from
 	// the jar. Fabric's form of it is hempdustry.accesswidener, beside it.
 	accessTransformers.from file('src/main/resources/META-INF/accesstransformer.cfg')
 	parchment {
@@ -36,16 +36,18 @@ dependencies {
 	compileOnly "org.jetbrains:annotations:${jetbrains_annotations_version}"
 
 	// The recipe viewers' plugins (compat/) are common's as well, written against each viewer's own
-	// API in Mojang's names: EMI's cross-loader API, JEI's common API, and REI's NeoForge build of its
+	// API in Mojang's names: EMI's cross-loader API, JEI's common API, and REI's Forge build of its
 	// API -- REI's common one is in Fabric's names. Compile-only, as on the loaders, which compile the
 	// same sources against their own builds of each viewer; a player with none never loads a line of it.
 	compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}:api"
 	compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-	compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"
-	compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:${rei_version}"
-	// What REI 16's API names without bringing along -- see gradle.properties.
+	// REI's Forge build of its API, remapped from Forge's names into Mojang's (its common API is in
+	// Fabric's names).
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-forge:${rei_version}"
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-forge:${rei_version}"
+	// What REI's API names without bringing along -- see gradle.properties.
 	compileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"
-	compileOnly("dev.architectury:architectury-neoforge:${architectury_version}") { transitive = false }
+	modCompileOnly("dev.architectury:architectury-forge:${architectury_version}") { transitive = false }
 }
 
 // What the loaders' projects take from here: the sources, and the resources -- hand-written and

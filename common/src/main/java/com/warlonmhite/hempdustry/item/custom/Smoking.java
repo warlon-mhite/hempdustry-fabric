@@ -81,7 +81,7 @@ public final class Smoking {
         for (Item item : SMOKEABLES) {
             player.getCooldowns().addCooldown(item, ticks);
         }
-        used.set(ModComponents.COOLDOWN_UNTIL, player.level().getGameTime() + ticks);
+        ModComponents.COOLDOWN_UNTIL.set(used, player.level().getGameTime() + ticks);
     }
 
     /**
@@ -94,9 +94,9 @@ public final class Smoking {
      * by then the swipe it gated has finished drawing anyway.
      */
     public static void expire(ItemStack stack, Level world) {
-        if (!world.isClientSide && stack.has(ModComponents.COOLDOWN_UNTIL)
-                && world.getGameTime() >= stack.getOrDefault(ModComponents.COOLDOWN_UNTIL, 0L)) {
-            stack.remove(ModComponents.COOLDOWN_UNTIL);
+        if (!world.isClientSide && ModComponents.COOLDOWN_UNTIL.has(stack)
+                && world.getGameTime() >= ModComponents.COOLDOWN_UNTIL.getOrDefault(stack, 0L)) {
+            ModComponents.COOLDOWN_UNTIL.remove(stack);
         }
     }
 
@@ -307,10 +307,10 @@ public final class Smoking {
      * never grants, a potion of Fire Resistance say, are left alone: a green-out is not milk.
      */
     public static void greenOut(Player player, int dose) {
-        GreenOut greenOut = GreenOut.of(player.registryAccess());
+        GreenOut greenOut = GreenOut.of(player.level().registryAccess());
         boolean full = dose >= greenOut.fullFromDose();
         if (full) {
-            for (Holder<MobEffect> buff : buffsTheModGrants(player)) {
+            for (MobEffect buff : buffsTheModGrants(player)) {
                 player.removeEffect(buff);
             }
             player.getFoodData().setSaturation(0f);
@@ -326,16 +326,16 @@ public final class Smoking {
      * Every beneficial effect a loaded strain or an edible can grant. Read off the registry, so a
      * datapack strain's buffs are ended by a green-out the day they exist.
      */
-    private static Set<Holder<MobEffect>> buffsTheModGrants(Player player) {
-        Set<Holder<MobEffect>> out = new HashSet<>();
-        for (EdibleBundle.Effect effect : EdibleBundle.of(player.registryAccess()).effects()) {
-            if (effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL) {
+    private static Set<MobEffect> buffsTheModGrants(Player player) {
+        Set<MobEffect> out = new HashSet<>();
+        for (EdibleBundle.Effect effect : EdibleBundle.of(player.level().registryAccess()).effects()) {
+            if (effect.effect().getCategory() == MobEffectCategory.BENEFICIAL) {
                 out.add(effect.effect());
             }
         }
-        for (Holder<Strain> strain : Strain.registry(player.registryAccess()).listElements().toList()) {
+        for (Holder<Strain> strain : Strain.registry(player.level().registryAccess()).listElements().toList()) {
             for (Strain.SmokeEffect effect : strain.value().smokeEffects()) {
-                if (effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL) {
+                if (effect.effect().getCategory() == MobEffectCategory.BENEFICIAL) {
                     out.add(effect.effect());
                 }
             }

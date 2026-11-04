@@ -1,22 +1,19 @@
 package com.warlonmhite.hempdustry.recipe;
 
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 
 /**
@@ -44,9 +41,9 @@ import net.minecraft.world.level.Level;
  * recipe the tub accepts nothing and produces nothing, which is a legitimate thing for a pack to want
  * and the only sane reading of "there is no conversion".
  */
-public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient washedHemp,
+public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredient hemp, Ingredient washedHemp,
                              Optional<Ingredient> scorchedHemp, ItemStack result)
-        implements Recipe<SingleRecipeInput> {
+        implements Recipe<Container> {
 
     /**
      * The conversion this world is running.
@@ -57,14 +54,13 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
      * genuinely wanted, that is the work.
      */
     public static InfusingRecipe of(Level world) {
-        List<RecipeHolder<InfusingRecipe>> all =
-                world.getRecipeManager().getAllRecipesFor(ModRecipes.INFUSING_TYPE);
-        return all.isEmpty() ? null : all.get(0).value();
+        List<InfusingRecipe> all = world.getRecipeManager().getAllRecipesFor(ModRecipes.INFUSING_TYPE);
+        return all.isEmpty() ? null : all.get(0);
     }
 
     @Override
-    public boolean matches(SingleRecipeInput input, Level world) {
-        ItemStack stack = input.item();
+    public boolean matches(Container input, Level world) {
+        ItemStack stack = input.getItem(0);
         return container.test(stack) || hemp.test(stack) || washedHemp.test(stack) || isScorched(stack);
     }
 
@@ -74,7 +70,7 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     }
 
     @Override
-    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider lookup) {
+    public ItemStack assemble(Container input, RegistryAccess registries) {
         return result.copy();
     }
 
@@ -84,7 +80,7 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider lookup) {
+    public ItemStack getResultItem(RegistryAccess registries) {
         return result;
     }
 
@@ -106,6 +102,11 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     @Override
     public ItemStack getToastSymbol() {
         return new ItemStack(ModBlocks.INFUSER);
+    }
+
+    @Override
+    public ResourceLocation getId() {
+        return id;
     }
 
     @Override
@@ -131,32 +132,37 @@ public record InfusingRecipe(Ingredient container, Ingredient hemp, Ingredient w
     }
 
     public static class Serializer implements RecipeSerializer<InfusingRecipe> {
-        private static final MapCodec<InfusingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Ingredient.CODEC_NONEMPTY.fieldOf("container").forGetter(InfusingRecipe::container),
-                Ingredient.CODEC_NONEMPTY.fieldOf("hemp").forGetter(InfusingRecipe::hemp),
-                Ingredient.CODEC_NONEMPTY.fieldOf("washed_hemp").forGetter(InfusingRecipe::washedHemp),
-                // Optional: see the class notes. Every infusing.json written before it existed
-                // still parses, and means "this tub takes no scorched hemp".
-                Ingredient.CODEC_NONEMPTY.optionalFieldOf("scorched_hemp").forGetter(InfusingRecipe::scorchedHemp),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(InfusingRecipe::result)
-        ).apply(instance, InfusingRecipe::new));
-
-        private static final StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> PACKET_CODEC = StreamCodec.composite(
-                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::container,
-                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::hemp,
-                Ingredient.CONTENTS_STREAM_CODEC, InfusingRecipe::washedHemp,
-                ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), InfusingRecipe::scorchedHemp,
-                ItemStack.STREAM_CODEC, InfusingRecipe::result,
-                InfusingRecipe::new);
-
         @Override
-        public MapCodec<InfusingRecipe> codec() {
-            return CODEC;
+        public InfusingRecipe fromJson(ResourceLocation id, JsonObject json) {
+            return new InfusingRecipe(id,
+                    RecipeJson.ingredient(json, "container"),
+                    RecipeJson.ingredient(json, "hemp"),
+                    RecipeJson.ingredient(json, "washed_hemp"),
+                    // Optional: see the class notes. Every infusing.json written before it existed
+                    // still parses, and means "this tub takes no scorched hemp".
+                    json.has("scorched_hemp")
+                            ? Optional.of(RecipeJson.ingredient(json, "scorched_hemp"))
+                            : Optional.empty(),
+                    RecipeJson.result(json, "result"));
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, InfusingRecipe> streamCodec() {
-            return PACKET_CODEC;
+        public InfusingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            return new InfusingRecipe(id,
+                    Ingredient.fromNetwork(buf),
+                    Ingredient.fromNetwork(buf),
+                    Ingredient.fromNetwork(buf),
+                    buf.readOptional(Ingredient::fromNetwork),
+                    buf.readItem());
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, InfusingRecipe recipe) {
+            recipe.container().toNetwork(buf);
+            recipe.hemp().toNetwork(buf);
+            recipe.washedHemp().toNetwork(buf);
+            buf.writeOptional(recipe.scorchedHemp(), (out, ingredient) -> ingredient.toNetwork(out));
+            buf.writeItem(recipe.result());
         }
     }
 }

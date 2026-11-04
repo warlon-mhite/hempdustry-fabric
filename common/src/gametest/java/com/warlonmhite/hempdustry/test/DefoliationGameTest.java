@@ -138,7 +138,7 @@ public final class DefoliationGameTest {
 
     private static void checkHarvest(GameTestHelper context, ServerLevel world, Vec3 origin,
                                      BlockState mature, Item buds) {
-        LootTable table = world.getServer().reloadableRegistries()
+        LootTable table = world.getServer().getLootData()
                 .getLootTable(mature.getBlock().getLootTable());
         String crop = mature.getBlock().getDescriptionId();
         java.util.Random seeds = new java.util.Random(SEED_SOURCE);

@@ -30,15 +30,15 @@ public final class AddonEventGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void theAddonEventsReachAListener(GameTestHelper context) {
         TestPlatform.AddonProbe probe = TestPlatform.INSTANCE.addonProbe();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         // Everything here happens inside this one call, so no other test's events land in between.
         probe.take();
 
         ItemStack pipe = packedPipe(context);
-        SmokeContents contents = pipe.get(ModComponents.SMOKE_CONTENTS);
+        SmokeContents contents = ModComponents.SMOKE_CONTENTS.get(pipe);
         smoke(context, player, pipe);
         List<TestPlatform.Heard> hit = probe.take();
-        context.assertValueEqual(names(hit), List.of("ALLOW_SMOKE", "AFTER_SMOKE"), "the events of one hit");
+        Line.equal(context, names(hit), List.of("ALLOW_SMOKE", "AFTER_SMOKE"), "the events of one hit");
         for (TestPlatform.Heard event : hit) {
             List<Object> payload = event.payload();
             context.assertTrue(payload.get(0) == player && contents.equals(payload.get(1)) && payload.get(2) == pipe,
@@ -55,19 +55,19 @@ public final class AddonEventGameTest {
         } finally {
             probe.refuseHits(false);
         }
-        context.assertValueEqual(names(probe.take()), List.of("ALLOW_SMOKE"), "the events of a refused hit");
-        context.assertValueEqual(refused.get(ModComponents.CHARGES), 4, "the charges a refused pipe kept");
+        Line.equal(context, names(probe.take()), List.of("ALLOW_SMOKE"), "the events of a refused hit");
+        Line.equal(context, ModComponents.CHARGES.get(refused), 4, "the charges a refused pipe kept");
         context.assertTrue(player.getActiveEffects().isEmpty(), "a refused hit gave " + player.getActiveEffects());
 
         EdibleEffects.consume(player, 2, Quality.CLEAN);
         List<TestPlatform.Heard> eaten = probe.take();
-        context.assertValueEqual(names(eaten), List.of("AFTER_EAT"), "the events of an edible");
-        context.assertValueEqual(eaten.get(0).payload(), List.<Object>of(player, 2, Quality.CLEAN), "what AFTER_EAT carried");
+        Line.equal(context, names(eaten), List.of("AFTER_EAT"), "the events of an edible");
+        Line.equal(context, eaten.get(0).payload(), List.<Object>of(player, 2, Quality.CLEAN), "what AFTER_EAT carried");
 
         InfuserBlockEntity infuser = InfuserBreakGameTest.place(context, TUB, InfuserBlockEntity.minTime());
         infuser.onPreviewTaken();
         List<TestPlatform.Heard> collected = probe.take();
-        context.assertValueEqual(names(collected), List.of("AFTER_INFUSE"), "the events of a collected batch");
+        Line.equal(context, names(collected), List.of("AFTER_INFUSE"), "the events of a collected batch");
         List<Object> batch = collected.get(0).payload();
         context.assertTrue(batch.get(0) == context.getLevel() && context.absolutePos(TUB).equals(batch.get(1))
                         && batch.get(2) instanceof Integer strength && strength > 0 && batch.get(3) instanceof Quality,
@@ -77,9 +77,9 @@ public final class AddonEventGameTest {
 
     private static ItemStack packedPipe(GameTestHelper context) {
         ItemStack pipe = new ItemStack(ModItems.WOODEN_PIPE);
-        pipe.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(context.getLevel().registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(pipe, SmokeContents.of(context.getLevel().registryAccess()
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
-        pipe.set(ModComponents.CHARGES, 4);
+        ModComponents.CHARGES.set(pipe, 4);
         return pipe;
     }
 

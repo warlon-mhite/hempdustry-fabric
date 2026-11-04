@@ -19,7 +19,7 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class DecarboxylatorScreen extends AbstractContainerScreen<DecarboxylatorScreenHandler> {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "textures/gui/container/decarboxylator.png");
+            new ResourceLocation(Hempdustry.MOD_ID, "textures/gui/container/decarboxylator.png");
 
     // Sprite atlas regions inside the 256x256 texture, to the right of the 176x166 panel.
     private static final int FLAME_U = 176, FLAME_V = 0, FLAME_W = 14, FLAME_H = 14;

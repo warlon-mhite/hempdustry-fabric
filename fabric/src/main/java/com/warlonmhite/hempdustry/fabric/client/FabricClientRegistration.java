@@ -112,7 +112,7 @@ public final class FabricClientRegistration implements ClientRegistration {
     public void composedModel(ResourceLocation id, List<ResourceLocation> parts,
                               BiFunction<BakedModel, List<BakedModel>, BakedModel> compose) {
         ModelLoadingPlugin.register(context -> context.modifyModelAfterBake().register((model, bake) -> {
-            if (!id.equals(bake.resourceId())) {
+            if (!id.equals(bake.id())) {
                 return model;
             }
             return compose.apply(model, parts.stream().map(part -> bake.baker().bake(part, bake.settings())).toList());

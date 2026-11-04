@@ -1,7 +1,7 @@
 package com.warlonmhite.hempdustry.platform;
 
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -16,10 +16,29 @@ public interface Menus {
 
     /** A menu type whose client side is built from {@code D}, read off the wire with {@code codec}. */
     <T extends AbstractContainerMenu, D> MenuType<T> menuType(
-            Factory<T, D> factory, StreamCodec<? super RegistryFriendlyByteBuf, D> codec);
+            Factory<T, D> factory, Data<D> codec);
 
-    /** Opens {@code provider}'s menu for {@code player}, sending {@code data} along to the client. */
-    <D> void open(ServerPlayer player, MenuProvider provider, D data);
+    /** Opens {@code provider}'s menu for {@code player}, sending {@code data} along to the client, written with {@code codec}. */
+    <D> void open(ServerPlayer player, MenuProvider provider, Data<D> codec, D data);
+
+    /** How {@code D} is written to the menu-opening packet and read back: a buffer on both loaders on 1.20.1. */
+    interface Data<D> {
+        Data<BlockPos> BLOCK_POS = new Data<>() {
+            @Override
+            public void write(FriendlyByteBuf buf, BlockPos pos) {
+                buf.writeBlockPos(pos);
+            }
+
+            @Override
+            public BlockPos read(FriendlyByteBuf buf) {
+                return buf.readBlockPos();
+            }
+        };
+
+        void write(FriendlyByteBuf buf, D data);
+
+        D read(FriendlyByteBuf buf);
+    }
 
     @FunctionalInterface
     interface Factory<T extends AbstractContainerMenu, D> {

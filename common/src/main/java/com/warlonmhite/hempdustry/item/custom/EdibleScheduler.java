@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.mojang.serialization.DataResult;
+import net.minecraft.nbt.CompoundTag;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
@@ -43,16 +45,27 @@ public final class EdibleScheduler {
     public record Pending(int ticksLeft, MobEffectInstance effect) {
         public static final Codec<Pending> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ExtraCodecs.POSITIVE_INT.fieldOf("ticks_left").forGetter(Pending::ticksLeft),
-                MobEffectInstance.CODEC.fieldOf("effect").forGetter(Pending::effect)
+                EFFECT_CODEC.fieldOf("effect").forGetter(Pending::effect)
         ).apply(instance, Pending::new));
     }
+
+    /**
+     * An effect as 1.20.1 saves one on a mob ({@code MobEffectInstance#save}), which has no codec of its
+     * own there. An effect a world no longer knows fails to read, and the list drops it.
+     */
+    private static final Codec<MobEffectInstance> EFFECT_CODEC = CompoundTag.CODEC.comapFlatMap(
+            tag -> {
+                MobEffectInstance effect = MobEffectInstance.load(tag);
+                return effect != null ? DataResult.success(effect) : DataResult.error(() -> "Unknown effect in " + tag);
+            },
+            effect -> effect.save(new CompoundTag()));
 
     /**
      * Where the pending list is saved on the player, under this id and in {@link #PENDING_CODEC}'s
      * shape. Each loader keeps it with its own player data, and moves it the way {@code PlayerData}
      * says.
      */
-    public static final ResourceLocation PENDING_ID = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "pending_edibles");
+    public static final ResourceLocation PENDING_ID = new ResourceLocation(Hempdustry.MOD_ID, "pending_edibles");
     public static final Codec<List<Pending>> PENDING_CODEC = Pending.CODEC.listOf();
 
     /** Registers the tick pump. Call once from mod init. */

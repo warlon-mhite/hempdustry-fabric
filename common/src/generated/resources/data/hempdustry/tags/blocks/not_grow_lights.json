@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:campfires",
+    "#minecraft:fire",
+    "minecraft:lava",
+    "minecraft:lava_cauldron"
+  ]
+}

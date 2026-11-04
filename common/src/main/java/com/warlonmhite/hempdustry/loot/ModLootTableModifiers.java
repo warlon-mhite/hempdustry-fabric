@@ -11,8 +11,7 @@ import net.minecraft.advancements.critereon.StatePropertiesPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -129,7 +128,7 @@ public class ModLootTableModifiers {
      * 1.21.2 on both keep a second (the bundle) that an edit to every pool would reach.
      */
     private static final float VILLAGE_HOUSE_SEED_CHANCE = 0.10f;
-    private static final Set<ResourceKey<LootTable>> VILLAGE_HOUSE_SOURCES = Set.of(
+    private static final Set<ResourceLocation> VILLAGE_HOUSE_SOURCES = Set.of(
             BuiltInLootTables.VILLAGE_PLAINS_HOUSE,
             BuiltInLootTables.VILLAGE_TAIGA_HOUSE);
     /** Beldía seeds in a desert village house, where the desert's farmers live — as rare as the others. */
@@ -150,7 +149,7 @@ public class ModLootTableModifiers {
     private static final int SHIPWRECK_FIBER_WEIGHT = 3;
     private static final int SHIPWRECK_CANVAS_WEIGHT = 1;
 
-    private static final Set<ResourceKey<LootTable>> DESERT_ARCHAEOLOGY_SOURCES = Set.of(
+    private static final Set<ResourceLocation> DESERT_ARCHAEOLOGY_SOURCES = Set.of(
             BuiltInLootTables.DESERT_WELL_ARCHAEOLOGY,
             BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY);
 
@@ -169,11 +168,11 @@ public class ModLootTableModifiers {
      * The two-block plants that carry a hemp seed, mapped to the block itself — the block is needed
      * to build {@link #onlyTheHalfThatWasBroken}, which has to name it.
      */
-    private static final Map<ResourceKey<LootTable>, Block> GRASS_SOURCES = Map.of(
+    private static final Map<ResourceLocation, Block> GRASS_SOURCES = Map.of(
             Blocks.TALL_GRASS.getLootTable(), Blocks.TALL_GRASS,
             Blocks.LARGE_FERN.getLootTable(), Blocks.LARGE_FERN);
 
-    private static final Set<ResourceKey<LootTable>> CHEST_SOURCES = Set.of(
+    private static final Set<ResourceLocation> CHEST_SOURCES = Set.of(
             BuiltInLootTables.SHIPWRECK_SUPPLY,
             BuiltInLootTables.SIMPLE_DUNGEON,
             BuiltInLootTables.ABANDONED_MINESHAFT,
@@ -181,7 +180,7 @@ public class ModLootTableModifiers {
             BuiltInLootTables.PILLAGER_OUTPOST);
 
     /** The two chests vanilla stocks its common (creeper-droppable) discs in — 13 and cat. */
-    private static final Set<ResourceKey<LootTable>> DISC_CHEST_SOURCES = Set.of(
+    private static final Set<ResourceLocation> DISC_CHEST_SOURCES = Set.of(
             BuiltInLootTables.SIMPLE_DUNGEON,
             BuiltInLootTables.WOODLAND_MANSION);
 
@@ -189,7 +188,7 @@ public class ModLootTableModifiers {
      * Supply chests only — cordage is stores and rigging, not valuables, so it has no business in a
      * shipwreck's treasure chest and nothing to do with the map chest.
      */
-    private static final Set<ResourceKey<LootTable>> FIBER_CHEST_SOURCES = Set.of(
+    private static final Set<ResourceLocation> FIBER_CHEST_SOURCES = Set.of(
             BuiltInLootTables.SHIPWRECK_SUPPLY);
 
     /**
@@ -226,7 +225,8 @@ public class ModLootTableModifiers {
         return LocationCheck.checkLocation(
                 LocationPredicate.Builder.location().setBlock(BlockPredicate.Builder.block()
                         .of(plant)
-                        .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(DoublePlantBlock.HALF, which))),
+                        .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(DoublePlantBlock.HALF, which).build())
+                        .build()),
                 new BlockPos(0, offsetY, 0));
     }
 
@@ -270,9 +270,8 @@ public class ModLootTableModifiers {
             if (!builtIn) {
                 // Don't touch datapack overrides, only the game's and the mods' tables: a pack
                 // curator who replaces a chest table meant to replace it, and an injection they cannot
-                // see is not something to hand them. Mojang's experiment packs count as the game's --
-                // Villager Trade Rebalance replaces the desert temple, mineshaft and outpost chests,
-                // and a player who turns it on keeps the mod's loot in them (LootTableOrigin).
+                // see is not something to hand them. The game's feature packs count as the game's
+                // (LootTableOrigin).
                 return;
             }
             // A pack curator can override a loot *table* with a datapack, but not an injection like
@@ -282,8 +281,7 @@ public class ModLootTableModifiers {
                 return;
             }
             if (GRASS_SOURCES.containsKey(key)) {
-                Holder<Enchantment> fortune =
-                        registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+                Enchantment fortune = Enchantments.BLOCK_FORTUNE;
                 // One entry per active strain at equal weight inside a single roll: the *chance* of
                 // finding a hemp seed stays GRASS_SEED_CHANCE no matter how many strains exist, and
                 // which strain you get is a coin flip. (A pool picks exactly one of its entries.)

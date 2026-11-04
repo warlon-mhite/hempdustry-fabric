@@ -9,5 +9,6 @@ public class HempdustryFabric implements ModInitializer {
     public void onInitialize() {
         Hempdustry.registerDynamicRegistries();
         Hempdustry.init();
+        Hempdustry.setup();
     }
 }

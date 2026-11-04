@@ -48,7 +48,7 @@ public class SativaFlower extends DoublePlantBlock {
     }
 
     @Override
-    protected boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
+    public boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
         return floor.is(BlockTags.DEAD_BUSH_MAY_PLACE_ON) || super.mayPlaceOn(floor, world, pos);
     }
 }

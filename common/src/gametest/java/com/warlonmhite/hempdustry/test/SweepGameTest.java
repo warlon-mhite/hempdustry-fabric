@@ -1,5 +1,10 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.world.level.storage.loot.LootDataType;
+import net.minecraft.world.level.storage.loot.LootDataManager;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
+import net.minecraft.resources.RegistryOps;
+import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -34,7 +39,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
@@ -42,12 +46,11 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.ReloadableServerRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
@@ -64,17 +67,14 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.item.crafting.SingleItemRecipe;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
@@ -146,24 +146,24 @@ public final class SweepGameTest {
         ServerLevel world = context.getLevel();
         Map<String, String> findings = new TreeMap<>();
         List<Sample> samples = samples(world, true, findings);
-        Map<RecipeType<?>, List<RecipeHolder<?>>> byType = new HashMap<>();
-        for (RecipeHolder<?> entry : world.getServer().getRecipeManager().getRecipes()) {
-            byType.computeIfAbsent(entry.value().getType(), type -> new ArrayList<>()).add(entry);
+        Map<RecipeType<?>, List<Recipe<?>>> byType = new HashMap<>();
+        for (Recipe<?> entry : world.getServer().getRecipeManager().getRecipes()) {
+            byType.computeIfAbsent(entry.getType(), type -> new ArrayList<>()).add(entry);
         }
 
         for (Sample sample : samples) {
-            RecipeType<?> type = sample.recipe().value().getType();
+            RecipeType<?> type = sample.recipe().getType();
             // A stonecutter offers every recipe its input fits, by design.
             if (type == RecipeType.STONECUTTING) continue;
             boolean itself = false;
             List<String> others = new ArrayList<>();
-            for (RecipeHolder<?> candidate : byType.get(type)) {
-                if (matches(candidate.value(), sample.input(), world)) {
+            for (Recipe<?> candidate : byType.get(type)) {
+                if (matches(candidate, sample.input(), world)) {
                     if (candidate == sample.recipe()) itself = true;
-                    else others.add(candidate.id().toString());
+                    else others.add(candidate.getId().toString());
                 }
             }
-            String id = sample.recipe().id().toString();
+            String id = sample.recipe().getId().toString();
             if (!itself) {
                 findings.putIfAbsent(id, "does not match its own ingredients: " + sample.describe());
             } else if (!others.isEmpty()) {
@@ -188,11 +188,11 @@ public final class SweepGameTest {
         Map<String, String> findings = new TreeMap<>();
         int checked = 0;
         for (Sample sample : samples(world, false, new HashMap<>())) {
-            RecipeInput stacked = stacked(sample.input());
+            Container stacked = stacked(sample.input());
             if (stacked == null) continue;
             checked++;
-            Recipe<?> recipe = sample.recipe().value();
-            String id = sample.recipe().id().toString();
+            Recipe<?> recipe = sample.recipe();
+            String id = sample.recipe().getId().toString();
             if (!matches(recipe, stacked, world)) {
                 findings.putIfAbsent(id, "refuses " + sample.describe() + " once a slot holds two");
                 continue;
@@ -237,14 +237,15 @@ public final class SweepGameTest {
             containers++;
             for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
                 ItemStack marker = new ItemStack(Items.DIAMOND);
-                marker.set(DataComponents.CUSTOM_NAME, Component.literal("slot " + slot));
+                marker.setHoverName(Component.literal("slot " + slot));
                 inventory.setItem(slot, marker);
             }
             world.destroyBlock(pos, true);
             List<ItemStack> dropped = take(world, pos);
             for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
                 Component name = Component.literal("slot " + slot);
-                if (dropped.stream().noneMatch(drop -> drop.is(Items.DIAMOND) && name.equals(drop.get(DataComponents.CUSTOM_NAME)))) {
+                if (dropped.stream().noneMatch(drop -> drop.is(Items.DIAMOND) && drop.hasCustomHoverName()
+                        && name.getString().equals(drop.getHoverName().getString()))) {
                     findings.put(BuiltInRegistries.BLOCK.getKey(block) + " slot " + slot, "broken, it did not drop what was in this slot");
                 }
             }
@@ -315,20 +316,22 @@ public final class SweepGameTest {
             if (entity instanceof Container inventory) {
                 for (int slot = 0; slot < inventory.getContainerSize(); slot++) inventory.setItem(slot, new ItemStack(Items.DIAMOND, slot + 1));
             }
-            ItemStack named = new ItemStack(block.asItem());
-            if (!named.isEmpty()) {
-                named.set(DataComponents.CUSTOM_NAME, Component.literal("Swept"));
-                entity.applyComponentsFromItemStack(named);
+            // Named as an anvil's name reaches each kind: the machines' own name, a vanilla container's.
+            if (entity instanceof NamedMachineBlockEntity machine) {
+                machine.setCustomName(Component.literal("Swept"));
+            } else if (entity instanceof BaseContainerBlockEntity container) {
+                container.setCustomName(Component.literal("Swept"));
             }
-            CompoundTag saved = entity.saveWithFullMetadata(registries);
-            BlockEntity loaded = BlockEntity.loadStatic(pos, state, saved, registries);
+            CompoundTag saved = entity.saveWithFullMetadata();
+            BlockEntity loaded = BlockEntity.loadStatic(pos, state, saved);
             if (loaded == null) {
                 findings.put(id, "does not load from its own save: " + saved);
-            } else if (!saved.equals(loaded.saveWithFullMetadata(registries))) {
-                findings.put(id, "saved " + saved + " and, loaded, saves " + loaded.saveWithFullMetadata(registries));
+            } else if (!saved.equals(loaded.saveWithFullMetadata())) {
+                findings.put(id, "saved " + saved + " and, loaded, saves " + loaded.saveWithFullMetadata());
             } else if (entity instanceof Container && Sweep.ours(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType()))
                     && Block.getDrops(state, world, pos, loaded).stream().noneMatch(
-                            drop -> drop.is(block.asItem()) && Component.literal("Swept").equals(drop.get(DataComponents.CUSTOM_NAME)))) {
+                            drop -> drop.is(block.asItem()) && drop.hasCustomHoverName()
+                                    && drop.getHoverName().getString().equals("Swept"))) {
                 findings.put(id, "loses its anvil name through a save and a break");
             }
             world.removeBlock(pos, false);
@@ -357,33 +360,34 @@ public final class SweepGameTest {
         List<ItemStack> stacks = new ArrayList<>(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems());
         stacks.addAll(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems());
         for (Sample sample : samples(world, false, new HashMap<>())) {
-            stacks.add(craft(sample.recipe().value(), sample.input(), world));
+            stacks.add(craft(sample.recipe(), sample.input(), world));
         }
 
         Map<String, String> findings = new TreeMap<>();
-        DynamicOps<Tag> nbt = registries.createSerializationContext(NbtOps.INSTANCE);
-        DynamicOps<JsonElement> json = registries.createSerializationContext(JsonOps.INSTANCE);
+        DynamicOps<Tag> nbt = RegistryOps.create(NbtOps.INSTANCE, registries);
+        DynamicOps<JsonElement> json = RegistryOps.create(JsonOps.INSTANCE, registries);
         for (ItemStack stack : stacks) {
             if (stack.isEmpty()) continue;
             String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
             String nbtProblem = roundTrip(ItemStack.CODEC, nbt, stack, ItemStack::matches);
-            String jsonProblem = roundTrip(ItemStack.CODEC, json, stack, ItemStack::matches);
-            RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries);
-            ItemStack.STREAM_CODEC.encode(buffer, stack);
-            ItemStack sent = ItemStack.STREAM_CODEC.decode(buffer);
+            // No JSON leg on 1.20.1: a stack's tag goes through JSON untyped there, its ints coming
+            // back as whatever number fits, in vanilla's own stacks too. The mod writes a stack into
+            // a JSON file only as SNBT text (a recipe result's "nbt"), which keeps the types.
+            String jsonProblem = null;
+            FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+            buffer.writeItem(stack);
+            ItemStack sent = buffer.readItem();
             buffer.release();
             if (nbtProblem != null) findings.putIfAbsent(id, describe(stack) + " in a save: " + nbtProblem);
             else if (jsonProblem != null) findings.putIfAbsent(id, describe(stack) + " as JSON: " + jsonProblem);
             else if (!ItemStack.matches(stack, sent)) findings.putIfAbsent(id, describe(stack) + " arrives as " + describe(sent));
         }
 
-        // Every dynamic registry with the codec its files are read with (Fabric's list: vanilla's never
-        // holds a mod's), then every synced one with the codec it is sent to a client with.
+        // Every dynamic registry with the codec its files are read with (the loader's list: vanilla's
+        // never holds a mod's). The mod sends each to a client with that same codec.
         int dynamic = 0;
-        for (List<RegistryDataLoader.RegistryData<?>> list : List.of(TestPlatform.INSTANCE.dynamicRegistries(), RegistryDataLoader.SYNCHRONIZED_REGISTRIES)) {
-            for (RegistryDataLoader.RegistryData<?> entry : list) {
-                if (Sweep.ours(entry.key().location())) dynamic += roundTripRegistry(entry, registries, json, findings);
-            }
+        for (RegistryDataLoader.RegistryData<?> entry : TestPlatform.INSTANCE.dynamicRegistries()) {
+            if (Sweep.ours(entry.key().location())) dynamic += roundTripRegistry(entry, registries, json, findings);
         }
         Sweep.atLeast(context, "stacks", stacks.size(), 150);
         Sweep.atLeast(context, "entries of our dynamic registries", dynamic, 5);
@@ -416,7 +420,7 @@ public final class SweepGameTest {
         // On this version a repair material is the armour or tool material's Ingredient, and an
         // Ingredient over a tag nobody filled shows a barrier ("Empty Tag") in place of anything.
         for (Item item : BuiltInRegistries.ITEM) {
-            Ingredient repair = item instanceof ArmorItem armor ? armor.getMaterial().value().repairIngredient().get()
+            Ingredient repair = item instanceof ArmorItem armor ? armor.getMaterial().getRepairIngredient()
                     : item instanceof TieredItem tool ? tool.getTier().getRepairIngredient() : null;
             if (Sweep.ours(BuiltInRegistries.ITEM.getKey(item)) && repair != null
                     && Arrays.stream(repair.getItems()).allMatch(stack -> stack.isEmpty() || stack.is(Items.BARRIER))) {
@@ -437,9 +441,8 @@ public final class SweepGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void everyEnchantableItemTakesAnEnchantment(GameTestHelper context) {
-        HolderLookup.RegistryLookup<Enchantment> enchantments = context.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        Enchantment unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING).value();
-        Enchantment mending = enchantments.getOrThrow(Enchantments.MENDING).value();
+        Enchantment unbreaking = Enchantments.UNBREAKING;
+        Enchantment mending = Enchantments.MENDING;
         Map<String, String> findings = new TreeMap<>();
         int checked = 0;
         for (Item item : BuiltInRegistries.ITEM) {
@@ -451,7 +454,7 @@ public final class SweepGameTest {
                 findings.put(id.toString(), "wears out, but Unbreaking "
                         + (unbreaking.canEnchant(stack) ? "takes" : "refuses") + " it and Mending "
                         + (mending.canEnchant(stack) ? "takes" : "refuses") + " it");
-            } else if (enchantments.listElements().noneMatch(enchantment -> enchantment.value().canEnchant(stack))) {
+            } else if (BuiltInRegistries.ENCHANTMENT.stream().noneMatch(enchantment -> enchantment.canEnchant(stack))) {
                 findings.put(id.toString(), "is enchantable, and no enchantment accepts it");
             }
         }
@@ -481,7 +484,7 @@ public final class SweepGameTest {
                     || block instanceof FenceBlock) {
                 String base = id.getPath().replaceAll("_(stairs|slab|wall|fence)$", "");
                 for (String path : List.of(base, base + "_block")) {
-                    ResourceLocation candidate = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), path);
+                    ResourceLocation candidate = new ResourceLocation(id.getNamespace(), path);
                     if (BuiltInRegistries.BLOCK.containsKey(candidate)) like = BuiltInRegistries.BLOCK.get(candidate);
                 }
                 if (like == null) findings.put(id.toString(), "no block it is cut from");
@@ -594,7 +597,7 @@ public final class SweepGameTest {
             for (JsonElement sound : event.getValue().getAsJsonObject().getAsJsonArray("sounds")) {
                 JsonObject spec = sound.isJsonObject() ? sound.getAsJsonObject() : null;
                 if (spec != null && "event".equals(spec.has("type") ? spec.get("type").getAsString() : "file")) continue;
-                ResourceLocation file = ResourceLocation.parse(spec != null ? spec.get("name").getAsString() : sound.getAsString());
+                ResourceLocation file = new ResourceLocation(spec != null ? spec.get("name").getAsString() : sound.getAsString());
                 if (Sweep.ours(file)) named.put(prefix + file.getPath() + ".ogg", true);
             }
         }
@@ -647,7 +650,7 @@ public final class SweepGameTest {
                     world.setBlock(pos, state, Block.UPDATE_CLIENTS);
                     if (world.getBlockState(pos).isRandomlyTicking()) world.getBlockState(pos).randomTick(world, pos, random);
                     world.getBlockState(pos).tick(world, pos, random);
-                    world.getBlockState(pos).handleNeighborChanged(world, pos, Blocks.STONE, null, false);
+                    world.getBlockState(pos).neighborChanged(world, pos, Blocks.STONE, pos.below(), false);
                     BlockState now = world.getBlockState(pos);
                     now.getShape(world, pos);
                     now.getCollisionShape(world, pos);
@@ -684,8 +687,8 @@ public final class SweepGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void everyConfigExtremeKeepsTheNumbersSane(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        JsonObject defaults = HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT)
-                .getOrThrow().getAsJsonObject();
+        JsonObject defaults = orThrow(HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT))
+                .getAsJsonObject();
         Numbers normal = Numbers.now(world);
         Map<String, String> findings = new TreeMap<>();
         for (Extreme extreme : Extreme.values()) {
@@ -737,9 +740,10 @@ public final class SweepGameTest {
         for (TagKey<Item> raw : List.of(ModTags.Conventional.HEMP_CROPS, ModTags.Items.HEMP_SEEDS)) {
             for (Holder<Item> item : registries.lookupOrThrow(Registries.ITEM).getOrThrow(raw)) {
                 ItemStack rawStack = new ItemStack(item);
-                if (rawStack.has(DataComponents.FOOD) || rawStack.getUseAnimation() == UseAnim.EAT
+                if (rawStack.isEdible() || rawStack.getUseAnimation() == UseAnim.EAT
                         || rawStack.getUseAnimation() == UseAnim.DRINK) {
-                    findings.put("heat activates: " + item.getRegisteredName(), "is raw plant and can be eaten or drunk");
+                    findings.put("heat activates: " + item.unwrapKey().map(key -> key.location().toString()).orElse("?"),
+                            "is raw plant and can be eaten or drunk");
                 }
             }
         }
@@ -779,7 +783,7 @@ public final class SweepGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void everyItemCanBeHadInSurvival(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        DynamicOps<JsonElement> json = world.registryAccess().createSerializationContext(JsonOps.INSTANCE);
+        DynamicOps<JsonElement> json = RegistryOps.create(JsonOps.INSTANCE, world.registryAccess());
         Map<String, String> byCode = Map.of(
                 "hempdustry:retted_hemp_stem", "a water cauldron rets hemp stems (ModCauldronBehaviors)",
                 "hempdustry:washed_decarboxylated_hemp", "a water cauldron washes decarboxylated hemp (ModCauldronBehaviors)",
@@ -787,12 +791,12 @@ public final class SweepGameTest {
                 "hempdustry:hempcrete_block", "hempcrete powder hardens into it in water (CustomConcreteBlock)");
         Set<String> had = new HashSet<>(byCode.keySet());
         Map<Block, Set<String>> ourBlockDrops = new HashMap<>();
-        ReloadableServerRegistries.Holder lootTables = world.getServer().reloadableRegistries();
-        for (ResourceLocation id : lootTables.getKeys(Registries.LOOT_TABLE)) {
-            LootTable table = lootTables.getLootTable(ResourceKey.create(Registries.LOOT_TABLE, id));
-            Set<String> drops = ids(LootTable.DIRECT_CODEC.encodeStart(json, table).getOrThrow().toString());
+        LootDataManager lootTables = world.getServer().getLootData();
+        for (ResourceLocation id : lootTables.getKeys(LootDataType.TABLE)) {
+            LootTable table = lootTables.getLootTable(id);
+            Set<String> drops = ids(LootDataType.TABLE.parser().toJsonTree(table).toString());
             Block block = Sweep.ours(id) && id.getPath().startsWith("blocks/")
-                    ? BuiltInRegistries.BLOCK.getOptional(ResourceLocation.fromNamespaceAndPath(id.getNamespace(), id.getPath().substring(7))).orElse(null)
+                    ? BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(id.getNamespace(), id.getPath().substring(7))).orElse(null)
                     : null;
             if (block == null) had.addAll(drops);
             else ourBlockDrops.put(block, drops);
@@ -800,8 +804,8 @@ public final class SweepGameTest {
         // A block worldgen places can be broken where it stands.
         world.registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE).entrySet().forEach(feature -> {
             if (!Sweep.ours(feature.getKey().location())) return;
-            for (String placed : ids(ConfiguredFeature.DIRECT_CODEC.encodeStart(json, feature.getValue()).getOrThrow().toString())) {
-                BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(placed)).map(ourBlockDrops::get).ifPresent(had::addAll);
+            for (String placed : ids(orThrow(ConfiguredFeature.DIRECT_CODEC.encodeStart(json, feature.getValue())).toString())) {
+                BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(placed)).map(ourBlockDrops::get).ifPresent(had::addAll);
             }
         });
         List<Sample> samples = samples(world, true, new HashMap<>());
@@ -812,12 +816,12 @@ public final class SweepGameTest {
             }
             for (Sample sample : samples) {
                 boolean supplied = true;
-                for (int i = 0; i < sample.input().size(); i++) {
+                for (int i = 0; i < sample.input().getContainerSize(); i++) {
                     ResourceLocation needed = BuiltInRegistries.ITEM.getKey(sample.input().getItem(i).getItem());
                     supplied &= sample.input().getItem(i).isEmpty() || !Sweep.ours(needed) || had.contains(needed.toString());
                 }
                 if (supplied) {
-                    grew |= had.add(BuiltInRegistries.ITEM.getKey(craft(sample.recipe().value(), sample.input(), world).getItem()).toString());
+                    grew |= had.add(BuiltInRegistries.ITEM.getKey(craft(sample.recipe(), sample.input(), world).getItem()).toString());
                 }
             }
         }
@@ -846,10 +850,10 @@ public final class SweepGameTest {
 
     // ----- recipes -----
 
-    private record Sample(RecipeHolder<?> recipe, RecipeInput input) {
+    private record Sample(Recipe<?> recipe, Container input) {
         String describe() {
             List<String> items = new ArrayList<>();
-            for (int i = 0; i < input.size(); i++) {
+            for (int i = 0; i < input.getContainerSize(); i++) {
                 if (!input.getItem(i).isEmpty()) items.add(BuiltInRegistries.ITEM.getKey(input.getItem(i).getItem()).toString());
             }
             return items.toString();
@@ -863,10 +867,10 @@ public final class SweepGameTest {
      */
     private static List<Sample> samples(ServerLevel world, boolean everyChoice, Map<String, String> findings) {
         List<Sample> samples = new ArrayList<>();
-        for (RecipeHolder<?> entry : world.getServer().getRecipeManager().getRecipes()) {
-            ResourceLocation id = entry.id();
+        for (Recipe<?> entry : world.getServer().getRecipeManager().getRecipes()) {
+            ResourceLocation id = entry.getId();
             if (!Sweep.ours(id)) continue;
-            Recipe<?> recipe = entry.value();
+            Recipe<?> recipe = entry;
             List<List<ItemStack>> slots = new ArrayList<>();
             if (recipe instanceof ShapedRecipe shaped) {
                 for (Ingredient ingredient : shaped.getIngredients()) {
@@ -888,7 +892,7 @@ public final class SweepGameTest {
                     List<ItemStack> choices = choices(ingredient);
                     if (choices.isEmpty()) findings.putIfAbsent(id.toString(), "has an ingredient nothing satisfies");
                     for (ItemStack choice : everyChoice ? choices : choices.subList(0, Math.min(1, choices.size()))) {
-                        samples.add(new Sample(entry, new SingleRecipeInput(choice)));
+                        samples.add(new Sample(entry, new SimpleContainer(choice)));
                     }
                     if (!everyChoice) break;
                 }
@@ -907,16 +911,16 @@ public final class SweepGameTest {
     }
 
     /** The grid made of each slot's first choice, and with {@code everyChoice} a grid per other choice. */
-    private static void grids(RecipeHolder<?> entry, int width, int height, List<List<ItemStack>> slots,
+    private static void grids(Recipe<?> entry, int width, int height, List<List<ItemStack>> slots,
                               boolean everyChoice, List<Sample> into, Map<String, String> findings) {
         while (slots.size() < width * height) slots.add(List.of(ItemStack.EMPTY));
         List<ItemStack> first = new ArrayList<>();
         for (List<ItemStack> slot : slots) {
             if (slot.isEmpty()) {
-                findings.putIfAbsent(entry.id().toString(), "has an ingredient nothing satisfies");
+                findings.putIfAbsent(entry.getId().toString(), "has an ingredient nothing satisfies");
                 return;
             }
-            first.add(slot.getFirst());
+            first.add(slot.get(0));
         }
         into.add(new Sample(entry, CraftingInput.of(width, height, first)));
         if (!everyChoice) return;
@@ -930,28 +934,29 @@ public final class SweepGameTest {
     }
 
     /** The same input with every stackable item doubled, or null if nothing in it stacks. */
-    private static RecipeInput stacked(RecipeInput input) {
-        if (input instanceof SingleRecipeInput single) {
-            return single.item().getMaxStackSize() > 1 ? new SingleRecipeInput(single.item().copyWithCount(2)) : null;
+    private static Container stacked(Container input) {
+        if (input instanceof SimpleContainer single) {
+            return single.getItem(0).getMaxStackSize() > 1 ? new SimpleContainer(single.getItem(0).copyWithCount(2)) : null;
         }
         CraftingInput grid = (CraftingInput) input;
         boolean any = false;
         List<ItemStack> doubled = new ArrayList<>();
-        for (ItemStack stack : grid.items()) {
+        for (int slot = 0; slot < grid.getContainerSize(); slot++) {
+            ItemStack stack = grid.getItem(slot);
             boolean grows = !stack.isEmpty() && stack.getMaxStackSize() > 1;
             any |= grows;
             doubled.add(grows ? stack.copyWithCount(2) : stack);
         }
-        return any ? CraftingInput.of(grid.width(), grid.height(), doubled) : null;
+        return any ? CraftingInput.of(grid.getWidth(), grid.getHeight(), doubled) : null;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static boolean matches(Recipe<?> recipe, RecipeInput input, ServerLevel world) {
+    private static boolean matches(Recipe<?> recipe, Container input, ServerLevel world) {
         return ((Recipe) recipe).matches(input, world);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static ItemStack craft(Recipe<?> recipe, RecipeInput input, ServerLevel world) {
+    private static ItemStack craft(Recipe<?> recipe, Container input, ServerLevel world) {
         return ((Recipe) recipe).assemble(input, world.registryAccess());
     }
 
@@ -1047,13 +1052,17 @@ public final class SweepGameTest {
 
     // ----- codecs -----
 
+    private static <T> T orThrow(DataResult<T> result) {
+        return result.getOrThrow(false, error -> { });
+    }
+
     /** What is wrong with {@code value} after an encode and a decode through {@code codec}, or null. */
     private static <T, F> String roundTrip(Codec<T> codec, DynamicOps<F> ops, T value, java.util.function.BiPredicate<T, T> same) {
         DataResult<F> encoded = codec.encodeStart(ops, value);
-        if (encoded.isError()) return "does not encode: " + encoded.error().orElseThrow().message();
-        DataResult<T> decoded = codec.parse(ops, encoded.getOrThrow());
-        if (decoded.isError()) return "does not decode what it wrote: " + decoded.error().orElseThrow().message();
-        return same.test(value, decoded.getOrThrow()) ? null : "comes back different: " + encoded.getOrThrow();
+        if (encoded.error().isPresent()) return "does not encode: " + encoded.error().get().message();
+        DataResult<T> decoded = codec.parse(ops, orThrow(encoded));
+        if (decoded.error().isPresent()) return "does not decode what it wrote: " + decoded.error().get().message();
+        return same.test(value, orThrow(decoded)) ? null : "comes back different: " + orThrow(encoded);
     }
 
     /** Round-trips every entry of one of our dynamic registries through its codec; returns how many. */
@@ -1064,10 +1073,14 @@ public final class SweepGameTest {
         for (Map.Entry<ResourceKey<T>, T> element : registry.entrySet()) {
             // Compared as what they encode to: an entry need not have a value-based equals.
             DataResult<JsonElement> first = codec.encodeStart(json, element.getValue());
-            String problem = first.isError() ? "does not encode: " + first.error().orElseThrow().message()
-                    : codec.parse(json, first.getOrThrow()).flatMap(back -> codec.encodeStart(json, back))
-                    .mapOrElse(again -> again.equals(first.getOrThrow()) ? null : "comes back as " + again,
-                            error -> "does not decode what it wrote: " + error.message());
+            String problem;
+            if (first.error().isPresent()) {
+                problem = "does not encode: " + first.error().get().message();
+            } else {
+                DataResult<JsonElement> again = codec.parse(json, orThrow(first)).flatMap(back -> codec.encodeStart(json, back));
+                problem = again.error().isPresent() ? "does not decode what it wrote: " + again.error().get().message()
+                        : orThrow(again).equals(orThrow(first)) ? null : "comes back as " + orThrow(again);
+            }
             if (problem != null) findings.put(element.getKey().location() + " (" + entry.key().location() + ")", problem);
         }
         return registry.entrySet().size();
@@ -1087,7 +1100,7 @@ public final class SweepGameTest {
     }
 
     private static String describe(ItemStack stack) {
-        return stack.getCount() + " " + BuiltInRegistries.ITEM.getKey(stack.getItem()) + stack.getComponentsPatch();
+        return stack.getCount() + " " + BuiltInRegistries.ITEM.getKey(stack.getItem()) + (stack.getTag() == null ? "" : stack.getTag());
     }
 
     /** The channel count in an Ogg Vorbis file's identification header, or -1 if there is none. */

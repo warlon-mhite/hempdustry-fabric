@@ -1,18 +1,14 @@
 package com.warlonmhite.hempdustry.recipe;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import com.google.gson.JsonObject;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
-import net.minecraft.world.item.crafting.ShapedRecipePattern;
 
 /**
  * A shaped recipe that carries cannabutter's potency and quality onto its output — see
@@ -23,21 +19,25 @@ import net.minecraft.world.item.crafting.ShapedRecipePattern;
  * {@code 0} is neutral, {@code -1} spreads the butter thin.
  */
 public class InfusedShapedRecipe extends ShapedRecipe {
-    private final ShapedRecipePattern raw;
-    private final ItemStack result;
     private final int offset;
 
-    public InfusedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern raw,
-                               ItemStack result, int offset) {
-        super(group, category, raw, result);
-        this.raw = raw;
-        this.result = result;
+    /**
+     * Vanilla's shaped recipe with an offset: the file is vanilla's shaped recipe plus an
+     * {@code "offset"}, so vanilla's serializer reads everything but that one field.
+     */
+    public InfusedShapedRecipe(ShapedRecipe base, int offset) {
+        super(base.getId(), base.getGroup(), base.category(), base.getWidth(), base.getHeight(),
+                base.getIngredients(), base.getResultItem(null), base.showNotification());
         this.offset = offset;
     }
 
+    public int offset() {
+        return offset;
+    }
+
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider lookup) {
-        return Infusion.transfer(input, super.assemble(input, lookup), offset);
+    public ItemStack assemble(CraftingContainer input, RegistryAccess registries) {
+        return Infusion.transfer(input, super.assemble(input, registries), offset);
     }
 
     @Override
@@ -46,31 +46,20 @@ public class InfusedShapedRecipe extends ShapedRecipe {
     }
 
     public static class Serializer implements RecipeSerializer<InfusedShapedRecipe> {
-        private static final MapCodec<InfusedShapedRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Codec.STRING.optionalFieldOf("group", "").forGetter(ShapedRecipe::getGroup),
-                CraftingBookCategory.CODEC.fieldOf("category")
-                        .orElse(CraftingBookCategory.MISC).forGetter(ShapedRecipe::category),
-                ShapedRecipePattern.MAP_CODEC.forGetter(recipe -> recipe.raw),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
-                Codec.INT.optionalFieldOf("offset", 0).forGetter(recipe -> recipe.offset)
-        ).apply(instance, InfusedShapedRecipe::new));
-
-        private static final StreamCodec<RegistryFriendlyByteBuf, InfusedShapedRecipe> PACKET_CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8, ShapedRecipe::getGroup,
-                CraftingBookCategory.STREAM_CODEC, ShapedRecipe::category,
-                ShapedRecipePattern.STREAM_CODEC, recipe -> recipe.raw,
-                ItemStack.STREAM_CODEC, recipe -> recipe.result,
-                ByteBufCodecs.VAR_INT, recipe -> recipe.offset,
-                InfusedShapedRecipe::new);
-
         @Override
-        public MapCodec<InfusedShapedRecipe> codec() {
-            return CODEC;
+        public InfusedShapedRecipe fromJson(ResourceLocation id, JsonObject json) {
+            return new InfusedShapedRecipe(RecipeJson.shaped(id, json), GsonHelper.getAsInt(json, "offset", 0));
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, InfusedShapedRecipe> streamCodec() {
-            return PACKET_CODEC;
+        public InfusedShapedRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            return new InfusedShapedRecipe(RecipeSerializer.SHAPED_RECIPE.fromNetwork(id, buf), buf.readVarInt());
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, InfusedShapedRecipe recipe) {
+            RecipeSerializer.SHAPED_RECIPE.toNetwork(buf, recipe);
+            buf.writeVarInt(recipe.offset);
         }
     }
 }

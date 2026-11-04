@@ -27,7 +27,7 @@
         "blocks": [
           "minecraft:air",
           "minecraft:moss_carpet",
-          "minecraft:short_grass"
+          "minecraft:grass"
         ]
       },
       "direction_of_search": "down",

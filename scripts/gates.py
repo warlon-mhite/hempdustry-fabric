@@ -55,7 +55,7 @@ def vanilla_data():
         jar = pathlib.Path.home() / ".gradle/caches/fabric-loom" / minecraft_version() / "minecraft-client.jar"
         with zipfile.ZipFile(jar) as z:
             for name in z.namelist():
-                if name.startswith("data/minecraft/recipe/"):
+                if name.startswith(("data/minecraft/recipe/", "data/minecraft/recipes/")):
                     z.extract(name, out)
     return out
 
@@ -74,8 +74,11 @@ def cold(task, generated):
                         f" && git status --porcelain -- {generated} | head -20"]
 
 
+#: the second loader's name in the table: NeoForge, or Forge on the 1.20.1 line
+SECOND = {":neoforge:": "NeoForge", ":forge:": "Forge"}.get(LAYOUT.neoforge, "NeoForge")
+
 #: Each cold data run and the folder it writes.
-COLD = {"cold datagen": GENERATED, "NeoForge cold datagen": NEOFORGE_GENERATED}
+COLD = {"cold datagen": GENERATED, f"{SECOND} cold datagen": NEOFORGE_GENERATED}
 
 
 def gates(args):
@@ -90,17 +93,17 @@ def gates(args):
     tests_verdict = lambda output: last(r"nobody expected")(output) or last(r"required tests")(output) or last(r"BUILD")(output)
     yield "game tests", ["./gradlew", LAYOUT.fabric + "runGametest", "--console=plain"], tests_verdict
     if LAYOUT.neoforge:
-        yield "NeoForge game tests", ["./gradlew", LAYOUT.neoforge + "runGameTestServer", "--console=plain"], tests_verdict
+        yield f"{SECOND} game tests", ["./gradlew", LAYOUT.neoforge + "runGameTestServer", "--console=plain"], tests_verdict
     if not args.quick:
         yield "cold datagen", cold(LAYOUT.fabric + "runDatagen", GENERATED), last(r"\S")
         if LAYOUT.neoforge:
-            yield "NeoForge cold datagen", cold(LAYOUT.neoforge + "runData", NEOFORGE_GENERATED), last(r"\S")
+            yield f"{SECOND} cold datagen", cold(LAYOUT.neoforge + "runData", NEOFORGE_GENERATED), last(r"\S")
         yield "build", ["./gradlew", "build", "--console=plain"], last(r"BUILD")
     if args.released:
         yield "API kept", py + [script("api_additive.py"), args.released, newest_jar(LAYOUT.fabric_libs)], \
             last(r"missing")
     if args.released_neoforge:
-        yield "NeoForge API kept", py + [script("api_additive.py"), args.released_neoforge,
+        yield f"{SECOND} API kept", py + [script("api_additive.py"), args.released_neoforge,
                                          newest_jar(LAYOUT.neoforge_libs)], last(r"missing")
 
 

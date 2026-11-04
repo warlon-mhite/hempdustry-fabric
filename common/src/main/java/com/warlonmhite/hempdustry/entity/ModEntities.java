@@ -24,17 +24,15 @@ public class ModEntities {
     public static final EntityType<HempBoatEntity> HEMP_BOAT = register("hemp_boat",
             EntityType.Builder.<HempBoatEntity>of(HempBoatEntity::new, MobCategory.MISC)
                     .sized(1.375F, 0.5625F)
-                    .eyeHeight(0.5625F)
                     .clientTrackingRange(10));
 
     public static final EntityType<HempChestBoatEntity> HEMP_CHEST_BOAT = register("hemp_chest_boat",
             EntityType.Builder.<HempChestBoatEntity>of(HempChestBoatEntity::new, MobCategory.MISC)
                     .sized(1.375F, 0.5625F)
-                    .eyeHeight(0.5625F)
                     .clientTrackingRange(10));
 
     private static <T extends Entity> EntityType<T> register(String name, EntityType.Builder<T> builder) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name);
+        ResourceLocation id = new ResourceLocation(Hempdustry.MOD_ID, name);
         return Registry.register(BuiltInRegistries.ENTITY_TYPE, id, Services.REGISTRATION.entityType(builder, id));
     }
 

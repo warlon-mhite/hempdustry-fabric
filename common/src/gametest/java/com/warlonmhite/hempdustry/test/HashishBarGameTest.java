@@ -59,11 +59,11 @@ public final class HashishBarGameTest {
             context.assertTrue(result.consumesAction(),
                     "cut " + (cut + 1) + " was not accepted by the interaction manager");
             if (cut < 4) {
-                context.assertValueEqual(cut + 1, context.getBlockState(BAR).getValue(HashishBarBlock.CUTS),
+                Line.equal(context, cut + 1, context.getBlockState(BAR).getValue(HashishBarBlock.CUTS),
                         "the cut count did not advance");
             }
         }
-        context.assertValueEqual(9, expected, "the yield table no longer sums to nine");
+        Line.equal(context, 9, expected, "the yield table no longer sums to nine");
         context.assertTrue(context.getBlockState(BAR).isAir(),
                 "the fifth cut left the bar standing instead of removing it");
         context.assertTrue(sword.getDamageValue() == 5,
@@ -85,7 +85,7 @@ public final class HashishBarGameTest {
     public void brokenBarDropsWhatIsLeft(GameTestHelper context) {
         context.setBlock(BAR, ModBlocks.HASHISH_BAR.defaultBlockState()
                 .setValue(HashishBarBlock.CUTS, 2));
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         context.getLevel().destroyBlock(context.absolutePos(BAR), true, player);

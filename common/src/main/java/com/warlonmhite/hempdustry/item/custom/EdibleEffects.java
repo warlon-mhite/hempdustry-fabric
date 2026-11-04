@@ -83,12 +83,12 @@ public final class EdibleEffects {
 
     /** The potency an edible stack carries, or 0 if it carries none. */
     public static int potencyOf(ItemStack stack) {
-        return stack.getOrDefault(ModComponents.POTENCY, 0);
+        return ModComponents.POTENCY.getOrDefault(stack, 0);
     }
 
     /** The quality an edible stack carries, defaulting to the floor. */
     public static Quality qualityOf(ItemStack stack) {
-        Quality quality = stack.get(ModComponents.QUALITY);
+        Quality quality = ModComponents.QUALITY.get(stack);
         return quality == null ? Quality.ROUGH : quality;
     }
 
@@ -125,7 +125,7 @@ public final class EdibleEffects {
             // about, and no event fires.
             return;
         }
-        EdibleBundle data = EdibleBundle.of(player.registryAccess());
+        EdibleBundle data = EdibleBundle.of(player.level().registryAccess());
         for (Dose dose : bundle(data, tier, quality, rollOnsetTicks(data, quality, ThreadLocalRandom.current()))) {
             queue(player, dose.delay(), dose.effect());
         }
@@ -157,7 +157,7 @@ public final class EdibleEffects {
         return out;
     }
 
-    private static void add(List<Dose> out, int delay, Holder<MobEffect> effect,
+    private static void add(List<Dose> out, int delay, MobEffect effect,
                             int amplifier, int duration) {
         if (duration > 0) {
             out.add(new Dose(delay, new MobEffectInstance(effect, duration, amplifier)));
@@ -189,7 +189,7 @@ public final class EdibleEffects {
         }
         tooltip.add(Component.translatable("hempdustry.edible.potency",
                 Component.translatable("enchantment.level." + potency)).withStyle(ChatFormatting.GRAY));
-        Quality quality = stack.get(ModComponents.QUALITY);
+        Quality quality = ModComponents.QUALITY.get(stack);
         if (quality != null) {
             tooltip.add(Component.translatable("hempdustry.edible.quality",
                     Component.translatable(quality.getTranslationKey())).withStyle(ChatFormatting.DARK_GRAY));

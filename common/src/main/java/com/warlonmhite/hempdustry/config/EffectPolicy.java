@@ -88,7 +88,7 @@ public final class EffectPolicy {
         }
         // Category rather than a list of ids: a datapack strain handing out Wither or Poison is
         // caught by the same switch as the mod's own Mining Fatigue, with no maintenance.
-        return config.debuffs() || instance.getEffect().value().getCategory() != MobEffectCategory.HARMFUL;
+        return config.debuffs() || instance.getEffect().getCategory() != MobEffectCategory.HARMFUL;
     }
 
     /** A duration in ticks, scaled. Never rounds to zero — a 1-tick effect is still an effect. */
@@ -105,15 +105,15 @@ public final class EffectPolicy {
      * strain's Regeneration is a buff the day it is written. A cost is left to scale with the dose,
      * which is what makes a big dose a real decision now that its buffs stop early.
      */
-    public static int amplifier(Holder<MobEffect> effect, int amplifier) {
+    public static int amplifier(MobEffect effect, int amplifier) {
         return amplifier(effect, amplifier, 0);
     }
 
     /** As above, with the buff cap raised by {@code buffBonus}; {@code maxLevel} still holds. */
-    public static int amplifier(Holder<MobEffect> effect, int amplifier, int buffBonus) {
+    public static int amplifier(MobEffect effect, int amplifier, int buffBonus) {
         Effects config = HempdustryConfig.get().effects();
         int cap = config.maxLevel();
-        if (effect.value().getCategory() == MobEffectCategory.BENEFICIAL) {
+        if (effect.getCategory() == MobEffectCategory.BENEFICIAL) {
             cap = Math.min(cap, config.maxBuffLevel() + buffBonus);
         }
         return Math.min(amplifier, cap - 1);

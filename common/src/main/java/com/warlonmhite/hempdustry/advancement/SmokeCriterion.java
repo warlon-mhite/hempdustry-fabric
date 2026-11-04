@@ -1,18 +1,21 @@
 package com.warlonmhite.hempdustry.advancement;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonObject;
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.Optional;
-import net.minecraft.advancements.Criterion;
+import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.critereon.DeserializationContext;
 import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.critereon.SerializationContext;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 
@@ -30,84 +33,103 @@ import net.minecraft.world.level.ItemLike;
  * so a strain a pack adds can be asked for exactly as the mod's own are.
  */
 public class SmokeCriterion extends SimpleCriterionTrigger<SmokeCriterion.Conditions> {
+    static final ResourceLocation ID = new ResourceLocation(Hempdustry.MOD_ID, "smoke");
 
-    /**
-     * Call from the server side after a hit lands.
-     *
-     * @param timeOfDay the world's time of day, already reduced to {@code getDayTime() % 24000}
-     *                  (tick 0 = 6:00 AM, 1000 ticks per in-game hour).
-     */
     public void trigger(ServerPlayer player, long timeOfDay, ItemStack stack) {
         this.trigger(player, conditions -> conditions.matches(timeOfDay, stack));
     }
 
     @Override
-    public Codec<Conditions> codec() {
-        return Conditions.CODEC;
+    public ResourceLocation getId() {
+        return ID;
     }
 
-    public record Conditions(Optional<ContextAwarePredicate> player, Optional<ItemPredicate> item,
-                             Optional<TimeWindow> time, Optional<ResourceKey<Strain>> strain)
-            implements SimpleCriterionTrigger.SimpleInstance {
-        public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
-                ItemPredicate.CODEC.optionalFieldOf("item").forGetter(Conditions::item),
-                TimeWindow.CODEC.optionalFieldOf("time").forGetter(Conditions::time),
-                ResourceKey.codec(Strain.REGISTRY_KEY).optionalFieldOf("strain").forGetter(Conditions::strain)
-        ).apply(instance, Conditions::new));
+    @Override
+    protected Conditions createInstance(JsonObject json, ContextAwarePredicate player, DeserializationContext context) {
+        return new Conditions(player,
+                json.has("item") ? Optional.of(ItemPredicate.fromJson(json.get("item"))) : Optional.empty(),
+                json.has("time") ? Optional.of(TimeWindow.fromJson(GsonHelper.getAsJsonObject(json, "time"))) : Optional.empty(),
+                json.has("strain")
+                        ? Optional.of(ResourceKey.create(Strain.REGISTRY_KEY, new ResourceLocation(GsonHelper.getAsString(json, "strain"))))
+                        : Optional.empty());
+    }
 
-        /** True when no optional filter is set, or the hit satisfies every one that is. */
+    public static class Conditions extends AbstractCriterionTriggerInstance {
+        private final Optional<ItemPredicate> item;
+        private final Optional<TimeWindow> time;
+        private final Optional<ResourceKey<Strain>> strain;
+
+        public Conditions(ContextAwarePredicate player, Optional<ItemPredicate> item, Optional<TimeWindow> time,
+                          Optional<ResourceKey<Strain>> strain) {
+            super(ID, player);
+            this.item = item;
+            this.time = time;
+            this.strain = strain;
+        }
+
+        public Optional<ItemPredicate> item() {
+            return item;
+        }
+
+        public Optional<TimeWindow> time() {
+            return time;
+        }
+
+        public Optional<ResourceKey<Strain>> strain() {
+            return strain;
+        }
+
         public boolean matches(long timeOfDay, ItemStack stack) {
             if (time.isPresent() && !time.get().contains(timeOfDay)) {
                 return false;
             }
-            if (strain.isPresent() && stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY)
+            if (strain.isPresent() && ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY)
                     .entries().stream().noneMatch(entry -> entry.strain().is(strain.get()))) {
                 return false;
             }
-            return item.isEmpty() || item.get().test(stack);
+            return item.isEmpty() || item.get().matches(stack);
         }
 
-        /** No conditions — any player, any device, any strain, any time. */
-        public static Criterion<Conditions> any() {
-            return ModCriteria.SMOKE.createCriterion(new Conditions(Optional.empty(), Optional.empty(), Optional.empty(),
-                    Optional.empty()));
+        @Override
+        public JsonObject serializeToJson(SerializationContext context) {
+            JsonObject json = super.serializeToJson(context);
+            item.ifPresent(predicate -> json.add("item", predicate.serializeToJson()));
+            time.ifPresent(window -> json.add("time", window.toJson()));
+            strain.ifPresent(key -> json.addProperty("strain", key.location().toString()));
+            return json;
         }
 
-        /** Only counts a hit whose load holds {@code strain}, whatever it was smoked from. */
-        public static Criterion<Conditions> of(ResourceKey<Strain> strain) {
-            return ModCriteria.SMOKE.createCriterion(new Conditions(Optional.empty(), Optional.empty(), Optional.empty(),
-                    Optional.of(strain)));
+        public static Conditions any() {
+            return new Conditions(ContextAwarePredicate.ANY, Optional.empty(), Optional.empty(), Optional.empty());
         }
 
-        /**
-         * Only counts a hit taken from one of these items.
-         *
-         * <p>An {@link ItemPredicate} rather than a device enum on purpose: it is vanilla's own
-         * vocabulary for "which item was this", and because the stack handed to the trigger is
-         * still the packed one, a later advancement could filter on dose or enchantments through
-         * the same field without the criterion changing at all.
-         */
-        public static Criterion<Conditions> with(ItemLike... items) {
-            return ModCriteria.SMOKE.createCriterion(new Conditions(Optional.empty(),
-                    Optional.of(ItemPredicate.Builder.item()
-                            .of(items).build()),
-                    Optional.empty(), Optional.empty()));
+        public static Conditions of(ResourceKey<Strain> strain) {
+            return new Conditions(ContextAwarePredicate.ANY, Optional.empty(), Optional.empty(), Optional.of(strain));
         }
 
-        /** Only counts a hit taken while the time of day is within {@code [minTicks, maxTicks]} (inclusive). */
-        public static Criterion<Conditions> during(long minTicks, long maxTicks) {
-            return ModCriteria.SMOKE.createCriterion(new Conditions(Optional.empty(), Optional.empty(),
-                    Optional.of(new TimeWindow(minTicks, maxTicks)), Optional.empty()));
+        public static Conditions with(ItemLike... items) {
+            return new Conditions(ContextAwarePredicate.ANY, Optional.of(ItemPredicate.Builder.item().of(items).build()),
+                    Optional.empty(), Optional.empty());
+        }
+
+        public static Conditions during(long minTicks, long maxTicks) {
+            return new Conditions(ContextAwarePredicate.ANY, Optional.empty(),
+                    Optional.of(new TimeWindow(minTicks, maxTicks)), Optional.empty());
         }
     }
 
     /** An inclusive time-of-day band, in ticks within a 0–23999 vanilla day. */
     public record TimeWindow(long min, long max) {
-        public static final Codec<TimeWindow> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codec.LONG.fieldOf("min").forGetter(TimeWindow::min),
-                Codec.LONG.fieldOf("max").forGetter(TimeWindow::max)
-        ).apply(instance, TimeWindow::new));
+        static TimeWindow fromJson(JsonObject json) {
+            return new TimeWindow(GsonHelper.getAsLong(json, "min"), GsonHelper.getAsLong(json, "max"));
+        }
+
+        JsonObject toJson() {
+            JsonObject json = new JsonObject();
+            json.addProperty("min", min);
+            json.addProperty("max", max);
+            return json;
+        }
 
         public boolean contains(long timeOfDay) {
             return timeOfDay >= min && timeOfDay <= max;

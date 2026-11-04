@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.HempCarpetBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
@@ -13,7 +14,6 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.ReloadableServerRegistries.Holder;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
@@ -132,27 +132,29 @@ public final class TagBackedBehaviourGameTest {
     }
 
     /**
-     * A tamed llama takes the hemp carpet, it belongs in the body slot, and a horse does not take it.
+     * A tamed llama takes the hemp carpet, wears it where its clients can see it, and a horse does not
+     * take it.
      *
      * <p>Two separate things on this line, both silent when missing. A llama's own check is
-     * {@code #minecraft:wool_carpets} ({@code Llama#isBodyArmorItem}); but {@code /item replace} and
-     * everything else that asks {@code Equipable.get} want the carpet to <em>be</em> body
-     * equipment, which a plain carpet is not — {@code HempCarpetBlock} makes it one, as
-     * {@code WoolCarpetBlock} does for vanilla's. A dispenser asks neither: see the next test.
-     * <b>Drawing it is the client's job and is not tested here</b> —
-     * {@code LlamaDecorFeatureRendererMixin} does that, and it was checked in a real client.
+     * {@code #minecraft:wool_carpets} ({@code Llama#isArmor}); but the carpet stays in the llama's
+     * inventory on the server, and all its clients learn is the synced swag colour, which vanilla
+     * takes from a {@code WoolCarpetBlock}'s dye. So a llama in ours syncs a value of its own
+     * ({@code LlamaMixin}, {@code HempCarpetBlock#isWornBy}). A dispenser asks the tag too: see the
+     * next test. <b>Drawing it is the client's job and is not tested here</b> —
+     * {@code LlamaDecorFeatureRendererMixin} does that.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void aLlamaWearsHempCarpet(GameTestHelper context) {
         ItemStack carpet = new ItemStack(ModBlocks.HEMP_CARPET);
         Llama llama = context.spawn(EntityType.LLAMA, new BlockPos(1, 1, 1));
         llama.setTamed(true);
-        context.assertTrue(llama.isBodyArmorItem(carpet), "a tamed llama will not wear hemp carpet");
-        context.assertTrue(llama.getEquipmentSlotForItem(carpet) == EquipmentSlot.BODY,
-                "hemp carpet is not body equipment, so /item replace cannot put it on a llama");
+        context.assertTrue(llama.isArmor(carpet), "a tamed llama will not wear hemp carpet");
+        // Slot 401 is a llama's carpet, which /item replace and a player's click both fill.
+        context.assertTrue(llama.getSlot(401).set(carpet.copy()) && HempCarpetBlock.isWornBy(llama),
+                "a llama in hemp carpet does not tell its clients it wears one, so they draw it bare");
         Horse horse = context.spawn(EntityType.HORSE, new BlockPos(4, 1, 1));
         horse.setTamed(true);
-        context.assertFalse(horse.isBodyArmorItem(carpet), "a horse will wear hemp carpet");
+        context.assertFalse(horse.isArmor(carpet), "a horse will wear hemp carpet");
         context.succeed();
     }
 
@@ -160,9 +162,8 @@ public final class TagBackedBehaviourGameTest {
      * A dispenser puts the hemp carpet on a tamed llama in front of it, as it does any vanilla carpet.
      *
      * <p>On this line a dispenser looks its behaviour up by item, and vanilla hands its "equip a horse
-     * or a llama" behaviour to its sixteen carpets by name — neither the carpet tag nor
-     * {@code Equipable} has a say — so a carpet without that entry is thrown out in front of the
-     * llama instead. This also proves vanilla's behaviours are registered before ours borrows one.
+     * or a llama" behaviour to its sixteen carpets by name — the carpet tag has no say there — so a
+     * carpet without that entry is thrown out in front of the llama instead. This also proves vanilla's behaviours are registered before ours borrows one.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void aDispenserPutsHempCarpetOnALlama(GameTestHelper context) {
@@ -178,8 +179,9 @@ public final class TagBackedBehaviourGameTest {
         context.pulseRedstone(new BlockPos(0, 2, 1), 1);
 
         context.runAtTickTime(10, () -> {
-            context.assertTrue(llama.getBodyArmorItem().is(ModBlocks.HEMP_CARPET.asItem()),
-                    "the dispenser did not put the hemp carpet on the llama, which wears " + llama.getBodyArmorItem());
+            ItemStack worn = llama.getSlot(401).get();
+            context.assertTrue(worn.is(ModBlocks.HEMP_CARPET.asItem()),
+                    "the dispenser did not put the hemp carpet on the llama, which wears " + worn);
             context.assertTrue(dispenser.getItem(0).isEmpty(), "the dispenser kept the carpet: " + dispenser.getItem(0));
             context.succeed();
         });
@@ -196,7 +198,7 @@ public final class TagBackedBehaviourGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void everyBlockHasALootTable(GameTestHelper context) {
-        var loot = context.getLevel().getServer().reloadableRegistries();
+        var loot = context.getLevel().getServer().getLootData();
         List<String> missing = new ArrayList<>();
         for (Block block : BuiltInRegistries.BLOCK) {
             if (!BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(Hempdustry.MOD_ID)) {
@@ -259,14 +261,12 @@ public final class TagBackedBehaviourGameTest {
      * enchantments, on an anvil and at the table.
      *
      * <p>The beanie and the flip-flops are drawn by models of their own, so a trim on either would
-     * never show. Vanilla builds {@code #trimmable_armor} from {@code #head_armor} and
-     * {@code #foot_armor}, which is why those two reach the enchantable tags one by one instead of
-     * through the base tags; putting them back there would put them back on the smithing table.
+     * never show. On 1.20.1 an armour piece takes its slot's enchantments by its class, and the
+     * enchanting table opens to it by the material's enchantability.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void onlyTheGarmentsTakeATrim(GameTestHelper context) {
-        HolderLookup.RegistryLookup<Enchantment> enchantments = context.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        Enchantment protection = enchantments.getOrThrow(Enchantments.PROTECTION).value();
+        Enchantment protection = Enchantments.ALL_DAMAGE_PROTECTION;
         for (Item piece : List.of(ModItems.HEMP_BEANIE, ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS,
                 ModItems.FLIP_FLOPS)) {
             ItemStack stack = new ItemStack(piece);
@@ -274,17 +274,18 @@ public final class TagBackedBehaviourGameTest {
             context.assertTrue(stack.is(ItemTags.TRIMMABLE_ARMOR) == garment, garment
                     ? piece + " is no longer in #minecraft:trimmable_armor"
                     : piece + " takes a trim at the smithing table, which its own model never draws");
-            for (ResourceKey<Enchantment> key : List.of(Enchantments.PROTECTION, Enchantments.UNBREAKING,
+            for (Enchantment enchantment : List.of(Enchantments.ALL_DAMAGE_PROTECTION, Enchantments.UNBREAKING,
                     Enchantments.MENDING, Enchantments.BINDING_CURSE, Enchantments.VANISHING_CURSE)) {
-                context.assertTrue(enchantments.getOrThrow(key).value().canEnchant(stack),
-                        piece + " refuses " + key.location() + " on an anvil");
+                context.assertTrue(enchantment.canEnchant(stack),
+                        piece + " refuses " + BuiltInRegistries.ENCHANTMENT.getKey(enchantment) + " on an anvil");
             }
-            context.assertTrue(protection.isPrimaryItem(stack), piece + " is offered no Protection at the enchanting table");
+            context.assertTrue(stack.isEnchantable() && protection.category.canEnchant(piece),
+                    piece + " is offered no Protection at the enchanting table");
         }
-        context.assertTrue(enchantments.getOrThrow(Enchantments.RESPIRATION).value()
-                .canEnchant(new ItemStack(ModItems.HEMP_BEANIE)), "the beanie refuses Respiration");
-        context.assertTrue(enchantments.getOrThrow(Enchantments.FEATHER_FALLING).value()
-                .canEnchant(new ItemStack(ModItems.FLIP_FLOPS)), "the flip-flops refuse Feather Falling");
+        context.assertTrue(Enchantments.RESPIRATION.canEnchant(new ItemStack(ModItems.HEMP_BEANIE)),
+                "the beanie refuses Respiration");
+        context.assertTrue(Enchantments.FALL_PROTECTION.canEnchant(new ItemStack(ModItems.FLIP_FLOPS)),
+                "the flip-flops refuse Feather Falling");
         context.succeed();
     }
 
@@ -294,13 +295,12 @@ public final class TagBackedBehaviourGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void everyDeviceTakesUnbreaking(GameTestHelper context) {
-        HolderLookup.RegistryLookup<Enchantment> enchantments = context.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         List<Item> devices = new ArrayList<>(ModItems.devices().values());
         devices.addAll(ModItems.COLORED_BONGS);
         for (Item device : devices) {
-            for (ResourceKey<Enchantment> key : List.of(Enchantments.UNBREAKING, Enchantments.MENDING)) {
-                context.assertTrue(enchantments.getOrThrow(key).value().canEnchant(new ItemStack(device)),
-                        device + " refuses " + key.location() + " — it is missing from #minecraft:enchantable/durability");
+            for (Enchantment enchantment : List.of(Enchantments.UNBREAKING, Enchantments.MENDING)) {
+                context.assertTrue(enchantment.canEnchant(new ItemStack(device)),
+                        device + " refuses " + BuiltInRegistries.ENCHANTMENT.getKey(enchantment) + " — it is not damageable");
             }
         }
         context.succeed();

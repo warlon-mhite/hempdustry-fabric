@@ -709,8 +709,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      */
     private ItemStack previewStack(InfusingRecipe recipe, int strength, Quality quality) {
         ItemStack butter = recipe.result().copy();
-        butter.set(ModComponents.STRENGTH, strength);
-        butter.set(ModComponents.QUALITY, quality);
+        ModComponents.STRENGTH.set(butter, strength);
+        ModComponents.QUALITY.set(butter, quality);
         return butter;
     }
 
@@ -718,8 +718,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     private static boolean showsPreview(ItemStack shown, InfusingRecipe recipe, int strength, Quality quality) {
         return shown.is(recipe.result().getItem())
                 && shown.getCount() == recipe.result().getCount()
-                && Integer.valueOf(strength).equals(shown.get(ModComponents.STRENGTH))
-                && shown.get(ModComponents.QUALITY) == quality;
+                && Integer.valueOf(strength).equals(ModComponents.STRENGTH.get(shown))
+                && ModComponents.QUALITY.get(shown) == quality;
     }
 
     /**
@@ -944,7 +944,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         if (item == Items.AIR) {
             return; // an ingredient with no matching stacks: nothing sensible to hand back
         }
-        int max = item.getDefaultMaxStackSize();
+        int max = item.getMaxStackSize();
         while (count > 0) {
             int take = Math.min(count, max);
             out.add(new ItemStack(item, take));
@@ -1048,7 +1048,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     // ----- screen -----
 
     @Override
-    protected Component getContainerName() {
+    public Component getContainerName() {
         return Component.translatable("block.hempdustry.infuser");
     }
 
@@ -1061,9 +1061,9 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     // ----- persistence -----
 
     @Override
-    protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider registryLookup) {
-        super.saveAdditional(nbt, registryLookup);
-        ContainerHelper.saveAllItems(nbt, inventory, registryLookup);
+    public void saveAdditional(CompoundTag nbt) {
+        super.saveAdditional(nbt);
+        ContainerHelper.saveAllItems(nbt, inventory);
         nbt.putInt("Progress", progress);
         nbt.putBoolean("HaveMilk", haveMilk);
         nbt.putInt("BatchUnwashed", batchUnwashed);
@@ -1073,10 +1073,10 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     }
 
     @Override
-    protected void loadAdditional(CompoundTag nbt, HolderLookup.Provider registryLookup) {
-        super.loadAdditional(nbt, registryLookup);
+    public void load(CompoundTag nbt) {
+        super.load(nbt);
         inventory.clear();
-        ContainerHelper.loadAllItems(nbt, inventory, registryLookup);
+        ContainerHelper.loadAllItems(nbt, inventory);
         progress = nbt.getInt("Progress");
         haveMilk = nbt.getBoolean("HaveMilk");
         batchUnwashed = nbt.getInt("BatchUnwashed");

@@ -1,0 +1,39 @@
+{
+  "parent": "hempdustry:trim_season",
+  "criteria": {
+    "has_scorched_hemp": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "hempdustry:scorched_hemp"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.well_done.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:scorched_hemp"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.well_done.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_scorched_hemp"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

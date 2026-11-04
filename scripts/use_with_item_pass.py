@@ -37,7 +37,10 @@ def main():
     for path in layout.of(ROOT).java_files():
         code = NOISE.sub(lambda m: re.sub(r"[^\n]", " ", m.group()), path.read_text(encoding="utf-8"))
         for match in re.finditer(r"\bItemInteractionResult\s+useItemOn\s*\(", code):
-            body = code.index("{", match.end())
+            # a declaration with no body (the 1.20.1 line's ItemUse interface) has nothing to read
+            body, semicolon = code.find("{", match.end()), code.find(";", match.end())
+            if body < 0 or 0 <= semicolon < body:
+                continue
             depth, end = 0, body
             for end in range(body, len(code)):
                 depth += {"{": 1, "}": -1}.get(code[end], 0)

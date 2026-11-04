@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
@@ -7,7 +8,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -225,11 +225,9 @@ public final class Defoliation {
     @Nullable
     public static ItemInteractionResult tryCut(Level world, BlockPos lowerPos, BlockState lowerState,
                                           int age, ItemStack stack, Player player, InteractionHand hand) {
-        // The convention tag rather than Items.SHEARS, so a modded pair of shears works too.
-        // SHEAR_TOOLS is #c:tools/shear, which is the widest of the three: Fabric puts vanilla
-        // shears in it AND pulls in the older #c:tools/shears and #c:shears as optional sub-tags,
-        // so a mod that joined any of the three matches. Nothing forwards into the older two.
-        if (!stack.is(ModTags.Conventional.SHEAR_TOOLS)) {
+        // A tag rather than Items.SHEARS, so a modded pair of shears works too: #hempdustry:shears
+        // holds vanilla's and every convention's (#c:tools/shear, #c:shears, #forge:shears).
+        if (!stack.is(ModTags.Items.SHEARS)) {
             return null;
         }
 
@@ -293,8 +291,7 @@ public final class Defoliation {
                         SoundSource.BLOCKS, gotCharas ? 0.8F : 1.0F,
                         (gotCharas ? 0.7F : 0.6F) + world.getRandom().nextFloat() * 0.2F);
             }
-            stack.hurtAndBreak(1, player,
-                    hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+            stack.hurtAndBreak(1, player, broken -> broken.broadcastBreakEvent(hand));
         }
 
         // A TRIM's sound is unconditional, so it keeps the two-sided immediate pattern: passing the

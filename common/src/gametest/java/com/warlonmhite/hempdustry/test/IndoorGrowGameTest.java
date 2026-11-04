@@ -133,7 +133,7 @@ public final class IndoorGrowGameTest {
                 "a plant that sprouted with no lamp earned " + record(context) + " by getting one later");
 
         // The Grow Lamp's leaf share, read off the plant's record: two leaves a trim, not one.
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         int lampLeaves = trimLeaves(context, player, GrowLight.GROW_LAMP);
         int plainLeaves = trimLeaves(context, player, GrowLight.LAMP);
@@ -206,9 +206,7 @@ public final class IndoorGrowGameTest {
         classify(context, ModBlocks.GROW_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit Grow Lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit redstone lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit redstone lamp");
-        classify(context, Blocks.COPPER_BULB.defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit copper bulb");
-        classify(context, Blocks.OXIDIZED_COPPER_BULB.defaultBlockState().setValue(BlockStateProperties.LIT, true),
-                GrowLight.NATURAL, "a lit oxidised copper bulb (light 4)");
+        // (No copper bulb on 1.20.1; the redstone lamp above is the lamp that switches.)
         classify(context, Blocks.GLOWSTONE.defaultBlockState(), GrowLight.AMBIENT, "glowstone");
         classify(context, Blocks.SEA_LANTERN.defaultBlockState(), GrowLight.AMBIENT, "a sea lantern");
         classify(context, Blocks.LANTERN.defaultBlockState(), GrowLight.AMBIENT, "a lantern");
@@ -340,7 +338,7 @@ public final class IndoorGrowGameTest {
     public void aWaterBucketFillsATray(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(SOIL);
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         context.setBlock(SOIL, ModBlocks.HYDRO_TRAY);
         context.setBlock(CROP, Blocks.AIR);
@@ -348,7 +346,7 @@ public final class IndoorGrowGameTest {
         ItemStack bucket = new ItemStack(Items.WATER_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
-        context.assertTrue(world.getBlockState(pos).useItemOn(bucket, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+        context.assertTrue(Line.useItemOn(world.getBlockState(pos),bucket, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a Hydro Tray refused a water bucket");
         context.assertTrue(level(context) == HydroTrayBlock.MAX_LEVEL,
                 "a bucket of water left the tray at level " + level(context));
@@ -362,7 +360,7 @@ public final class IndoorGrowGameTest {
         // 2026-09-24, and a real client poured). It keeps the bucket full.
         ItemStack second = new ItemStack(Items.WATER_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, second);
-        context.assertTrue(world.getBlockState(pos).useItemOn(second, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+        context.assertTrue(Line.useItemOn(world.getBlockState(pos),second, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a full tray let a water bucket click through — the client would pour it into the plant's space");
         context.assertTrue(second.is(Items.WATER_BUCKET) && level(context) == HydroTrayBlock.MAX_LEVEL,
                 "a full tray emptied the bucket anyway");
@@ -414,7 +412,7 @@ public final class IndoorGrowGameTest {
     public void taggedFertiliserFeedsBothBeds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(SOIL);
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
 
@@ -425,7 +423,7 @@ public final class IndoorGrowGameTest {
             }
             ItemStack meal = new ItemStack(Items.BONE_MEAL, 4);
             player.setItemInHand(InteractionHand.MAIN_HAND, meal);
-            context.assertTrue(world.getBlockState(pos).useItemOn(meal, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+            context.assertTrue(Line.useItemOn(world.getBlockState(pos),meal, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                     bed.getDescriptionId() + " refused a fertiliser from the hand");
             context.assertTrue(meal.getCount() == 3,
                     bed.getDescriptionId() + " took " + (4 - meal.getCount()) + " fertiliser for one charge");
@@ -434,7 +432,7 @@ public final class IndoorGrowGameTest {
 
             ItemStack stone = new ItemStack(Items.STONE);
             player.setItemInHand(InteractionHand.MAIN_HAND, stone);
-            context.assertTrue(!world.getBlockState(pos).useItemOn(stone, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+            context.assertTrue(!Line.useItemOn(world.getBlockState(pos),stone, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                     bed.getDescriptionId() + " accepted a block of stone as fertiliser");
             context.assertTrue(stone.getCount() == 1, bed.getDescriptionId() + " ate a block of stone");
         }
@@ -455,8 +453,8 @@ public final class IndoorGrowGameTest {
         // A watered tray, so the test is about the dimension and not about being empty.
         BlockState watered = ModBlocks.HYDRO_TRAY.defaultBlockState().setValue(HydroTrayBlock.LEVEL, 3);
         HydroTrayBlock tray = (HydroTrayBlock) ModBlocks.HYDRO_TRAY;
-        context.assertTrue(tray.isValidBonemealTarget(overworld, pos, watered), "a watered tray cannot be fed in the overworld");
-        context.assertTrue(!tray.isValidBonemealTarget(nether, netherPos, watered), "a tray in the Nether can still be fed");
+        context.assertTrue(tray.isValidBonemealTarget(overworld, pos, watered, false), "a watered tray cannot be fed in the overworld");
+        context.assertTrue(!tray.isValidBonemealTarget(nether, netherPos, watered, false), "a tray in the Nether can still be fed");
 
         nether.setBlockAndUpdate(netherPos, ModBlocks.HYDRO_TRAY.defaultBlockState());
         context.assertTrue(!HydroTrayBlock.fill(nether, netherPos, nether.getBlockState(netherPos)),
@@ -486,7 +484,7 @@ public final class IndoorGrowGameTest {
     private static void ladder(GameTestHelper context, BlockState mature, Item buds, Item seeds) {
         ServerLevel world = context.getLevel();
         Vec3 origin = Vec3.atCenterOf(context.absolutePos(CROP));
-        LootTable table = world.getServer().reloadableRegistries()
+        LootTable table = world.getServer().getLootData()
                 .getLootTable(mature.getBlock().getLootTable());
         String crop = mature.getBlock().getDescriptionId();
         BlockState natural = Defoliation.unworked(mature);
@@ -627,7 +625,7 @@ public final class IndoorGrowGameTest {
     private static int trimLeaves(GameTestHelper context, ServerPlayer player, GrowLight light) {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
-        AABB area = AABB.encapsulatingFullBlocks(pos.offset(-3, -2, -3), pos.offset(3, 3, 3));
+        AABB area = Line.box(pos.offset(-3, -2, -3), pos.offset(3, 3, 3));
         world.getEntitiesOfClass(ItemEntity.class, area, e -> true).forEach(Entity::discard);
         context.setBlock(SOIL, Blocks.FARMLAND);
         context.setBlock(CROP.above(), Blocks.AIR);
@@ -637,7 +635,7 @@ public final class IndoorGrowGameTest {
         ItemStack shears = new ItemStack(Items.SHEARS);
         player.setItemInHand(InteractionHand.MAIN_HAND, shears);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
-        world.getBlockState(pos).useItemOn(shears, world, player, InteractionHand.MAIN_HAND, hit);
+        Line.useItemOn(world.getBlockState(pos),shears, world, player, InteractionHand.MAIN_HAND, hit);
         int leaves = 0;
         for (ItemEntity item : world.getEntitiesOfClass(ItemEntity.class, area, e -> true)) {
             if (item.getItem().is(ModItems.HEMP_LEAF)) {

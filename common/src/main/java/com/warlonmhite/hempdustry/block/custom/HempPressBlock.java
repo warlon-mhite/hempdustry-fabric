@@ -1,8 +1,13 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
+import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionHand;
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
+import com.warlonmhite.hempdustry.platform.Menus;
 import com.warlonmhite.hempdustry.platform.Services;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +61,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * makes a block fireproof.
  */
 public class HempPressBlock extends BaseEntityBlock {
-    public static final MapCodec<HempPressBlock> CODEC = simpleCodec(HempPressBlock::new);
 
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     /**
@@ -99,17 +103,12 @@ public class HempPressBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, LIT, PRESSING);
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return SHAPES.get(state.getValue(FACING));
     }
 
@@ -119,12 +118,12 @@ public class HempPressBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
+    public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
+    public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
@@ -137,7 +136,7 @@ public class HempPressBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected RenderShape getRenderShape(BlockState state) {
+    public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
 
@@ -153,13 +152,20 @@ public class HempPressBlock extends BaseEntityBlock {
 
     // Opening the GUI is an empty-handed interaction, so useWithoutItem rather than useItemOn — the
     // latter would swallow the click whenever the player happened to be holding something.
+    /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.dispatch(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION, hand,
+                () -> useWithoutItem(state, level, pos, player, hit));
+    }
+
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         if (!world.isClientSide()) {
             MenuProvider factory = state.getMenuProvider(world, pos);
             if (factory != null && player instanceof ServerPlayer serverPlayer) {
                 // The position rides along, so the client's screen can find this block entity.
-                Services.MENUS.open(serverPlayer, factory, pos);
+                Services.MENUS.open(serverPlayer, factory, Menus.Data.BLOCK_POS, pos);
             }
         }
         return InteractionResult.SUCCESS;
@@ -167,13 +173,13 @@ public class HempPressBlock extends BaseEntityBlock {
 
     @Nullable
     @Override
-    protected MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
+    public MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
         return world.getBlockEntity(pos) instanceof HempPressBlockEntity be ? be : null;
     }
 
     /** Spills whatever is in the press when it is broken. */
     @Override
-    protected void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
+    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.is(newState.getBlock())) {
             if (world.getBlockEntity(pos) instanceof HempPressBlockEntity be) {
                 Containers.dropContents(world, pos, be);
@@ -186,12 +192,12 @@ public class HempPressBlock extends BaseEntityBlock {
     // ----- comparator -----
 
     @Override
-    protected boolean hasAnalogOutputSignal(BlockState state) {
+    public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
     @Override
-    protected int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+    public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
         return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(world.getBlockEntity(pos));
     }
 
@@ -213,5 +219,12 @@ public class HempPressBlock extends BaseEntityBlock {
         world.addParticle(ParticleTypes.SMOKE,
                 x + (random.nextDouble() - 0.5D) * 0.4D, y, z + (random.nextDouble() - 0.5D) * 0.4D,
                 0.0D, 0.03D, 0.0D);
+    }
+
+    /** The machine keeps the placed item's anvil name ({@link NamedMachineBlockEntity}). */
+    @Override
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(world, pos, state, placer, stack);
+        NamedMachineBlockEntity.nameFromItem(world, pos, stack);
     }
 }

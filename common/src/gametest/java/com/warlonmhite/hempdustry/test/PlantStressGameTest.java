@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.nbt.CompoundTag;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
@@ -9,19 +11,16 @@ import com.warlonmhite.hempdustry.block.custom.PlantStress;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -185,7 +184,7 @@ public final class PlantStressGameTest {
         ServerLevel world = context.getLevel();
         BlockPos soil = context.absolutePos(SOIL);
         GrowPotBlock pot = (GrowPotBlock) ModBlocks.GROW_POT;
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         BlockHitResult onPot = new BlockHitResult(Vec3.atCenterOf(soil), Direction.UP, soil, false);
 
@@ -207,7 +206,7 @@ public final class PlantStressGameTest {
         context.setBlock(SOIL, fresh);
         ItemStack bottle = waterBottle();
         player.setItemInHand(InteractionHand.MAIN_HAND, bottle);
-        context.assertTrue(world.getBlockState(soil).useItemOn(bottle, world, player, InteractionHand.MAIN_HAND, onPot).consumesAction(),
+        context.assertTrue(Line.useItemOn(world.getBlockState(soil),bottle, world, player, InteractionHand.MAIN_HAND, onPot).consumesAction(),
                 "a Grow Pot refused a water bottle");
         context.assertTrue(context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED), "a bottle did not water the pot");
         context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.GLASS_BOTTLE),
@@ -219,7 +218,7 @@ public final class PlantStressGameTest {
         context.setBlock(SOIL, fresh);
         ItemStack bucket = new ItemStack(Items.WATER_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
-        ItemInteractionResult refused = world.getBlockState(soil).useItemOn(bucket, world, player, InteractionHand.MAIN_HAND, onPot);
+        ItemInteractionResult refused = Line.useItemOn(world.getBlockState(soil),bucket, world, player, InteractionHand.MAIN_HAND, onPot);
         context.assertTrue(refused.consumesAction(), "a Grow Pot answered a water bucket with " + refused
                 + " — not accepted, so the client goes on to pour it");
         context.assertTrue(bucket.is(Items.WATER_BUCKET) && !context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
@@ -259,7 +258,7 @@ public final class PlantStressGameTest {
         ItemStack onPlant = waterBottle();
         player.setItemInHand(InteractionHand.MAIN_HAND, onPlant);
         BlockHitResult atTop = new BlockHitResult(Vec3.atCenterOf(top), Direction.UP, top, false);
-        context.assertTrue(world.getBlockState(top).useItemOn(onPlant, world, player, InteractionHand.MAIN_HAND, atTop).consumesAction()
+        context.assertTrue(Line.useItemOn(world.getBlockState(top),onPlant, world, player, InteractionHand.MAIN_HAND, atTop).consumesAction()
                         && context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
                 "a bottle used on the top of a potted plant did not water its pot");
 
@@ -273,9 +272,9 @@ public final class PlantStressGameTest {
 
         // Picked up, a pot keeps its food and not its water.
         ItemStack dropped = potDrop(world, soil, fedWet);
-        BlockItemStateProperties kept = dropped.get(DataComponents.BLOCK_STATE);
-        context.assertTrue(kept != null && "3".equals(kept.properties().get("fertility"))
-                        && !kept.properties().containsKey("watered"),
+        CompoundTag kept = dropped.getTagElement("BlockStateTag");
+        context.assertTrue(kept != null && "3".equals(kept.getString("fertility"))
+                        && !kept.contains("watered"),
                 "a watered pot at fertility 3 dropped as " + dropped + " with " + kept);
 
         // No evaporation for a bottle: vanilla makes mud with one in the Nether, so a pot there waters.
@@ -298,7 +297,7 @@ public final class PlantStressGameTest {
     public void aDispenserWatersAPot(GameTestHelper context) {
         context.setBlock(SOIL, ModBlocks.GROW_POT);
         context.setBlock(DISPENSER, Blocks.DISPENSER.defaultBlockState().setValue(DispenserBlock.FACING, Direction.EAST));
-        DispenserBlockEntity dispenser = context.<DispenserBlockEntity>getBlockEntity(DISPENSER);
+        DispenserBlockEntity dispenser = ((DispenserBlockEntity) context.getBlockEntity(DISPENSER));
         dispenser.setItem(0, waterBottle());
         context.pulseRedstone(PULSE, 1);
 
@@ -335,7 +334,7 @@ public final class PlantStressGameTest {
     }
 
     private static ItemStack waterBottle() {
-        return PotionContents.createItemStack(Items.POTION, Potions.WATER);
+        return PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
     }
 
     private static void odds(GameTestHelper context, BlockState floor, float expected, String what) {
@@ -380,7 +379,7 @@ public final class PlantStressGameTest {
     }
 
     private static ItemStack potDrop(ServerLevel world, BlockPos pos, BlockState state) {
-        LootTable table = world.getServer().reloadableRegistries()
+        LootTable table = world.getServer().getLootData()
                 .getLootTable(ModBlocks.GROW_POT.getLootTable());
         LootParams params = new LootParams.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
@@ -388,6 +387,6 @@ public final class PlantStressGameTest {
                 .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
                 .create(LootContextParamSets.BLOCK);
         List<ItemStack> drops = table.getRandomItems(params, 0L);
-        return drops.isEmpty() ? ItemStack.EMPTY : drops.getFirst();
+        return drops.isEmpty() ? ItemStack.EMPTY : drops.get(0);
     }
 }

@@ -40,6 +40,6 @@ public final class BalanceGameTest {
                                          ResourceKey<Registry<T>> registry, ResourceKey<T> key, T builtIn) {
         Optional<T> loaded = registries.lookupOrThrow(registry).get(key).map(Holder.Reference::value);
         context.assertTrue(loaded.isPresent(), key.location() + " is not in this world's data");
-        context.assertValueEqual(loaded.orElseThrow(), builtIn, "the numbers " + key.location() + " ships");
+        Line.equal(context, loaded.orElseThrow(), builtIn, "the numbers " + key.location() + " ships");
     }
 }

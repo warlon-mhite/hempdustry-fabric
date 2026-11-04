@@ -4,6 +4,9 @@
     {
       "id": "#c:is_desert",
       "required": false
-    }
+    },
+    { "id": "minecraft:desert", "required": false },
+    { "id": "#c:desert", "required": false },
+    { "id": "#forge:is_desert", "required": false }
   ]
 }

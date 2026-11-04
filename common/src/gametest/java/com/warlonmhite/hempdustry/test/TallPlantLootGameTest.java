@@ -54,7 +54,7 @@ public final class TallPlantLootGameTest {
         ServerLevel world = context.getLevel();
         BlockPos lowerPos = context.absolutePos(new BlockPos(1, 2, 1));
         BlockPos upperPos = lowerPos.above();
-        LootTable table = world.getServer().reloadableRegistries()
+        LootTable table = world.getServer().getLootData()
                 .getLootTable(Blocks.TALL_GRASS.getLootTable());
 
         // FORCE_STATE and nothing else: no neighbour updates, so a half left on its own below sits

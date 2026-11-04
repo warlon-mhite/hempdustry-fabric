@@ -4,7 +4,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.item.ModItems;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -53,7 +53,7 @@ public final class CharasGameTest {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
 
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         // Creative-mode shears would still take damage in survival; a fresh stack each time keeps
         // the tool out of the measurement entirely.
@@ -65,19 +65,19 @@ public final class CharasGameTest {
                 .setValue(IndicaCropBlock.AGE, Defoliation.RUB_MAX_AGE));
         ItemStack probe = new ItemStack(Items.SHEARS);
         player.setItemInHand(InteractionHand.MAIN_HAND, probe);
-        world.getBlockState(pos).useItemOn(probe, world, player, InteractionHand.MAIN_HAND, hit);
+        Line.useItemOn(world.getBlockState(pos),probe, world, player, InteractionHand.MAIN_HAND, hit);
         context.assertTrue(context.getBlockState(CROP).getValue(Defoliation.RUBBED),
                 "rubbing a ripe plant did not set RUBBED");
-        context.assertTrue(!world.getBlockState(pos)
-                        .useItemOn(probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+        context.assertTrue(!Line.useItemOn(world.getBlockState(pos),
+                        probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a plant that has already been rubbed accepted a second rub");
 
         // A plant past its late-trim window but not yet ripe is refused: the spent-window guard.
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState()
                 .setValue(IndicaCropBlock.AGE, Defoliation.RUB_MIN_AGE - 1)
                 .setValue(Defoliation.TRIMMED_LATE, true));
-        context.assertTrue(!world.getBlockState(pos)
-                        .useItemOn(probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+        context.assertTrue(!Line.useItemOn(world.getBlockState(pos),
+                        probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a plant whose late-trim window is spent accepted another interaction");
 
         // A SEEDLING is the probe that matters for the rub window's lower bound. Ages below
@@ -85,8 +85,8 @@ public final class CharasGameTest {
         // nothing else -- which makes this the only age that goes red if that guard is widened.
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState()
                 .setValue(IndicaCropBlock.AGE, Defoliation.EARLY_MIN_AGE - 1));
-        context.assertTrue(!world.getBlockState(pos)
-                        .useItemOn(probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+        context.assertTrue(!Line.useItemOn(world.getBlockState(pos),
+                        probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a seedling accepted a rub — the ripe window's lower bound is not holding");
         context.assertTrue(!context.getBlockState(CROP).getValue(Defoliation.RUBBED),
                 "a seedling was marked rubbed");
@@ -99,16 +99,16 @@ public final class CharasGameTest {
                     .setValue(IndicaCropBlock.AGE, Defoliation.RUB_MAX_AGE));
             ItemStack shears = new ItemStack(Items.SHEARS);
             player.setItemInHand(InteractionHand.MAIN_HAND, shears);
-            if (world.getBlockState(pos).useItemOn(shears, world, player, InteractionHand.MAIN_HAND, hit)
+            if (Line.useItemOn(world.getBlockState(pos),shears, world, player, InteractionHand.MAIN_HAND, hit)
                     .consumesAction()) {
                 accepted++;
             }
         }
-        context.assertValueEqual(RUBS, accepted, "not every rub on a ripe plant was accepted");
+        Line.equal(context, RUBS, accepted, "not every rub on a ripe plant was accepted");
 
         // Counted off the ground rather than through assertItemEntityCountIs, which asserts an exact number:
         // the whole point here is that the number is random and only its extremes are wrong.
-        AABB area = AABB.encapsulatingFullBlocks(pos.offset(-4, -2, -4), pos.offset(4, 3, 4));
+        AABB area = Line.box(pos.offset(-4, -2, -4), pos.offset(4, 3, 4));
         int charas = 0;
         int leaves = 0;
         for (ItemEntity item : world.getEntitiesOfClass(ItemEntity.class, area, e -> true)) {
@@ -122,7 +122,7 @@ public final class CharasGameTest {
         // Every rub cuts exactly one sugar leaf, charas or not -- the RUBS in the loop plus the probe
         // rub at the top. The refused interactions above must add none. That the leaf then comes off
         // the harvest is DefoliationGameTest's everyLeafTakenComesOffTheHarvest.
-        context.assertValueEqual(leaves, RUBS + 1, "rubbing a ripe plant did not drop exactly one hemp leaf");
+        Line.equal(context, leaves, RUBS + 1, "rubbing a ripe plant did not drop exactly one hemp leaf");
         context.assertTrue(charas > 0,
                 "no charas in " + RUBS + " rubs — the roll never fires");
         context.assertTrue(charas < RUBS,
@@ -156,11 +156,11 @@ public final class CharasGameTest {
         BlockPos pos = context.absolutePos(CROP);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
 
-        AdvancementHolder trimSeason = world.getServer().getAdvancements()
-                .get(ResourceLocation.fromNamespaceAndPath("hempdustry", "trim_season"));
+        Advancement trimSeason = world.getServer().getAdvancements()
+                .getAdvancement(new ResourceLocation("hempdustry", "trim_season"));
         context.assertTrue(trimSeason != null, "hempdustry:trim_season is not loaded at all");
 
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         ItemStack shears = new ItemStack(Items.SHEARS);
         player.setItemInHand(InteractionHand.MAIN_HAND, shears);

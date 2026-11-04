@@ -1,12 +1,19 @@
 package com.warlonmhite.hempdustry.fabric;
 
+import net.minecraft.world.item.Item;
+import java.util.Set;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import com.warlonmhite.hempdustry.mixin.PointOfInterestTypesAccessor;
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
+import com.warlonmhite.hempdustry.mixin.BlockEntityTypeAccessor;
 import com.warlonmhite.hempdustry.platform.Registration;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityType;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
@@ -31,15 +38,25 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 public final class FabricRegistration implements Registration {
     @Override
     public <T extends Entity> EntityType<T> entityType(EntityType.Builder<T> builder, ResourceLocation id) {
-        // Fabric API's own build(): no data fixer lookup for an id the game does not know.
-        return builder.build();
+        // Vanilla's build looks the id up in the data fixer, which knows ours (Schema1460Mixin).
+        return builder.build(id.toString());
     }
 
     @Override
     public void addValidBlocks(BlockEntityType<?> type, Block... blocks) {
-        for (Block block : blocks) {
-            ((FabricBlockEntityType) type).addSupportedBlock(block);
-        }
+        BlockEntityTypeAccessor accessor = (BlockEntityTypeAccessor) type;
+        accessor.hempdustry$setValidBlocks(ImmutableSet.<Block>builder()
+                .addAll(accessor.hempdustry$validBlocks()).add(blocks).build());
+    }
+
+    @Override
+    public void blockItem(Block block, Item item) {
+        Item.BY_BLOCK.put(block, item);
+    }
+
+    @Override
+    public void addPointOfInterestStates(ResourceKey<PoiType> poi, Set<BlockState> states) {
+        PointOfInterestTypesAccessor.hempdustry$registerStates(BuiltInRegistries.POINT_OF_INTEREST_TYPE.getHolderOrThrow(poi), states);
     }
 
     @Override

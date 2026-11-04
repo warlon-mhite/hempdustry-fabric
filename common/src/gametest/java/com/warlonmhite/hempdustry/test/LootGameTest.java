@@ -17,7 +17,7 @@ import java.util.Random;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
+import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -25,7 +25,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.PathPackResources;
@@ -86,7 +85,7 @@ public final class LootGameTest {
         expect(context, BuiltInLootTables.VILLAGE_SNOWY_HOUSE, PLAIN_SEEDS, 0, 0, "a snowy village house held hemp seeds");
 
         // Fishing junk: weight 5 beside string's 5, about 4.5% of junk catches outside a jungle.
-        LootTable junk = world.getServer().reloadableRegistries().getLootTable(BuiltInLootTables.FISHING_JUNK);
+        LootTable junk = world.getServer().getLootData().getLootTable(BuiltInLootTables.FISHING_JUNK);
         LootParams fishing = new LootParams.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(AT)))
                 .withParameter(LootContextParams.TOOL, new ItemStack(Items.FISHING_ROD))
@@ -98,59 +97,29 @@ public final class LootGameTest {
     }
 
     /**
-     * Mojang's experiment packs are the game's own, so their chests take hemp as vanilla's do. Villager
-     * Trade Rebalance replaces five chests, three of them ones the mod adds to. On this line vanilla's
-     * game-test server enables the experiment's pack but leaves vanilla's own stacked above it (1.21.11
-     * puts vanilla first, as a world does), so the chests the test world loads are vanilla's: the rule is
-     * asked here of the experiment's copies, stacked over vanilla as a world with the experiment on has
-     * them.
-     */
-    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
-    public void theExperimentsChestsCountAsTheGames(GameTestHelper context) {
-        MinecraftServer server = context.getLevel().getServer();
-        Pack pack = server.getPackRepository().getPack("trade_rebalance");
-        context.assertTrue(pack != null, "this version has no Trade Rebalance experiment pack");
-        try (PackResources experiment = pack.open()) {
-            List<PackResources> packs = new ArrayList<>(server.getResourceManager().listPacks().toList());
-            packs.add(experiment);
-            ResourceManager withExperiment = new MultiPackResourceManager(PackType.SERVER_DATA, packs);
-            for (ResourceKey<LootTable> key : List.of(BuiltInLootTables.DESERT_PYRAMID,
-                    BuiltInLootTables.ABANDONED_MINESHAFT, BuiltInLootTables.PILLAGER_OUTPOST)) {
-                String from = withExperiment.getResource(file(key.location())).map(found -> found.source().packId()).orElse("no pack");
-                context.assertTrue(from.equals("trade_rebalance"), key.location() + " came from " + from
-                        + " with the experiment on top, not from the experiment's pack");
-                context.assertTrue(LootTableOrigin.fromTheGameOrAMod(withExperiment, key.location()), "the experiment's "
-                        + key.location() + " does not count as the game's: a world with it on would get none of the mod's loot there");
-            }
-        }
-        context.succeed();
-    }
-
-    /**
      * The rule the mod adds loot by, asked of the packs a real world loads. Vanilla's main pack and
-     * the mod's own are the game's or a mod's (the experiment's, the test above). A datapack laid over them -- built as
-     * the game builds one from a world's folder, a pack with no name the game knows -- replaced the
-     * temple chest on purpose, and the mod leaves it as its author wrote it; the chests it did not
-     * replace are still vanilla's.
+     * the mod's own are the game's or a mod's. A datapack laid over them -- built as the game builds
+     * one from a world's folder, a pack named {@code file/...} -- replaced the temple chest on purpose,
+     * and the mod leaves it as its author wrote it; the chests it did not replace are still vanilla's.
+     * (1.20.1 has no experiment pack replacing a chest, as the newer lines' Trade Rebalance does.)
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void aDatapacksChestIsLeftAlone(GameTestHelper context) {
         ResourceManager world = context.getLevel().getServer().getResourceManager();
-        ResourceLocation dungeon = BuiltInLootTables.SIMPLE_DUNGEON.location();
-        ResourceLocation temple = BuiltInLootTables.DESERT_PYRAMID.location();
-        ResourceLocation ours = ModBlocks.DECARBOXYLATOR.getLootTable().location();
+        ResourceLocation dungeon = BuiltInLootTables.SIMPLE_DUNGEON;
+        ResourceLocation temple = BuiltInLootTables.DESERT_PYRAMID;
+        ResourceLocation ours = ModBlocks.DECARBOXYLATOR.getLootTable();
         context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, dungeon), "vanilla's dungeon chest does not count as the game's");
         context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, temple), "vanilla's temple chest does not count as the game's");
         context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, ours), "the mod's own " + ours + " does not count as a mod's");
 
-        Path folder = context.getLevel().getServer().getServerDirectory().resolve("hempdustry-test-datapack");
+        Path folder = context.getLevel().getServer().getServerDirectory().toPath().resolve("hempdustry-test-datapack");
         try {
-            Path chest = folder.resolve("data/minecraft/loot_table/chests/desert_pyramid.json");
+            Path chest = folder.resolve("data/minecraft/loot_tables/chests/desert_pyramid.json");
             Files.createDirectories(chest.getParent());
             Files.writeString(chest, "{\"pools\": []}");
-            // As FolderRepositorySource names a pack it finds in a world's folder: no known pack.
-            PackResources datapack = new PathPackResources(new PackLocationInfo(
-                    "file/hempdustry-test-datapack", Component.literal("hempdustry-test-datapack"), PackSource.WORLD, Optional.empty()), folder);
+            // As FolderRepositorySource names a pack it finds in a world's folder.
+            PackResources datapack = new PathPackResources("file/hempdustry-test-datapack", folder, false);
             List<PackResources> packs = new ArrayList<>(world.listPacks().toList());
             packs.add(datapack);
             ResourceManager withDatapack = new MultiPackResourceManager(PackType.SERVER_DATA, packs);
@@ -186,7 +155,7 @@ public final class LootGameTest {
                 ModItems.FILTERED_KIEF, "a ready re-sift");
         List<ItemStack> filling = Block.getDrops(
                 ready.setValue(SiftingBoxBlock.LEVEL, SiftingBoxBlock.FULL_LEVEL), context.getLevel(), context.absolutePos(AT), null);
-        context.assertTrue(filling.size() == 1 && filling.getFirst().is(ModBlocks.SIFTING_BOX.asItem()),
+        context.assertTrue(filling.size() == 1 && filling.get(0).is(ModBlocks.SIFTING_BOX.asItem()),
                 "a box still filling dropped " + filling + " instead of only itself");
         context.succeed();
     }
@@ -201,29 +170,31 @@ public final class LootGameTest {
         BlockPos pos = context.absolutePos(AT);
         context.setBlock(AT, ModBlocks.DECARBOXYLATOR);
         ItemStack named = new ItemStack(ModBlocks.DECARBOXYLATOR);
-        named.set(DataComponents.CUSTOM_NAME, Component.literal("The Oven"));
-        DecarboxylatorBlockEntity machine = context.<DecarboxylatorBlockEntity>getBlockEntity(AT);
-        machine.applyComponentsFromItemStack(named);
+        named.setHoverName(Component.literal("The Oven"));
+        // What the block's setPlacedBy does with the item it was placed from.
+        NamedMachineBlockEntity.nameFromItem(world, pos, named);
+        DecarboxylatorBlockEntity machine = ((DecarboxylatorBlockEntity) context.getBlockEntity(AT));
 
         context.assertTrue(machine.getDisplayName().getString().equals("The Oven"),
                 "a renamed Decarboxylator's screen is titled " + machine.getDisplayName().getString());
         BlockEntity reloaded = BlockEntity.loadStatic(pos, machine.getBlockState(),
-                machine.saveWithFullMetadata(world.registryAccess()), world.registryAccess());
+                machine.saveWithFullMetadata());
         context.assertTrue(reloaded instanceof DecarboxylatorBlockEntity loaded
                         && loaded.getDisplayName().getString().equals("The Oven"),
                 "the Decarboxylator's name did not survive a save and a load");
         List<ItemStack> drops = Block.getDrops(machine.getBlockState(), world, pos, machine);
-        context.assertTrue(drops.size() == 1 && Component.literal("The Oven").equals(drops.getFirst().get(DataComponents.CUSTOM_NAME)),
+        context.assertTrue(drops.size() == 1 && drops.get(0).hasCustomHoverName()
+                        && drops.get(0).getHoverName().getString().equals("The Oven"),
                 "a broken renamed Decarboxylator dropped " + drops + " without its name");
         context.succeed();
     }
 
     // ----- helpers -----
 
-    private static void expect(GameTestHelper context, ResourceKey<LootTable> key, Predicate<ItemStack> what,
+    private static void expect(GameTestHelper context, ResourceLocation key, Predicate<ItemStack> what,
                                int low, int high, String description) {
         ServerLevel world = context.getLevel();
-        LootTable table = world.getServer().reloadableRegistries().getLootTable(key);
+        LootTable table = world.getServer().getLootData().getLootTable(key);
         LootParams chest = new LootParams.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(AT)))
                 .create(LootContextParamSets.CHEST);
@@ -233,7 +204,7 @@ public final class LootGameTest {
     }
 
     private static ResourceLocation file(ResourceLocation table) {
-        return ResourceLocation.fromNamespaceAndPath(table.getNamespace(), "loot_table/" + table.getPath() + ".json");
+        return new ResourceLocation(table.getNamespace(), "loot_tables/" + table.getPath() + ".json");
     }
 
     private static int count(LootTable table, LootParams params, Predicate<ItemStack> what, int rolls) {

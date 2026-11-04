@@ -21,7 +21,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.block.Blocks;
@@ -59,7 +58,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
 
     @Override
     public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "jei");
+        return new ResourceLocation(Hempdustry.MOD_ID, "jei");
     }
 
     /**
@@ -137,8 +136,8 @@ public class HempdustryJeiPlugin implements IModPlugin {
      * describing that match in the one shape JEI's crafting category and its transfer handler both
      * understand.
      */
-    private static List<RecipeHolder<CraftingRecipe>> packingAsCrafting(HolderLookup.Provider registries) {
-        List<RecipeHolder<CraftingRecipe>> out = new ArrayList<>();
+    private static List<CraftingRecipe> packingAsCrafting(HolderLookup.Provider registries) {
+        List<CraftingRecipe> out = new ArrayList<>();
         for (ViewerRecipes.Packing packing : ViewerRecipes.packing(registries)) {
             // Each slot is an Ingredient over the slot's own stacks. On this line an Ingredient keeps
             // the stacks it was built from and draws them as they are, components and all, while
@@ -148,8 +147,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
             for (int i = 0; i < packing.inputs().size(); i++) {
                 ingredients.set(i, Ingredient.of(packing.inputs().get(i).stream()));
             }
-            out.add(new RecipeHolder<>(packing.id(),
-                    new ShapelessRecipe("", CraftingBookCategory.MISC, packing.output(), ingredients)));
+            out.add(new ShapelessRecipe(packing.id(), "", CraftingBookCategory.MISC, packing.output(), ingredients));
         }
         return out;
     }

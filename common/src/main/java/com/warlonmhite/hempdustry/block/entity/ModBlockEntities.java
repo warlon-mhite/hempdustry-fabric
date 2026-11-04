@@ -19,32 +19,32 @@ public class ModBlockEntities {
     // datafixer type left null, which is what a mod wants.
     public static final BlockEntityType<DecarboxylatorBlockEntity> DECARBOXYLATOR =
             Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylator"),
+                    new ResourceLocation(Hempdustry.MOD_ID, "decarboxylator"),
                     BlockEntityType.Builder.of(DecarboxylatorBlockEntity::new,
                             ModBlocks.DECARBOXYLATOR).build(null));
 
     public static final BlockEntityType<InfuserBlockEntity> INFUSER =
             Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "infuser"),
+                    new ResourceLocation(Hempdustry.MOD_ID, "infuser"),
                     BlockEntityType.Builder.of(InfuserBlockEntity::new,
                             ModBlocks.INFUSER).build(null));
 
     public static final BlockEntityType<HempPressBlockEntity> HEMP_PRESS =
             Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_press"),
+                    new ResourceLocation(Hempdustry.MOD_ID, "hemp_press"),
                     BlockEntityType.Builder.of(HempPressBlockEntity::new,
                             ModBlocks.HEMP_PRESS).build(null));
 
     // One type for every glass: the entity holds components, not anything that differs by colour.
     public static final BlockEntityType<BongBlockEntity> BONG =
             Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "bong"),
+                    new ResourceLocation(Hempdustry.MOD_ID, "bong"),
                     BlockEntityType.Builder.of(BongBlockEntity::new,
                             ModBlocks.DEVICE_BLOCKS.values().toArray(Block[]::new)).build(null));
 
     public static final BlockEntityType<HempBedBlockEntity> HEMP_BED =
             Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_bed"),
+                    new ResourceLocation(Hempdustry.MOD_ID, "hemp_bed"),
                     BlockEntityType.Builder.of(HempBedBlockEntity::new,
                             ModBlocks.HEMP_BED).build(null));
 

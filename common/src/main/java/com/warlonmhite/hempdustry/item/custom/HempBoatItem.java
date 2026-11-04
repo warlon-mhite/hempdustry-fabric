@@ -68,7 +68,9 @@ public class HempBoatItem extends Item {
         if (!world.isClientSide) {
             world.addFreshEntity(boatEntity);
             world.gameEvent(user, GameEvent.ENTITY_PLACE, hitResult.getLocation());
-            itemStack.consume(1, user);
+            if (!user.getAbilities().instabuild) {
+                itemStack.shrink(1);
+            }
         }
 
         user.awardStat(Stats.ITEM_USED.get(this));

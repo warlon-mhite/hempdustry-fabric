@@ -1,5 +1,14 @@
 package com.warlonmhite.hempdustry.test;
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Comparator;
+import net.minecraft.world.level.storage.loot.LootDataType;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.advancements.critereon.DeserializationContext;
+import com.warlonmhite.hempdustry.util.SemVer;
+import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -16,10 +25,9 @@ import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.custom.EdibleScheduler;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.advancements.Advancement;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
@@ -37,7 +45,8 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -65,8 +74,13 @@ import java.util.stream.Stream;
  * config key — one per line) and {@code <version>.json} (every data file, every stack the creative tab
  * builds, every block entity's save, the default config). Cutting a release copies the two into
  * {@code src/gametest/resources/frozen/}, and from then on every later build is checked against them.
- * This line's 2.0.3 files were captured from its own release tag, v2.0.3+1.21.1: what a 1.21.1
- * build shipped, which is not what the 1.21.11 one did.
+ * This line has had no release yet, so {@code frozen/} holds none of its own: its first release
+ * starts it.
+ *
+ * <p><b>A world made on this line moves to a newer Minecraft, never the other way.</b> So
+ * {@code frozen/1.21.1/} holds the 1.21.1 line's releases, and {@link #aWorldFromThisLineUpgrades}
+ * holds this build to the newest of them: everything a 1.20.1 world can have saved must be there
+ * after Minecraft's upgrade to 1.21.1.
  *
  * <p><b>Additions are free; removals fail.</b> Something that has to go anyway goes into
  * {@code frozen/retired.txt} with how old worlds and packs survive it — and a retirement that excuses
@@ -105,11 +119,49 @@ public final class FrozenSurfaceGameTest {
                 if (!surface.contains(line)) findings.putIfAbsent(line, "frozen by " + file.getKey() + ", gone from this build");
             }
         }
-        Sweep.atLeast(context, "release baselines in frozen/", baselines, 1);
+        // None until this line's first release (see the class comment).
+        Sweep.atLeast(context, "release baselines in frozen/", baselines, 0);
         Sweep.atLeast(context, "frozen lines in this build", surface.size(), 1000);
         Sweep.report(context, "Everything a public release froze is still here", findings, retired());
         context.succeed();
     }
+
+    /**
+     * A world made on this line upgrades to the 1.21.1 line with nothing of the mod's lost: every
+     * registry id, state value, advancement criterion, recipe, loot table, config key and strain
+     * {@code model_index} this build has is in the newest 1.21.1 release's surface
+     * ({@code frozen/1.21.1/}). What a save cannot hold -- tags, assets, the recipe types a datapack
+     * names -- is free to differ, as it is between any two lines.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void aWorldFromThisLineUpgrades(GameTestHelper context) {
+        Map<String, Path> newer = frozenFiles("frozen/1.21.1");
+        String newest = newer.keySet().stream().filter(name -> name.endsWith(".txt") && !name.equals("retired.txt"))
+                .max(Comparator.comparing(name -> SemVer.parse(name.substring(0, name.length() - ".txt".length()))))
+                .orElse(null);
+        context.assertTrue(newest != null, "frozen/1.21.1/ holds no release of the 1.21.1 line");
+        Set<String> there = new HashSet<>(text(newer.get(newest)).lines().filter(line -> !line.isBlank()).toList());
+        Map<String, String> findings = new TreeMap<>();
+        int checked = 0;
+        for (String line : surface(context.getLevel())) {
+            if (line.startsWith("tag ") || line.startsWith("asset ") || line.startsWith("registry ")) continue;
+            // A loader's own data registry (Forge's biome modifiers) is that loader's to read, from data
+            // files a world does not save; the baseline is written by Fabric's run.
+            if (line.startsWith("entry forge:") || line.startsWith("entry neoforge:")) continue;
+            checked++;
+            if (!there.contains(line)) findings.put(line, "not in the 1.21.1 line's " + newest + ": a world upgraded there loses it");
+        }
+        Sweep.atLeast(context, "lines a 1.20.1 world can hold", checked, 1000);
+        Sweep.report(context, "A world from this line upgrades to the 1.21.1 line", findings, UPGRADE_EXEMPT);
+        context.succeed();
+    }
+
+    /** What this line has and the 1.21.1 line has not, each with why a world upgraded there keeps working. */
+    private static final Map<String, String> UPGRADE_EXEMPT = Map.of(
+            "entry minecraft:recipe_serializer hempdustry:crafting_shaped",
+            "this line's crafting with a result that carries data, named only by recipe files; no save holds a recipe serializer, and the newer lines' recipes are their own vanilla ones",
+            "entry minecraft:recipe_serializer hempdustry:crafting_shapeless",
+            "the same, shapeless");
 
     /**
      * Every data file a release shipped still decodes with this build's codecs — so a datapack that
@@ -125,7 +177,7 @@ public final class FrozenSurfaceGameTest {
     public void oldDataStillLoads(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         RegistryAccess registries = world.registryAccess();
-        DynamicOps<JsonElement> json = registries.createSerializationContext(JsonOps.INSTANCE);
+        DynamicOps<JsonElement> json = RegistryOps.create(JsonOps.INSTANCE, registries);
         Map<String, String> findings = new TreeMap<>();
         int files = 0;
         int releases = 0;
@@ -137,24 +189,19 @@ public final class FrozenSurfaceGameTest {
 
             for (Map.Entry<String, JsonElement> data : old.getAsJsonObject("data").entrySet()) {
                 files++;
-                Codec<?> codec = codecFor(data.getKey());
-                if (codec == null) {
-                    findings.put(release + " " + data.getKey(), "the test cannot tell what this file is: teach codecFor() its folder");
-                    continue;
-                }
-                DataResult<?> decoded = codec.parse(json, data.getValue());
-                if (decoded.isError()) {
-                    findings.put(release + " " + data.getKey(), "no longer decodes: " + decoded.error().orElseThrow().message());
+                String problem = decodeProblem(world, json, data.getKey(), data.getValue());
+                if (problem != null) {
+                    findings.put(release + " " + data.getKey(), problem);
                 }
             }
 
             for (JsonElement saved : old.getAsJsonArray("stacks")) {
                 DataResult<ItemStack> stack = ItemStack.CODEC.parse(json, saved);
                 String key = release + " stack " + saved.getAsJsonObject().get("id").getAsString();
-                if (stack.isError()) {
-                    findings.putIfAbsent(key, "no longer loads: " + stack.error().orElseThrow().message() + " — " + saved);
-                } else if (!contains(ItemStack.CODEC.encodeStart(json, stack.getOrThrow()).getOrThrow(), saved)) {
-                    findings.putIfAbsent(key, "loads as " + ItemStack.CODEC.encodeStart(json, stack.getOrThrow()).getOrThrow()
+                if (stack.error().isPresent()) {
+                    findings.putIfAbsent(key, "no longer loads: " + stack.error().get().message() + " — " + saved);
+                } else if (!contains(orThrow(ItemStack.CODEC.encodeStart(json, orThrow(stack))), saved)) {
+                    findings.putIfAbsent(key, "loads as " + orThrow(ItemStack.CODEC.encodeStart(json, orThrow(stack)))
                             + ", losing part of " + saved);
                 }
             }
@@ -162,31 +209,32 @@ public final class FrozenSurfaceGameTest {
             BlockPos pos = context.absolutePos(AT);
             for (Map.Entry<String, JsonElement> save : old.getAsJsonObject("blockEntities").entrySet()) {
                 String key = release + " " + save.getKey();
-                Block block = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(save.getKey())).orElse(null);
+                Block block = BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(save.getKey())).orElse(null);
                 if (block == null) {
                     findings.put(key, "the block is gone");
                     continue;
                 }
                 CompoundTag before = nbt(save.getValue().getAsString());
-                BlockEntity loaded = BlockEntity.loadStatic(pos, block.defaultBlockState(), before.copy(), registries);
+                BlockEntity loaded = BlockEntity.loadStatic(pos, block.defaultBlockState(), before.copy());
                 if (loaded == null) {
                     findings.put(key, "its block entity no longer loads from " + before);
-                } else if (!contains(placeless(loaded.saveWithFullMetadata(registries)), placeless(before))) {
-                    findings.put(key, "saved " + before + " and loads as " + loaded.saveWithFullMetadata(registries));
+                } else if (!contains(placeless(loaded.saveWithFullMetadata()), placeless(before))) {
+                    findings.put(key, "saved " + before + " and loads as " + loaded.saveWithFullMetadata());
                 }
             }
 
             // The file as the release wrote it, every key in it: each must still be read and kept.
             JsonElement config = old.get("config");
             ConfigGameTest.withConfig(config.toString(), () -> {
-                JsonElement now = HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.get()).getOrThrow();
+                JsonElement now = orThrow(HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.get()));
                 if (!contains(now, config)) {
                     findings.put(release + " config", "a config file it wrote now reads as " + now + ", not " + config);
                 }
             });
         }
-        Sweep.atLeast(context, "released data files", files, 300);
-        Sweep.atLeast(context, "releases in frozen/", releases, 1);
+        // None until this line's first release (see the class comment).
+        Sweep.atLeast(context, "released data files", files, 0);
+        Sweep.atLeast(context, "releases in frozen/", releases, 0);
         Sweep.report(context, "What a public release wrote still loads", findings, Map.of());
         context.succeed();
     }
@@ -204,8 +252,9 @@ public final class FrozenSurfaceGameTest {
             }
             entry.value().getTagNames().forEach(tag -> {
                 ResourceLocation id = tag.location();
-                // Ours, and the c: subtags we mint; a tag we only add to is vanilla's or another mod's.
-                if (Sweep.ours(id) || id.getNamespace().equals("c") && id.getPath().endsWith("/hemp")) {
+                // Ours, and the c: and forge: subtags we mint; a tag we only add to is vanilla's or another mod's.
+                if (Sweep.ours(id) || (id.getNamespace().equals("c") || id.getNamespace().equals("forge"))
+                        && id.getPath().endsWith("/hemp")) {
                     lines.add("tag " + registry + " #" + id);
                 }
             });
@@ -215,30 +264,29 @@ public final class FrozenSurfaceGameTest {
             if (!Sweep.ours(id)) continue;
             for (Property<?> property : block.getStateDefinition().getProperties()) states(id, property, lines);
         }
-        for (AdvancementHolder advancement : world.getServer().getAdvancements().getAllAdvancements()) {
-            ResourceLocation id = advancement.id();
+        for (Advancement advancement : world.getServer().getAdvancements().getAllAdvancements()) {
+            ResourceLocation id = advancement.getId();
             if (!Sweep.ours(id) || id.getPath().startsWith("recipes/")) continue;
-            for (String criterion : advancement.value().criteria().keySet()) lines.add("criterion " + id + " " + criterion);
+            for (String criterion : advancement.getCriteria().keySet()) lines.add("criterion " + id + " " + criterion);
         }
-        for (RecipeHolder<?> recipe : world.getServer().getRecipeManager().getRecipes()) {
-            if (Sweep.ours(recipe.id())) lines.add("recipe " + recipe.id());
+        for (Recipe<?> recipe : world.getServer().getRecipeManager().getRecipes()) {
+            if (Sweep.ours(recipe.getId())) lines.add("recipe " + recipe.getId());
         }
-        world.getServer().reloadableRegistries().getKeys(Registries.LOOT_TABLE).stream()
+        world.getServer().getLootData().getKeys(LootDataType.TABLE).stream()
                 .filter(Sweep::ours).forEach(id -> lines.add("loot_table " + id));
         for (String file : Sweep.modFiles().keySet()) {
             if (file.startsWith("assets/" + Hempdustry.MOD_ID + "/") && !file.startsWith("assets/" + Hempdustry.MOD_ID + "/lang/")) {
                 lines.add("asset " + file);
             }
         }
-        keys("", HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT).getOrThrow(), lines);
+        keys("", orThrow(HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT)), lines);
         registries.registryOrThrow(Strain.REGISTRY_KEY).entrySet().forEach(strain -> {
             if (Sweep.ours(strain.getKey().location())) {
                 lines.add("model_index " + strain.getKey().location() + " " + strain.getValue().modelIndex());
             }
         });
         // A player's save keeps what the mod attaches to them under the attachment's id, on either
-        // loader -- and only NeoForge lists attachments in a registry, while a release's baseline is
-        // written by Fabric's run. So it is named here, the same on both.
+        // loader -- and neither lists it in a registry on 1.20.1. So it is named here, the same on both.
         lines.add("attachment " + EdibleScheduler.PENDING_ID);
         return lines;
     }
@@ -276,8 +324,8 @@ public final class FrozenSurfaceGameTest {
         JsonArray stacks = new JsonArray();
         Stream.concat(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems().stream(),
                         ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems().stream())
-                .map(stack -> ItemStack.CODEC.encodeStart(registries.createSerializationContext(JsonOps.INSTANCE), stack).getOrThrow())
-                .distinct().forEach(stacks::add);
+                .map(stack -> orThrow(ItemStack.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, registries), stack)))
+                .distinct().forEach(stack -> stacks.add(stack));
         out.add("stacks", stacks);
 
         JsonObject blockEntities = new JsonObject();
@@ -293,29 +341,64 @@ public final class FrozenSurfaceGameTest {
                 for (int slot = 0; slot < inventory.getContainerSize(); slot++) inventory.setItem(slot, new ItemStack(Items.DIAMOND, slot + 1));
             }
             ItemStack named = new ItemStack(block.asItem());
-            if (!named.isEmpty()) {
-                named.set(DataComponents.CUSTOM_NAME, Component.literal("Frozen"));
-                entity.applyComponentsFromItemStack(named);
+            // Named as an anvil's name reaches each kind: the machines' own name, a vanilla container's.
+            if (entity instanceof NamedMachineBlockEntity machine) {
+                machine.setCustomName(Component.literal("Frozen"));
+            } else if (entity instanceof BaseContainerBlockEntity container) {
+                container.setCustomName(Component.literal("Frozen"));
             }
-            blockEntities.addProperty(id.toString(), entity.saveWithFullMetadata(registries).toString());
+            blockEntities.addProperty(id.toString(), entity.saveWithFullMetadata().toString());
             if (entity instanceof Container inventory) inventory.clearContent();
             world.removeBlock(pos, false);
         }
         out.add("blockEntities", blockEntities);
 
-        out.add("config", HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT).getOrThrow());
+        out.add("config", orThrow(HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT)));
         return out;
     }
 
     // ----- reading what a release froze -----
 
-    /** The codec a data file at {@code path} is read with, by its folder; null for a folder nobody taught it. */
-    private static Codec<?> codecFor(String path) {
+    /**
+     * Why the data file at {@code path} no longer reads, or {@code null} when it does. Recipes,
+     * advancements and loot tables are read on 1.20.1 as the game reads them, from JSON; the rest
+     * by their codecs, found by folder.
+     */
+    private static String decodeProblem(ServerLevel world, DynamicOps<JsonElement> json, String path, JsonElement file) {
         String inside = path.substring(path.indexOf('/', "data/".length()) + 1);
+        String namespace = path.substring("data/".length(), path.indexOf('/', "data/".length()));
+        try {
+            if (inside.startsWith("recipes/")) {
+                RecipeManager.fromJson(id(namespace, inside, "recipes/"), file.getAsJsonObject());
+                return null;
+            }
+            if (inside.startsWith("advancements/")) {
+                Advancement.Builder.fromJson(file.getAsJsonObject(), new DeserializationContext(
+                        id(namespace, inside, "advancements/"), world.getServer().getLootData()));
+                return null;
+            }
+            if (inside.startsWith("loot_tables/")) {
+                // Through the table's own reader: Forge adds an argument to LootDataType#deserialize.
+                return LootDataType.TABLE.parser().fromJson(file, LootTable.class) != null ? null : "no longer decodes";
+            }
+        } catch (RuntimeException e) {
+            return "no longer decodes: " + e.getMessage();
+        }
+        Codec<?> codec = codecFor(inside);
+        if (codec == null) {
+            return "the test cannot tell what this file is: teach codecFor() its folder";
+        }
+        DataResult<?> decoded = codec.parse(json, file);
+        return decoded.error().map(error -> "no longer decodes: " + error.message()).orElse(null);
+    }
+
+    private static ResourceLocation id(String namespace, String inside, String folder) {
+        return new ResourceLocation(namespace, inside.substring(folder.length(), inside.length() - ".json".length()));
+    }
+
+    /** The codec a data file is read with, by its folder inside its namespace; null for a folder nobody taught it. */
+    private static Codec<?> codecFor(String inside) {
         if (inside.startsWith("tags/")) return TagFile.CODEC;
-        if (inside.startsWith("recipe/")) return Recipe.CODEC;
-        if (inside.startsWith("advancement/")) return Advancement.CODEC;
-        if (inside.startsWith("loot_table/")) return LootTable.DIRECT_CODEC;
         // The loader's list, not vanilla's: a mod's dynamic registry is in the loader's alone. Its
         // files live under <namespace>/<path>, data/<pack>/hempdustry/strain/ for strains.
         for (RegistryDataLoader.RegistryData<?> registry : TestPlatform.INSTANCE.dynamicRegistries()) {
@@ -374,11 +457,20 @@ public final class FrozenSurfaceGameTest {
         return retired;
     }
 
+    private static <T> T orThrow(DataResult<T> result) {
+        return result.getOrThrow(false, error -> { });
+    }
+
     /** The release baselines this test mod ships, by name inside {@code frozen/}. */
     private static Map<String, Path> frozenFiles() {
+        return frozenFiles("frozen");
+    }
+
+    /** The baselines in one folder of the test mod, by name. */
+    private static Map<String, Path> frozenFiles(String folder) {
         Map<String, Path> files = new TreeMap<>();
         for (Path root : TestPlatform.INSTANCE.testModRoots()) {
-            Path frozen = root.resolve("frozen");
+            Path frozen = root.resolve(folder);
             if (!Files.isDirectory(frozen)) continue;
             try (Stream<Path> walk = Files.list(frozen)) {
                 walk.filter(Files::isRegularFile).forEach(file -> files.put(file.getFileName().toString(), file));

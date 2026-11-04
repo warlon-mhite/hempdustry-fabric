@@ -127,7 +127,7 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
         int outputX = bounds.x + PADDING + MAX_INPUTS * SLOT + ARROW_WIDTH;
         widgets.add(Widgets.createArrow(new Point(bounds.x + PADDING + MAX_INPUTS * SLOT, y + 1)));
         widgets.add(Widgets.createSlot(new Point(outputX, y))
-                .entries(display.getOutputEntries().getFirst()).markOutput());
+                .entries(display.getOutputEntries().get(0)).markOutput());
 
         int noteY = y + SLOT + PADDING;
         for (Component note : display.notes()) {

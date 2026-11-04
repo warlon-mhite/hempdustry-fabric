@@ -1,9 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.mojang.serialization.Codec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.Nullable;
@@ -99,9 +96,6 @@ public enum Quality implements StringRepresentable {
     public static final int CLEAN_SCORE = 160;
 
     public static final Codec<Quality> CODEC = StringRepresentable.fromEnum(Quality::values);
-    /** Ordinal-based rather than string-based: this only ever travels over the wire, never to disk. */
-    public static final StreamCodec<ByteBuf, Quality> PACKET_CODEC =
-            ByteBufCodecs.VAR_INT.map(ordinal -> values()[ordinal], Quality::ordinal);
 
     private final String name;
 

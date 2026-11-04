@@ -44,20 +44,15 @@ public final class DatapackStrainGameTest {
         MappedRegistry<Strain> strains = new MappedRegistry<>(Strain.REGISTRY_KEY, Lifecycle.stable());
         // Purple Kush's own definition through the codec a datapack goes through, under another id and
         // translation key (which keeps the record unequal to Purple Kush's); the items are the same.
-        JsonObject json = Strain.CODEC.encodeStart(JsonOps.INSTANCE, purpleKush).getOrThrow().getAsJsonObject();
+        JsonObject json = Strain.CODEC.encodeStart(JsonOps.INSTANCE, purpleKush).getOrThrow(false, error -> { }).getAsJsonObject();
         json.addProperty("translation_key", "strain.hempdustry-gametest.copy");
-        Registry.register(strains, ResourceKey.create(Strain.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("hempdustry-gametest", "copy")),
-                Strain.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
+        Registry.register(strains, ResourceKey.create(Strain.REGISTRY_KEY, new ResourceLocation("hempdustry-gametest", "copy")),
+                Strain.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, error -> { }));
         // Then the real strains, after the copy: a lookup that takes whichever comes first finds the copy.
         loaded.holders().forEach(entry -> Registry.register(strains, entry.key(), entry.value()));
         strains.freeze();
 
         HolderLookup.Provider withCopy = new HolderLookup.Provider() {
-            @Override
-            public Stream<ResourceKey<? extends Registry<?>>> listRegistries() {
-                return real.listRegistries();
-            }
-
             @Override
             @SuppressWarnings("unchecked")
             public <T> Optional<HolderLookup.RegistryLookup<T>> lookup(
@@ -75,7 +70,7 @@ public final class DatapackStrainGameTest {
         long buds = ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems().stream()
                 .filter(stack -> stack.is(purpleKush.buds()))
                 .count();
-        context.assertValueEqual(buds, 1L, "the stacks of Purple Kush's buds in the tab");
+        Line.equal(context, buds, 1L, "the stacks of Purple Kush's buds in the tab");
 
         // And packing those buds packs Purple Kush, the strain they belong to, not the copy.
         context.assertTrue(Strain.fromBuds(withCopy, purpleKush.buds()).map(entry -> entry.is(ModStrains.INDICA)).orElse(false),

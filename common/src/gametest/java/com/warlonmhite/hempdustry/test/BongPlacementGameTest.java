@@ -8,9 +8,10 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.List;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
+import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -44,16 +45,15 @@ public final class BongPlacementGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void bongStandsAndComesBackWhole(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         Item red = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
-                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("hempdustry", "red_bong"));
+                new net.minecraft.resources.ResourceLocation("hempdustry", "red_bong"));
 
         ItemStack device = new ItemStack(red);
         device.setDamageValue(5);
-        device.set(DataComponents.CUSTOM_NAME, Component.literal("Old Faithful"));
-        device.enchant(world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.UNBREAKING), 2);
+        device.setHoverName(Component.literal("Old Faithful"));
+        device.enchant(Enchantments.UNBREAKING, 2);
         ItemStack expected = device.copy();
 
         BlockPos floor = new BlockPos(0, 1, 0);
@@ -67,25 +67,25 @@ public final class BongPlacementGameTest {
 
         // Through a save: what a chunk unload and reload does to it.
         BlockEntity placed = world.getBlockEntity(stood);
-        CompoundTag saved = placed.saveWithFullMetadata(world.registryAccess());
-        BlockEntity reloaded = BlockEntity.loadStatic(stood, state, saved, world.registryAccess());
-        context.assertTrue(reloaded != null && reloaded.components().has(DataComponents.ENCHANTMENTS),
-                "the placed bong's components did not survive a save");
+        CompoundTag saved = placed.saveWithFullMetadata();
+        BlockEntity reloaded = BlockEntity.loadStatic(stood, state, saved);
+        context.assertTrue(reloaded instanceof BongBlockEntity,
+                "the placed bong's block entity did not survive a save");
 
         List<ItemStack> drops = Block.getDrops(state, world, stood, reloaded);
         context.assertTrue(drops.size() == 1, "a broken bong dropped " + drops.size() + " stacks, not itself");
-        ItemStack back = drops.getFirst();
-        context.assertTrue(ItemStack.isSameItemSameComponents(back, expected),
-                "the bong came back as " + back.getComponentsPatch() + ", not as it went down: "
-                        + expected.getComponentsPatch());
+        ItemStack back = drops.get(0);
+        context.assertTrue(ItemStack.isSameItemSameTags(back, expected),
+                "the bong came back as " + back.getTag() + ", not as it went down: "
+                        + expected.getTag());
 
         // A packed bong never places: right-click on the floor is a hit, and the floor stays bare.
         BlockPos otherFloor = new BlockPos(2, 1, 0);
         context.setBlock(otherFloor, Blocks.STONE);
         ItemStack packed = new ItemStack(ModItems.BONG);
-        packed.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(world.registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(packed, SmokeContents.of(world.registryAccess()
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
-        packed.set(ModComponents.CHARGES, DeviceType.BONG.builtInBowl().hits());
+        ModComponents.CHARGES.set(packed, DeviceType.BONG.builtInBowl().hits());
         click(player, world, context.absolutePos(otherFloor), packed);
         context.assertTrue(world.getBlockState(context.absolutePos(otherFloor.above())).isAir(),
                 "a packed bong was set down, bowl and all");
@@ -100,9 +100,9 @@ public final class BongPlacementGameTest {
         BlockPos shelf = new BlockPos(4, 1, 0);
         context.setBlock(shelf, Blocks.STONE);
         ItemStack loaded = new ItemStack(ModItems.BONG);
-        loaded.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(world.registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(loaded, SmokeContents.of(world.registryAccess()
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 3));
-        loaded.set(ModComponents.CHARGES, 2);
+        ModComponents.CHARGES.set(loaded, 2);
         ItemStack loadedBefore = loaded.copy();
         player.setShiftKeyDown(true);
         click(player, world, context.absolutePos(shelf), loaded);
@@ -113,7 +113,7 @@ public final class BongPlacementGameTest {
         context.assertTrue(shownState.getValue(BongBlock.PACKED), "a packed bong stood as an empty one");
         List<ItemStack> shownDrops = Block.getDrops(shownState, world, shown, world.getBlockEntity(shown));
         context.assertTrue(shownDrops.size() == 1
-                        && ItemStack.isSameItemSameComponents(shownDrops.getFirst(), loadedBefore),
+                        && ItemStack.isSameItemSameTags(shownDrops.get(0), loadedBefore),
                 "a packed bong did not come back with its bowl: " + shownDrops);
         context.succeed();
     }

@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.world.item.crafting.Recipe;
 import com.warlonmhite.hempdustry.item.ModItemGroups;
 import com.warlonmhite.hempdustry.item.ModItems;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -96,19 +96,19 @@ public final class CreativeTabGameTest {
         // its contents. The tab builds those stacks from the registry and the recipes build their
         // own, so the two drifted: the schwag spliffs, the hash spliffs and two of the three moon
         // rock coats were craftable and in no list.
-        for (RecipeHolder<?> entry : world.getServer().getRecipeManager().getRecipes()) {
-            ItemStack made = entry.value().getResultItem(world.registryAccess());
+        for (Recipe<?> entry : world.getServer().getRecipeManager().getRecipes()) {
+            ItemStack made = entry.getResultItem(world.registryAccess());
             if (!(made.is(ModItems.SPLIFF) || made.is(ModItems.MOON_ROCK))) {
                 continue;
             }
             boolean listed = false;
             for (ItemStack stack : ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems()) {
-                if (ItemStack.isSameItemSameComponents(stack, made)) {
+                if (ItemStack.isSameItemSameTags(stack, made)) {
                     listed = true;
                     break;
                 }
             }
-            context.assertTrue(listed, entry.id() + " makes a stack creative search never finds");
+            context.assertTrue(listed, entry.getId() + " makes a stack creative search never finds");
         }
         context.succeed();
     }

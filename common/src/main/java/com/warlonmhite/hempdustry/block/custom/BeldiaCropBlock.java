@@ -9,6 +9,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import com.warlonmhite.hempdustry.item.ModItems;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,12 +53,29 @@ public class BeldiaCropBlock extends IndicaCropBlock {
 
     /** Anything in {@code #hempdustry:beldia_soil} (sand, red sand, any mod's {@code #c:sands}), or a bed of ours. */
     @Override
-    protected boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
+    public boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
         return floor.is(ModTags.Blocks.BELDIA_SOIL) || floor.getBlock() instanceof GrowMedium;
     }
 
+    /**
+     * The ground rule above, asked of a standing plant too. Vanilla's {@code BushBlock#canSurvive} asks
+     * {@link #mayPlaceOn} already; Forge's asks the ground's {@code canSustainPlant} instead, which lets
+     * any crop stand on farmland.
+     */
     @Override
-    protected ItemLike getBaseSeedId() {
+    public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+        if (!super.canSurvive(state, world, pos)) {
+            return false;
+        }
+        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+            return true;
+        }
+        BlockPos floor = pos.below();
+        return mayPlaceOn(world.getBlockState(floor), world, floor);
+    }
+
+    @Override
+    public ItemLike getBaseSeedId() {
         return ModItems.BELDIA_SEEDS;
     }
 
@@ -69,8 +87,8 @@ public class BeldiaCropBlock extends IndicaCropBlock {
 
     /** Bone meal is growth too, and a dry plant does not grow. */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
-        return super.isValidBonemealTarget(world, pos, state) && isWatered(world, pos.below());
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
+        return super.isValidBonemealTarget(world, pos, state, isClient) && isWatered(world, pos.below());
     }
 
     /**

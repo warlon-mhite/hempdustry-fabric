@@ -41,7 +41,7 @@ import net.minecraft.world.level.block.entity.BannerPattern;
  */
 public final class BannerPatternGameTest {
 
-    private static final ResourceLocation HEMP_LEAF_PATTERN = ResourceLocation.fromNamespaceAndPath("hempdustry", "hemp_leaf");
+    private static final ResourceLocation HEMP_LEAF_PATTERN = new ResourceLocation("hempdustry", "hemp_leaf");
 
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void hempLeafIsALoomPatternItem(GameTestHelper context) {

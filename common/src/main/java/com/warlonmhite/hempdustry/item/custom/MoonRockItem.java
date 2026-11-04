@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -52,7 +54,7 @@ public class MoonRockItem extends Item {
      */
     @Override
     public Component getName(ItemStack stack) {
-        SmokeContents contents = stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
+        SmokeContents contents = ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY);
         return contents.isEmpty()
                 ? super.getName(stack)
                 : Component.translatable(this.getDescriptionId() + ".of", contents.loadName());
@@ -60,9 +62,9 @@ public class MoonRockItem extends Item {
 
     /** The hashish coat, named the same italic way a hash spliff names its pinch. */
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+    public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
         super.appendHoverText(stack, context, tooltip, type);
-        stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).hashAdditive()
+        ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).hashAdditive()
                 .ifPresent(hash -> tooltip.add(
                         Component.translatable("hempdustry.spliff.with",
                                         Component.translatable(hash.value().translationKey()))

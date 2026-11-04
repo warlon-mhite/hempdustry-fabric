@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
+import com.warlonmhite.hempdustry.block.ItemUse;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
@@ -15,7 +16,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -112,9 +112,8 @@ import org.jetbrains.annotations.Nullable;
  * its level. That is real work for a block whose whole point is that it has no inventory. Left out
  * on purpose; it changes nothing already written.
  */
-public class SiftingBoxBlock extends Block {
+public class SiftingBoxBlock extends Block implements ItemUse {
 
-    public static final MapCodec<SiftingBoxBlock> CODEC = simpleCodec(SiftingBoxBlock::new);
 
     /** Vanilla's own 0–8 property, so the blockstate reads exactly like a composter's. */
     public static final IntegerProperty LEVEL = BlockStateProperties.LEVEL_COMPOSTER;
@@ -244,23 +243,26 @@ public class SiftingBoxBlock extends Block {
     }
 
     @Override
-    protected MapCodec<? extends SiftingBoxBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(LEVEL, FILLED, CONTENT);
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return Shapes.block();
     }
 
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return COLLISION_SHAPE;
+    }
+
+    /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.dispatch(useItemOn(player.getItemInHand(hand), state, level, pos, player, hand, hit), hand,
+                () -> useWithoutItem(state, level, pos, player, hit));
     }
 
     /**
@@ -273,8 +275,7 @@ public class SiftingBoxBlock extends Block {
      * the click, so the box fills up and can then never be emptied. This block shipped that bug once
      * and a player found it, not the game test.
      */
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+    public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player, InteractionHand hand, BlockHitResult hit) {
         int level = state.getValue(LEVEL);
 
@@ -316,7 +317,7 @@ public class SiftingBoxBlock extends Block {
                 || (state.getValue(FILLED) && content != Content.PLANT)
                 || (level > 0 && content != state.getValue(CONTENT))) {
             explainRefusal(world, player, state, content, level);
-            return super.useItemOn(stack, state, world, pos, player, hand, hit);
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         if (world instanceof ServerLevel serverWorld) {
             sift(serverWorld, pos, level == 0 ? state.setValue(CONTENT, content) : state, level, chance);
@@ -324,7 +325,9 @@ public class SiftingBoxBlock extends Block {
         // Outside the server branch, as vanilla's composter does it: the cost is the same on both
         // sides whatever the roll, so spending it client-side too is what makes the stack shrink on
         // the frame you click rather than on the frame the server's answer arrives.
-        stack.consume(1, player);
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
         return ItemInteractionResult.sidedSuccess(world.isClientSide);
     }
 
@@ -356,8 +359,7 @@ public class SiftingBoxBlock extends Block {
     }
 
     /** Taking the batch out. Empty-handed, or holding anything the box does not accept. */
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         if (state.getValue(LEVEL) != READY_LEVEL) {
             return InteractionResult.PASS;
         }
@@ -374,7 +376,7 @@ public class SiftingBoxBlock extends Block {
      * block's included, and a second schedule for a queued tick is ignored.
      */
     @Override
-    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+    public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
         if (state.getValue(LEVEL) == FULL_LEVEL) {
             world.scheduleTick(pos, this, SETTLE_DELAY);
         }
@@ -382,7 +384,7 @@ public class SiftingBoxBlock extends Block {
 
     /** {@link #FULL_LEVEL} → {@link #READY_LEVEL}: the powder settles and is ready to take. */
     @Override
-    protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
         if (state.getValue(LEVEL) == FULL_LEVEL) {
             world.setBlock(pos, state.setValue(LEVEL, READY_LEVEL), Block.UPDATE_ALL);
             world.playSound(null, pos, SoundEvents.COMPOSTER_READY, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -390,13 +392,13 @@ public class SiftingBoxBlock extends Block {
     }
 
     @Override
-    protected boolean hasAnalogOutputSignal(BlockState state) {
+    public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
     /** Fill level, 0–8, exactly as a composter reports it. */
     @Override
-    protected int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+    public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
         return state.getValue(LEVEL);
     }
 

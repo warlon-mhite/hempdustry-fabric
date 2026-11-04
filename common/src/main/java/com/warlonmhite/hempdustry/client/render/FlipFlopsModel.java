@@ -24,7 +24,7 @@ import net.minecraft.world.entity.LivingEntity;
  */
 public final class FlipFlopsModel {
     public static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "textures/entity/equipment/flip_flops.png");
+            new ResourceLocation(Hempdustry.MOD_ID, "textures/entity/equipment/flip_flops.png");
 
     private FlipFlopsModel() {
     }

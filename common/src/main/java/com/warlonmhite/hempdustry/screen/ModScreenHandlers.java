@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.screen;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.platform.Menus;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreenHandler;
@@ -18,18 +19,18 @@ public class ModScreenHandlers {
      */
     public static final MenuType<DecarboxylatorScreenHandler> DECARBOXYLATOR =
             Registry.register(BuiltInRegistries.MENU,
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylator"),
-                    Services.MENUS.menuType(DecarboxylatorScreenHandler::new, BlockPos.STREAM_CODEC));
+                    new ResourceLocation(Hempdustry.MOD_ID, "decarboxylator"),
+                    Services.MENUS.menuType(DecarboxylatorScreenHandler::new, Menus.Data.BLOCK_POS));
 
     public static final MenuType<InfuserScreenHandler> INFUSER =
             Registry.register(BuiltInRegistries.MENU,
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "infuser"),
-                    Services.MENUS.menuType(InfuserScreenHandler::new, BlockPos.STREAM_CODEC));
+                    new ResourceLocation(Hempdustry.MOD_ID, "infuser"),
+                    Services.MENUS.menuType(InfuserScreenHandler::new, Menus.Data.BLOCK_POS));
 
     public static final MenuType<HempPressScreenHandler> HEMP_PRESS =
             Registry.register(BuiltInRegistries.MENU,
-                    ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_press"),
-                    Services.MENUS.menuType(HempPressScreenHandler::new, BlockPos.STREAM_CODEC));
+                    new ResourceLocation(Hempdustry.MOD_ID, "hemp_press"),
+                    Services.MENUS.menuType(HempPressScreenHandler::new, Menus.Data.BLOCK_POS));
 
     public static void registerScreenHandlers() {
         Hempdustry.LOGGER.info("Registering Screen Handlers for " + Hempdustry.MOD_ID);

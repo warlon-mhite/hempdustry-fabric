@@ -29,7 +29,7 @@ public final class BongRipGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void bongIsDrawnNotClicked(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
 
         ItemStack bong = packed(world, ModItems.BONG, DeviceType.BONG);
@@ -38,10 +38,10 @@ public final class BongRipGameTest {
         context.assertTrue(player.isUsingItem(), "clicking a packed bong did not start a draw");
         context.assertTrue(player.getUseItem().getUseAnimation() == UseAnim.TOOT_HORN,
                 "a bong draw is not raised to the mouth");
-        context.assertValueEqual(DeviceType.BONG.builtInBowl().hits(), charges(player), "the click alone took a hit");
+        Line.equal(context, DeviceType.BONG.builtInBowl().hits(), charges(player), "the click alone took a hit");
 
         player.releaseUsingItem();
-        context.assertValueEqual(DeviceType.BONG.builtInBowl().hits(), charges(player), "letting go early spent a charge");
+        Line.equal(context, DeviceType.BONG.builtInBowl().hits(), charges(player), "letting go early spent a charge");
         context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).getDamageValue() == 0,
                 "letting go early cost durability");
 
@@ -51,31 +51,31 @@ public final class BongRipGameTest {
         ItemStack after = player.getUseItem().finishUsingItem(world, player);
         player.stopUsingItem();
         player.setItemInHand(InteractionHand.MAIN_HAND, after);
-        context.assertValueEqual(DeviceType.BONG.builtInBowl().hits() - 1, charges(player), "a finished draw did not take one hit");
+        Line.equal(context, DeviceType.BONG.builtInBowl().hits() - 1, charges(player), "a finished draw did not take one hit");
         context.assertTrue(player.getCooldowns().isOnCooldown(after.getItem()),
                 "a finished draw started no cooldown");
 
         // The control: the pipe still hits on the click, and never enters a draw. A fresh player,
         // because the cooldown the bong just started covers every smokeable, the pipe included.
-        ServerPlayer other = context.makeMockServerPlayerInLevel();
+        ServerPlayer other = Players.mock(context);
         other.setGameMode(GameType.SURVIVAL);
         ItemStack pipe = packed(world, ModItems.WOODEN_PIPE, DeviceType.PIPE);
         other.setItemInHand(InteractionHand.MAIN_HAND, pipe);
         other.gameMode.useItem(other, world, pipe, InteractionHand.MAIN_HAND);
         context.assertTrue(!other.isUsingItem(), "the pipe started a draw");
-        context.assertValueEqual(DeviceType.PIPE.builtInBowl().hits() - 1, charges(other), "the pipe no longer hits on the click");
+        Line.equal(context, DeviceType.PIPE.builtInBowl().hits() - 1, charges(other), "the pipe no longer hits on the click");
         context.succeed();
     }
 
     private static int charges(ServerPlayer player) {
-        return player.getItemInHand(InteractionHand.MAIN_HAND).getOrDefault(ModComponents.CHARGES, 0);
+        return ModComponents.CHARGES.getOrDefault(player.getItemInHand(InteractionHand.MAIN_HAND), 0);
     }
 
     private static ItemStack packed(ServerLevel world, Item device, DeviceType type) {
         ItemStack stack = new ItemStack(device);
-        stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(world.registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(world.registryAccess()
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
-        stack.set(ModComponents.CHARGES, type.builtInBowl().hits());
+        ModComponents.CHARGES.set(stack, type.builtInBowl().hits());
         return stack;
     }
 }

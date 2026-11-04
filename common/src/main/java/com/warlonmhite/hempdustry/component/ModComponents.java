@@ -2,17 +2,13 @@ package com.warlonmhite.hempdustry.component;
 
 import com.mojang.serialization.Codec;
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
-import java.util.function.UnaryOperator;
-import net.minecraft.core.Registry;
-import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Custom data components.
+ * Custom data components — on 1.20.1, entries of the stack's tag under the same ids ({@link ModComponent}).
  *
  * <ul>
  *   <li>{@code charges} — hits left in a packed pipe/bong's bowl. Durability is the vanilla
@@ -38,19 +34,16 @@ public class ModComponents {
      * rather than a registered item per device × strain. Kept separate from {@link #CHARGES} because
      * the two have different lifetimes — charges deplete per hit, contents don't.
      */
-    public static final DataComponentType<SmokeContents> SMOKE_CONTENTS = register("smoke_contents",
-            builder -> builder.persistent(SmokeContents.CODEC).networkSynchronized(SmokeContents.PACKET_CODEC));
+    public static final ModComponent<SmokeContents> SMOKE_CONTENTS = register("smoke_contents", SmokeContents.CODEC);
 
     /**
      * An edible's potency tier, 1–4. Distinct from {@link #STRENGTH}, which is cannabutter's raw
      * 1–24 hemp count: the tier is what the butter's strength collapses to, plus the edible's own
      * offset. Four values rather than twenty-four is what keeps edible stacks merging.
      */
-    public static final DataComponentType<Integer> POTENCY = register("potency",
-            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+    public static final ModComponent<Integer> POTENCY = register("potency", Codec.INT);
 
-    public static final DataComponentType<Integer> CHARGES = register("charges",
-            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+    public static final ModComponent<Integer> CHARGES = register("charges", Codec.INT);
 
     /**
      * World time at which this stack's smoking cooldown ends. Present only on the one stack the
@@ -66,24 +59,22 @@ public class ModComponents {
      * <p>Storing the end tick rather than the start is what keeps the client out of the config: it
      * needs no knowledge of how long the cooldown was to know whether this mark is still live.
      */
-    public static final DataComponentType<Long> COOLDOWN_UNTIL = register("cooldown_until",
-            builder -> builder.persistent(Codec.LONG).networkSynchronized(ByteBufCodecs.VAR_LONG));
+    public static final ModComponent<Long> COOLDOWN_UNTIL = register("cooldown_until", Codec.LONG);
 
     /** Total hemp items that went into the batch. Drives dose; see the Infuser. */
-    public static final DataComponentType<Integer> STRENGTH = register("strength",
-            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+    public static final ModComponent<Integer> STRENGTH = register("strength", Codec.INT);
 
     /** How well the batch was made — patience plus ingredient prep. */
-    public static final DataComponentType<Quality> QUALITY = register("quality",
-            builder -> builder.persistent(Quality.CODEC).networkSynchronized(Quality.PACKET_CODEC));
+    public static final ModComponent<Quality> QUALITY = register("quality", Quality.CODEC);
 
-    private static <T> DataComponentType<T> register(String id, UnaryOperator<DataComponentType.Builder<T>> builderOp) {
-        return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,
-                ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, id),
-                builderOp.apply(DataComponentType.<T>builder()).build());
+    private static <T> ModComponent<T> register(String id, Codec<T> codec) {
+        return new ModComponent<>(new ResourceLocation(Hempdustry.MOD_ID, id), codec);
     }
 
     public static void registerModComponents() {
         Hempdustry.LOGGER.info("Registering Data Components for " + Hempdustry.MOD_ID);
+        // A stack's strain resolves against the running server's registries (StackRegistries).
+        Services.EVENTS.onServerStarting(StackRegistries::serverStarting);
+        Services.EVENTS.onServerStopped(server -> StackRegistries.serverStopped());
     }
 }

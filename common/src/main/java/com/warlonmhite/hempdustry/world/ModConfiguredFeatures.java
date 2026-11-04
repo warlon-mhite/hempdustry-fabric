@@ -8,7 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -59,10 +59,10 @@ public class ModConfiguredFeatures {
     private static final float BIG_CHANCE = 0.1F;
 
     public static ResourceKey<ConfiguredFeature<?, ?>> registerKey(String name) {
-        return ResourceKey.create(Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
+        return ResourceKey.create(Registries.CONFIGURED_FEATURE, new ResourceLocation(Hempdustry.MOD_ID, name));
     }
 
-    public static void bootstrap(BootstrapContext<ConfiguredFeature<?, ?>> context) {
+    public static void bootstrap(BootstapContext<ConfiguredFeature<?, ?>> context) {
         // Surface: a small patch on the terrain heightmap, now and then a big one.
         register(context, INDICA_KEY, wildPatch(ModBlocks.INDICA_FLOWER));
 
@@ -142,12 +142,12 @@ public class ModConfiguredFeatures {
         return PlacementUtils.inlinePlaced(Holder.direct(feature));
     }
 
-    private static void register(BootstrapContext<ConfiguredFeature<?, ?>> context,
+    private static void register(BootstapContext<ConfiguredFeature<?, ?>> context,
                                  ResourceKey<ConfiguredFeature<?, ?>> key, ConfiguredFeature<?, ?> feature) {
         context.register(key, feature);
     }
 
-    private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstrapContext<ConfiguredFeature<?, ?>> context,
+    private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstapContext<ConfiguredFeature<?, ?>> context,
                                                                                    ResourceKey<ConfiguredFeature<?, ?>> key, F feature, FC configuration) {
         context.register(key, new ConfiguredFeature<>(feature, configuration));
     }

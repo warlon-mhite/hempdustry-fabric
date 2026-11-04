@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item;
 
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -33,7 +35,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
+import com.warlonmhite.hempdustry.item.custom.HempClothItem;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.BowlFoodItem;
 import net.minecraft.world.item.BannerPatternItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.HangingSignItem;
@@ -42,6 +46,7 @@ import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+import com.warlonmhite.hempdustry.item.custom.MusicDiscItem;
 import net.minecraft.world.item.SignItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.ItemLike;
@@ -50,6 +55,11 @@ public class ModItems {
 
     public static final Item INDICA_SEEDS = registerItem("indica_seeds", new ItemNameBlockItem(ModBlocks.INDICA_CROP, new Item.Properties()));
     public static final Item INDICA_BUDS = registerItem("indica_buds", new Item(new Item.Properties()));
+    /** Every hemp seed of the mod, the one list #hempdustry:hemp_seeds and the birds' food are built from. */
+    public static List<Item> hempSeeds() {
+        return List.of(INDICA_SEEDS, SATIVA_SEEDS, BELDIA_SEEDS);
+    }
+
     public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", new ItemNameBlockItem(ModBlocks.SATIVA_CROP, new Item.Properties()));
     public static final Item SATIVA_BUDS = registerItem("sativa_buds", new Item(new Item.Properties()));
     public static final Item BELDIA_SEEDS = registerItem("beldia_seeds", new ItemNameBlockItem(ModBlocks.BELDIA_CROP, new Item.Properties()));
@@ -91,7 +101,7 @@ public class ModItems {
     public static final Item HEMP_LEAF = registerItem("hemp_leaf",
             new BannerPatternItem(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM, new Item.Properties()) {
                 @Override
-                public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+                public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
                 }
             });
 
@@ -259,12 +269,12 @@ public class ModItems {
      */
     public static final Item TOASTED_HEMP_SEEDS = registerItem("toasted_hemp_seeds",
             new Item(new Item.Properties().food(new FoodProperties.Builder()
-                    .nutrition(2).saturationModifier(0.6F).fast().build())));
+                    .nutrition(2).saturationMod(0.6F).fast().build())));
 
     /** Seeds bound with honey. Portable and saturation-heavy, the shape a flapjack actually is. */
     public static final Item HEMP_FLAPJACK = registerItem("hemp_flapjack",
             new Item(new Item.Properties().food(new FoodProperties.Builder()
-                    .nutrition(4).saturationModifier(0.6F).build())));
+                    .nutrition(4).saturationMod(0.6F).build())));
 
     /**
      * Hemp seed milk. Vanilla's milk bucket with a different source — clears effects, not food. See
@@ -279,8 +289,8 @@ public class ModItems {
      * vanilla's own bowl, returned on eating the way every vanilla stew returns its own.
      */
     public static final Item SIEMIENIOTKA = registerItem("siemieniotka",
-            new Item(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder()
-                    .nutrition(6).saturationModifier(0.6F).usingConvertsTo(Items.BOWL).build())));
+            new BowlFoodItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder()
+                    .nutrition(6).saturationMod(0.6F).build())));
 
     // ---------------------------------------------------------------------
     // Edibles. Cannabutter's first real use — the payoff for the whole
@@ -301,17 +311,17 @@ public class ModItems {
      */
     public static final Item CANNABUTTER_TOAST = registerItem("cannabutter_toast",
             new EdibleItem(new Item.Properties().food(new FoodProperties.Builder()
-                    .nutrition(2).saturationModifier(0.3F).alwaysEdible().build())));
+                    .nutrition(2).saturationMod(0.3F).alwaysEat().build())));
 
     /** Vanilla cookie parity (2 / 0.1), eight to a batch. The cheap, low-dose entry point. */
     public static final Item SPACE_COOKIE = registerItem("space_cookie",
             new EdibleItem(new Item.Properties().food(new FoodProperties.Builder()
-                    .nutrition(2).saturationModifier(0.1F).alwaysEdible().build())));
+                    .nutrition(2).saturationMod(0.1F).alwaysEat().build())));
 
     /** Richer than a cookie, pitched at an apple (4 / 0.3). Four to a batch. */
     public static final Item SPACE_BROWNIE = registerItem("space_brownie",
             new EdibleItem(new Item.Properties().food(new FoodProperties.Builder()
-                    .nutrition(4).saturationModifier(0.3F).alwaysEdible().build())));
+                    .nutrition(4).saturationMod(0.3F).alwaysEat().build())));
 
     /**
      * Bhang — the drink, and the only edible that skips cannabutter. Kept and drunk from the bucket
@@ -321,8 +331,7 @@ public class ModItems {
      */
     public static final Item BHANG_BUCKET = registerItem("bhang_bucket",
             new BhangItem(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder()
-                    .nutrition(6).saturationModifier(0.3F).alwaysEdible()
-                    .usingConvertsTo(Items.BUCKET).build())));
+                    .nutrition(6).saturationMod(0.3F).alwaysEat().build())));
 
     /**
      * Dawamesk — the top of the ladder, and the only edible here with a real history rather than a
@@ -331,7 +340,7 @@ public class ModItems {
      */
     public static final Item DAWAMESK = registerItem("dawamesk",
             new EdibleItem(new Item.Properties().stacksTo(16).food(new FoodProperties.Builder()
-                    .nutrition(6).saturationModifier(0.6F).alwaysEdible().build())));
+                    .nutrition(6).saturationMod(0.6F).alwaysEat().build())));
 
     /**
      * An edible that inherits its dose from cannabutter, and its step on the potency ladder: {@code +1}
@@ -417,12 +426,13 @@ public class ModItems {
      */
     public static final List<Item> COLORED_BONGS = registerColoredBongs();
 
-    // Same shape as a vanilla common disc (single-stack, uncommon, jukebox-playable). The song data
-    // — length, comparator output, "Now Playing" label — lives in the JUKEBOX_SONG entry it points at.
+    // Same shape as a vanilla 1.20.1 disc (single-stack, rare, a RecordItem: MusicDiscItem). The item carries the
+    // song: comparator output, sound and length in seconds; its "Now Playing" label is the item's
+    // {@code .desc} key.
     public static final Item MUSIC_DISC_MOONLIGHT = registerItem("music_disc_moonlight",
-            new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.MOONLIGHT_SONG)));
+            new MusicDiscItem(4, ModSounds.MUSIC_DISC_MOONLIGHT, new Item.Properties().stacksTo(1).rarity(Rarity.RARE), 170));
     public static final Item MUSIC_DISC_ROBADOB = registerItem("music_disc_robadob",
-            new Item(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).jukeboxPlayable(ModSounds.ROBADOB_SONG)));
+            new MusicDiscItem(2, ModSounds.MUSIC_DISC_ROBADOB, new Item.Properties().stacksTo(1).rarity(Rarity.RARE), 257));
 
     /**
      * Every disc the mod ships, in one place — the creative tab, the two disc tags and the chest
@@ -434,16 +444,11 @@ public class ModItems {
     // The beanie and the flip-flops are armour in every way but how they are drawn: worn, each is
     // drawn by its own ArmorRenderer (HempdustryClient) -- the beanie as a slouchy tam, the
     // flip-flops as a sole and a strap -- and the material's layers draw nothing for them.
-    // Durability 5 is leather's: hemp is the hard-wearing cloth (sailcloth, canvas), so it wears as
-    // long as leather does, and only leather's protection stays out of reach. It was 3 until 2.1.
-    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Properties()
-            .durability(ArmorItem.Type.HELMET.getDurability(5))));
-    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Properties()
-            .durability(ArmorItem.Type.CHESTPLATE.getDurability(5))));
-    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Properties()
-            .durability(ArmorItem.Type.LEGGINGS.getDurability(5))));
-    public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Properties()
-            .durability(ArmorItem.Type.BOOTS.getDurability(5))));
+    // Durability is leather's, set by the material (ModArmorMaterials).
+    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Properties()));
+    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new HempClothItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Properties()));
+    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new HempClothItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Properties()));
+    public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Properties()));
 
     private static Item registerDevice(DeviceType device) {
         Item item = registerItem(device.baseName(),
@@ -459,7 +464,7 @@ public class ModItems {
         bongs.add(registerBong("tinted_bong", Items.TINTED_GLASS));
         for (DyeColor color : ModBlocks.DYE_ORDER) {
             bongs.add(registerBong(color.getSerializedName() + "_bong",
-                    BuiltInRegistries.ITEM.get(ResourceLocation.withDefaultNamespace(color.getSerializedName() + "_stained_glass"))));
+                    BuiltInRegistries.ITEM.get(new ResourceLocation(color.getSerializedName() + "_stained_glass"))));
         }
         return List.copyOf(bongs);
     }
@@ -573,7 +578,7 @@ public class ModItems {
                         && hash.value().dosePerItem() <= 1) {
                     for (int buds = 1; buds < SPLIFF_MAX_DOSE; buds++) {
                         ItemStack stack = new ItemStack(SPLIFF);
-                        stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, buds, hash, 1));
+                        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(strain, buds, hash, 1));
                         out.add(stack);
                     }
                 }
@@ -638,8 +643,7 @@ public class ModItems {
     /** The exact stack {@code ModRecipeProvider} bakes, so the tab and the recipe cannot disagree. */
     public static ItemStack moonRock(Holder<Strain> strain, Holder<Strain> hashish) {
         ItemStack stack = new ItemStack(MOON_ROCK);
-        stack.set(ModComponents.SMOKE_CONTENTS,
-                SmokeContents.of(strain, MOON_ROCK_DOSE, hashish, MOON_ROCK_HASH_DOSE));
+        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(strain, MOON_ROCK_DOSE, hashish, MOON_ROCK_HASH_DOSE));
         return stack;
     }
 
@@ -746,30 +750,30 @@ public class ModItems {
 
     private static ItemStack butter(int strength, Quality quality) {
         ItemStack stack = new ItemStack(CANNABUTTER);
-        stack.set(ModComponents.STRENGTH, strength);
-        stack.set(ModComponents.QUALITY, quality);
+        ModComponents.STRENGTH.set(stack, strength);
+        ModComponents.QUALITY.set(stack, quality);
         return stack;
     }
 
     private static ItemStack dosed(ItemLike item, int potency, Quality quality) {
         ItemStack stack = new ItemStack(item);
-        stack.set(ModComponents.POTENCY, potency);
-        stack.set(ModComponents.QUALITY, quality);
+        ModComponents.POTENCY.set(stack, potency);
+        ModComponents.QUALITY.set(stack, quality);
         return stack;
     }
 
     /** A spliff or device holding {@code dose} buds of one strain, with a full bowl where it has one. */
     private static ItemStack loaded(Item item, Holder<Strain> strain, int dose, int charges) {
         ItemStack stack = new ItemStack(item);
-        stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, dose));
+        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(strain, dose));
         if (charges > 0) {
-            stack.set(ModComponents.CHARGES, charges);
+            ModComponents.CHARGES.set(stack, charges);
         }
         return stack;
     }
 
     private static Item registerItem(String name, Item item){
-        return Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name), item);
+        return Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(Hempdustry.MOD_ID, name), item);
     }
     public static void registerModItems(){
         Hempdustry.LOGGER.info("Registering Mod Items for " + Hempdustry.MOD_ID);

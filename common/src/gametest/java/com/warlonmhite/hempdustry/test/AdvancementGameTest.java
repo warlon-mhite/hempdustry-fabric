@@ -13,7 +13,7 @@ import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -55,9 +55,9 @@ public final class AdvancementGameTest {
 
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void eatingGrantsTheFoodNodes(GameTestHelper context) {
-        AdvancementHolder hempHearts = loaded(context, "hemp_hearts", "hempdustry");
-        AdvancementHolder gotBhang = loaded(context, "got_bhang", "activation_energy");
-        AdvancementHolder club = loaded(context, "club_des_hashischins", "butter_late_than_never");
+        Advancement hempHearts = loaded(context, "hemp_hearts", "hempdustry");
+        Advancement gotBhang = loaded(context, "got_bhang", "activation_energy");
+        Advancement club = loaded(context, "club_des_hashischins", "butter_late_than_never");
 
         // Bread is a food and in no tag of ours; cannabutter toast is an edible but neither the jam
         // nor the drink. Neither may grant anything here.
@@ -106,10 +106,10 @@ public final class AdvancementGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void harvestNodesReadThePlant(GameTestHelper context) {
-        AdvancementHolder pothead = loaded(context, "pothead", "hemp_builder");
-        AdvancementHolder seaOfGreen = loaded(context, "sea_of_green", "pothead");
-        AdvancementHolder midnightSun = loaded(context, "midnight_sun", "pothead");
-        AdvancementHolder topShelf = loaded(context, "top_shelf", "midnight_sun");
+        Advancement pothead = loaded(context, "pothead", "hemp_builder");
+        Advancement seaOfGreen = loaded(context, "sea_of_green", "pothead");
+        Advancement midnightSun = loaded(context, "midnight_sun", "pothead");
+        Advancement topShelf = loaded(context, "top_shelf", "midnight_sun");
 
         // A plant under a Grow Lamp on farmland: the lamp, not the tray, and not the whole set.
         ServerPlayer lampOnly = harvestIndica(context, Blocks.FARMLAND, GrowLight.GROW_LAMP, true, true, false);
@@ -171,8 +171,8 @@ public final class AdvancementGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void smokeNodesReadTheLoad(GameTestHelper context) {
-        AdvancementHolder vaporTrail = loaded(context, "vapor_trail", "first_contact");
-        AdvancementHolder schwagHit = loaded(context, "you_get_what_you_pay_for", "schwag");
+        Advancement vaporTrail = loaded(context, "vapor_trail", "first_contact");
+        Advancement schwagHit = loaded(context, "you_get_what_you_pay_for", "schwag");
         ServerLevel world = context.getLevel();
 
         ServerPlayer vaper = freshPlayer(context);
@@ -206,7 +206,7 @@ public final class AdvancementGameTest {
                 new Node("under_pressure", "double_zero", ModItems.ROSIN),
                 new Node("see_you_ice_o_later", "its_not_pollen", ModItems.BUBBLE_HASH));
         for (Node node : nodes) {
-            AdvancementHolder entry = loaded(context, node.id(), node.parent());
+            Advancement entry = loaded(context, node.id(), node.parent());
             ServerPlayer player = freshPlayer(context);
             obtain(player, new ItemStack(Items.BREAD));
             assertNotDone(context, player, entry, "bread");
@@ -215,7 +215,7 @@ public final class AdvancementGameTest {
         }
 
         // Cloud Nine is the cut, not the hashish: the press makes hashish before any bar exists.
-        AdvancementHolder cloudNine = loaded(context, "cloud_nine", "hot_off_the_press");
+        Advancement cloudNine = loaded(context, "cloud_nine", "hot_off_the_press");
         ServerPlayer cutter = freshPlayer(context);
         obtain(cutter, new ItemStack(ModItems.HASHISH));
         assertNotDone(context, cutter, cloudNine, "holding hashish, with no bar ever cut");
@@ -228,7 +228,7 @@ public final class AdvancementGameTest {
         context.assertTrue(context.getBlockState(BED).getValue(HashishBarBlock.CUTS) == 1, "the sword did not cut the bar, so this proves nothing");
         assertDone(context, cutter, cloudNine, "cutting a Hashish Bar with a sword");
 
-        AdvancementHolder aroundTheWorld = loaded(context, "around_the_world_in_80_grams", "its_not_pollen");
+        Advancement aroundTheWorld = loaded(context, "around_the_world_in_80_grams", "its_not_pollen");
         ServerPlayer collector = freshPlayer(context);
         List<Item> resins = List.of(ModItems.CHARAS, ModItems.HASHISH, ModItems.FILTERED_HASHISH,
                 ModItems.BUBBLE_HASH, ModItems.ROSIN);
@@ -251,8 +251,8 @@ public final class AdvancementGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void breakingTheBedHarvestsThePlantFirst(GameTestHelper context) {
-        AdvancementHolder seaOfGreen = loaded(context, "sea_of_green", "pothead");
-        AdvancementHolder midnightSun = loaded(context, "midnight_sun", "pothead");
+        Advancement seaOfGreen = loaded(context, "sea_of_green", "pothead");
+        Advancement midnightSun = loaded(context, "midnight_sun", "pothead");
         Block[] beds = {ModBlocks.GROW_POT, ModBlocks.HYDRO_TRAY};
         for (int i = 0; i < beds.length; i++) {
             BlockPos bed = new BlockPos(1 + 3 * i, 1, 1);
@@ -297,8 +297,8 @@ public final class AdvancementGameTest {
 
     private static ItemStack packed(Item device, Holder<Strain> strain, DeviceType type) {
         ItemStack stack = new ItemStack(device);
-        stack.set(ModComponents.SMOKE_CONTENTS, SmokeContents.of(strain, 1));
-        stack.set(ModComponents.CHARGES, type.builtInBowl().hits());
+        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(strain, 1));
+        ModComponents.CHARGES.set(stack, type.builtInBowl().hits());
         return stack;
     }
 
@@ -321,19 +321,20 @@ public final class AdvancementGameTest {
         CriteriaTriggers.INVENTORY_CHANGED.trigger(player, player.getInventory(), stack);
     }
 
-    private static void assertDone(GameTestHelper context, ServerPlayer player, AdvancementHolder entry,
+    private static void assertDone(GameTestHelper context, ServerPlayer player, Advancement entry,
                                    String what) {
         context.assertTrue(player.getAdvancements().getOrStartProgress(entry).isDone(),
-                what + " did not grant " + entry.id());
+                what + " did not grant " + entry.getId());
     }
 
     /** Fetches a loaded advancement and checks where it hangs, which is half of what it teaches. */
-    private static AdvancementHolder loaded(GameTestHelper context, String id, String parent) {
-        AdvancementHolder entry = context.getLevel().getServer().getAdvancements()
-                .get(ResourceLocation.fromNamespaceAndPath("hempdustry", id));
+    private static Advancement loaded(GameTestHelper context, String id, String parent) {
+        Advancement entry = context.getLevel().getServer().getAdvancements()
+                .getAdvancement(new ResourceLocation("hempdustry", id));
         context.assertTrue(entry != null, "hempdustry:" + id + " is not loaded at all");
-        context.assertTrue(entry.value().parent().equals(Optional.of(ResourceLocation.fromNamespaceAndPath("hempdustry", parent))),
-                "hempdustry:" + id + " hangs under " + entry.value().parent() + ", not hempdustry:" + parent);
+        context.assertTrue(entry.getParent() != null && entry.getParent().getId().equals(new ResourceLocation("hempdustry", parent)),
+                "hempdustry:" + id + " hangs under " + (entry.getParent() == null ? "nothing" : entry.getParent().getId())
+                        + ", not hempdustry:" + parent);
         return entry;
     }
 
@@ -347,9 +348,9 @@ public final class AdvancementGameTest {
         stack.getItem().finishUsingItem(stack, context.getLevel(), player);
     }
 
-    private static void assertNotDone(GameTestHelper context, ServerPlayer player, AdvancementHolder entry,
+    private static void assertNotDone(GameTestHelper context, ServerPlayer player, Advancement entry,
                                       String what) {
         context.assertFalse(player.getAdvancements().getOrStartProgress(entry).isDone(),
-                what + " granted " + entry.id() + ", so its criterion matches more than it should");
+                what + " granted " + entry.getId() + ", so its criterion matches more than it should");
     }
 }

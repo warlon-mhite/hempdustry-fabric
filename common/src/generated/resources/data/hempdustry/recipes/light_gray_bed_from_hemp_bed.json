@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "bed_dye",
+  "ingredients": [
+    {
+      "item": "minecraft:light_gray_dye"
+    },
+    {
+      "item": "hempdustry:hemp_bed"
+    }
+  ],
+  "result": {
+    "item": "minecraft:light_gray_bed"
+  }
+}

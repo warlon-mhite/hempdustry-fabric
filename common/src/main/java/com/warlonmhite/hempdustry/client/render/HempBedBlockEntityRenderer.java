@@ -40,7 +40,7 @@ import net.minecraft.world.level.block.state.properties.BedPart;
 public class HempBedBlockEntityRenderer implements BlockEntityRenderer<HempBedBlockEntity> {
 
     public static final Material TEXTURE = new Material(Sheets.BED_SHEET,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "entity/bed/hemp"));
+            new ResourceLocation(Hempdustry.MOD_ID, "entity/bed/hemp"));
 
     /** The block entity the bed item is drawn from: no world, so {@link #render} draws both halves. */
     private static HempBedBlockEntity itemBed;

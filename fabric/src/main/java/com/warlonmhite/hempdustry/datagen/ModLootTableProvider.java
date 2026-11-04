@@ -38,7 +38,6 @@ import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.functions.CopyBlockState;
-import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.AllOfCondition;
 import net.minecraft.world.level.storage.loot.predicates.AnyOfCondition;
@@ -163,7 +162,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
             {Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED};
 
     public ModLootTableProvider(FabricDataOutput dataOutput, CompletableFuture<HolderLookup.Provider> registryLookup) {
-        super(dataOutput, registryLookup);
+        super(dataOutput);
     }
 
     @Override
@@ -209,14 +208,13 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         // The tray drops empty — you drain a reservoir before you move it — so it needs no
         // copy_state, unlike the pot, which keeps its soil.
         dropSelf(ModBlocks.HYDRO_TRAY);
-        // A placed bong is the device itself, set down: it drops that device back, carrying every
-        // component the block entity kept (durability, enchantments, a name). Explosions still
+        // A placed bong is the device itself, set down: it drops that device back, and the block hands
+        // it every value the block entity kept (durability, enchantments, a name; BongBlock#getDrops). Explosions still
         // break it the way they break a flower pot, because it is glass.
         for (Block bong : ModBlocks.DEVICE_BLOCKS.values()) {
             add(bong, LootTable.lootTable().withPool(applyExplosionCondition(bong, LootPool.lootPool()
                     .setRolls(ConstantValue.exactly(1))
-                    .add(LootItem.lootTableItem(bong.asItem())
-                            .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY))))));
+                    .add(LootItem.lootTableItem(bong.asItem())))));
         }
         dropSelf(ModBlocks.CHARAS_BALL);
         add(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
@@ -247,7 +245,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * the crop's seeds (base 1 + binomial(fortuneLevel + 3, 0.40)).
      */
     private LootTable.Builder indicaFlowerDrops() {
-        Holder<Enchantment> fortune = this.registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        Enchantment fortune = Enchantments.BLOCK_FORTUNE;
         return this.createSilkTouchOrShearsDispatchTable(ModBlocks.INDICA_FLOWER,
                 this.applyExplosionDecay(ModBlocks.INDICA_FLOWER,
                         LootItem.lootTableItem(ModItems.INDICA_SEEDS)
@@ -306,8 +304,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
             throw new IllegalArgumentException(crop + " has " + leavesAtZeroCuts + " leaves at harvest,"
                     + " fewer than the " + LEAVES_TAKEN.length + " a player can take off it while it grows");
         }
-        HolderLookup.RegistryLookup<Enchantment> enchantments = this.registries.lookupOrThrow(Registries.ENCHANTMENT);
-        Holder<Enchantment> fortune = enchantments.getOrThrow(Enchantments.FORTUNE);
+        Enchantment fortune = Enchantments.BLOCK_FORTUNE;
 
         LootItemCondition.Builder isLower = LootItemBlockStatePropertyCondition.hasBlockStateProperties(crop)
                 .setProperties(lowerPredicate.get());
@@ -324,7 +321,8 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         LootItemCondition.Builder inABed = LocationCheck.checkLocation(
                 LocationPredicate.Builder.location().setBlock(BlockPredicate.Builder.block()
                         .of(
-                                ModBlocks.GROW_POT, ModBlocks.HYDRO_TRAY)),
+                                ModBlocks.GROW_POT, ModBlocks.HYDRO_TRAY)
+                        .build()),
                 new BlockPos(0, -1, 0));
 
         return this.applyExplosionDecay(crop,
@@ -437,7 +435,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * the odds per plant; the light ladder's bonus buds are never spoiled.
      */
     private static LootPoolEntryContainer.Builder<?> healthyBuds(LootPoolSingletonContainer.Builder<?> buds, LootItemCondition.Builder bucket,
-                                                       Holder<Enchantment> fortune) {
+                                                       Enchantment fortune) {
         return ModLootEntryTypes.SpoilingEntry.builder(buds, ModItems.SCHWAG)
                 .when(bucket)
                 .enchantment(fortune)
@@ -453,7 +451,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * "Unreachable entry!" — three warnings at every world load, though the drops were right.
      */
     private static LootPoolEntryContainer.Builder<?> stressedBuds(LootPoolSingletonContainer.Builder<?> buds, LootItemCondition.Builder bucket,
-                                                        Holder<Enchantment> fortune) {
+                                                        Enchantment fortune) {
         return ModLootEntryTypes.SpoilingEntry.builder(buds, ModItems.SCHWAG)
                 .when(bucket)
                 .enchantment(fortune)
@@ -483,13 +481,13 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
 
     /** A fixed-count drop gated on one cut bucket, with the usual Fortune bonus on top. */
     private static LootPoolSingletonContainer.Builder<?> scaledEntry(Item item, int count, LootItemCondition.Builder bucket,
-                                                    Holder<Enchantment> fortune,
+                                                    Enchantment fortune,
                                                     float fortuneChance, int fortuneExtra) {
         return scaledCount(item, count, fortune, fortuneChance, fortuneExtra).when(bucket);
     }
 
     /** The same drop with no condition of its own, for a wrapper that carries it (the buds). */
-    private static LootPoolSingletonContainer.Builder<?> scaledCount(Item item, int count, Holder<Enchantment> fortune,
+    private static LootPoolSingletonContainer.Builder<?> scaledCount(Item item, int count, Enchantment fortune,
                                                     float fortuneChance, int fortuneExtra) {
         return LootItem.lootTableItem(item)
                 .apply(SetItemCountFunction.setCount(ConstantValue.exactly((float) count)))
@@ -511,14 +509,14 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
      * uses, and the same one {@code hempCropDrops} applies through {@code isLower}.
      */
     private LootTable.Builder sativaFlowerDrops() {
-        Holder<Enchantment> fortune = this.registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        Enchantment fortune = Enchantments.BLOCK_FORTUNE;
         LootItemCondition.Builder isLower = LootItemBlockStatePropertyCondition.hasBlockStateProperties(ModBlocks.SATIVA_FLOWER)
                 .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(DoublePlantBlock.HALF, DoubleBlockHalf.LOWER));
         return LootTable.lootTable().withPool(LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(1.0F))
                 .when(isLower)
                 .add(LootItem.lootTableItem(ModBlocks.SATIVA_FLOWER)
-                        .when(HAS_SHEARS.or(this.hasSilkTouch()))
+                        .when(HAS_SHEARS.or(HAS_SILK_TOUCH))
                         .otherwise(this.applyExplosionDecay(ModBlocks.SATIVA_FLOWER,
                                 LootItem.lootTableItem(ModItems.SATIVA_SEEDS)
                                         .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.40F, 3))))));

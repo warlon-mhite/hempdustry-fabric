@@ -20,7 +20,7 @@ public class ModParticles {
     });
 
     private static SimpleParticleType registerParticle(String name, SimpleParticleType type) {
-        return Registry.register(BuiltInRegistries.PARTICLE_TYPE, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name), type);
+        return Registry.register(BuiltInRegistries.PARTICLE_TYPE, new ResourceLocation(Hempdustry.MOD_ID, name), type);
     }
 
     public static void registerParticles() {

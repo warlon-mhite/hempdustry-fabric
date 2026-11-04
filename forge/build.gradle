@@ -1,0 +1,235 @@
+// Forge's jar: common's sources and resources, compiled here, plus Forge's entry points, its side of the
+// platform interfaces, and the few data files only Forge reads. Forge 47 runs in its own (SRG) names,
+// so the jar is reobfuscated from Mojang's names at build time; ModDevGradle's legacy plugin does it.
+plugins {
+	id 'multiloader-loader'
+	id 'net.neoforged.moddev.legacyforge'
+}
+
+def generated = file('src/generated/resources')
+
+// The game tests' Forge half: the test mod's entry point and its TestPlatform. The tests themselves
+// are common's (multiloader-loader compiles them in).
+sourceSets {
+	gametest {
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
+legacyForge {
+	version = forge_version
+	// What the mod reaches in vanilla that vanilla keeps closed: common's list, the same as Fabric's
+	// access widener. It ships in the jar from common's resources, where Forge looks for it.
+	accessTransformers.from(project(':common').file('src/main/resources/META-INF/accesstransformer.cfg'))
+	parchment {
+		minecraftVersion = parchment_minecraft
+		mappingsVersion = parchment_version
+	}
+
+	mods {
+		hempdustry {
+			sourceSet sourceSets.main
+		}
+		// The game tests' mod, dev-only like Fabric's; a Forge mod id cannot hold a hyphen.
+		hempdustry_gametest {
+			sourceSet sourceSets.gametest
+		}
+	}
+
+	runs {
+		client {
+			client()
+			loadedMods = [mods.hempdustry]
+		}
+		server {
+			server()
+			programArgument '--nogui'
+			loadedMods = [mods.hempdustry]
+		}
+		// Every game test, on a headless server that exits with the number of required tests that
+		// failed:  ./gradlew :forge:runGameTestServer
+		gameTestServer {
+			type = 'gameTestServer'
+			sourceSet = sourceSets.gametest
+			loadedMods = [mods.hempdustry, mods.hempdustry_gametest]
+			gameDirectory = file('build/gametest')
+		}
+		// The files only Forge reads -- the biome modifiers -- written from
+		// the same calls Fabric's registries take, so the two cannot drift apart:
+		//   ./gradlew :forge:runData
+		data {
+			data()
+			loadedMods = [mods.hempdustry]
+			programArguments.addAll('--mod', 'hempdustry', '--all', '--output', generated.absolutePath)
+		}
+		configureEach {
+			logLevel = org.slf4j.event.Level.INFO
+		}
+	}
+}
+
+sourceSets.main.resources.srcDir generated
+
+legacyForge.addModdingDependenciesTo(sourceSets.gametest)
+
+// Mixin on Forge 47 needs its annotation processor's refmap (Mojang's names to SRG) and the configs
+// named in the jar's manifest. Common's mixin configs name the refmap; Fabric's Loom writes its own
+// under the same name.
+def mixinConfigs = ['hempdustry.mixins.json', 'hempdustry.client.mixins.json', 'hempdustry.forge.mixins.json']
+mixin {
+	add sourceSets.main, 'hempdustry.refmap.json'
+	mixinConfigs.each { config it }
+}
+// The block above hands the configs to the dev runs only: a player's Forge applies a jar's mixins
+// only when its manifest lists them, and without this line the jar ran with none.
+tasks.named('jar', Jar) {
+	manifest.attributes('MixinConfigs': mixinConfigs.join(','))
+	// a mixin config added to the resources but not to the list above would ship and never apply
+	doLast {
+		def shipped = zipTree(outputs.files.singleFile).matching { include '*.mixins.json' }.files*.name as Set
+		def unlisted = shipped - (mixinConfigs as Set)
+		if (unlisted) {
+			throw new GradleException("The jar carries mixin configs its manifest does not list: ${unlisted}")
+		}
+	}
+}
+
+dependencies {
+	// The mixin annotation processor, for the refmap above; MixinExtras, which Forge 47 does not ship,
+	// carried inside the jar (Fabric Loader ships its own).
+	annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
+	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinextras_version}"))
+	implementation(jarJar("io.github.llamalad7:mixinextras-forge:${mixinextras_version}"))
+	// The game tests run from their own source set, which takes none of the above by itself.
+	gametestImplementation "io.github.llamalad7:mixinextras-forge:${mixinextras_version}"
+
+	// The three viewers, compiled against and never shipped, as on Fabric: each finds the mod's plugin
+	// on its own (EMI by @EmiEntrypoint, JEI by @JeiPlugin, REI by the annotated plugin in
+	// forge/compat/rei). Forge's mod jars are in SRG names; the mod* configurations remap them.
+	modCompileOnly "dev.emi:emi-forge:${emi_version}:api"
+	modCompileOnly "mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"
+	// JEI's Forge API is only its Forge half; the plugin is written against the common one, in Mojang's names.
+	compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-forge:${rei_version}"
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-forge:${rei_version}"
+	compileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"
+	modCompileOnly("dev.architectury:architectury-forge:${architectury_version}") { transitive = false }
+
+	// One viewer at a time, as on Fabric:
+	//   ./gradlew :forge:runClient                  # EMI on the runtime (default)
+	//   ./gradlew :forge:runClient -Pviewer=jei     # JEI instead
+	//   ./gradlew :forge:runClient -Pviewer=rei     # REI instead
+	//   ./gradlew :forge:runClient -Pviewer=none    # no viewer
+	def viewer = project.findProperty("viewer") ?: "emi"
+	if (viewer == "emi") {
+		modRuntimeOnly "dev.emi:emi-forge:${emi_version}"
+	} else if (viewer == "jei") {
+		modRuntimeOnly "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
+	} else if (viewer == "rei") {
+		modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
+	} else if (viewer != "none") {
+		throw new GradleException("Unknown -Pviewer=${viewer}; use emi, jei, rei or none")
+	}
+}
+
+// The game test server's own log, read after every run, as on Fabric (fabric/build.gradle says why):
+// a run that logs a warning or an error nobody listed here fails.
+def expectedGametestLog = [
+	// the first batch starts every test in one tick, and on a slower machine that tick runs long
+	~/Can't keep up! Is the server overloaded\?/,
+	// a fresh checkout's first run: build/gametest holds no server files yet, and the server says so
+	~/Failed to load properties from file: server\.properties/,
+	~/Failed to load eula\.txt/,
+	// a_broken_config_is_left_alone feeds the loader four broken files on purpose
+	~/\[hempdustry\/\]: .*config\/hempdustry\.json/,
+	// every_config_extreme_keeps_the_numbers_sane pushes every setting past its range
+	~/\[hempdustry\/\]: Config \S+ was (-?1000000000|-?1\.0E9|1\.0E-9), clamped to/,
+	// vanilla reads its own assets out of Forge's union filesystem, a scheme it does not expect
+	~/\[net\.minecraft\.server\.packs\.VanillaPackResourcesBuilder\/\]: Assets URL 'union:.*' uses unexpected schema/,
+	// Forge's own language providers, on the dev classpath as plain jars, carry no mods.toml
+	~/\[net\.minecraftforge\.fml\.loading\.moddiscovery\.ModFileParser\/LOADING\]: Mod file .*\/(fmlcore|javafmllanguage|lowcodelanguage|mclanguage)-1\.20\.1-[0-9.]+\.jar is missing mods\.toml file/,
+	// in dev the mixins run in Mojang's names and need no refmap; the built jar carries it
+	~/\[mixin\/\]: Reference map 'hempdustry\.refmap\.json' for hempdustry\.(client\.|forge\.)?mixins\.json could not be read/,
+	// the test world is made anew every run, and Forge fills in its per-world config the first time
+	~/\[net\.minecraftforge\.common\.ForgeConfigSpec\/CORE\]: (Configuration file \.\/world\/serverconfig\/forge-server\.toml is not correct\. Correcting|Incorrect key server(\.\w+)? was corrected from null to its default)/,
+]
+def gametestLog = file('build/gametest/logs/latest.log')
+// Forge 47's test server is the dedicated server's Main with GameTestServer swapped in: it takes its
+// world from server.properties, a normal noise world by default, so the tests ran in deepslate with no
+// sky light. Vanilla's own GameTestServer.create (Fabric's run) builds a fresh flat world, seed 0, no
+// structures, creative, normal difficulty, no mob spawning; every run here starts from the same.
+def gametestDir = file('build/gametest')
+tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+	doFirst {
+		delete new File(gametestDir, 'world')
+		gametestDir.mkdirs()
+		new File(gametestDir, 'server.properties').text = [
+			'level-type=minecraft\\:flat',
+			// vanilla's classic flat (FlatLevelGeneratorSettings#getDefault); left out, the server
+			// logs an ERROR for the empty settings before falling back to the same
+			'generator-settings={"layers"\\:[{"block"\\:"minecraft\\:bedrock","height"\\:1},{"block"\\:"minecraft\\:dirt","height"\\:2},{"block"\\:"minecraft\\:grass_block","height"\\:1}],"biome"\\:"minecraft\\:plains"}',
+			'level-seed=0',
+			'generate-structures=false',
+			'gamemode=creative',
+			'difficulty=normal',
+			'spawn-monsters=false',
+			'spawn-animals=false',
+			'spawn-npcs=false',
+		].join('\n') + '\n'
+	}
+	doLast {
+		def unexpected = gametestLog.readLines().findAll { line ->
+			(line.contains('/WARN]') || line.contains('/ERROR]')) && !expectedGametestLog.any { line =~ it }
+		}
+		if (unexpected) {
+			throw new GradleException("Every game test passed, but the server logged " + unexpected.size()
+					+ " warning(s) nobody expected (${gametestLog}):\n" + unexpected.join("\n"))
+		}
+	}
+}
+
+def manifest = [
+	version                : version,
+	name                   : mod_name,
+	description            : mod_description,
+	minecraft_version_range: minecraft_version_range,
+	forge_version_range    : forge_version_range,
+]
+tasks.named('processResources', ProcessResources) {
+	inputs.properties manifest
+	filesMatching('META-INF/mods.toml') {
+		expand manifest
+	}
+	// Fabric's form of the access transformer, which Forge never reads.
+	exclude 'hempdustry.accesswidener'
+}
+
+// Publishing, as on Fabric: `publishToMavenLocal` puts hempdustry-forge in the local maven, so an
+// addon can compile against com.warlonmhite.hempdustry.api and the Forge events before any public
+// maven carries the mod. The published jar is the reobfuscated one, as Forge 47 runs it.
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = base.archivesName.get()
+			from components.java
+
+			pom {
+				name = "Hempdustry"
+				description = "Minecraft for stoners and hemprepreneurs."
+				url = "https://github.com/warlon-mhite/hempdustry-fabric"
+				licenses {
+					license {
+						// Code and data only, as on Fabric.
+						name = "AGPL-3.0-only"
+						url = "https://www.gnu.org/licenses/agpl-3.0.txt"
+					}
+				}
+			}
+		}
+	}
+
+	repositories {
+		mavenLocal()
+	}
+}

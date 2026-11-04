@@ -62,7 +62,7 @@ public class HempMilkItem extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack, LivingEntity user) {
+    public int getUseDuration(ItemStack stack) {
         return MAX_USE_TIME;
     }
 

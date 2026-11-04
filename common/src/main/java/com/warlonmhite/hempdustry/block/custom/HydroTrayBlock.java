@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
+import net.minecraft.world.InteractionResult;
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
+import com.warlonmhite.hempdustry.block.ItemUse;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -10,7 +12,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
@@ -68,8 +69,7 @@ import org.jetbrains.annotations.Nullable;
  * {@code WATER_EVAPORATES_GAMEPLAY}, the attribute {@code BucketItem} checks, so a datapack's own
  * scorching dimension gets it for free — and the Grow Pot is left owning hemp in the Nether.
  */
-public class HydroTrayBlock extends Block implements GrowMedium {
-    public static final MapCodec<HydroTrayBlock> CODEC = simpleCodec(HydroTrayBlock::new);
+public class HydroTrayBlock extends Block implements GrowMedium, ItemUse {
 
     public static final int MAX_LEVEL = 3;
     /** Water in the reservoir; one level is drunk per plant that ripens. */
@@ -91,11 +91,6 @@ public class HydroTrayBlock extends Block implements GrowMedium {
         super(settings);
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(LEVEL, 0).setValue(FED, false).setValue(POWERED, false).setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends Block> codec() {
-        return CODEC;
     }
 
     // ----- the bed -----
@@ -163,7 +158,7 @@ public class HydroTrayBlock extends Block implements GrowMedium {
 
     /** Nutrients need water to go into: an empty tray cannot be fed, and a fed one is already mixed. */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
         return state.getValue(LEVEL) > 0 && !state.getValue(FED) && !boilsAway(world, pos);
     }
 
@@ -177,6 +172,14 @@ public class HydroTrayBlock extends Block implements GrowMedium {
         world.setBlock(pos, state.setValue(FED, true), Block.UPDATE_CLIENTS);
     }
 
+    /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.dispatch(useItemOn(player.getItemInHand(hand), state, level, pos, player, hand, hit), hand,
+                () -> InteractionResult.PASS);
+    }
+
     /**
      * A water bucket fills the reservoir and hands back the empty, the way the Infuser takes its milk
      * and a cauldron takes its water — <b>not</b> by letting vanilla place a water block in the
@@ -187,8 +190,7 @@ public class HydroTrayBlock extends Block implements GrowMedium {
      * anything else falls through to {@code super} rather than a bare {@code PASS}, which would
      * swallow the click.
      */
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+    public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.is(Items.WATER_BUCKET) && state.getValue(LEVEL) < MAX_LEVEL && !boilsAway(world, pos)) {
             if (!world.isClientSide()) {
@@ -202,14 +204,14 @@ public class HydroTrayBlock extends Block implements GrowMedium {
             return ItemInteractionResult.CONSUME;
         }
         ItemInteractionResult fed = GrowMedium.tryFeed(stack, state, world, pos, player);
-        return fed != null ? fed : super.useItemOn(stack, state, world, pos, player, hand, hit);
+        return fed != null ? fed : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     /** Harvests the plant above first, as the player — see {@link GrowMedium#harvestAbove}. */
     @Override
-    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         GrowMedium.harvestAbove(world, pos, player);
-        return super.playerWillDestroy(world, pos, state, player);
+        super.playerWillDestroy(world, pos, state, player);
     }
 
     // ----- the pump -----
@@ -222,7 +224,7 @@ public class HydroTrayBlock extends Block implements GrowMedium {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock,
+    public void neighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock,
                                   BlockPos sourcePos, boolean notify) {
         if (world.isClientSide()) {
             return;
@@ -248,22 +250,22 @@ public class HydroTrayBlock extends Block implements GrowMedium {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return Shapes.block();
     }
 
     @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
+    public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
+    public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(LEVEL, FED, POWERED, FACING);
     }
 }

@@ -12,9 +12,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryFixedCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -201,7 +198,7 @@ public record Strain(String translationKey, int color, int modelIndex,
 
     /** The dynamic registry itself. Entries load from {@code data/<namespace>/hempdustry/strain/<id>.json}. */
     public static final ResourceKey<Registry<Strain>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "strain"));
+            ResourceKey.createRegistryKey(new ResourceLocation(Hempdustry.MOD_ID, "strain"));
 
     public static final Codec<Strain> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("translation_key").forGetter(Strain::translationKey),
@@ -227,8 +224,6 @@ public record Strain(String translationKey, int color, int modelIndex,
      */
     public static final Codec<Holder<Strain>> ENTRY_CODEC = RegistryFixedCodec.create(REGISTRY_KEY);
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, Holder<Strain>> ENTRY_PACKET_CODEC =
-            ByteBufCodecs.holderRegistry(REGISTRY_KEY);
 
     /** The strain registry as loaded for this world. */
     public static HolderLookup.RegistryLookup<Strain> registry(HolderLookup.Provider registries) {
@@ -319,7 +314,7 @@ public record Strain(String translationKey, int color, int modelIndex,
                 continue;
             }
             int amplifier = effect.baseAmplifier() + (effect.scales() ? Math.max(0, dose - 1) : 0);
-            if (effect.scales() && effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL) {
+            if (effect.scales() && effect.effect().getCategory() == MobEffectCategory.BENEFICIAL) {
                 amplifier += buffBonus;
             }
             amplifier = Math.min(effect.maxAmplifier(), amplifier);
@@ -355,13 +350,13 @@ public record Strain(String translationKey, int color, int modelIndex,
      *                       (the strong potion, the pufferfish) and level III takes a full-health
      *                       player to half a heart in seven seconds
      */
-    public record SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales,
+    public record SmokeEffect(MobEffect effect, int baseAmplifier, boolean scales,
                               float durationFactor, boolean onExhale, float chance, int maxAmplifier) {
         /** Vanilla's highest amplifier, and the default: no cap a dose could reach. */
         public static final int NO_CAP = 255;
 
         public static final Codec<SmokeEffect> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                MobEffect.CODEC.fieldOf("effect").forGetter(SmokeEffect::effect),
+                BuiltInRegistries.MOB_EFFECT.byNameCodec().fieldOf("effect").forGetter(SmokeEffect::effect),
                 Codec.INT.optionalFieldOf("base_amplifier", 0).forGetter(SmokeEffect::baseAmplifier),
                 Codec.BOOL.optionalFieldOf("scales", true).forGetter(SmokeEffect::scales),
                 Codec.FLOAT.optionalFieldOf("duration_factor", 1.0F).forGetter(SmokeEffect::durationFactor),
@@ -371,12 +366,12 @@ public record Strain(String translationKey, int color, int modelIndex,
         ).apply(instance, SmokeEffect::new));
 
         /** The whole duration, from the hit — every effect written before the last four fields existed. */
-        public SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales) {
+        public SmokeEffect(MobEffect effect, int baseAmplifier, boolean scales) {
             this(effect, baseAmplifier, scales, 1.0F, false);
         }
 
         /** Certain to land and uncapped — every effect written before {@code chance} existed. */
-        public SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales,
+        public SmokeEffect(MobEffect effect, int baseAmplifier, boolean scales,
                            float durationFactor, boolean onExhale) {
             this(effect, baseAmplifier, scales, durationFactor, onExhale, 1.0F, NO_CAP);
         }

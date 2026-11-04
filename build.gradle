@@ -2,5 +2,5 @@
 // own. Versions are literals because a plugins block cannot read gradle.properties.
 plugins {
 	id 'fabric-loom' version '1.14-SNAPSHOT' apply false
-	id 'net.neoforged.moddev' version '2.0.148' apply false
+	id 'net.neoforged.moddev.legacyforge' version '2.0.148' apply false
 }

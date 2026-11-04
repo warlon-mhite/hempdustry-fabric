@@ -1,0 +1,30 @@
+{
+  "type": "hempdustry:infused_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "hempdustry:cannabutter"
+    },
+    "E": {
+      "item": "minecraft:egg"
+    },
+    "F": {
+      "item": "hempdustry:hemp_flour"
+    },
+    "M": {
+      "tag": "hempdustry:milk_buckets"
+    },
+    "S": {
+      "item": "minecraft:sugar"
+    }
+  },
+  "offset": 0,
+  "pattern": [
+    "MBM",
+    "SES",
+    "FFF"
+  ],
+  "result": {
+    "item": "hempdustry:space_cake"
+  }
+}

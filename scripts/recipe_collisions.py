@@ -47,10 +47,12 @@ SHAPELESS_TYPES = {
     "minecraft:crafting_shapeless",
     "hempdustry:container_carried",   # shapeless; suppresses its ingredients' recipe remainders
     "hempdustry:infused_shapeless",   # shapeless; copies cannabutter's potency/quality to the output
+    "hempdustry:crafting_shapeless",  # (1.20.1 line) vanilla's shapeless with a result that keeps its data
 }
 SHAPED_TYPES = {
     "minecraft:crafting_shaped",
     "hempdustry:infused_shaped",      # shaped; copies cannabutter's potency/quality to the output
+    "hempdustry:crafting_shaped",     # (1.20.1 line) vanilla's shaped with a result that keeps its data
 }
 # Recipe types that never touch the crafting grid, so they cannot collide in it. Listed rather than
 # left to fall through the `else`, because a silently ignored type is exactly how this scanner has
@@ -76,6 +78,8 @@ def ingredient(v):
 def load(root, namespace):
     out = []
     base = os.path.join(root, "data", namespace, "recipe")
+    if not os.path.isdir(base):
+        base = os.path.join(root, "data", namespace, "recipes")  # the folder's name until 1.21
     for dirpath, _, filenames in os.walk(base):
         for name in filenames:
             if not name.endswith(".json"):

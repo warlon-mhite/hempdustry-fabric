@@ -7,7 +7,7 @@ import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import java.util.Optional;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
@@ -42,7 +42,7 @@ public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, 
     }
 
     public static final ResourceKey<Registry<DeviceStats>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "device"));
+            ResourceKey.createRegistryKey(new ResourceLocation(Hempdustry.MOD_ID, "device"));
 
     public static final Codec<DeviceStats> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ExtraCodecs.POSITIVE_INT.fieldOf("duration_ticks").forGetter(DeviceStats::durationTicks),
@@ -66,10 +66,10 @@ public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, 
     }
 
     private static ResourceKey<DeviceStats> key(String id) {
-        return ResourceKey.create(REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, id));
+        return ResourceKey.create(REGISTRY_KEY, new ResourceLocation(Hempdustry.MOD_ID, id));
     }
 
-    public static void bootstrap(BootstrapContext<DeviceStats> registerable) {
+    public static void bootstrap(BootstapContext<DeviceStats> registerable) {
         for (DeviceType type : DeviceType.values()) {
             registerable.register(key(type), type.builtInStats());
         }

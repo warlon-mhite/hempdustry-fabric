@@ -32,7 +32,7 @@ public class HempBoatEntityRenderer extends EntityRenderer<Boat> {
     public HempBoatEntityRenderer(EntityRendererProvider.Context ctx, boolean chest) {
         super(ctx);
         this.shadowRadius = 0.8F;
-        this.texture = ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID,
+        this.texture = new ResourceLocation(Hempdustry.MOD_ID,
                 chest ? "textures/entity/chest_boat/hemp.png" : "textures/entity/boat/hemp.png");
         ModelPart modelPart = ctx.bakeLayer(chest
                 ? ModelLayers.createChestBoatModelName(Boat.Type.OAK)
@@ -70,7 +70,7 @@ public class HempBoatEntityRenderer extends EntityRenderer<Boat> {
         matrixStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         this.model.setupAnim(boatEntity, tickDelta, 0.0F, -0.1F, 0.0F, 0.0F);
         VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(this.model.renderType(this.texture));
-        this.model.renderToBuffer(matrixStack, vertexConsumer, light, OverlayTexture.NO_OVERLAY);
+        this.model.renderToBuffer(matrixStack, vertexConsumer, light, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
         if (!boatEntity.isUnderWater()) {
             VertexConsumer waterConsumer = vertexConsumerProvider.getBuffer(RenderType.waterMask());
             if (this.model instanceof WaterPatchModel modelWithWaterPatch) {

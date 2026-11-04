@@ -1,0 +1,37 @@
+{
+  "parent": "hempdustry:pothead",
+  "criteria": {
+    "harvested_from_a_tray": {
+      "conditions": {
+        "bed": {
+          "blocks": [
+            "hempdustry:hydro_tray"
+          ]
+        }
+      },
+      "trigger": "hempdustry:harvest_hemp"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.sea_of_green.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:hydro_tray"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.sea_of_green.title"
+    }
+  },
+  "requirements": [
+    [
+      "harvested_from_a_tray"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

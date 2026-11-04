@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import net.minecraft.world.InteractionResult;
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
+import com.warlonmhite.hempdustry.block.ItemUse;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
@@ -9,7 +12,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -72,9 +74,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * {@link #CUTS}, and the item has no components at all. Cake has neither a block entity nor a
  * comparator output either.
  */
-public class HashishBarBlock extends Block {
+public class HashishBarBlock extends Block implements ItemUse {
 
-    public static final MapCodec<HashishBarBlock> CODEC = simpleCodec(HashishBarBlock::new);
 
     /** How many cuts have been taken out of this bar, 0–4. At 4 the next cut removes the block. */
     public static final IntegerProperty CUTS = IntegerProperty.create("cuts", 0, 4);
@@ -133,12 +134,7 @@ public class HashishBarBlock extends Block {
     }
 
     @Override
-    protected MapCodec<? extends HashishBarBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(CUTS, FACING);
     }
 
@@ -165,12 +161,12 @@ public class HashishBarBlock extends Block {
     }
 
     @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
+    public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
+    public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
@@ -205,8 +201,16 @@ public class HashishBarBlock extends Block {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return SHAPES[state.getValue(FACING).get2DDataValue()][state.getValue(CUTS)];
+    }
+
+    /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.dispatch(useItemOn(player.getItemInHand(hand), state, level, pos, player, hand, hit), hand,
+                () -> InteractionResult.PASS);
     }
 
     /**
@@ -219,18 +223,17 @@ public class HashishBarBlock extends Block {
      * {@code BlockBehaviour#useItemOn}'s default is. Anything else swallows the click.
      * This shipped wrong in the Sifting Box and was found by a player, not by the game test.
      */
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+    public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player, InteractionHand hand, BlockHitResult hit) {
         if (!stack.is(ModTags.Items.HASH_CUTTERS)) {
-            return super.useItemOn(stack, state, world, pos, player, hand, hit);
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         int cuts = state.getValue(CUTS);
         if (world instanceof ServerLevel serverWorld) {
             popResourceFromFace(serverWorld, pos, Direction.UP, new ItemStack(piece(), YIELD[cuts]));
             // The blade is the whole cost of a cut: nothing else is spent, and the bar itself is
             // what shrinks. Same slot dance as Defoliation.tryCut.
-            stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+            stack.hurtAndBreak(1, player, broken -> broken.broadcastBreakEvent(hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND));
             if (cuts + 1 >= YIELD.length) {
                 serverWorld.removeBlock(pos, false);
             } else {

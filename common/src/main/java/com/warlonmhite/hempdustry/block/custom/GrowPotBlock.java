@@ -1,8 +1,9 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.mojang.serialization.MapCodec;
+import net.minecraft.world.InteractionResult;
+import com.warlonmhite.hempdustry.block.ItemInteractionResult;
+import com.warlonmhite.hempdustry.block.ItemUse;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -10,12 +11,11 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -59,8 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>The fertility is kept when the pot is picked up (the loot table copies it, as a beehive keeps its
  * honey); the water is not, and a freshly crafted pot starts dry and empty.
  */
-public class GrowPotBlock extends Block implements GrowMedium {
-    public static final MapCodec<GrowPotBlock> CODEC = simpleCodec(GrowPotBlock::new);
+public class GrowPotBlock extends Block implements GrowMedium, ItemUse {
 
     public static final int MAX_FERTILITY = 3;
     public static final IntegerProperty FERTILITY = IntegerProperty.create("fertility", 0, MAX_FERTILITY);
@@ -81,11 +80,6 @@ public class GrowPotBlock extends Block implements GrowMedium {
         super(settings);
         // WATERED spelled out: a BooleanProperty left out of the default state defaults to true.
         this.registerDefaultState(this.stateDefinition.any().setValue(FERTILITY, 0).setValue(WATERED, false));
-    }
-
-    @Override
-    protected MapCodec<? extends Block> codec() {
-        return CODEC;
     }
 
     public static boolean isPot(BlockState state) {
@@ -129,8 +123,7 @@ public class GrowPotBlock extends Block implements GrowMedium {
     // ----- water -----
 
     public static boolean isWaterBottle(ItemStack stack) {
-        return stack.is(Items.POTION) && stack.getOrDefault(DataComponents.POTION_CONTENTS,
-                PotionContents.EMPTY).is(Potions.WATER);
+        return stack.is(Items.POTION) && PotionUtils.getPotion(stack) == Potions.WATER;
     }
 
     /**
@@ -177,6 +170,14 @@ public class GrowPotBlock extends Block implements GrowMedium {
         return ItemInteractionResult.sidedSuccess(world.isClientSide);
     }
 
+    /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
+                                 InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.dispatch(useItemOn(player.getItemInHand(hand), state, level, pos, player, hand, hit), hand,
+                () -> InteractionResult.PASS);
+    }
+
     /**
      * A water bottle waters the soil and any fertiliser in {@code #c:fertilizers} feeds it. A water
      * bucket is refused by <b>accepting the click and doing nothing</b> ({@code CONSUME}, so no swing
@@ -184,8 +185,7 @@ public class GrowPotBlock extends Block implements GrowMedium {
      * water block into the plant's space: {@code FAIL} included, because the client treats a block's
      * {@code FAIL} as "try the item" ({@code MultiPlayerGameMode#performUseItemOn}).
      */
-    @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
+    public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.is(Items.WATER_BUCKET)) {
             return ItemInteractionResult.CONSUME;
@@ -195,13 +195,13 @@ public class GrowPotBlock extends Block implements GrowMedium {
             return watered;
         }
         ItemInteractionResult fed = GrowMedium.tryFeed(stack, state, world, pos, player);
-        return fed != null ? fed : super.useItemOn(stack, state, world, pos, player, hand, hit);
+        return fed != null ? fed : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     // ----- bone meal feeds the soil -----
 
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
         return state.getValue(FERTILITY) < MAX_FERTILITY;
     }
 
@@ -217,18 +217,18 @@ public class GrowPotBlock extends Block implements GrowMedium {
 
     /** Harvests the plant above first, as the player — see {@link GrowMedium#harvestAbove}. */
     @Override
-    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         GrowMedium.harvestAbove(world, pos, player);
-        return super.playerWillDestroy(world, pos, state, player);
+        super.playerWillDestroy(world, pos, state, player);
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FERTILITY, WATERED);
     }
 }

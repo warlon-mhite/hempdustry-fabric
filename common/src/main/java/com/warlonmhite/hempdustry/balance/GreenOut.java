@@ -1,12 +1,13 @@
 package com.warlonmhite.hempdustry.balance;
 
+import com.warlonmhite.hempdustry.util.Codecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import java.util.List;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
@@ -27,16 +28,16 @@ public record GreenOut(List<Integer> oneInByDose, int fullFromDose, List<MobEffe
                        List<MobEffectInstance> full, int lockoutTicks) {
 
     public static final ResourceKey<Registry<GreenOut>> REGISTRY_KEY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "green_out"));
+            ResourceKey.createRegistryKey(new ResourceLocation(Hempdustry.MOD_ID, "green_out"));
 
     public static final ResourceKey<GreenOut> DEFAULT =
-            ResourceKey.create(REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "default"));
+            ResourceKey.create(REGISTRY_KEY, new ResourceLocation(Hempdustry.MOD_ID, "default"));
 
     public static final Codec<GreenOut> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ExtraCodecs.NON_NEGATIVE_INT.listOf(1, Integer.MAX_VALUE).fieldOf("one_in_by_dose").forGetter(GreenOut::oneInByDose),
+            Codecs.listOf(ExtraCodecs.NON_NEGATIVE_INT, 1, Integer.MAX_VALUE).fieldOf("one_in_by_dose").forGetter(GreenOut::oneInByDose),
             ExtraCodecs.POSITIVE_INT.fieldOf("full_from_dose").forGetter(GreenOut::fullFromDose),
-            MobEffectInstance.CODEC.listOf().fieldOf("spins").forGetter(GreenOut::spins),
-            MobEffectInstance.CODEC.listOf().fieldOf("full").forGetter(GreenOut::full),
+            Codecs.MOB_EFFECT_INSTANCE.listOf().fieldOf("spins").forGetter(GreenOut::spins),
+            Codecs.MOB_EFFECT_INSTANCE.listOf().fieldOf("full").forGetter(GreenOut::full),
             ExtraCodecs.NON_NEGATIVE_INT.fieldOf("lockout_ticks").forGetter(GreenOut::lockoutTicks)
     ).apply(instance, GreenOut::new));
 
@@ -60,7 +61,7 @@ public record GreenOut(List<Integer> oneInByDose, int fullFromDose, List<MobEffe
                     new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 600, 1)),
             1200);
 
-    public static void bootstrap(BootstrapContext<GreenOut> registerable) {
+    public static void bootstrap(BootstapContext<GreenOut> registerable) {
         registerable.register(DEFAULT, BUILT_IN);
     }
 

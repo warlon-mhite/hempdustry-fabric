@@ -1,17 +1,11 @@
 package com.warlonmhite.hempdustry.recipe;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.List;
+import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 
@@ -49,20 +43,15 @@ import net.minecraft.world.item.crafting.ShapelessRecipe;
  * invisible one to save about twenty lines.
  */
 public class ContainerCarriedRecipe extends ShapelessRecipe {
-    private final ItemStack result;
-    private final List<Ingredient> ingredients;
 
-    public ContainerCarriedRecipe(String group, CraftingBookCategory category, ItemStack result,
-                                  List<Ingredient> ingredients) {
-        super(group, category, result, toDefaultedList(ingredients));
-        this.result = result;
-        this.ingredients = ingredients;
+    /** Vanilla's shapeless recipe in every field; its serializer reads the file. */
+    public ContainerCarriedRecipe(ShapelessRecipe base) {
+        super(base.getId(), base.getGroup(), base.category(), base.getResultItem(null), base.getIngredients());
     }
 
-    /** No remainders: every ingredient's container is considered part of the product. */
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
-        return NonNullList.withSize(input.size(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingContainer input) {
+        return NonNullList.withSize(input.getContainerSize(), ItemStack.EMPTY);
     }
 
     @Override
@@ -70,38 +59,20 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
         return ModRecipes.CONTAINER_CARRIED;
     }
 
-    private static NonNullList<Ingredient> toDefaultedList(List<Ingredient> ingredients) {
-        NonNullList<Ingredient> list = NonNullList.withSize(ingredients.size(), Ingredient.EMPTY);
-        for (int i = 0; i < ingredients.size(); i++) {
-            list.set(i, ingredients.get(i));
-        }
-        return list;
-    }
-
     public static class Serializer implements RecipeSerializer<ContainerCarriedRecipe> {
-        private static final MapCodec<ContainerCarriedRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Codec.STRING.optionalFieldOf("group", "").forGetter(ShapelessRecipe::getGroup),
-                CraftingBookCategory.CODEC.fieldOf("category")
-                        .orElse(CraftingBookCategory.MISC).forGetter(ShapelessRecipe::category),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
-                Ingredient.CODEC_NONEMPTY.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
-        ).apply(instance, ContainerCarriedRecipe::new));
-
-        private static final StreamCodec<RegistryFriendlyByteBuf, ContainerCarriedRecipe> PACKET_CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8, ShapelessRecipe::getGroup,
-                CraftingBookCategory.STREAM_CODEC, ShapelessRecipe::category,
-                ItemStack.STREAM_CODEC, recipe -> recipe.result,
-                Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), recipe -> recipe.ingredients,
-                ContainerCarriedRecipe::new);
-
         @Override
-        public MapCodec<ContainerCarriedRecipe> codec() {
-            return CODEC;
+        public ContainerCarriedRecipe fromJson(ResourceLocation id, JsonObject json) {
+            return new ContainerCarriedRecipe(RecipeJson.shapeless(id, json));
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, ContainerCarriedRecipe> streamCodec() {
-            return PACKET_CODEC;
+        public ContainerCarriedRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            return new ContainerCarriedRecipe(RecipeSerializer.SHAPELESS_RECIPE.fromNetwork(id, buf));
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, ContainerCarriedRecipe recipe) {
+            RecipeSerializer.SHAPELESS_RECIPE.toNetwork(buf, recipe);
         }
     }
 }

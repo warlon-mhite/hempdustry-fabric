@@ -1,17 +1,18 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.core.RegistryAccess;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,19 +27,19 @@ public final class PackingGameTest {
 
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void oneBudPerSlotIsTheDose(GameTestHelper context) {
-        HolderLookup.Provider registries = context.getLevel().registryAccess();
+        RegistryAccess registries = context.getLevel().registryAccess();
         Item buds = context.getLevel().registryAccess().registryOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA).buds();
-        PackingRecipe recipe = new PackingRecipe(CraftingBookCategory.MISC);
+        PackingRecipe recipe = new PackingRecipe(new ResourceLocation("hempdustry", "packing"), CraftingBookCategory.MISC);
 
         int stacked = dose(recipe, registries, new ItemStack(ModItems.BONG), new ItemStack(buds, 3));
-        context.assertValueEqual(stacked, 1, "the dose from three buds stacked in one slot");
+        Line.equal(context, stacked, 1, "the dose from three buds stacked in one slot");
 
         int spread = dose(recipe, registries, new ItemStack(ModItems.BONG), new ItemStack(buds), new ItemStack(buds));
-        context.assertValueEqual(spread, 2, "the dose from a bud in each of two slots");
+        Line.equal(context, spread, 2, "the dose from a bud in each of two slots");
         context.succeed();
     }
 
-    private static int dose(PackingRecipe recipe, HolderLookup.Provider registries, ItemStack... grid) {
+    private static int dose(PackingRecipe recipe, RegistryAccess registries, ItemStack... grid) {
         List<ItemStack> stacks = new ArrayList<>(List.of(grid));
         while (stacks.size() < 9) {
             stacks.add(ItemStack.EMPTY);

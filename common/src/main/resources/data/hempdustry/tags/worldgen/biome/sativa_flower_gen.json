@@ -6,6 +6,8 @@
     "minecraft:windswept_savanna",
     "minecraft:sunflower_plains",
     { "id": "#c:is_savanna", "required": false },
+    { "id": "#minecraft:is_savanna", "required": false },
+    { "id": "#c:savanna", "required": false },
     { "id": "biomesoplenty:savanna", "required": false },
     { "id": "biomesoplenty:lush_savanna", "required": false },
     { "id": "biomesoplenty:prairie", "required": false },

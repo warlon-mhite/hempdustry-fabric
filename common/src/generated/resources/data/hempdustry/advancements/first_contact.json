@@ -1,0 +1,31 @@
+{
+  "parent": "hempdustry:hempdustry",
+  "criteria": {
+    "took_a_hit": {
+      "conditions": {},
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.first_contact.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:spliff"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.first_contact.title"
+    }
+  },
+  "requirements": [
+    [
+      "took_a_hit"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

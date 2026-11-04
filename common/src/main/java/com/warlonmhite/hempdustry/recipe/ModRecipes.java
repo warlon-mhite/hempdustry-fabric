@@ -12,7 +12,7 @@ public class ModRecipes {
 
     public static final RecipeSerializer<PackingRecipe> PACKING = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "packing"),
+            new ResourceLocation(Hempdustry.MOD_ID, "packing"),
             new SimpleCraftingRecipeSerializer<>(PackingRecipe::new));
 
     /**
@@ -22,8 +22,23 @@ public class ModRecipes {
      */
     public static final RecipeSerializer<ContainerCarriedRecipe> CONTAINER_CARRIED = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "container_carried"),
+            new ResourceLocation(Hempdustry.MOD_ID, "container_carried"),
             new ContainerCarriedRecipe.Serializer());
+
+    /**
+     * Vanilla's shaped and shapeless crafting, with a result that may carry data: the spliffs and the
+     * moon rocks, whose load is in the result. Vanilla 1.20.1 reads only a crafting result's item and
+     * count; see {@link DataShapedRecipe}.
+     */
+    public static final RecipeSerializer<DataShapedRecipe> DATA_SHAPED = Registry.register(
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            new ResourceLocation(Hempdustry.MOD_ID, "crafting_shaped"),
+            new DataShapedRecipe.Serializer());
+
+    public static final RecipeSerializer<DataShapelessRecipe> DATA_SHAPELESS = Registry.register(
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            new ResourceLocation(Hempdustry.MOD_ID, "crafting_shapeless"),
+            new DataShapelessRecipe.Serializer());
 
     /**
      * Shaped and shapeless recipes that carry cannabutter's potency and quality onto the edible they
@@ -32,12 +47,12 @@ public class ModRecipes {
      */
     public static final RecipeSerializer<InfusedShapedRecipe> INFUSED_SHAPED = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "infused_shaped"),
+            new ResourceLocation(Hempdustry.MOD_ID, "infused_shaped"),
             new InfusedShapedRecipe.Serializer());
 
     public static final RecipeSerializer<InfusedShapelessRecipe> INFUSED_SHAPELESS = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "infused_shapeless"),
+            new ResourceLocation(Hempdustry.MOD_ID, "infused_shapeless"),
             new InfusedShapelessRecipe.Serializer());
 
     /**
@@ -54,33 +69,33 @@ public class ModRecipes {
      */
     public static final RecipeType<DecarboxylatingRecipe> DECARBOXYLATING_TYPE = Registry.register(
             BuiltInRegistries.RECIPE_TYPE,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylating"),
+            new ResourceLocation(Hempdustry.MOD_ID, "decarboxylating"),
             recipeType("decarboxylating"));
 
     public static final RecipeSerializer<DecarboxylatingRecipe> DECARBOXYLATING = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylating"),
+            new ResourceLocation(Hempdustry.MOD_ID, "decarboxylating"),
             new DecarboxylatingRecipe.Serializer());
 
     public static final RecipeType<InfusingRecipe> INFUSING_TYPE = Registry.register(
             BuiltInRegistries.RECIPE_TYPE,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "infusing"),
+            new ResourceLocation(Hempdustry.MOD_ID, "infusing"),
             recipeType("infusing"));
 
     public static final RecipeSerializer<InfusingRecipe> INFUSING = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "infusing"),
+            new ResourceLocation(Hempdustry.MOD_ID, "infusing"),
             new InfusingRecipe.Serializer());
 
     /** What the Hemp Press turns into what — the third machine recipe type. See {@link PressingRecipe}. */
     public static final RecipeType<PressingRecipe> PRESSING_TYPE = Registry.register(
             BuiltInRegistries.RECIPE_TYPE,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "pressing"),
+            new ResourceLocation(Hempdustry.MOD_ID, "pressing"),
             recipeType("pressing"));
 
     public static final RecipeSerializer<PressingRecipe> PRESSING = Registry.register(
             BuiltInRegistries.RECIPE_SERIALIZER,
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "pressing"),
+            new ResourceLocation(Hempdustry.MOD_ID, "pressing"),
             new PressingRecipe.Serializer());
 
     /**

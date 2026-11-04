@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.mixin.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.warlonmhite.hempdustry.Hempdustry;
-import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.HempCarpetBlock;
 import net.minecraft.client.model.LlamaModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -31,7 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class LlamaDecorFeatureRendererMixin {
     @Unique
     private static final ResourceLocation HEMP_DECOR =
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "textures/entity/llama/decor/hemp.png");
+            new ResourceLocation(Hempdustry.MOD_ID, "textures/entity/llama/decor/hemp.png");
 
     @Shadow
     @Final
@@ -43,13 +43,13 @@ public abstract class LlamaDecorFeatureRendererMixin {
     private void hempdustry$drawHempCarpet(PoseStack matrices, MultiBufferSource vertexConsumers, int light,
                                            Llama llama, float limbAngle, float limbDistance, float tickDelta,
                                            float animationProgress, float headYaw, float headPitch, CallbackInfo ci) {
-        if (!llama.getBodyArmorItem().is(ModBlocks.HEMP_CARPET.asItem())) {
+        if (!HempCarpetBlock.isWornBy(llama)) {
             return;
         }
         ((RenderLayer<Llama, LlamaModel<Llama>>) (Object) this).getParentModel().copyPropertiesTo(model);
         model.setupAnim(llama, limbAngle, limbDistance, animationProgress, headYaw, headPitch);
         model.renderToBuffer(matrices, vertexConsumers.getBuffer(RenderType.entityCutoutNoCull(HEMP_DECOR)),
-                light, OverlayTexture.NO_OVERLAY);
+                light, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
         ci.cancel();
     }
 }

@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.FlowerBlock;
  */
 public class IndicaFlower extends FlowerBlock {
 
-    public IndicaFlower(Holder<MobEffect> stewEffect, float effectLengthInSeconds, Properties settings) {
+    public IndicaFlower(MobEffect stewEffect, int effectLengthInSeconds, Properties settings) {
         super(stewEffect, effectLengthInSeconds, settings);
     }
 }

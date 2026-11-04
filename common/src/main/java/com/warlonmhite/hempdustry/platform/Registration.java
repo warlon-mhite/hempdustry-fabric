@@ -1,5 +1,9 @@
 package com.warlonmhite.hempdustry.platform;
 
+import net.minecraft.world.item.Item;
+import java.util.Set;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -35,6 +39,20 @@ public interface Registration {
      * Without it, placing the block throws, because a block entity type checks its blocks.
      */
     void addValidBlocks(BlockEntityType<?> type, Block... blocks);
+
+    /**
+     * Makes {@code item} the item of {@code block} for {@code Block#asItem}, as a {@code BlockItem} is:
+     * for a block whose item is not one (a placed bong is its device). Forge 47 rebuilds that map
+     * from the block items whenever a world loads, so there it is put back each time.
+     */
+    void blockItem(Block block, Item item);
+
+    /**
+     * Makes {@code states} points of interest of the type {@code poi} -- the Hemp Bed's head a
+     * villager's home. Vanilla keeps one map from state to type; Forge 47 rebuilds it from each type's
+     * own list of states, so there the type's list takes them too.
+     */
+    void addPointOfInterestStates(ResourceKey<PoiType> poi, Set<BlockState> states);
 
     /** Registers a copy of {@code template} named {@code id}. Vanilla's own registration is private. */
     BlockSetType registerBlockSetType(ResourceLocation id, BlockSetType template);

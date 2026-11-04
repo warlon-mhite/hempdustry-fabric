@@ -22,15 +22,13 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.state.BlockState;
@@ -80,7 +78,7 @@ public final class SchwagGameTest {
             // 2% of 2000 is 40, with a standard deviation near 6.3.
             context.assertTrue(spoiled >= 20 && spoiled <= 65, crop + ": " + spoiled + " of " + PLANTS
                     + " healthy plants gave schwag, expected about 40 (2%)");
-            context.assertValueEqual(0, fortuneSpoiled, crop + ": Fortune I left " + fortuneSpoiled
+            Line.equal(context, 0, fortuneSpoiled, crop + ": Fortune I left " + fortuneSpoiled
                     + " schwag on healthy plants — any Fortune clears them");
         }
 
@@ -88,7 +86,7 @@ public final class SchwagGameTest {
         Random seeds = new Random(SEED_SOURCE);
         for (int i = 0; i < 200; i++) {
             long seed = seeds.nextLong();
-            context.assertValueEqual(0, harvest(world, context, indica.setValue(IndicaCropBlock.AGE, 0), seed, 0)[1],
+            Line.equal(context, 0, harvest(world, context, indica.setValue(IndicaCropBlock.AGE, 0), seed, 0)[1],
                     "an unripe plant gave schwag");
             int[] upper = harvest(world, context, indica.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER), seed, 0);
             context.assertTrue(upper[0] == 0 && upper[1] == 0,
@@ -107,12 +105,12 @@ public final class SchwagGameTest {
     public void cropLootTablesValidateClean(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         for (BlockState ripe : ripeLowers()) {
-            LootTable table = world.getServer().reloadableRegistries()
+            LootTable table = world.getServer().getLootData()
                     .getLootTable(ripe.getBlock().getLootTable());
-            ProblemReporter.Collector errors = new ProblemReporter.Collector();
-            table.validate(new ValidationContext(errors, LootContextParamSets.BLOCK));
-            context.assertTrue(errors.get().isEmpty(), ripe.getBlock().getDescriptionId()
-                    + "'s loot table does not validate: " + errors.getReport().orElse(""));
+            ValidationContext validation = new ValidationContext(LootContextParamSets.BLOCK, world.getServer().getLootData());
+            table.validate(validation);
+            context.assertTrue(validation.getProblems().isEmpty(), ripe.getBlock().getDescriptionId()
+                    + "'s loot table does not validate: " + validation.getProblems());
         }
         context.succeed();
     }
@@ -137,7 +135,7 @@ public final class SchwagGameTest {
                     long seed = seeds.nextLong();
                     int[] sick = harvest(world, context, stressed, seed, level);
                     int[] well = harvest(world, context, ripe, seed, level);
-                    context.assertValueEqual(well[0] + well[1] - 1, sick[0] + sick[1], crop + " at Fortune "
+                    Line.equal(context, well[0] + well[1] - 1, sick[0] + sick[1], crop + " at Fortune "
                             + level + ": a stressed plant's buds and schwag came to " + (sick[0] + sick[1])
                             + " against a healthy one's " + (well[0] + well[1]) + " — schwag has to replace a bud");
                     buds += sick[0];
@@ -168,9 +166,9 @@ public final class SchwagGameTest {
             MobEffectInstance poison = find(effects, MobEffects.POISON);
             if (poison != null) {
                 poisoned++;
-                context.assertValueEqual(100, poison.getDuration(), "schwag's Poison from a pipe lasts "
+                Line.equal(context, 100, poison.getDuration(), "schwag's Poison from a pipe lasts "
                         + poison.getDuration() + " ticks, not the potato's 100");
-                context.assertValueEqual(0, poison.getAmplifier(), "one schwag poisons above level I");
+                Line.equal(context, 0, poison.getAmplifier(), "one schwag poisons above level I");
             }
             context.assertTrue(find(effects, MobEffects.HUNGER) != null, "a hit of schwag skipped Hunger");
         }
@@ -185,10 +183,10 @@ public final class SchwagGameTest {
         context.assertTrue(bong != null && bong.getAmplifier() == 1,
                 "a bong of three schwag does not poison at level II — the dose has to scale it, and "
                         + "max_amplifier has to stop it at vanilla's ceiling");
-        context.assertValueEqual(find(schwag.effects(3, 1000, false, random), MobEffects.HUNGER).getAmplifier(), 2,
+        Line.equal(context, find(schwag.effects(3, 1000, false, random), MobEffects.HUNGER).getAmplifier(), 2,
                 "a bong of three schwag is Hunger III, as every strain's is");
         context.assertTrue(schwag.effects(1, 700, true, random).isEmpty(), "schwag holds an effect back to the exhale");
-        context.assertValueEqual(0.0F, schwag.greenOutFactor(), "schwag can green you out");
+        Line.equal(context, 0.0F, schwag.greenOutFactor(), "schwag can green you out");
         context.succeed();
     }
 
@@ -201,16 +199,16 @@ public final class SchwagGameTest {
     public void schwagIsHalfABud(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         ItemStack oven = world.getRecipeManager()
-                .getRecipeFor(ModRecipes.DECARBOXYLATING_TYPE, new SingleRecipeInput(new ItemStack(ModItems.SCHWAG)), world)
-                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(ModItems.SCHWAG)),
+                .getRecipeFor(ModRecipes.DECARBOXYLATING_TYPE, new SimpleContainer(new ItemStack(ModItems.SCHWAG)), world)
+                .map(entry -> entry.assemble(new SimpleContainer(new ItemStack(ModItems.SCHWAG)),
                         world.registryAccess()))
                 .orElse(ItemStack.EMPTY);
         context.assertTrue(oven.is(ModItems.DECARBOXYLATED_HEMP) && oven.getCount() == 2,
                 "the oven made " + oven + " of a schwag, not 2 decarboxylated hemp");
 
         ItemStack furnace = world.getRecipeManager()
-                .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(new ItemStack(ModItems.SCHWAG)), world)
-                .map(entry -> entry.value().assemble(new SingleRecipeInput(new ItemStack(ModItems.SCHWAG)),
+                .getRecipeFor(RecipeType.SMELTING, new SimpleContainer(new ItemStack(ModItems.SCHWAG)), world)
+                .map(entry -> entry.assemble(new SimpleContainer(new ItemStack(ModItems.SCHWAG)),
                         world.registryAccess()))
                 .orElse(ItemStack.EMPTY);
         context.assertTrue(furnace.is(ModItems.SCORCHED_HEMP) && furnace.getCount() == 1,
@@ -226,9 +224,9 @@ public final class SchwagGameTest {
             CraftingInput grid = CraftingInput.of(3, 3, slots);
             int wanted = dose;
             ItemStack spliff = world.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, world)
-                    .map(entry -> entry.value().assemble(grid, world.registryAccess()))
+                    .map(entry -> entry.assemble(grid, world.registryAccess()))
                     .orElse(ItemStack.EMPTY);
-            SmokeContents contents = spliff.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY);
+            SmokeContents contents = ModComponents.SMOKE_CONTENTS.getOrDefault(spliff, SmokeContents.EMPTY);
             context.assertTrue(spliff.is(ModItems.SPLIFF) && contents.dose() == wanted
                             && contents.primaryStrain() != null && contents.primaryStrain().is(ModStrains.SCHWAG),
                     dose + " schwag over " + dose + " paper did not roll a dose-" + dose + " schwag spliff");
@@ -236,14 +234,14 @@ public final class SchwagGameTest {
         context.assertTrue(ModStrains.isPlantMatter(schwag), "schwag is not plant matter");
         context.assertTrue(schwag.value().wildFlower().isEmpty(), "schwag has a plant of its own");
 
-        context.assertValueEqual(TestPlatform.INSTANCE.compostChance(ModItems.INDICA_BUDS),
+        Line.equal(context, TestPlatform.INSTANCE.compostChance(ModItems.INDICA_BUDS),
                 TestPlatform.INSTANCE.compostChance(ModItems.SCHWAG),
                 "schwag does not compost at a bud's rate");
         ItemStack stack = new ItemStack(ModItems.SCHWAG);
         context.assertFalse(stack.is(ModTags.Items.SIFTABLE_FLOWER) || stack.is(ModTags.Items.SIFTABLE_RESINOUS)
                 || stack.is(ModTags.Items.SIFTABLE_TRIM), "schwag goes through the screen");
 
-        LootTable wreck = world.getServer().reloadableRegistries().getLootTable(BuiltInLootTables.SHIPWRECK_SUPPLY);
+        LootTable wreck = world.getServer().getLootData().getLootTable(BuiltInLootTables.SHIPWRECK_SUPPLY);
         LootParams params = new LootParams.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(CROP)))
                 .create(LootContextParamSets.CHEST);
@@ -279,13 +277,11 @@ public final class SchwagGameTest {
 
     /** {buds, schwag} from one roll of the plant's own table, harvested with Fortune {@code level}. */
     private static int[] harvest(ServerLevel world, GameTestHelper context, BlockState state, long seed, int level) {
-        LootTable table = world.getServer().reloadableRegistries()
+        LootTable table = world.getServer().getLootData()
                 .getLootTable(state.getBlock().getLootTable());
         ItemStack tool = new ItemStack(Items.DIAMOND_HOE);
         if (level > 0) {
-            Holder<Enchantment> fortune = world.registryAccess()
-                    .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
-            tool.enchant(fortune, level);
+            tool.enchant(Enchantments.BLOCK_FORTUNE, level);
         }
         LootParams params = new LootParams.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(CROP)))
@@ -310,7 +306,7 @@ public final class SchwagGameTest {
     }
 
     private static MobEffectInstance find(List<MobEffectInstance> effects,
-                                             Holder<net.minecraft.world.effect.MobEffect> effect) {
+                                             net.minecraft.world.effect.MobEffect effect) {
         for (MobEffectInstance instance : effects) {
             if (instance.getEffect().equals(effect)) {
                 return instance;

@@ -2,44 +2,91 @@ package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import java.util.EnumMap;
-import java.util.List;
-import java.util.function.Supplier;
 import net.minecraft.Util;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.crafting.Ingredient;
 
-public class ModArmorMaterials {
-    public static final Holder<ArmorMaterial> HEMP_ARMOR_MATERIAL = registerArmorMaterial("hemp_fiber",
-            () -> new ArmorMaterial(Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
-                map.put(ArmorItem.Type.BOOTS, 1);
-                map.put(ArmorItem.Type.LEGGINGS, 1);
-                map.put(ArmorItem.Type.CHESTPLATE, 2);
-                map.put(ArmorItem.Type.HELMET, 1);
-                map.put(ArmorItem.Type.BODY, 2);
-            }), 20, SoundEvents.ARMOR_EQUIP_LEATHER, () -> Ingredient.of(ModItems.HEMP_FIBER),
-                    // The grey cloth first, tinted by the dye (or HEMP_UNDYED_COLOR), and the drawn
-                    // layer -- the name a resource pack already redraws -- untinted on top, so a pack
-                    // that redrew the whole garment still shows its own art.
-                    List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_fiber_dyeable"), "", true),
-                            new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_fiber"), "", false)), 0, 0));
+/**
+ * The hemp outfit's material. On 1.20.1 an armour material is a plain object rather than a registry
+ * entry, and its worn texture is read off its name: {@code hempdustry:textures/models/armor/hemp_fiber_layer_*}
+ * for the grey cloth the dye tints, {@code …_overlay} for the drawn layer on top, untinted.
+ */
+public enum ModArmorMaterials implements ArmorMaterial {
+    HEMP_FIBER;
+
+    /** The material every piece of the outfit is made of. */
+    public static final ArmorMaterial HEMP_ARMOR_MATERIAL = HEMP_FIBER;
 
     /**
      * The colour an undyed shirt or pair of harem pants is drawn in: unbleached hemp, the one tint
      * that best gives back the shirt as it was drawn before it took dye. The dyeable textures are
-     * grey and this tints them, as leather's brown tints leather's. Vanilla hard-codes that brown for
-     * every dyeable armour layer, so the worn garments take this one through each loader's armour
-     * hook (Fabric's {@code ArmorFeatureRendererMixin}, NeoForge's item extension), and the icons
-     * through their colour provider.
+     * grey and this tints them, as leather's brown tints leather's. On 1.20.1 vanilla asks the item for
+     * the colour, worn and in the inventory alike, so the outfit's own item answers it
+     * ({@link com.warlonmhite.hempdustry.item.custom.HempClothItem}).
      */
     public static final int HEMP_UNDYED_COLOR = 0xFFFFDFB7;
 
-    public static Holder<ArmorMaterial> registerArmorMaterial(String name, Supplier<ArmorMaterial> material) {
-        return Registry.registerForHolder(BuiltInRegistries.ARMOR_MATERIAL, ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, name), material.get());
+    private static final EnumMap<ArmorItem.Type, Integer> DEFENSE = Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+        map.put(ArmorItem.Type.BOOTS, 1);
+        map.put(ArmorItem.Type.LEGGINGS, 1);
+        map.put(ArmorItem.Type.CHESTPLATE, 2);
+        map.put(ArmorItem.Type.HELMET, 1);
+    });
+
+    /** Vanilla's durability per slot, which every material multiplies ({@code ArmorMaterials}). */
+    private static final EnumMap<ArmorItem.Type, Integer> HEALTH_PER_SLOT = Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+        map.put(ArmorItem.Type.BOOTS, 13);
+        map.put(ArmorItem.Type.LEGGINGS, 15);
+        map.put(ArmorItem.Type.CHESTPLATE, 16);
+        map.put(ArmorItem.Type.HELMET, 11);
+    });
+
+    /**
+     * Leather's: hemp is the hard-wearing cloth (sailcloth, canvas), so it wears as long as leather
+     * does, and only leather's protection stays out of reach. It was 3 until 2.1.
+     */
+    private static final int DURABILITY_MULTIPLIER = 5;
+
+    @Override
+    public int getDurabilityForType(ArmorItem.Type type) {
+        return HEALTH_PER_SLOT.get(type) * DURABILITY_MULTIPLIER;
+    }
+
+    @Override
+    public int getDefenseForType(ArmorItem.Type type) {
+        return DEFENSE.get(type);
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return 20;
+    }
+
+    @Override
+    public SoundEvent getEquipSound() {
+        return SoundEvents.ARMOR_EQUIP_LEATHER;
+    }
+
+    @Override
+    public Ingredient getRepairIngredient() {
+        return Ingredient.of(ModItems.HEMP_FIBER);
+    }
+
+    @Override
+    public String getName() {
+        return Hempdustry.MOD_ID + ":hemp_fiber";
+    }
+
+    @Override
+    public float getToughness() {
+        return 0.0F;
+    }
+
+    @Override
+    public float getKnockbackResistance() {
+        return 0.0F;
     }
 }

@@ -16,7 +16,7 @@ import net.minecraft.world.entity.player.Inventory;
  */
 public class HempPressScreen extends AbstractContainerScreen<HempPressScreenHandler> {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Hempdustry.MOD_ID, "textures/gui/container/hemp_press.png");
+            new ResourceLocation(Hempdustry.MOD_ID, "textures/gui/container/hemp_press.png");
 
     // Sprite regions in the 256x256 sheet, right of the 176x166 panel.
     private static final int ARROW_U = 176, ARROW_V = 0, ARROW_W = 24, ARROW_H = 16;

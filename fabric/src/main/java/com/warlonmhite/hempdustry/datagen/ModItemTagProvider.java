@@ -7,7 +7,6 @@ import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
-import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.ItemTags;
@@ -22,10 +21,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider wrapperLookup) {
-        getOrCreateTagBuilder(ModTags.Items.HEMP_SEEDS)
-                .add(ModItems.INDICA_SEEDS)
-                .add(ModItems.SATIVA_SEEDS)
-                .add(ModItems.BELDIA_SEEDS);
+        var hempSeeds = getOrCreateTagBuilder(ModTags.Items.HEMP_SEEDS);
+        ModItems.hempSeeds().forEach(hempSeeds::add);
 
         // A tag rather than a hard milk_bucket check in the Infuser, so another mod's milk works
         // and a datapack can widen it without a code change.
@@ -47,11 +44,14 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ModTags.Items.MILK_BUCKETS)
                 .add(Items.MILK_BUCKET)
                 .add(ModItems.HEMP_MILK_BUCKET)
-                .addOptionalTag(ConventionalItemTags.MILK_BUCKETS);
+                .addOptionalTag(ConventionalItemTags.MILK_BUCKETS)
+                .addOptionalTag(ConventionalItemTags.OLD_MILK_BUCKETS);
 
         // The outbound half, and the same reasoning as #c:strings below: nothing in vanilla reads
         // #c:buckets/milk, and the entire value is other mods' recipes taking hemp milk for free.
         getOrCreateTagBuilder(ConventionalItemTags.MILK_BUCKETS)
+                .add(ModItems.HEMP_MILK_BUCKET);
+        getOrCreateTagBuilder(ConventionalItemTags.OLD_MILK_BUCKETS)
                 .add(ModItems.HEMP_MILK_BUCKET);
 
         // The dosed foods, as one group. Space Cake is absent on purpose: a slice is eaten by using
@@ -69,30 +69,9 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.HEMP_FLAPJACK)
                 .add(ModItems.SIEMIENIOTKA);
 
-        // Strain-agnostic: any hemp seed variant (future Lemon Haze included) feeds/tames parrots,
-        // same as vanilla's wheat/melon/pumpkin/beetroot seeds.
-        getOrCreateTagBuilder(ItemTags.PARROT_FOOD)
-                .addTag(ModTags.Items.HEMP_SEEDS);
-
-        // Vanilla's chicken food is literally *every seed in the game* — wheat, melon, pumpkin,
-        // beetroot, torchflower and pitcher pod — so hemp seeds being absent read as an oversight
-        // rather than a decision, especially with parrots already fed above. Hemp seed is also the
-        // classic European bird feed: chènevis is what's in a caged-bird mix, and it is standard
-        // coarse-fishing bait for the same reason birds and fish both go for it.
-        getOrCreateTagBuilder(ItemTags.CHICKEN_FOOD)
-                .addTag(ModTags.Items.HEMP_SEEDS);
-
-        // Goats browse. Vanilla's goat food is wheat and nothing else, and a fan leaf is exactly the
-        // kind of thing a real goat would strip off a plant — they eat leaves and shrubs rather than
-        // grazing grass, which is the one genuine difference between them and vanilla's sheep and
-        // cows. Deliberately goats *only*: making hemp leaf feed every farm animal would just be a
-        // worse wheat, where one animal that eats it is a fact worth knowing.
-        //
-        // Joining the tag is the whole feature — Goat#isFood reads it, and the tempt
-        // goal is built from that same check, so breeding, leading a goat around and speeding up a
-        // kid all come for free. These per-animal food tags are Mojang's own extension point.
-        getOrCreateTagBuilder(ItemTags.GOAT_FOOD)
-                .add(ModItems.HEMP_LEAF);
+        // Hemp seed as bird feed (parrots and chickens) and the fan leaf as goat browse are per-animal
+        // food tags from Minecraft 1.20.5 on. On 1.20.1 each animal's food is a list in its own class,
+        // so there is no tag here to join (ModAnimalFood, GoatFoodMixin).
 
         // Cross-mod cordage. This was agreed as `#c:ropes` and is deliberately `#c:strings` instead:
         // hemp fibre crafts 1:1 into vanilla string, which makes it string-tier, while `#c:ropes` by
@@ -114,27 +93,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
             .add(ModItems.HEMP_SHIRT)
             .add(ModItems.HEMP_HAREM_PANTS);
 
-        // The base armour tags, and they are the whole enchantment story: every
-        // #minecraft:enchantable/* tag is built on top of them, so a modded armour item that joins
-        // none of them can be enchanted with *nothing* — not Protection, not Unbreaking, not even a
-        // curse. The set shipped that way, which made `enchantability 20` on the material a dead
-        // letter and, because #minecraft:trimmable_armor *was* joined, made it look deliberate.
-        // Joining these grants enchantable/armor, /durability, /equippable, /vanishing and the
-        // per-slot tags transitively.
-        //
-        // It stays bad armour (1/2/1/1) — this buys the *right* to enchant, not protection.
-        getOrCreateTagBuilder(ItemTags.CHEST_ARMOR).add(ModItems.HEMP_SHIRT);
-        getOrCreateTagBuilder(ItemTags.LEG_ARMOR).add(ModItems.HEMP_HAREM_PANTS);
-
-        // The beanie and the flip-flops stay out of #head_armor and #foot_armor, because vanilla
-        // builds #trimmable_armor from those two tags as well, and a tag cannot take an entry back
-        // out of another: joining them would put both on the smithing table again, with a trim that
-        // is never drawn. So they join, one by one, the four enchantable tags that read the base
-        // tags; enchantable/armor and /vanishing are built on these, and follow by themselves.
-        getOrCreateTagBuilder(ItemTags.HEAD_ARMOR_ENCHANTABLE).add(ModItems.HEMP_BEANIE);
-        getOrCreateTagBuilder(ItemTags.FOOT_ARMOR_ENCHANTABLE).add(ModItems.FLIP_FLOPS);
-        getOrCreateTagBuilder(ItemTags.DURABILITY_ENCHANTABLE).add(ModItems.HEMP_BEANIE).add(ModItems.FLIP_FLOPS);
-        getOrCreateTagBuilder(ItemTags.EQUIPPABLE_ENCHANTABLE).add(ModItems.HEMP_BEANIE).add(ModItems.FLIP_FLOPS);
+        // No enchantable tags on 1.20.1: an armour piece takes the enchantments of its slot by its class
+        // (ArmorItem), and the material's enchantability opens the table to it.
 
         // The beanie is the warm piece: knitted, a winter hat. Hemp cloth itself is no warmer than
         // cotton, so the shirt, the pants and above all the flip-flops stay out. One piece in this tag
@@ -143,13 +103,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // Walking on powder snow is a different check, leather boots by name, so flip-flops sink.
         getOrCreateTagBuilder(ItemTags.FREEZE_IMMUNE_WEARABLES).add(ModItems.HEMP_BEANIE);
 
-        // The two garments take dye, through vanilla's own armour-dye recipe, which reads this tag.
-        // The beanie keeps its stripes and the flip-flops their soles: a single tint over them would
-        // flatten the one and muddy the other. The cauldron wash is registered item by item, as
-        // vanilla registers leather's (ModCauldronBehaviors).
-        getOrCreateTagBuilder(ItemTags.DYEABLE)
-                .add(ModItems.HEMP_SHIRT)
-                .add(ModItems.HEMP_HAREM_PANTS);
+        // The two garments take dye as leather does on 1.20.1, by being DyeableLeatherItems
+        // (HempClothItem); there is no #dyeable tag yet.
 
         // Canvas is leather-tier by the mod's own standing rule — it substitutes wherever vanilla
         // uses leather, and the cloth chain's balance anchors are set at leather parity — so the
@@ -255,6 +210,39 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ConventionalItemTags.CONCRETE_POWDERS)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK.asItem());
 
+        // The same, in Forge's names, for the Forge packs of 1.20.1: forge:crops and
+        // forge:storage_blocks hold subtags as c:'s do, and string, leather and armour are flat lists
+        // there. Forge has no tag for bricks, concrete, discs, milk or the food kinds.
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_HEMP_CROPS)
+                .addTag(ModTags.Conventional.HEMP_CROPS);
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_CROPS)
+                .addOptionalTag(ConventionalItemTags.FORGE_HEMP_CROPS);
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_HEMP_STORAGE_BLOCKS)
+                .addTag(ModTags.Conventional.HEMP_STORAGE_BLOCKS);
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_STORAGE_BLOCKS)
+                .addOptionalTag(ConventionalItemTags.FORGE_HEMP_STORAGE_BLOCKS);
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_STRING).add(ModItems.HEMP_FIBER);
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_LEATHER).add(ModItems.HEMP_CANVAS);
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_ARMORS)
+                .add(ModItems.HEMP_BEANIE)
+                .add(ModItems.HEMP_SHIRT)
+                .add(ModItems.HEMP_HAREM_PANTS)
+                .add(ModItems.FLIP_FLOPS);
+
+        // The inbound half: what trims a plant and what feeds a Grow Pot, every mod's. On 1.20.1 no
+        // single convention tag holds every pair of shears or every fertiliser -- Fabric's, Forge's
+        // and the newer c: names each hold some -- so the mod's own tags take all of them, each
+        // optional, beside vanilla's own item.
+        getOrCreateTagBuilder(ModTags.Items.SHEARS)
+                .add(Items.SHEARS)
+                .addOptionalTag(ConventionalItemTags.SHEAR_TOOLS)
+                .addOptionalTag(ConventionalItemTags.OLD_SHEARS)
+                .addOptionalTag(ConventionalItemTags.FORGE_SHEARS);
+        getOrCreateTagBuilder(ModTags.Items.FERTILIZERS)
+                .add(Items.BONE_MEAL)
+                .addOptionalTag(ConventionalItemTags.FERTILIZERS)
+                .addOptionalTag(ConventionalItemTags.FORGE_FERTILIZERS);
+
         getOrCreateTagBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         getOrCreateTagBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
         // The rest of the plank set's wooden tags, as the block side has them. Vanilla makes every one
@@ -296,13 +284,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem()).add(ModBlocks.HEMP_BRICKS_SLAB.asItem());
         getOrCreateTagBuilder(ItemTags.BEDS).add(ModBlocks.HEMP_BED.asItem());
 
-        // Every empty device accepts Unbreaking/Mending (and enchants at the table). Packed variants
-        // inherit any enchantment through the component copy, so they don't need listing here.
-        // Built from devices() so a device added later cannot be left out, as the vaporizer was;
-        // the coloured bongs are not in devices(), which keeps one canonical item per device.
-        var durabilityEnchantable = getOrCreateTagBuilder(ItemTags.DURABILITY_ENCHANTABLE);
-        ModItems.devices().values().forEach(durabilityEnchantable::add);
-        ModItems.COLORED_BONGS.forEach(durabilityEnchantable::add);
+        // Every device accepts Unbreaking and Mending on 1.20.1 by being damageable, which is what
+        // those two enchantments ask of an item; there is no #enchantable/durability yet.
 
         // Puts our discs on exactly the same footing as vanilla's twelve common discs: the
         // creeper loot table rolls this tag (expand:true, one entry each) when a skeleton lands

@@ -42,7 +42,7 @@ public class DrawContextMixin {
     private float hempdustry$swipeOnlyTheStackThatWasSmoked(float progress,
                                                             @Local(argsOnly = true) ItemStack stack) {
         if (progress > 0.0F && Smoking.isSmokeable(stack.getItem())
-                && !stack.has(ModComponents.COOLDOWN_UNTIL)) {
+                && !ModComponents.COOLDOWN_UNTIL.has(stack)) {
             return 0.0F;
         }
         return progress;

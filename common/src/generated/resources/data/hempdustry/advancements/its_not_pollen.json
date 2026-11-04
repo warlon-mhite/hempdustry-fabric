@@ -1,0 +1,39 @@
+{
+  "parent": "hempdustry:green_threads",
+  "criteria": {
+    "has_kief": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "hempdustry:kief"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "background": "hempdustry:textures/block/hempcrete_powder_block.png",
+    "description": {
+      "translate": "advancements.hempdustry.its_not_pollen.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "hempdustry:kief"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.hempdustry.its_not_pollen.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_kief"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
