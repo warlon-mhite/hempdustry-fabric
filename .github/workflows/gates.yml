@@ -22,10 +22,10 @@ jobs:
     timeout-minutes: 90
     env:
       # The releases whose API this build must keep (scripts/api_additive.py), one per loader, since a
-      # Fabric jar and a NeoForge jar cannot be compared with each other: Fabric's since 2.0.0, and
-      # NeoForge's from its first release on (empty until there is one). Move both on at each release.
-      API_BASELINE: v2.1.0
-      NEOFORGE_API_BASELINE: v2.1.0
+      # Fabric jar and a Forge jar cannot be compared with each other, nor a jar of another Minecraft.
+      # Empty until this line's first release on Minecraft 1.20.1; move both on at each release.
+      API_BASELINE: ''
+      NEOFORGE_API_BASELINE: ''
     steps:
       - uses: actions/checkout@v4
 
@@ -43,7 +43,7 @@ jobs:
       # Both loaders compiled once before the gates: it fails early on a compile error, and it puts the
       # game's client jar in Loom's cache, where the recipe-collision gate reads vanilla's recipes.
       - name: Compile both loaders
-        run: ./gradlew --console=plain :fabric:compileJava :neoforge:compileJava
+        run: ./gradlew --console=plain :fabric:compileJava :forge:compileJava
 
       - name: Fetch the released jars the API is held to
         run: |
@@ -73,7 +73,7 @@ jobs:
           }
           # Since 2.1.0 each jar is named for its loader; the 2.0.x jars were Fabric's alone and named for no loader.
           fetch fabric "$API_BASELINE" "hempdustry-fabric-${API_BASELINE#v}" "hempdustry-${API_BASELINE#v}"
-          fetch neoforge "$NEOFORGE_API_BASELINE" "hempdustry-neoforge-${NEOFORGE_API_BASELINE#v}"
+          fetch neoforge "$NEOFORGE_API_BASELINE" "hempdustry-forge-${NEOFORGE_API_BASELINE#v}"
 
       - name: Gates
         run: |
@@ -90,5 +90,5 @@ jobs:
           path: |
             build/gates/*.log
             fabric/build/gametest/logs/
-            neoforge/build/gametest/logs/
+            forge/build/gametest/logs/
           if-no-files-found: ignore
