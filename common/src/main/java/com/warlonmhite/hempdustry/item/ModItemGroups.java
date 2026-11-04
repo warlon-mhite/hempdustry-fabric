@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -80,13 +81,14 @@ public class ModItemGroups {
             Services.REGISTRATION.creativeTabBuilder().icon(() -> new ItemStack(ModItems.HEMP_LEAF))
                     .title(Component.translatable("itemgroup.hempdustry"))
                     // Stacks built here carry strains of the lookup the tab is given (StackRegistries).
-                    .displayItems((displayContext, entries) -> StackRegistries.with(displayContext.holders(), () -> {
+                    .displayItems((displayContext, entries) -> StackRegistries.with(withStrains(displayContext.holders()), () -> {
+                        HolderLookup.Provider holders = withStrains(displayContext.holders());
                         // --- The plant -------------------------------------------------
                         // One run per kind, in the strain registry's own stable order, so a strain
                         // added or edited by a datapack slots into all three runs without touching
-                        // this file. The tab reads displayContext.holders() for that, exactly as
+                        // this file. The tab reads the lookup it is given for that, exactly as
                         // vanilla's Food & Drinks reads the potion registry.
-                        List<Holder.Reference<Strain>> strains = Strain.all(displayContext.holders());
+                        List<Holder.Reference<Strain>> strains = Strain.all(holders);
                         // Only a strain that grew on a plant has seeds and a flower — hashish has
                         // neither, and its buds go in the processed run below with the rest of the
                         // strain-agnostic material. See Strain.
@@ -161,9 +163,9 @@ public class ModItemGroups {
                         // a moon rock with no smoke_contents is an inert nug and would be a lie in
                         // the tab, so the bare item is deliberately not listed. The grid shows the
                         // hashish coat; search lists every coat, as it does every dose.
-                        ModItems.showcaseMoonRocks(displayContext.holders())
+                        ModItems.showcaseMoonRocks(holders)
                                 .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.PARENT_TAB_ONLY));
-                        ModItems.moonRocks(displayContext.holders())
+                        ModItems.moonRocks(holders)
                                 .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
                         entries.accept(ModItems.showcaseCannabutter(), CreativeModeTab.TabVisibility.PARENT_TAB_ONLY);
 
@@ -195,9 +197,9 @@ public class ModItemGroups {
                         // --- Smoking ---------------------------------------------------
                         // Gear-free first, then the devices in progression order; each device
                         // empty, then one per strain. Doses live in the search tab only.
-                        ModItems.showcaseSmokeables(displayContext.holders())
+                        ModItems.showcaseSmokeables(holders)
                                 .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.PARENT_TAB_ONLY));
-                        ModItems.allSmokeables(displayContext.holders())
+                        ModItems.allSmokeables(holders)
                                 .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
                         // The glass run, empty only -- the way vanilla follows the bundle with its
                         // sixteen dyed ones. A packed coloured bong differs from a packed clear one
@@ -251,6 +253,20 @@ public class ModItemGroups {
                         entries.accept(ModItems.HEMP_CHEST_BOAT);
                         ModItems.MUSIC_DISCS.forEach(entries::accept);
                     })).build());
+
+    /**
+     * The lookup to build the tab from: the one it is given, or, when that one has no strains, the
+     * world's. Vanilla hands the tab the joined world's registries, which hold the strains; a recipe
+     * viewer may build it with a lookup of its own holding only vanilla's (REI 12 does, and the tab
+     * threw "Registry hempdustry:strain not found" and was left out of REI's list).
+     */
+    private static HolderLookup.Provider withStrains(HolderLookup.Provider given) {
+        if (given.lookup(Strain.REGISTRY_KEY).isPresent()) {
+            return given;
+        }
+        HolderLookup.Provider world = StackRegistries.current();
+        return world != null && world.lookup(Strain.REGISTRY_KEY).isPresent() ? world : given;
+    }
 
     public static void registerItemGroups(){
         Hempdustry.LOGGER.info("Registering Item Groups for "+ Hempdustry.MOD_ID);

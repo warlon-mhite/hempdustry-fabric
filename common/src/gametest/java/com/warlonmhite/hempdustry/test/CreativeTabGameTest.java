@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -110,6 +111,28 @@ public final class CreativeTabGameTest {
             }
             context.assertTrue(listed, entry.getId() + " makes a stack creative search never finds");
         }
+        context.succeed();
+    }
+
+    /**
+     * A recipe viewer may build the tab with a lookup of its own that holds vanilla's registries and
+     * not the world's: REI 12 does. The tab must then read the strains from the world, and list
+     * exactly what the creative screen lists; it threw "Registry hempdustry:strain not found"
+     * instead, and REI left the whole tab out.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void aViewersOwnLookupStillBuildsTheTab(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(new CreativeModeTab.ItemDisplayParameters(
+                world.enabledFeatures(), true, world.registryAccess()));
+        int fromTheWorld = ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems().size();
+
+        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(new CreativeModeTab.ItemDisplayParameters(
+                world.enabledFeatures(), true, VanillaRegistries.createLookup()));
+        context.assertTrue(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems().size() == fromTheWorld,
+                "built with vanilla's own lookup the tab listed "
+                        + ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems().size()
+                        + " stacks for search, not the " + fromTheWorld + " it lists from the world's");
         context.succeed();
     }
 }
