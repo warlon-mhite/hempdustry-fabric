@@ -14,3 +14,6 @@ accessible method net/minecraft/world/level/block/TrapDoorBlock <init> (Lnet/min
 # Which tabs a stack shows in: the creative tab puts showcase stacks in the tab and leaves the
 # search tab the plain ones.
 accessible class net/minecraft/world/item/CreativeModeTab$TabVisibility
+
+# A stack's data inside vanilla's 1.20.5 item fix, which ItemStackComponentizationFixMixin adds to.
+accessible class net/minecraft/util/datafix/fixes/ItemStackComponentizationFix$ItemStackData
