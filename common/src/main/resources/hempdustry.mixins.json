@@ -6,6 +6,7 @@
 		"BeeGrowCropsGoalMixin",
 		"CreeperEntityMixin",
 		"DataFixersMixin",
+		"ItemStackComponentizationFixMixin",
 		"PointOfInterestTypesAccessor",
 		"ReloadableServerRegistriesMixin",
 		"Schema1460Mixin"
