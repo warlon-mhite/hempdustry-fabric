@@ -76,9 +76,11 @@ public class Schema1460Mixin {
             schema.register(blockEntities, machine, () -> V1458.nameableInventory(schema));
         }
         // A placed bong is the device item itself, kept as the block entity's own components
-        // (BongBlockEntity); being in the table is what lets the fixer reach them. A placed hemp bed
-        // keeps whatever its item carried that the bed does not read, an anvil name among them.
-        schema.registerSimple(blockEntities, "hempdustry:bong");
+        // (BongBlockEntity); being in the table is what lets the fixer reach them. On 1.20.1 it was
+        // kept as a whole stack under Item, typed here so the item fixes carry it across. A placed
+        // hemp bed keeps whatever its item carried that the bed does not read, an anvil name among them.
+        schema.register(blockEntities, "hempdustry:bong",
+                name -> DSL.optionalFields("Item", References.ITEM_STACK.in(schema)));
         schema.registerSimple(blockEntities, "hempdustry:hemp_bed");
     }
 }

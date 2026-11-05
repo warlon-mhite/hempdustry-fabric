@@ -23,3 +23,6 @@ accessible method net/minecraft/core/cauldron/CauldronInteraction$Dispatcher put
 
 # A block's fire odds on NeoForge, which reads vanilla's own table (Fabric has a registry for it).
 accessible method net/minecraft/world/level/block/FireBlock setFlammable (Lnet/minecraft/world/level/block/Block;II)V
+
+# A stack's data inside vanilla's 1.20.5 item fix, which ItemStackComponentizationFixMixin adds to.
+accessible class net/minecraft/util/datafix/fixes/ItemStackComponentizationFix$ItemStackData
