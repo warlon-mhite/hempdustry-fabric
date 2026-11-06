@@ -49,6 +49,10 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> DITCHWEED_KEY = registerKey("ditchweed");
     public static final ResourceKey<ConfiguredFeature<?, ?>> WARPED_KUSH_KEY = registerKey("warped_kush");
     public static final ResourceKey<ConfiguredFeature<?, ?>> RUDERALIS_KEY = registerKey("ruderalis");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> CRIMSON_KEY = registerKey("crimson");
+
+    /** A few plants under one cap of a huge fungus: tries within three blocks, most of them misses. */
+    private static final int CRIMSON_TRIES = 12;
 
     /** A relict stand is a weed or two, never a field: a handful of tries within two blocks. */
     private static final int RUDERALIS_TRIES = 6;
@@ -170,6 +174,25 @@ public class ModConfiguredFeatures {
                                 BlockPredicate.ONLY_IN_AIR_PREDICATE,
                                 BlockPredicate.wouldSurvive(
                                         ModBlocks.RUDERALIS_CROP.defaultBlockState(), BlockPos.ZERO))))));
+
+        // Crimson Weed grows wild as its own crop, RIPE, hanging from the crimson forest's canopy.
+        // Warped Kush's two-layer BLOCK_COLUMN turned DOWN: the root (UPPER) at the patch's spot, the
+        // tip (LOWER) under it. The filter wants a canopy block over the root and air for both halves,
+        // so a column is never cut short to a lone half -- and never hangs under a warped wart block,
+        // netherrack or anything else a live world would pop it off but chunk generation would not.
+        BlockState ripeCrimson = ModBlocks.CRIMSON_CROP.defaultBlockState().setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
+        register(context, CRIMSON_KEY, Feature.RANDOM_PATCH, new RandomPatchConfiguration(CRIMSON_TRIES, 3, 1,
+                PlacementUtils.inlinePlaced(Feature.BLOCK_COLUMN,
+                        new BlockColumnConfiguration(List.of(
+                                BlockColumnConfiguration.layer(ConstantInt.of(1),
+                                        BlockStateProvider.simple(ripeCrimson.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER))),
+                                BlockColumnConfiguration.layer(ConstantInt.of(1),
+                                        BlockStateProvider.simple(ripeCrimson.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER)))),
+                                Direction.DOWN, BlockPredicate.ONLY_IN_AIR_PREDICATE, false),
+                        BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                                BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                                BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), Blocks.AIR),
+                                BlockPredicate.matchesTag(new Vec3i(0, 1, 0), ModTags.Blocks.CRIMSON_CANOPY))))));
     }
 
     private static ConfiguredFeature<?, ?> wildPatch(Block flower) {

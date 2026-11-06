@@ -6,6 +6,12 @@
     "hempdustry:beldia_seeds": {
       "chance": 0.3
     },
+    "hempdustry:crimson_buds": {
+      "chance": 0.5
+    },
+    "hempdustry:crimson_seeds": {
+      "chance": 0.3
+    },
     "hempdustry:decarboxylated_hemp": {
       "chance": 0.5
     },

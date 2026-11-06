@@ -28,7 +28,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.BELDIA_SEEDS)
                 .add(ModItems.INDUSTRIAL_HEMP_SEEDS)
                 .add(ModItems.WARPED_KUSH_SEEDS)
-                .add(ModItems.RUDERALIS_SEEDS);
+                .add(ModItems.RUDERALIS_SEEDS)
+                .add(ModItems.CRIMSON_SEEDS);
 
         // Striders eat warped fungus, and only that; Warped Kush grows beside it. Joining the tag is
         // the whole feature -- breeding, and #minecraft:strider_tempt_items includes it, so a strider
@@ -44,6 +45,13 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // warrior's bow, and piglins barter the seed. See crops.md, Warped Kush.
         valueLookupBuilder(ItemTags.PIGLIN_LOVED)
                 .add(ModItems.WARPED_KUSH_BUDS);
+
+        // Hoglins eat crimson fungus, and only that; Crimson Weed hangs over it. Joining the tag is
+        // breeding, and nothing more -- a hoglin follows no food. Seeds rather than buds, as for the
+        // striders: breeding should never burn a smokeable. A Crimson Weed farm is a hoglin ranch,
+        // and the hoglins bring the piglins that hunt them.
+        valueLookupBuilder(ItemTags.HOGLIN_FOOD)
+                .add(ModItems.CRIMSON_SEEDS);
 
         // A tag rather than a hard milk_bucket check in the Infuser, so another mod's milk works
         // and a datapack can widen it without a code change.
@@ -257,6 +265,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.BELDIA_BUDS)
                 .add(ModItems.WARPED_KUSH_BUDS)
                 .add(ModItems.RUDERALIS_BUDS)
+                .add(ModItems.CRIMSON_BUDS)
                 .add(ModItems.HEMP_LEAF);
         valueLookupBuilder(ConventionalItemTags.CROPS)
                 .addOptionalTag(ModTags.Conventional.HEMP_CROPS);

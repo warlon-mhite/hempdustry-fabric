@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block.custom;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.particle.ModParticles;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 
@@ -41,16 +42,25 @@ public final class RipeAroma {
      * wisp never starts inside a block, and a plant with something on its head gives off nothing.
      */
     public static void randomDisplayTick(Level world, BlockPos pos, RandomSource random) {
+        randomDisplayTick(world, pos, random, Direction.UP);
+    }
+
+    /**
+     * As above, for a plant that grows {@code growth}-wards. One hanging from a ceiling has its open
+     * end below, so its wisp starts low in the tip and rises past the plant.
+     */
+    public static void randomDisplayTick(Level world, BlockPos pos, RandomSource random, Direction growth) {
         // The roll first: it is the cheapest test and fails fourteen times in fifteen, so the block
         // lookup above almost never happens.
         if (random.nextInt(CHANCE) != 0
                 || !HempdustryConfig.get().client().ripeAroma()
-                || !world.getBlockState(pos.above()).isAir()) {
+                || !world.getBlockState(pos.relative(growth)).isAir()) {
             return;
         }
+        double low = growth == Direction.DOWN ? 0.05 : 0.55;
         world.addParticle(ModParticles.AROMA,
                 pos.getX() + 0.25 + random.nextDouble() * 0.5,
-                pos.getY() + 0.55 + random.nextDouble() * 0.3,
+                pos.getY() + low + random.nextDouble() * 0.3,
                 pos.getZ() + 0.25 + random.nextDouble() * 0.5,
                 0.0, 0.0, 0.0);
     }

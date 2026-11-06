@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.config;
 
 import com.warlonmhite.hempdustry.config.HempdustryConfig.Effects;
+import com.warlonmhite.hempdustry.util.ModTags;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.Holder;
@@ -87,8 +88,10 @@ public final class EffectPolicy {
             return false;
         }
         // Category rather than a list of ids: a datapack strain handing out Wither or Poison is
-        // caught by the same switch as the mod's own Mining Fatigue, with no maintenance.
-        return config.debuffs() || instance.getEffect().value().getCategory() != MobEffectCategory.HARMFUL;
+        // caught by the same switch as the mod's own Mining Fatigue, with no maintenance. The tag is
+        // for the costs vanilla files as neutral: Crimson Weed's Glowing.
+        return config.debuffs() || (instance.getEffect().value().getCategory() != MobEffectCategory.HARMFUL
+                && !instance.getEffect().is(ModTags.MobEffects.COUNTS_AS_HARMFUL));
     }
 
     /** A duration in ticks, scaled. Never rounds to zero — a 1-tick effect is still an effect. */
