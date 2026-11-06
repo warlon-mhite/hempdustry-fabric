@@ -261,6 +261,38 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         valueLookupBuilder(ConventionalItemTags.CONCRETE_POWDERS)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK.asItem());
 
+        // What the other mods of a big pack read, measured in All the Mods 10 (November 2026). Each is
+        // only a door: the recipes behind it are theirs.
+        //
+        // Seeds go into c:seeds, whose readers press oil from any seed, crush it into bio fuel or
+        // plant it in an automated farm -- the truest use of a hemp seed, whose kernel is about half fat. Not
+        // c:seeds/hemp: that names Immersive Engineering's industrial hemp seed, and a pack asking for
+        // it means that crop.
+        valueLookupBuilder(ModTags.Conventional.SEEDS)
+                .addOptionalTag(ModTags.Items.HEMP_SEEDS);
+        // Immersive Engineering's industrial hemp fibre is ours by another name: its hemp fabric,
+        // string (three to one; ours stays one to one) and wire coils take either.
+        valueLookupBuilder(ModTags.Conventional.FIBER_HEMP).add(ModItems.HEMP_FIBER);
+        // Pam's HarvestCraft files plant fibres by crop (cotton, flax, jute, kenaf, sisal, yucca) and
+        // spins any two into a string. Hemp is the oldest of them.
+        valueLookupBuilder(ModTags.Conventional.HEMP_FIBERS).add(ModItems.HEMP_FIBER);
+        valueLookupBuilder(ModTags.Conventional.FIBERS)
+                .addOptionalTag(ModTags.Conventional.HEMP_FIBERS);
+        // The hemp-seed foods in the kitchens other mods cook from. Pam's already counts soy milk as
+        // milk and sunflower seeds as nuts; hemp milk and toasted hemp seeds are the same kind of
+        // thing, and hemp flour is a real flour. The bucket comes back from a crafting grid
+        // (craftRemainder), as a bucket of milk does. Nothing activated joins these: cannabutter in
+        // c:butter or bhang in c:milk would be spent as plain butter and milk, effect and all.
+        valueLookupBuilder(ModTags.Conventional.HEMP_FLOUR).add(ModItems.HEMP_FLOUR);
+        valueLookupBuilder(ModTags.Conventional.FLOURS)
+                .addOptionalTag(ModTags.Conventional.HEMP_FLOUR);
+        valueLookupBuilder(ModTags.Conventional.HEMP_MILK).add(ModItems.HEMP_MILK_BUCKET);
+        valueLookupBuilder(ModTags.Conventional.MILKS)
+                .addOptionalTag(ModTags.Conventional.HEMP_MILK);
+        valueLookupBuilder(ModTags.Conventional.HEMP_SEED_NUTS).add(ModItems.TOASTED_HEMP_SEEDS);
+        valueLookupBuilder(ModTags.Conventional.NUTS)
+                .addOptionalTag(ModTags.Conventional.HEMP_SEED_NUTS);
+
         valueLookupBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         valueLookupBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
         // The rest of the plank set's wooden tags, as the block side has them. Vanilla makes every one
