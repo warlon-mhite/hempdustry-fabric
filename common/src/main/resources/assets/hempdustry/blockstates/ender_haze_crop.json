@@ -1,0 +1,584 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "age": "0",
+        "segment": "0"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage0"
+      }
+    },
+    {
+      "when": {
+        "age": "0",
+        "segment": "1"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "0",
+        "segment": "2"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "0",
+        "segment": "3"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "0",
+        "segment": "4"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "1",
+        "segment": "0"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage1"
+      }
+    },
+    {
+      "when": {
+        "age": "1",
+        "segment": "1"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "1",
+        "segment": "2"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "1",
+        "segment": "3"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "1",
+        "segment": "4"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "2",
+        "segment": "0"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage2"
+      }
+    },
+    {
+      "when": {
+        "age": "2",
+        "segment": "1"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "2",
+        "segment": "2"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "2",
+        "segment": "3"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "2",
+        "segment": "4"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "3",
+        "segment": "0"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_bottom"
+      }
+    },
+    {
+      "when": {
+        "age": "3",
+        "segment": "1"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "3",
+        "segment": "2"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "3",
+        "segment": "3"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "3",
+        "segment": "4"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage3_top"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "0",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_bottom"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "0",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_bottom_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "1",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "1",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "2",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "2",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "3",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "3",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "4",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top"
+      }
+    },
+    {
+      "when": {
+        "age": "4",
+        "segment": "4",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "0",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_bottom"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "0",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_bottom_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "1",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "1",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "2",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle_mirrored"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "2",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle_mirrored_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "3",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "3",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "4",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top"
+      }
+    },
+    {
+      "when": {
+        "age": "5",
+        "segment": "4",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "0",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_bottom"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "0",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_bottom_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "1",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "1",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "2",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle_mirrored"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "2",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle_mirrored_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "3",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "3",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_middle_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "4",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top"
+      }
+    },
+    {
+      "when": {
+        "age": "6",
+        "segment": "4",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage4_top_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "0",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_bottom"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "0",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_bottom_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "1",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_middle"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "1",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_middle_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "2",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_middle_mirrored"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "2",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_middle_mirrored_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "3",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_middle"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "3",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_middle_stressed"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "4",
+        "condition": "!stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_top"
+      }
+    },
+    {
+      "when": {
+        "age": "7",
+        "segment": "4",
+        "condition": "stressed"
+      },
+      "apply": {
+        "model": "hempdustry:block/ender_haze_crop_stage7_top_stressed"
+      }
+    }
+  ]
+}

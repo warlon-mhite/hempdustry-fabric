@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.world;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -44,6 +45,20 @@ public class ModPlacedFeatures {
     public static final ResourceKey<PlacedFeature> WARPED_KUSH_PLACED_KEY = registerKey("warped_kush_placed");
     public static final ResourceKey<PlacedFeature> RUDERALIS_PLACED_KEY = registerKey("ruderalis_placed");
     public static final ResourceKey<PlacedFeature> CRIMSON_PLACED_KEY = registerKey("crimson_placed");
+    public static final ResourceKey<PlacedFeature> ENDER_HAZE_PLACED_KEY = registerKey("ender_haze_placed");
+
+    /**
+     * One attempt per this many outer-island chunks for a wild Ender Haze patch, on the island's top.
+     * Rarer than the Nether's wild plants on purpose: the islands are enormous and a player flies
+     * over all of them, and a five-tall purple column is a landmark seen from far off. Measured in
+     * real terrain (the test server's End, 2304 force-generated chunks in four squares on the outer
+     * islands, 1203 of them centred in an outer-island biome), this places <b>one plant per 25 island
+     * chunks</b>, in patches of two or three, every one whole — against the Nether plants' one per 15
+     * or 16. At 24 it was one per 8.
+     */
+    private static final int ENDER_HAZE_RARITY = 64;
+    /** A handful of plants on one stretch of an island: tries within three blocks, on the centre's level or one off. */
+    private static final int ENDER_HAZE_TRIES = 8;
 
     /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
     private static final int BELDIA_RARITY = 8;
@@ -246,6 +261,26 @@ public class ModPlacedFeatures {
                         BlockPredicate.ONLY_IN_AIR_PREDICATE,
                         BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), List.of(Blocks.AIR)),
                         BlockPredicate.matchesTag(new Vec3i(0, 1, 0), ModTags.Blocks.CRIMSON_CANOPY))));
+
+        // Ender Haze: the islands' top is an ordinary surface, so an ordinary surface patch.
+        // Then the patch: a handful of plants on one stretch of an island, each wanting its soil under
+        // the root and air for all five segments, so a column is never cut short -- chunk generation
+        // runs no shape updates, so nothing would pop a short or misplaced plant afterwards.
+        List<BlockPredicate> enderHazeRoom = new java.util.ArrayList<>(List.of(
+                BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                BlockPredicate.matchesTag(new Vec3i(0, -1, 0), ModTags.Blocks.ENDER_HAZE_SOIL)));
+        for (int segment = 1; segment < EnderHazeCropBlock.HEIGHT; segment++) {
+            enderHazeRoom.add(BlockPredicate.matchesBlocks(new Vec3i(0, segment, 0), List.of(Blocks.AIR)));
+        }
+        register(context, ENDER_HAZE_PLACED_KEY,
+                features.getOrThrow(ModConfiguredFeatures.ENDER_HAZE_KEY),
+                RarityFilter.onAverageOnceEvery(ENDER_HAZE_RARITY),
+                InSquarePlacement.spread(),
+                PlacementUtils.HEIGHTMAP,
+                BiomeFilter.biome(),
+                CountPlacement.of(ENDER_HAZE_TRIES),
+                OffsetPlacement.ofTriangle(3, 1),
+                BlockPredicateFilter.forPredicate(BlockPredicate.allOf(enderHazeRoom)));
 
         // Ruderalis: a relict stand in the cold north, where the plant is actually from and where
         // vanilla already puts the trail ruins that hold its seeds. Each try wants air — a taiga is

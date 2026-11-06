@@ -21,6 +21,16 @@
       },
       "trigger": "minecraft:inventory_changed"
     },
+    "has_ender_haze_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:ender_haze_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
     "has_hemp_leaf": {
       "conditions": {
         "items": [
@@ -98,7 +108,8 @@
       "has_beldia_buds",
       "has_warped_kush_buds",
       "has_ruderalis_buds",
-      "has_crimson_buds"
+      "has_crimson_buds",
+      "has_ender_haze_buds"
     ]
   ],
   "rewards": {

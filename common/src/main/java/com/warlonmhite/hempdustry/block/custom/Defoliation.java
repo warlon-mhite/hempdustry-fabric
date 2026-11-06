@@ -187,8 +187,11 @@ public final class Defoliation {
      * and friends rather than relying on the default.
      */
     public static BlockState unworked(BlockState state) {
-        return state.setValue(TRIMMED_EARLY, false).setValue(TRIMMED_LATE, false).setValue(RUBBED, false)
-                .setValue(GrowLight.PROPERTY, GrowLight.NATURAL).setValue(Mildew.PROPERTY, Mildew.CLEAN);
+        state = state.setValue(TRIMMED_EARLY, false).setValue(TRIMMED_LATE, false).setValue(RUBBED, false)
+                .setValue(GrowLight.PROPERTY, GrowLight.NATURAL);
+        // Ender Haze is a worked plant with no mildew record: it has its own crop class, not the two
+        // that carry one.
+        return state.hasProperty(Mildew.PROPERTY) ? state.setValue(Mildew.PROPERTY, Mildew.CLEAN) : state;
     }
 
     /**
@@ -206,11 +209,12 @@ public final class Defoliation {
         if (!from.hasProperty(TRIMMED_EARLY) || !to.hasProperty(TRIMMED_EARLY)) {
             return to;
         }
-        return to.setValue(TRIMMED_EARLY, from.getValue(TRIMMED_EARLY))
+        BlockState carried = to.setValue(TRIMMED_EARLY, from.getValue(TRIMMED_EARLY))
                 .setValue(TRIMMED_LATE, from.getValue(TRIMMED_LATE))
                 .setValue(RUBBED, from.getValue(RUBBED))
-                .setValue(GrowLight.PROPERTY, from.getValue(GrowLight.PROPERTY))
-                .setValue(Mildew.PROPERTY, from.getValue(Mildew.PROPERTY));
+                .setValue(GrowLight.PROPERTY, from.getValue(GrowLight.PROPERTY));
+        return from.hasProperty(Mildew.PROPERTY) && to.hasProperty(Mildew.PROPERTY)
+                ? carried.setValue(Mildew.PROPERTY, from.getValue(Mildew.PROPERTY)) : carried;
     }
 
     /**
@@ -280,7 +284,8 @@ public final class Defoliation {
             // A trim of a mildewed plant takes the diseased leaves away: the mildew goes, the cut
             // still counts as the window's trim, and no leaf is handed over -- the harvest still takes
             // its leaf back for the flag, so the sick leaf is lost, as it is in a real grow room.
-            boolean cure = !rub && lowerState.getValue(Mildew.PROPERTY) == Mildew.MILDEWED;
+            boolean cure = !rub && lowerState.hasProperty(Mildew.PROPERTY)
+                    && lowerState.getValue(Mildew.PROPERTY) == Mildew.MILDEWED;
             if (cure) {
                 Mildew.write(world, lowerPos, Mildew.CLEAN);
             }

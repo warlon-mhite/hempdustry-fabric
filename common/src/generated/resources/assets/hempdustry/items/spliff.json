@@ -64,6 +64,13 @@
       {
         "model": {
           "type": "minecraft:model",
+          "model": "hempdustry:item/spliff_ender_haze"
+        },
+        "threshold": 11.0
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
           "model": "hempdustry:item/spliff_tinted",
           "tints": [
             {
@@ -76,7 +83,7 @@
             }
           ]
         },
-        "threshold": 11.0
+        "threshold": 12.0
       }
     ],
     "fallback": {

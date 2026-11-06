@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "moon_rock",
+  "ingredients": [
+    "hempdustry:ender_haze_buds",
+    "hempdustry:rosin",
+    "hempdustry:charas"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 3,
+            "strain": "hempdustry:ender_haze"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:charas"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:moon_rock"
+  }
+}

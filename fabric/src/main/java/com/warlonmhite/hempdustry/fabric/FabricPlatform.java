@@ -4,6 +4,9 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.platform.Platform;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Enderman;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -32,6 +35,11 @@ public final class FabricPlatform implements Platform {
     @Override
     public float cropGrowthSpeed(BlockState crop, BlockGetter level, BlockPos pos) {
         return VanillaCrop.growthSpeed(crop, level, pos);
+    }
+
+    @Override
+    public boolean disguisedFrom(Player player, Enderman enderman) {
+        return !LivingEntity.PLAYER_NOT_WEARING_DISGUISE_ITEM.test(player);
     }
 
     /** Never made: a crop only for the right to call vanilla's protected growth odds. */

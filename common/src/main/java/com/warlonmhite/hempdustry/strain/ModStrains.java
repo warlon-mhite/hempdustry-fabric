@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.strain;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.effect.ModEffects;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain.SmokeEffect;
@@ -80,6 +81,8 @@ public class ModStrains {
      * crop, generated ripe. The id is plain {@code crimson}: the display name lives in the lang files.
      */
     public static final ResourceKey<Strain> CRIMSON = key("crimson");
+    /** The End's plant, five tall on end stone. Its wild flower is its own crop, generated ripe on the outer islands. */
+    public static final ResourceKey<Strain> ENDER_HAZE = key("ender_haze");
     /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
@@ -105,7 +108,7 @@ public class ModStrains {
      */
     public static final List<ResourceKey<Strain>> BUILT_IN =
             List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH, RUDERALIS,
-                    CRIMSON);
+                    CRIMSON, ENDER_HAZE);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -113,6 +116,13 @@ public class ModStrains {
     public static final int RESERVED_MODEL_INDEX_MAX = 99;
     /** First {@code model_index} another mod may use for art of its own. */
     public static final int THIRD_PARTY_MODEL_INDEX_MIN = 100;
+
+    /**
+     * Ender Haze's Levitation lasts a tenth of the hit: about three and a half seconds off a pipe, five
+     * off a bong. Long enough to open an elytra at the top of it; short enough that only a greedy dose
+     * carries you off an island.
+     */
+    static final float LEVITATION_DURATION_FACTOR = 0.1F;
 
     /**
      * The registry itself is registered with the other datapack registries, before anything else
@@ -307,6 +317,30 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(MobEffects.STRENGTH, 0, true),
                         new SmokeEffect(MobEffects.GLOWING, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
+
+        // Ender Haze -- the End's plant, and the second Haze: Speed is the family's, as Hunger is
+        // everyone's.
+        //
+        // AVERTED GAZE is the signature, flat because a level buys nothing: endermen do not see you,
+        // as if you wore a carved pumpkin, and harvesting the plant wakes none of them. The pumpkin is
+        // free and forever and costs the helmet slot; this costs an End farm and lasts a hit -- the
+        // turtle shell and the potion of Water Breathing are the same pair. Dose 1 is the right answer
+        // for the job you smoke it for: only Speed and the tax scale.
+        //
+        // LEVITATION is the tax, the End's own effect from the End's own mob, and it lands on the
+        // exhale for a tenth of the hit: you take the hit, and then the ground leaves. It scales, so a
+        // greedy bong over a void edge is how you die, and at dose 1 it is nearly a perk. Harmful to
+        // vanilla, so debuffs=false takes it and leaves the signature. Hunger, as ever.
+        //
+        // The End's own sky colour, declared in its dimension type and never applied to its light.
+        context.register(ENDER_HAZE, new Strain("hempdustry.strain.ender_haze", 0xE580FF, modelIndex(ENDER_HAZE),
+                Optional.of(ModItems.ENDER_HAZE_SEEDS), ModItems.ENDER_HAZE_BUDS,
+                Optional.of(ModBlocks.ENDER_HAZE_CROP), 1.0F, 1,
+                List.of(
+                        new SmokeEffect(MobEffects.SPEED, 0, true),
+                        new SmokeEffect(ModEffects.AVERTED_GAZE, 0, false),
+                        new SmokeEffect(MobEffects.LEVITATION, 0, true, LEVITATION_DURATION_FACTOR, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the

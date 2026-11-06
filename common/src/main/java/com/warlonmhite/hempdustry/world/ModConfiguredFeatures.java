@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.world;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.levelgen.feature.BlockColumnFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.SimpleBlockFeature;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,6 +45,7 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<Feature> WARPED_KUSH_KEY = registerKey("warped_kush");
     public static final ResourceKey<Feature> RUDERALIS_KEY = registerKey("ruderalis");
     public static final ResourceKey<Feature> CRIMSON_KEY = registerKey("crimson");
+    public static final ResourceKey<Feature> ENDER_HAZE_KEY = registerKey("ender_haze");
 
     public static ResourceKey<Feature> registerKey(String name) {
         return ResourceKey.create(Registries.FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
@@ -115,6 +118,16 @@ public class ModConfiguredFeatures {
                 BlockColumnFeature.layer(ConstantInt.of(1),
                         BlockStateProvider.of(ripeCrimson.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER)))),
                 Direction.DOWN, BlockPredicate.ONLY_IN_AIR_PREDICATE, false));
+
+        // Ender Haze grows wild as its own crop, RIPE, on the outer End islands: a block column of all
+        // five segments, root first. Where it may stand is the placed feature's to say.
+        BlockState ripeEnderHaze = ModBlocks.ENDER_HAZE_CROP.defaultBlockState().setValue(EnderHazeCropBlock.AGE, EnderHazeCropBlock.MAX_AGE);
+        List<BlockColumnFeature.Layer> enderHazeLayers = new ArrayList<>();
+        for (int segment = 0; segment < EnderHazeCropBlock.HEIGHT; segment++) {
+            enderHazeLayers.add(BlockColumnFeature.layer(ConstantInt.of(1),
+                    BlockStateProvider.of(ripeEnderHaze.setValue(EnderHazeCropBlock.SEGMENT, segment))));
+        }
+        register(context, ENDER_HAZE_KEY, new BlockColumnFeature(enderHazeLayers, Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false));
 
         register(context, RUDERALIS_KEY, new SimpleBlockFeature(BlockStateProvider.of(
                 ModBlocks.RUDERALIS_CROP.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE))));

@@ -3,10 +3,14 @@ package com.warlonmhite.hempdustry.neoforge;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.platform.Platform;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Enderman;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
@@ -32,6 +36,13 @@ public final class NeoForgePlatform implements Platform {
     @Override
     public float cropGrowthSpeed(BlockState crop, BlockGetter level, BlockPos pos) {
         return VanillaCrop.growthSpeed(crop, level, pos);
+    }
+
+    /** NeoForge's own form of the stare test's disguise, which asks every mask, and its anger event. */
+    @Override
+    public boolean disguisedFrom(Player player, Enderman enderman) {
+        return !LivingEntity.PLAYER_NOT_WEARING_DISGUISE_ITEM_FOR_TARGET.test(player, enderman)
+                || CommonHooks.shouldSuppressEnderManAnger(enderman, player);
     }
 
     /** Never made: a crop only for the right to call the protected growth odds, NeoForge's form of them. */

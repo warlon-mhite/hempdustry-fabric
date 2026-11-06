@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#hempdustry:ender_haze_gen",
+  "features": "hempdustry:ender_haze_placed",
+  "step": "vegetal_decoration"
+}

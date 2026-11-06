@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.platform;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.monster.Enderman;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -27,4 +29,11 @@ public interface Platform {
      * hemp crop grows on each loader exactly as wheat does there.
      */
     float cropGrowthSpeed(BlockState crop, BlockGetter level, BlockPos pos);
+
+    /**
+     * Whether {@code enderman} would not see {@code player} meet its eyes for what the player wears:
+     * vanilla's carved pumpkin, and on NeoForge also a modded mask and the anger event an addon may
+     * cancel. Asked of a player who breaks Ender Haze, which provokes only the endermen this is false for.
+     */
+    boolean disguisedFrom(Player player, Enderman enderman);
 }

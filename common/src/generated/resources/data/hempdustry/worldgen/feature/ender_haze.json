@@ -1,0 +1,81 @@
+{
+  "type": "minecraft:block_column",
+  "allowed_placement": {
+    "type": "minecraft:matching_block_tag",
+    "tag": "minecraft:air"
+  },
+  "direction": "up",
+  "layers": [
+    {
+      "height": 1,
+      "provider": {
+        "id": "hempdustry:ender_haze_crop",
+        "properties": {
+          "age": "7",
+          "condition": "natural",
+          "rubbed": "false",
+          "segment": "0",
+          "trimmed_early": "false",
+          "trimmed_late": "false"
+        }
+      }
+    },
+    {
+      "height": 1,
+      "provider": {
+        "id": "hempdustry:ender_haze_crop",
+        "properties": {
+          "age": "7",
+          "condition": "natural",
+          "rubbed": "false",
+          "segment": "1",
+          "trimmed_early": "false",
+          "trimmed_late": "false"
+        }
+      }
+    },
+    {
+      "height": 1,
+      "provider": {
+        "id": "hempdustry:ender_haze_crop",
+        "properties": {
+          "age": "7",
+          "condition": "natural",
+          "rubbed": "false",
+          "segment": "2",
+          "trimmed_early": "false",
+          "trimmed_late": "false"
+        }
+      }
+    },
+    {
+      "height": 1,
+      "provider": {
+        "id": "hempdustry:ender_haze_crop",
+        "properties": {
+          "age": "7",
+          "condition": "natural",
+          "rubbed": "false",
+          "segment": "3",
+          "trimmed_early": "false",
+          "trimmed_late": "false"
+        }
+      }
+    },
+    {
+      "height": 1,
+      "provider": {
+        "id": "hempdustry:ender_haze_crop",
+        "properties": {
+          "age": "7",
+          "condition": "natural",
+          "rubbed": "false",
+          "segment": "4",
+          "trimmed_early": "false",
+          "trimmed_late": "false"
+        }
+      }
+    }
+  ],
+  "prioritize_tip": false
+}

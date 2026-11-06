@@ -121,7 +121,7 @@ public final class PlantStress {
                 || crop instanceof IndicaCropBlock indica && !indica.recordsLight()) {
             return next;
         }
-        int height = crop instanceof SativaCropBlock ? 3 : 2;
+        int height = crop instanceof EnderHazeCropBlock ? EnderHazeCropBlock.HEIGHT : crop instanceof SativaCropBlock ? 3 : 2;
         boolean stressable = !(crop instanceof SativaCropBlock sativa) || sativa.canBeStressed();
         return next.setValue(GrowLight.PROPERTY, afterStep(world, pos, current.getValue(GrowLight.PROPERTY),
                 crop.getAge(current), crop.getAge(next), height, 0.0F, random, stressable));

@@ -1,0 +1,1126 @@
+{
+  "type": "minecraft:block",
+  "modifier": {
+    "type": "minecraft:explosion_decay"
+  },
+  "pools": [
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ender_haze_crop",
+        "state": {
+          "segment": "0"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 1
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "segment": "0",
+                      "trimmed_early": "false",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "condition": "stressed",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 2
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:ender_haze_crop",
+                        "state": {
+                          "age": "7",
+                          "segment": "0",
+                          "trimmed_early": "true",
+                          "trimmed_late": "false"
+                        }
+                      },
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:ender_haze_crop",
+                        "state": {
+                          "age": "7",
+                          "segment": "0",
+                          "trimmed_early": "false",
+                          "trimmed_late": "true"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "condition": "stressed",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 3
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "segment": "0",
+                      "trimmed_early": "true",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "condition": "stressed",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 2
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "segment": "0",
+                      "trimmed_early": "false",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "mildew": "mildewed",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 3
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:ender_haze_crop",
+                        "state": {
+                          "age": "7",
+                          "segment": "0",
+                          "trimmed_early": "true",
+                          "trimmed_late": "false"
+                        }
+                      },
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:ender_haze_crop",
+                        "state": {
+                          "age": "7",
+                          "segment": "0",
+                          "trimmed_early": "false",
+                          "trimmed_late": "true"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "mildew": "mildewed",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 4
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "segment": "0",
+                      "trimmed_early": "true",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "mildew": "mildewed",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 2
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "segment": "0",
+                      "trimmed_early": "false",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "mildew": "sulfured",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.1,
+                0.08,
+                0.06,
+                0.04
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 3
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:ender_haze_crop",
+                        "state": {
+                          "age": "7",
+                          "segment": "0",
+                          "trimmed_early": "true",
+                          "trimmed_late": "false"
+                        }
+                      },
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:ender_haze_crop",
+                        "state": {
+                          "age": "7",
+                          "segment": "0",
+                          "trimmed_early": "false",
+                          "trimmed_late": "true"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "mildew": "sulfured",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.1,
+                0.08,
+                0.06,
+                0.04
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 4
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "segment": "0",
+                      "trimmed_early": "true",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "mildew": "sulfured",
+                      "segment": "0"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.1,
+                0.08,
+                0.06,
+                0.04
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 2
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ender_haze_crop",
+                "state": {
+                  "age": "7",
+                  "segment": "0",
+                  "trimmed_early": "false",
+                  "trimmed_late": "false"
+                }
+              },
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 3
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:any_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "segment": "0",
+                      "trimmed_early": "true",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "segment": "0",
+                      "trimmed_early": "false",
+                      "trimmed_late": "true"
+                    }
+                  }
+                ]
+              },
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 4
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:ender_haze_buds"
+              },
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ender_haze_crop",
+                "state": {
+                  "age": "7",
+                  "segment": "0",
+                  "trimmed_early": "true",
+                  "trimmed_late": "true"
+                }
+              },
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "hempdustry:ender_haze_seeds"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ender_haze_crop",
+        "state": {
+          "age": "7",
+          "segment": "0"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ender_haze_crop",
+                "state": {
+                  "age": "7",
+                  "rubbed": "false",
+                  "segment": "0",
+                  "trimmed_early": "false",
+                  "trimmed_late": "false"
+                }
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 4
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:any_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "rubbed": "false",
+                      "segment": "0",
+                      "trimmed_early": "true",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "rubbed": "false",
+                      "segment": "0",
+                      "trimmed_early": "false",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "rubbed": "true",
+                      "segment": "0",
+                      "trimmed_early": "false",
+                      "trimmed_late": "false"
+                    }
+                  }
+                ]
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 3
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:any_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "rubbed": "false",
+                      "segment": "0",
+                      "trimmed_early": "true",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "rubbed": "true",
+                      "segment": "0",
+                      "trimmed_early": "true",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "rubbed": "true",
+                      "segment": "0",
+                      "trimmed_early": "false",
+                      "trimmed_late": "true"
+                    }
+                  }
+                ]
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 2
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ender_haze_crop",
+                "state": {
+                  "age": "7",
+                  "rubbed": "true",
+                  "segment": "0",
+                  "trimmed_early": "true",
+                  "trimmed_late": "true"
+                }
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 1
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ender_haze_crop",
+        "state": {
+          "age": "7",
+          "segment": "0"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ender_haze_crop",
+                "state": {
+                  "age": "7",
+                  "condition": "grow_lamp",
+                  "segment": "0"
+                }
+              },
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 2
+              },
+              "name": "hempdustry:ender_haze_buds"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ender_haze_crop",
+                "state": {
+                  "age": "7",
+                  "condition": "lamp",
+                  "segment": "0"
+                }
+              },
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 1
+              },
+              "name": "hempdustry:ender_haze_buds"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:ender_haze_crop",
+                    "state": {
+                      "age": "7",
+                      "condition": "ambient",
+                      "segment": "0"
+                    }
+                  },
+                  {
+                    "type": "minecraft:random_chance",
+                    "chance": 0.5
+                  }
+                ]
+              },
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 1
+              },
+              "name": "hempdustry:ender_haze_buds"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:all_of",
+        "terms": [
+          {
+            "type": "minecraft:match_block",
+            "blocks": "hempdustry:ender_haze_crop",
+            "state": {
+              "age": "7",
+              "segment": "0"
+            }
+          },
+          {
+            "type": "minecraft:any_of",
+            "terms": [
+              {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ender_haze_crop",
+                "state": {
+                  "age": "7",
+                  "condition": "grow_lamp",
+                  "segment": "0"
+                }
+              },
+              {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:ender_haze_crop",
+                "state": {
+                  "age": "7",
+                  "condition": "lamp",
+                  "segment": "0"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hempdustry:hemp_leaf"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ender_haze_crop",
+        "state": {
+          "age": "7",
+          "condition": "stressed",
+          "segment": "0"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": 2
+          },
+          "name": "hempdustry:ender_haze_seeds"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ender_haze_crop",
+        "state": {
+          "age": "7",
+          "segment": "0"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "type": "minecraft:set_count",
+              "count": 3
+            },
+            {
+              "type": "minecraft:apply_bonus",
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:binomial_with_bonus_count",
+              "parameters": {
+                "extra": 3,
+                "probability": 0.4
+              }
+            }
+          ],
+          "name": "hempdustry:ender_haze_seeds"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:ender_haze_crop",
+        "state": {
+          "age": "7",
+          "segment": "0"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:location_check",
+                "offsetY": -1,
+                "predicate": {
+                  "block": {
+                    "blocks": [
+                      "hempdustry:grow_pot",
+                      "hempdustry:hydro_tray"
+                    ]
+                  }
+                }
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 1
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_stem"
+            },
+            {
+              "type": "minecraft:item",
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 2
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_stem"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    }
+  ]
+}

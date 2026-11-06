@@ -62,7 +62,8 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(ModBlocks.INDUSTRIAL_HEMP_CROP)
                 .add(ModBlocks.WARPED_KUSH_CROP)
                 .add(ModBlocks.RUDERALIS_CROP)
-                .add(ModBlocks.CRIMSON_CROP);
+                .add(ModBlocks.CRIMSON_CROP)
+                .add(ModBlocks.ENDER_HAZE_CROP);
 
         // Hoglins keep about eight blocks from anything in here (HoglinSpecificSensor), and vanilla's
         // only plant in it is warped fungus. Warped Kush grows beside it and joins it: a field of it
@@ -84,6 +85,12 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(Blocks.SAND)
                 .add(Blocks.RED_SAND)
                 .addOptionalTag(ConventionalBlockTags.SANDS);
+
+        // Ender Haze's ground: end stone by name, so the plant grows on any loader, and #c:end_stones
+        // optionally, which is how a modded End's own end stones join. Never farmland.
+        valueLookupBuilder(ModTags.Blocks.ENDER_HAZE_SOIL)
+                .add(Blocks.END_STONE)
+                .addOptionalTag(ConventionalBlockTags.END_STONES);
 
         // The wild flowers were in no tag at all, so a sword took as long over one as a fist did and
         // an enderman walked past them. Both of these are joined DIRECTLY rather than by way of

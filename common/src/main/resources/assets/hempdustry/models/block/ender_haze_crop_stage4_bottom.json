@@ -1,0 +1,6 @@
+{
+  "parent": "hempdustry:block/crop_cross",
+  "textures": {
+    "cross": "hempdustry:block/ender_haze_crop_stage4_bottom"
+  }
+}

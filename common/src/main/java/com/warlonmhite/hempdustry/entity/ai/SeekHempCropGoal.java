@@ -7,12 +7,14 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
-import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Predicate;
 
 /**
  * Lets a creeper's ordinary wandering end up in a hemp field now and then.
@@ -85,11 +87,18 @@ import org.jetbrains.annotations.Nullable;
  * The plant test is membership of {@code #hempdustry:hemp_crops}, so a third strain's crop counts
  * the day it joins the tag, and a datapack can add or remove plants without any code knowing. It is
  * deliberately not {@code #minecraft:crops}: creepers hunting wheat is a different mod.
+ *
+ * <h2>Endermen, and one plant</h2>
+ *
+ * The same goal walks an enderman into a patch of Ender Haze, and only Ender Haze: an enderman
+ * standing in an overworld hemp field is the wrong joke. Every rule above holds for it unchanged —
+ * the half that care, the glance, the prowl and lurk, the rest, one mob to a field, the off switch —
+ * at the enderman's own wandering pace.
  */
 public class SeekHempCropGoal extends RandomStrollGoal {
 
     /** {@code WaterAvoidingRandomStrollGoal}'s speed on a creeper. Walking faster towards a field would give it away. */
-    private static final double SPEED = 0.8;
+    private static final double CREEPER_SPEED = 0.8;
     /** One in this many ticks a creeper glances around for a field — half as often as it wanders. */
     private static final int NOTICE_CHANCE = 240;
     /** Half the side of the square a creeper looks across, in blocks. */
@@ -113,13 +122,26 @@ public class SeekHempCropGoal extends RandomStrollGoal {
     /** A plant's roots this far above or below the creeper's feet are out of reach. */
     private static final int MAX_Y_DIFFERENCE = 3;
 
+    /** What counts as a plant to stand in. */
+    private final Predicate<BlockState> cover;
+
     private int prowlsLeft;
     private long restingUntil;
     /** When the current lurk ends; 0 while still walking. */
     private long lurkingUntil;
 
+    /** A creeper's: any hemp plant, at its wandering pace. */
     public SeekHempCropGoal(PathfinderMob creeper) {
-        super(creeper, SPEED, NOTICE_CHANCE);
+        this(creeper, CREEPER_SPEED, state -> state.is(ModTags.Blocks.HEMP_CROPS));
+    }
+
+    /**
+     * A wander into whatever {@code cover} accepts, at {@code speed} — the mob's own wandering speed,
+     * so nothing gives the walk away.
+     */
+    public SeekHempCropGoal(PathfinderMob mob, double speed, Predicate<BlockState> cover) {
+        super(mob, speed, NOTICE_CHANCE);
+        this.cover = cover;
     }
 
     /**
@@ -174,8 +196,8 @@ public class SeekHempCropGoal extends RandomStrollGoal {
     protected @Nullable Vec3 getPosition() {
         boolean prowling = prowlsLeft > 0;
         BlockPos plant = prowling
-                ? findCover(mob, PROWL_RANGE, PROWL_SAMPLES)
-                : findCover(mob, NOTICE_RANGE, NOTICE_SAMPLES);
+                ? findCover(mob, PROWL_RANGE, PROWL_SAMPLES, cover)
+                : findCover(mob, NOTICE_RANGE, NOTICE_SAMPLES, cover);
         if (plant == null) {
             // A prowl that finds no more field has walked out of it, or been led out; either way
             // the visit is over.
@@ -203,11 +225,18 @@ public class SeekHempCropGoal extends RandomStrollGoal {
         restingUntil = mob.level().getGameTime() + mob.getRandom().nextIntBetweenInclusive(MIN_REST, MAX_REST);
     }
 
+    /** {@link #findCover(PathfinderMob, int, int, Predicate)} for any hemp plant, a creeper's cover. */
+    public static @Nullable BlockPos findCover(PathfinderMob creeper, int range, int samples) {
+        return findCover(creeper, range, samples, state -> state.is(ModTags.Blocks.HEMP_CROPS));
+    }
+
     /**
      * Looks at {@code samples} random columns within {@code range} of the creeper and returns the
-     * root of the first grown, open-sky hemp plant no other creeper is standing by, or null.
+     * root of the first grown, open-sky plant {@code cover} accepts that no other mob of its kind is
+     * standing by, or null.
      */
-    public static @Nullable BlockPos findCover(PathfinderMob creeper, int range, int samples) {
+    public static @Nullable BlockPos findCover(PathfinderMob creeper, int range, int samples,
+                                             Predicate<BlockState> cover) {
         Level world = creeper.level();
         RandomSource random = creeper.getRandom();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -220,7 +249,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
             }
             pos.setY(world.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1);
             int height = 0;
-            while (world.getBlockState(pos).is(ModTags.Blocks.HEMP_CROPS)) {
+            while (cover.test(world.getBlockState(pos))) {
                 pos.move(0, -1, 0);
                 height++;
             }
@@ -238,7 +267,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
     }
 
     private static boolean isTaken(Level world, BlockPos root, Entity self) {
-        return !world.getEntitiesOfClass(Creeper.class, new AABB(root).inflate(TAKEN_RADIUS),
+        return !world.getEntitiesOfClass(self.getClass(), new AABB(root).inflate(TAKEN_RADIUS),
                 other -> other != self).isEmpty();
     }
 }

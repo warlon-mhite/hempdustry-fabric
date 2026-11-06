@@ -1,0 +1,8 @@
+{
+  "type": "hempdustry:decarboxylating",
+  "ingredient": "hempdustry:ender_haze_buds",
+  "result": {
+    "count": 4,
+    "id": "hempdustry:decarboxylated_hemp"
+  }
+}
