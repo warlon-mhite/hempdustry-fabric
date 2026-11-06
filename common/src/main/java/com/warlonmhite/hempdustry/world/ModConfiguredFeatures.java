@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.world;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,6 +34,7 @@ import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvi
 import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.material.Fluids;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ModConfiguredFeatures {
@@ -50,6 +52,10 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> WARPED_KUSH_KEY = registerKey("warped_kush");
     public static final ResourceKey<ConfiguredFeature<?, ?>> RUDERALIS_KEY = registerKey("ruderalis");
     public static final ResourceKey<ConfiguredFeature<?, ?>> CRIMSON_KEY = registerKey("crimson");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> ENDER_HAZE_KEY = registerKey("ender_haze");
+
+    /** A handful of plants on one stretch of an island: tries within three blocks, on the centre's level or one off. */
+    private static final int ENDER_HAZE_TRIES = 8;
 
     /** A few plants under one cap of a huge fungus: tries within three blocks, most of them misses. */
     private static final int CRIMSON_TRIES = 12;
@@ -193,6 +199,27 @@ public class ModConfiguredFeatures {
                                 BlockPredicate.ONLY_IN_AIR_PREDICATE,
                                 BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), Blocks.AIR),
                                 BlockPredicate.matchesTag(new Vec3i(0, 1, 0), ModTags.Blocks.CRIMSON_CANOPY))))));
+
+        // Ender Haze grows wild as its own crop, RIPE, on the outer End islands: a BLOCK_COLUMN of all
+        // five segments, root first. The filter wants its soil under the root and air for all five, so
+        // a column is never cut short -- chunk generation runs no shape updates, so nothing would pop a
+        // short or misplaced plant afterwards.
+        BlockState ripeEnderHaze = ModBlocks.ENDER_HAZE_CROP.defaultBlockState().setValue(EnderHazeCropBlock.AGE, EnderHazeCropBlock.MAX_AGE);
+        List<BlockColumnConfiguration.Layer> enderHazeLayers = new ArrayList<>();
+        List<BlockPredicate> enderHazeRoom = new ArrayList<>(List.of(
+                BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                BlockPredicate.matchesTag(new Vec3i(0, -1, 0), ModTags.Blocks.ENDER_HAZE_SOIL)));
+        for (int segment = 0; segment < EnderHazeCropBlock.HEIGHT; segment++) {
+            enderHazeLayers.add(BlockColumnConfiguration.layer(ConstantInt.of(1),
+                    BlockStateProvider.simple(ripeEnderHaze.setValue(EnderHazeCropBlock.SEGMENT, segment))));
+            if (segment > 0) {
+                enderHazeRoom.add(BlockPredicate.matchesBlocks(new Vec3i(0, segment, 0), Blocks.AIR));
+            }
+        }
+        register(context, ENDER_HAZE_KEY, Feature.RANDOM_PATCH, new RandomPatchConfiguration(ENDER_HAZE_TRIES, 3, 1,
+                PlacementUtils.inlinePlaced(Feature.BLOCK_COLUMN,
+                        new BlockColumnConfiguration(enderHazeLayers, Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false),
+                        BlockPredicateFilter.forPredicate(BlockPredicate.allOf(enderHazeRoom)))));
     }
 
     private static ConfiguredFeature<?, ?> wildPatch(Block flower) {

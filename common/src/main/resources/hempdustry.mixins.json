@@ -5,6 +5,7 @@
 	"mixins": [
 		"BeeGrowCropsGoalMixin",
 		"CreeperEntityMixin",
+		"EnderManMixin",
 		"ItemStackComponentizationFixMixin",
 		"PointOfInterestTypesAccessor",
 		"ReloadableServerRegistriesMixin",

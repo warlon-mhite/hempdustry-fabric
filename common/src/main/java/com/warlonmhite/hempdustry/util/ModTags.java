@@ -30,6 +30,12 @@ public class ModTags {
          * A modded crimson biome joins by name.
          */
         public static final TagKey<Biome> CRIMSON_GEN = createTag("crimson_gen");
+        /**
+         * Where Ender Haze grows wild: the outer End islands, through {@code #c:is_outer_end_island},
+         * which leaves out the dragon's island and the void gaps between. A modded End biome joins
+         * that tag, or this one by name.
+         */
+        public static final TagKey<Biome> ENDER_HAZE_GEN = createTag("ender_haze_gen");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }
@@ -224,6 +230,11 @@ public class ModTags {
          * mod can add its own canopy.
          */
         public static final TagKey<Block> CRIMSON_CANOPY = createTag("crimson_canopy");
+        /**
+         * What Ender Haze grows on: end stone by name, and {@code #c:end_stones} optionally, so a
+         * modded End's own end stones join wherever that tag exists. Never farmland.
+         */
+        public static final TagKey<Block> ENDER_HAZE_SOIL = createTag("ender_haze_soil");
         private static TagKey<Block> createTag(String name) {
             return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }

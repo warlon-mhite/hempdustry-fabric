@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.block.custom.RuderalisCropBlock;
 import com.warlonmhite.hempdustry.block.custom.WarpedKushCropBlock;
 import com.warlonmhite.hempdustry.block.custom.CrimsonWeedCropBlock;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import net.minecraft.advancements.criterion.BlockPredicate;
 import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.advancements.criterion.LocationPredicate;
@@ -209,6 +210,15 @@ public class ModLootTableModifiers {
     private static final float HOGLIN_STABLE_SEED_CHANCE = 0.22f;
 
     /**
+     * Chance an end city chest -- or the end ship's, which draws the same table -- holds Ender Haze
+     * seeds, beside the beetroot seeds vanilla already left there. Its main pool rolls 2-6 times over
+     * 25 entries weighing 89 in all, beetroot seeds at 5; one more entry of weight 5 would turn up in
+     * about 19% of chests. The table has a second pool (the spire trim), so this is a roll of its own
+     * at that chance rather than a weight.
+     */
+    private static final float END_CITY_SEED_CHANCE = 0.19f;
+
+    /**
      * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
      *
      * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
@@ -322,13 +332,19 @@ public class ModLootTableModifiers {
         return plants(seeds) instanceof CrimsonWeedCropBlock;
     }
 
+    /** Whether these seeds plant Ender Haze, kept in the End's cities and nowhere else. */
+    private static boolean isEndSeed(Item seeds) {
+        return plants(seeds) instanceof EnderHazeCropBlock;
+    }
+
     /**
      * Whether these seeds belong to one place, and so stay out of the tall grass and the generic
      * chests that every other strain shares. Each such strain is found where it belongs, and leaving
      * all of them out keeps the others' share of those rolls what it was.
      */
     private static boolean isRegionBound(Item seeds) {
-        return isDesertSeed(seeds) || isNetherSeed(seeds) || isBuriedSeed(seeds) || isStableSeed(seeds);
+        return isDesertSeed(seeds) || isNetherSeed(seeds) || isBuriedSeed(seeds) || isStableSeed(seeds)
+                || isEndSeed(seeds);
     }
 
     /** The block these seeds plant, or null for an item that plants nothing. */
@@ -341,7 +357,7 @@ public class ModLootTableModifiers {
      * {@code found} there, at equal weight, so the chance stays {@code base} however many strains exist
      * and which you get is a coin flip. A region-bound plant is found only where it belongs -- Beldía
      * in the desert, Warped Kush in the Nether, Ruderalis underground, Crimson Weed in the hoglin
-     * stables -- and every other strain everywhere else. Driven off the loaded strain registry, so a
+     * stables, Ender Haze in the end cities -- and every other strain everywhere else. Driven off the loaded strain registry, so a
      * datapack strain appears here without touching this file.
      */
     private static LootPool.Builder seedStash(HolderLookup.Provider registries, float base, Predicate<Item> found) {
@@ -437,6 +453,8 @@ public class ModLootTableModifiers {
                 table.addPool(pool);
             } else if (key.equals(BuiltInLootTables.BASTION_HOGLIN_STABLE)) {
                 table.addPool(seedStash(registries, HOGLIN_STABLE_SEED_CHANCE, ModLootTableModifiers::isStableSeed));
+            } else if (key.equals(BuiltInLootTables.END_CITY_TREASURE)) {
+                table.addPool(seedStash(registries, END_CITY_SEED_CHANCE, ModLootTableModifiers::isEndSeed));
             } else if (key.equals(BuiltInLootTables.BASTION_TREASURE)) {
                 LootPool.Builder pool = LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1))

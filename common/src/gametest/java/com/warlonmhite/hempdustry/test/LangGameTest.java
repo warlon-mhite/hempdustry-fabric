@@ -27,6 +27,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.decoration.painting.PaintingVariant;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
@@ -51,8 +52,8 @@ import net.minecraft.world.level.block.Block;
  *
  * <h2>What this checks</h2>
  *
- * It asks the running game, not the files, which keys it reads: the name of every item, block and
- * entity of ours and of every stack the creative tab builds (a loaded spliff names its load), the
+ * It asks the running game, not the files, which keys it reads: the name of every item, block,
+ * entity and status effect of ours and of every stack the creative tab builds (a loaded spliff names its load), the
  * tab itself, every painting variant's title and author, every jukebox song, banner pattern (in all
  * sixteen colours), strain, quality grade and advancement, the name of every item tag outside
  * {@code minecraft}, and the subtitle of every sound event we register. What is left
@@ -78,6 +79,9 @@ public final class LangGameTest {
         }
         for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE) {
             if (Sweep.ours(BuiltInRegistries.ENTITY_TYPE.getKey(type))) keys(type.getDescription(), read);
+        }
+        for (MobEffect effect : BuiltInRegistries.MOB_EFFECT) {
+            if (Sweep.ours(BuiltInRegistries.MOB_EFFECT.getKey(effect))) keys(effect.getDisplayName(), read);
         }
         // A loaded spliff, device or moon rock names itself from what is in it, so the stacks the
         // creative tab builds are named too, not just each item fresh.

@@ -29,7 +29,8 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.INDUSTRIAL_HEMP_SEEDS)
                 .add(ModItems.WARPED_KUSH_SEEDS)
                 .add(ModItems.RUDERALIS_SEEDS)
-                .add(ModItems.CRIMSON_SEEDS);
+                .add(ModItems.CRIMSON_SEEDS)
+                .add(ModItems.ENDER_HAZE_SEEDS);
 
         // Striders eat warped fungus, and only that; Warped Kush grows beside it. Joining the tag is
         // the whole feature -- breeding, and #minecraft:strider_tempt_items includes it, so a strider
@@ -266,6 +267,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .add(ModItems.WARPED_KUSH_BUDS)
                 .add(ModItems.RUDERALIS_BUDS)
                 .add(ModItems.CRIMSON_BUDS)
+                .add(ModItems.ENDER_HAZE_BUDS)
                 .add(ModItems.HEMP_LEAF);
         valueLookupBuilder(ConventionalItemTags.CROPS)
                 .addOptionalTag(ModTags.Conventional.HEMP_CROPS);

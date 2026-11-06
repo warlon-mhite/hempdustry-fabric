@@ -66,6 +66,7 @@ public class HempdustryClient {
         client.blockLayer(ModBlocks.WARPED_KUSH_CROP, ChunkSectionLayer.CUTOUT);
         client.blockLayer(ModBlocks.RUDERALIS_CROP, ChunkSectionLayer.CUTOUT);
         client.blockLayer(ModBlocks.CRIMSON_CROP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.ENDER_HAZE_CROP, ChunkSectionLayer.CUTOUT);
         // The chains the Grow Lamp hangs from are see-through between the links.
         client.blockLayer(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
         // The compost crumbs over the pot's soil are drawn with see-through pixels.

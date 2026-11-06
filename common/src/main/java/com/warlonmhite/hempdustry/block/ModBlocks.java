@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.BongBlock;
 import com.warlonmhite.hempdustry.block.custom.CharasBallBlock;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
@@ -378,6 +379,11 @@ public class ModBlocks {
     // registered as flammable -- nothing that grows in the Nether burns.
     public static final Block CRIMSON_CROP = registerBlockWithoutItem("crimson_crop", CrimsonWeedCropBlock::new,
             BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT).sound(SoundType.WEEPING_VINES));
+
+    // No block item, for the reason on INDICA_CROP above. It is also Ender Haze's wild plant, ripe on
+    // the outer End islands. Never registered as flammable -- nothing off-world burns.
+    public static final Block ENDER_HAZE_CROP = registerBlockWithoutItem("ender_haze_crop", EnderHazeCropBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT));
 
 
     /**

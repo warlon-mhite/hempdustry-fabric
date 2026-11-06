@@ -18,6 +18,12 @@
     "hempdustry:ditchweed": {
       "chance": 0.65
     },
+    "hempdustry:ender_haze_buds": {
+      "chance": 0.5
+    },
+    "hempdustry:ender_haze_seeds": {
+      "chance": 0.3
+    },
     "hempdustry:flip_flops": {
       "chance": 0.5
     },

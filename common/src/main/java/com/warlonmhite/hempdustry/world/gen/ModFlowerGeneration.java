@@ -79,5 +79,12 @@ public class ModFlowerGeneration {
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.CRIMSON_PLACED_KEY
         );
+
+        // Ender Haze, ripe and wild, on the outer End islands -- never the dragon's.
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.ENDER_HAZE_GEN,
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ModPlacedFeatures.ENDER_HAZE_PLACED_KEY
+        );
     }
 }

@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
@@ -256,6 +257,8 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         add(ModBlocks.RUDERALIS_CROP, ruderalisCropDrops());
 
         add(ModBlocks.CRIMSON_CROP, crimsonCropDrops());
+
+        add(ModBlocks.ENDER_HAZE_CROP, enderHazeCropDrops());
     }
 
     /**
@@ -272,6 +275,20 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                 IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
                 ModItems.CRIMSON_BUDS, ModItems.CRIMSON_SEEDS,
                 CRIMSON_BUDS, 3, 2);
+    }
+
+    /**
+     * Ender Haze: Lemon Haze's harvest with the fibre traded for foliage, and one item lighter —
+     * eleven, as every off-world strain. Five tall is stem and frond, not yield: free ground already
+     * pays this plant. Every pool is pinned to segment 0, the root, the only block of the five that
+     * drops.
+     */
+    private LootTable.Builder enderHazeCropDrops() {
+        return this.hempCropDrops(ModBlocks.ENDER_HAZE_CROP,
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(EnderHazeCropBlock.SEGMENT, 0),
+                EnderHazeCropBlock.AGE, EnderHazeCropBlock.MAX_AGE,
+                ModItems.ENDER_HAZE_BUDS, ModItems.ENDER_HAZE_SEEDS,
+                4, 2);
     }
 
     /** Ruderalis's seeds off one ripe plant: more than the one it cost, which is what makes it a weed. */

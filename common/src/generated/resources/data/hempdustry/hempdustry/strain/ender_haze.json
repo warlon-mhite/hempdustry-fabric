@@ -1,0 +1,25 @@
+{
+  "buds": "hempdustry:ender_haze_buds",
+  "color": 15040767,
+  "effects": [
+    {
+      "effect": "minecraft:speed"
+    },
+    {
+      "effect": "hempdustry:averted_gaze",
+      "scales": false
+    },
+    {
+      "duration_factor": 0.1,
+      "effect": "minecraft:levitation",
+      "on_exhale": true
+    },
+    {
+      "effect": "minecraft:hunger"
+    }
+  ],
+  "flower": "hempdustry:ender_haze_crop",
+  "model_index": 11,
+  "seeds": "hempdustry:ender_haze_seeds",
+  "translation_key": "hempdustry.strain.ender_haze"
+}

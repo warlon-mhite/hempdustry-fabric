@@ -17,6 +17,7 @@ import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
+import com.warlonmhite.hempdustry.effect.ModEffects;
 import com.warlonmhite.hempdustry.entity.ModEntities;
 import com.warlonmhite.hempdustry.item.custom.EdibleScheduler;
 import com.warlonmhite.hempdustry.item.custom.SmokeScheduler;
@@ -76,6 +77,7 @@ public class Hempdustry {
 		SmokeScheduler.init();
 		EdibleScheduler.init();
 		ModLootTableModifiers.modifyLootTables();
+		ModEffects.registerEffects();
 		ModItemGroups.registerItemGroups();
 		ModItems.registerModItems();
 		ModBlocks.registerModBlocks();
@@ -98,6 +100,7 @@ public class Hempdustry {
 		registration.compostable(ModItems.WARPED_KUSH_SEEDS, 0.3f);
 		registration.compostable(ModItems.RUDERALIS_SEEDS, 0.3f);
 		registration.compostable(ModItems.CRIMSON_SEEDS, 0.3f);
+		registration.compostable(ModItems.ENDER_HAZE_SEEDS, 0.3f);
 		registration.compostable(ModItems.HEMP_FIBER, 0.3f);
 		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
 		registration.compostable(ModItems.HEMP_CANVAS, 0.5f);
@@ -111,6 +114,7 @@ public class Hempdustry {
 		registration.compostable(ModItems.WARPED_KUSH_BUDS, 0.5f);
 		registration.compostable(ModItems.RUDERALIS_BUDS, 0.5f);
 		registration.compostable(ModItems.CRIMSON_BUDS, 0.5f);
+		registration.compostable(ModItems.ENDER_HAZE_BUDS, 0.5f);
 		// The two cannabutter-chain intermediates. Composting them is a ridiculous use of a fuelled
 		// oven, which is exactly why it should be allowed: everything else organic in the mod goes in
 		// the composter, and a lone pair of items that bounce off it reads as an oversight. They sit

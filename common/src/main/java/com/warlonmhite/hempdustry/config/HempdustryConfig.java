@@ -194,8 +194,9 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
             comment(root, "world", "cropGrowthMultiplier and machineSpeedMultiplier are speeds: 2.0 is twice as fast. "
                     + "machineSpeed drives the Decarboxylator and the Hemp Press; the Infuser has its own section. "
                     + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here. "
-                    + "creepersSeekHemp=false stops creepers now and then wandering into grown, open-sky hemp fields; the goal is still "
-                    + "added to them, it simply never starts, so it takes effect on the next /hempdustry reload.");
+                    + "creepersSeekHemp=false stops creepers now and then wandering into grown, open-sky hemp fields, and endermen into "
+                    + "Ender Haze, and stops a harvested Ender Haze plant provoking the endermen nearby; the goals are still "
+                    + "added to the mobs, they simply never start, so it takes effect on the next /hempdustry reload.");
             comment(root, "infuser", "Ticks. minTime is the earliest a batch can be pulled, fullTime a full simmer. "
                     + "20 ticks = 1 second. Defaults are 5 and 15 minutes; the ceiling is 32000 "
                     + "(about 26 minutes), which is as long a simmer as the screen can be told about.");
@@ -355,7 +356,8 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      *
      * @param cropGrowthMultiplier     growth speed for both crops; 2.0 grows twice as fast
      * @param machineSpeedMultiplier   the Decarboxylator's and the Hemp Press's speed (the Infuser has its own section)
-     * @param creepersSeekHemp         whether creepers now and then wander into open hemp fields
+     * @param creepersSeekHemp         whether creepers now and then wander into open hemp fields, endermen into
+     *                                 Ender Haze, and whether harvesting Ender Haze provokes them
      */
     public record World(double cropGrowthMultiplier, double machineSpeedMultiplier, boolean creepersSeekHemp) {
 

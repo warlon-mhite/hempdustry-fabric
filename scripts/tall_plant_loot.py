@@ -11,7 +11,8 @@ The fix vanilla uses on rose_bush, and this mod uses on both crops and the wild 
 condition the pool on the lower half. This script asserts that every pool of every multi-block
 plant carries such a condition -- and that it names the plant's ROOT, where the age and the trim
 flags live: the lower half of a plant standing on the ground, the upper half of one hanging from a
-ceiling (a crop class whose hangs() returns true). A hanging plant pinned to its lower half would
+ceiling (a crop class whose hangs() returns true). A plant whose segments are counted rather
+named (Ender Haze, five tall, segment=0..4) is rooted at segment 0. A hanging plant pinned to its lower half would
 still pay out once, but from the tip, which carries no trim flags, so every trimmed plant would pay
 as an untrimmed one.
 
@@ -66,17 +67,42 @@ def state_properties(definition):
     return props
 
 
+def counted_segments(definition, prop):
+    """Whether this plant numbers its segments (segment=0..4) rather than naming them (lower/upper).
+    Such a plant is rooted at 0, its bottom segment, where its age and trim flags live."""
+    values = set()
+    for key in definition.get("variants", {}):
+        for part in key.split(","):
+            name, _, value = part.partition("=")
+            if name == prop:
+                values.add(value)
+
+    def walk(when):
+        for key, value in when.items():
+            if key in ("AND", "OR"):
+                for clause in value:
+                    walk(clause)
+            elif key == prop:
+                values.update(str(value).lstrip("!").split("|"))
+
+    for part in definition.get("multipart", []):
+        walk(part.get("when", {}))
+    return bool(values) and all(value.isdigit() for value in values)
+
+
 def multi_block_plants():
-    """block id -> the segment property it splits on, for every blockstate that has one."""
+    """block id -> (the segment property it splits on, whether its segments are counted), for every
+    blockstate that has one."""
     found = {}
     for assets in ASSETS:
         for state in sorted((assets / "blockstates").glob("*.json")):
-            keys = state_properties(json.loads(state.read_text(encoding="utf-8")))
+            definition = json.loads(state.read_text(encoding="utf-8"))
+            keys = state_properties(definition)
             if keys.intersection(NOT_A_PLANT):
                 continue
             for prop in SEGMENT_PROPERTIES:
                 if prop in keys:
-                    found[state.stem] = prop
+                    found[state.stem] = (prop, counted_segments(definition, prop))
     return found
 
 
@@ -125,13 +151,13 @@ def main():
     hanging = hanging_blocks()
     problems = []
     checked = []
-    for block, prop in sorted(plants.items()):
+    for block, (prop, counted) in sorted(plants.items()):
         path = GENERATED / "data/hempdustry/loot_table/blocks" / f"{block}.json"
         if not path.exists():
             continue  # a block with no loot table of its own drops nothing; nothing to double
         table = json.loads(path.read_text(encoding="utf-8"))
         pools = table.get("pools", [])
-        root = "upper" if block in hanging else "lower"
+        root = "0" if counted else "upper" if block in hanging else "lower"
         checked.append(f"{block} ({len(pools)} pool(s), on '{prop}={root}'"
                        + (", hanging" if block in hanging else "") + ")")
         for index, pool in enumerate(pools):

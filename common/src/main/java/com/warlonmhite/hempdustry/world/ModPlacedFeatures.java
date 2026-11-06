@@ -45,6 +45,18 @@ public class ModPlacedFeatures {
     private static final int WARPED_KUSH_RARITY = 8;
     public static final ResourceKey<PlacedFeature> RUDERALIS_PLACED_KEY = registerKey("ruderalis_placed");
     public static final ResourceKey<PlacedFeature> CRIMSON_PLACED_KEY = registerKey("crimson_placed");
+    public static final ResourceKey<PlacedFeature> ENDER_HAZE_PLACED_KEY = registerKey("ender_haze_placed");
+
+    /**
+     * One attempt per this many outer-island chunks for a wild Ender Haze patch, on the island's top.
+     * Rarer than the Nether's wild plants on purpose: the islands are enormous and a player flies
+     * over all of them, and a five-tall purple column is a landmark seen from far off. Measured in
+     * real terrain (the test server's End, 2304 force-generated chunks in four squares on the outer
+     * islands, 1203 of them centred in an outer-island biome), this places <b>one plant per 25 island
+     * chunks</b>, in patches of two or three, every one whole — against the Nether plants' one per 15
+     * or 16. At 24 it was one per 8.
+     */
+    private static final int ENDER_HAZE_RARITY = 64;
 
     /**
      * One chunk in this many tries for wild Crimson Weed, under the crimson forest's canopy — every
@@ -157,6 +169,10 @@ public class ModPlacedFeatures {
                         BlockPredicate.ONLY_IN_AIR_PREDICATE, 12),
                 RandomOffsetPlacement.vertical(ConstantInt.of(-1)),
                 BiomeFilter.biome());
+
+        // Ender Haze: the islands' top is an ordinary surface, so an ordinary surface patch.
+        register(context, ENDER_HAZE_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.ENDER_HAZE_KEY), surfacePatch(ENDER_HAZE_RARITY));
 
         // Ruderalis: a relict stand in the cold north, where the plant is actually from and where
         // vanilla already puts the trail ruins that hold its seeds.
