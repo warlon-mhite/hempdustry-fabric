@@ -4,10 +4,12 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.platform.Platform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.common.CommonHooks;
 
 import java.nio.file.Path;
 
@@ -32,6 +34,16 @@ public final class NeoForgePlatform implements Platform {
     @Override
     public float cropGrowthSpeed(BlockState crop, BlockGetter level, BlockPos pos) {
         return VanillaCrop.growthSpeed(crop, level, pos);
+    }
+
+    @Override
+    public boolean canCropGrow(Level level, BlockPos pos, BlockState state, boolean roll) {
+        return CommonHooks.canCropGrow(level, pos, state, roll);
+    }
+
+    @Override
+    public void cropGrew(Level level, BlockPos pos, BlockState before) {
+        CommonHooks.fireCropGrowPost(level, pos, before);
     }
 
     /** Never made: a crop only for the right to call the protected growth odds, NeoForge's form of them. */

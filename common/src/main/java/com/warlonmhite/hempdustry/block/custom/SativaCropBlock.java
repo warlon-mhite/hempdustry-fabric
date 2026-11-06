@@ -194,33 +194,11 @@ public class SativaCropBlock extends CropBlock {
         return this.getMaxAge();
     }
 
-    /**
-     * The plant's age as seen from this block. The canonical age lives on the LOWER segment, and
-     * every segment above it reports {@link #getMaxAge()} — "nothing left to grow here", which is
-     * the truth, since the LOWER drives the whole plant.
-     *
-     * <p>That is not cosmetic, it is what makes the plant safe around <b>bees</b>.
-     * {@code Bee.BeeGrowCropGoal} looks 1–2 blocks below itself and, on anything in
-     * {@code #minecraft:bee_growables} that is a {@code CropBlock}, does
-     * {@code if (!isMaxAge(state)) setBlockAndUpdate(pos, getStateForAge(getAge(state) + 1))}. That write is
-     * direct — it never goes through {@code growCrops} — and {@link CropBlock#getStateForAge} rebuilds
-     * the state from {@code defaultBlockState()}, which resets {@link #SEGMENT} to LOWER. A bee
-     * hovering over a tall plant would turn its MIDDLE or UPPER into a LOWER in mid-air, fail
-     * {@code canSurvive}, and decapitate the plant.
-     *
-     * <p>The guard has to be {@code isMaxAge}, and {@code CropBlock#isMaxAge} is {@code final} —
-     * but it is defined as {@code getAge(state) >= getMaxAge()}, so overriding {@code getAge} is
-     * how a segment is made to report itself mature. Bees then skip everything but the LOWER,
-     * where {@code getStateForAge} happens to produce exactly the right state.
-     *
-     * <p>Safe because nothing reads the age of a non-LOWER segment: the outline shape, growth,
-     * fertilization and harvesting all either run on the LOWER only or go through {@link #SEGMENT},
-     * and the loot table and blockstate read the {@link #AGE} property directly rather than this.
-     */
-    @Override
-    public int getAge(BlockState state) {
-        return isLower(state) ? super.getAge(state) : this.getMaxAge();
-    }
+    // No getAge override: every segment reports its own age, which setAge keeps level with the LOWER's.
+    // Harvesters in other mods (Industrial Foregoing's, Create's) take any CropBlock whose isMaxAge
+    // holds, so a MIDDLE or UPPER that claimed to be ripe was cut off a growing plant. Bees, which
+    // would otherwise rebuild a segment as a LOWER in mid-air, are kept to the LOWER by
+    // BeeGrowCropsGoalMixin instead.
 
     @Override
     protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
@@ -241,8 +219,9 @@ public class SativaCropBlock extends CropBlock {
             } else {
                 moisture = Services.PLATFORM.cropGrowthSpeed(state, world, pos);
             }
-            if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture,
-                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {
+            boolean rolled = HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture,
+                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age));
+            if (Services.PLATFORM.canCropGrow(world, pos, state, rolled)) {
                 grown++;
             }
         }
@@ -259,6 +238,15 @@ public class SativaCropBlock extends CropBlock {
         // two block reads.
         if (grown != age || !this.isShapeSettled(world, pos, age, state)) {
             this.setAge(world, pos, grown, 0.0F, random);
+        }
+        // Told from the age written, not the roll: a plant held back by its headroom rolls as often as
+        // any other while writeAge keeps it where it is, and a listener paid per growth (Ars Nouveau's
+        // Agronomic Sourcelink) would be paid for a roofed seedling for ever. The root is read back
+        // because a harvesting soil may take the plant inside the write; a new seedling there differs
+        // from the old age too, which is the truth: it grew, and was taken.
+        BlockState after = world.getBlockState(pos);
+        if (after.is(this) && isLower(after) && this.getAge(after) != age) {
+            Services.PLATFORM.cropGrew(world, pos, state);
         }
         Mildew.randomTick(world, pos, random);
     }
@@ -426,10 +414,7 @@ public class SativaCropBlock extends CropBlock {
      * A ripe plant lets off a wisp now and then from its top; see {@link RipeAroma}. Any segment
      * can be sampled, and the helper keeps only the one with open air above it.
      *
-     * <p>Reads {@link #AGE} directly, <b>not</b> {@link #getAge}: every segment above the LOWER
-     * reports maturity through {@code getAge} (the bee guard above), so asking it would have every
-     * tall plant smelling ripe from age 4. Their {@code AGE} mirrors the LOWER's, so any segment
-     * answers truthfully here.
+     * <p>Every segment's {@link #AGE} mirrors the LOWER's, so any segment answers truthfully here.
      */
     @Override
     public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
