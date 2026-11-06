@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.platform.Services;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -81,5 +82,54 @@ public interface TestPlatform {
     }
 
     record Heard(String event, List<Object> payload) {
+    }
+
+    /**
+     * A listener on the loader's crop-growth events -- NeoForge's {@code CropGrowEvent.Pre} and {@code .Post},
+     * the ones other mods read growth by -- registered the first time it is asked for, and kept; {@code null}
+     * on a loader that has no such events (Fabric).
+     */
+    CropGrowthProbe cropGrowthProbe();
+
+    /**
+     * What the crop-growth events said about one watched block. Only that block is heard and only that block
+     * can be held back, so tests running beside it in the same batch grow as they always do.
+     */
+    final class CropGrowthProbe {
+        private final List<String> heard = new ArrayList<>();
+        private BlockPos watched;
+        private boolean refuse;
+
+        /** Watches {@code pos} from now on, forgetting what was heard; while {@code refuse}, answers its Pre with "do not grow". */
+        public synchronized void watch(BlockPos pos, boolean refuse) {
+            this.watched = pos.immutable();
+            this.refuse = refuse;
+            this.heard.clear();
+        }
+
+        /** Stops watching. */
+        public synchronized void stop() {
+            this.watched = null;
+            this.refuse = false;
+        }
+
+        /** The events heard at the watched block since the last call, in order ({@code PRE}, {@code POST}); forgets them. */
+        public synchronized List<String> take() {
+            List<String> taken = List.copyOf(heard);
+            heard.clear();
+            return taken;
+        }
+
+        /** For the loader's listeners. */
+        public synchronized void heard(String event, BlockPos pos) {
+            if (pos.equals(watched)) {
+                heard.add(event);
+            }
+        }
+
+        /** For the loader's listeners: whether to hold the crop at {@code pos} back. */
+        public synchronized boolean refusing(BlockPos pos) {
+            return refuse && pos.equals(watched);
+        }
     }
 }

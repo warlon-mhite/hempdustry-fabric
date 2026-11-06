@@ -163,28 +163,11 @@ public class IndicaCropBlock extends CropBlock {
         return state.isAir() || (state.is(this) && !isLower(state));
     }
 
-    /**
-     * The plant's age as seen from this block. The canonical age lives on the lower half; the
-     * upper half reports {@link #getMaxAge()} — "nothing left to grow here", which is true, since
-     * the lower half drives the plant.
-     *
-     * <p>This is what makes the plant safe around <b>bees</b>. {@code Bee.BeeGrowCropGoal}
-     * does {@code if (!isMaxAge(state)) setBlockAndUpdate(pos, getStateForAge(getAge(state) + 1))} directly on
-     * any {@code CropBlock} in {@code #minecraft:bee_growables}, and {@link CropBlock#getStateForAge}
-     * rebuilds the state from {@code defaultBlockState()} — resetting {@link #HALF} to LOWER. A bee
-     * over a two-tall plant would turn its upper half into a lower half in mid-air, fail
-     * {@code canSurvive} and behead the plant. {@code CropBlock#isMaxAge} is {@code final}, but it
-     * is defined as {@code getAge(state) >= getMaxAge()}, so overriding {@code getAge} is how the
-     * upper half is made to report itself mature and get skipped.
-     *
-     * <p>Safe because nothing reads the upper half's age: the outline shape, growth, fertilization
-     * and harvesting all run on the lower half or go through {@link #HALF}, and the loot table and
-     * blockstate read the {@link #AGE} property directly rather than this.
-     */
-    @Override
-    public int getAge(BlockState state) {
-        return isLower(state) ? super.getAge(state) : this.getMaxAge();
-    }
+    // No getAge override: the upper half reports its own age, which setAge keeps level with the lower
+    // half's. Harvesters in other mods (Industrial Foregoing's, Create's) take any CropBlock whose
+    // isMaxAge holds, so an upper half that claimed to be ripe was cut off a growing plant. Bees, which
+    // would otherwise rebuild an upper half as a lower one, are kept to the lower half by
+    // BeeGrowCropsGoalMixin instead.
 
     @Override
     protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
@@ -205,8 +188,9 @@ public class IndicaCropBlock extends CropBlock {
             } else {
                 moisture = this.fieldMoisture(world, pos);
             }
-            if (moisture > 0.0F && HempGrowth.rolls(random, 25.0F, moisture,
-                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {
+            boolean rolled = moisture > 0.0F && HempGrowth.rolls(random, 25.0F, moisture,
+                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age));
+            if (Services.PLATFORM.canCropGrow(world, pos, state, rolled)) {
                 grown++;
             }
         }
@@ -223,6 +207,15 @@ public class IndicaCropBlock extends CropBlock {
         // isShapeSettled answers the same question in one block read.
         if (grown != age || !this.isShapeSettled(world, pos, age, state)) {
             this.setAge(world, pos, grown, 0.0F, random);
+        }
+        // Told from the age written, not the roll: a plant held back by its headroom rolls as often as
+        // any other while writeAge keeps it where it is, and a listener paid per growth (Ars Nouveau's
+        // Agronomic Sourcelink) would be paid for a roofed seedling for ever. The root is read back
+        // because a harvesting soil may take the plant inside the write; a new seedling there differs
+        // from the old age too, which is the truth: it grew, and was taken.
+        BlockState after = world.getBlockState(pos);
+        if (after.is(this) && isLower(after) && this.getAge(after) != age) {
+            Services.PLATFORM.cropGrew(world, pos, state);
         }
         Mildew.randomTick(world, pos, random);
     }
@@ -392,10 +385,7 @@ public class IndicaCropBlock extends CropBlock {
      * A ripe plant lets off a wisp now and then from its top; see {@link RipeAroma}. Either half
      * can be sampled, and the helper keeps only the one with open air above it.
      *
-     * <p>Reads {@link #AGE} directly, <b>not</b> {@link #getAge}: the upper half's {@code getAge}
-     * always reports maturity (the bee guard above), so asking it would have every two-tall plant
-     * smelling ripe from age 4. The upper half's {@code AGE} mirrors the lower's, so either half
-     * answers truthfully here.
+     * <p>The upper half's {@link #AGE} mirrors the lower's, so either half answers truthfully here.
      */
     @Override
     public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
