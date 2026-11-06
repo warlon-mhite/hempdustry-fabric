@@ -144,6 +144,27 @@ public class ModTags {
         /** Block-side counterpart of {@link #HEMP_STORAGE_BLOCKS}. */
         public static final TagKey<Block> HEMP_STORAGE_BLOCKS_BLOCK = blockTag("storage_blocks/hemp");
 
+        /** Every mod's seeds: the oil presses, bio-fuel crushers and automated farmers of other mods read it. */
+        public static final TagKey<Item> SEEDS = itemTag("seeds");
+        /** Immersive Engineering's own, flat name for hemp fibre, which its fabric, string and wire recipes read. */
+        public static final TagKey<Item> FIBER_HEMP = itemTag("fiber_hemp");
+        /** Plant fibres by crop (cotton, flax, jute… in Pam's HarvestCraft), each a {@code c:fiber/<crop>}. */
+        public static final TagKey<Item> FIBERS = itemTag("fiber");
+        /** Hemp's entry in {@link #FIBERS}. */
+        public static final TagKey<Item> HEMP_FIBERS = itemTag("fiber/hemp");
+        /** Flour by crop, as Pam's HarvestCraft files it ({@code c:flour/flour} is its wheat flour). */
+        public static final TagKey<Item> FLOURS = itemTag("flour");
+        /** Hemp's entry in {@link #FLOURS}. */
+        public static final TagKey<Item> HEMP_FLOUR = itemTag("flour/hempflour");
+        /** Milk by kind, as Pam's HarvestCraft files it: a bucket of milk, fresh milk, soy milk. */
+        public static final TagKey<Item> MILKS = itemTag("milk");
+        /** Hemp milk's entry in {@link #MILKS}, beside soy milk. */
+        public static final TagKey<Item> HEMP_MILK = itemTag("milk/hempmilk");
+        /** Nuts by kind, as Pam's HarvestCraft files them; sunflower seeds are among them. */
+        public static final TagKey<Item> NUTS = itemTag("nuts");
+        /** Toasted hemp seeds' entry in {@link #NUTS}, beside sunflower seeds. */
+        public static final TagKey<Item> HEMP_SEED_NUTS = itemTag("nuts/hempseeds");
+
         private static TagKey<Item> itemTag(String path) {
             return TagKey.create(Registries.ITEM, new ResourceLocation("c", path));
         }
