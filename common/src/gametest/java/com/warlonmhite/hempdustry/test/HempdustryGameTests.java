@@ -186,6 +186,11 @@ public final class HempdustryGameTests {
         register("every_tooltip_names_a_real_key", LangGameTest::everyTooltipNamesARealKey);
         register("every_translation_keeps_its_placeholders",
                 LangGameTest::everyTranslationKeepsItsPlaceholders);
+        register("every_block_of_a_plant_tells_its_true_age", OtherModsGameTest::everyBlockOfAPlantTellsItsTrueAge);
+        register("only_the_root_is_the_root", OtherModsGameTest::onlyTheRootIsTheRoot);
+        register("growing_asks_the_loader_and_tells_it", OtherModsGameTest::growingAsksTheLoaderAndTellsIt);
+        register("a_plant_with_no_room_to_grow_tells_nobody_it_grew",
+                OtherModsGameTest::aPlantWithNoRoomToGrowTellsNobodyItGrew);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

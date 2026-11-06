@@ -67,6 +67,12 @@ public final class FabricTestPlatform implements TestPlatform {
         return probe;
     }
 
+    /** Fabric has no crop-growth events: nothing of another mod's hears a crop grow there, ours or vanilla's. */
+    @Override
+    public CropGrowthProbe cropGrowthProbe() {
+        return null;
+    }
+
     private static List<Path> roots(String modId) {
         return FabricLoader.getInstance().getModContainer(modId).orElseThrow().getRootPaths();
     }
