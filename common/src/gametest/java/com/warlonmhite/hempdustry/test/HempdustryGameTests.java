@@ -75,6 +75,7 @@ public final class HempdustryGameTests {
             InfuserPourGameTest.class,
             LangGameTest.class,
             LootGameTest.class,
+            OtherModsGameTest.class,
             PackingGameTest.class,
             PlantStressGameTest.class,
             PlatformGameTest.class,
