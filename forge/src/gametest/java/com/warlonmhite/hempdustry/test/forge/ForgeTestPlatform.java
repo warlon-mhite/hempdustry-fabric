@@ -4,6 +4,8 @@ import net.minecraftforge.registries.DataPackRegistriesHooks;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraft.world.level.block.ComposterBlock;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.api.AfterEatEvent;
@@ -25,6 +27,7 @@ import java.util.List;
 
 public final class ForgeTestPlatform implements TestPlatform {
     private AddonProbe probe;
+    private CropGrowthProbe growth;
 
     @Override
     public String loaderName() {
@@ -84,6 +87,22 @@ public final class ForgeTestPlatform implements TestPlatform {
             probe = p;
         }
         return probe;
+    }
+
+    @Override
+    public synchronized CropGrowthProbe cropGrowthProbe() {
+        if (growth == null) {
+            CropGrowthProbe p = new CropGrowthProbe();
+            MinecraftForge.EVENT_BUS.addListener((BlockEvent.CropGrowEvent.Pre event) -> {
+                p.heard("PRE", event.getPos());
+                if (p.refusing(event.getPos())) {
+                    event.setResult(Event.Result.DENY);
+                }
+            });
+            MinecraftForge.EVENT_BUS.addListener((BlockEvent.CropGrowEvent.Post event) -> p.heard("POST", event.getPos()));
+            growth = p;
+        }
+        return growth;
     }
 
     private static List<Path> roots(String modId) {

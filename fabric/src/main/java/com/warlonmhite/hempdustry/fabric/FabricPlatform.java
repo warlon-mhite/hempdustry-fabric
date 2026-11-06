@@ -5,6 +5,7 @@ import com.warlonmhite.hempdustry.platform.Platform;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -32,6 +33,15 @@ public final class FabricPlatform implements Platform {
     @Override
     public float cropGrowthSpeed(BlockState crop, BlockGetter level, BlockPos pos) {
         return VanillaCrop.growthSpeed(crop, level, pos);
+    }
+
+    @Override
+    public boolean canCropGrow(Level level, BlockPos pos, BlockState state, boolean roll) {
+        return roll;
+    }
+
+    @Override
+    public void cropGrew(Level level, BlockPos pos, BlockState before) {
     }
 
     /** Never made: a crop only for the right to call vanilla's protected growth odds. */
