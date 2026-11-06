@@ -63,7 +63,7 @@ public interface GrowMedium extends BonemealableBlock {
     @Nullable
     static InteractionResult tryFeed(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                 Player player) {
-        if (!stack.is(ModTags.Conventional.FERTILIZERS)
+        if (!stack.is(ModTags.Items.FERTILIZERS)
                 || !(state.getBlock() instanceof GrowMedium medium)
                 || !medium.isValidBonemealTarget(world, pos, state)) {
             return null;

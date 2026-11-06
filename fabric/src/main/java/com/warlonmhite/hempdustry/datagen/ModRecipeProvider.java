@@ -148,10 +148,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Fibre -> canvas, woven the same 2x2 way vanilla weaves string into wool, and costing the
         // same, because they are both just cloth. What canvas buys over wool is standing in for
         // leather.
+        //
+        // Every cloth recipe here reads c:fiber_hemp rather than our fibre alone, so Immersive
+        // Engineering's industrial hemp fibre weaves into canvas, the outfit and paper too: it is the
+        // same bast fibre. String stays ours only, one to one, since IE spins its own three to one.
         shaped(RecipeCategory.MISC, ModItems.HEMP_CANVAS)
                 .pattern("##")
                 .pattern("##")
-                .define('#', ModItems.HEMP_FIBER)
+                .define('#', ModTags.Conventional.FIBER_HEMP)
                 .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
                 .save(output, id("hemp_canvas"));
 
@@ -996,7 +1000,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         shaped(RecipeCategory.COMBAT, ModItems.HEMP_BEANIE)
                 .pattern("###")
                 .pattern("# #")
-                .define('#', ModItems.HEMP_FIBER)
+                .define('#', ModTags.Conventional.FIBER_HEMP)
                 .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
                 .save(output, id("hemp_beanie"));
 
@@ -1004,7 +1008,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .pattern("# #")
                 .pattern("###")
                 .pattern("###")
-                .define('#', ModItems.HEMP_FIBER)
+                .define('#', ModTags.Conventional.FIBER_HEMP)
                 .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
                 .save(output, id("hemp_shirt"));
 
@@ -1012,7 +1016,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .pattern("###")
                 .pattern("# #")
                 .pattern("# #")
-                .define('#', ModItems.HEMP_FIBER)
+                .define('#', ModTags.Conventional.FIBER_HEMP)
                 .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
                 .save(output, id("hemp_harem_pants"));
 
@@ -1025,7 +1029,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         shaped(RecipeCategory.COMBAT, ModItems.FLIP_FLOPS)
                 .pattern("# #")
                 .pattern("# #")
-                .define('#', ModItems.HEMP_FIBER)
+                .define('#', ModTags.Conventional.FIBER_HEMP)
                 .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
                 .save(output, id("flip_flops"));
 
@@ -1095,7 +1099,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
         shaped(RecipeCategory.MISC, Items.PAPER, 2)
                 .pattern("###")
-                .define('#', ModItems.HEMP_FIBER)
+                .define('#', ModTags.Conventional.FIBER_HEMP)
                 .unlockedBy(getHasName(ModItems.HEMP_FIBER), has(ModItems.HEMP_FIBER))
                 .save(output, id("paper"));
 
