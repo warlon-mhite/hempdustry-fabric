@@ -1,0 +1,20 @@
+{
+  "buds": "hempdustry:crimson_buds",
+  "color": 15218255,
+  "effects": [
+    {
+      "effect": "minecraft:strength"
+    },
+    {
+      "effect": "minecraft:glowing",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:hunger"
+    }
+  ],
+  "flower": "hempdustry:crimson_crop",
+  "model_index": 10,
+  "seeds": "hempdustry:crimson_seeds",
+  "translation_key": "hempdustry.strain.crimson"
+}

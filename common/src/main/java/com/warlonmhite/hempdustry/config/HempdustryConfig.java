@@ -188,7 +188,9 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
                     + "(Speed, Resistance, Absorption...), so a big dose still costs its full Hunger. "
                     + "Raise maxBuffLevel for a stronger mod in a modded pack. The multipliers are 0.05-10, "
                     + "except cooldownMultiplier, 0-10 (0 is no cooldown), and greenOutChanceMultiplier, 0-100. "
-                    + "greenOutChanceMultiplier 0 disables green-outs, as do greenOut=false and enabled=false.");
+                    + "greenOutChanceMultiplier 0 disables green-outs, as do greenOut=false and enabled=false. "
+                    + "debuffs=false takes away every harmful effect, and the ones in the "
+                    + "#hempdustry:counts_as_harmful effect tag (Glowing).");
             comment(root, "world", "cropGrowthMultiplier and machineSpeedMultiplier are speeds: 2.0 is twice as fast. "
                     + "machineSpeed drives the Decarboxylator and the Hemp Press; the Infuser has its own section. "
                     + "Whether bees pollinate hemp is the #minecraft:bee_growables tag, not a setting here. "
@@ -302,7 +304,8 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @param greenOut                 whether a bad hit can replace its effects entirely
      * @param nausea                   whether nausea is ever applied — an accessibility switch
      * @param munchies                 whether Hunger is applied
-     * @param debuffs                  whether harmful effects are applied at all
+     * @param debuffs                  whether harmful effects are applied at all, and those in
+     *                                 {@code #hempdustry:counts_as_harmful}
      */
     public record Effects(boolean enabled, int maxLevel, int maxBuffLevel, double durationMultiplier,
                           double cooldownMultiplier, double greenOutChanceMultiplier,

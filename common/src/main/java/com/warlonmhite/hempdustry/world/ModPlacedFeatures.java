@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.world;
 
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -43,6 +44,19 @@ public class ModPlacedFeatures {
     /** One chunk in this many tries for a wild Warped Kush patch, on every floor of the Nether there. */
     private static final int WARPED_KUSH_RARITY = 8;
     public static final ResourceKey<PlacedFeature> RUDERALIS_PLACED_KEY = registerKey("ruderalis_placed");
+    public static final ResourceKey<PlacedFeature> CRIMSON_PLACED_KEY = registerKey("crimson_placed");
+
+    /**
+     * One chunk in this many tries for wild Crimson Weed, under the crimson forest's canopy — every
+     * chunk, since <b>a scan is not a plant</b>: most start in netherrack, lava or open air, and the
+     * weeping vines already hang under many caps. Measured in real terrain (the test server's Nether,
+     * 1536 force-generated chunks round six located crimson forests, 740 of them forest), these numbers
+     * place <b>one plant per 16 forest chunks</b>, level with Warped Kush's measured one per 15. At
+     * rarity 4 and 8 scans it was one per 126.
+     */
+    private static final int CRIMSON_RARITY = 1;
+    /** Attempts in such a chunk to find a canopy overhead, scanning up from a random point. */
+    private static final int CRIMSON_SCANS = 6;
 
     /**
      * One attempt per this many taiga chunks, and <b>an attempt is not a plant</b>: measured in real
@@ -127,6 +141,21 @@ public class ModPlacedFeatures {
                 configured.getOrThrow(ModConfiguredFeatures.WARPED_KUSH_KEY),
                 RarityFilter.onAverageOnceEvery(WARPED_KUSH_RARITY),
                 CountOnEveryLayerPlacement.of(1),
+                BiomeFilter.biome());
+
+        // Crimson Weed: the canopy is overhead, not a heightmap surface, so this is placed the way
+        // vanilla places its cave vines -- a random point in the column, a scan up through air to the
+        // first canopy block, then one block down, under it. A scan that meets anything else first
+        // (netherrack, a stem, roots) finds nothing.
+        register(context, CRIMSON_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.CRIMSON_KEY),
+                RarityFilter.onAverageOnceEvery(CRIMSON_RARITY),
+                CountPlacement.of(CRIMSON_SCANS),
+                InSquarePlacement.spread(),
+                PlacementUtils.RANGE_BOTTOM_TO_MAX_TERRAIN_HEIGHT,
+                EnvironmentScanPlacement.scanningFor(Direction.UP, BlockPredicate.matchesTag(ModTags.Blocks.CRIMSON_CANOPY),
+                        BlockPredicate.ONLY_IN_AIR_PREDICATE, 12),
+                RandomOffsetPlacement.vertical(ConstantInt.of(-1)),
                 BiomeFilter.biome());
 
         // Ruderalis: a relict stand in the cold north, where the plant is actually from and where

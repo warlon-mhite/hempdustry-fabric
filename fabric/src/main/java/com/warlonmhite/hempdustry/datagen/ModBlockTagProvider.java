@@ -53,7 +53,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(ModBlocks.BELDIA_CROP)
                 .add(ModBlocks.INDUSTRIAL_HEMP_CROP)
                 .add(ModBlocks.WARPED_KUSH_CROP)
-                .add(ModBlocks.RUDERALIS_CROP);
+                .add(ModBlocks.RUDERALIS_CROP)
+                .add(ModBlocks.CRIMSON_CROP);
 
         // Hoglins keep about eight blocks from anything in here (HoglinSpecificSensor), and vanilla's
         // only plant in it is warped fungus. Warped Kush grows beside it and joins it: a field of it
@@ -61,6 +62,11 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         // or #minecraft:maintains_farmland -- no bees in the Nether, and no farmland under it.
         valueLookupBuilder(BlockTags.HOGLIN_REPELLENTS)
                 .add(ModBlocks.WARPED_KUSH_CROP);
+
+        // What Crimson Weed hangs from: the crimson forest's canopy. The nether wart block by name,
+        // never #minecraft:wart_blocks, which holds the warped wart block too.
+        valueLookupBuilder(ModTags.Blocks.CRIMSON_CANOPY)
+                .add(Blocks.NETHER_WART_BLOCK);
 
         // Beldía's ground, read by the crop and by its worldgen feature alike. Sand and red sand by
         // name, because #c:sands is not on every Fabric API and #minecraft:sand carries suspicious

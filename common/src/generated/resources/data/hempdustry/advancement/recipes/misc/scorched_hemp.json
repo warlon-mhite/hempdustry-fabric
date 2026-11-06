@@ -11,6 +11,16 @@
       },
       "trigger": "minecraft:inventory_changed"
     },
+    "has_crimson_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:crimson_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
     "has_hemp_leaf": {
       "conditions": {
         "items": [
@@ -87,7 +97,8 @@
       "has_sativa_buds",
       "has_beldia_buds",
       "has_warped_kush_buds",
-      "has_ruderalis_buds"
+      "has_ruderalis_buds",
+      "has_crimson_buds"
     ]
   ],
   "rewards": {
