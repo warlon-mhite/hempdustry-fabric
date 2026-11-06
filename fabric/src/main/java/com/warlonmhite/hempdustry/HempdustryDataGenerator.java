@@ -27,6 +27,7 @@ public class HempdustryDataGenerator implements DataGeneratorEntrypoint {
 		pack.addProvider(ModStrainProvider::new);
 		pack.addProvider(ModBalanceProvider::new);
 		pack.addProvider(ModAdvancementProvider::new);
+		pack.addProvider(ModCompatProvider::new);
 	}
 
 	@Override

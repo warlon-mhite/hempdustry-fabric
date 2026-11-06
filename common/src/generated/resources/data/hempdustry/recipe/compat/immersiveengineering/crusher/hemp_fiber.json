@@ -1,0 +1,36 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "immersiveengineering"
+      ]
+    }
+  ],
+  "type": "immersiveengineering:crusher",
+  "energy": 1600,
+  "input": {
+    "item": "hempdustry:retted_hemp_stem"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "immersiveengineering"
+    }
+  ],
+  "result": {
+    "basePredicate": {
+      "item": "hempdustry:hemp_fiber"
+    },
+    "count": 6
+  },
+  "secondaries": [
+    {
+      "chance": 0.5,
+      "conditions": [],
+      "output": {
+        "item": "hempdustry:hemp_fiber"
+      }
+    }
+  ]
+}

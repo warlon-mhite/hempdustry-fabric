@@ -1,0 +1,39 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "create"
+      ]
+    }
+  ],
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "hempdustry:hemp_stem"
+    },
+    {
+      "item": "hempdustry:hemp_stem"
+    },
+    {
+      "item": "create:limestone"
+    },
+    {
+      "type": "neoforge:single",
+      "amount": 250,
+      "fluid": "minecraft:water"
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "results": [
+    {
+      "count": 2,
+      "id": "hempdustry:hempcrete"
+    }
+  ]
+}

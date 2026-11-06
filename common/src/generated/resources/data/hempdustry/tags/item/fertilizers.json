@@ -1,0 +1,24 @@
+{
+  "values": [
+    {
+      "id": "#c:fertilizers",
+      "required": false
+    },
+    {
+      "id": "immersiveengineering:fertilizer",
+      "required": false
+    },
+    {
+      "id": "farmingforblockheads:red_fertilizer",
+      "required": false
+    },
+    {
+      "id": "farmingforblockheads:green_fertilizer",
+      "required": false
+    },
+    {
+      "id": "farmingforblockheads:yellow_fertilizer",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "farmersdelight"
+      ]
+    }
+  ],
+  "type": "farmersdelight:cutting",
+  "ingredients": [
+    {
+      "item": "hempdustry:hemp_stem"
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:false"
+    }
+  ],
+  "result": [
+    {
+      "item": {
+        "count": 4,
+        "id": "hempdustry:hemp_fiber"
+      }
+    },
+    {
+      "chance": 0.25,
+      "item": {
+        "count": 1,
+        "id": "minecraft:stick"
+      }
+    }
+  ],
+  "tool": {
+    "fabric:type": "fabric:any",
+    "ingredients": [
+      {
+        "fabric:type": "farmersdelight:item_ability",
+        "action": "knife_dig"
+      },
+      {
+        "tag": "c:tools/knife"
+      }
+    ]
+  }
+}

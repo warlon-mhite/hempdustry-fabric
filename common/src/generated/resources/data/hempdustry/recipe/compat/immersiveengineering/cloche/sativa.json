@@ -1,0 +1,46 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "immersiveengineering"
+      ]
+    }
+  ],
+  "type": "immersiveengineering:cloche",
+  "input": {
+    "item": "hempdustry:sativa_seeds"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "immersiveengineering"
+    }
+  ],
+  "render": {
+    "type": "immersiveengineering:crop",
+    "block": "hempdustry:sativa_crop"
+  },
+  "results": [
+    {
+      "count": 2,
+      "id": "hempdustry:hemp_stem"
+    },
+    {
+      "chance": 0.667,
+      "output": {
+        "id": "hempdustry:sativa_buds"
+      }
+    },
+    {
+      "chance": 0.25,
+      "output": {
+        "id": "hempdustry:sativa_seeds"
+      }
+    }
+  ],
+  "soil": {
+    "item": "minecraft:dirt"
+  },
+  "time": 1600
+}

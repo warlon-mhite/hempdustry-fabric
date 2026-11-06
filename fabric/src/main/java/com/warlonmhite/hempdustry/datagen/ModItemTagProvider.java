@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -286,6 +287,15 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ModTags.Conventional.HEMP_SEED_NUTS).add(ModItems.TOASTED_HEMP_SEEDS);
         getOrCreateTagBuilder(ModTags.Conventional.NUTS)
                 .addOptionalTag(ModTags.Conventional.HEMP_SEED_NUTS);
+
+        // What a Grow Pot takes as feed: every mod's fertiliser in c:fertilizers, and the ones whose mods
+        // leave them out of it. One charge whatever is used, so none of them is an upgrade.
+        getOrCreateTagBuilder(ModTags.Items.FERTILIZERS)
+                .addOptionalTag(ModTags.Conventional.FERTILIZERS)
+                .addOptional(ResourceLocation.fromNamespaceAndPath("immersiveengineering", "fertilizer"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("farmingforblockheads", "red_fertilizer"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("farmingforblockheads", "green_fertilizer"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("farmingforblockheads", "yellow_fertilizer"));
 
         getOrCreateTagBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         getOrCreateTagBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());

@@ -1,0 +1,32 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "create"
+      ]
+    }
+  ],
+  "type": "create:milling",
+  "ingredients": [
+    {
+      "tag": "hempdustry:hemp_seeds"
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "processing_time": 100,
+  "results": [
+    {
+      "id": "hempdustry:hemp_flour"
+    },
+    {
+      "chance": 0.25,
+      "id": "hempdustry:hemp_flour"
+    }
+  ]
+}
