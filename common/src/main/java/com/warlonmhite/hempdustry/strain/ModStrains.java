@@ -76,6 +76,11 @@ public class ModStrains {
     /** The wild ancestor, dug up rather than found growing. Its flower is its own crop, never generated. */
     public static final ResourceKey<Strain> RUDERALIS = key("ruderalis");
     /**
+     * Crimson Weed, the crimson forest's plant, hanging from its canopy. Its wild flower is its own
+     * crop, generated ripe. The id is plain {@code crimson}: the display name lives in the lang files.
+     */
+    public static final ResourceKey<Strain> CRIMSON = key("crimson");
+    /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
      * {@code model_index} 0 and the shared tinted look, and none of the per-strain datagen loops
@@ -99,7 +104,8 @@ public class ModStrains {
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
     public static final List<ResourceKey<Strain>> BUILT_IN =
-            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH, RUDERALIS);
+            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH, RUDERALIS,
+                    CRIMSON);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -280,6 +286,28 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.LUCK, 0, false),
                         new SmokeEffect(MobEffects.HUNGER, 0, false)),
                 0.5F));
+
+        // Crimson Weed -- the crimson forest's plant, Warped Kush's opposite number.
+        //
+        // STRENGTH is the signature and it scales: the fight lane, where the mod puts its plants, and
+        // the one major combat buff no strain had. Priced against the potion, it skips no gate --
+        // Strength is blaze powder and nether wart, both from the Nether, and this plant grows only
+        // there. maxBuffLevel holds it to vanilla's own Strength II however big the dose.
+        //
+        // GLOWING is the tax, the red eyes: outlined through walls, to everyone. Where Warped Kush
+        // blinds you, this one gives you away. Vanilla files Glowing as neutral, so it is in
+        // #hempdustry:counts_as_harmful, and debuffs=false takes it away like every other strain's
+        // cost. Hunger, as ever.
+        //
+        // Deep red, the anthocyanins of a plant grown in the crimson forest -- a colour, never a
+        // strength -- and bright enough to read on a packed vaporizer's gunmetal.
+        context.register(CRIMSON, new Strain("hempdustry.strain.crimson", 0xE8364F, modelIndex(CRIMSON),
+                Optional.of(ModItems.CRIMSON_SEEDS), ModItems.CRIMSON_BUDS,
+                Optional.of(ModBlocks.CRIMSON_CROP), 1.0F, 1,
+                List.of(
+                        new SmokeEffect(MobEffects.STRENGTH, 0, true),
+                        new SmokeEffect(MobEffects.GLOWING, 0, false),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

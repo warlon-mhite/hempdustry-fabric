@@ -150,15 +150,15 @@ public final class Defoliation {
     public static final int CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS = 8;
 
     /**
-     * Warped Kush's odds: a plant grown beside lava carries more of the resin that is, first of all,
-     * the plant's own protection against radiation and heat. It keeps no light record, so the lamp
-     * rate never applies to it.
+     * The Nether plants' odds, Warped Kush's and Crimson Weed's: a plant grown beside lava carries
+     * more of the resin that is, first of all, the plant's own protection against radiation and heat.
+     * Neither keeps a light record, so the lamp rate never applies to them.
      */
     public static final int CHARAS_CHANCE_ONE_IN_WARPED = 2;
 
-    /** The rub's odds on this plant, as 1-in-N: Warped Kush's, else the sun's or the lamps'. */
+    /** The rub's odds on this plant, as 1-in-N: a Nether plant's, else the sun's or the lamps'. */
     public static int charasOneIn(BlockState lowerState) {
-        if (lowerState.getBlock() instanceof WarpedKushCropBlock) {
+        if (lowerState.getBlock() instanceof WarpedKushCropBlock || lowerState.getBlock() instanceof CrimsonWeedCropBlock) {
             return CHARAS_CHANCE_ONE_IN_WARPED;
         }
         return lowerState.getValue(GrowLight.PROPERTY).artificial() ? CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS : CHARAS_CHANCE_ONE_IN;

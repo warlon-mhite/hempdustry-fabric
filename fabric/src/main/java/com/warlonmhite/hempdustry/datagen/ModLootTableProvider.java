@@ -126,12 +126,15 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
     }
 
     /**
-     * Buds dropped by an untrimmed mature plant, and the Fortune curve on them — <b>deliberately
-     * identical for every strain</b>, which is why they're constants here and not per-crop
-     * parameters. A strain is told apart by what its buds <em>do</em> when smoked and by the
-     * leaf/stem split below, never by how many buds it hands over.
+     * Buds dropped by an untrimmed mature plant, and the Fortune curve on them — <b>the same for every
+     * strain but one</b>. A strain is told apart by what its buds <em>do</em> when smoked and by the
+     * leaf/stem split below, not by how many buds it hands over. The exception is Crimson Weed, a
+     * short hanging plant with little stem whose weight is in the tips: {@link #CRIMSON_BUDS} buds
+     * at the same total, so the bud it gains comes out of its leaves and stems.
      */
     private static final int BUDS_AT_ZERO_CUTS = 2;
+    /** Crimson Weed's buds on an untrimmed ripe plant: one more than every other strain's. */
+    private static final int CRIMSON_BUDS = 3;
     private static final float BUDS_FORTUNE_CHANCE = 0.20F;
 
     /**
@@ -258,6 +261,24 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         add(ModBlocks.WARPED_KUSH_CROP, warpedKushCropDrops());
 
         add(ModBlocks.RUDERALIS_CROP, ruderalisCropDrops());
+
+        add(ModBlocks.CRIMSON_CROP, crimsonCropDrops());
+    }
+
+    /**
+     * Crimson Weed: eleven items like the other Nether plant, and mostly flower — a bud more than any
+     * other strain, one leaf over the three a player can take off it and a thin stalk. Every pool is
+     * pinned to the UPPER half, which is this plant's root: it hangs, and the UPPER is the half on the
+     * canopy, where the age and the trim flags live. The tip below it never drops, so breaking the
+     * canopy over a ripe plant, which pops both halves, still pays out once. The light pools are inert
+     * here, as on Warped Kush: this crop keeps no light record.
+     */
+    private LootTable.Builder crimsonCropDrops() {
+        return this.hempCropDrops(ModBlocks.CRIMSON_CROP,
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER),
+                IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
+                ModItems.CRIMSON_BUDS, ModItems.CRIMSON_SEEDS,
+                CRIMSON_BUDS, 3, 2);
     }
 
     /** Ruderalis's seeds off one ripe plant: more than the one it cost, which is what makes it a weed. */
@@ -449,10 +470,10 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
      * buds: the sugar leaf it takes is not defoliation. Stems are <b>flat</b> — stalk is structural,
      * and pruning foliage has no business changing how much of it there is.
      *
-     * <p><b>Buds and seeds are strain-independent</b> and stem/leaf counts are the only per-crop
-     * numbers, which is why only those two are parameters. Keep it that way: a strain should be
-     * told apart by its effects and its leaf/stem character, not by handing over more of the same
-     * premium drop.
+     * <p><b>Seeds are strain-independent, and so are buds but for Crimson Weed</b> (see
+     * {@link #BUDS_AT_ZERO_CUTS}); stem and leaf counts are the per-crop numbers. Keep it that way: a
+     * strain should be told apart by its effects and its leaf/stem character, not by handing over
+     * more of the same premium drop.
      *
      * <p>Note that the leaves a player takes during the two cuts and the rub exactly replace the
      * leaves they give up at harvest, so a plant yields the same number of leaves either way and
@@ -468,6 +489,15 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                                             IntegerProperty ageProperty, int maxAge,
                                             Item buds, Item seeds,
                                             int leavesAtZeroCuts, int stemCount) {
+        return this.hempCropDrops(crop, lowerPredicate, ageProperty, maxAge, buds, seeds,
+                BUDS_AT_ZERO_CUTS, leavesAtZeroCuts, stemCount);
+    }
+
+    /** As above, with the untrimmed plant's buds given rather than {@link #BUDS_AT_ZERO_CUTS}. */
+    private LootTable.Builder hempCropDrops(Block crop, Supplier<StatePropertiesPredicate.Builder> lowerPredicate,
+                                            IntegerProperty ageProperty, int maxAge,
+                                            Item buds, Item seeds,
+                                            int budsAtZeroCuts, int leavesAtZeroCuts, int stemCount) {
         if (leavesAtZeroCuts < LEAVES_TAKEN.length) {
             throw new IllegalArgumentException(crop + " has " + leavesAtZeroCuts + " leaves at harvest,"
                     + " fewer than the " + LEAVES_TAKEN.length + " a player can take off it while it grows");
@@ -504,18 +534,18 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                                 // plant risks the poisonous potato's one bad item, which any Fortune
                                 // clears. See SCHWAG_*_CHANCES. Mildew and sulfur come after stress, so
                                 // a plant with both takes the worse odds, never the sum.
-                                .add(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS - 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, stressed), fortune, STRESSED_SCHWAG_CHANCES)
-                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, stressed), fortune, STRESSED_SCHWAG_CHANCES))
-                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, stressed), fortune, STRESSED_SCHWAG_CHANCES))
-                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
-                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
-                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
-                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
-                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
-                                        .otherwise(spoiledBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
-                                        .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS, fortune, BUDS_FORTUNE_CHANCE, 2), zeroCuts, fortune))
-                                        .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 1, fortune, BUDS_FORTUNE_CHANCE, 2), oneCut, fortune))
-                                        .otherwise(healthyBuds(scaledCount(buds, BUDS_AT_ZERO_CUTS + 2, fortune, BUDS_FORTUNE_CHANCE, 2), twoCuts, fortune))
+                                .add(spoiledBuds(scaledCount(buds, budsAtZeroCuts - 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, stressed), fortune, STRESSED_SCHWAG_CHANCES)
+                                        .otherwise(spoiledBuds(scaledCount(buds, budsAtZeroCuts, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, stressed), fortune, STRESSED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, budsAtZeroCuts + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, stressed), fortune, STRESSED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, budsAtZeroCuts, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, budsAtZeroCuts + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, budsAtZeroCuts + 2, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, mildewed), fortune, MILDEWED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, budsAtZeroCuts, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(zeroCuts, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, budsAtZeroCuts + 1, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(oneCut, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
+                                        .otherwise(spoiledBuds(scaledCount(buds, budsAtZeroCuts + 2, fortune, BUDS_FORTUNE_CHANCE, 2), AllOfCondition.allOf(twoCuts, sulfured), fortune, SULFURED_SCHWAG_CHANCES))
+                                        .otherwise(healthyBuds(scaledCount(buds, budsAtZeroCuts, fortune, BUDS_FORTUNE_CHANCE, 2), zeroCuts, fortune))
+                                        .otherwise(healthyBuds(scaledCount(buds, budsAtZeroCuts + 1, fortune, BUDS_FORTUNE_CHANCE, 2), oneCut, fortune))
+                                        .otherwise(healthyBuds(scaledCount(buds, budsAtZeroCuts + 2, fortune, BUDS_FORTUNE_CHANCE, 2), twoCuts, fortune))
                                         .otherwise(LootItem.lootTableItem(seeds))))
                         // Hemp leaf when mature — one fewer for every leaf already taken off the
                         // plant while it grew: both trims AND the rub, so four buckets, not three.

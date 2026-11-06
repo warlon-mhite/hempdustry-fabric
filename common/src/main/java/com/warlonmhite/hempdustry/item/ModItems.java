@@ -78,6 +78,8 @@ public class ModItems {
     public static final Item WARPED_KUSH_BUDS = registerItem("warped_kush_buds", settings -> new Item(settings));
     public static final Item RUDERALIS_SEEDS = registerItem("ruderalis_seeds", settings -> new BlockItem(ModBlocks.RUDERALIS_CROP, settings));
     public static final Item RUDERALIS_BUDS = registerItem("ruderalis_buds", settings -> new Item(settings));
+    public static final Item CRIMSON_SEEDS = registerItem("crimson_seeds", settings -> new BlockItem(ModBlocks.CRIMSON_CROP, settings));
+    public static final Item CRIMSON_BUDS = registerItem("crimson_buds", settings -> new Item(settings));
     public static final Item HEMP_STEM = registerItem("hemp_stem", settings -> new Item(settings));
     /**
      * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has

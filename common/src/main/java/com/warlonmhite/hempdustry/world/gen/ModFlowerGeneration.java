@@ -72,5 +72,12 @@ public class ModFlowerGeneration {
                 GenerationStep.Decoration.VEGETAL_DECORATION,
                 ModPlacedFeatures.WARPED_KUSH_PLACED_KEY
         );
+
+        // Crimson Weed, ripe and wild, hanging under the crimson forest's canopy.
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.CRIMSON_GEN,
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ModPlacedFeatures.CRIMSON_PLACED_KEY
+        );
     }
 }

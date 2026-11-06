@@ -9,7 +9,11 @@ playing the game reveals it.
 
 The fix vanilla uses on rose_bush, and this mod uses on both crops and the wild Lemon Haze, is to
 condition the pool on the lower half. This script asserts that every pool of every multi-block
-plant carries such a condition.
+plant carries such a condition -- and that it names the plant's ROOT, where the age and the trim
+flags live: the lower half of a plant standing on the ground, the upper half of one hanging from a
+ceiling (a crop class whose hangs() returns true). A hanging plant pinned to its lower half would
+still pay out once, but from the tip, which carries no trim flags, so every trimmed plant would pay
+as an untrimmed one.
 
 Usage:
     python3 scripts/tall_plant_loot.py
@@ -22,6 +26,9 @@ import re
 import sys
 
 import layout
+
+HANGS = re.compile(r"boolean\s+hangs\s*\(\s*\)\s*\{\s*return\s+true\s*;")
+CLASS = re.compile(r"^public\s+(?:final\s+)?class\s+(\w+)", re.MULTILINE)
 
 LAYOUT = layout.of()
 GENERATED = LAYOUT.generated
@@ -73,29 +80,64 @@ def multi_block_plants():
     return found
 
 
-def checks_segment(condition, prop):
-    """True when this condition alone pins the plant's segment, in either loot format.
+def segment_values(condition, prop):
+    """The values of `prop` this condition alone pins the plant to, in either loot format.
 
     Up to 26.2 a pool lists `conditions`, each a `block_state_property` with `properties`; since 26.3
     a pool has one `condition`, a `match_block` with `state`, or an `all_of` of several (any one of
     its terms pinning the segment pins the whole). A checker that read only the old form would find
     no guard anywhere and say so, or, worse, read nothing the day the form changed again."""
     if condition.get("condition") == "minecraft:block_state_property":
-        return prop in condition.get("properties", {})
+        properties = condition.get("properties", {})
+        return {properties[prop]} if prop in properties else set()
     kind = condition.get("type")
     if kind == "minecraft:match_block":
-        return prop in condition.get("state", {})
+        state = condition.get("state", {})
+        return {state[prop]} if prop in state else set()
     if kind == "minecraft:all_of":
-        return any(checks_segment(term, prop) for term in condition.get("terms", []))
-    return False
+        values = set()
+        for term in condition.get("terms", []):
+            values |= segment_values(term, prop)
+        return values
+    return set()
 
 
-def guarded(pool, prop):
-    """True when this pool cannot fire for every segment of the plant."""
+def hanging_blocks():
+    """The block ids registered with a crop class that hangs from a ceiling.
+
+    Read from the code rather than listed here, so a new hanging plant is held to its root the day it
+    is registered. Each hanging class must be registered under some id, or this says so: a scanner
+    that found the class and lost the block would be checking nothing."""
+    classes = set()
+    sources = list(LAYOUT.java_files())
+    for path in sources:
+        text = path.read_text(encoding="utf-8")
+        if HANGS.search(text):
+            found = CLASS.search(text)
+            if found:
+                classes.add(found.group(1))
+    blocks = {}
+    for path in sources:
+        text = path.read_text(encoding="utf-8")
+        for name in classes:
+            for match in re.finditer(r'"([a-z0-9_]+)"\s*,\s*' + name + r"::new", text):
+                blocks[match.group(1)] = name
+    missing = classes - set(blocks.values())
+    if missing:
+        sys.exit(f"hanging crop classes with no block registered under them: {sorted(missing)} -- "
+                 "has the registration pattern changed?")
+    return blocks
+
+
+def guard_values(pool, prop):
+    """The values of `prop` this pool's own conditions require -- empty when it names none."""
     conditions = list(pool.get("conditions", []))
     if "condition" in pool:
         conditions.append(pool["condition"])
-    return any(checks_segment(condition, prop) for condition in conditions)
+    values = set()
+    for condition in conditions:
+        values |= segment_values(condition, prop)
+    return values
 
 
 def main():
@@ -103,6 +145,7 @@ def main():
     if not plants:
         sys.exit("no multi-block plants found -- has the blockstate layout changed?")
 
+    hanging = hanging_blocks()
     problems = []
     checked = []
     for block, prop in sorted(plants.items()):
@@ -111,14 +154,20 @@ def main():
             continue  # a block with no loot table of its own drops nothing; nothing to double
         table = json.loads(path.read_text(encoding="utf-8"))
         pools = table.get("pools", [])
-        checked.append(f"{block} ({len(pools)} pool(s), on '{prop}')")
+        root = "upper" if block in hanging else "lower"
+        checked.append(f"{block} ({len(pools)} pool(s), on '{prop}={root}'"
+                       + (", hanging" if block in hanging else "") + ")")
         for index, pool in enumerate(pools):
-            if not guarded(pool, prop):
+            values = guard_values(pool, prop)
+            if not values:
                 problems.append(f"{block}: pool {index} has no '{prop}' condition, so it rolls "
                                 f"once per block of the plant and pays out twice")
+            elif values != {root}:
+                problems.append(f"{block}: pool {index} is pinned to {prop}={sorted(values)}, not the "
+                                f"plant's root {prop}={root}, where its age and trim flags live")
 
     if problems:
-        print("multi-block plant loot can double-roll:")
+        print("multi-block plant loot can double-roll or pay from the wrong half:")
         for problem in problems:
             print(f"  - {problem}")
         return 1

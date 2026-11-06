@@ -43,6 +43,7 @@ public class ModPlacedFeatures {
     public static final ResourceKey<PlacedFeature> DITCHWEED_PLACED_KEY = registerKey("ditchweed_placed");
     public static final ResourceKey<PlacedFeature> WARPED_KUSH_PLACED_KEY = registerKey("warped_kush_placed");
     public static final ResourceKey<PlacedFeature> RUDERALIS_PLACED_KEY = registerKey("ruderalis_placed");
+    public static final ResourceKey<PlacedFeature> CRIMSON_PLACED_KEY = registerKey("crimson_placed");
 
     /** One attempt per this many desert chunks. Most land nowhere near water, which is the real rarity. */
     private static final int BELDIA_RARITY = 8;
@@ -72,6 +73,20 @@ public class ModPlacedFeatures {
     private static final int RUDERALIS_RARITY = 384;
     /** A relict stand is a weed or two, never a field: a handful of tries within two blocks. */
     private static final int RUDERALIS_TRIES = 6;
+
+    /**
+     * One chunk in this many tries for wild Crimson Weed, under the crimson forest's canopy — every
+     * chunk, since <b>a scan is not a plant</b>: most start in netherrack, lava or open air, and the
+     * weeping vines already hang under many caps. Measured in real terrain on 1.21.11 (the test
+     * server's Nether, 1536 force-generated chunks round six located crimson forests, 740 of them
+     * forest), these numbers place <b>one plant per 16 forest chunks</b>, level with Warped Kush's
+     * measured one per 15. At rarity 4 and 8 scans it was one per 126.
+     */
+    private static final int CRIMSON_RARITY = 1;
+    /** Attempts in such a chunk to find a canopy overhead, scanning up from a random point. */
+    private static final int CRIMSON_SCANS = 6;
+    /** A few plants under one cap of a huge fungus: tries within three blocks, most of them misses. */
+    private static final int CRIMSON_TRIES = 12;
 
     /**
      * A wild patch is usually small and one in ten is a big one — vanilla's own 64-try flower
@@ -206,6 +221,31 @@ public class ModPlacedFeatures {
                         BlockPredicate.ONLY_IN_AIR_PREDICATE,
                         BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), List.of(Blocks.AIR)),
                         BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), List.of(Blocks.WARPED_NYLIUM)))));
+
+        // Crimson Weed: the canopy is overhead, not a heightmap surface, so this is placed the way
+        // vanilla places its cave vines -- a random point in the column, a scan up through air to the
+        // first canopy block, then one block down, under it. A scan that meets anything else first
+        // (netherrack, a stem, roots) finds nothing.
+        register(context, CRIMSON_PLACED_KEY,
+                features.getOrThrow(ModConfiguredFeatures.CRIMSON_KEY),
+                RarityFilter.onAverageOnceEvery(CRIMSON_RARITY),
+                CountPlacement.of(CRIMSON_SCANS),
+                InSquarePlacement.spread(),
+                PlacementUtils.RANGE_BOTTOM_TO_MAX_TERRAIN_HEIGHT,
+                EnvironmentScanPlacement.scanningFor(Direction.UP, BlockPredicate.matchesTag(ModTags.Blocks.CRIMSON_CANOPY),
+                        BlockPredicate.ONLY_IN_AIR_PREDICATE, 12),
+                OffsetPlacement.vertical(ConstantInt.of(-1)),
+                BiomeFilter.biome(),
+                // Then the patch: a few plants under one cap. Each wants a canopy block over its root
+                // and air for both halves, so a column is never cut short to a lone half -- and never
+                // hangs under a warped wart block, netherrack or anything else a live world would pop
+                // it off but chunk generation would not.
+                CountPlacement.of(CRIMSON_TRIES),
+                OffsetPlacement.ofTriangle(3, 1),
+                BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
+                        BlockPredicate.ONLY_IN_AIR_PREDICATE,
+                        BlockPredicate.matchesBlocks(new Vec3i(0, -1, 0), List.of(Blocks.AIR)),
+                        BlockPredicate.matchesTag(new Vec3i(0, 1, 0), ModTags.Blocks.CRIMSON_CANOPY))));
 
         // Ruderalis: a relict stand in the cold north, where the plant is actually from and where
         // vanilla already puts the trail ruins that hold its seeds. Each try wants air — a taiga is

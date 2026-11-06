@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "spliff",
+  "key": {
+    "B": "hempdustry:crimson_buds",
+    "H": "hempdustry:charas",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "BHB",
+    "PPP"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 2,
+            "strain": "hempdustry:crimson"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:charas"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:spliff"
+  }
+}

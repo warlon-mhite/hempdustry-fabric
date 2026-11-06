@@ -23,6 +23,7 @@ import com.warlonmhite.hempdustry.block.custom.SativaFlower;
 import com.warlonmhite.hempdustry.block.custom.SpaceCakeBlock;
 import com.warlonmhite.hempdustry.block.custom.RuderalisCropBlock;
 import com.warlonmhite.hempdustry.block.custom.WarpedKushCropBlock;
+import com.warlonmhite.hempdustry.block.custom.CrimsonWeedCropBlock;
 import com.warlonmhite.hempdustry.item.custom.EdibleBlockItem;
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.BlockPos;
@@ -370,6 +371,12 @@ public class ModBlocks {
     // seeds are only ever dug up.
     public static final Block RUDERALIS_CROP = registerBlockWithoutItem("ruderalis_crop", RuderalisCropBlock::new,
             BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT));
+
+    // No block item, for the reason on INDICA_CROP above. It is also Crimson Weed's wild plant, ripe
+    // under the crimson forest's canopy, and it sounds like the weeping vines it hangs beside. Never
+    // registered as flammable -- nothing that grows in the Nether burns.
+    public static final Block CRIMSON_CROP = registerBlockWithoutItem("crimson_crop", CrimsonWeedCropBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT).sound(SoundType.WEEPING_VINES));
 
 
     /**

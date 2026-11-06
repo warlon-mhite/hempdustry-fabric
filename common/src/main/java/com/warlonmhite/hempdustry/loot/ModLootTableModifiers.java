@@ -10,6 +10,7 @@ import net.minecraft.advancements.predicates.LocationPredicate;
 import net.minecraft.advancements.predicates.StatePropertiesPredicate;
 import com.warlonmhite.hempdustry.block.custom.RuderalisCropBlock;
 import com.warlonmhite.hempdustry.block.custom.WarpedKushCropBlock;
+import com.warlonmhite.hempdustry.block.custom.CrimsonWeedCropBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
@@ -199,6 +200,14 @@ public class ModLootTableModifiers {
     private static final float SNIFFER_SEED_CHANCE = 0.25f;
 
     /**
+     * Chance a bastion's hoglin stable chest holds Crimson Weed seeds -- the piglins' feed for their
+     * hoglins, beside the crimson fungus and roots vanilla already keeps there. That pool rolls 3-4
+     * times over 14 entries of weight 1, so one more entry would turn up in about 22% of chests; the
+     * table has four pools, so this is a roll of its own at that chance rather than a weight.
+     */
+    private static final float HOGLIN_STABLE_SEED_CHANCE = 0.22f;
+
+    /**
      * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
      *
      * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
@@ -305,12 +314,20 @@ public class ModLootTableModifiers {
     }
 
     /**
+     * Whether these seeds plant Crimson Weed, kept in the hoglin stables and nowhere else -- never
+     * with Warped Kush's in the Nether's other chests, its treasure or its bartering.
+     */
+    private static boolean isStableSeed(Item seeds) {
+        return plants(seeds) instanceof CrimsonWeedCropBlock;
+    }
+
+    /**
      * Whether these seeds belong to one place, and so stay out of the tall grass and the generic
      * chests that every other strain shares. Each such strain is found where it belongs, and leaving
      * all of them out keeps the others' share of those rolls what it was.
      */
     private static boolean isRegionBound(Item seeds) {
-        return isDesertSeed(seeds) || isNetherSeed(seeds) || isBuriedSeed(seeds);
+        return isDesertSeed(seeds) || isNetherSeed(seeds) || isBuriedSeed(seeds) || isStableSeed(seeds);
     }
 
     /** The block these seeds plant, or null for an item that plants nothing. */
@@ -322,9 +339,9 @@ public class ModLootTableModifiers {
      * One roll at {@code base} for 1-3 seeds of one plant strain: every strain whose seeds are
      * {@code found} there, at equal weight, so the chance stays {@code base} however many strains exist
      * and which you get is a coin flip. A region-bound plant is found only where it belongs -- Beldía
-     * in the desert, Warped Kush in the Nether, Ruderalis underground -- and every other strain
-     * everywhere else. Driven off the loaded strain registry, so a datapack strain appears here
-     * without touching this file.
+     * in the desert, Warped Kush in the Nether, Ruderalis underground, Crimson Weed in the hoglin
+     * stables -- and every other strain everywhere else. Driven off the loaded strain registry, so a
+     * datapack strain appears here without touching this file.
      */
     private static LootPool.Builder seedStash(HolderGetter.Provider registries, float base, Predicate<Item> found) {
         LootPool.Builder pool = LootPool.lootPool()
@@ -417,6 +434,8 @@ public class ModLootTableModifiers {
                             .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)));
                 }
                 table.addPool(pool);
+            } else if (key.equals(BuiltInLootTables.BASTION_HOGLIN_STABLE)) {
+                table.addPool(seedStash(registries, HOGLIN_STABLE_SEED_CHANCE, ModLootTableModifiers::isStableSeed));
             } else if (key.equals(BuiltInLootTables.BASTION_TREASURE)) {
                 LootPool.Builder pool = LootPool.lootPool()
                         .setRolls(ContextIntProviders.exactly(1))

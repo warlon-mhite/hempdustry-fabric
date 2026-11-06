@@ -106,6 +106,12 @@ public final class HempdustryGameTests {
         register("warped_kush_harvest_and_its_mobs", WarpedKushGameTest::warpedKushHarvestAndItsMobs);
         register("warped_kush_stays_in_the_nether", WarpedKushGameTest::warpedKushStaysInTheNether);
         register("wild_warped_kush_grows_ripe", WarpedKushGameTest::wildWarpedKushGrowsRipe);
+        register("crimson_hangs_from_the_canopy", CrimsonWeedGameTest::crimsonHangsFromTheCanopy);
+        register("breaking_the_anchor_pays_once", CrimsonWeedGameTest::breakingTheAnchorPaysOnce);
+        register("crimson_harvest_and_its_hoglins", CrimsonWeedGameTest::crimsonHarvestAndItsHoglins);
+        register("crimson_stays_in_the_crimson_forest", CrimsonWeedGameTest::crimsonStaysInTheCrimsonForest);
+        register("wild_crimson_grows_ripe", CrimsonWeedGameTest::wildCrimsonGrowsRipe);
+        register("crimson_smokes_strength_and_gives_you_away", CrimsonWeedGameTest::crimsonSmokesStrengthAndGivesYouAway);
         register("light_and_pot_change_the_harvest", IndoorGrowGameTest::lightAndPotChangeTheHarvest);
         register("stress_has_more_causes_than_light", PlantStressGameTest::stressHasMoreCausesThanLight);
         register("a_bee_step_is_a_growth_step", PlantStressGameTest::aBeeStepIsAGrowthStep);

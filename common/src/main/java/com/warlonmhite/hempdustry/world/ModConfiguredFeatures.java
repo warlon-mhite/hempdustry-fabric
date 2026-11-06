@@ -42,6 +42,7 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<Feature> DITCHWEED_KEY = registerKey("ditchweed");
     public static final ResourceKey<Feature> WARPED_KUSH_KEY = registerKey("warped_kush");
     public static final ResourceKey<Feature> RUDERALIS_KEY = registerKey("ruderalis");
+    public static final ResourceKey<Feature> CRIMSON_KEY = registerKey("crimson");
 
     public static ResourceKey<Feature> registerKey(String name) {
         return ResourceKey.create(Registries.FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
@@ -104,6 +105,17 @@ public class ModConfiguredFeatures {
         // RuderalisCropBlock) — is the placed feature's to say. Never in
         // #minecraft:can_spawn_from_bone_meal: the rarest seeds in the mod would fall out of a stack
         // of bone meal in every taiga.
+        // Crimson Weed grows wild as its own crop, RIPE, hanging from the crimson forest's canopy:
+        // Warped Kush's two-layer block column turned DOWN, the root (UPPER) at the spot and the tip
+        // (LOWER) under it. The canopy over it is the placed feature's to find.
+        BlockState ripeCrimson = ModBlocks.CRIMSON_CROP.defaultBlockState().setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
+        register(context, CRIMSON_KEY, new BlockColumnFeature(List.of(
+                BlockColumnFeature.layer(ConstantInt.of(1),
+                        BlockStateProvider.of(ripeCrimson.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER))),
+                BlockColumnFeature.layer(ConstantInt.of(1),
+                        BlockStateProvider.of(ripeCrimson.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER)))),
+                Direction.DOWN, BlockPredicate.ONLY_IN_AIR_PREDICATE, false));
+
         register(context, RUDERALIS_KEY, new SimpleBlockFeature(BlockStateProvider.of(
                 ModBlocks.RUDERALIS_CROP.defaultBlockState().setValue(CropBlock.AGE, CropBlock.MAX_AGE))));
     }

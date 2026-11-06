@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
@@ -23,6 +24,12 @@ public class ModTags {
         public static final TagKey<Biome> DITCHWEED_GEN = createTag("ditchweed_gen");
         public static final TagKey<Biome> WARPED_KUSH_GEN = createTag("warped_kush_gen");
         public static final TagKey<Biome> RUDERALIS_GEN = createTag("ruderalis_gen");
+        /**
+         * Where Crimson Weed grows wild: the crimson forest, and never the warped one. Not
+         * {@code #c:is_nether_forest}, which holds both forests -- a tag cannot take one back out.
+         * A modded crimson biome joins by name.
+         */
+        public static final TagKey<Biome> CRIMSON_GEN = createTag("crimson_gen");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }
@@ -224,8 +231,33 @@ public class ModTags {
          * does is folklore, so none of ours claims it. It is here for a datapack or an addon crop.
          */
         public static final TagKey<Block> MILDEW_RESISTANT = createTag("mildew_resistant");
+
+        /**
+         * The ceiling Crimson Weed hangs from, and generates under: the nether wart block, the crimson
+         * forest's canopy. Deliberately not {@code #minecraft:wart_blocks}, which holds the warped wart
+         * block too and would hang it in Warped Kush's forest. A tag of our own, so a pack or a Nether
+         * mod can add its own canopy.
+         */
+        public static final TagKey<Block> CRIMSON_CANOPY = createTag("crimson_canopy");
+
         private static TagKey<Block> createTag(String name) {
             return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
+        }
+    }
+
+    public static class MobEffects {
+
+        /**
+         * Effects the {@code debuffs} switch takes away although vanilla does not file them as
+         * harmful. Glowing is neutral to vanilla because it does nothing to the body, but every
+         * vanilla source of it -- a spectral arrow, a raid bell -- puts it on someone to give them
+         * away, and as a strain's cost it is one. Bad Omen and the other omens are left out: vanilla
+         * has a player take those on by choice. A pack may add to it.
+         */
+        public static final TagKey<MobEffect> COUNTS_AS_HARMFUL = createTag("counts_as_harmful");
+
+        private static TagKey<MobEffect> createTag(String name) {
+            return TagKey.create(Registries.MOB_EFFECT, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }
     }
 }

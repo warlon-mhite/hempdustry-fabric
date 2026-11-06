@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -34,6 +35,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * {@code age 0..7}. The canonical age lives on the LOWER half; the UPPER half
  * mirrors it. The plant is planted as a single LOWER stalk and grows into its
  * two-tall form once the lower half reaches {@link #DOUBLE_BLOCK_AGE}.
+ *
+ * <h2>A plant that hangs</h2>
+ *
+ * A subclass whose {@link #hangs} is {@code true} grows the same plant upside down, from a ceiling,
+ * the way weeping vines do. Everything above then holds with the halves swapped: the <b>root</b> is
+ * the half on the block the plant grows from — the LOWER of a standing plant, the UPPER of a hanging
+ * one — and the root carries the age, the trim flags and the light record. The root has to be the
+ * anchored half, never the tip: with the tip canonical, losing the tip would leave an anchored stump
+ * with no age at all. Every reference below to "the lower half" means the root.
  */
 public class IndicaCropBlock extends CropBlock implements Mildew.Host {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
@@ -58,6 +68,18 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
             Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
     private static final VoxelShape UPPER_SHAPE =
             Block.box(0.0D, 0.0D, 0.0D, 16.0D, 12.0D, 16.0D);
+    /** {@link #LOWER_SHAPE_BY_AGE} turned upside down, for a root hanging from the block above. */
+    private static final VoxelShape[] HANGING_ROOT_SHAPE_BY_AGE = new VoxelShape[]{
+            Block.box(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 10.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 8.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 6.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 3.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 1.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
+    private static final VoxelShape HANGING_TIP_SHAPE =
+            Block.box(0.0D, 4.0D, 0.0D, 16.0D, 16.0D, 16.0D);
 
     public IndicaCropBlock(Properties settings) {
         super(settings);
@@ -65,11 +87,45 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
         // resolves to *true*, which would plant every seed pre-trimmed. See its javadoc.
         this.registerDefaultState(Defoliation.unworked(this.stateDefinition.any()
                 .setValue(this.getAgeProperty(), 0)
-                .setValue(HALF, DoubleBlockHalf.LOWER)));
+                .setValue(HALF, this.rootHalf())));
     }
 
-    private static boolean isLower(BlockState state) {
-        return state.getValue(HALF) == DoubleBlockHalf.LOWER;
+    /**
+     * Whether this plant hangs from a ceiling and grows downward instead of standing on a floor. Read
+     * in the constructor, so an override must return a constant.
+     */
+    protected boolean hangs() {
+        return false;
+    }
+
+    /** The half that carries the plant: on the block it grows from, and canonical. */
+    private DoubleBlockHalf rootHalf() {
+        return this.hangs() ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER;
+    }
+
+    /** The half the root grows into, once the plant is tall enough for one. */
+    private DoubleBlockHalf tipHalf() {
+        return this.hangs() ? DoubleBlockHalf.LOWER : DoubleBlockHalf.UPPER;
+    }
+
+    /** The way the plant grows from its root: up from a floor, or down from a ceiling. */
+    private Direction growth() {
+        return this.hangs() ? Direction.DOWN : Direction.UP;
+    }
+
+    /** Whether this state is the plant's root, where the age and the trim flags live. */
+    private boolean isRoot(BlockState state) {
+        return state.getValue(HALF) == this.rootHalf();
+    }
+
+    /** The block a root at {@code rootPos} grows from: its soil, or its ceiling. */
+    private BlockPos anchorOf(BlockPos rootPos) {
+        return rootPos.relative(this.growth().getOpposite());
+    }
+
+    /** The root of the plant that {@code state} at {@code pos} belongs to, if it is a whole plant. */
+    private BlockPos rootOf(BlockPos pos, BlockState state) {
+        return this.isRoot(state) ? pos : pos.relative(this.growth().getOpposite());
     }
 
     private BlockState stateFor(int age, DoubleBlockHalf half) {
@@ -100,28 +156,31 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
-            return UPPER_SHAPE;
+        if (!this.isRoot(state)) {
+            return this.hangs() ? HANGING_TIP_SHAPE : UPPER_SHAPE;
         }
-        return LOWER_SHAPE_BY_AGE[Math.min(this.getAge(state), LOWER_SHAPE_BY_AGE.length - 1)];
+        VoxelShape[] byAge = this.hangs() ? HANGING_ROOT_SHAPE_BY_AGE : LOWER_SHAPE_BY_AGE;
+        return byAge[Math.min(this.getAge(state), byAge.length - 1)];
     }
 
     // ----- support / placement -----
-    // The UPPER half only survives directly above a LOWER half of this block. The
-    // LOWER half uses the standard crop rule (enough light + farmland below), which
-    // also prevents seeds from being placed onto an existing plant. VegetationBlock's
-    // updateShape (inherited) breaks either half as soon as canSurvive
-    // fails, so removing the lower half cascades to the upper.
+    // The tip only survives right beside a root of this block, on the side away from the anchor. The
+    // root uses the standard crop rule (enough light + the right ground), which also prevents seeds
+    // from being placed onto an existing plant. VegetationBlock's updateShape (inherited) breaks either
+    // half as soon as canSurvive fails, so removing the root cascades to the tip -- and removing the
+    // anchor cascades to both, the root first.
     @Override
     protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
-        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
-            BlockState below = world.getBlockState(pos.below());
-            return below.is(this) && below.getValue(HALF) == DoubleBlockHalf.LOWER;
+        if (!this.isRoot(state)) {
+            BlockState root = world.getBlockState(this.rootOf(pos, state));
+            return root.is(this) && this.isRoot(root);
         }
-        if (!this.needsLight()) {
-            // CropBlock's rule is light 8 and the soil; a plant that needs no light keeps the soil.
-            BlockPos floor = pos.below();
-            return this.mayPlaceOn(world.getBlockState(floor), world, floor);
+        if (!this.needsLight() || this.hangs()) {
+            // CropBlock's rule is light 8 and the soil below; a plant that needs no light keeps the
+            // ground, and a hanging one reads it above instead.
+            BlockPos anchor = this.anchorOf(pos);
+            return (!this.needsLight() || CropBlock.hasSufficientLight(world, pos))
+                    && this.mayPlaceOn(world.getBlockState(anchor), world, anchor);
         }
         return super.canSurvive(state, world, pos);
     }
@@ -158,7 +217,7 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
         // upper half is missing or stale (see randomTick), which can happen at max age too. Vanilla
         // crops do stop here, so this is a cost vanilla does not pay — which is why randomTick
         // checks isShapeSettled before writing anything, keeping a settled plant to one block read.
-        return isLower(state);
+        return this.isRoot(state);
     }
 
     /**
@@ -170,13 +229,14 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
      */
     @Override
     public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
-        return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+        return this.isRoot(state) && this.getAge(state) < this.maxAgeFor(world, pos);
     }
 
     /**
-     * The highest age this plant may grow to at {@code pos} given what is above it. A plant needs
-     * the block above free from {@link #DOUBLE_BLOCK_AGE} onwards, so one that is boxed in stops
-     * one stage short of that and waits.
+     * The highest age this plant may grow to at {@code pos} given what is above it (below it, for a
+     * hanging plant). A plant needs that block free from {@link #DOUBLE_BLOCK_AGE} onwards, so one
+     * that is boxed in stops one stage short of that and waits. Air only: a hanging plant over lava
+     * or water waits too, rather than dangling its tip into it.
      *
      * <p>Holding the <em>age</em> back is what keeps the plant honest, rather than letting the age
      * run ahead and reconciling the shape afterwards: age is what the loot table and the models
@@ -184,13 +244,13 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
      * needed the second block at all.
      */
     private int maxAgeFor(LevelReader world, BlockPos pos) {
-        return canOccupy(world, pos.above()) ? this.getMaxAge() : DOUBLE_BLOCK_AGE - 1;
+        return canOccupy(world, pos.relative(this.growth())) ? this.getMaxAge() : DOUBLE_BLOCK_AGE - 1;
     }
 
     /** Whether the plant may grow into {@code pos} — empty space, or a half it already owns. */
     private boolean canOccupy(LevelReader world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
-        return state.isAir() || (state.is(this) && !isLower(state));
+        return state.isAir() || (state.is(this) && !this.isRoot(state));
     }
 
     /**
@@ -213,12 +273,12 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
      */
     @Override
     public int getAge(BlockState state) {
-        return isLower(state) ? super.getAge(state) : this.getMaxAge();
+        return this.isRoot(state) ? super.getAge(state) : this.getMaxAge();
     }
 
     @Override
     protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-        if (!isLower(state)) {
+        if (!this.isRoot(state)) {
             return;
         }
         int age = this.getAge(state);
@@ -226,7 +286,7 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
         if (age < this.getMaxAge() && (!this.needsLight() || world.getRawBrightness(pos, 0) >= 9)) {
             // The ground answers for itself when it is a bed of ours (a pot or a tray): its own
             // moisture, and no crowding penalty, because the plant has soil or solution to itself.
-            BlockState floor = world.getBlockState(pos.below());
+            BlockState floor = world.getBlockState(this.anchorOf(pos));
             float moisture;
             float bed = 1.0F;
             if (floor.getBlock() instanceof GrowMedium medium) {
@@ -269,14 +329,14 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
      * there.) {@code lower} is the lower half, whose records the upper half copies.
      */
     private boolean isShapeSettled(LevelReader world, BlockPos pos, int age, BlockState lower) {
-        BlockState above = world.getBlockState(pos.above());
-        if (above == this.stateFor(age, DoubleBlockHalf.UPPER, lower)) {
+        BlockState above = world.getBlockState(pos.relative(this.growth()));
+        if (above == this.stateFor(age, this.tipHalf(), lower)) {
             return true;
         }
         // An upper half at a stale age, or with a stale copy of the record, needs syncing; a gap
         // needs sprouting once the plant is tall enough for one. Anything else — a boxed-in plant,
         // or one too young — is already settled.
-        boolean upperPresent = above.is(this) && above.getValue(HALF) == DoubleBlockHalf.UPPER;
+        boolean upperPresent = above.is(this) && above.getValue(HALF) == this.tipHalf();
         return !upperPresent && !(age >= DOUBLE_BLOCK_AGE && above.isAir());
     }
 
@@ -295,7 +355,7 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
 
     /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
     private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
-        if (!isLower(state)) {
+        if (!this.isRoot(state)) {
             return;
         }
         this.setAge(world, pos, this.getAge(state) + this.getBonemealAgeIncrease(world),
@@ -342,14 +402,14 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
      */
     private void setAge(Level world, BlockPos pos, int newAge, float extraStress, RandomSource random) {
         BlockState current = world.getBlockState(pos);
-        int currentAge = current.is(this) && isLower(current) ? this.getAge(current) : 0;
+        int currentAge = current.is(this) && this.isRoot(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
         newAge = Math.min(newAge, Math.max(currentAge, this.maxAgeFor(world, pos)));
 
         // stateFor rebuilds from defaultBlockState(), so the lower half's trim flags have to be
         // carried across explicitly or every growth step would quietly wipe them — and randomTick
         // calls this on every tick, not only when the plant actually ages.
-        BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, DoubleBlockHalf.LOWER));
+        BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, this.rootHalf()));
         if (newAge > currentAge && current.is(this)) {
             if (this.recordsLight()) {
                 lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
@@ -358,7 +418,7 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
             lower = lower.setValue(Mildew.PROPERTY, Mildew.afterStep(world, pos, current,
                     current.getValue(Mildew.PROPERTY), random));
             if (newAge == this.getMaxAge()) {
-                BlockPos floorPos = pos.below();
+                BlockPos floorPos = this.anchorOf(pos);
                 BlockState floor = world.getBlockState(floorPos);
                 if (floor.getBlock() instanceof GrowMedium medium) {
                     medium.spend(world, floorPos, floor);
@@ -367,13 +427,13 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
         }
         world.setBlock(pos, lower, Block.UPDATE_CLIENTS);
 
-        BlockPos upPos = pos.above();
+        BlockPos upPos = pos.relative(this.growth());
         BlockState above = world.getBlockState(upPos);
-        boolean upperPresent = above.is(this) && above.getValue(HALF) == DoubleBlockHalf.UPPER;
+        boolean upperPresent = above.is(this) && above.getValue(HALF) == this.tipHalf();
         if (upperPresent) {
-            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, lower), Block.UPDATE_CLIENTS);
+            world.setBlock(upPos, this.stateFor(newAge, this.tipHalf(), lower), Block.UPDATE_CLIENTS);
         } else if (newAge >= DOUBLE_BLOCK_AGE && above.isAir()) {
-            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, lower), Block.UPDATE_CLIENTS);
+            world.setBlock(upPos, this.stateFor(newAge, this.tipHalf(), lower), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -392,11 +452,11 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                              Player player, InteractionHand hand, BlockHitResult hit) {
-        BlockPos lowerPos = isLower(state) ? pos : pos.below();
+        BlockPos lowerPos = this.rootOf(pos, state);
         BlockState lower = world.getBlockState(lowerPos);
-        if (lower.is(this) && isLower(lower)) {
+        if (lower.is(this) && this.isRoot(lower)) {
             // A bottle on the plant waters its pot: that is where a player aims.
-            InteractionResult watered = GrowPotBlock.tryWater(stack, world, lowerPos.below(), player, hand);
+            InteractionResult watered = GrowPotBlock.tryWater(stack, world, this.anchorOf(lowerPos), player, hand);
             if (watered != null) {
                 return watered;
             }
@@ -423,7 +483,7 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
     @Override
     public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
         if (state.getValue(AGE) >= this.getMaxAge()) {
-            RipeAroma.randomDisplayTick(world, pos, random);
+            RipeAroma.randomDisplayTick(world, pos, random, this.growth());
         }
         Mildew.animateTick(state, world, pos, random);
     }
@@ -437,26 +497,26 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host {
         if (!world.isClientSide()) {
             // The trim flags and the canonical age both live on the LOWER half, so the harvest
             // criterion is fed from there whichever half the player actually broke.
-            BlockPos canonicalPos = state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;
+            BlockPos canonicalPos = this.rootOf(pos, state);
             BlockState canonical = world.getBlockState(canonicalPos);
-            if (canonical.is(this) && canonical.getValue(HALF) == DoubleBlockHalf.LOWER
+            if (canonical.is(this) && this.isRoot(canonical)
                     && this.isMaxAge(canonical)) {
                 HarvestHempCriterion.trigger(player, (ServerLevel) world, canonicalPos, canonical);
             }
 
-            if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
-                BlockPos lowerPos = pos.below();
-                BlockState lower = world.getBlockState(lowerPos);
-                if (lower.is(this) && lower.getValue(HALF) == DoubleBlockHalf.LOWER) {
+            if (!this.isRoot(state)) {
+                BlockPos lowerPos = canonicalPos;
+                BlockState lower = canonical;
+                if (lower.is(this) && this.isRoot(lower)) {
                     if (!player.isCreative()) {
                         dropResources(lower, world, lowerPos, null, player, player.getMainHandItem());
                     }
                     world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
                 }
             } else {
-                BlockPos upperPos = pos.above();
+                BlockPos upperPos = pos.relative(this.growth());
                 BlockState upper = world.getBlockState(upperPos);
-                if (upper.is(this) && upper.getValue(HALF) == DoubleBlockHalf.UPPER) {
+                if (upper.is(this) && upper.getValue(HALF) == this.tipHalf()) {
                     world.setBlock(upperPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
                 }
             }

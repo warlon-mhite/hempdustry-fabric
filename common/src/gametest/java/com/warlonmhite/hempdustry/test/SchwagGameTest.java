@@ -330,6 +330,10 @@ public final class SchwagGameTest {
                 Defoliation.unworked(ModBlocks.WARPED_KUSH_CROP.defaultBlockState()
                         .setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER)
                         .setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE)),
+                // Hanging, so its root is the UPPER half: the only one its table pays from.
+                Defoliation.unworked(ModBlocks.CRIMSON_CROP.defaultBlockState()
+                        .setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER)
+                        .setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE)),
                 // One block, no trims and no light record -- and the healthy odds all the same.
                 ModBlocks.RUDERALIS_CROP.defaultBlockState().setValue(net.minecraft.world.level.block.CropBlock.AGE,
                         net.minecraft.world.level.block.CropBlock.MAX_AGE));
@@ -353,6 +357,7 @@ public final class SchwagGameTest {
         Item buds = state.is(ModBlocks.INDICA_CROP) ? ModItems.INDICA_BUDS
                 : state.is(ModBlocks.BELDIA_CROP) ? ModItems.BELDIA_BUDS
                 : state.is(ModBlocks.WARPED_KUSH_CROP) ? ModItems.WARPED_KUSH_BUDS
+                : state.is(ModBlocks.CRIMSON_CROP) ? ModItems.CRIMSON_BUDS
                 : state.is(ModBlocks.RUDERALIS_CROP) ? ModItems.RUDERALIS_BUDS : ModItems.SATIVA_BUDS;
         int[] counts = new int[2];
         for (ItemStack stack : table.getRandomItems(params, seed)) {

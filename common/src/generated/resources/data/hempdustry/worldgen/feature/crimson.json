@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:block_column",
+  "allowed_placement": {
+    "type": "minecraft:matching_block_tag",
+    "tag": "minecraft:air"
+  },
+  "direction": "down",
+  "layers": [
+    {
+      "height": 1,
+      "provider": {
+        "id": "hempdustry:crimson_crop",
+        "properties": {
+          "age": "7",
+          "condition": "natural",
+          "half": "upper",
+          "mildew": "clean",
+          "rubbed": "false",
+          "trimmed_early": "false",
+          "trimmed_late": "false"
+        }
+      }
+    },
+    {
+      "height": 1,
+      "provider": {
+        "id": "hempdustry:crimson_crop",
+        "properties": {
+          "age": "7",
+          "condition": "natural",
+          "half": "lower",
+          "mildew": "clean",
+          "rubbed": "false",
+          "trimmed_early": "false",
+          "trimmed_late": "false"
+        }
+      }
+    }
+  ],
+  "prioritize_tip": false
+}

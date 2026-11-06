@@ -1,0 +1,6 @@
+{
+  "parent": "hempdustry:block/hanging_cross",
+  "textures": {
+    "cross": "hempdustry:block/crimson_crop_stage5"
+  }
+}
