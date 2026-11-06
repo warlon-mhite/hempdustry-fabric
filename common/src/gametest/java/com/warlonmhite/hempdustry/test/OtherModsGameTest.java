@@ -216,6 +216,94 @@ public final class OtherModsGameTest {
         return key.toString();
     }
 
+    /**
+     * Every recipe type of ours with fields has a KubeJS schema, and the schema names exactly the fields its
+     * recipes are written with: without one a pack's scripts cannot rewrite our recipes, and a schema that
+     * misses a field the format later gains would drop it from every recipe a script touches. A schema made
+     * from vanilla's grid schemas names its parent instead. KubeJS 8 names a schema's factory
+     * {@code recipe_factory}; an older key is passed over without a word, and the grid recipes would lose
+     * KubeJS's own handling.
+     *
+     * <p>KubeGroovy, the Groovy fork of KubeJS, reads its schemas from {@code kubegroovy/recipe_schema} in the
+     * same format under its own names: each of ours there is the KubeJS one with {@code kubejs:} as
+     * {@code kubegroovy:}, the {@code kjs} functions as {@code kgy}, and a result as {@code item_stack_template},
+     * as KubeGroovy's copies of vanilla's own schemas are.
+     */
+    public static void everyRecipeTypeOfOursHasAKubeJsSchema(GameTestHelper context) {
+        Map<String, Set<String>> fields = new TreeMap<>();
+        Map<String, JsonObject> schemas = new TreeMap<>();
+        Map<String, String> kubeJsFiles = new TreeMap<>();
+        Map<String, String> kubeGroovyFiles = new TreeMap<>();
+        String kubeJs = "data/" + Hempdustry.MOD_ID + "/kubejs/recipe_schema/";
+        String kubeGroovy = "data/" + Hempdustry.MOD_ID + "/kubegroovy/recipe_schema/";
+        for (Map.Entry<String, Path> file : Sweep.modFiles().entrySet()) {
+            String path = file.getKey();
+            if (path.startsWith(kubeJs) && path.endsWith(".json")) {
+                String type = path.substring(kubeJs.length(), path.length() - ".json".length());
+                schemas.put(Hempdustry.MOD_ID + ":" + type, Sweep.json(file.getValue()).getAsJsonObject());
+                kubeJsFiles.put(type, Sweep.json(file.getValue()).toString());
+            } else if (path.startsWith(kubeGroovy) && path.endsWith(".json")) {
+                String type = path.substring(kubeGroovy.length(), path.length() - ".json".length());
+                kubeGroovyFiles.put(type, Sweep.json(file.getValue()).toString());
+            } else if (path.startsWith("data/") && path.contains("/recipe/") && path.endsWith(".json")) {
+                JsonObject recipe = Sweep.json(file.getValue()).getAsJsonObject();
+                String type = recipe.has("type") ? recipe.get("type").getAsString() : "";
+                if (type.startsWith(Hempdustry.MOD_ID + ":")) {
+                    Set<String> keys = fields.computeIfAbsent(type, t -> new TreeSet<>());
+                    recipe.keySet().stream().filter(k -> !k.equals("type") && !k.contains("conditions")).forEach(keys::add);
+                }
+            }
+        }
+        Map<String, String> findings = new TreeMap<>();
+        for (Map.Entry<String, Set<String>> type : fields.entrySet()) {
+            if (type.getValue().isEmpty() || type.getValue().equals(Set.of("category"))) {
+                continue; // a special recipe with nothing to rewrite (packing)
+            }
+            JsonObject schema = schemas.get(type.getKey());
+            if (schema == null) {
+                findings.put(type.getKey(), "no kubejs/recipe_schema file, though its recipes have " + type.getValue());
+                continue;
+            }
+            if (schema.has("factory")) {
+                findings.put(type.getKey(), "names its factory as \"factory\", which KubeJS 8 does not read (\"recipe_factory\")");
+            }
+            if (!schema.has("keys")) {
+                String parent = schema.has("parent") ? schema.get("parent").getAsString() : "";
+                if (!parent.equals("minecraft:shaped") && !parent.equals("minecraft:shapeless")) {
+                    findings.put(type.getKey(), "a schema with neither keys nor a vanilla grid parent: " + schema);
+                }
+                continue;
+            }
+            Set<String> named = new TreeSet<>();
+            schema.getAsJsonArray("keys").forEach(k -> named.add(k.getAsJsonObject().get("name").getAsString()));
+            named.removeIf(k -> k.startsWith("kubejs:") || k.equals("show_notification"));
+            if (!named.containsAll(type.getValue())) {
+                Set<String> missing = new TreeSet<>(type.getValue());
+                missing.removeAll(named);
+                findings.put(type.getKey(), "the schema does not name " + missing);
+            }
+        }
+        for (Map.Entry<String, String> file : kubeJsFiles.entrySet()) {
+            String expected = file.getValue()
+                    .replace("\"kubejs:", "\"kubegroovy:")
+                    .replaceAll("\"kjs([A-Z])", "\"kgy$1")
+                    .replace("\"type\":\"item_stack\"", "\"type\":\"item_stack_template\"");
+            String actual = kubeGroovyFiles.get(file.getKey());
+            if (actual == null) {
+                findings.put("kubegroovy/" + file.getKey(), "no KubeGroovy copy of the KubeJS schema");
+            } else if (!actual.equals(expected)) {
+                findings.put("kubegroovy/" + file.getKey(), "is not the KubeJS schema in KubeGroovy's names: " + actual);
+            }
+        }
+        kubeGroovyFiles.keySet().stream().filter(type -> !kubeJsFiles.containsKey(type))
+                .forEach(type -> findings.put("kubegroovy/" + type, "a KubeGroovy schema with no KubeJS one"));
+        Sweep.atLeast(context, "recipe types of ours", fields.size(), 7);
+        Sweep.atLeast(context, "KubeGroovy schemas of ours", kubeGroovyFiles.size(), 6);
+        Sweep.report(context, "every recipe type of ours has a KubeJS and a KubeGroovy schema naming its fields",
+                findings, Map.of());
+        context.succeed();
+    }
+
     public static void growingAsksTheLoaderAndTellsIt(GameTestHelper context) {
         TestPlatform.CropGrowthProbe probe = TestPlatform.INSTANCE.cropGrowthProbe();
         if (probe == null) {

@@ -1,0 +1,32 @@
+{
+	"keys": [
+		{
+			"name": "result",
+			"role": "output",
+			"type": "item_stack_template"
+		},
+		{
+			"name": "container",
+			"role": "input",
+			"type": "ingredient"
+		},
+		{
+			"name": "hemp",
+			"role": "input",
+			"type": "ingredient"
+		},
+		{
+			"name": "washed_hemp",
+			"role": "input",
+			"type": "ingredient"
+		},
+		{
+			"name": "scorched_hemp",
+			"role": "input",
+			"type": "ingredient"
+		}
+	],
+	"unique": [
+		"result"
+	]
+}

@@ -197,6 +197,7 @@ public final class HempdustryGameTests {
         register("a_plant_with_no_room_to_grow_tells_nobody_it_grew",
                 OtherModsGameTest::aPlantWithNoRoomToGrowTellsNobodyItGrew);
         register("every_recipe_for_another_mod_waits_for_it", OtherModsGameTest::everyRecipeForAnotherModWaitsForIt);
+        register("every_recipe_type_of_ours_has_a_kubejs_schema", OtherModsGameTest::everyRecipeTypeOfOursHasAKubeJsSchema);
         register("every_seed_a_villager_plants_stands_on_farmland",
                 OtherModsGameTest::everySeedAVillagerPlantsStandsOnFarmland);
         register("a_raw_growth_step_keeps_what_the_plant_went_through", RawWritesGameTest::aRawGrowthStepKeepsWhatThePlantWentThrough);
