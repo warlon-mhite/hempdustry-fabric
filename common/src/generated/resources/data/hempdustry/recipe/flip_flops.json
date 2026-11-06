@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "#": "hempdustry:hemp_fiber"
+    "#": "#c:fiber_hemp"
   },
   "pattern": [
     "# #",

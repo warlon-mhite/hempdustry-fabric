@@ -30,6 +30,11 @@ public class ModTags {
 
         public static final TagKey<Item> HEMP_SEEDS = createTag("hemp_seeds");
         /**
+         * What feeds a Grow Pot or a Hydro Tray: every {@code c:fertilizers} item, plus the fertilisers of
+         * mods that leave theirs out of it (Immersive Engineering's, Farming for Blockheads' three).
+         */
+        public static final TagKey<Item> FERTILIZERS = createTag("fertilizers");
+        /**
          * What the Infuser accepts in its milk slot. A tag rather than a hard {@code milk_bucket}
          * check so another mod's milk works, and so a datapack can widen it without touching code.
          */

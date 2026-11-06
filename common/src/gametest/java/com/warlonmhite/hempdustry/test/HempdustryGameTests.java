@@ -191,6 +191,7 @@ public final class HempdustryGameTests {
         register("growing_asks_the_loader_and_tells_it", OtherModsGameTest::growingAsksTheLoaderAndTellsIt);
         register("a_plant_with_no_room_to_grow_tells_nobody_it_grew",
                 OtherModsGameTest::aPlantWithNoRoomToGrowTellsNobodyItGrew);
+        register("every_recipe_for_another_mod_waits_for_it", OtherModsGameTest::everyRecipeForAnotherModWaitsForIt);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
@@ -20,9 +23,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * What other mods read off our plants, held to what they expect of any crop.
@@ -82,6 +88,127 @@ public final class OtherModsGameTest {
         }
         context.assertTrue(TallHemp.isRoot(Blocks.WHEAT.defaultBlockState()), "wheat is not its own root");
         context.succeed();
+    }
+
+    /**
+     * Every recipe we ship for another mod's machine names that mod in each loader's conditions, so without it
+     * the file is never parsed (its recipe type would not exist, and the log gate would fail on the error) --
+     * and so a loader never loads it on the other's key alone. A file may instead be turned off for one loader
+     * ({@code neoforge:false}, or Fabric's {@code not} of {@code true}) when the partner writes it differently there, as Farmer's
+     * Delight writes its knife; then the other loader must wait for the mod, and a twin with the same type,
+     * ingredients and results must load on the loader this one is off for, so no recipe exists on one loader
+     * only by accident. A file both loaders turn off is dead data.
+     */
+    public static void everyRecipeForAnotherModWaitsForIt(GameTestHelper context) {
+        Map<String, String> findings = new TreeMap<>();
+        // What a loader-only file needs a twin of: the recipe without its conditions and its loader's own form.
+        Map<String, Set<String>> loadedOnNeoForgeOnly = new TreeMap<>();
+        Map<String, Set<String>> loadedOnFabricOnly = new TreeMap<>();
+        int seen = 0;
+        for (Map.Entry<String, Path> file : Sweep.modFiles().entrySet()) {
+            String path = file.getKey();
+            if (!path.startsWith("data/") || !path.contains("/recipe/") || !path.endsWith(".json")) {
+                continue;
+            }
+            JsonObject recipe = Sweep.json(file.getValue()).getAsJsonObject();
+            String type = recipe.has("type") ? recipe.get("type").getAsString() : "";
+            String mod = type.contains(":") ? type.substring(0, type.indexOf(':')) : "minecraft";
+            // A crafting-table recipe for another mod's item (its rope, its sack) waits for that mod too: without
+            // it the result names an item that does not exist.
+            if (mod.equals("minecraft") && recipe.has("result") && recipe.get("result").isJsonObject()
+                    && recipe.getAsJsonObject("result").has("id")) {
+                String result = recipe.getAsJsonObject("result").get("id").getAsString();
+                mod = result.contains(":") ? result.substring(0, result.indexOf(':')) : "minecraft";
+            }
+            if (mod.equals("minecraft") || mod.equals(Hempdustry.MOD_ID)) {
+                continue;
+            }
+            seen++;
+            Gate neo = neoForgeGate(recipe.get("neoforge:conditions"), mod);
+            Gate fabric = fabricGate(recipe.get("fabric:load_conditions"), mod);
+            if (neo == Gate.OTHER) {
+                findings.put(path, "neoforge:conditions neither wait for " + mod + " nor turn the file off: "
+                        + recipe.get("neoforge:conditions"));
+            } else if (fabric == Gate.OTHER) {
+                findings.put(path, "fabric:load_conditions neither wait for " + mod + " nor turn the file off: "
+                        + recipe.get("fabric:load_conditions"));
+            } else if (neo == Gate.OFF && fabric == Gate.OFF) {
+                findings.put(path, "both loaders turn it off: dead data");
+            } else if (neo == Gate.OFF) {
+                loadedOnFabricOnly.computeIfAbsent(twinKey(recipe), k -> new TreeSet<>()).add(path);
+            } else if (fabric == Gate.OFF) {
+                loadedOnNeoForgeOnly.computeIfAbsent(twinKey(recipe), k -> new TreeSet<>()).add(path);
+            }
+        }
+        int twins = 0;
+        for (Map.Entry<String, Set<String>> neoOnly : loadedOnNeoForgeOnly.entrySet()) {
+            if (loadedOnFabricOnly.containsKey(neoOnly.getKey())) {
+                twins++;
+            } else {
+                neoOnly.getValue().forEach(path -> findings.put(path, "loads on NeoForge only, and no file "
+                        + "loading on Fabric only has its type, ingredients and results"));
+            }
+        }
+        for (Map.Entry<String, Set<String>> fabricOnly : loadedOnFabricOnly.entrySet()) {
+            if (!loadedOnNeoForgeOnly.containsKey(fabricOnly.getKey())) {
+                fabricOnly.getValue().forEach(path -> findings.put(path, "loads on Fabric only, and no file "
+                        + "loading on NeoForge only has its type, ingredients and results"));
+            }
+        }
+        // On Minecraft 1.21.11 the partners with recipes are Farmer's Delight (Refabricated) alone, and it
+        // writes its knife the same way on every loader it has, so no file here is written once per loader.
+        Sweep.atLeast(context, "recipes for other mods' machines", seen, 2);
+        Sweep.report(context, "every recipe for another mod's machine loads only with that mod", findings, Map.of());
+        context.succeed();
+    }
+
+    /** What one loader's conditions do with a file: wait for the mod, turn it off, or something else. */
+    private enum Gate { WAITS, OFF, OTHER }
+
+    private static Gate neoForgeGate(JsonElement conditions, String mod) {
+        if (conditions == null || !conditions.isJsonArray()) {
+            return Gate.OTHER;
+        }
+        for (JsonElement condition : conditions.getAsJsonArray()) {
+            JsonObject c = condition.getAsJsonObject();
+            String type = c.has("type") ? c.get("type").getAsString() : "";
+            if (type.equals("neoforge:mod_loaded") && c.has("modid") && c.get("modid").getAsString().equals(mod)) {
+                return Gate.WAITS;
+            }
+            if (type.equals("neoforge:false")) {
+                return Gate.OFF;
+            }
+        }
+        return Gate.OTHER;
+    }
+
+    private static Gate fabricGate(JsonElement conditions, String mod) {
+        if (conditions == null || !conditions.isJsonArray()) {
+            return Gate.OTHER;
+        }
+        for (JsonElement condition : conditions.getAsJsonArray()) {
+            JsonObject c = condition.getAsJsonObject();
+            String type = c.has("condition") ? c.get("condition").getAsString() : "";
+            if (type.equals("fabric:all_mods_loaded") && c.has("values")
+                    && c.getAsJsonArray("values").toString().contains("\"" + mod + "\"")) {
+                return Gate.WAITS;
+            }
+            JsonObject inner = c.has("value") && c.get("value").isJsonObject() ? c.getAsJsonObject("value") : null;
+            if (type.equals("fabric:not") && inner != null && inner.has("condition")
+                    && inner.get("condition").getAsString().equals("fabric:true")) {
+                return Gate.OFF;
+            }
+        }
+        return Gate.OTHER;
+    }
+
+    /** A recipe's type, ingredients and results: what a file written once per loader must share with its twin. */
+    private static String twinKey(JsonObject recipe) {
+        StringBuilder key = new StringBuilder();
+        for (String field : List.of("type", "ingredients", "ingredient", "result", "results")) {
+            key.append(field).append('=').append(recipe.get(field)).append(';');
+        }
+        return key.toString();
     }
 
     public static void growingAsksTheLoaderAndTellsIt(GameTestHelper context) {
