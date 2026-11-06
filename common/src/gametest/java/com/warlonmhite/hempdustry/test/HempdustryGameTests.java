@@ -191,6 +191,11 @@ public final class HempdustryGameTests {
         register("the_munchies_want_hunger_and_an_empty_stomach",
                 FourTwentyGameTest::theMunchiesWantHungerAndAnEmptyStomach);
         register("every_outfit_comes_in_a_baby_size", BabyLayerGameTest::everyOutfitComesInABabySize);
+        register("every_block_of_a_plant_tells_its_true_age", OtherModsGameTest::everyBlockOfAPlantTellsItsTrueAge);
+        register("only_the_root_is_the_root", OtherModsGameTest::onlyTheRootIsTheRoot);
+        register("growing_asks_the_loader_and_tells_it", OtherModsGameTest::growingAsksTheLoaderAndTellsIt);
+        register("a_plant_with_no_room_to_grow_tells_nobody_it_grew",
+                OtherModsGameTest::aPlantWithNoRoomToGrowTellsNobodyItGrew);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */
