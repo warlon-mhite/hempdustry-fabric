@@ -117,13 +117,6 @@ public final class OtherModsGameTest {
             JsonObject recipe = Sweep.json(file.getValue()).getAsJsonObject();
             String type = recipe.has("type") ? recipe.get("type").getAsString() : "";
             String mod = type.contains(":") ? type.substring(0, type.indexOf(':')) : "minecraft";
-            // A crafting-table recipe for another mod's item (its rope, its sack) waits for that mod too: without
-            // it the result names an item that does not exist.
-            if (mod.equals("minecraft") && recipe.has("result") && recipe.get("result").isJsonObject()
-                    && recipe.getAsJsonObject("result").has("id")) {
-                String result = recipe.getAsJsonObject("result").get("id").getAsString();
-                mod = result.contains(":") ? result.substring(0, result.indexOf(':')) : "minecraft";
-            }
             if (mod.equals("minecraft") || mod.equals(Hempdustry.MOD_ID)) {
                 continue;
             }
@@ -212,6 +205,61 @@ public final class OtherModsGameTest {
             key.append(field).append('=').append(recipe.get(field)).append(';');
         }
         return key.toString();
+    }
+
+    /**
+     * Every recipe type of ours with fields has a KubeJS schema, and the schema names exactly the fields its
+     * recipes are written with: without one a pack's scripts cannot rewrite our recipes, and a schema that
+     * misses a field the format later gains would drop it from every recipe a script touches. A schema made
+     * from vanilla's grid schemas names its parent instead.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void everyRecipeTypeOfOursHasAKubeJsSchema(GameTestHelper context) {
+        Map<String, Set<String>> fields = new TreeMap<>();
+        Map<String, JsonObject> schemas = new TreeMap<>();
+        for (Map.Entry<String, Path> file : Sweep.modFiles().entrySet()) {
+            String path = file.getKey();
+            if (path.startsWith("data/" + Hempdustry.MOD_ID + "/kubejs/recipe_schema/") && path.endsWith(".json")) {
+                String type = path.substring(path.lastIndexOf('/') + 1, path.length() - ".json".length());
+                schemas.put(Hempdustry.MOD_ID + ":" + type, Sweep.json(file.getValue()).getAsJsonObject());
+            } else if (path.startsWith("data/") && path.contains("/recipe/") && path.endsWith(".json")) {
+                JsonObject recipe = Sweep.json(file.getValue()).getAsJsonObject();
+                String type = recipe.has("type") ? recipe.get("type").getAsString() : "";
+                if (type.startsWith(Hempdustry.MOD_ID + ":")) {
+                    Set<String> keys = fields.computeIfAbsent(type, t -> new TreeSet<>());
+                    recipe.keySet().stream().filter(k -> !k.equals("type") && !k.contains("conditions")).forEach(keys::add);
+                }
+            }
+        }
+        Map<String, String> findings = new TreeMap<>();
+        for (Map.Entry<String, Set<String>> type : fields.entrySet()) {
+            if (type.getValue().isEmpty() || type.getValue().equals(Set.of("category"))) {
+                continue; // a special recipe with nothing to rewrite (packing)
+            }
+            JsonObject schema = schemas.get(type.getKey());
+            if (schema == null) {
+                findings.put(type.getKey(), "no kubejs/recipe_schema file, though its recipes have " + type.getValue());
+                continue;
+            }
+            if (!schema.has("keys")) {
+                String parent = schema.has("parent") ? schema.get("parent").getAsString() : "";
+                if (!parent.equals("minecraft:shaped") && !parent.equals("minecraft:shapeless")) {
+                    findings.put(type.getKey(), "a schema with neither keys nor a vanilla grid parent: " + schema);
+                }
+                continue;
+            }
+            Set<String> named = new TreeSet<>();
+            schema.getAsJsonArray("keys").forEach(k -> named.add(k.getAsJsonObject().get("name").getAsString()));
+            named.removeIf(k -> k.startsWith("kubejs:") || k.equals("show_notification"));
+            if (!named.containsAll(type.getValue())) {
+                Set<String> missing = new TreeSet<>(type.getValue());
+                missing.removeAll(named);
+                findings.put(type.getKey(), "the schema does not name " + missing);
+            }
+        }
+        Sweep.atLeast(context, "recipe types of ours", fields.size(), 7);
+        Sweep.report(context, "every recipe type of ours has a KubeJS schema naming its fields", findings, Map.of());
+        context.succeed();
     }
 
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
