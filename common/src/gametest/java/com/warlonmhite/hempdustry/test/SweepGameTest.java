@@ -79,6 +79,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.StairBlock;
@@ -284,6 +285,41 @@ public final class SweepGameTest {
         }
         Sweep.atLeast(context, "blocks that hold items", containers, 3);
         Sweep.report(context, "Every block of ours that holds items answers a pipe", findings, Map.of());
+        context.succeed();
+    }
+
+    /**
+     * Every block state of ours draws its model, unless a renderer of its own draws it.
+     *
+     * <p>Up to 1.21.1 {@code BaseEntityBlock#getRenderShape} answers {@code INVISIBLE}, because most
+     * of vanilla's block entities draw themselves. A block of ours that extends it for a block entity
+     * that draws nothing is never drawn at all: its model loads, its outline shows, and the world
+     * shows no block. That is how a standing bong went unseen -- every model check passes, since the
+     * model is fine; only the shape says the game will not draw it.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void everyBlockDrawsItsModel(GameTestHelper context) {
+        Map<String, String> findings = new TreeMap<>();
+        int states = 0;
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (!Sweep.ours(BuiltInRegistries.BLOCK.getKey(block))) {
+                continue;
+            }
+            for (BlockState state : block.getStateDefinition().getPossibleStates()) {
+                states++;
+                RenderShape shape = state.getRenderShape();
+                if (shape != RenderShape.MODEL) {
+                    findings.putIfAbsent(BuiltInRegistries.BLOCK.getKey(block).toString(), "renders as " + shape + " in " + state);
+                }
+            }
+        }
+        Sweep.atLeast(context, "block states", states, 500);
+        Sweep.report(context, "Every block of ours draws its model", findings, Map.of(
+                "hempdustry:hemp_bed", "a bed is drawn by its block entity renderer, as vanilla's beds are",
+                "hempdustry:hemp_planks_sign", "a sign is drawn by vanilla's sign renderer",
+                "hempdustry:hemp_planks_wall_sign", "a sign is drawn by vanilla's sign renderer",
+                "hempdustry:hemp_planks_hanging_sign", "a hanging sign is drawn by vanilla's sign renderer",
+                "hempdustry:hemp_planks_wall_hanging_sign", "a hanging sign is drawn by vanilla's sign renderer"));
         context.succeed();
     }
 

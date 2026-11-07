@@ -15,6 +15,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -75,6 +76,16 @@ public class BongBlock extends BaseEntityBlock {
     @Override
     public String getDescriptionId() {
         return Util.makeDescriptionId("item", BuiltInRegistries.BLOCK.getKey(this));
+    }
+
+    /**
+     * Drawn from its block model. {@code BaseEntityBlock} answers {@code INVISIBLE} (up to 1.21.1),
+     * for block entities that draw themselves; this one only holds the stack, so without this the
+     * standing bong is an outline with nothing in it.
+     */
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
