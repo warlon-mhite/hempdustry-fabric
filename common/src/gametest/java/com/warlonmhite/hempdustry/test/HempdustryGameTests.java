@@ -205,6 +205,8 @@ public final class HempdustryGameTests {
         register("a_plant_with_no_room_to_grow_tells_nobody_it_grew",
                 OtherModsGameTest::aPlantWithNoRoomToGrowTellsNobodyItGrew);
         register("every_recipe_for_another_mod_waits_for_it", OtherModsGameTest::everyRecipeForAnotherModWaitsForIt);
+        register("every_seed_a_villager_plants_stands_on_farmland",
+                OtherModsGameTest::everySeedAVillagerPlantsStandsOnFarmland);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

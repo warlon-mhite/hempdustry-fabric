@@ -9,11 +9,16 @@ import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TallHemp;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
+import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
@@ -304,5 +309,34 @@ public final class OtherModsGameTest {
             }
             context.succeed();
         });
+    }
+
+    /**
+     * Every seed of ours in vanilla's {@code #villager_plantable_seeds} stands on farmland. A farmer villager
+     * plants the block's default state on farmland without asking whether it survives there, so a seed that
+     * cannot (Beldía, a sand plant) would pop off at the next update and be planted again, for ever.
+     */
+    public static void everySeedAVillagerPlantsStandsOnFarmland(GameTestHelper context) {
+        context.setBlock(SOIL, Blocks.FARMLAND);
+        Map<String, String> findings = new TreeMap<>();
+        int seen = 0;
+        for (Holder<Item> holder : BuiltInRegistries.ITEM.getTagOrEmpty(ItemTags.VILLAGER_PLANTABLE_SEEDS)) {
+            Identifier id = BuiltInRegistries.ITEM.getKey(holder.value());
+            if (!Sweep.ours(id)) {
+                continue;
+            }
+            seen++;
+            if (!(holder.value() instanceof BlockItem seed)) {
+                findings.put(id.toString(), "not a block item, and a villager plants only those");
+                continue;
+            }
+            BlockState planted = seed.getBlock().defaultBlockState();
+            if (!planted.canSurvive(context.getLevel(), context.absolutePos(CROP))) {
+                findings.put(id.toString(), "a villager plants it on farmland, where " + planted + " cannot stand");
+            }
+        }
+        Sweep.atLeast(context, "seeds of ours that villagers plant", seen, 2);
+        Sweep.report(context, "every seed a villager plants stands on farmland", findings, Map.of());
+        context.succeed();
     }
 }

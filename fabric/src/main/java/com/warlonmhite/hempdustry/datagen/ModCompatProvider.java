@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
@@ -18,7 +19,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Recipes for other mods' machines, each loaded only when that mod is: Farmer's Delight's cutting board.
+ * Recipes for other mods' machines, each loaded only when that mod is: Farmer's Delight's cutting board and
+ * its rope from hemp fibre.
  *
  * <p>On Minecraft 26.3 that is the partner there is, as Refabricated, on Fabric. Create's mixer and saw on
  * NeoForge, Mekanism's crusher, MoreMachine, Botany Pots, Immersive Engineering and Silent Gear have no build
@@ -66,6 +68,23 @@ public class ModCompatProvider implements DataProvider {
         // A retted stalk on the board is scutching by hand: its 6 fibre, as from the grid, and the
         // shives -- the woody core the fibre is beaten free of -- now and then as a stick.
         cutting("hemp_fiber_from_retted_hemp_stem", ModItems.RETTED_HEMP_STEM, 6);
+
+        // Rope is what hemp was grown for. Farmer's Delight twists two straw in a column into four rope; two
+        // hemp fibre give the same, so its rope fence, safety net and climbing rope can be all hemp.
+        JsonObject rope = conditioned(FARMERS_DELIGHT, "minecraft:crafting_shaped");
+        rope.addProperty("category", "misc");
+        JsonObject key = new JsonObject();
+        key.addProperty("#", "#" + ModTags.Conventional.FIBER_HEMP.location());
+        rope.add("key", key);
+        JsonArray rows = new JsonArray();
+        rows.add("#");
+        rows.add("#");
+        rope.add("pattern", rows);
+        JsonObject result = new JsonObject();
+        result.addProperty("count", 4);
+        result.addProperty("id", "farmersdelight:rope");
+        rope.add("result", result);
+        write(FARMERS_DELIGHT, "rope", rope);
     }
 
     /**
