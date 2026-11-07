@@ -60,6 +60,8 @@ public final class HempdustryGameTests {
         register("vaporizer_refuses_two_buds", VaporizerGameTest::vaporizerRefusesTwoBuds);
         register("vaporizer_only_returns_what_grew_on_a_plant",
                 VaporizerGameTest::vaporizerOnlyReturnsWhatGrewOnAPlant);
+        register("vaporizer_bowl_on_a_full_inventory_drops_its_avb",
+                VaporizerGameTest::vaporizerBowlOnAFullInventoryDropsItsAvb);
         register("scorched_hemp_counts_a_quarter", ScorchedHempGameTest::scorchedHempCountsAQuarter);
         register("scorched_hemp_holds_the_grade_down", ScorchedHempGameTest::scorchedHempHoldsTheGradeDown);
         register("all_scorched_batch_is_done_at_the_minimum",
