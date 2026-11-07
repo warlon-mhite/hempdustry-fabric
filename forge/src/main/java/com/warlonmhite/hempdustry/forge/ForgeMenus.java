@@ -33,7 +33,7 @@ public final class ForgeMenus implements Menus {
             // data. It gets the same menu, the vanilla way.
             player.openMenu(provider);
         } else {
-            NetworkHooks.openScreen(player, provider, buf -> codec.write(buf, data));
+            NetworkHooks.openGui(player, provider, buf -> codec.write(buf, data));
         }
     }
 }

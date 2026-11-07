@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:hemp_fiber_from_retted_hemp_stem"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

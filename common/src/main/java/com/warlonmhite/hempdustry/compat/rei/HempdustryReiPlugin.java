@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.compat.rei;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
@@ -127,7 +128,7 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         add(registry, PRESSING, ViewerRecipes.pressing(registry.getRecipeManager()));
         add(registry, SIFTING, ViewerRecipes.sifting());
         add(registry, ICE_O_LATOR, ViewerRecipes.iceOLator());
-        add(registry, WORLD, ViewerRecipes.world(client.level.registryAccess()));
+        add(registry, WORLD, ViewerRecipes.world(DataRegistries.of(client.level)));
         ViewerRecipes.info().forEach((item, text) -> BuiltinClientPlugin.getInstance()
                 .registerInformation(EntryStacks.of(item), item.getDescription(), lines -> {
                     lines.add(text);
@@ -138,7 +139,7 @@ public class HempdustryReiPlugin implements REIClientPlugin {
         // makes REI's built-in "move ingredients into the grid" work on it without a transfer
         // handler of our own. See ViewerRecipes#packing. Each slot is built from stacks, so the
         // moon rock shows its load and the bong slot every glass.
-        for (ViewerRecipes.Packing packing : ViewerRecipes.packing(client.level.registryAccess())) {
+        for (ViewerRecipes.Packing packing : ViewerRecipes.packing(DataRegistries.of(client.level))) {
             registry.add(DefaultCustomShapelessDisplay.simple(
                     packing.inputs().stream().map(EntryIngredients::ofItemStacks).toList(),
                     List.of(EntryIngredients.of(packing.output())),

@@ -81,6 +81,8 @@ def item_tags():
 def fabric_names():
     props = dict(line.split("=", 1) for line in (ROOT / "gradle.properties").read_text().splitlines()
                  if "=" in line and not line.startswith("#"))
+    if "fabric_version" not in props:
+        return {}  # no Fabric build on this line, so no Fabric API tag names to fall back on
     version = props["fabric_version"].strip()
     jars = glob.glob(os.path.expanduser(
         f"~/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/{version}/*/fabric-api-{version}.jar"))
@@ -117,6 +119,10 @@ def main():
         # 1.20.1 has no pattern data: a built-in pattern is named after its id, which its art shares
         for p in root.glob("assets/hempdustry/textures/entity/banner/*.png"):
             named.add(f"minecraft.banner.hempdustry.{p.stem}")
+        # 1.16.5's patterns are an enum: the art sits under minecraft's textures, prefixed with the mod
+        # id, and the name per colour is block.minecraft.banner.<that file>.<colour>
+        for p in root.glob("assets/minecraft/textures/entity/banner/hempdustry_*.png"):
+            named.add(f"minecraft.banner.{p.stem}")
     orphans = [k for k in lang if k.startswith(("item.", "block.")) and not any(
         k.split(".", 1)[1] == n or k.split(".", 1)[1].startswith(n + ".") for n in named)]
     orphans += [k for k in lang if k.startswith("tag.item.") and k[len("tag.item."):] not in tags]

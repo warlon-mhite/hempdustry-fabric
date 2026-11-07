@@ -39,21 +39,21 @@ public final class ConfigGameTest {
             HempdustryConfig running = HempdustryConfig.get();
             for (String broken : BROKEN) {
                 write(path, broken);
-                context.assertFalse(HempdustryConfig.load(), "load() reported success on: " + broken);
-                context.assertTrue(broken.equals(new String(read(path), StandardCharsets.UTF_8)),
+                Asserts.assertFalse(context, HempdustryConfig.load(), "load() reported success on: " + broken);
+                Asserts.assertTrue(context, broken.equals(new String(read(path), StandardCharsets.UTF_8)),
                         "the file was written over after failing to read: " + broken);
-                context.assertTrue(HempdustryConfig.get() == running,
+                Asserts.assertTrue(context, HempdustryConfig.get() == running,
                         "the running config changed after failing to read: " + broken);
             }
 
             // And a good file still goes in: a field it leaves out keeps its default, and the file
             // comes back out complete.
             write(path, "{ \"effects\": { \"maxBuffLevel\": 3 } }");
-            context.assertTrue(HempdustryConfig.load(), "a valid file was refused");
-            context.assertTrue(HempdustryConfig.get().effects().maxBuffLevel() == 3,
+            Asserts.assertTrue(context, HempdustryConfig.load(), "a valid file was refused");
+            Asserts.assertTrue(context, HempdustryConfig.get().effects().maxBuffLevel() == 3,
                     "maxBuffLevel 3 was not applied: " + HempdustryConfig.get().effects().maxBuffLevel());
             String rewritten = new String(read(path), StandardCharsets.UTF_8);
-            context.assertTrue(rewritten.contains("\"maxLevel\"") && rewritten.contains("\"cropGrowthMultiplier\""),
+            Asserts.assertTrue(context, rewritten.contains("\"maxLevel\"") && rewritten.contains("\"cropGrowthMultiplier\""),
                     "a valid file was not written back complete");
         } finally {
             write(path, original);
@@ -73,7 +73,7 @@ public final class ConfigGameTest {
         withConfig("{ \"effects\": { \"enabled\": false } }", () -> {
             for (int oneIn = 1; oneIn <= 100; oneIn++) {
                 int odds = EffectPolicy.greenOutChanceOneIn(oneIn);
-                context.assertTrue(odds == 0, "with effects off a hit still greens out one in " + odds
+                Asserts.assertTrue(context, odds == 0, "with effects off a hit still greens out one in " + odds
                         + " (one in " + oneIn + " at the defaults)");
             }
         });

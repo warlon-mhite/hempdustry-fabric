@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:grow_pot"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

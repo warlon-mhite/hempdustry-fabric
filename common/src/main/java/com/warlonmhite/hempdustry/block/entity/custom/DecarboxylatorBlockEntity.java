@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import net.minecraft.network.chat.TranslatableComponent;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
@@ -10,7 +12,7 @@ import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -175,7 +177,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         SimpleContainer input = new SimpleContainer(stack);
         return world.getRecipeManager()
                 .getRecipeFor(ModRecipes.DECARBOXYLATING_TYPE, input, world)
-                .map(recipe -> recipe.assemble(input, world.registryAccess()))
+                .map(recipe -> recipe.assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -354,7 +356,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
 
     @Override
     public Component getContainerName() {
-        return Component.translatable("block.hempdustry.decarboxylator");
+        return new TranslatableComponent("block.hempdustry.decarboxylator");
     }
 
     @Nullable

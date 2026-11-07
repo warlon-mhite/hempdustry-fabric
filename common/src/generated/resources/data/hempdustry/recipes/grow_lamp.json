@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "redstone",
   "key": {
     "A": {
       "item": "minecraft:amethyst_shard"
@@ -19,6 +18,5 @@
   ],
   "result": {
     "item": "hempdustry:grow_lamp"
-  },
-  "show_notification": true
+  }
 }

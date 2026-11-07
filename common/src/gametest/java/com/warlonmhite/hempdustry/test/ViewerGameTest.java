@@ -13,7 +13,6 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 
 /**
  * What a recipe viewer shows as packing is what the crafting grid does.
@@ -28,9 +27,9 @@ public final class ViewerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void everyPackingRowIsARealCraft(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe packing = new PackingRecipe(new ResourceLocation("hempdustry", "packing"), CraftingBookCategory.MISC);
-        List<ViewerRecipes.Packing> rows = ViewerRecipes.packing(world.registryAccess());
-        context.assertFalse(rows.isEmpty(), "the viewers are shown no packing rows at all");
+        PackingRecipe packing = new PackingRecipe(new ResourceLocation("hempdustry", "packing"));
+        List<ViewerRecipes.Packing> rows = ViewerRecipes.packing(com.warlonmhite.hempdustry.registry.DataRegistries.of(world));
+        Asserts.assertFalse(context, rows.isEmpty(), "the viewers are shown no packing rows at all");
 
         int moonRockRows = 0;
         for (ViewerRecipes.Packing row : rows) {
@@ -43,16 +42,16 @@ public final class ViewerGameTest {
                                 : i == slot ? offered.copy() : row.inputs().get(i).get(0).copy());
                     }
                     CraftingInput input = CraftingInput.of(3, 3, grid);
-                    context.assertTrue(packing.matches(input, world),
+                    Asserts.assertTrue(context, packing.matches(input, world),
                             id + " is refused by the real recipe with " + offered.getHoverName().getString());
-                    ItemStack packed = packing.assemble(input, world.registryAccess());
+                    ItemStack packed = packing.assemble(input);
                     Line.equal(context, ModComponents.SMOKE_CONTENTS.get(row.output()),
                             ModComponents.SMOKE_CONTENTS.get(packed),
                             id + " shows a different load from the one it crafts");
                     Line.equal(context, ModComponents.CHARGES.get(row.output()), ModComponents.CHARGES.get(packed),
                             id + " shows a different bowl from the one it crafts");
                     if (slot == 0) {
-                        context.assertTrue(packed.is(offered.getItem()),
+                        Asserts.assertTrue(context, packed.is(offered.getItem()),
                                 id + " packs " + offered.getHoverName().getString() + " into another item");
                     }
                 }
@@ -63,12 +62,12 @@ public final class ViewerGameTest {
         }
 
         // One row per plant strain per coat: the coat is half of what a moon rock carries.
-        long plants = Strain.all(world.registryAccess()).stream()
+        long plants = Strain.all(com.warlonmhite.hempdustry.registry.DataRegistries.of(world)).stream()
                 .filter(strain -> strain.value().wildFlower().isPresent()).count();
         Line.equal(context, (int) plants * 3, moonRockRows, "moon rock rows, one per plant and coat");
-        context.assertTrue(rows.stream().anyMatch(row -> row.inputs().get(0).size() == ModItems.bongs().size()),
+        Asserts.assertTrue(context, rows.stream().anyMatch(row -> row.inputs().get(0).size() == ModItems.bongs().size()),
                 "no bong row offers every glass");
-        context.assertFalse(ModComponents.SMOKE_CONTENTS.getOrDefault(rows.get(0).output(), SmokeContents.EMPTY)
+        Asserts.assertFalse(context, ModComponents.SMOKE_CONTENTS.getOrDefault(rows.get(0).output(), SmokeContents.EMPTY)
                         .entries().get(0).strain().value().wildFlower().isEmpty(),
                 "the packing rows open on a strain that never grew on a plant");
         context.succeed();

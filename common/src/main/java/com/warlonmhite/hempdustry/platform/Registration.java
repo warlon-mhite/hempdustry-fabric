@@ -1,73 +1,76 @@
 package com.warlonmhite.hempdustry.platform;
 
-import net.minecraft.world.item.Item;
 import java.util.Set;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.entity.ai.village.poi.PoiType;
-import com.mojang.serialization.Codec;
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceKey;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import net.minecraft.core.Holder;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.properties.BlockSetType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 /**
- * What the mod registers that vanilla gives no public way to register, or that each loader keeps a
+ * What the mod registers that vanilla gives no public way to register, or that the loader keeps a
  * table of its own for. Called while the mod's content is being registered.
  */
 public interface Registration {
 
     /**
      * Builds an entity type of ours, named {@code id}. Vanilla's own build asks the data fixer about
-     * the id and logs an error for one it does not know, which is every mod's: Fabric's build skips
-     * that lookup, and NeoForge's quiets it -- for a real id; a null one it does not survive.
+     * the id and logs an error for one it does not know, which is every mod's.
      */
     <T extends Entity> EntityType<T> entityType(EntityType.Builder<T> builder, ResourceLocation id);
 
     /**
-     * Lets one of vanilla's block entity types live in our blocks too — a sign, a hanging sign.
-     * Without it, placing the block throws, because a block entity type checks its blocks.
+     * Lets one of vanilla's block entity types live in our blocks too — a sign. Without it, placing
+     * the block throws, because a block entity type checks its blocks.
      */
     void addValidBlocks(BlockEntityType<?> type, Block... blocks);
 
     /**
      * Makes {@code item} the item of {@code block} for {@code Block#asItem}, as a {@code BlockItem} is:
-     * for a block whose item is not one (a placed bong is its device). Forge 47 rebuilds that map
-     * from the block items whenever a world loads, so there it is put back each time.
+     * for a block whose item is not one (a placed bong is its device). Forge rebuilds that map from the
+     * block items whenever a world loads, so it is put back each time.
      */
     void blockItem(Block block, Item item);
 
     /**
      * Makes {@code states} points of interest of the type {@code poi} -- the Hemp Bed's head a
-     * villager's home. Vanilla keeps one map from state to type; Forge 47 rebuilds it from each type's
-     * own list of states, so there the type's list takes them too.
+     * villager's home. Vanilla keeps one map from state to type; Forge rebuilds it from each type's own
+     * list of states, so the type's list takes them too.
      */
-    void addPointOfInterestStates(ResourceKey<PoiType> poi, Set<BlockState> states);
+    void addPointOfInterestStates(PoiType poi, Set<BlockState> states);
 
-    /** Registers a copy of {@code template} named {@code id}. Vanilla's own registration is private. */
-    BlockSetType registerBlockSetType(ResourceLocation id, BlockSetType template);
-
-    /** Registers a copy of {@code template} named {@code id}, made of {@code setType}. */
-    WoodType registerWoodType(ResourceLocation id, WoodType template, BlockSetType setType);
+    /** A wood type of our own, named {@code id}, for the signs. Vanilla's own registration is private. */
+    WoodType registerWoodType(ResourceLocation id);
 
     /**
-     * A dynamic registry of our own, read from datapacks and sent to every client, so a datapack's
-     * entries reach a client without a packet of ours.
+     * The mod's creative tab: {@code icon} its icon, {@code fill} what it lists, in order. A 1.18.2 tab
+     * is a class of its own the loader places and pages.
      */
-    <T> void registerSyncedDynamicRegistry(ResourceKey<Registry<T>> key, Codec<T> codec);
+    CreativeModeTab creativeTab(String id, Component title, Supplier<ItemStack> icon, Consumer<NonNullList<ItemStack>> fill);
 
-    /** A builder for a creative tab of our own, placed and paged by the loader. */
-    CreativeModeTab.Builder creativeTabBuilder();
+    /**
+     * A banner pattern of our own. On 1.18.2 vanilla's patterns are an enum only Forge can extend; its
+     * texture is {@code minecraft:entity/banner/<file>} (and {@code shield/}), so {@code file} carries
+     * the mod's prefix. {@code hash} is what a banner stores; {@code needsItem}, whether the loom asks
+     * for the pattern item.
+     */
+    BannerPattern bannerPattern(String name, String file, String hash, boolean needsItem);
 
     /** Makes {@code item} compostable with the given chance of raising the composter's level. */
     void compostable(ItemLike item, float chance);
@@ -78,6 +81,16 @@ public interface Registration {
     /** Makes {@code block} catch fire ({@code igniteOdds}) and burn away ({@code burnOdds}) like vanilla's. */
     void flammable(Block block, int igniteOdds, int burnOdds);
 
-    /** Places {@code feature} in every biome in {@code biomes}, at {@code step}. */
-    void addFeature(TagKey<Biome> biomes, GenerationStep.Decoration step, ResourceKey<PlacedFeature> feature);
+    /** Places {@code feature} in every biome {@code biomes} takes, at {@code step}. */
+    void addFeature(BiomeSelector biomes, GenerationStep.Decoration step, Supplier<Holder<PlacedFeature>> feature);
+
+    /**
+     * Which biomes a feature goes in. A 1.18.2 biome is placed before any tag is bound (Forge's biome
+     * event runs as the biomes load), so a biome is picked by its id, and a modded one by the category
+     * it declares.
+     */
+    @FunctionalInterface
+    interface BiomeSelector {
+        boolean test(ResourceLocation biome, Biome.BiomeCategory category);
+    }
 }

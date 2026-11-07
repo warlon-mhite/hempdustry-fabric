@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -46,13 +46,13 @@ public final class DefoliationGameTest {
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState());
 
         BlockState planted = context.getBlockState(CROP);
-        context.assertTrue(!planted.getValue(Defoliation.TRIMMED_EARLY),
+        Asserts.assertTrue(context, !planted.getValue(Defoliation.TRIMMED_EARLY),
                 "a freshly planted crop is already early-trimmed");
-        context.assertTrue(!planted.getValue(Defoliation.TRIMMED_LATE),
+        Asserts.assertTrue(context, !planted.getValue(Defoliation.TRIMMED_LATE),
                 "a freshly planted crop is already late-trimmed");
         // The newest flag, and the one that fails most quietly: a crop born RUBBED never drops
         // charas at all, and nothing on screen says why.
-        context.assertTrue(!planted.getValue(Defoliation.RUBBED),
+        Asserts.assertTrue(context, !planted.getValue(Defoliation.RUBBED),
                 "a freshly planted crop is already rubbed");
         context.succeed();
     }
@@ -72,13 +72,13 @@ public final class DefoliationGameTest {
         for (int age = Defoliation.EARLY_MIN_AGE; age < IndicaCropBlock.MAX_AGE; age++) {
             crop.growCrops(context.getLevel(), cropPos, context.getLevel().getBlockState(cropPos));
             BlockState grown = context.getBlockState(CROP);
-            context.assertTrue(grown.getValue(IndicaCropBlock.AGE) == age + 1,
+            Asserts.assertTrue(context, grown.getValue(IndicaCropBlock.AGE) == age + 1,
                     "growth stalled at age " + grown.getValue(IndicaCropBlock.AGE));
-            context.assertTrue(grown.getValue(Defoliation.TRIMMED_EARLY),
+            Asserts.assertTrue(context, grown.getValue(Defoliation.TRIMMED_EARLY),
                     "growing to age " + (age + 1) + " wiped the early trim flag");
-            context.assertTrue(!grown.getValue(Defoliation.TRIMMED_LATE),
+            Asserts.assertTrue(context, !grown.getValue(Defoliation.TRIMMED_LATE),
                     "growing to age " + (age + 1) + " invented a late trim flag");
-            context.assertTrue(!grown.getValue(Defoliation.RUBBED),
+            Asserts.assertTrue(context, !grown.getValue(Defoliation.RUBBED),
                     "growing to age " + (age + 1) + " invented a rubbed flag");
         }
 
@@ -92,13 +92,13 @@ public final class DefoliationGameTest {
                 .setValue(Defoliation.RUBBED, true));
         crop.growCrops(context.getLevel(), cropPos, context.getLevel().getBlockState(cropPos));
         BlockState ripened = context.getBlockState(CROP);
-        context.assertTrue(ripened.getValue(IndicaCropBlock.AGE) == Defoliation.RUB_MIN_AGE + 1,
+        Asserts.assertTrue(context, ripened.getValue(IndicaCropBlock.AGE) == Defoliation.RUB_MIN_AGE + 1,
                 "growth stalled on the way to maturity");
-        context.assertTrue(ripened.getValue(Defoliation.RUBBED),
+        Asserts.assertTrue(context, ripened.getValue(Defoliation.RUBBED),
                 "ripening wiped the rubbed flag — the plant can now be rubbed twice");
 
         context.assertBlockPresent(ModBlocks.INDICA_CROP, UPPER);
-        context.assertTrue(context.getBlockState(UPPER).getValue(IndicaCropBlock.HALF) == DoubleBlockHalf.UPPER,
+        Asserts.assertTrue(context, context.getBlockState(UPPER).getValue(IndicaCropBlock.HALF) == DoubleBlockHalf.UPPER,
                 "the second block of a mature plant is not its upper half");
         context.succeed();
     }
@@ -138,14 +138,14 @@ public final class DefoliationGameTest {
 
     private static void checkHarvest(GameTestHelper context, ServerLevel world, Vec3 origin,
                                      BlockState mature, Item buds) {
-        LootTable table = world.getServer().getLootData()
-                .getLootTable(mature.getBlock().getLootTable());
+        LootTable table = world.getServer().getLootTables()
+                .get(mature.getBlock().getLootTable());
         String crop = mature.getBlock().getDescriptionId();
         java.util.Random seeds = new java.util.Random(SEED_SOURCE);
         for (int roll = 0; roll < ROLLS; roll++) {
             long seed = seeds.nextLong();
             int[] untouched = harvest(table, world, origin, Defoliation.unworked(mature), seed, buds);
-            context.assertTrue(untouched[1] > 0, crop + ": an untouched mature plant dropped no buds");
+            Asserts.assertTrue(context, untouched[1] > 0, crop + ": an untouched mature plant dropped no buds");
             for (int flags = 1; flags < 8; flags++) {
                 boolean early = (flags & 1) != 0;
                 boolean late = (flags & 2) != 0;
@@ -156,11 +156,11 @@ public final class DefoliationGameTest {
                         .setValue(Defoliation.RUBBED, rubbed), seed, buds);
                 String which = crop + " (early=" + early + ", late=" + late + ", rubbed=" + rubbed + ")";
                 int taken = Integer.bitCount(flags);
-                context.assertTrue(worked[0] + taken == untouched[0], which + ": harvested "
+                Asserts.assertTrue(context, worked[0] + taken == untouched[0], which + ": harvested "
                         + worked[0] + " leaves after " + taken + " were taken, against "
                         + untouched[0] + " untouched — a leaf taken is not coming off the harvest");
                 int cuts = Integer.bitCount(flags & 3);
-                context.assertTrue(worked[1] == untouched[1] + cuts, which + ": harvested "
+                Asserts.assertTrue(context, worked[1] == untouched[1] + cuts, which + ": harvested "
                         + worked[1] + " buds against " + untouched[1] + " untouched — only a trim"
                         + " may move the buds, one per cut");
             }
@@ -170,13 +170,12 @@ public final class DefoliationGameTest {
     /** {leaves, buds} from one roll of a crop's loot table on a given seed. */
     private static int[] harvest(LootTable table, ServerLevel world, Vec3 origin, BlockState state,
                                  long seed, Item buds) {
-        LootParams params = new LootParams.Builder(world)
+        LootContext.Builder params = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, origin)
                 .withParameter(LootContextParams.BLOCK_STATE, state)
-                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
-                .create(LootContextParamSets.BLOCK);
+                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY);
         int[] counts = new int[2];
-        for (ItemStack stack : table.getRandomItems(params, seed)) {
+        for (ItemStack stack : Line.roll(table, params, LootContextParamSets.BLOCK, seed)) {
             if (stack.is(ModItems.HEMP_LEAF)) {
                 counts[0] += stack.getCount();
             } else if (stack.is(buds)) {

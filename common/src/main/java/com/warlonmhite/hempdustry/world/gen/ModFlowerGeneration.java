@@ -12,7 +12,7 @@ public class ModFlowerGeneration {
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.INDICA_FLOWER_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.INDICA_PLACED_KEY
+                () -> ModPlacedFeatures.holder(ModPlacedFeatures.INDICA_PLACED_KEY)
         );
 
         // Cave biomes (lush caves + modded underground jungles): on the cave floor. VEGETAL, not
@@ -22,7 +22,7 @@ public class ModFlowerGeneration {
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.INDICA_FLOWER_GEN_CAVE,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.INDICA_CAVE_PLACED_KEY
+                () -> ModPlacedFeatures.holder(ModPlacedFeatures.INDICA_CAVE_PLACED_KEY)
         );
 
         // Wild Lemon Haze — surface only, no cave tier: sativa is a sun plant. Three tiers thinning
@@ -31,24 +31,24 @@ public class ModFlowerGeneration {
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.SATIVA_FLOWER_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.SATIVA_PLACED_KEY
+                () -> ModPlacedFeatures.holder(ModPlacedFeatures.SATIVA_PLACED_KEY)
         );
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.SATIVA_FLOWER_GEN_SPARSE,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.SATIVA_SPARSE_PLACED_KEY
+                () -> ModPlacedFeatures.holder(ModPlacedFeatures.SATIVA_SPARSE_PLACED_KEY)
         );
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.SATIVA_FLOWER_GEN_RARE,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.SATIVA_RARE_PLACED_KEY
+                () -> ModPlacedFeatures.holder(ModPlacedFeatures.SATIVA_RARE_PLACED_KEY)
         );
 
-        // Wild Beldía, ripe, on desert riverbanks. Deserts only -- #c:is_desert holds no beach.
+        // Wild Beldía, ripe, on desert riverbanks. Deserts only: no beach is a desert.
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.BELDIA_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.BELDIA_PLACED_KEY
+                () -> ModPlacedFeatures.holder(ModPlacedFeatures.BELDIA_PLACED_KEY)
         );
     }
 }

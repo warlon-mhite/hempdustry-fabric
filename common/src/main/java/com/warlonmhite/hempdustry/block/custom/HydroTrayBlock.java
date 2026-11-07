@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import java.util.Random;
 import net.minecraft.world.InteractionResult;
 import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import com.warlonmhite.hempdustry.block.ItemUse;
@@ -10,7 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -158,17 +158,19 @@ public class HydroTrayBlock extends Block implements GrowMedium, ItemUse {
 
     /** Nutrients need water to go into: an empty tray cannot be fed, and a fed one is already mixed. */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
-        return state.getValue(LEVEL) > 0 && !state.getValue(FED) && !boilsAway(world, pos);
+    public boolean isValidBonemealTarget(BlockGetter world, BlockPos pos, BlockState state, boolean isClient) {
+        // 1.18.2 asks with a BlockGetter; the game always hands it the level itself.
+        return state.getValue(LEVEL) > 0 && !state.getValue(FED)
+                && !(world instanceof LevelReader reader && boilsAway(reader, pos));
     }
 
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, Random random, BlockPos pos, BlockState state) {
         return true;
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel world, Random random, BlockPos pos, BlockState state) {
         world.setBlock(pos, state.setValue(FED, true), Block.UPDATE_CLIENTS);
     }
 
@@ -239,7 +241,7 @@ public class HydroTrayBlock extends Block implements GrowMedium, ItemUse {
 
     /** A running pump breaks the surface: the state is on the block, but this is what catches the eye. */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (!state.getValue(POWERED) || state.getValue(LEVEL) == 0) {
             return;
         }

@@ -16,12 +16,22 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * What the newer lines' game tests take from the game and 1.20.1's does not have, written out with
+ * What the newer lines' game tests take from the game and 1.18.2's does not have, written out with
  * the same meaning, so a test reads the same on every line.
  */
 final class Line {
 
     private Line() {
+    }
+
+    /**
+     * One roll of {@code table} with {@code seed}: the newer lines' {@code getRandomItems(params, seed)}.
+     * A 1.18.2 loot context carries its random itself, so the builder is given a seeded one for each roll.
+     */
+    static java.util.List<net.minecraft.world.item.ItemStack> roll(net.minecraft.world.level.storage.loot.LootTable table,
+            net.minecraft.world.level.storage.loot.LootContext.Builder params,
+            net.minecraft.world.level.storage.loot.parameters.LootContextParamSet set, long seed) {
+        return table.getRandomItems(params.withRandom(new java.util.Random(seed)).create(set));
     }
 
     /** {@code GameTestHelper#assertValueEqual} from 1.20.5 on, in 1.21.1's order: the actual value first. */
@@ -34,7 +44,7 @@ final class Line {
     /**
      * {@code BlockState#useItemOn} from 1.20.5 on: the block's answer to a click with {@code stack}, before
      * the click falls to the block. A block of the mod answers it itself ({@link ItemUse}). A vanilla
-     * block answers it in its one {@code use} on 1.20.1, with the stack in the hand -- a cauldron's
+     * block answers it in its one {@code use} on 1.18.2, with the stack in the hand -- a cauldron's
      * washes, which 1.20.5 moved to the item half, among them.
      */
     static ItemInteractionResult useItemOn(BlockState state, ItemStack stack, Level level, Player player,
@@ -78,7 +88,7 @@ final class Line {
     /** {@code GameTestHelper#getEntities(EntityType)} from 1.20.5 on: every one in the test's 8×8×8 room. */
     static <T extends net.minecraft.world.entity.Entity> java.util.List<T> entities(GameTestHelper context,
                                                                                  net.minecraft.world.entity.EntityType<T> type) {
-        return context.getEntities(type, new net.minecraft.core.BlockPos(4, 4, 4), 8.0);
+        return Asserts.getEntities(context, type, new net.minecraft.core.BlockPos(4, 4, 4), 8.0);
     }
 
     /** {@code AABB#encapsulatingFullBlocks} from 1.20.5 on: the box holding both blocks whole. */

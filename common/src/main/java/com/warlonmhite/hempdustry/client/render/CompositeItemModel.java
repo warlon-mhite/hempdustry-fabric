@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.client.render;
 
+import java.util.Random;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -33,7 +33,7 @@ public final class CompositeItemModel implements BakedModel {
     public CompositeItemModel(BakedModel frame, List<BakedModel> parts) {
         this.frame = frame;
         // Plain JSON models: their quads depend on neither the block state nor the random.
-        RandomSource random = RandomSource.create(42L);
+        Random random = new Random(42L);
         List<BakedQuad> faceless = new ArrayList<>();
         for (BakedModel part : parts) {
             faceless.addAll(part.getQuads(null, null, random));
@@ -49,7 +49,7 @@ public final class CompositeItemModel implements BakedModel {
     }
 
     @Override
-    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, RandomSource random) {
+    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, Random random) {
         return face == null ? unculled : culled.get(face);
     }
 

@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import net.minecraft.network.chat.TranslatableComponent;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
 import com.warlonmhite.hempdustry.Hempdustry;
@@ -148,7 +150,7 @@ public class SmokingDeviceItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
         super.appendHoverText(stack, context, tooltip, type);
         if (placed != null && !contentsOf(stack).isEmpty()) {
-            tooltip.add(Component.translatable("hempdustry.bong.set_down").withStyle(ChatFormatting.GRAY));
+            tooltip.add(new TranslatableComponent("hempdustry.bong.set_down").withStyle(ChatFormatting.GRAY));
         }
     }
 
@@ -197,7 +199,7 @@ public class SmokingDeviceItem extends Item {
         SoundType sounds = state.getSoundType();
         world.playSound(player, pos, sounds.getPlaceSound(), SoundSource.BLOCKS,
                 (sounds.getVolume() + 1f) / 2f, sounds.getPitch() * 0.8f);
-        world.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(player, state));
+        world.gameEvent(player, GameEvent.BLOCK_PLACE, pos);
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
@@ -261,7 +263,8 @@ public class SmokingDeviceItem extends Item {
 
     @Override
     public UseAnim getUseAnimation(ItemStack stack) {
-        return device.drawTicks() > 0 ? UseAnim.TOOT_HORN : UseAnim.NONE;
+        // Held to the mouth: 1.18.2 has no goat horn's pose (1.19), and drinking's is the nearest.
+        return device.drawTicks() > 0 ? UseAnim.DRINK : UseAnim.NONE;
     }
 
     /**
@@ -305,8 +308,8 @@ public class SmokingDeviceItem extends Item {
     /** One hit, spent: effects, cooldown, a charge and a point of durability, and the bowl's end. */
     private void hit(Level world, Player player, ItemStack stack, SmokeContents contents,
                      InteractionHand hand, int soundDelayTicks) {
-        DeviceStats stats = DeviceStats.of(world.registryAccess(), device);
-        GreenOut greenOut = GreenOut.of(world.registryAccess());
+        DeviceStats stats = DeviceStats.of(DataRegistries.of(world), device);
+        GreenOut greenOut = GreenOut.of(DataRegistries.of(world));
         boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
                 stats.coughOneIn(), stats.nauseaOneIn(),
                 Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
@@ -363,7 +366,7 @@ public class SmokingDeviceItem extends Item {
      * fits, drops nothing, and a full inventory would have swallowed the yield.
      */
     private void yieldSpent(Player player, SmokeContents contents) {
-        int yield = DeviceStats.bowl(player.level().registryAccess(), device).spentYield();
+        int yield = DeviceStats.bowl(DataRegistries.of(player.level), device).spentYield();
         if (yield > 0 && contents.entries().stream()
                 .allMatch(entry -> ModStrains.isPlantMatter(entry.strain()))) {
             ItemStack spent = new ItemStack(ModItems.SCORCHED_HEMP, yield);

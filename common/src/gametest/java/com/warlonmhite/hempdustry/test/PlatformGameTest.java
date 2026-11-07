@@ -20,13 +20,13 @@ public final class PlatformGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY)
     public void theLoaderNamesItselfAndTheModsVersion(GameTestHelper context) {
         String loader = Services.PLATFORM.loaderName();
-        context.assertTrue(loader.equals(TestPlatform.INSTANCE.loaderName()),
+        Asserts.assertTrue(context, loader.equals(TestPlatform.INSTANCE.loaderName()),
                 "the mod says it runs on '" + loader + "', the test mod on '" + TestPlatform.INSTANCE.loaderName() + "'");
         String version = Services.PLATFORM.modVersion();
-        context.assertTrue(SemVer.parse(version) != null, "the loader's version of the mod, '" + version
+        Asserts.assertTrue(context, SemVer.parse(version) != null, "the loader's version of the mod, '" + version
                 + "', is no version the update checker can read");
         String game = SharedConstants.getCurrentVersion().getName();
-        context.assertTrue(version.endsWith("+" + game), "the loader's version of the mod, '" + version
+        Asserts.assertTrue(context, version.endsWith("+" + game), "the loader's version of the mod, '" + version
                 + "', has lost the build metadata the jar was built with (+" + game + ")");
         context.succeed();
     }

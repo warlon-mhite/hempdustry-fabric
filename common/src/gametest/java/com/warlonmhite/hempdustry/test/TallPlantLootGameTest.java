@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -54,8 +54,8 @@ public final class TallPlantLootGameTest {
         ServerLevel world = context.getLevel();
         BlockPos lowerPos = context.absolutePos(new BlockPos(1, 2, 1));
         BlockPos upperPos = lowerPos.above();
-        LootTable table = world.getServer().getLootData()
-                .getLootTable(Blocks.TALL_GRASS.getLootTable());
+        LootTable table = world.getServer().getLootTables()
+                .get(Blocks.TALL_GRASS.getLootTable());
 
         // FORCE_STATE and nothing else: no neighbour updates, so a half left on its own below sits
         // there to be rolled instead of immediately popping off.
@@ -65,9 +65,9 @@ public final class TallPlantLootGameTest {
         // The whole plant is standing — this is the roll for the half the player actually hit.
         int hitLower = seedDrops(table, world, lowerPos, LOWER);
         int hitUpper = seedDrops(table, world, upperPos, UPPER);
-        context.assertTrue(hitLower > 0,
+        Asserts.assertTrue(context, hitLower > 0,
                 "the hemp seed pool never fired on a broken lower half in " + SEEDS + " rolls");
-        context.assertTrue(hitUpper > 0,
+        Asserts.assertTrue(context, hitUpper > 0,
                 "the hemp seed pool never fired on a broken upper half in " + SEEDS + " rolls");
 
         // …and this is the second roll, as the orphan pops off with its partner already gone.
@@ -78,28 +78,27 @@ public final class TallPlantLootGameTest {
         world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_KNOWN_SHAPE);
         int orphanUpper = seedDrops(table, world, upperPos, UPPER);
 
-        context.assertTrue(orphanLower == 0, "the orphaned lower half paid out " + orphanLower
+        Asserts.assertTrue(context, orphanLower == 0, "the orphaned lower half paid out " + orphanLower
                 + " hemp seeds in " + SEEDS + " rolls — the plant drops at 1-(1-p)², not p");
-        context.assertTrue(orphanUpper == 0, "the orphaned upper half paid out " + orphanUpper
+        Asserts.assertTrue(context, orphanUpper == 0, "the orphaned upper half paid out " + orphanUpper
                 + " hemp seeds in " + SEEDS + " rolls — the plant drops at 1-(1-p)², not p");
         context.succeed();
     }
 
     /** How many of {@link #SEEDS} fixed rolls of {@code table} hand over a hemp seed. */
     private static int seedDrops(LootTable table, ServerLevel world, BlockPos pos, BlockState state) {
-        // LootParams, by that name on this line and from 1.21.5 on.
-        LootParams params = new LootParams.Builder(world)
+        // A loot context, as 1.18.2 names what the newer lines call LootParams.
+        LootContext.Builder params = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
                 .withParameter(LootContextParams.BLOCK_STATE, state)
                 // Empty rather than a real tool: the pool carries vanilla's "not sheared" gate.
-                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
-                .create(LootContextParamSets.BLOCK);
+                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY);
 
         java.util.Random seeds = new java.util.Random(SEED_SOURCE);
         int hits = 0;
         for (int roll = 0; roll < SEEDS; roll++) {
             long seed = seeds.nextLong();
-            for (ItemStack stack : table.getRandomItems(params, seed)) {
+            for (ItemStack stack : Line.roll(table, params, LootContextParamSets.BLOCK, seed)) {
                 if (stack.is(ModTags.Items.HEMP_SEEDS)) {
                     hits++;
                 }

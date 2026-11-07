@@ -33,7 +33,7 @@ public abstract class LlamaMixin extends AbstractChestedHorse {
 
     @Inject(method = "updateContainerEquipment", at = @At("TAIL"))
     private void hempdustry$wearHempCarpet(CallbackInfo ci) {
-        if (!this.level().isClientSide && this.inventory.getItem(1).is(ModBlocks.HEMP_CARPET.asItem())) {
+        if (!this.level.isClientSide && this.inventory.getItem(1).is(ModBlocks.HEMP_CARPET.asItem())) {
             this.entityData.set(DATA_SWAG_ID, HempCarpetBlock.SWAG_ID);
         }
     }

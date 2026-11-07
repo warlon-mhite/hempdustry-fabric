@@ -1,14 +1,13 @@
 package com.warlonmhite.hempdustry.world;
 
+import java.util.Random;
 import com.mojang.serialization.Codec;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementFilter;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
@@ -16,7 +15,7 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 public class ModPlacementModifiers {
 
     public static final PlacementModifierType<InBeldiaBiomePlacementModifier> IN_BELDIA_BIOME =
-            Registry.register(BuiltInRegistries.PLACEMENT_MODIFIER_TYPE, new ResourceLocation(Hempdustry.MOD_ID, "in_beldia_biome"),
+            Registry.register(Registry.PLACEMENT_MODIFIERS, new ResourceLocation(Hempdustry.MOD_ID, "in_beldia_biome"),
                     () -> InBeldiaBiomePlacementModifier.CODEC);
 
     public static void registerPlacementModifiers() {
@@ -24,7 +23,7 @@ public class ModPlacementModifiers {
     }
 
     /**
-     * Each wild Beldía, not just its patch, stands in {@code #hempdustry:beldia_gen}.
+     * Each wild Beldía, not just its patch, stands in a biome of {@link ModTags.Biomes#BELDIA_GEN}.
      *
      * <p>{@code BiomeFilter} only tests the patch's <em>centre</em>, and a patch spreads four
      * blocks, so without this a plant could land across a desert's border — on the beach beside it,
@@ -43,9 +42,9 @@ public class ModPlacementModifiers {
         }
 
         @Override
-        protected boolean shouldPlace(PlacementContext context, RandomSource random, BlockPos pos) {
-            return context.getLevel().getNoiseBiome(QuartPos.fromBlock(pos.getX()),
-                    QuartPos.fromBlock(pos.getY()), QuartPos.fromBlock(pos.getZ())).is(ModTags.Biomes.BELDIA_GEN);
+        protected boolean shouldPlace(PlacementContext context, Random random, BlockPos pos) {
+            return ModTags.Biomes.test(ModTags.Biomes.BELDIA_GEN, context.getLevel().getNoiseBiome(QuartPos.fromBlock(pos.getX()),
+                    QuartPos.fromBlock(pos.getY()), QuartPos.fromBlock(pos.getZ())));
         }
 
         @Override

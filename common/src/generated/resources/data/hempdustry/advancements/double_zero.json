@@ -34,6 +34,5 @@
     [
       "has_filtered_hashish"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

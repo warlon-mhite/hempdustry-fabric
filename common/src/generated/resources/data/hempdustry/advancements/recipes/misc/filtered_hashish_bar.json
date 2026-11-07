@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:filtered_hashish_bar"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

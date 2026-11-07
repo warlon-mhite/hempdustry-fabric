@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
@@ -17,7 +18,7 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
@@ -73,7 +74,7 @@ public final class AdvancementGameTest {
         for (Item food : new Item[]{ModItems.TOASTED_HEMP_SEEDS, ModItems.HEMP_FLAPJACK, ModItems.SIEMIENIOTKA}) {
             ServerPlayer eater = freshPlayer(context);
             consume(context, eater, food);
-            context.assertTrue(eater.getAdvancements().getOrStartProgress(hempHearts).isDone(),
+            Asserts.assertTrue(context, eater.getAdvancements().getOrStartProgress(hempHearts).isDone(),
                     "eating " + food + " did not grant Hemp Hearts — it has left #hempdustry:hemp_seed_foods");
             assertNotDone(context, eater, club, food.toString());
         }
@@ -85,13 +86,13 @@ public final class AdvancementGameTest {
 
         ServerPlayer bhang = freshPlayer(context);
         consume(context, bhang, ModItems.BHANG_BUCKET);
-        context.assertTrue(bhang.getAdvancements().getOrStartProgress(gotBhang).isDone(),
+        Asserts.assertTrue(context, bhang.getAdvancements().getOrStartProgress(gotBhang).isDone(),
                 "drinking bhang did not grant Got Bhang?");
         assertNotDone(context, bhang, club, "bhang");
 
         ServerPlayer jam = freshPlayer(context);
         consume(context, jam, ModItems.DAWAMESK);
-        context.assertTrue(jam.getAdvancements().getOrStartProgress(club).isDone(),
+        Asserts.assertTrue(context, jam.getAdvancements().getOrStartProgress(club).isDone(),
                 "eating dawamesk did not grant Club des Hashischins");
         assertNotDone(context, jam, gotBhang, "dawamesk");
 
@@ -147,7 +148,7 @@ public final class AdvancementGameTest {
         context.setBlock(CROP.above(), ripe.setValue(SativaCropBlock.SEGMENT, TriplePlantSegment.MIDDLE));
         context.setBlock(CROP.above(2), ripe.setValue(SativaCropBlock.SEGMENT, TriplePlantSegment.UPPER));
         sativa.gameMode.destroyBlock(context.absolutePos(CROP.above(2)));
-        context.assertTrue(context.getBlockState(CROP).isAir(), "the Lemon Haze was not harvested, so this proves nothing");
+        Asserts.assertTrue(context, context.getBlockState(CROP).isAir(), "the Lemon Haze was not harvested, so this proves nothing");
         assertDone(context, sativa, topShelf, "a fully trimmed, lamp-grown Lemon Haze broken from its top");
 
         // Pothead is placing a pot, through the real click.
@@ -159,7 +160,7 @@ public final class AdvancementGameTest {
         BlockPos stone = context.absolutePos(BED);
         placer.gameMode.useItemOn(placer, context.getLevel(), pot, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(stone).add(0, 0.5, 0), Direction.UP, stone, false));
-        context.assertTrue(context.getBlockState(CROP).is(ModBlocks.GROW_POT), "the Grow Pot was not placed");
+        Asserts.assertTrue(context, context.getBlockState(CROP).is(ModBlocks.GROW_POT), "the Grow Pot was not placed");
         assertDone(context, placer, pothead, "placing a Grow Pot");
         context.succeed();
     }
@@ -225,7 +226,7 @@ public final class AdvancementGameTest {
         BlockPos bar = context.absolutePos(BED);
         cutter.gameMode.useItemOn(cutter, context.getLevel(), sword, InteractionHand.MAIN_HAND,
                 new BlockHitResult(Vec3.atCenterOf(bar), Direction.UP, bar, false));
-        context.assertTrue(context.getBlockState(BED).getValue(HashishBarBlock.CUTS) == 1, "the sword did not cut the bar, so this proves nothing");
+        Asserts.assertTrue(context, context.getBlockState(BED).getValue(HashishBarBlock.CUTS) == 1, "the sword did not cut the bar, so this proves nothing");
         assertDone(context, cutter, cloudNine, "cutting a Hashish Bar with a sword");
 
         Advancement aroundTheWorld = loaded(context, "around_the_world_in_80_grams", "its_not_pollen");
@@ -233,7 +234,7 @@ public final class AdvancementGameTest {
         List<Item> resins = List.of(ModItems.CHARAS, ModItems.HASHISH, ModItems.FILTERED_HASHISH,
                 ModItems.BUBBLE_HASH, ModItems.ROSIN);
         for (Item resin : resins) {
-            context.assertFalse(collector.getAdvancements().getOrStartProgress(aroundTheWorld).isDone(),
+            Asserts.assertFalse(context, collector.getAdvancements().getOrStartProgress(aroundTheWorld).isDone(),
                     "Around the World was granted before " + resin + " was ever held — it wants all five");
             collector.getInventory().clearContent();
             obtain(collector, new ItemStack(resin));
@@ -266,7 +267,7 @@ public final class AdvancementGameTest {
             player.gameMode.destroyBlock(context.absolutePos(bed));
 
             String what = "breaking a " + beds[i].getDescriptionId() + " under a ripe, lamp-grown plant";
-            context.assertTrue(context.getBlockState(bed.above()).isAir(), what + " left the plant standing");
+            Asserts.assertTrue(context, context.getBlockState(bed.above()).isAir(), what + " left the plant standing");
             assertDone(context, player, midnightSun, what);
             if (beds[i] == ModBlocks.HYDRO_TRAY) {
                 assertDone(context, player, seaOfGreen, what);
@@ -287,12 +288,12 @@ public final class AdvancementGameTest {
         context.setBlock(CROP.above(), ripe.setValue(IndicaCropBlock.HALF, DoubleBlockHalf.UPPER));
         ServerPlayer player = freshPlayer(context);
         player.gameMode.destroyBlock(context.absolutePos(fromTop ? CROP.above() : CROP));
-        context.assertTrue(context.getBlockState(CROP).isAir(), "the plant was not harvested, so this proves nothing");
+        Asserts.assertTrue(context, context.getBlockState(CROP).isAir(), "the plant was not harvested, so this proves nothing");
         return player;
     }
 
     private static Holder<Strain> strain(ServerLevel world, ResourceKey<Strain> key) {
-        return world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
+        return DataRegistries.of(world).lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
     }
 
     private static ItemStack packed(Item device, Holder<Strain> strain, DeviceType type) {
@@ -323,7 +324,7 @@ public final class AdvancementGameTest {
 
     private static void assertDone(GameTestHelper context, ServerPlayer player, Advancement entry,
                                    String what) {
-        context.assertTrue(player.getAdvancements().getOrStartProgress(entry).isDone(),
+        Asserts.assertTrue(context, player.getAdvancements().getOrStartProgress(entry).isDone(),
                 what + " did not grant " + entry.getId());
     }
 
@@ -331,8 +332,8 @@ public final class AdvancementGameTest {
     private static Advancement loaded(GameTestHelper context, String id, String parent) {
         Advancement entry = context.getLevel().getServer().getAdvancements()
                 .getAdvancement(new ResourceLocation("hempdustry", id));
-        context.assertTrue(entry != null, "hempdustry:" + id + " is not loaded at all");
-        context.assertTrue(entry.getParent() != null && entry.getParent().getId().equals(new ResourceLocation("hempdustry", parent)),
+        Asserts.assertTrue(context, entry != null, "hempdustry:" + id + " is not loaded at all");
+        Asserts.assertTrue(context, entry.getParent() != null && entry.getParent().getId().equals(new ResourceLocation("hempdustry", parent)),
                 "hempdustry:" + id + " hangs under " + (entry.getParent() == null ? "nothing" : entry.getParent().getId())
                         + ", not hempdustry:" + parent);
         return entry;
@@ -350,7 +351,7 @@ public final class AdvancementGameTest {
 
     private static void assertNotDone(GameTestHelper context, ServerPlayer player, Advancement entry,
                                       String what) {
-        context.assertFalse(player.getAdvancements().getOrStartProgress(entry).isDone(),
+        Asserts.assertFalse(context, player.getAdvancements().getOrStartProgress(entry).isDone(),
                 what + " granted " + entry.getId() + ", so its criterion matches more than it should");
     }
 }

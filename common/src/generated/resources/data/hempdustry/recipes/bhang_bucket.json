@@ -1,6 +1,5 @@
 {
   "type": "hempdustry:container_carried",
-  "category": "misc",
   "ingredients": [
     {
       "item": "hempdustry:decarboxylated_hemp"

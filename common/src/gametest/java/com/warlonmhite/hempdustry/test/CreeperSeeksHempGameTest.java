@@ -42,29 +42,29 @@ public final class CreeperSeeksHempGameTest {
         openSky(context);
         Creeper creeper = interested(context, CENTRE);
 
-        context.assertTrue(goalOf(creeper) != null,
+        Asserts.assertTrue(context, goalOf(creeper) != null,
                 "CreeperEntityMixin did not add SeekHempCropGoal to a creeper");
 
-        context.assertTrue(SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
+        Asserts.assertTrue(context, SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
                 "a creeper found cover in bare ground");
 
         field(context, 1);
-        context.assertTrue(SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
+        Asserts.assertTrue(context, SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
                 "a field of seedlings drew a creeper; nothing a creeper could hide in grows yet");
 
         field(context, IndicaCropBlock.MAX_AGE);
         BlockPos cover = SeekHempCropGoal.findCover(creeper, 3, ALWAYS);
-        context.assertTrue(cover != null, "a grown field under open sky did not draw the creeper");
-        context.assertTrue(context.getLevel().getBlockState(cover).is(ModBlocks.INDICA_CROP),
+        Asserts.assertTrue(context, cover != null, "a grown field under open sky did not draw the creeper");
+        Asserts.assertTrue(context, context.getLevel().getBlockState(cover).is(ModBlocks.INDICA_CROP),
                 "findCover returned " + cover + ", which is not the root of a hemp plant");
 
         roof(context, Blocks.GLASS);
-        context.assertTrue(SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
+        Asserts.assertTrue(context, SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
                 "a field under a glass roof drew a creeper; only open fields may");
         roof(context, Blocks.AIR);
 
         Creeper first = interested(context, CENTRE.offset(1, 0, 1));
-        context.assertTrue(SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
+        Asserts.assertTrue(context, SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
                 "a field another creeper is already in drew a second one");
         first.discard();
 
@@ -77,7 +77,7 @@ public final class CreeperSeeksHempGameTest {
             goal.trigger();
             noticed = goal.canUse();
         }
-        context.assertTrue(noticed, "a creeper standing in a grown field never noticed it in 2000 glances");
+        Asserts.assertTrue(context, noticed, "a creeper standing in a grown field never noticed it in 2000 glances");
         goal.start();
         goal.stop();
 
@@ -93,11 +93,11 @@ public final class CreeperSeeksHempGameTest {
             goal.stop();
             prowls++;
         }
-        context.assertTrue(prowls <= 6, "a creeper prowled a field " + prowls
+        Asserts.assertTrue(context, prowls <= 6, "a creeper prowled a field " + prowls
                 + " times in a row; it should stop after 3-6 -- 20 means it never leaves");
         for (int glance = 0; glance < 500; glance++) {
             goal.trigger();
-            context.assertFalse(goal.canUse(),
+            Asserts.assertFalse(context, goal.canUse(),
                     "a creeper that has just left a field went straight back to it instead of resting");
         }
 
@@ -109,7 +109,7 @@ public final class CreeperSeeksHempGameTest {
         SeekHempCropGoal indifferentGoal = goalOf(indifferent);
         for (int glance = 0; glance < 2000; glance++) {
             indifferentGoal.trigger();
-            context.assertFalse(indifferentGoal.canUse(),
+            Asserts.assertFalse(context, indifferentGoal.canUse(),
                     "a creeper whose UUID says it ignores hemp noticed a field");
         }
 
@@ -123,9 +123,9 @@ public final class CreeperSeeksHempGameTest {
         SeekHempCropGoal lurk = new SeekHempCropGoal(lurker);
         lurk.start();
         lurker.getNavigation().stop();
-        context.assertTrue(lurk.canContinueToUse(), "a creeper that arrived did not lurk at all");
+        Asserts.assertTrue(context, lurk.canContinueToUse(), "a creeper that arrived did not lurk at all");
         context.runAtTickTime(LURK_OVER_BY_TICK, () -> {
-            context.assertFalse(lurk.canContinueToUse(),
+            Asserts.assertFalse(context, lurk.canContinueToUse(),
                     "a creeper was still lurking " + LURK_OVER_BY_TICK + " ticks after it arrived; a lurk is 2-6 s");
             context.succeed();
         });
@@ -136,7 +136,7 @@ public final class CreeperSeeksHempGameTest {
         // spawn, NOT spawnWithNoFreeWill: GameTestHelper.spawnWithNoFreeWill strips every goal off the mob.
         Creeper creeper = context.spawn(EntityType.CREEPER, at);
         creeper.setUUID(new UUID(creeper.getUUID().getMostSignificantBits(), 2L));
-        context.assertTrue(SeekHempCropGoal.caresAboutHemp(creeper), "test setup: UUID parity");
+        Asserts.assertTrue(context, SeekHempCropGoal.caresAboutHemp(creeper), "test setup: UUID parity");
         return creeper;
     }
 

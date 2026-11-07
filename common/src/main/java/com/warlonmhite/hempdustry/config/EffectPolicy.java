@@ -3,7 +3,7 @@ package com.warlonmhite.hempdustry.config;
 import com.warlonmhite.hempdustry.config.HempdustryConfig.Effects;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;

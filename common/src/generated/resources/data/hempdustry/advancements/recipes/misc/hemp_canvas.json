@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:hemp_canvas"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

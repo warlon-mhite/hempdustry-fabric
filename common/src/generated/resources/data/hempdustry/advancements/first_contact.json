@@ -26,6 +26,5 @@
     [
       "took_a_hit"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

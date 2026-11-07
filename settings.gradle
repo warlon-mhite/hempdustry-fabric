@@ -19,4 +19,4 @@ rootProject.name = 'hempdustry'
 // common: plain Minecraft, no loader -- most of the mod, and the game tests. fabric and forge: each
 // loader's entry points, its side of the platform interfaces and its jar; datagen is Fabric's, but for
 // the few files only Forge reads.
-include 'common', 'fabric', 'forge'
+include 'common', 'forge'

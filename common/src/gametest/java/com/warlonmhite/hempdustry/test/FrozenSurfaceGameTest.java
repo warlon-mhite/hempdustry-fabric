@@ -1,9 +1,10 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.core.Registry;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Comparator;
-import net.minecraft.world.level.storage.loot.LootDataType;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.advancements.critereon.DeserializationContext;
@@ -28,18 +29,14 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.TagFile;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -79,8 +76,9 @@ import java.util.stream.Stream;
  *
  * <p><b>A world made on this line moves to a newer Minecraft, never the other way.</b> So
  * {@code frozen/1.21.1/} holds the 1.21.1 line's releases, and {@link #aWorldFromThisLineUpgrades}
- * holds this build to the newest of them: everything a 1.20.1 world can have saved must be there
- * after Minecraft's upgrade to 1.21.1.
+ * holds this build to the newest of them: everything a 1.18.2 world can have saved must be there
+ * after Minecraft's upgrade to 1.21.1, under the newer names of the registries Minecraft has renamed
+ * since ({@link #RENAMED_REGISTRIES}).
  *
  * <p><b>Additions are free; removals fail.</b> Something that has to go anyway goes into
  * {@code frozen/retired.txt} with how old worlds and packs survive it — and a retirement that excuses
@@ -139,21 +137,40 @@ public final class FrozenSurfaceGameTest {
         String newest = newer.keySet().stream().filter(name -> name.endsWith(".txt") && !name.equals("retired.txt"))
                 .max(Comparator.comparing(name -> SemVer.parse(name.substring(0, name.length() - ".txt".length()))))
                 .orElse(null);
-        context.assertTrue(newest != null, "frozen/1.21.1/ holds no release of the 1.21.1 line");
+        Asserts.assertTrue(context, newest != null, "frozen/1.21.1/ holds no release of the 1.21.1 line");
         Set<String> there = new HashSet<>(text(newer.get(newest)).lines().filter(line -> !line.isBlank()).toList());
         Map<String, String> findings = new TreeMap<>();
         int checked = 0;
         for (String line : surface(context.getLevel())) {
             if (line.startsWith("tag ") || line.startsWith("asset ") || line.startsWith("registry ")) continue;
+            line = renamed(line);
             // A loader's own data registry (Forge's biome modifiers) is that loader's to read, from data
             // files a world does not save; the baseline is written by Fabric's run.
             if (line.startsWith("entry forge:") || line.startsWith("entry neoforge:")) continue;
             checked++;
             if (!there.contains(line)) findings.put(line, "not in the 1.21.1 line's " + newest + ": a world upgraded there loses it");
         }
-        Sweep.atLeast(context, "lines a 1.20.1 world can hold", checked, 1000);
+        // Fewer than the newer lines hold: no hanging signs (1.20) or chest boat (1.19).
+        Sweep.atLeast(context, "lines a 1.18.2 world can hold", checked, 900);
         Sweep.report(context, "A world from this line upgrades to the 1.21.1 line", findings, UPGRADE_EXEMPT);
         context.succeed();
+    }
+
+    /**
+     * Registries Minecraft renamed between 1.18.2 and 1.21.1, by their 1.18.2 name: a world's ids move
+     * with them as it upgrades (vanilla's data fixer turns a painting's {@code Motive} into its
+     * {@code variant}), so a 1.18.2 line is looked for under the newer name.
+     */
+    private static final Map<String, String> RENAMED_REGISTRIES = Map.of(
+            "minecraft:motive", "minecraft:painting_variant");
+
+    private static String renamed(String line) {
+        for (Map.Entry<String, String> rename : RENAMED_REGISTRIES.entrySet()) {
+            if (line.startsWith("entry " + rename.getKey() + " ")) {
+                return "entry " + rename.getValue() + line.substring(("entry " + rename.getKey()).length());
+            }
+        }
+        return line;
     }
 
     /** What this line has and the 1.21.1 line has not, each with why a world upgraded there keeps working. */
@@ -209,7 +226,7 @@ public final class FrozenSurfaceGameTest {
             BlockPos pos = context.absolutePos(AT);
             for (Map.Entry<String, JsonElement> save : old.getAsJsonObject("blockEntities").entrySet()) {
                 String key = release + " " + save.getKey();
-                Block block = BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(save.getKey())).orElse(null);
+                Block block = Registry.BLOCK.getOptional(new ResourceLocation(save.getKey())).orElse(null);
                 if (block == null) {
                     findings.put(key, "the block is gone");
                     continue;
@@ -244,23 +261,25 @@ public final class FrozenSurfaceGameTest {
     private static SortedSet<String> surface(ServerLevel world) {
         RegistryAccess registries = world.registryAccess();
         SortedSet<String> lines = new TreeSet<>();
+        // A 1.18.2 world's registries are the built-in ones of Registry.REGISTRY and, apart, the worldgen
+        // ones it holds itself; the mod's own datapack registries are neither (DataRegistries).
+        Set<ResourceLocation> walked = new HashSet<>();
+        for (Registry<?> registry : Registry.REGISTRY) {
+            if (walked.add(registry.key().location())) walk(registry.key().location(), registry, lines);
+        }
         registries.registries().forEach(entry -> {
-            ResourceLocation registry = entry.key().location();
-            if (Sweep.ours(registry)) lines.add("registry " + registry);
-            for (ResourceLocation id : entry.value().keySet()) {
-                if (Sweep.ours(id)) lines.add("entry " + registry + " " + id);
-            }
-            entry.value().getTagNames().forEach(tag -> {
-                ResourceLocation id = tag.location();
-                // Ours, and the c: and forge: subtags we mint; a tag we only add to is vanilla's or another mod's.
-                if (Sweep.ours(id) || (id.getNamespace().equals("c") || id.getNamespace().equals("forge"))
-                        && id.getPath().endsWith("/hemp")) {
-                    lines.add("tag " + registry + " #" + id);
-                }
-            });
+            if (walked.add(entry.key().location())) walk(entry.key().location(), entry.value(), lines);
         });
-        for (Block block : BuiltInRegistries.BLOCK) {
-            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+        com.warlonmhite.hempdustry.registry.HolderLookup.Provider data = com.warlonmhite.hempdustry.registry.DataRegistries.of(world);
+        for (TestPlatform.RegistryData<?> registry : TestPlatform.dynamicRegistries()) {
+            ResourceLocation key = registry.key().location();
+            if (Sweep.ours(key)) lines.add("registry " + key);
+            data.lookupOrThrow(registry.key()).listElements().forEach(element -> {
+                if (Sweep.ours(element.key().location())) lines.add("entry " + key + " " + element.key().location());
+            });
+        }
+        for (Block block : Registry.BLOCK) {
+            ResourceLocation id = Registry.BLOCK.getKey(block);
             if (!Sweep.ours(id)) continue;
             for (Property<?> property : block.getStateDefinition().getProperties()) states(id, property, lines);
         }
@@ -272,7 +291,7 @@ public final class FrozenSurfaceGameTest {
         for (Recipe<?> recipe : world.getServer().getRecipeManager().getRecipes()) {
             if (Sweep.ours(recipe.getId())) lines.add("recipe " + recipe.getId());
         }
-        world.getServer().getLootData().getKeys(LootDataType.TABLE).stream()
+        world.getServer().getLootTables().getIds().stream()
                 .filter(Sweep::ours).forEach(id -> lines.add("loot_table " + id));
         for (String file : Sweep.modFiles().keySet()) {
             if (file.startsWith("assets/" + Hempdustry.MOD_ID + "/") && !file.startsWith("assets/" + Hempdustry.MOD_ID + "/lang/")) {
@@ -280,15 +299,31 @@ public final class FrozenSurfaceGameTest {
             }
         }
         keys("", orThrow(HempdustryConfig.CODEC.encodeStart(JsonOps.INSTANCE, HempdustryConfig.DEFAULT)), lines);
-        registries.registryOrThrow(Strain.REGISTRY_KEY).entrySet().forEach(strain -> {
-            if (Sweep.ours(strain.getKey().location())) {
-                lines.add("model_index " + strain.getKey().location() + " " + strain.getValue().modelIndex());
+        data.lookupOrThrow(Strain.REGISTRY_KEY).listElements().forEach(strain -> {
+            if (Sweep.ours(strain.key().location())) {
+                lines.add("model_index " + strain.key().location() + " " + strain.value().modelIndex());
             }
         });
-        // A player's save keeps what the mod attaches to them under the attachment's id, on either
-        // loader -- and neither lists it in a registry on 1.20.1. So it is named here, the same on both.
+        // A player's save keeps what the mod attaches to them under the attachment's id, which no
+        // registry lists on 1.18.2. So it is named here.
         lines.add("attachment " + EdibleScheduler.PENDING_ID);
         return lines;
+    }
+
+    /** A registry's ids of ours, and its tags of ours and the c: and forge: subtags we mint. */
+    private static void walk(ResourceLocation registry, Registry<?> entries, SortedSet<String> lines) {
+        if (Sweep.ours(registry)) lines.add("registry " + registry);
+        for (ResourceLocation id : entries.keySet()) {
+            if (Sweep.ours(id)) lines.add("entry " + registry + " " + id);
+        }
+        entries.getTagNames().forEach(tag -> {
+            ResourceLocation id = tag.location();
+            // A tag we only add to is vanilla's or another mod's.
+            if (Sweep.ours(id) || (id.getNamespace().equals("c") || id.getNamespace().equals("forge"))
+                    && id.getPath().endsWith("/hemp")) {
+                lines.add("tag " + registry + " #" + id);
+            }
+        });
     }
 
     private static <T extends Comparable<T>> void states(ResourceLocation block, Property<T> property, SortedSet<String> into) {
@@ -319,19 +354,16 @@ public final class FrozenSurfaceGameTest {
         });
         out.add("data", data);
 
-        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(new CreativeModeTab.ItemDisplayParameters(
-                world.enabledFeatures(), true, registries));
         JsonArray stacks = new JsonArray();
-        Stream.concat(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems().stream(),
-                        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems().stream())
+        Stream.concat(CreativeTab.tab().stream(), CreativeTab.search().stream())
                 .map(stack -> orThrow(ItemStack.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, registries), stack)))
                 .distinct().forEach(stack -> stacks.add(stack));
         out.add("stacks", stacks);
 
         JsonObject blockEntities = new JsonObject();
         BlockPos pos = context.absolutePos(AT);
-        for (Block block : BuiltInRegistries.BLOCK) {
-            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+        for (Block block : Registry.BLOCK) {
+            ResourceLocation id = Registry.BLOCK.getKey(block);
             BlockState state = block.defaultBlockState();
             if (!Sweep.ours(id) || !state.hasBlockEntity()) continue;
             world.setBlock(pos, state, Block.UPDATE_CLIENTS);
@@ -343,9 +375,9 @@ public final class FrozenSurfaceGameTest {
             ItemStack named = new ItemStack(block.asItem());
             // Named as an anvil's name reaches each kind: the machines' own name, a vanilla container's.
             if (entity instanceof NamedMachineBlockEntity machine) {
-                machine.setCustomName(Component.literal("Frozen"));
+                machine.setCustomName(new TextComponent("Frozen"));
             } else if (entity instanceof BaseContainerBlockEntity container) {
-                container.setCustomName(Component.literal("Frozen"));
+                container.setCustomName(new TextComponent("Frozen"));
             }
             blockEntities.addProperty(id.toString(), entity.saveWithFullMetadata().toString());
             if (entity instanceof Container inventory) inventory.clearContent();
@@ -361,7 +393,7 @@ public final class FrozenSurfaceGameTest {
 
     /**
      * Why the data file at {@code path} no longer reads, or {@code null} when it does. Recipes,
-     * advancements and loot tables are read on 1.20.1 as the game reads them, from JSON; the rest
+     * advancements and loot tables are read on 1.18.2 as the game reads them, from JSON; the rest
      * by their codecs, found by folder.
      */
     private static String decodeProblem(ServerLevel world, DynamicOps<JsonElement> json, String path, JsonElement file) {
@@ -374,12 +406,18 @@ public final class FrozenSurfaceGameTest {
             }
             if (inside.startsWith("advancements/")) {
                 Advancement.Builder.fromJson(file.getAsJsonObject(), new DeserializationContext(
-                        id(namespace, inside, "advancements/"), world.getServer().getLootData()));
+                        id(namespace, inside, "advancements/"), world.getServer().getPredicateManager()));
                 return null;
             }
             if (inside.startsWith("loot_tables/")) {
-                // Through the table's own reader: Forge adds an argument to LootDataType#deserialize.
-                return LootDataType.TABLE.parser().fromJson(file, LootTable.class) != null ? null : "no longer decodes";
+                // Through Forge's own reader, which names each pool and entry as it reads.
+                return TestPlatform.INSTANCE.decodeLootTable(world.getServer(), id(namespace, inside, "loot_tables/"), file) != null
+                        ? null : "no longer decodes";
+            }
+            if (inside.startsWith("tags/")) {
+                // 1.18.2 reads a tag file through the tag builder; there is no codec for one yet.
+                net.minecraft.tags.Tag.Builder.tag().addFromJson(file.getAsJsonObject(), "frozen");
+                return null;
             }
         } catch (RuntimeException e) {
             return "no longer decodes: " + e.getMessage();
@@ -398,10 +436,9 @@ public final class FrozenSurfaceGameTest {
 
     /** The codec a data file is read with, by its folder inside its namespace; null for a folder nobody taught it. */
     private static Codec<?> codecFor(String inside) {
-        if (inside.startsWith("tags/")) return TagFile.CODEC;
         // The loader's list, not vanilla's: a mod's dynamic registry is in the loader's alone. Its
         // files live under <namespace>/<path>, data/<pack>/hempdustry/strain/ for strains.
-        for (RegistryDataLoader.RegistryData<?> registry : TestPlatform.INSTANCE.dynamicRegistries()) {
+        for (TestPlatform.RegistryData<?> registry : TestPlatform.dynamicRegistries()) {
             ResourceLocation id = registry.key().location();
             String folder = id.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE) ? id.getPath() : id.getNamespace() + "/" + id.getPath();
             if (inside.startsWith(folder + "/")) return registry.elementCodec();

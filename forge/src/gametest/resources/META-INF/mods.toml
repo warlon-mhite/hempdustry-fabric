@@ -1,6 +1,6 @@
 # Game tests for Hempdustry. Dev-only: this is its own source set and never ships inside the mod jar.
 modLoader="javafml"
-loaderVersion="[47,)"
+loaderVersion="[40,)"
 license="AGPL-3.0-only"
 
 [[mods]]

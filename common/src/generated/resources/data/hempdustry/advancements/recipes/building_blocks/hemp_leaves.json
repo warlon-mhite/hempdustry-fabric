@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:hemp_leaves"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import java.util.Random;
 import net.minecraft.world.InteractionResult;
 import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import com.warlonmhite.hempdustry.block.ItemUse;
@@ -9,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -132,7 +132,7 @@ public class GrowPotBlock extends Block implements GrowMedium, ItemUse {
      * vanilla's own bottle makes mud there, by hand and from a dispenser, with no evaporation — only a
      * bucket's water boils away.
      */
-    public static void water(Level world, BlockPos pos, BlockState state, RandomSource random) {
+    public static void water(Level world, BlockPos pos, BlockState state, Random random) {
         if (state.getValue(WATERED)) {
             PlantStress.roll(world, pos.above(), PlantStress.OVERWATERED, random);
         } else {
@@ -201,17 +201,17 @@ public class GrowPotBlock extends Block implements GrowMedium, ItemUse {
     // ----- bone meal feeds the soil -----
 
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
+    public boolean isValidBonemealTarget(BlockGetter world, BlockPos pos, BlockState state, boolean isClient) {
         return state.getValue(FERTILITY) < MAX_FERTILITY;
     }
 
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, Random random, BlockPos pos, BlockState state) {
         return true;
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel world, Random random, BlockPos pos, BlockState state) {
         world.setBlock(pos, state.setValue(FERTILITY, state.getValue(FERTILITY) + 1), Block.UPDATE_CLIENTS);
     }
 

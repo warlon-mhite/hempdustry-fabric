@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:charas_from_charas_ball"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

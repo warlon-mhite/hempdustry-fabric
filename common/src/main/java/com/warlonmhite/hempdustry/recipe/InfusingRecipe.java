@@ -5,7 +5,6 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -70,7 +69,7 @@ public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredie
     }
 
     @Override
-    public ItemStack assemble(Container input, RegistryAccess registries) {
+    public ItemStack assemble(Container input) {
         return result.copy();
     }
 
@@ -80,7 +79,7 @@ public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredie
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registries) {
+    public ItemStack getResultItem() {
         return result;
     }
 
@@ -131,7 +130,7 @@ public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredie
         return matches.length == 0 ? ItemStack.EMPTY : matches[0];
     }
 
-    public static class Serializer implements RecipeSerializer<InfusingRecipe> {
+    public static class Serializer extends ModRecipeSerializer<InfusingRecipe> {
         @Override
         public InfusingRecipe fromJson(ResourceLocation id, JsonObject json) {
             return new InfusingRecipe(id,

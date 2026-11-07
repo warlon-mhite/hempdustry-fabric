@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.advancement.ModCriteria;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
@@ -15,7 +16,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -81,7 +82,7 @@ public final class Smoking {
         for (Item item : SMOKEABLES) {
             player.getCooldowns().addCooldown(item, ticks);
         }
-        ModComponents.COOLDOWN_UNTIL.set(used, player.level().getGameTime() + ticks);
+        ModComponents.COOLDOWN_UNTIL.set(used, player.level.getGameTime() + ticks);
     }
 
     /**
@@ -224,7 +225,7 @@ public final class Smoking {
         // The stack is still packed here; a spliff's contents are gone a few lines later, which is
         // why contents is handed over as its own argument.
         Services.ADDON_EVENTS.afterSmoke(player, contents, stack);
-        return greenedOut && contents.dose() >= GreenOut.of(world.registryAccess()).fullFromDose();
+        return greenedOut && contents.dose() >= GreenOut.of(DataRegistries.of(world)).fullFromDose();
     }
 
     /**
@@ -307,7 +308,7 @@ public final class Smoking {
      * never grants, a potion of Fire Resistance say, are left alone: a green-out is not milk.
      */
     public static void greenOut(Player player, int dose) {
-        GreenOut greenOut = GreenOut.of(player.level().registryAccess());
+        GreenOut greenOut = GreenOut.of(DataRegistries.of(player.level));
         boolean full = dose >= greenOut.fullFromDose();
         if (full) {
             for (MobEffect buff : buffsTheModGrants(player)) {
@@ -328,12 +329,12 @@ public final class Smoking {
      */
     private static Set<MobEffect> buffsTheModGrants(Player player) {
         Set<MobEffect> out = new HashSet<>();
-        for (EdibleBundle.Effect effect : EdibleBundle.of(player.level().registryAccess()).effects()) {
+        for (EdibleBundle.Effect effect : EdibleBundle.of(DataRegistries.of(player.level)).effects()) {
             if (effect.effect().getCategory() == MobEffectCategory.BENEFICIAL) {
                 out.add(effect.effect());
             }
         }
-        for (Holder<Strain> strain : Strain.registry(player.level().registryAccess()).listElements().toList()) {
+        for (Holder<Strain> strain : Strain.registry(DataRegistries.of(player.level)).listElements().toList()) {
             for (Strain.SmokeEffect effect : strain.value().smokeEffects()) {
                 if (effect.effect().getCategory() == MobEffectCategory.BENEFICIAL) {
                     out.add(effect.effect());

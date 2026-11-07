@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:painting"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

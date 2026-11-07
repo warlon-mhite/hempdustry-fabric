@@ -80,6 +80,14 @@ public interface ClientRegistration {
     void composedModel(ResourceLocation id, List<ResourceLocation> parts,
                        BiFunction<BakedModel, List<BakedModel>, BakedModel> compose);
 
+    /**
+     * Stitches the texture {@code sprite} into the atlas {@code atlas} ({@code Sheets.BED_SHEET} and
+     * the like). The newer lines' atlases list their sprites in data, so any namespace's
+     * {@code entity/bed/} is in the beds atlas; 1.18.2's take only what vanilla's code names, so a
+     * modded bed's texture has to be asked for.
+     */
+    void atlasSprite(ResourceLocation atlas, ResourceLocation sprite);
+
     /** Each time the player joins a world or a server. */
     void onJoinWorld(Runnable listener);
 
@@ -88,4 +96,13 @@ public interface ClientRegistration {
     interface ScreenFactory<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> {
         U create(M menu, Inventory inventory, Component title);
     }
+
+
+    /**
+     * Rebuilds the creative inventory's search from the items as they fill the search tab now.
+     * Vanilla builds that search once, at resource load, before any world -- so stacks that depend
+     * on what a server sent (every strain's) are missing from it until it is rebuilt. Call it on the
+     * client thread once the server's data is in.
+     */
+    void refreshCreativeSearch();
 }

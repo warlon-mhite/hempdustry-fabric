@@ -77,11 +77,11 @@ public final class HempPressGameTest {
         // One item every eight ticks from the first: all three are out by tick 17, and by 40 the lone
         // press has looked behind itself twice.
         context.runAtTickTime(40, () -> {
-            context.assertTrue(press.isHeated(), "the campfire under the press does not heat it, so this rig tests nothing");
+            Asserts.assertTrue(context, press.isHeated(), "the campfire under the press does not heat it, so this rig tests nothing");
             Line.equal(context, rosinIn(context, BEHIND), 3, "the rosin in the barrel behind the press");
             Line.equal(context, NOT_BEHIND.stream().mapToInt(pos -> rosinIn(context, pos)).sum(), 0,
                     "the rosin poured out of the front or a side");
-            context.assertTrue(press.getItem(HempPressBlockEntity.OUTPUT_SLOT).isEmpty(),
+            Asserts.assertTrue(context, press.getItem(HempPressBlockEntity.OUTPUT_SLOT).isEmpty(),
                     "the press still holds " + press.getItem(HempPressBlockEntity.OUTPUT_SLOT));
             Line.equal(context, lone.getItem(HempPressBlockEntity.OUTPUT_SLOT).getCount(), 3,
                     "the rosin kept by a press with nothing behind it");

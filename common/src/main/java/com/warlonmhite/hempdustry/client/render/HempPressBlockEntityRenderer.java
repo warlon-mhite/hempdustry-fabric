@@ -1,8 +1,8 @@
 package com.warlonmhite.hempdustry.client.render;
 
+import com.mojang.math.Vector3f;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.platform.client.ClientServices;
@@ -91,7 +91,7 @@ public class HempPressBlockEntityRenderer implements BlockEntityRenderer<HempPre
         // A right-hand thread drives down turning clockwise seen from above: a negative turn about +Y,
         // through the rod at the middle of the block.
         matrices.translate(0.5F, 0.0F, 0.5F);
-        matrices.mulPose(Axis.YP.rotationDegrees(-depth * TURNS * 360.0F));
+        matrices.mulPose(Vector3f.YP.rotationDegrees(-depth * TURNS * 360.0F));
         matrices.translate(-0.5F, 0.0F, -0.5F);
         draw(renderer, ClientServices.CLIENT.extraModel(SCREW), matrices, buffer, light, overlay);
         matrices.popPose();

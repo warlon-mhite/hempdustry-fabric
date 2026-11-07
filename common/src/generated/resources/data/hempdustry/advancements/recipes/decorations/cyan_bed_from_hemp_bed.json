@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:cyan_bed_from_hemp_bed"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

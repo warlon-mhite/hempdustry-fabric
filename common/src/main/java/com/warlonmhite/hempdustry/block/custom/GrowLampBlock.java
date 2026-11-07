@@ -1,9 +1,10 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.mojang.math.Vector3f;
+import java.util.Random;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -80,7 +81,7 @@ public class GrowLampBlock extends RedstoneLampBlock {
      * redstone ore sparkles on.
      */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (!state.getValue(LIT)) {
             return;
         }
@@ -94,5 +95,5 @@ public class GrowLampBlock extends RedstoneLampBlock {
     }
 
     /** The diodes' violet, and a little smaller than redstone's dust. */
-    private static final DustParticleOptions UV_GLOW = new DustParticleOptions(Vec3.fromRGB24(0x8A3CFF).toVector3f(), 0.7F);
+    private static final DustParticleOptions UV_GLOW = new DustParticleOptions(new Vector3f(Vec3.fromRGB24(0x8A3CFF)), 0.7F);
 }

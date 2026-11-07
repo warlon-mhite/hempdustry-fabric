@@ -66,9 +66,9 @@ public final class CharasGameTest {
         ItemStack probe = new ItemStack(Items.SHEARS);
         player.setItemInHand(InteractionHand.MAIN_HAND, probe);
         Line.useItemOn(world.getBlockState(pos),probe, world, player, InteractionHand.MAIN_HAND, hit);
-        context.assertTrue(context.getBlockState(CROP).getValue(Defoliation.RUBBED),
+        Asserts.assertTrue(context, context.getBlockState(CROP).getValue(Defoliation.RUBBED),
                 "rubbing a ripe plant did not set RUBBED");
-        context.assertTrue(!Line.useItemOn(world.getBlockState(pos),
+        Asserts.assertTrue(context, !Line.useItemOn(world.getBlockState(pos),
                         probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a plant that has already been rubbed accepted a second rub");
 
@@ -76,7 +76,7 @@ public final class CharasGameTest {
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState()
                 .setValue(IndicaCropBlock.AGE, Defoliation.RUB_MIN_AGE - 1)
                 .setValue(Defoliation.TRIMMED_LATE, true));
-        context.assertTrue(!Line.useItemOn(world.getBlockState(pos),
+        Asserts.assertTrue(context, !Line.useItemOn(world.getBlockState(pos),
                         probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a plant whose late-trim window is spent accepted another interaction");
 
@@ -85,10 +85,10 @@ public final class CharasGameTest {
         // nothing else -- which makes this the only age that goes red if that guard is widened.
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState()
                 .setValue(IndicaCropBlock.AGE, Defoliation.EARLY_MIN_AGE - 1));
-        context.assertTrue(!Line.useItemOn(world.getBlockState(pos),
+        Asserts.assertTrue(context, !Line.useItemOn(world.getBlockState(pos),
                         probe, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a seedling accepted a rub — the ripe window's lower bound is not holding");
-        context.assertTrue(!context.getBlockState(CROP).getValue(Defoliation.RUBBED),
+        Asserts.assertTrue(context, !context.getBlockState(CROP).getValue(Defoliation.RUBBED),
                 "a seedling was marked rubbed");
 
         int accepted = 0;
@@ -123,9 +123,9 @@ public final class CharasGameTest {
         // rub at the top. The refused interactions above must add none. That the leaf then comes off
         // the harvest is DefoliationGameTest's everyLeafTakenComesOffTheHarvest.
         Line.equal(context, leaves, RUBS + 1, "rubbing a ripe plant did not drop exactly one hemp leaf");
-        context.assertTrue(charas > 0,
+        Asserts.assertTrue(context, charas > 0,
                 "no charas in " + RUBS + " rubs — the roll never fires");
-        context.assertTrue(charas < RUBS,
+        Asserts.assertTrue(context, charas < RUBS,
                 "charas on all " + RUBS + " rubs — the roll is not a roll");
         context.succeed();
     }
@@ -158,13 +158,13 @@ public final class CharasGameTest {
 
         Advancement trimSeason = world.getServer().getAdvancements()
                 .getAdvancement(new ResourceLocation("hempdustry", "trim_season"));
-        context.assertTrue(trimSeason != null, "hempdustry:trim_season is not loaded at all");
+        Asserts.assertTrue(context, trimSeason != null, "hempdustry:trim_season is not loaded at all");
 
         ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
         ItemStack shears = new ItemStack(Items.SHEARS);
         player.setItemInHand(InteractionHand.MAIN_HAND, shears);
-        context.assertTrue(!player.getAdvancements().getOrStartProgress(trimSeason).isDone(),
+        Asserts.assertTrue(context, !player.getAdvancements().getOrStartProgress(trimSeason).isDone(),
                 "the mock player already had Trim Season before doing anything");
 
         // Rub a ripe plant, through the real interaction manager so the vanilla trigger actually
@@ -172,9 +172,9 @@ public final class CharasGameTest {
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState()
                 .setValue(IndicaCropBlock.AGE, Defoliation.RUB_MAX_AGE));
         player.gameMode.useItemOn(player, world, shears, InteractionHand.MAIN_HAND, hit);
-        context.assertTrue(context.getBlockState(CROP).getValue(Defoliation.RUBBED),
+        Asserts.assertTrue(context, context.getBlockState(CROP).getValue(Defoliation.RUBBED),
                 "the rub did not happen, so this test proves nothing");
-        context.assertTrue(!player.getAdvancements().getOrStartProgress(trimSeason).isDone(),
+        Asserts.assertTrue(context, !player.getAdvancements().getOrStartProgress(trimSeason).isDone(),
                 "rubbing a ripe plant granted Trim Season — the criterion is not age-filtered");
 
         // ...and the advancement still works. A filter that is too narrow breaks it outright, and
@@ -182,9 +182,9 @@ public final class CharasGameTest {
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState()
                 .setValue(IndicaCropBlock.AGE, Defoliation.EARLY_MIN_AGE));
         player.gameMode.useItemOn(player, world, shears, InteractionHand.MAIN_HAND, hit);
-        context.assertTrue(context.getBlockState(CROP).getValue(Defoliation.TRIMMED_EARLY),
+        Asserts.assertTrue(context, context.getBlockState(CROP).getValue(Defoliation.TRIMMED_EARLY),
                 "the trim did not happen, so this test proves nothing");
-        context.assertTrue(player.getAdvancements().getOrStartProgress(trimSeason).isDone(),
+        Asserts.assertTrue(context, player.getAdvancements().getOrStartProgress(trimSeason).isDone(),
                 "trimming a growing plant no longer grants Trim Season");
         context.succeed();
     }

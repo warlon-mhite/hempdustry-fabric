@@ -2,7 +2,9 @@ package com.warlonmhite.hempdustry.screen.custom;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
-import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -42,16 +44,19 @@ public class DecarboxylatorScreen extends AbstractContainerScreen<Decarboxylator
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
+    protected void renderBg(PoseStack context, float delta, int mouseX, int mouseY) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, TEXTURE);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        context.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        this.blit(context, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
         // Fire: revealed from the bottom up, the way a furnace's flame burns down.
         if (this.menu.isBurning()) {
             int lit = Math.round(this.menu.getBurnProgress() * FLAME_H);
             if (lit > 0) {
-                context.blit(TEXTURE,
+                this.blit(context,
                         x + FLAME_X, y + FLAME_Y + FLAME_H - lit,
                         FLAME_U, FLAME_V + FLAME_H - lit,
                         FLAME_W, lit);
@@ -64,13 +69,14 @@ public class DecarboxylatorScreen extends AbstractContainerScreen<Decarboxylator
             if (filled > 0) {
                 int arrowY = y + DecarboxylatorScreenHandler.TRAY_Y
                         + tray * DecarboxylatorScreenHandler.TRAY_SPACING;
-                context.blit(TEXTURE, x + ARROW_X, arrowY, ARROW_U, ARROW_V, filled, ARROW_H);
+                this.blit(context, x + ARROW_X, arrowY, ARROW_U, ARROW_V, filled, ARROW_H);
             }
         }
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(PoseStack context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context);
         super.render(context, mouseX, mouseY, delta);
         this.renderTooltip(context, mouseX, mouseY);
     }

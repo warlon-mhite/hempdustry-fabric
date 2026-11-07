@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:spliff_sativa_with_filtered_hashish_2"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

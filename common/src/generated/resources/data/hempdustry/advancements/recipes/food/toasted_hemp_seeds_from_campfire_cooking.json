@@ -28,6 +28,5 @@
     "recipes": [
       "hempdustry:toasted_hemp_seeds_from_campfire_cooking"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

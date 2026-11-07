@@ -113,16 +113,16 @@ public final class ScorchedHempGameTest {
         ServerPlayer player = Players.mock(context);
 
         context.runAtTickTime(3, () -> {
-            context.assertTrue(infuser.isAtBestQuality(),
+            Asserts.assertTrue(context, infuser.isAtBestQuality(),
                     "an all-scorched batch at the minimum was not at its best grade, so the spout would wait for nothing");
             Line.equal(context, 15, infuser.getComparatorOutput(),
                     "the comparator did not read 15 for a batch with nothing left to wait for");
 
             InfuserScreenHandler menu = (InfuserScreenHandler) infuser.createMenu(0, player.getInventory(), player);
-            context.assertTrue(menu.getProgress() >= 1.0F,
+            Asserts.assertTrue(context, menu.getProgress() >= 1.0F,
                     "the bar shows " + menu.getProgress() + " for a finished all-scorched batch — "
                             + "a negative purity is being read as \"no batch\"");
-            context.assertTrue(menu.getNextGradeMark() < 0.0F,
+            Asserts.assertTrue(context, menu.getNextGradeMark() < 0.0F,
                     "the screen offers a next grade to an all-scorched batch, which can never have one");
             context.succeed();
         });
@@ -135,16 +135,16 @@ public final class ScorchedHempGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void scorchedHempSmeltsFromPlantOnly(GameTestHelper context) {
         for (Item plant : new Item[]{ModItems.HEMP_LEAF, ModItems.INDICA_BUDS, ModItems.SATIVA_BUDS, ModItems.SCHWAG}) {
-            context.assertTrue(smeltsTo(context, plant).is(ModItems.SCORCHED_HEMP),
+            Asserts.assertTrue(context, smeltsTo(context, plant).is(ModItems.SCORCHED_HEMP),
                     plant + " did not smelt to scorched hemp");
             Line.equal(context, 1, smeltsTo(context, plant).getCount(),
                     plant + " smelted to more than one scorched hemp — the oven's four-per-bud is the point");
         }
         // Hash never reaches butter, and a furnace would otherwise be the door it walks through.
         for (Item resin : new Item[]{ModItems.HASHISH, ModItems.CHARAS, ModItems.FILTERED_HASHISH, ModItems.ROSIN}) {
-            context.assertTrue(smeltsTo(context, resin).isEmpty(), resin + " smelts — hash reaches the Infuser");
+            Asserts.assertTrue(context, smeltsTo(context, resin).isEmpty(), resin + " smelts — hash reaches the Infuser");
         }
-        context.assertFalse(CauldronInteraction.WATER.containsKey(ModItems.SCORCHED_HEMP),
+        Asserts.assertFalse(context, CauldronInteraction.WATER.containsKey(ModItems.SCORCHED_HEMP),
                 "scorched hemp can be washed, which makes it a route to Clean and Perfect butter");
         Line.equal(context, 0.3F, TestPlatform.INSTANCE.compostChance(ModItems.SCORCHED_HEMP),
                 "scorched hemp does not compost at the leaf's 0.3");
@@ -181,8 +181,7 @@ public final class ScorchedHempGameTest {
     private static ItemStack smeltsTo(GameTestHelper context, Item input) {
         return context.getLevel().getRecipeManager()
                 .getRecipeFor(RecipeType.SMELTING, new SimpleContainer(new ItemStack(input)), context.getLevel())
-                .map(entry -> entry.assemble(new SimpleContainer(new ItemStack(input)),
-                        context.getLevel().registryAccess()))
+                .map(entry -> entry.assemble(new SimpleContainer(new ItemStack(input))))
                 .orElse(ItemStack.EMPTY);
     }
 }

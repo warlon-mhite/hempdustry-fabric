@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.world;
 
+import net.minecraft.core.Registry;
 import com.warlonmhite.hempdustry.util.ModTags;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -7,8 +8,9 @@ import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.BuiltinRegistries;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -59,17 +61,32 @@ public class ModConfiguredFeatures {
     private static final float BIG_CHANCE = 0.1F;
 
     public static ResourceKey<ConfiguredFeature<?, ?>> registerKey(String name) {
-        return ResourceKey.create(Registries.CONFIGURED_FEATURE, new ResourceLocation(Hempdustry.MOD_ID, name));
+        return ResourceKey.create(Registry.CONFIGURED_FEATURE_REGISTRY, new ResourceLocation(Hempdustry.MOD_ID, name));
     }
 
-    public static void bootstrap(BootstapContext<ConfiguredFeature<?, ?>> context) {
+    private static final Map<ResourceKey<ConfiguredFeature<?, ?>>, Holder<ConfiguredFeature<?, ?>>> REGISTERED = new HashMap<>();
+
+    /** The feature registered under {@code key}; {@link #bootstrap} must have run. */
+    public static Holder<ConfiguredFeature<?, ?>> holder(ResourceKey<ConfiguredFeature<?, ?>> key) {
+        Holder<ConfiguredFeature<?, ?>> holder = REGISTERED.get(key);
+        if (holder == null) {
+            throw new IllegalStateException("Configured feature " + key.location() + " is not registered yet");
+        }
+        return holder;
+    }
+
+    /**
+     * Registers every feature into vanilla's built-in registry, which each world copies its worldgen
+     * from: 1.18.2 reads a mod's features from there, not from a datapack of its own.
+     */
+    public static void bootstrap() {
         // Surface: a small patch on the terrain heightmap, now and then a big one.
-        register(context, INDICA_KEY, wildPatch(ModBlocks.INDICA_FLOWER));
+        register(INDICA_KEY, wildPatch(ModBlocks.INDICA_FLOWER));
 
         // Caves: a single flower; the cave placed feature scatters these across cave
         // floors, and SimpleBlockFeature's own canSurvive check keeps them on valid
         // ground (moss/dirt) rather than bare stone.
-        register(context, INDICA_CAVE_KEY, Feature.SIMPLE_BLOCK,
+        register(INDICA_CAVE_KEY, Feature.SIMPLE_BLOCK,
                 new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.INDICA_FLOWER)));
 
         // Wild Lemon Haze. Sativa is a sun plant — no cave counterpart, unlike indica. Three
@@ -81,9 +98,9 @@ public class ModConfiguredFeatures {
         //                 sativa tier with a lucky big patch
         //   sativa_sparse wooded badlands & arid scrub  — it hangs on (1-3 plants)
         //   sativa_rare   badlands & eroded badlands    — a straggly plant, often none
-        register(context, SATIVA_KEY, wildPatch(ModBlocks.SATIVA_FLOWER));
-        register(context, SATIVA_SPARSE_KEY, patch(ModBlocks.SATIVA_FLOWER, 6));
-        register(context, SATIVA_RARE_KEY, patch(ModBlocks.SATIVA_FLOWER, 3));
+        register(SATIVA_KEY, wildPatch(ModBlocks.SATIVA_FLOWER));
+        register(SATIVA_SPARSE_KEY, patch(ModBlocks.SATIVA_FLOWER, 6));
+        register(SATIVA_RARE_KEY, patch(ModBlocks.SATIVA_FLOWER, 3));
 
         // Wild Beldía is the crop itself, ripe, standing where sugar cane would: on sand with water
         // right beside it, so a desert riverbank. BLOCK_COLUMN puts the LOWER and the UPPER down
@@ -95,7 +112,7 @@ public class ModConfiguredFeatures {
         // offsets from nearWaterPredicate. InBeldiaBiome then checks each plant's own biome,
         // since the patch spreads past its centre's -- see that class. A desert shore grows it too.
         BlockState ripe = ModBlocks.BELDIA_CROP.defaultBlockState().setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE);
-        register(context, BELDIA_KEY, Feature.RANDOM_PATCH, new RandomPatchConfiguration(BELDIA_TRIES, 4, 0,
+        register(BELDIA_KEY, Feature.RANDOM_PATCH, new RandomPatchConfiguration(BELDIA_TRIES, 4, 0,
                 PlacementUtils.inlinePlaced(Feature.BLOCK_COLUMN,
                         new BlockColumnConfiguration(List.of(
                                 BlockColumnConfiguration.layer(ConstantInt.of(1),
@@ -105,13 +122,13 @@ public class ModConfiguredFeatures {
                                 Direction.UP, BlockPredicate.ONLY_IN_AIR_PREDICATE, false),
                         BlockPredicateFilter.forPredicate(BlockPredicate.allOf(
                                 BlockPredicate.ONLY_IN_AIR_PREDICATE,
-                                BlockPredicate.matchesBlocks(new Vec3i(0, 1, 0), Blocks.AIR),
-                                BlockPredicate.matchesTag(new Vec3i(0, -1, 0), ModTags.Blocks.BELDIA_SOIL),
+                                BlockPredicate.matchesBlocks(List.of(Blocks.AIR), new Vec3i(0, 1, 0)),
+                                BlockPredicate.matchesTag(ModTags.Blocks.BELDIA_SOIL, new Vec3i(0, -1, 0)),
                                 BlockPredicate.anyOf(
-                                        BlockPredicate.matchesFluids(new Vec3i(1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
-                                        BlockPredicate.matchesFluids(new Vec3i(-1, -1, 0), Fluids.WATER, Fluids.FLOWING_WATER),
-                                        BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), Fluids.WATER, Fluids.FLOWING_WATER),
-                                        BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), Fluids.WATER, Fluids.FLOWING_WATER)))),
+                                        BlockPredicate.matchesFluids(List.of(Fluids.WATER, Fluids.FLOWING_WATER), new Vec3i(1, -1, 0)),
+                                        BlockPredicate.matchesFluids(List.of(Fluids.WATER, Fluids.FLOWING_WATER), new Vec3i(-1, -1, 0)),
+                                        BlockPredicate.matchesFluids(List.of(Fluids.WATER, Fluids.FLOWING_WATER), new Vec3i(0, -1, 1)),
+                                        BlockPredicate.matchesFluids(List.of(Fluids.WATER, Fluids.FLOWING_WATER), new Vec3i(0, -1, -1))))),
                         ModPlacementModifiers.InBeldiaBiomePlacementModifier.INSTANCE)));
     }
 
@@ -142,13 +159,11 @@ public class ModConfiguredFeatures {
         return PlacementUtils.inlinePlaced(Holder.direct(feature));
     }
 
-    private static void register(BootstapContext<ConfiguredFeature<?, ?>> context,
-                                 ResourceKey<ConfiguredFeature<?, ?>> key, ConfiguredFeature<?, ?> feature) {
-        context.register(key, feature);
+    private static void register(ResourceKey<ConfiguredFeature<?, ?>> key, ConfiguredFeature<?, ?> feature) {
+        REGISTERED.put(key, BuiltinRegistries.register(BuiltinRegistries.CONFIGURED_FEATURE, key, feature));
     }
 
-    private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(BootstapContext<ConfiguredFeature<?, ?>> context,
-                                                                                   ResourceKey<ConfiguredFeature<?, ?>> key, F feature, FC configuration) {
-        context.register(key, new ConfiguredFeature<>(feature, configuration));
+    private static <FC extends FeatureConfiguration, F extends Feature<FC>> void register(ResourceKey<ConfiguredFeature<?, ?>> key, F feature, FC configuration) {
+        register(key, new ConfiguredFeature<>(feature, configuration));
     }
 }

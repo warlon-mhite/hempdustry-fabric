@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:cannabutter_toast"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

@@ -1,7 +1,12 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.platform.Services;
-import net.minecraft.resources.RegistryDataLoader;
+import com.mojang.serialization.Codec;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import java.lang.reflect.Field;
+import java.util.Map;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -22,10 +27,51 @@ public interface TestPlatform {
     String loaderName();
 
     /**
-     * Every datapack registry the game loads. Vanilla's own list leaves out the ones a mod adds, so
-     * the strains and the balance files are only in the loader's.
+     * Every datapack registry the mod loads, with the codec its files are read with. Minecraft 1.18.2
+     * has no datapack registries a mod can add, so the strains and the balance files are the mod's own
+     * {@link DataRegistries} on every loader; they are read off its declarations, which it keeps to
+     * itself.
      */
-    List<RegistryDataLoader.RegistryData<?>> dynamicRegistries();
+    static List<RegistryData<?>> dynamicRegistries() {
+        try {
+            Field declaredField = DataRegistries.class.getDeclaredField("DECLARED");
+            declaredField.setAccessible(true);
+            List<RegistryData<?>> out = new ArrayList<>();
+            for (Object declared : ((Map<?, ?>) declaredField.get(null)).values()) {
+                Field key = declared.getClass().getDeclaredField("key");
+                Field codec = declared.getClass().getDeclaredField("codec");
+                key.setAccessible(true);
+                codec.setAccessible(true);
+                out.add(registryData(key.get(declared), codec.get(declared)));
+            }
+            return out;
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("DataRegistries no longer keeps its declarations where the tests read them", e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static RegistryData<?> registryData(Object key, Object codec) {
+        return new RegistryData((ResourceKey) key, (Codec) codec);
+    }
+
+    /** A datapack registry and the codec its files are read with: vanilla's {@code RegistryDataLoader.RegistryData} from 1.19.3 on. */
+    record RegistryData<T>(ResourceKey<? extends Registry<T>> key, Codec<T> elementCodec) {
+    }
+
+    /**
+     * Leaves on a mock player's connection what the loader's login handshake leaves on a real
+     * client's, so the player list takes the player as it takes one who logged in.
+     */
+    void markAsHandshaken(net.minecraft.network.Connection connection);
+
+    /**
+     * A loot table file read as the server reads one from a data pack. Forge 40 names each pool and
+     * entry while it reads, from a context only its own loading sets up, so vanilla's serializer
+     * alone throws on any table with a pool.
+     */
+    net.minecraft.world.level.storage.loot.LootTable decodeLootTable(net.minecraft.server.MinecraftServer server,
+            net.minecraft.resources.ResourceLocation id, com.google.gson.JsonElement json);
 
     /** The folders, or the jar, the mod's resources are read from. */
     List<Path> modRoots();

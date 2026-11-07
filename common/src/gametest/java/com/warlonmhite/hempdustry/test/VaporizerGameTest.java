@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -23,7 +24,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.level.GameType;
 
 /**
@@ -79,11 +79,11 @@ public final class VaporizerGameTest {
         ItemStack spent = player.getItemInHand(InteractionHand.MAIN_HAND);
         Line.equal(context, 1, count(player, ModItems.SCORCHED_HEMP),
                 "a finished vaporizer bowl did not hand back exactly one scorched hemp");
-        context.assertTrue(!ModComponents.SMOKE_CONTENTS.has(spent),
+        Asserts.assertTrue(context, !ModComponents.SMOKE_CONTENTS.has(spent),
                 "the finished bowl left its contents on the vaporizer");
-        context.assertTrue(!ModComponents.CHARGES.has(spent),
+        Asserts.assertTrue(context, !ModComponents.CHARGES.has(spent),
                 "the finished bowl left its charges on the vaporizer");
-        context.assertTrue(spent.getDamageValue() == 2,
+        Asserts.assertTrue(context, spent.getDamageValue() == 2,
                 "two hits did not cost two durability");
 
         // The other half, and the reason spentYield is a field rather than an "if vaporizer": a
@@ -93,7 +93,7 @@ public final class VaporizerGameTest {
         for (int i = 0; i < DeviceType.PIPE.builtInBowl().hits(); i++) {
             hit(player, world, InteractionHand.MAIN_HAND);
         }
-        context.assertTrue(!ModComponents.CHARGES.has(player.getItemInHand(InteractionHand.MAIN_HAND)),
+        Asserts.assertTrue(context, !ModComponents.CHARGES.has(player.getItemInHand(InteractionHand.MAIN_HAND)),
                 "the pipe's bowl did not finish, so this half proves nothing");
         Line.equal(context, 1, count(player, ModItems.SCORCHED_HEMP),
                 "a finished pipe bowl handed back AVB — spentYield is not being read");
@@ -108,7 +108,7 @@ public final class VaporizerGameTest {
         for (int i = 0; i < DeviceType.VAPORIZER.builtInBowl().hits(); i++) {
             hit(player, world, InteractionHand.MAIN_HAND);
         }
-        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
+        Asserts.assertTrue(context, player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
                 "the vaporizer did not break on its last hit, so this half proves nothing");
         Line.equal(context, 2, count(player, ModItems.SCORCHED_HEMP),
                 "a vaporizer that broke on the hit that finished its bowl ate the AVB");
@@ -206,7 +206,7 @@ public final class VaporizerGameTest {
 
     private static Holder<Strain> strain(ServerLevel world,
                                                 net.minecraft.resources.ResourceKey<Strain> key) {
-        return world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
+        return DataRegistries.of(world).lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
     }
 
     /**
@@ -222,29 +222,29 @@ public final class VaporizerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void vaporizerRefusesTwoBuds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe recipe = new PackingRecipe(new ResourceLocation("hempdustry", "packing"), CraftingBookCategory.MISC);
+        PackingRecipe recipe = new PackingRecipe(new ResourceLocation("hempdustry", "packing"));
         Item buds = strain(world).value().buds();
 
         CraftingInput one = grid(new ItemStack(ModItems.VAPORIZER), buds, 1);
-        context.assertTrue(recipe.matches(one, world),
+        Asserts.assertTrue(context, recipe.matches(one, world),
                 "a vaporizer and one bud is not a packing recipe at all");
-        ItemStack packed = recipe.assemble(one, world.registryAccess());
+        ItemStack packed = recipe.assemble(one);
         Line.equal(context, DeviceType.VAPORIZER.builtInBowl().hits(),
                 ModComponents.CHARGES.getOrDefault(packed, 0), "packing did not load a full bowl");
         Line.equal(context, 1, ModComponents.SMOKE_CONTENTS.getOrDefault(packed, SmokeContents.EMPTY)
                 .dose(), "packing a vaporizer with one bud did not give dose 1");
 
-        context.assertTrue(!recipe.matches(grid(new ItemStack(ModItems.VAPORIZER), buds, 2), world),
+        Asserts.assertTrue(context, !recipe.matches(grid(new ItemStack(ModItems.VAPORIZER), buds, 2), world),
                 "the vaporizer accepted two buds — maxDose 1 is not being enforced");
 
-        context.assertTrue(recipe.matches(grid(new ItemStack(ModItems.BONG), buds, 2), world),
+        Asserts.assertTrue(context, recipe.matches(grid(new ItemStack(ModItems.BONG), buds, 2), world),
                 "the bong refused two buds, so the refusal above proves nothing");
         context.succeed();
     }
 
     /** The first plant strain the server loaded — any of them packs the same. */
     private static Holder<Strain> strain(ServerLevel world) {
-        return world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY)
+        return DataRegistries.of(world).lookupOrThrow(Strain.REGISTRY_KEY)
                 .getOrThrow(ModStrains.INDICA);
     }
 

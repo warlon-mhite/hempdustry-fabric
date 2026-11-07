@@ -1,5 +1,5 @@
 // Forge's jar: common's sources and resources, compiled here, plus Forge's entry points, its side of the
-// platform interfaces, and the few data files only Forge reads. Forge 47 runs in its own (SRG) names,
+// platform interfaces, and the few data files only Forge reads. Forge 40 runs in its own (SRG) names,
 // so the jar is reobfuscated from Mojang's names at build time; ModDevGradle's legacy plugin does it.
 plugins {
 	id 'multiloader-loader'
@@ -61,6 +61,11 @@ legacyForge {
 			sourceSet = sourceSets.gametest
 			loadedMods = [mods.hempdustry, mods.hempdustry_gametest]
 			gameDirectory = file('build/gametest')
+			// -Pgametest=<regex>: only the tests whose name it finds, e.g. -Pgametest=sweepgametest
+			def only = project.findProperty('gametest')
+			if (only) {
+				systemProperty 'hempdustry.gametest.only', only.toString()
+			}
 		}
 		// The files only Forge reads -- the biome modifiers -- written from
 		// the same calls Fabric's registries take, so the two cannot drift apart:
@@ -80,7 +85,7 @@ sourceSets.main.resources.srcDir generated
 
 legacyForge.addModdingDependenciesTo(sourceSets.gametest)
 
-// Mixin on Forge 47 needs its annotation processor's refmap (Mojang's names to SRG) and the configs
+// Mixin on Forge 40 needs its annotation processor's refmap (Mojang's names to SRG) and the configs
 // named in the jar's manifest. Common's mixin configs name the refmap; Fabric's Loom writes its own
 // under the same name.
 def mixinConfigs = ['hempdustry.mixins.json', 'hempdustry.client.mixins.json', 'hempdustry.forge.mixins.json']
@@ -103,7 +108,7 @@ tasks.named('jar', Jar) {
 }
 
 dependencies {
-	// The mixin annotation processor, for the refmap above; MixinExtras, which Forge 47 does not ship,
+	// The mixin annotation processor, for the refmap above; MixinExtras, which Forge 40 does not ship,
 	// carried inside the jar (Fabric Loader ships its own).
 	annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
 	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinextras_version}"))
@@ -111,27 +116,24 @@ dependencies {
 	// The game tests run from their own source set, which takes none of the above by itself.
 	gametestImplementation "io.github.llamalad7:mixinextras-forge:${mixinextras_version}"
 
-	// The three viewers, compiled against and never shipped, as on Fabric: each finds the mod's plugin
-	// on its own (EMI by @EmiEntrypoint, JEI by @JeiPlugin, REI by the annotated plugin in
-	// forge/compat/rei). Forge's mod jars are in SRG names; the mod* configurations remap them.
-	modCompileOnly "dev.emi:emi-forge:${emi_version}:api"
+	// The two viewers, compiled against and never shipped: each finds the mod's plugin on its own (JEI
+	// by @JeiPlugin, REI by the annotated plugin in forge/compat/rei). Forge's mod jars are in SRG names;
+	// the mod* configurations remap them.
 	modCompileOnly "mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"
 	// JEI's Forge API is only its Forge half; the plugin is written against the common one, in Mojang's names.
 	compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-forge:${rei_version}"
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-forge:${rei_version}"
-	compileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"
 	modCompileOnly("dev.architectury:architectury-forge:${architectury_version}") { transitive = false }
+	// REI 8 names cloth-config's math (me.shedaniel.math) without bringing it along.
+	modCompileOnly("me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}") { transitive = false }
 
-	// One viewer at a time, as on Fabric:
-	//   ./gradlew :forge:runClient                  # EMI on the runtime (default)
-	//   ./gradlew :forge:runClient -Pviewer=jei     # JEI instead
+	// One viewer at a time:
+	//   ./gradlew :forge:runClient                  # JEI on the runtime (default)
 	//   ./gradlew :forge:runClient -Pviewer=rei     # REI instead
 	//   ./gradlew :forge:runClient -Pviewer=none    # no viewer
-	def viewer = project.findProperty("viewer") ?: "emi"
-	if (viewer == "emi") {
-		modRuntimeOnly "dev.emi:emi-forge:${emi_version}"
-	} else if (viewer == "jei") {
+	def viewer = project.findProperty("viewer") ?: "jei"
+	if (viewer == "jei") {
 		modRuntimeOnly "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
 	} else if (viewer == "rei") {
 		modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-forge:${rei_version}"
@@ -140,7 +142,7 @@ dependencies {
 		modRuntimeOnly "dev.architectury:architectury-forge:${architectury_version}"
 		modRuntimeOnly "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
 	} else if (viewer != "none") {
-		throw new GradleException("Unknown -Pviewer=${viewer}; use emi, jei, rei or none")
+		throw new GradleException("Unknown -Pviewer=${viewer}; use jei, rei or none")
 	}
 }
 
@@ -159,17 +161,22 @@ def expectedGametestLog = [
 	// every_config_extreme_keeps_the_numbers_sane pushes every setting past its range
 	~/\[hempdustry\/\]: Config \S+ was (-?1000000000|-?1\.0E9|1\.0E-9), clamped to/,
 	// vanilla reads its own assets out of Forge's union filesystem, a scheme it does not expect
-	~/\[net\.minecraft\.server\.packs\.VanillaPackResourcesBuilder\/\]: Assets URL 'union:.*' uses unexpected schema/,
+	~/\[net\.minecraft\.server\.packs\.VanillaPackResources\/\]: Assets URL 'union:.*' uses unexpected schema/,
 	// Forge's own language providers, on the dev classpath as plain jars, carry no mods.toml
-	~/\[net\.minecraftforge\.fml\.loading\.moddiscovery\.ModFileParser\/LOADING\]: Mod file .*\/(fmlcore|javafmllanguage|lowcodelanguage|mclanguage)-1\.20\.1-[0-9.]+\.jar is missing mods\.toml file/,
+	~/\[net\.minecraftforge\.fml\.loading\.moddiscovery\.ModFileParser\/LOADING\]: Mod file .*\/(fmlcore|javafmllanguage|lowcodelanguage|mclanguage)-1\.18\.2-[0-9.]+\.jar is missing mods\.toml file/,
+	// 1.18.2's command tree checks itself for ambiguities at every start and finds vanilla's own /teleport's
+	~/\[net\.minecraft\.commands\.Commands\/\]: Ambiguity between arguments \[teleport, /,
+	// 1.18.2's dedicated server reads a flat world's settings with plain JSON, which the flat codec's
+	// biome field refuses; it logs this and builds vanilla's classic flat, which is what the tests want
+	~/\[net\.minecraft\.world\.level\.levelgen\.WorldGenSettings\/\]: Not a registry ops/,
 	// in dev the mixins run in Mojang's names and need no refmap; the built jar carries it
 	~/\[mixin\/\]: Reference map 'hempdustry\.refmap\.json' for hempdustry\.(client\.|forge\.)?mixins\.json could not be read/,
 	// the test world is made anew every run, and Forge fills in its per-world config the first time
 	~/\[net\.minecraftforge\.common\.ForgeConfigSpec\/CORE\]: (Configuration file \.\/world\/serverconfig\/forge-server\.toml is not correct\. Correcting|Incorrect key server(\.\w+)? was corrected from null to its default)/,
 ]
 def gametestLog = file('build/gametest/logs/latest.log')
-// Forge 47's test server is the dedicated server's Main with GameTestServer swapped in: it takes its
-// world from server.properties, a normal noise world by default, so the tests ran in deepslate with no
+// Forge 40's test server is the dedicated server's Main with GameTestServer swapped in: it takes its
+// world from server.properties, a normal noise world by default, so the tests ran underground with no
 // sky light. Vanilla's own GameTestServer.create (Fabric's run) builds a fresh flat world, seed 0, no
 // structures, creative, normal difficulty, no mob spawning; every run here starts from the same.
 def gametestDir = file('build/gametest')
@@ -178,9 +185,10 @@ tasks.matching { it.name == 'runGameTestServer' }.configureEach {
 		delete new File(gametestDir, 'world')
 		gametestDir.mkdirs()
 		new File(gametestDir, 'server.properties').text = [
-			'level-type=minecraft\\:flat',
-			// vanilla's classic flat (FlatLevelGeneratorSettings#getDefault); left out, the server
-			// logs an ERROR for the empty settings before falling back to the same
+			// 1.18.2 names the flat world type without a namespace; "minecraft:flat" falls back to noise
+			'level-type=flat',
+			// vanilla's classic flat (FlatLevelGeneratorSettings#getDefault); 1.18.2 cannot read these
+			// (see the log list above) and falls back to the same, but they say which world is meant
 			'generator-settings={"layers"\\:[{"block"\\:"minecraft\\:bedrock","height"\\:1},{"block"\\:"minecraft\\:dirt","height"\\:2},{"block"\\:"minecraft\\:grass_block","height"\\:1}],"biome"\\:"minecraft\\:plains"}',
 			'level-seed=0',
 			'generate-structures=false',
@@ -220,7 +228,7 @@ tasks.named('processResources', ProcessResources) {
 
 // Publishing, as on Fabric: `publishToMavenLocal` puts hempdustry-forge in the local maven, so an
 // addon can compile against com.warlonmhite.hempdustry.api and the Forge events before any public
-// maven carries the mod. The published jar is the reobfuscated one, as Forge 47 runs it.
+// maven carries the mod. The published jar is the reobfuscated one, as Forge 40 runs it.
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {

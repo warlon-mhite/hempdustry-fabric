@@ -5,10 +5,9 @@ import com.warlonmhite.hempdustry.component.StackRegistries;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -17,10 +16,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import net.minecraft.network.chat.TranslatableComponent;
 
 /**
  * The mod's single creative tab.
@@ -74,15 +79,85 @@ import java.util.function.Consumer;
  * opposite of the goal.
  */
 public class ModItemGroups {
-    public static final CreativeModeTab HEMPDUSTRY_ITEMS_GROUP = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB,
-            new ResourceLocation(Hempdustry.MOD_ID, "hempdustry_items"),
+    /**
+     * The mod's one tab. On 1.18.2 a tab is a class that fills one list, and the search tab asks every
+     * item for its own stacks, so the newer lines' single {@code displayItems} becomes {@link #fill},
+     * run once for the tab ({@link TabVisibility#PARENT_TAB_ONLY} entries and both-tab ones) and once
+     * for the search ({@link #searchStacks}, which {@code CreativeSearchMixin} hands each of our items).
+     */
+    public static final CreativeModeTab HEMPDUSTRY_ITEMS_GROUP = Services.REGISTRATION.creativeTab("hempdustry",
             // The leaf, not a strain's buds: it is the plant's iconic silhouette, it is the one
             // strain-agnostic part, and it stays right when a third strain lands.
-            Services.REGISTRATION.creativeTabBuilder().icon(() -> new ItemStack(ModItems.HEMP_LEAF))
-                    .title(Component.translatable("itemgroup.hempdustry"))
-                    // Stacks built here carry strains of the lookup the tab is given (StackRegistries).
-                    .displayItems((displayContext, entries) -> StackRegistries.with(withStrains(displayContext.holders()), () -> {
-                        HolderLookup.Provider holders = withStrains(displayContext.holders());
+            new TranslatableComponent("itemgroup.hempdustry"),
+            () -> new ItemStack(ModItems.HEMP_LEAF),
+            list -> fill(false, list::add));
+
+    /** Which list an entry goes in, as the newer lines' {@code CreativeModeTab.TabVisibility}. */
+    public enum TabVisibility {
+        PARENT_AND_SEARCH_TABS,
+        PARENT_TAB_ONLY,
+        SEARCH_TAB_ONLY
+    }
+
+    /** One side's entries: the tab's when {@code search} is false, the search's otherwise. */
+    private static final class Output {
+        private final boolean search;
+        private final Consumer<ItemStack> out;
+
+        Output(boolean search, Consumer<ItemStack> out) {
+            this.search = search;
+            this.out = out;
+        }
+
+        void accept(ItemLike item) {
+            accept(new ItemStack(item));
+        }
+
+        void accept(ItemStack stack) {
+            accept(stack, TabVisibility.PARENT_AND_SEARCH_TABS);
+        }
+
+        void accept(ItemStack stack, TabVisibility visibility) {
+            if (stack.isEmpty()) {
+                throw new IllegalStateException("The creative tab refuses an empty stack");
+            }
+            if (visibility == TabVisibility.PARENT_AND_SEARCH_TABS
+                    || (visibility == TabVisibility.SEARCH_TAB_ONLY) == search) {
+                out.accept(stack);
+            }
+        }
+    }
+
+    private static final long SEARCH_CACHE_NANOS = 5_000_000_000L;
+    private static volatile Map<Item, List<ItemStack>> searchCache = Collections.emptyMap();
+    private static volatile long searchCachedAt;
+
+    /**
+     * What the search tab lists for one of our items: its search entries, in the tab's order. The
+     * search tab asks item by item, all at once, so the whole list is built once and kept a moment.
+     */
+    public static List<ItemStack> searchStacks(Item item) {
+        long now = System.nanoTime();
+        Map<Item, List<ItemStack>> cache = searchCache;
+        if (now - searchCachedAt > SEARCH_CACHE_NANOS) {
+            Map<Item, List<ItemStack>> built = new LinkedHashMap<>();
+            fill(true, stack -> built.computeIfAbsent(stack.getItem(), key -> new ArrayList<>()).add(stack));
+            searchCache = cache = built;
+            searchCachedAt = now;
+        }
+        return cache.getOrDefault(item, Collections.emptyList());
+    }
+
+    /** Forgets the kept search list: the strains it was built with have changed. */
+    public static void clearSearchCache() {
+        searchCachedAt = System.nanoTime() - SEARCH_CACHE_NANOS - 1;
+    }
+
+    /** Every entry of one side, in order. Stacks carry strains of the side's lookup (StackRegistries). */
+    private static void fill(boolean search, Consumer<ItemStack> out) {
+        Output entries = new Output(search, out);
+        HolderLookup.Provider holders = withStrains();
+        StackRegistries.with(holders, () -> {
                         // --- The plant -------------------------------------------------
                         // One run per kind, in the strain registry's own stable order, so a strain
                         // added or edited by a datapack slots into all three runs without touching
@@ -164,10 +239,10 @@ public class ModItemGroups {
                         // the tab, so the bare item is deliberately not listed. The grid shows the
                         // hashish coat; search lists every coat, as it does every dose.
                         ModItems.showcaseMoonRocks(holders)
-                                .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.PARENT_TAB_ONLY));
+                                .forEach(stack -> entries.accept(stack, TabVisibility.PARENT_TAB_ONLY));
                         ModItems.moonRocks(holders)
-                                .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
-                        entries.accept(ModItems.showcaseCannabutter(), CreativeModeTab.TabVisibility.PARENT_TAB_ONLY);
+                                .forEach(stack -> entries.accept(stack, TabVisibility.SEARCH_TAB_ONLY));
+                        entries.accept(ModItems.showcaseCannabutter(), TabVisibility.PARENT_TAB_ONLY);
 
                         // --- Fibre and building materials ------------------------------
                         entries.accept(ModItems.HEMP_FIBER);
@@ -190,17 +265,17 @@ public class ModItemGroups {
                         // potency × quality matrix goes to the search tab, as the enchanted
                         // books do. Cannabutter's own search stacks ride along in allDosed().
                         ModItems.showcaseEdibles()
-                                .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.PARENT_TAB_ONLY));
+                                .forEach(stack -> entries.accept(stack, TabVisibility.PARENT_TAB_ONLY));
                         ModItems.allDosed()
-                                .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
+                                .forEach(stack -> entries.accept(stack, TabVisibility.SEARCH_TAB_ONLY));
 
                         // --- Smoking ---------------------------------------------------
                         // Gear-free first, then the devices in progression order; each device
                         // empty, then one per strain. Doses live in the search tab only.
                         ModItems.showcaseSmokeables(holders)
-                                .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.PARENT_TAB_ONLY));
+                                .forEach(stack -> entries.accept(stack, TabVisibility.PARENT_TAB_ONLY));
                         ModItems.allSmokeables(holders)
-                                .forEach(stack -> entries.accept(stack, CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
+                                .forEach(stack -> entries.accept(stack, TabVisibility.SEARCH_TAB_ONLY));
                         // The glass run, empty only -- the way vanilla follows the bundle with its
                         // sixteen dyed ones. A packed coloured bong differs from a packed clear one
                         // by glass alone, so listing its loads would be the matrix all over again.
@@ -247,12 +322,13 @@ public class ModItemGroups {
 
                         // --- What the wood set carries, then the discs ------------------
                         // Vanilla's own tab order: signs are Functional, boats and discs Tools.
+                        // No hanging sign or chest boat: 1.18.2 has neither.
                         entries.accept(ModItems.HEMP_PLANKS_SIGN);
-                        entries.accept(ModItems.HEMP_PLANKS_HANGING_SIGN);
                         entries.accept(ModItems.HEMP_BOAT);
-                        entries.accept(ModItems.HEMP_CHEST_BOAT);
                         ModItems.MUSIC_DISCS.forEach(entries::accept);
-                    })).build());
+        });
+    }
+
 
     /**
      * The lookup to build the tab from: the one it is given, or, when that one has no strains, the
@@ -260,15 +336,34 @@ public class ModItemGroups {
      * viewer may build it with a lookup of its own holding only vanilla's (REI 12 does, and the tab
      * threw "Registry hempdustry:strain not found" and was left out of REI's list).
      */
-    private static HolderLookup.Provider withStrains(HolderLookup.Provider given) {
-        if (given.lookup(Strain.REGISTRY_KEY).isPresent()) {
-            return given;
-        }
+    /**
+     * The strains the stacks are built with: this side's, once a world is loaded; before that (the
+     * search list is first built at start-up) an empty lookup, which lists the strain-free stacks only.
+     */
+    private static HolderLookup.Provider withStrains() {
         HolderLookup.Provider world = StackRegistries.current();
-        return world != null && world.lookup(Strain.REGISTRY_KEY).isPresent() ? world : given;
+        return world != null && world.lookup(Strain.REGISTRY_KEY).isPresent() ? world : DataRegistries.CLIENT;
     }
 
     public static void registerItemGroups(){
         Hempdustry.LOGGER.info("Registering Item Groups for "+ Hempdustry.MOD_ID);
+    }
+
+    /**
+     * Puts every item of ours in the tab, once all are registered. A 1.18.2 item carries its tab from
+     * its properties, and only an item with a tab is in the search tab or the recipe viewer's list; the
+     * tab's own contents are {@link #fill}'s, whatever the items carry.
+     */
+    public static void assignTab() {
+        for (Item item : Registry.ITEM) {
+            if (Hempdustry.MOD_ID.equals(Registry.ITEM.getKey(item).getNamespace())) {
+                ((ItemCategoryAccess) item).hempdustry$setCategory(HEMPDUSTRY_ITEMS_GROUP);
+            }
+        }
+    }
+
+    /** Implemented on {@code Item} by {@code ItemCategoryMixin}: 1.18.2 keeps the tab final. */
+    public interface ItemCategoryAccess {
+        void hempdustry$setCategory(CreativeModeTab tab);
     }
 }

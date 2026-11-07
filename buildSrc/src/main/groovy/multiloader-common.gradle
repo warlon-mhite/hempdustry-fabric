@@ -17,7 +17,7 @@ base {
 }
 
 java {
-	toolchain.languageVersion = JavaLanguageVersion.of(21)
+	toolchain.languageVersion = JavaLanguageVersion.of(17)
 	withSourcesJar()
 }
 
@@ -74,5 +74,12 @@ tasks.named('jar', Jar) {
 	// wants its attribution to travel with the files — so the credits ship inside the jar.
 	from(rootProject.file('CREDITS.md')) {
 		rename { "CREDITS_${licenceSuffix}.md" }
+	}
+}
+
+// -PallErrors: every compile error at once, past javac's cap of 100 (a port's first builds).
+if (project.hasProperty('allErrors')) {
+	tasks.withType(JavaCompile).configureEach {
+		options.compilerArgs += ['-Xmaxerrs', '100000']
 	}
 }

@@ -1,8 +1,22 @@
 {
   "values": [
-    { "id": "#minecraft:swords", "required": false },
-    { "id": "#c:tools/knife", "required": false },
-    { "id": "#c:tools/knives", "required": false },
-    { "id": "#forge:tools/knives", "required": false }
+    "minecraft:wooden_sword",
+    "minecraft:stone_sword",
+    "minecraft:iron_sword",
+    "minecraft:golden_sword",
+    "minecraft:diamond_sword",
+    "minecraft:netherite_sword",
+    {
+      "id": "#c:tools/knife",
+      "required": false
+    },
+    {
+      "id": "#c:tools/knives",
+      "required": false
+    },
+    {
+      "id": "#forge:tools/knives",
+      "required": false
+    }
   ]
 }

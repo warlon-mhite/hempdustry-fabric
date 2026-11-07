@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.platform;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;

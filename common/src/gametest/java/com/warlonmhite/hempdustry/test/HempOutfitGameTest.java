@@ -41,13 +41,13 @@ public final class HempOutfitGameTest {
     public void onlyTheBeanieKeepsOutTheCold(GameTestHelper context) {
         Player player = Line.mockPlayer(context, GameType.SURVIVAL);
         player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ModItems.HEMP_BEANIE));
-        context.assertFalse(player.canFreeze(), "a player in a hemp beanie still freezes in powder snow");
+        Asserts.assertFalse(context, player.canFreeze(), "a player in a hemp beanie still freezes in powder snow");
 
         player.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
         player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ModItems.HEMP_SHIRT));
         player.setItemSlot(EquipmentSlot.LEGS, new ItemStack(ModItems.HEMP_HAREM_PANTS));
         player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ModItems.FLIP_FLOPS));
-        context.assertTrue(player.canFreeze(),
+        Asserts.assertTrue(context, player.canFreeze(),
                 "the shirt, the harem pants or the flip-flops keep out the cold; only the beanie should");
         context.succeed();
     }
@@ -71,19 +71,19 @@ public final class HempOutfitGameTest {
             // One dye on undyed cloth is that dye's colour, as vanilla's armour-dye recipe mixes it.
             float[] green = DyeColor.GREEN.getTextureDiffuseColors();
             int expected = ((int) (green[0] * 255.0F) << 16) | ((int) (green[1] * 255.0F) << 8) | (int) (green[2] * 255.0F);
-            context.assertTrue(dyed.is(garment) && cloth.hasCustomColor(dyed) && cloth.getColor(dyed) == expected,
+            Asserts.assertTrue(context, dyed.is(garment) && cloth.hasCustomColor(dyed) && cloth.getColor(dyed) == expected,
                     garment + " and green dye made " + dyed + " (" + Integer.toHexString(cloth.getColor(dyed))
                             + "), not a green " + garment);
 
             context.setBlock(cauldron, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
             Line.useItemOn(world.getBlockState(pos),dyed, world, player, InteractionHand.MAIN_HAND, hit);
-            context.assertFalse(cloth.hasCustomColor(dyed),
+            Asserts.assertFalse(context, cloth.hasCustomColor(dyed),
                     "a water cauldron did not wash the dye out of " + garment);
             Line.equal(context, context.getBlockState(cauldron).getValue(LayeredCauldronBlock.LEVEL), 2,
                     "the cauldron's water level after washing " + garment);
         }
         for (Item kept : List.of(ModItems.HEMP_BEANIE, ModItems.FLIP_FLOPS)) {
-            context.assertTrue(dye(world, kept).isEmpty(), kept + " took dye; only the shirt and pants should");
+            Asserts.assertTrue(context, dye(world, kept).isEmpty(), kept + " took dye; only the shirt and pants should");
         }
         context.succeed();
     }
@@ -114,7 +114,7 @@ public final class HempOutfitGameTest {
         CraftingInput grid = CraftingInput.of(2, 1,
                 List.of(new ItemStack(item), new ItemStack(Items.GREEN_DYE)));
         return world.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, world)
-                .map(entry -> entry.assemble(grid, world.registryAccess()))
+                .map(entry -> entry.assemble(grid))
                 .orElse(ItemStack.EMPTY);
     }
 }

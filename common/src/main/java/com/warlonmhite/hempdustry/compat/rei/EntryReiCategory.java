@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.compat.rei;
 
+import net.minecraft.network.chat.TranslatableComponent;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
 import me.shedaniel.math.Point;
 import me.shedaniel.math.Rectangle;
@@ -53,7 +54,7 @@ public class EntryReiCategory implements DisplayCategory<EntryReiDisplay> {
         // The same key JEI's and EMI's titles come from, rather than REI's default
         // category.rei.<namespace>.<path> — one set of titles across eight locales, and no two
         // viewers can end up saying different words for the same category.
-        this.title = Component.translatable("hempdustry.category." + id.getPath());
+        this.title = new TranslatableComponent("hempdustry.category." + id.getPath());
         this.icon = EntryStacks.of(icon);
         this.noteLines = noteLines;
     }

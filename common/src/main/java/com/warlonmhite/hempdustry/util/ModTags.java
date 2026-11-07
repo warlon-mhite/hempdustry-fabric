@@ -1,27 +1,86 @@
 package com.warlonmhite.hempdustry.util;
 
+import com.warlonmhite.hempdustry.platform.Registration;
+import java.util.HashSet;
+import java.util.Set;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BannerPattern;
 
 public class ModTags {
 
+    /**
+     * Where the wild plants grow. Forge 1.18.2 places a feature in a biome as the biomes load, before
+     * any tag is bound, so each tier names its biomes by id -- vanilla's, and the modded ones the newer
+     * lines' tags list -- and takes any other modded biome by the category it declares, which is what
+     * the newer lines reach through the {@code #c:is_*} tags. The tiers stay disjoint, so no biome is
+     * decorated twice.
+     */
     public static class Biomes {
 
-        public static final TagKey<Biome> INDICA_FLOWER_GEN = createTag("indica_flower_gen");
-        public static final TagKey<Biome> INDICA_FLOWER_GEN_CAVE = createTag("indica_flower_gen_cave");
-        // Three disjoint tiers — see the tag JSONs in resources and ModConfiguredFeatures.
-        public static final TagKey<Biome> SATIVA_FLOWER_GEN = createTag("sativa_flower_gen");
-        public static final TagKey<Biome> SATIVA_FLOWER_GEN_SPARSE = createTag("sativa_flower_gen_sparse");
-        public static final TagKey<Biome> SATIVA_FLOWER_GEN_RARE = createTag("sativa_flower_gen_rare");
-        public static final TagKey<Biome> BELDIA_GEN = createTag("beldia_gen");
-        private static TagKey<Biome> createTag(String name) {
-            return TagKey.create(Registries.BIOME, new ResourceLocation(Hempdustry.MOD_ID, name));
+        /** Every biome a tier names, so that no other tier takes it by its category. */
+        private static final Set<String> NAMED = new HashSet<>();
+
+        public static final Registration.BiomeSelector INDICA_FLOWER_GEN = select(
+                Set.of("minecraft:plains", "minecraft:jungle", "minecraft:sparse_jungle", "minecraft:bamboo_jungle",
+                        "minecraft:swamp",
+                        "biomesoplenty:rainforest", "biomesoplenty:fungal_jungle", "biomesoplenty:bayou",
+                        "biomesoplenty:floodplain", "biomesoplenty:wetland", "biomesoplenty:mystic_grove",
+                        "biomesoplenty:lush_grassland",
+                        "regions_unexplored:rainforest", "regions_unexplored:sparse_rainforest",
+                        "regions_unexplored:tropics", "regions_unexplored:bayou", "regions_unexplored:old_growth_bayou",
+                        "regions_unexplored:marsh", "regions_unexplored:fungal_fen",
+                        "terralith:tropical_jungle", "terralith:rocky_jungle", "terralith:jungle_mountains",
+                        "terralith:amethyst_rainforest", "terralith:orchid_swamp"),
+                Biome.BiomeCategory.JUNGLE, Biome.BiomeCategory.SWAMP);
+        /** The cave tier: lush caves, and the one modded underground jungle the newer lines name. */
+        public static final Registration.BiomeSelector INDICA_FLOWER_GEN_CAVE = select(
+                Set.of("minecraft:lush_caves", "terralith:underground_jungle"));
+        // Three disjoint tiers — see ModConfiguredFeatures.
+        public static final Registration.BiomeSelector SATIVA_FLOWER_GEN = select(
+                Set.of("minecraft:savanna", "minecraft:savanna_plateau", "minecraft:windswept_savanna",
+                        "minecraft:sunflower_plains",
+                        "biomesoplenty:savanna", "biomesoplenty:lush_savanna", "biomesoplenty:prairie",
+                        "biomesoplenty:grassland", "biomesoplenty:mediterranean_forest",
+                        "regions_unexplored:prairie", "regions_unexplored:steppe", "regions_unexplored:baobab_savanna",
+                        "regions_unexplored:outback",
+                        "terralith:arid_highlands", "terralith:brushland", "terralith:shrubland",
+                        "terralith:savanna_slopes"),
+                Biome.BiomeCategory.SAVANNA);
+        public static final Registration.BiomeSelector SATIVA_FLOWER_GEN_SPARSE = select(
+                Set.of("minecraft:wooded_badlands",
+                        "biomesoplenty:dryland", "terralith:savanna_badlands", "terralith:red_oasis",
+                        "regions_unexplored:mesa_spires"),
+                Biome.BiomeCategory.MESA);
+        public static final Registration.BiomeSelector SATIVA_FLOWER_GEN_RARE = select(
+                Set.of("minecraft:badlands", "minecraft:eroded_badlands"));
+        public static final Registration.BiomeSelector BELDIA_GEN = select(
+                Set.of("minecraft:desert"),
+                Biome.BiomeCategory.DESERT);
+
+        /**
+         * The biomes named, and any other biome outside {@code minecraft} that declares one of the
+         * categories. A biome named for another tier is never taken by category, so the tiers stay
+         * disjoint for a modded biome too.
+         */
+        private static Registration.BiomeSelector select(Set<String> named, Biome.BiomeCategory... modded) {
+            NAMED.addAll(named);
+            Set<Biome.BiomeCategory> categories = Set.of(modded);
+            return (biome, category) -> named.contains(biome.toString())
+                    || (!"minecraft".equals(biome.getNamespace()) && !NAMED.contains(biome.toString())
+                    && categories.contains(category));
+        }
+
+        /** Whether {@code biome} is one {@code selector} takes, as worldgen sees it. */
+        public static boolean test(Registration.BiomeSelector selector, Holder<Biome> biome) {
+            return biome.unwrapKey()
+                    .map(key -> selector.test(key.location(), Biome.getBiomeCategory(biome)))
+                    .orElse(false);
         }
     }
 
@@ -114,7 +173,7 @@ public class ModTags {
         /** Bone meal and every mod's fertiliser, the same way: what feeds a Grow Pot. */
         public static final TagKey<Item> FERTILIZERS = createTag("fertilizers");
         private static TagKey<Item> createTag(String name) {
-            return TagKey.create(Registries.ITEM, new ResourceLocation(Hempdustry.MOD_ID, name));
+            return TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(Hempdustry.MOD_ID, name));
         }
     }
 
@@ -145,33 +204,11 @@ public class ModTags {
         public static final TagKey<Block> HEMP_STORAGE_BLOCKS_BLOCK = blockTag("storage_blocks/hemp");
 
         private static TagKey<Item> itemTag(String path) {
-            return TagKey.create(Registries.ITEM, new ResourceLocation("c", path));
+            return TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation("c", path));
         }
 
         private static TagKey<Block> blockTag(String path) {
-            return TagKey.create(Registries.BLOCK, new ResourceLocation("c", path));
-        }
-    }
-
-    public static class BannerPatterns {
-
-        /**
-         * The banner patterns {@code hemp_leaf} unlocks in a loom.
-         *
-         * <p>The loom does not read the item, it reads the item's
-         * {@code minecraft:provides_banner_patterns} component, and that component holds a
-         * <em>tag of banner patterns</em> rather than one pattern. So a pattern item is always two
-         * halves: this tag, and the component on {@link com.warlonmhite.hempdustry.item.ModItems#HEMP_LEAF}
-         * pointing at it. Vanilla mints one such tag per pattern item under
-         * {@code pattern_item/}, which is the path this copies.
-         *
-         * <p>Being a tag is also what makes it extensible: a datapack can add a second pattern here
-         * and the same leaf unlocks both, with no code change.
-         */
-        public static final TagKey<BannerPattern> HEMP_LEAF_PATTERN_ITEM =
-                TagKey.create(Registries.BANNER_PATTERN, new ResourceLocation(Hempdustry.MOD_ID, "pattern_item/hemp_leaf"));
-
-        private BannerPatterns() {
+            return TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation("c", path));
         }
     }
 
@@ -205,7 +242,7 @@ public class ModTags {
          */
         public static final TagKey<Block> BELDIA_SOIL = createTag("beldia_soil");
         private static TagKey<Block> createTag(String name) {
-            return TagKey.create(Registries.BLOCK, new ResourceLocation(Hempdustry.MOD_ID, name));
+            return TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation(Hempdustry.MOD_ID, name));
         }
     }
 }

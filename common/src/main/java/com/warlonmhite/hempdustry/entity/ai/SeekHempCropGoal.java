@@ -1,9 +1,10 @@
 package com.warlonmhite.hempdustry.entity.ai;
 
+import net.minecraft.util.Mth;
+import java.util.Random;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
@@ -151,7 +152,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
      */
     @Override
     public boolean canContinueToUse() {
-        if (!HempdustryConfig.get().world().creepersSeekHemp() || mob.hasControllingPassenger()) {
+        if (!HempdustryConfig.get().world().creepersSeekHemp() || mob.getControllingPassenger() != null) {
             return false;
         }
         if (!mob.getNavigation().isDone()) {
@@ -159,7 +160,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
         }
         long now = mob.getCommandSenderWorld().getGameTime();
         if (lurkingUntil == 0L) {
-            lurkingUntil = now + mob.getRandom().nextIntBetweenInclusive(MIN_LURK, MAX_LURK);
+            lurkingUntil = now + Mth.nextInt(mob.getRandom(), MIN_LURK, MAX_LURK);
         }
         return now < lurkingUntil;
     }
@@ -190,9 +191,9 @@ public class SeekHempCropGoal extends RandomStrollGoal {
     @Override
     public void start() {
         super.start();
-        RandomSource random = mob.getRandom();
+        Random random = mob.getRandom();
         if (prowlsLeft == 0) {
-            prowlsLeft = random.nextIntBetweenInclusive(MIN_PROWLS, MAX_PROWLS);
+            prowlsLeft = Mth.nextInt(random, MIN_PROWLS, MAX_PROWLS);
         } else if (--prowlsLeft == 0) {
             rest();
         }
@@ -200,7 +201,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
 
     private void rest() {
         prowlsLeft = 0;
-        restingUntil = mob.getCommandSenderWorld().getGameTime() + mob.getRandom().nextIntBetweenInclusive(MIN_REST, MAX_REST);
+        restingUntil = mob.getCommandSenderWorld().getGameTime() + Mth.nextInt(mob.getRandom(), MIN_REST, MAX_REST);
     }
 
     /**
@@ -209,11 +210,11 @@ public class SeekHempCropGoal extends RandomStrollGoal {
      */
     public static @Nullable BlockPos findCover(PathfinderMob creeper, int range, int samples) {
         Level world = creeper.getCommandSenderWorld();
-        RandomSource random = creeper.getRandom();
+        Random random = creeper.getRandom();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int i = 0; i < samples; i++) {
-            int x = creeper.getBlockX() + random.nextIntBetweenInclusive(-range, range);
-            int z = creeper.getBlockZ() + random.nextIntBetweenInclusive(-range, range);
+            int x = creeper.getBlockX() + Mth.nextInt(random, -range, range);
+            int z = creeper.getBlockZ() + Mth.nextInt(random, -range, range);
             // Never load a chunk to answer a wandering mob.
             pos.set(x, creeper.getBlockY(), z);
             if (!world.hasChunkAt(x, z)) {

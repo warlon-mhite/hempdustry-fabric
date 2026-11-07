@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:hemp_carpet"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

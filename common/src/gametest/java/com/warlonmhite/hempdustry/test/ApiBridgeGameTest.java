@@ -1,11 +1,12 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.List;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
@@ -27,20 +28,20 @@ public final class ApiBridgeGameTest {
 
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void theTwoZeroApiStillAnswers(GameTestHelper context) {
-        HolderLookup.RegistryLookup<Strain> strains = context.getLevel().registryAccess().lookupOrThrow(Strain.REGISTRY_KEY);
+        HolderLookup.RegistryLookup<Strain> strains = DataRegistries.of(context.getLevel()).lookupOrThrow(Strain.REGISTRY_KEY);
         Strain indica = strains.getOrThrow(ModStrains.INDICA).value();
 
         // 2.0's constructor and accessors: a plant strain, with the defaults 2.0 behaved by.
         Strain built = new Strain(indica.translationKey(), indica.color(), indica.modelIndex(),
                 indica.seeds(), indica.buds(), indica.flower(), indica.smokeEffects());
-        context.assertTrue(built.seedItem().equals(indica.seedItem()) && built.wildFlower().equals(indica.wildFlower()),
+        Asserts.assertTrue(context, built.seedItem().equals(indica.seedItem()) && built.wildFlower().equals(indica.wildFlower()),
                 "2.0's constructor lost Purple Kush's seeds or flower: " + built);
-        context.assertTrue(built.greenOutFactor() == 1.0F && built.coughFactor() == 1.0F && built.dosePerItem() == 1,
+        Asserts.assertTrue(context, built.greenOutFactor() == 1.0F && built.coughFactor() == 1.0F && built.dosePerItem() == 1,
                 "2.0's constructor did not take 2.0's defaults: " + built);
 
         // A strain 2.0 never had, with no plant, answers air rather than null.
         Strain hashish = strains.getOrThrow(ModStrains.HASHISH).value();
-        context.assertTrue(hashish.seeds() == Items.AIR && hashish.flower() == Blocks.AIR,
+        Asserts.assertTrue(context, hashish.seeds() == Items.AIR && hashish.flower() == Blocks.AIR,
                 "hashish's 2.0 seeds()/flower() are " + hashish.seeds() + " / " + hashish.flower() + ", not air");
 
         // effects(dose, duration) is the whole hit: the exhale's effects and the chance ones too.
@@ -57,7 +58,7 @@ public final class ApiBridgeGameTest {
 
     private static void assertHas(GameTestHelper context, List<MobEffectInstance> effects,
                                   MobEffect effect, String what) {
-        context.assertTrue(effects.stream().anyMatch(instance -> instance.getEffect() == effect),
+        Asserts.assertTrue(context, effects.stream().anyMatch(instance -> instance.getEffect() == effect),
                 what + " is missing: " + effects);
     }
 }

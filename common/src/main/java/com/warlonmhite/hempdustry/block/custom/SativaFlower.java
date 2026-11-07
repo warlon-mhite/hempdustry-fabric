@@ -1,9 +1,12 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.tags.BlockTags;
+import java.util.Set;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -47,8 +50,20 @@ public class SativaFlower extends DoublePlantBlock {
         super(settings);
     }
 
+    /**
+     * The dead bush's ground: 1.18.2 has no {@code #dead_bush_may_place_on} (1.20 made one of exactly
+     * this), so the list in vanilla 1.18.2's {@code DeadBushBlock#mayPlaceOn} is written out -- sand, red
+     * sand, the seventeen terracottas, and {@code #minecraft:dirt}.
+     */
+    private static final Set<Block> DEAD_BUSH_GROUND = Set.of(Blocks.SAND, Blocks.RED_SAND, Blocks.TERRACOTTA,
+            Blocks.WHITE_TERRACOTTA, Blocks.ORANGE_TERRACOTTA, Blocks.MAGENTA_TERRACOTTA, Blocks.LIGHT_BLUE_TERRACOTTA,
+            Blocks.YELLOW_TERRACOTTA, Blocks.LIME_TERRACOTTA, Blocks.PINK_TERRACOTTA, Blocks.GRAY_TERRACOTTA,
+            Blocks.LIGHT_GRAY_TERRACOTTA, Blocks.CYAN_TERRACOTTA, Blocks.PURPLE_TERRACOTTA, Blocks.BLUE_TERRACOTTA,
+            Blocks.BROWN_TERRACOTTA, Blocks.GREEN_TERRACOTTA, Blocks.RED_TERRACOTTA, Blocks.BLACK_TERRACOTTA);
+
     @Override
-    public boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
-        return floor.is(BlockTags.DEAD_BUSH_MAY_PLACE_ON) || super.mayPlaceOn(floor, world, pos);
+    protected boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
+        return DEAD_BUSH_GROUND.contains(floor.getBlock()) || floor.is(BlockTags.DIRT)
+                || super.mayPlaceOn(floor, world, pos);
     }
 }

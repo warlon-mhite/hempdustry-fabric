@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:gray_bong"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -1,11 +1,11 @@
 package com.warlonmhite.hempdustry.mixin.client;
 
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import com.warlonmhite.hempdustry.item.ModItemProperties;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.platform.client.ClientServices;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,11 +28,11 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public abstract class ItemRendererMixin {
 
     @ModifyVariable(
-            method = "render(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V",
+            method = "render(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V",
             at = @At("HEAD"), argsOnly = true)
-    private BakedModel hempdustry$holdBongsIn3d(BakedModel model, ItemStack stack, ItemDisplayContext mode) {
-        if (mode == ItemDisplayContext.GUI || mode == ItemDisplayContext.GROUND
-                || mode == ItemDisplayContext.FIXED
+    private BakedModel hempdustry$holdBongsIn3d(BakedModel model, ItemStack stack, ItemTransforms.TransformType mode) {
+        if (mode == ItemTransforms.TransformType.GUI || mode == ItemTransforms.TransformType.GROUND
+                || mode == ItemTransforms.TransformType.FIXED
                 || !(stack.getItem() instanceof SmokingDeviceItem device) || device.placedBlock() == null) {
             return model;
         }

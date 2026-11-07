@@ -1,12 +1,12 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.core.Registry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,7 +56,7 @@ public final class HashishBarGameTest {
             InteractionResult result = rightClick(context, sword);
             // Asserted on the returned value, not just on the world: a block that mutates state and
             // then hands back PASS still swallows the click for everything that comes after it.
-            context.assertTrue(result.consumesAction(),
+            Asserts.assertTrue(context, result.consumesAction(),
                     "cut " + (cut + 1) + " was not accepted by the interaction manager");
             if (cut < 4) {
                 Line.equal(context, cut + 1, context.getBlockState(BAR).getValue(HashishBarBlock.CUTS),
@@ -64,9 +64,9 @@ public final class HashishBarGameTest {
             }
         }
         Line.equal(context, 9, expected, "the yield table no longer sums to nine");
-        context.assertTrue(context.getBlockState(BAR).isAir(),
+        Asserts.assertTrue(context, context.getBlockState(BAR).isAir(),
                 "the fifth cut left the bar standing instead of removing it");
-        context.assertTrue(sword.getDamageValue() == 5,
+        Asserts.assertTrue(context, sword.getDamageValue() == 5,
                 "the blade should have taken one damage per cut, took " + sword.getDamageValue());
 
         context.runAfterDelay(2, () -> {
@@ -108,12 +108,12 @@ public final class HashishBarGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void hashCuttersTagResolves(GameTestHelper context) {
-        Holder<net.minecraft.world.item.Item> sword = BuiltInRegistries.ITEM.wrapAsHolder(Items.DIAMOND_SWORD);
-        context.assertTrue(sword.is(ModTags.Items.HASH_CUTTERS),
+        Holder<net.minecraft.world.item.Item> sword = Items.DIAMOND_SWORD.builtInRegistryHolder();
+        Asserts.assertTrue(context, sword.is(ModTags.Items.HASH_CUTTERS),
                 "#hempdustry:hash_cutters does not contain a diamond sword — an unresolvable "
                         + "required entry has almost certainly dropped the whole tag");
         // Shears deliberately stay out of it: they mean "trim a plant" in this mod and nothing else.
-        context.assertFalse(BuiltInRegistries.ITEM.wrapAsHolder(Items.SHEARS).is(ModTags.Items.HASH_CUTTERS),
+        Asserts.assertFalse(context, Items.SHEARS.builtInRegistryHolder().is(ModTags.Items.HASH_CUTTERS),
                 "shears joined the hash cutters — they already mean 'trim a plant'");
         context.succeed();
     }

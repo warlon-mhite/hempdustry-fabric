@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import java.util.Random;
 import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import net.minecraft.world.entity.LivingEntity;
 import com.warlonmhite.hempdustry.block.ItemInteractionResult;
@@ -15,7 +16,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -251,7 +251,7 @@ public class InfuserBlock extends BaseEntityBlock implements ItemUse {
      * Self-illuminating would quietly undercut the whole heat-from-below idea.
      */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (!state.getValue(INFUSING)) {
             return;
         }

@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:dawamesk"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

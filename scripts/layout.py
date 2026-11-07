@@ -1,7 +1,8 @@
 """Where a checkout keeps the mod's code and data, for the scripts that read them.
 
 Since 2.1 the mod is a common project plus one project per loader (common/, fabric/, neoforge/ -- forge/
-on the 1.20.1 line, where the second loader is Forge 47);
+on the 1.20.1 line, where the second loader is Forge 47, and common/ and forge/ alone on the 1.16.5 and 1.18.2 lines,
+which has no Fabric build);
 before that it was one project. A checkout of either shape reads the same, so a script pointed at an older
 branch's checkout still works.
 """
@@ -23,8 +24,9 @@ class Layout:
             self.resources = common / "src/main/resources"
             self.generated = common / "src/generated/resources"
             #: the Gradle path of the project that runs the game tests, datagen and Fabric's jar
-            self.fabric = ":fabric:"
-            self.fabric_libs = self.root / "fabric/build/libs"
+            has_fabric = (self.root / "fabric").is_dir()
+            self.fabric = ":fabric:" if has_fabric else None
+            self.fabric_libs = self.root / "fabric/build/libs" if has_fabric else None
             #: the second loader's project (NeoForge's, or Forge's on the 1.20.1 line), the few files its own
             #: data run writes and its jar, on a branch that has one
             second = next((d for d in ("neoforge", "forge") if (self.root / d).is_dir()), None)

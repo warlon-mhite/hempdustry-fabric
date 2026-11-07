@@ -1,8 +1,10 @@
 package com.warlonmhite.hempdustry.client.render;
 
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import com.mojang.math.Vector3f;
+import java.util.Random;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.platform.client.ClientServices;
 import net.minecraft.client.model.HumanoidModel;
@@ -15,11 +17,9 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
@@ -65,20 +65,20 @@ public final class HempBeanieRenderer {
 
         // ItemRenderer#renderItem's own steps for a plain model: the display transform, then the
         // model's block-space origin to its centre.
-        band.getTransforms().getTransform(ItemDisplayContext.HEAD).apply(false, matrices);
+        band.getTransforms().getTransform(ItemTransforms.TransformType.HEAD).apply(false, matrices);
         matrices.translate(-0.5F, -0.5F, -0.5F);
         VertexConsumer buffer = ItemRenderer.getFoilBuffer(vertexConsumers,
                 ItemBlockRenderTypes.getRenderType(stack, true), true, stack.hasFoil());
         quads(band, matrices, buffer, light);
         matrices.translate(8.0F / 16.0F, 12.0F / 16.0F, 3.0F / 16.0F);
-        matrices.mulPose(Axis.XP.rotationDegrees(CROWN_TILT));
+        matrices.mulPose(Vector3f.XP.rotationDegrees(CROWN_TILT));
         matrices.translate(-8.0F / 16.0F, -12.0F / 16.0F, -3.0F / 16.0F);
         quads(crown, matrices, buffer, light);
         matrices.popPose();
     }
 
     private static void quads(BakedModel model, PoseStack matrices, VertexConsumer buffer, int light) {
-        RandomSource random = RandomSource.create();
+        Random random = new Random();
         for (Direction side : Direction.values()) {
             draw(model.getQuads(null, side, random), matrices, buffer, light);
         }

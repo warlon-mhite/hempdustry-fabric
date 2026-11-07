@@ -10,6 +10,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 
 import java.util.List;
+import com.google.common.collect.ImmutableList;
 
 /**
  * The pending edibles in the player's Forge data, saved with the player under
@@ -27,7 +28,7 @@ public final class ForgePlayerData implements PlayerData {
     static void register() {
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.Clone event) -> {
             if (!event.isWasDeath() && event.getOriginal().getPersistentData().contains(KEY)) {
-                event.getEntity().getPersistentData().put(KEY, event.getOriginal().getPersistentData().get(KEY).copy());
+                event.getPlayer().getPersistentData().put(KEY, event.getOriginal().getPersistentData().get(KEY).copy());
             }
         });
     }
@@ -36,9 +37,9 @@ public final class ForgePlayerData implements PlayerData {
     public List<EdibleScheduler.Pending> pendingEdibles(Player player) {
         Tag saved = player.getPersistentData().get(KEY);
         if (saved == null) {
-            return List.of();
+            return ImmutableList.of();
         }
-        return EdibleScheduler.PENDING_CODEC.parse(NbtOps.INSTANCE, saved).result().orElse(List.of());
+        return EdibleScheduler.PENDING_CODEC.parse(NbtOps.INSTANCE, saved).result().orElse(ImmutableList.of());
     }
 
     @Override

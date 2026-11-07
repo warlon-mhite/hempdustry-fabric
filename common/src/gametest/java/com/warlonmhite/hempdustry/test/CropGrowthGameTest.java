@@ -28,13 +28,13 @@ public final class CropGrowthGameTest {
         expect(context, 25.0F, 5.0F, 2.0, 2.0F / 6.0F);
         // Dry ground: exactly nothing. The overflow gave about -1e-9, inside expect's tolerance.
         float dry = HempGrowth.chance(25.0F, 0.0F, 2.0);
-        context.assertTrue(dry == 0.0F, "moisture 0: odds " + dry + ", expected exactly 0");
+        Asserts.assertTrue(context, dry == 0.0F, "moisture 0: odds " + dry + ", expected exactly 0");
         context.succeed();
     }
 
     private static void expect(GameTestHelper context, float resistance, float moisture, double multiplier, float odds) {
         float actual = HempGrowth.chance(resistance, moisture, multiplier);
-        context.assertTrue(Math.abs(actual - odds) < 1.0E-6F, "resistance " + resistance + ", moisture "
+        Asserts.assertTrue(context, Math.abs(actual - odds) < 1.0E-6F, "resistance " + resistance + ", moisture "
                 + moisture + ", multiplier " + multiplier + ": odds " + actual + ", expected " + odds);
     }
 }

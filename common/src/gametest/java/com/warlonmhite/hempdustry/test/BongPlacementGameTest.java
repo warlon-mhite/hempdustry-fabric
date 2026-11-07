@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.core.Registry;
 import com.warlonmhite.hempdustry.block.custom.BongBlock;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -12,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -47,12 +49,12 @@ public final class BongPlacementGameTest {
         ServerLevel world = context.getLevel();
         ServerPlayer player = Players.mock(context);
         player.setGameMode(GameType.SURVIVAL);
-        Item red = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+        Item red = net.minecraft.core.Registry.ITEM.get(
                 new net.minecraft.resources.ResourceLocation("hempdustry", "red_bong"));
 
         ItemStack device = new ItemStack(red);
         device.setDamageValue(5);
-        device.setHoverName(Component.literal("Old Faithful"));
+        device.setHoverName(new TextComponent("Old Faithful"));
         device.enchant(Enchantments.UNBREAKING, 2);
         ItemStack expected = device.copy();
 
@@ -61,21 +63,21 @@ public final class BongPlacementGameTest {
         click(player, world, context.absolutePos(floor), device);
         BlockPos stood = context.absolutePos(floor.above());
         BlockState state = world.getBlockState(stood);
-        context.assertTrue(state.getBlock() instanceof BongBlock, "an empty bong did not stand on the floor");
-        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(), "placing the bong did not use it up");
-        context.assertTrue(!state.getValue(BongBlock.PACKED), "an empty bong stood as a packed one");
+        Asserts.assertTrue(context, state.getBlock() instanceof BongBlock, "an empty bong did not stand on the floor");
+        Asserts.assertTrue(context, player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(), "placing the bong did not use it up");
+        Asserts.assertTrue(context, !state.getValue(BongBlock.PACKED), "an empty bong stood as a packed one");
 
         // Through a save: what a chunk unload and reload does to it.
         BlockEntity placed = world.getBlockEntity(stood);
         CompoundTag saved = placed.saveWithFullMetadata();
         BlockEntity reloaded = BlockEntity.loadStatic(stood, state, saved);
-        context.assertTrue(reloaded instanceof BongBlockEntity,
+        Asserts.assertTrue(context, reloaded instanceof BongBlockEntity,
                 "the placed bong's block entity did not survive a save");
 
         List<ItemStack> drops = Block.getDrops(state, world, stood, reloaded);
-        context.assertTrue(drops.size() == 1, "a broken bong dropped " + drops.size() + " stacks, not itself");
+        Asserts.assertTrue(context, drops.size() == 1, "a broken bong dropped " + drops.size() + " stacks, not itself");
         ItemStack back = drops.get(0);
-        context.assertTrue(ItemStack.isSameItemSameTags(back, expected),
+        Asserts.assertTrue(context, ItemStack.isSameItemSameTags(back, expected),
                 "the bong came back as " + back.getTag() + ", not as it went down: "
                         + expected.getTag());
 
@@ -83,24 +85,24 @@ public final class BongPlacementGameTest {
         BlockPos otherFloor = new BlockPos(2, 1, 0);
         context.setBlock(otherFloor, Blocks.STONE);
         ItemStack packed = new ItemStack(ModItems.BONG);
-        ModComponents.SMOKE_CONTENTS.set(packed, SmokeContents.of(world.registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(packed, SmokeContents.of(DataRegistries.of(world)
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
         ModComponents.CHARGES.set(packed, DeviceType.BONG.builtInBowl().hits());
         click(player, world, context.absolutePos(otherFloor), packed);
-        context.assertTrue(world.getBlockState(context.absolutePos(otherFloor.above())).isAir(),
+        Asserts.assertTrue(context, world.getBlockState(context.absolutePos(otherFloor.above())).isAir(),
                 "a packed bong was set down, bowl and all");
 
         // Nor does a pipe, which has no block to stand as.
         ItemStack pipe = new ItemStack(ModItems.WOODEN_PIPE);
         click(player, world, context.absolutePos(otherFloor), pipe);
-        context.assertTrue(world.getBlockState(context.absolutePos(otherFloor.above())).isAir(),
+        Asserts.assertTrue(context, world.getBlockState(context.absolutePos(otherFloor.above())).isAir(),
                 "a pipe was placed as a block");
 
         // Sneaking, a packed bong does go down -- for show, bowl and all -- and comes back packed.
         BlockPos shelf = new BlockPos(4, 1, 0);
         context.setBlock(shelf, Blocks.STONE);
         ItemStack loaded = new ItemStack(ModItems.BONG);
-        ModComponents.SMOKE_CONTENTS.set(loaded, SmokeContents.of(world.registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(loaded, SmokeContents.of(DataRegistries.of(world)
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 3));
         ModComponents.CHARGES.set(loaded, 2);
         ItemStack loadedBefore = loaded.copy();
@@ -109,10 +111,10 @@ public final class BongPlacementGameTest {
         player.setShiftKeyDown(false);
         BlockPos shown = context.absolutePos(shelf.above());
         BlockState shownState = world.getBlockState(shown);
-        context.assertTrue(shownState.getBlock() instanceof BongBlock, "sneaking did not set a packed bong down");
-        context.assertTrue(shownState.getValue(BongBlock.PACKED), "a packed bong stood as an empty one");
+        Asserts.assertTrue(context, shownState.getBlock() instanceof BongBlock, "sneaking did not set a packed bong down");
+        Asserts.assertTrue(context, shownState.getValue(BongBlock.PACKED), "a packed bong stood as an empty one");
         List<ItemStack> shownDrops = Block.getDrops(shownState, world, shown, world.getBlockEntity(shown));
-        context.assertTrue(shownDrops.size() == 1
+        Asserts.assertTrue(context, shownDrops.size() == 1
                         && ItemStack.isSameItemSameTags(shownDrops.get(0), loadedBefore),
                 "a packed bong did not come back with its bowl: " + shownDrops);
         context.succeed();

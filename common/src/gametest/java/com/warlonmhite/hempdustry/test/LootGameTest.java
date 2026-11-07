@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.network.chat.TextComponent;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
@@ -27,7 +28,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.PathPackResources;
+import net.minecraft.server.packs.FolderPackResources;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
@@ -39,7 +40,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -85,13 +87,12 @@ public final class LootGameTest {
         expect(context, BuiltInLootTables.VILLAGE_SNOWY_HOUSE, PLAIN_SEEDS, 0, 0, "a snowy village house held hemp seeds");
 
         // Fishing junk: weight 5 beside string's 5, about 4.5% of junk catches outside a jungle.
-        LootTable junk = world.getServer().getLootData().getLootTable(BuiltInLootTables.FISHING_JUNK);
-        LootParams fishing = new LootParams.Builder(world)
+        LootTable junk = world.getServer().getLootTables().get(BuiltInLootTables.FISHING_JUNK);
+        LootContext.Builder fishing = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(AT)))
-                .withParameter(LootContextParams.TOOL, new ItemStack(Items.FISHING_ROD))
-                .create(LootContextParamSets.FISHING);
-        int fibre = count(junk, fishing, s -> s.is(ModItems.HEMP_FIBER), 2 * ROLLS);
-        context.assertTrue(fibre >= 50 && fibre <= 140,
+                .withParameter(LootContextParams.TOOL, new ItemStack(Items.FISHING_ROD));
+        int fibre = count(junk, fishing, LootContextParamSets.FISHING, s -> s.is(ModItems.HEMP_FIBER), 2 * ROLLS);
+        Asserts.assertTrue(context, fibre >= 50 && fibre <= 140,
                 fibre + " of " + 2 * ROLLS + " junk catches were hemp fibre, expected about 90");
         context.succeed();
     }
@@ -101,7 +102,7 @@ public final class LootGameTest {
      * the mod's own are the game's or a mod's. A datapack laid over them -- built as the game builds
      * one from a world's folder, a pack named {@code file/...} -- replaced the temple chest on purpose,
      * and the mod leaves it as its author wrote it; the chests it did not replace are still vanilla's.
-     * (1.20.1 has no experiment pack replacing a chest, as the newer lines' Trade Rebalance does.)
+     * (1.18.2 has no experiment pack replacing a chest, as the newer lines' Trade Rebalance does.)
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void aDatapacksChestIsLeftAlone(GameTestHelper context) {
@@ -109,23 +110,23 @@ public final class LootGameTest {
         ResourceLocation dungeon = BuiltInLootTables.SIMPLE_DUNGEON;
         ResourceLocation temple = BuiltInLootTables.DESERT_PYRAMID;
         ResourceLocation ours = ModBlocks.DECARBOXYLATOR.getLootTable();
-        context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, dungeon), "vanilla's dungeon chest does not count as the game's");
-        context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, temple), "vanilla's temple chest does not count as the game's");
-        context.assertTrue(LootTableOrigin.fromTheGameOrAMod(world, ours), "the mod's own " + ours + " does not count as a mod's");
+        Asserts.assertTrue(context, LootTableOrigin.fromTheGameOrAMod(world, dungeon), "vanilla's dungeon chest does not count as the game's");
+        Asserts.assertTrue(context, LootTableOrigin.fromTheGameOrAMod(world, temple), "vanilla's temple chest does not count as the game's");
+        Asserts.assertTrue(context, LootTableOrigin.fromTheGameOrAMod(world, ours), "the mod's own " + ours + " does not count as a mod's");
 
         Path folder = context.getLevel().getServer().getServerDirectory().toPath().resolve("hempdustry-test-datapack");
         try {
             Path chest = folder.resolve("data/minecraft/loot_tables/chests/desert_pyramid.json");
             Files.createDirectories(chest.getParent());
             Files.writeString(chest, "{\"pools\": []}");
-            // As FolderRepositorySource names a pack it finds in a world's folder.
-            PackResources datapack = new PathPackResources("file/hempdustry-test-datapack", folder, false);
+            // A datapack folder, as FolderRepositorySource opens one it finds in a world's folder.
+            PackResources datapack = new FolderPackResources(folder.toFile());
             List<PackResources> packs = new ArrayList<>(world.listPacks().toList());
             packs.add(datapack);
             ResourceManager withDatapack = new MultiPackResourceManager(PackType.SERVER_DATA, packs);
-            context.assertFalse(LootTableOrigin.fromTheGameOrAMod(withDatapack, temple),
+            Asserts.assertFalse(context, LootTableOrigin.fromTheGameOrAMod(withDatapack, temple),
                     "a datapack's own temple chest counts as the game's: the mod would add to a chest its author replaced");
-            context.assertTrue(LootTableOrigin.fromTheGameOrAMod(withDatapack, dungeon),
+            Asserts.assertTrue(context, LootTableOrigin.fromTheGameOrAMod(withDatapack, dungeon),
                     "a datapack that replaced the temple chest made vanilla's dungeon chest count as the datapack's");
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -155,7 +156,7 @@ public final class LootGameTest {
                 ModItems.FILTERED_KIEF, "a ready re-sift");
         List<ItemStack> filling = Block.getDrops(
                 ready.setValue(SiftingBoxBlock.LEVEL, SiftingBoxBlock.FULL_LEVEL), context.getLevel(), context.absolutePos(AT), null);
-        context.assertTrue(filling.size() == 1 && filling.get(0).is(ModBlocks.SIFTING_BOX.asItem()),
+        Asserts.assertTrue(context, filling.size() == 1 && filling.get(0).is(ModBlocks.SIFTING_BOX.asItem()),
                 "a box still filling dropped " + filling + " instead of only itself");
         context.succeed();
     }
@@ -170,20 +171,20 @@ public final class LootGameTest {
         BlockPos pos = context.absolutePos(AT);
         context.setBlock(AT, ModBlocks.DECARBOXYLATOR);
         ItemStack named = new ItemStack(ModBlocks.DECARBOXYLATOR);
-        named.setHoverName(Component.literal("The Oven"));
+        named.setHoverName(new TextComponent("The Oven"));
         // What the block's setPlacedBy does with the item it was placed from.
         NamedMachineBlockEntity.nameFromItem(world, pos, named);
         DecarboxylatorBlockEntity machine = ((DecarboxylatorBlockEntity) context.getBlockEntity(AT));
 
-        context.assertTrue(machine.getDisplayName().getString().equals("The Oven"),
+        Asserts.assertTrue(context, machine.getDisplayName().getString().equals("The Oven"),
                 "a renamed Decarboxylator's screen is titled " + machine.getDisplayName().getString());
         BlockEntity reloaded = BlockEntity.loadStatic(pos, machine.getBlockState(),
                 machine.saveWithFullMetadata());
-        context.assertTrue(reloaded instanceof DecarboxylatorBlockEntity loaded
+        Asserts.assertTrue(context, reloaded instanceof DecarboxylatorBlockEntity loaded
                         && loaded.getDisplayName().getString().equals("The Oven"),
                 "the Decarboxylator's name did not survive a save and a load");
         List<ItemStack> drops = Block.getDrops(machine.getBlockState(), world, pos, machine);
-        context.assertTrue(drops.size() == 1 && drops.get(0).hasCustomHoverName()
+        Asserts.assertTrue(context, drops.size() == 1 && drops.get(0).hasCustomHoverName()
                         && drops.get(0).getHoverName().getString().equals("The Oven"),
                 "a broken renamed Decarboxylator dropped " + drops + " without its name");
         context.succeed();
@@ -194,12 +195,11 @@ public final class LootGameTest {
     private static void expect(GameTestHelper context, ResourceLocation key, Predicate<ItemStack> what,
                                int low, int high, String description) {
         ServerLevel world = context.getLevel();
-        LootTable table = world.getServer().getLootData().getLootTable(key);
-        LootParams chest = new LootParams.Builder(world)
-                .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(AT)))
-                .create(LootContextParamSets.CHEST);
-        int found = count(table, chest, what, ROLLS);
-        context.assertTrue(found >= low && found <= high,
+        LootTable table = world.getServer().getLootTables().get(key);
+        LootContext.Builder chest = new LootContext.Builder(world)
+                .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(AT)));
+        int found = count(table, chest, LootContextParamSets.CHEST, what, ROLLS);
+        Asserts.assertTrue(context, found >= low && found <= high,
                 description + " " + found + " times in " + ROLLS + ", expected " + low + "-" + high);
     }
 
@@ -207,11 +207,11 @@ public final class LootGameTest {
         return new ResourceLocation(table.getNamespace(), "loot_tables/" + table.getPath() + ".json");
     }
 
-    private static int count(LootTable table, LootParams params, Predicate<ItemStack> what, int rolls) {
+    private static int count(LootTable table, LootContext.Builder params, LootContextParamSet set, Predicate<ItemStack> what, int rolls) {
         Random seeds = new Random(SEED_SOURCE);
         int found = 0;
         for (int i = 0; i < rolls; i++) {
-            if (table.getRandomItems(params, seeds.nextLong()).stream().anyMatch(what)) {
+            if (Line.roll(table, params, set, seeds.nextLong()).stream().anyMatch(what)) {
                 found++;
             }
         }
@@ -222,7 +222,7 @@ public final class LootGameTest {
         List<ItemStack> drops = Block.getDrops(state, context.getLevel(), context.absolutePos(AT), null);
         boolean box = drops.stream().anyMatch(s -> s.is(ModBlocks.SIFTING_BOX.asItem()));
         int pieces = drops.stream().filter(s -> s.is(batch)).mapToInt(ItemStack::getCount).sum();
-        context.assertTrue(box && pieces == SiftingBoxBlock.YIELD && drops.size() == 2,
+        Asserts.assertTrue(context, box && pieces == SiftingBoxBlock.YIELD && drops.size() == 2,
                 description + " broken dropped " + drops + ", expected the box and " + SiftingBoxBlock.YIELD + " " + batch);
     }
 }

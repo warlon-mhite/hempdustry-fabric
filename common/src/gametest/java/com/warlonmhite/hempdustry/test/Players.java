@@ -51,9 +51,35 @@ final class Players {
         };
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
+        TestPlatform.INSTANCE.markAsHandshaken(connection);
+        giveProfileCache(level.getServer());
         level.getServer().getPlayerList().placeNewPlayer(connection, player);
         return player;
     }
+
+    /**
+     * The player list looks every joining player up in the server's profile cache, and 1.18.2's game
+     * test server is built with none (it passes null where a dedicated server passes its
+     * usercache.json). The test server is handed one of its own, in its folder, the first time.
+     */
+    private static synchronized void giveProfileCache(net.minecraft.server.MinecraftServer server) {
+        if (server.getProfileCache() != null) {
+            return;
+        }
+        try {
+            java.lang.reflect.Field cache = net.minecraft.server.MinecraftServer.class.getDeclaredField(PROFILE_CACHE);
+            cache.setAccessible(true);
+            cache.set(server, new net.minecraft.server.players.GameProfileCache(null,
+                    server.getFile("hempdustry-gametest-usercache.json")));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("MinecraftServer no longer keeps its profile cache where the tests give it one", e);
+        }
+    }
+
+    /** {@code MinecraftServer#profileCache}: Mojang's name in a dev run, the SRG one in a built game. */
+    private static final String PROFILE_CACHE = java.util.Arrays.stream(net.minecraft.server.MinecraftServer.class.getDeclaredFields())
+            .filter(field -> field.getType() == net.minecraft.server.players.GameProfileCache.class)
+            .map(java.lang.reflect.Field::getName).findFirst().orElse("profileCache");
 
     static ServerPlayer survival(GameTestHelper context) {
         ServerPlayer player = mock(context);

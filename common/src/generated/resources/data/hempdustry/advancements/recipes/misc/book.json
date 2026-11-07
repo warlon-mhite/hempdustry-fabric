@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:book"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

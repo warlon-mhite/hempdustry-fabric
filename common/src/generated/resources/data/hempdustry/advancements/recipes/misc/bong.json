@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:bong"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

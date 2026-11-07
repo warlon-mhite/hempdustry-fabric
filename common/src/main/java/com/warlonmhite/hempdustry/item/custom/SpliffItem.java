@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.jetbrains.annotations.Nullable;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.balance.GreenOut;
@@ -73,8 +75,8 @@ public class SpliffItem extends Item {
         super.appendHoverText(stack, context, tooltip, type);
         ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).hashAdditive()
                 .ifPresent(hash -> tooltip.add(
-                        Component.translatable("hempdustry.spliff.with",
-                                        Component.translatable(hash.value().translationKey()))
+                        new TranslatableComponent("hempdustry.spliff.with",
+                                        new TranslatableComponent(hash.value().translationKey()))
                                 .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
     }
 
@@ -90,8 +92,8 @@ public class SpliffItem extends Item {
             if (!Smoking.allowed(player, stack, contents)) {
                 return InteractionResultHolder.pass(stack);
             }
-            DeviceStats stats = DeviceStats.spliff(world.registryAccess());
-            GreenOut greenOut = GreenOut.of(world.registryAccess());
+            DeviceStats stats = DeviceStats.spliff(DataRegistries.of(world));
+            GreenOut greenOut = GreenOut.of(DataRegistries.of(world));
             boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
                     stats.coughOneIn(), stats.nauseaOneIn(),
                     Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),

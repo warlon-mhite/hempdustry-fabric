@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.compat.jei;
 
+import net.minecraft.network.chat.TranslatableComponent;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -12,7 +13,7 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +26,7 @@ import java.util.List;
  *
  * <p>One class serving every category — they differ only in their {@link RecipeType}, title
  * and icon, all of which are constructor arguments. The layout maths is the same for each and the
- * EMI side draws it identically; see {@link ViewerRecipes} for why both viewers read one model.
+ * REI side draws it identically; see {@link ViewerRecipes} for why both viewers read one model.
  */
 public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
 
@@ -37,6 +38,11 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private static final int MAX_INPUTS = 4;
     /** Inputs, arrow and output: the narrowest a page can be. */
     private static final int SLOTS_WIDTH = MAX_INPUTS * SLOT + ARROW_WIDTH + SLOT + PADDING * 2;
+    /**
+     * JEI's own sheet, and the empty arrow on it -- the one its furnace page fills. JEI 11 and later
+     * name the same picture {@code IGuiHelper#getRecipeArrow}; JEI 10 has no such call.
+     */
+    private static final ResourceLocation JEI_VANILLA_GUI = new ResourceLocation("jei", "textures/gui/gui_vanilla.png");
 
     private final RecipeType<ViewerRecipes.Entry> type;
     private final Component title;
@@ -44,6 +50,22 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     private final IDrawableStatic arrow;
     private final IDrawableStatic slot;
     private final int noteLines;
+    /** JEI 10 sizes a page by its background; this one is the measured width and draws nothing. */
+    private final IDrawable background = new IDrawable() {
+        @Override
+        public int getWidth() {
+            return width();
+        }
+
+        @Override
+        public int getHeight() {
+            return SLOT + PADDING + noteLines * LINE_HEIGHT;
+        }
+
+        @Override
+        public void draw(PoseStack poseStack, int xOffset, int yOffset) {
+        }
+    };
     /** This category's entries, kept so the notes can be measured in whatever language is on. */
     private List<ViewerRecipes.Entry> entries = List.of();
     /** The width last measured, and the language it was measured in. */
@@ -52,9 +74,9 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
 
     public EntryJeiCategory(IGuiHelper guiHelper, ResourceLocation id, ItemStack icon, int noteLines) {
         this.type = new RecipeType<>(id, ViewerRecipes.Entry.class);
-        this.title = Component.translatable("hempdustry.category." + id.getPath());
+        this.title = new TranslatableComponent("hempdustry.category." + id.getPath());
         this.icon = guiHelper.createDrawableItemStack(icon);
-        this.arrow = guiHelper.getRecipeArrow();
+        this.arrow = guiHelper.createDrawable(JEI_VANILLA_GUI, 24, 132, ARROW_WIDTH, 17);
         this.slot = guiHelper.getSlotDrawable();
         this.noteLines = noteLines;
     }
@@ -62,6 +84,23 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     @Override
     public RecipeType<ViewerRecipes.Entry> getRecipeType() {
         return type;
+    }
+
+    @Override
+    @SuppressWarnings("removal")
+    public ResourceLocation getUid() {
+        return type.getUid();
+    }
+
+    @Override
+    @SuppressWarnings("removal")
+    public Class<? extends ViewerRecipes.Entry> getRecipeClass() {
+        return type.getRecipeClass();
+    }
+
+    @Override
+    public IDrawable getBackground() {
+        return background;
     }
 
     @Override
@@ -81,10 +120,9 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
      * the recipe, and the Infuser's off the page. Re-measured when the language changes, since
      * switching it mid-game re-lays JEI's pages without registering the recipes again.
      */
-    @Override
-    public int getWidth() {
+    private int width() {
         Minecraft client = Minecraft.getInstance();
-        String language = client.getLanguageManager().getSelected();
+        String language = client.getLanguageManager().getSelected().getCode();
         if (!language.equals(measuredIn)) {
             Font font = client.font;
             int widest = entries.stream().flatMap(entry -> entry.notes().stream())
@@ -100,11 +138,6 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
         this.entries = entries;
         this.measuredIn = "";
         return entries;
-    }
-
-    @Override
-    public int getHeight() {
-        return SLOT + PADDING + noteLines * LINE_HEIGHT;
     }
 
     @Override
@@ -124,12 +157,12 @@ public class EntryJeiCategory implements IRecipeCategory<ViewerRecipes.Entry> {
     }
 
     @Override
-    public void draw(ViewerRecipes.Entry entry, IRecipeSlotsView slots, GuiGraphics context,
+    public void draw(ViewerRecipes.Entry entry, IRecipeSlotsView slots, PoseStack context,
                      double mouseX, double mouseY) {
         arrow.draw(context, PADDING + MAX_INPUTS * SLOT + 4, 1);
         int y = SLOT + PADDING;
         for (Component note : entry.notes()) {
-            context.drawString(Minecraft.getInstance().font, note, 1, y, 0x555555, false);
+            Minecraft.getInstance().font.draw(context, note, 1, y, 0x555555);
             y += LINE_HEIGHT;
         }
     }

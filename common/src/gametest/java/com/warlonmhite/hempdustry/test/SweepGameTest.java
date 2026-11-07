@@ -1,7 +1,10 @@
 package com.warlonmhite.hempdustry.test;
 
-import net.minecraft.world.level.storage.loot.LootDataType;
-import net.minecraft.world.level.storage.loot.LootDataManager;
+import com.warlonmhite.hempdustry.util.Stacks;
+import java.util.Random;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.level.storage.loot.LootTables;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.resources.RegistryOps;
 import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
@@ -36,11 +39,9 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -48,14 +49,12 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -238,16 +237,16 @@ public final class SweepGameTest {
             containers++;
             for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
                 ItemStack marker = new ItemStack(Items.DIAMOND);
-                marker.setHoverName(Component.literal("slot " + slot));
+                marker.setHoverName(new TextComponent("slot " + slot));
                 inventory.setItem(slot, marker);
             }
             world.destroyBlock(pos, true);
             List<ItemStack> dropped = take(world, pos);
             for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-                Component name = Component.literal("slot " + slot);
+                Component name = new TextComponent("slot " + slot);
                 if (dropped.stream().noneMatch(drop -> drop.is(Items.DIAMOND) && drop.hasCustomHoverName()
                         && name.getString().equals(drop.getHoverName().getString()))) {
-                    findings.put(BuiltInRegistries.BLOCK.getKey(block) + " slot " + slot, "broken, it did not drop what was in this slot");
+                    findings.put(Registry.BLOCK.getKey(block) + " slot " + slot, "broken, it did not drop what was in this slot");
                 }
             }
         }
@@ -277,7 +276,7 @@ public final class SweepGameTest {
                 containers++;
                 if (Services.TRANSFER.insertWhole(world, pos, Direction.UP, new ItemStack(Items.STICK))
                         == ItemTransfer.Result.NO_STORAGE) {
-                    findings.put(BuiltInRegistries.BLOCK.getKey(block).toString(),
+                    findings.put(Registry.BLOCK.getKey(block).toString(),
                             "holds items, but the loader's item-transfer API finds no storage there");
                 }
             }
@@ -302,15 +301,15 @@ public final class SweepGameTest {
     public void everyBlockDrawsItsModel(GameTestHelper context) {
         Map<String, String> findings = new TreeMap<>();
         int states = 0;
-        for (Block block : BuiltInRegistries.BLOCK) {
-            if (!Sweep.ours(BuiltInRegistries.BLOCK.getKey(block))) {
+        for (Block block : Registry.BLOCK) {
+            if (!Sweep.ours(Registry.BLOCK.getKey(block))) {
                 continue;
             }
             for (BlockState state : block.getStateDefinition().getPossibleStates()) {
                 states++;
                 RenderShape shape = state.getRenderShape();
                 if (shape != RenderShape.MODEL) {
-                    findings.putIfAbsent(BuiltInRegistries.BLOCK.getKey(block).toString(), "renders as " + shape + " in " + state);
+                    findings.putIfAbsent(Registry.BLOCK.getKey(block).toString(), "renders as " + shape + " in " + state);
                 }
             }
         }
@@ -318,9 +317,7 @@ public final class SweepGameTest {
         Sweep.report(context, "Every block of ours draws its model", findings, Map.of(
                 "hempdustry:hemp_bed", "a bed is drawn by its block entity renderer, as vanilla's beds are",
                 "hempdustry:hemp_planks_sign", "a sign is drawn by vanilla's sign renderer",
-                "hempdustry:hemp_planks_wall_sign", "a sign is drawn by vanilla's sign renderer",
-                "hempdustry:hemp_planks_hanging_sign", "a hanging sign is drawn by vanilla's sign renderer",
-                "hempdustry:hemp_planks_wall_hanging_sign", "a hanging sign is drawn by vanilla's sign renderer"));
+                "hempdustry:hemp_planks_wall_sign", "a sign is drawn by vanilla's sign renderer"));
         context.succeed();
     }
 
@@ -340,7 +337,7 @@ public final class SweepGameTest {
         Map<String, String> findings = new TreeMap<>();
         int checked = 0;
         for (Block block : blocksWithEntities()) {
-            String id = BuiltInRegistries.BLOCK.getKey(block).toString();
+            String id = Registry.BLOCK.getKey(block).toString();
             BlockState state = block.defaultBlockState();
             world.setBlock(pos, state, Block.UPDATE_CLIENTS);
             BlockEntity entity = world.getBlockEntity(pos);
@@ -354,9 +351,9 @@ public final class SweepGameTest {
             }
             // Named as an anvil's name reaches each kind: the machines' own name, a vanilla container's.
             if (entity instanceof NamedMachineBlockEntity machine) {
-                machine.setCustomName(Component.literal("Swept"));
+                machine.setCustomName(new TextComponent("Swept"));
             } else if (entity instanceof BaseContainerBlockEntity container) {
-                container.setCustomName(Component.literal("Swept"));
+                container.setCustomName(new TextComponent("Swept"));
             }
             CompoundTag saved = entity.saveWithFullMetadata();
             BlockEntity loaded = BlockEntity.loadStatic(pos, state, saved);
@@ -364,7 +361,7 @@ public final class SweepGameTest {
                 findings.put(id, "does not load from its own save: " + saved);
             } else if (!saved.equals(loaded.saveWithFullMetadata())) {
                 findings.put(id, "saved " + saved + " and, loaded, saves " + loaded.saveWithFullMetadata());
-            } else if (entity instanceof Container && Sweep.ours(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(entity.getType()))
+            } else if (entity instanceof Container && Sweep.ours(Registry.BLOCK_ENTITY_TYPE.getKey(entity.getType()))
                     && Block.getDrops(state, world, pos, loaded).stream().noneMatch(
                             drop -> drop.is(block.asItem()) && drop.hasCustomHoverName()
                                     && drop.getHoverName().getString().equals("Swept"))) {
@@ -391,10 +388,8 @@ public final class SweepGameTest {
     public void everyStackSurvivesASaveAndTheWire(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         RegistryAccess registries = world.registryAccess();
-        ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.buildContents(new CreativeModeTab.ItemDisplayParameters(
-                world.enabledFeatures(), true, registries));
-        List<ItemStack> stacks = new ArrayList<>(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getDisplayItems());
-        stacks.addAll(ModItemGroups.HEMPDUSTRY_ITEMS_GROUP.getSearchTabDisplayItems());
+        List<ItemStack> stacks = new ArrayList<>(CreativeTab.tab());
+        stacks.addAll(CreativeTab.search());
         for (Sample sample : samples(world, false, new HashMap<>())) {
             stacks.add(craft(sample.recipe(), sample.input(), world));
         }
@@ -404,9 +399,9 @@ public final class SweepGameTest {
         DynamicOps<JsonElement> json = RegistryOps.create(JsonOps.INSTANCE, registries);
         for (ItemStack stack : stacks) {
             if (stack.isEmpty()) continue;
-            String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+            String id = Registry.ITEM.getKey(stack.getItem()).toString();
             String nbtProblem = roundTrip(ItemStack.CODEC, nbt, stack, ItemStack::matches);
-            // No JSON leg on 1.20.1: a stack's tag goes through JSON untyped there, its ints coming
+            // No JSON leg on 1.18.2: a stack's tag goes through JSON untyped there, its ints coming
             // back as whatever number fits, in vanilla's own stacks too. The mod writes a stack into
             // a JSON file only as SNBT text (a recipe result's "nbt"), which keeps the types.
             String jsonProblem = null;
@@ -422,8 +417,8 @@ public final class SweepGameTest {
         // Every dynamic registry with the codec its files are read with (the loader's list: vanilla's
         // never holds a mod's). The mod sends each to a client with that same codec.
         int dynamic = 0;
-        for (RegistryDataLoader.RegistryData<?> entry : TestPlatform.INSTANCE.dynamicRegistries()) {
-            if (Sweep.ours(entry.key().location())) dynamic += roundTripRegistry(entry, registries, json, findings);
+        for (TestPlatform.RegistryData<?> entry : TestPlatform.dynamicRegistries()) {
+            if (Sweep.ours(entry.key().location())) dynamic += roundTripRegistry(entry, DataRegistries.of(world), json, findings);
         }
         Sweep.atLeast(context, "stacks", stacks.size(), 150);
         Sweep.atLeast(context, "entries of our dynamic registries", dynamic, 5);
@@ -455,12 +450,12 @@ public final class SweepGameTest {
         }
         // On this version a repair material is the armour or tool material's Ingredient, and an
         // Ingredient over a tag nobody filled shows a barrier ("Empty Tag") in place of anything.
-        for (Item item : BuiltInRegistries.ITEM) {
+        for (Item item : Registry.ITEM) {
             Ingredient repair = item instanceof ArmorItem armor ? armor.getMaterial().getRepairIngredient()
                     : item instanceof TieredItem tool ? tool.getTier().getRepairIngredient() : null;
-            if (Sweep.ours(BuiltInRegistries.ITEM.getKey(item)) && repair != null
+            if (Sweep.ours(Registry.ITEM.getKey(item)) && repair != null
                     && Arrays.stream(repair.getItems()).allMatch(stack -> stack.isEmpty() || stack.is(Items.BARRIER))) {
-                findings.put(BuiltInRegistries.ITEM.getKey(item).toString(), "repairs with an ingredient that holds nothing");
+                findings.put(Registry.ITEM.getKey(item).toString(), "repairs with an ingredient that holds nothing");
             }
         }
         Sweep.atLeast(context, "tags in ModTags", tags, 20);
@@ -481,8 +476,8 @@ public final class SweepGameTest {
         Enchantment mending = Enchantments.MENDING;
         Map<String, String> findings = new TreeMap<>();
         int checked = 0;
-        for (Item item : BuiltInRegistries.ITEM) {
-            ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        for (Item item : Registry.ITEM) {
+            ResourceLocation id = Registry.ITEM.getKey(item);
             ItemStack stack = new ItemStack(item);
             if (!Sweep.ours(id) || item.getEnchantmentValue() <= 0) continue;
             checked++;
@@ -490,7 +485,7 @@ public final class SweepGameTest {
                 findings.put(id.toString(), "wears out, but Unbreaking "
                         + (unbreaking.canEnchant(stack) ? "takes" : "refuses") + " it and Mending "
                         + (mending.canEnchant(stack) ? "takes" : "refuses") + " it");
-            } else if (BuiltInRegistries.ENCHANTMENT.stream().noneMatch(enchantment -> enchantment.canEnchant(stack))) {
+            } else if (Registry.ENCHANTMENT.stream().noneMatch(enchantment -> enchantment.canEnchant(stack))) {
                 findings.put(id.toString(), "is enchantable, and no enchantment accepts it");
             }
         }
@@ -512,8 +507,8 @@ public final class SweepGameTest {
     public void everyBuildingPieceHoldsLikeVanillas(GameTestHelper context) {
         Map<String, String> findings = new TreeMap<>();
         int checked = 0;
-        for (Block block : BuiltInRegistries.BLOCK) {
-            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+        for (Block block : Registry.BLOCK) {
+            ResourceLocation id = Registry.BLOCK.getKey(block);
             if (!Sweep.ours(id)) continue;
             Block like = null;
             if (block instanceof StairBlock || block instanceof SlabBlock || block instanceof WallBlock
@@ -521,7 +516,7 @@ public final class SweepGameTest {
                 String base = id.getPath().replaceAll("_(stairs|slab|wall|fence)$", "");
                 for (String path : List.of(base, base + "_block")) {
                     ResourceLocation candidate = new ResourceLocation(id.getNamespace(), path);
-                    if (BuiltInRegistries.BLOCK.containsKey(candidate)) like = BuiltInRegistries.BLOCK.get(candidate);
+                    if (Registry.BLOCK.containsKey(candidate)) like = Registry.BLOCK.get(candidate);
                 }
                 if (like == null) findings.put(id.toString(), "no block it is cut from");
             } else if (block instanceof DoorBlock) {
@@ -540,11 +535,11 @@ public final class SweepGameTest {
             if (block.defaultDestroyTime() != like.defaultDestroyTime()
                     || block.getExplosionResistance() != like.getExplosionResistance()) {
                 findings.put(id.toString(), "hardness " + block.defaultDestroyTime() + ", blast resistance "
-                        + block.getExplosionResistance() + "; " + BuiltInRegistries.BLOCK.getKey(like) + " has "
+                        + block.getExplosionResistance() + "; " + Registry.BLOCK.getKey(like) + " has "
                         + like.defaultDestroyTime() + ", " + like.getExplosionResistance());
             } else if (block.defaultBlockState().getPistonPushReaction() != like.defaultBlockState().getPistonPushReaction()) {
                 findings.put(id.toString(), "a piston " + block.defaultBlockState().getPistonPushReaction() + "s it; "
-                        + BuiltInRegistries.BLOCK.getKey(like) + " it " + like.defaultBlockState().getPistonPushReaction() + "s");
+                        + Registry.BLOCK.getKey(like) + " it " + like.defaultBlockState().getPistonPushReaction() + "s");
             }
         }
         Sweep.atLeast(context, "building pieces", checked, 12);
@@ -565,8 +560,8 @@ public final class SweepGameTest {
     public void everyBuildingPieceIsTaggedLikeVanillas(GameTestHelper context) {
         Map<String, String> findings = new TreeMap<>();
         int checked = 0;
-        for (Block block : BuiltInRegistries.BLOCK) {
-            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+        for (Block block : Registry.BLOCK) {
+            ResourceLocation id = Registry.BLOCK.getKey(block);
             if (!Sweep.ours(id) || block.asItem() == Items.AIR) continue;
             boolean wooden = id.getPath().startsWith("hemp_planks_");
             List<TagKey<Block>> blockTags = new ArrayList<>();
@@ -584,8 +579,8 @@ public final class SweepGameTest {
                 blockTags.add(BlockTags.WOODEN_FENCES);
                 itemTags.add(ItemTags.WOODEN_FENCES);
             } else if (block instanceof FenceGateBlock) {
+                // 1.18.2 has no #fence_gates item tag (1.19.3), only the block one.
                 blockTags.add(BlockTags.FENCE_GATES);
-                itemTags.add(ItemTags.FENCE_GATES);
             } else if (block instanceof DoorBlock) {
                 blockTags.add(BlockTags.WOODEN_DOORS);
                 itemTags.add(ItemTags.WOODEN_DOORS);
@@ -650,7 +645,7 @@ public final class SweepGameTest {
                 findings.put(file, "is shipped and no sound event plays it");
             }
         }
-        for (ResourceLocation event : BuiltInRegistries.SOUND_EVENT.keySet()) {
+        for (ResourceLocation event : Registry.SOUND_EVENT.keySet()) {
             if (Sweep.ours(event) && !sounds.has(event.getPath())) {
                 findings.put(event.toString(), "is registered and sounds.json has no entry for it, so it plays nothing");
             }
@@ -673,12 +668,12 @@ public final class SweepGameTest {
     public void everyBlockStateSurvivesATickAndABreak(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(FUZZ_AT);
-        RandomSource random = RandomSource.create(20261008L);
+        Random random = new Random(20261008L);
         List<ItemStack> tools = List.of(ItemStack.EMPTY, new ItemStack(Items.NETHERITE_PICKAXE), new ItemStack(Items.SHEARS));
         Map<String, String> findings = new TreeMap<>();
         int states = 0;
-        for (Block block : BuiltInRegistries.BLOCK) {
-            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+        for (Block block : Registry.BLOCK) {
+            ResourceLocation id = Registry.BLOCK.getKey(block);
             if (!Sweep.ours(id)) continue;
             for (BlockState state : block.getStateDefinition().getPossibleStates()) {
                 states++;
@@ -774,8 +769,8 @@ public final class SweepGameTest {
         RegistryAccess registries = context.getLevel().registryAccess();
         Map<String, String> findings = new TreeMap<>();
         for (TagKey<Item> raw : List.of(ModTags.Conventional.HEMP_CROPS, ModTags.Items.HEMP_SEEDS)) {
-            for (Holder<Item> item : registries.lookupOrThrow(Registries.ITEM).getOrThrow(raw)) {
-                ItemStack rawStack = new ItemStack(item);
+            for (Holder<Item> item : Registry.ITEM.getTagOrEmpty(raw)) {
+                ItemStack rawStack = new ItemStack(item.value());
                 if (rawStack.isEdible() || rawStack.getUseAnimation() == UseAnim.EAT
                         || rawStack.getUseAnimation() == UseAnim.DRINK) {
                     findings.put("heat activates: " + item.unwrapKey().map(key -> key.location().toString()).orElse("?"),
@@ -783,14 +778,14 @@ public final class SweepGameTest {
                 }
             }
         }
-        registries.registryOrThrow(Registries.CONFIGURED_FEATURE).entrySet().forEach(entry -> {
+        registries.registryOrThrow(Registry.CONFIGURED_FEATURE_REGISTRY).entrySet().forEach(entry -> {
             if (Sweep.ours(entry.getKey().location())
                     && entry.getValue().getFeatures().anyMatch(feature -> feature.feature() == Feature.FLOWER)) {
                 findings.put("flower feature: " + entry.getKey().location(), "is or holds a Feature.FLOWER — use RANDOM_PATCH");
             }
         });
-        for (Block block : BuiltInRegistries.BLOCK) {
-            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+        for (Block block : Registry.BLOCK) {
+            ResourceLocation id = Registry.BLOCK.getKey(block);
             if (!Sweep.ours(id)) continue;
             BlockState state = block.defaultBlockState();
             boolean twoHigh = state.getProperties().stream().anyMatch(property -> property.getName().equals("half")
@@ -827,44 +822,44 @@ public final class SweepGameTest {
                 "hempdustry:hempcrete_block", "hempcrete powder hardens into it in water (CustomConcreteBlock)");
         Set<String> had = new HashSet<>(byCode.keySet());
         Map<Block, Set<String>> ourBlockDrops = new HashMap<>();
-        LootDataManager lootTables = world.getServer().getLootData();
-        for (ResourceLocation id : lootTables.getKeys(LootDataType.TABLE)) {
-            LootTable table = lootTables.getLootTable(id);
-            Set<String> drops = ids(LootDataType.TABLE.parser().toJsonTree(table).toString());
+        LootTables lootTables = world.getServer().getLootTables();
+        for (ResourceLocation id : lootTables.getIds()) {
+            LootTable table = lootTables.get(id);
+            Set<String> drops = ids(LootTables.serialize(table).toString());
             Block block = Sweep.ours(id) && id.getPath().startsWith("blocks/")
-                    ? BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(id.getNamespace(), id.getPath().substring(7))).orElse(null)
+                    ? Registry.BLOCK.getOptional(new ResourceLocation(id.getNamespace(), id.getPath().substring(7))).orElse(null)
                     : null;
             if (block == null) had.addAll(drops);
             else ourBlockDrops.put(block, drops);
         }
         // A block worldgen places can be broken where it stands.
-        world.registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE).entrySet().forEach(feature -> {
+        world.registryAccess().registryOrThrow(Registry.CONFIGURED_FEATURE_REGISTRY).entrySet().forEach(feature -> {
             if (!Sweep.ours(feature.getKey().location())) return;
             for (String placed : ids(orThrow(ConfiguredFeature.DIRECT_CODEC.encodeStart(json, feature.getValue())).toString())) {
-                BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(placed)).map(ourBlockDrops::get).ifPresent(had::addAll);
+                Registry.BLOCK.getOptional(new ResourceLocation(placed)).map(ourBlockDrops::get).ifPresent(had::addAll);
             }
         });
         List<Sample> samples = samples(world, true, new HashMap<>());
         for (boolean grew = true; grew; ) {
             grew = false;
             for (Map.Entry<Block, Set<String>> block : ourBlockDrops.entrySet()) {
-                if (had.contains(BuiltInRegistries.ITEM.getKey(block.getKey().asItem()).toString())) grew |= had.addAll(block.getValue());
+                if (had.contains(Registry.ITEM.getKey(block.getKey().asItem()).toString())) grew |= had.addAll(block.getValue());
             }
             for (Sample sample : samples) {
                 boolean supplied = true;
                 for (int i = 0; i < sample.input().getContainerSize(); i++) {
-                    ResourceLocation needed = BuiltInRegistries.ITEM.getKey(sample.input().getItem(i).getItem());
+                    ResourceLocation needed = Registry.ITEM.getKey(sample.input().getItem(i).getItem());
                     supplied &= sample.input().getItem(i).isEmpty() || !Sweep.ours(needed) || had.contains(needed.toString());
                 }
                 if (supplied) {
-                    grew |= had.add(BuiltInRegistries.ITEM.getKey(craft(sample.recipe(), sample.input(), world).getItem()).toString());
+                    grew |= had.add(Registry.ITEM.getKey(craft(sample.recipe(), sample.input(), world).getItem()).toString());
                 }
             }
         }
         Map<String, String> findings = new TreeMap<>();
         int items = 0;
-        for (Item item : BuiltInRegistries.ITEM) {
-            ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        for (Item item : Registry.ITEM) {
+            ResourceLocation id = Registry.ITEM.getKey(item);
             if (!Sweep.ours(id)) continue;
             items++;
             if (!had.contains(id.toString()) || byCode.containsKey(id.toString())) {
@@ -890,7 +885,7 @@ public final class SweepGameTest {
         String describe() {
             List<String> items = new ArrayList<>();
             for (int i = 0; i < input.getContainerSize(); i++) {
-                if (!input.getItem(i).isEmpty()) items.add(BuiltInRegistries.ITEM.getKey(input.getItem(i).getItem()).toString());
+                if (!input.getItem(i).isEmpty()) items.add(Registry.ITEM.getKey(input.getItem(i).getItem()).toString());
             }
             return items.toString();
         }
@@ -918,7 +913,7 @@ public final class SweepGameTest {
                 grids(entry, 3, 3, slots, everyChoice, samples, findings);
             } else if (recipe instanceof PackingRecipe) {
                 // A special recipe lists no ingredients; the rows the recipe viewers draw are every load it packs.
-                for (ViewerRecipes.Packing row : ViewerRecipes.packing(world.registryAccess())) {
+                for (ViewerRecipes.Packing row : ViewerRecipes.packing(DataRegistries.of(world))) {
                     grids(entry, 3, 3, new ArrayList<>(row.inputs()), everyChoice, samples, findings);
                 }
             } else if (recipe instanceof AbstractCookingRecipe || recipe instanceof SingleItemRecipe
@@ -972,7 +967,7 @@ public final class SweepGameTest {
     /** The same input with every stackable item doubled, or null if nothing in it stacks. */
     private static Container stacked(Container input) {
         if (input instanceof SimpleContainer single) {
-            return single.getItem(0).getMaxStackSize() > 1 ? new SimpleContainer(single.getItem(0).copyWithCount(2)) : null;
+            return single.getItem(0).getMaxStackSize() > 1 ? new SimpleContainer(Stacks.copyWithCount(single.getItem(0), 2)) : null;
         }
         CraftingInput grid = (CraftingInput) input;
         boolean any = false;
@@ -981,7 +976,7 @@ public final class SweepGameTest {
             ItemStack stack = grid.getItem(slot);
             boolean grows = !stack.isEmpty() && stack.getMaxStackSize() > 1;
             any |= grows;
-            doubled.add(grows ? stack.copyWithCount(2) : stack);
+            doubled.add(grows ? Stacks.copyWithCount(stack, 2) : stack);
         }
         return any ? CraftingInput.of(grid.getWidth(), grid.getHeight(), doubled) : null;
     }
@@ -993,7 +988,7 @@ public final class SweepGameTest {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static ItemStack craft(Recipe<?> recipe, Container input, ServerLevel world) {
-        return ((Recipe) recipe).assemble(input, world.registryAccess());
+        return ((Recipe) recipe).assemble(input);
     }
 
     private static boolean sameStacks(List<ItemStack> a, List<ItemStack> b) {
@@ -1040,7 +1035,7 @@ public final class SweepGameTest {
         static Numbers now(ServerLevel world) {
             List<MobEffectInstance> effects = new ArrayList<>();
             java.util.Random random = new java.util.Random(20261008L);
-            for (Holder.Reference<Strain> strain : Strain.all(world.registryAccess())) {
+            for (com.warlonmhite.hempdustry.registry.Holder.Reference<Strain> strain : Strain.all(DataRegistries.of(world))) {
                 for (int dose = 1; dose <= 3; dose++) {
                     SmokeContents load = SmokeContents.of(strain, dose);
                     effects.addAll(EffectPolicy.filter(load.effects(900, false, random), load.buffBonus()));
@@ -1070,8 +1065,8 @@ public final class SweepGameTest {
     /** Every block of ours whose default state has a block entity, the ones that reuse vanilla's included. */
     private static List<Block> blocksWithEntities() {
         List<Block> blocks = new ArrayList<>();
-        for (Block block : BuiltInRegistries.BLOCK) {
-            if (Sweep.ours(BuiltInRegistries.BLOCK.getKey(block)) && block.defaultBlockState().hasBlockEntity()) blocks.add(block);
+        for (Block block : Registry.BLOCK) {
+            if (Sweep.ours(Registry.BLOCK.getKey(block)) && block.defaultBlockState().hasBlockEntity()) blocks.add(block);
         }
         return blocks;
     }
@@ -1102,13 +1097,13 @@ public final class SweepGameTest {
     }
 
     /** Round-trips every entry of one of our dynamic registries through its codec; returns how many. */
-    private static <T> int roundTripRegistry(RegistryDataLoader.RegistryData<T> entry, RegistryAccess registries,
+    private static <T> int roundTripRegistry(TestPlatform.RegistryData<T> entry, com.warlonmhite.hempdustry.registry.HolderLookup.Provider registries,
                                              DynamicOps<JsonElement> json, Map<String, String> findings) {
-        Registry<T> registry = registries.registryOrThrow(entry.key());
+        List<com.warlonmhite.hempdustry.registry.Holder.Reference<T>> registry = registries.lookupOrThrow(entry.key()).listElements().toList();
         Codec<T> codec = entry.elementCodec();
-        for (Map.Entry<ResourceKey<T>, T> element : registry.entrySet()) {
+        for (com.warlonmhite.hempdustry.registry.Holder.Reference<T> element : registry) {
             // Compared as what they encode to: an entry need not have a value-based equals.
-            DataResult<JsonElement> first = codec.encodeStart(json, element.getValue());
+            DataResult<JsonElement> first = codec.encodeStart(json, element.value());
             String problem;
             if (first.error().isPresent()) {
                 problem = "does not encode: " + first.error().get().message();
@@ -1117,9 +1112,9 @@ public final class SweepGameTest {
                 problem = again.error().isPresent() ? "does not decode what it wrote: " + again.error().get().message()
                         : orThrow(again).equals(orThrow(first)) ? null : "comes back as " + orThrow(again);
             }
-            if (problem != null) findings.put(element.getKey().location() + " (" + entry.key().location() + ")", problem);
+            if (problem != null) findings.put(element.key().location() + " (" + entry.key().location() + ")", problem);
         }
-        return registry.entrySet().size();
+        return registry.size();
     }
 
     private static TagKey<?> tagIn(Field field) {
@@ -1136,7 +1131,7 @@ public final class SweepGameTest {
     }
 
     private static String describe(ItemStack stack) {
-        return stack.getCount() + " " + BuiltInRegistries.ITEM.getKey(stack.getItem()) + (stack.getTag() == null ? "" : stack.getTag());
+        return stack.getCount() + " " + Registry.ITEM.getKey(stack.getItem()) + (stack.getTag() == null ? "" : stack.getTag());
     }
 
     /** The channel count in an Ogg Vorbis file's identification header, or -1 if there is none. */

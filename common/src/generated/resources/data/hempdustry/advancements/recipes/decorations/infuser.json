@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:infuser"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

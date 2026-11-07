@@ -10,13 +10,16 @@ import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.random.RandomGenerator;
-import net.minecraft.core.Holder;
-import net.minecraft.network.chat.CommonComponents;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
+import com.google.common.collect.ImmutableList;
+import java.util.stream.Collectors;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.TextComponent;
+import java.util.Random;
 
 /**
  * What is loaded in a spliff, pipe or bong — the payload of the {@code hempdustry:smoke_contents}
@@ -45,7 +48,7 @@ import net.minecraft.world.effect.MobEffectInstance;
  */
 public record SmokeContents(List<Entry> entries) {
 
-    public static final SmokeContents EMPTY = new SmokeContents(List.of());
+    public static final SmokeContents EMPTY = new SmokeContents(ImmutableList.of());
 
     /**
      * The entry list, <b>tolerant of an entry naming a strain this world no longer defines</b>.
@@ -77,7 +80,7 @@ public record SmokeContents(List<Entry> entries) {
     private static final Codec<List<Entry>> ENTRIES_CODEC =
             Codec.either(Entry.CODEC, Codec.PASSTHROUGH).listOf().xmap(
                     SmokeContents::keepResolved,
-                    entries -> entries.stream().map(Either::<Entry, Dynamic<?>>left).toList());
+                    entries -> entries.stream().map(Either::<Entry, Dynamic<?>>left).collect(Collectors.toList()));
 
     /**
      * The record form, and <b>the shape written from now on</b>.
@@ -89,7 +92,7 @@ public record SmokeContents(List<Entry> entries) {
      * adopted now, while it costs a few bytes and nothing else.
      */
     private static final Codec<SmokeContents> RECORD_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ENTRIES_CODEC.optionalFieldOf("entries", List.of()).forGetter(SmokeContents::entries)
+            ENTRIES_CODEC.optionalFieldOf("entries", ImmutableList.of()).forGetter(SmokeContents::entries)
     ).apply(instance, SmokeContents::new));
 
     /**
@@ -146,7 +149,7 @@ public record SmokeContents(List<Entry> entries) {
 
     /** A single-strain load. */
     public static SmokeContents of(Holder<Strain> strain, int count) {
-        return new SmokeContents(List.of(new Entry(strain, count)));
+        return new SmokeContents(ImmutableList.of(new Entry(strain, count)));
     }
 
     /**
@@ -157,7 +160,7 @@ public record SmokeContents(List<Entry> entries) {
      */
     public static SmokeContents of(Holder<Strain> strain, int count,
                                    Holder<Strain> additive, int additiveCount) {
-        return new SmokeContents(List.of(new Entry(strain, count), new Entry(additive, additiveCount)));
+        return new SmokeContents(ImmutableList.of(new Entry(strain, count), new Entry(additive, additiveCount)));
     }
 
     public boolean isEmpty() {
@@ -188,7 +191,7 @@ public record SmokeContents(List<Entry> entries) {
             if (best == null || entry.count() > best.count()
                     || (entry.count() == best.count()
                         && entry.strain().value().wildFlower().isPresent()
-                        && best.strain().value().wildFlower().isEmpty())) {
+                        && !best.strain().value().wildFlower().isPresent())) {
                 best = entry;
             }
         }
@@ -231,11 +234,11 @@ public record SmokeContents(List<Entry> entries) {
         // Hoisted: this does not vary with the entry being examined, and reading it inside the loop
         // suggests it does. A load whose primary is itself strainless (two hash entries, which only
         // an edited stack produces) has no plant to name, so it stays a plain "Mixed" blend.
-        if (primary.strain().value().wildFlower().isEmpty()) {
+        if (!primary.strain().value().wildFlower().isPresent()) {
             return Optional.empty();
         }
         for (Entry entry : entries) {
-            if (entry != primary && entry.strain().value().wildFlower().isEmpty()) {
+            if (entry != primary && !entry.strain().value().wildFlower().isPresent()) {
                 return Optional.of(entry.strain());
             }
         }
@@ -280,11 +283,11 @@ public record SmokeContents(List<Entry> entries) {
      * strain in it, which is the case where there is no primary strain to name it after.
      */
     public Component loadName() {
-        if (isBlend() && hashAdditive().isEmpty()) {
-            return Component.translatable("hempdustry.strain.blend");
+        if (isBlend() && !hashAdditive().isPresent()) {
+            return new TranslatableComponent("hempdustry.strain.blend");
         }
         Holder<Strain> strain = primaryStrain();
-        return strain == null ? Component.empty() : Component.translatable(strain.value().translationKey());
+        return strain == null ? TextComponent.EMPTY : new TranslatableComponent(strain.value().translationKey());
     }
 
     /**
@@ -297,12 +300,12 @@ public record SmokeContents(List<Entry> entries) {
      * Strength" and "Potion of Strength II".
      */
     public static Component packedName(String formatKey, SmokeContents contents) {
-        MutableComponent name = Component.translatable(formatKey, contents.loadName());
+        MutableComponent name = new TranslatableComponent(formatKey, contents.loadName());
         // The primary entry's count, not the total: see primaryCount(). Identical for every
         // single-entry load, so no name already in a world changes.
         int level = contents.primaryCount();
         if (level > 1) {
-            name.append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level));
+            name.append(" ").append(new TranslatableComponent("enchantment.level." + level));
         }
         return name;
     }
@@ -323,7 +326,7 @@ public record SmokeContents(List<Entry> entries) {
      * concentrate's own strain-agnostic effects included, is held to the plain cap here, so the
      * raised cap {@code Smoking} hands the policy lifts only the bud.
      */
-    public List<MobEffectInstance> effects(int durationTicks, boolean onExhale, RandomGenerator random) {
+    public List<MobEffectInstance> effects(int durationTicks, boolean onExhale, Random random) {
         int load = buffBonus();
         List<MobEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
@@ -343,12 +346,18 @@ public record SmokeContents(List<Entry> entries) {
      * together, and every effect with a chance taken as landing (a chance of zero still never does).
      *
      * @deprecated kept so an addon built against 2.0 still links; use
-     *             {@link #effects(int, boolean, RandomGenerator)}
+     *             {@link #effects(int, boolean, Random)}
      */
     @Deprecated
     public List<MobEffectInstance> effects(int durationTicks) {
         // A generator whose every draw is zero: nextFloat() is 0.0, under any chance above zero.
-        RandomGenerator lands = () -> 0L;
+        // A generator whose every float is zero, as the newer lines' `() -> 0L` generator is.
+        Random lands = new Random() {
+            @Override
+            public float nextFloat() {
+                return 0.0F;
+            }
+        };
         List<MobEffectInstance> out = effects(durationTicks, false, lands);
         out.addAll(effects(durationTicks, true, lands));
         return out;

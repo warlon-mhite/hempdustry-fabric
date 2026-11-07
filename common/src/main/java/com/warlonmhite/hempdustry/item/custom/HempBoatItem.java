@@ -1,16 +1,14 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.entity.custom.HempBoatEntity;
-import com.warlonmhite.hempdustry.entity.custom.HempChestBoatEntity;
 import java.util.List;
 import java.util.function.Predicate;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.Item;
@@ -23,16 +21,13 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Mirrors vanilla {@code BoatItem}, but spawns {@link HempBoatEntity}/{@link HempChestBoatEntity} instead of
+ * Mirrors vanilla {@code BoatItem}, but spawns {@link HempBoatEntity} instead of
  * relying on the closed {@code Boat.Type} enum, which mods can't extend.
  */
 public class HempBoatItem extends Item {
     private static final Predicate<Entity> RIDERS = EntitySelector.NO_SPECTATORS.and(Entity::isPickable);
-    private final boolean chest;
-
-    public HempBoatItem(boolean chest, Properties settings) {
+    public HempBoatItem(Properties settings) {
         super(settings);
-        this.chest = chest;
     }
 
     @Override
@@ -67,7 +62,7 @@ public class HempBoatItem extends Item {
 
         if (!world.isClientSide) {
             world.addFreshEntity(boatEntity);
-            world.gameEvent(user, GameEvent.ENTITY_PLACE, hitResult.getLocation());
+            world.gameEvent(user, GameEvent.ENTITY_PLACE, new BlockPos(hitResult.getLocation()));
             if (!user.getAbilities().instabuild) {
                 itemStack.shrink(1);
             }
@@ -79,12 +74,7 @@ public class HempBoatItem extends Item {
 
     private Boat createEntity(Level world, HitResult hitResult, ItemStack stack, Player player) {
         Vec3 pos = hitResult.getLocation();
-        Boat boatEntity = this.chest
-                ? new HempChestBoatEntity(world, pos.x, pos.y, pos.z)
-                : new HempBoatEntity(world, pos.x, pos.y, pos.z);
-        if (world instanceof ServerLevel serverWorld) {
-            EntityType.createDefaultStackConfig(serverWorld, stack, player).accept(boatEntity);
-        }
-        return boatEntity;
+        // 1.18.2's boat item reads no entity data off the stack (1.19.4 began to), so neither does this.
+        return new HempBoatEntity(world, pos.x, pos.y, pos.z);
     }
 }

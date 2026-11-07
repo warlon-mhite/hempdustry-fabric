@@ -1,6 +1,8 @@
-# Every gate on every push, both loaders: the same table `python3 scripts/gates.py` prints at home --
-# the script checks, each loader's game tests with their log gate, each loader's cold data run, the
-# build -- and then the API held to the last release, so no branch can drift red unseen.
+# Every gate on every push: the same table `python3 scripts/gates.py` prints at home -- the script
+# checks, the Forge game tests with their log gate, the data check, the build -- and then the API held
+# to the last release, so no branch can drift red unseen. This line builds for Forge alone, and its data
+# is the 1.20.1 line's datagen output converted to 1.18.2's formats, so that line is checked out beside
+# it and the data gate converts it again, expecting no change.
 name: Gates
 
 on:
@@ -23,16 +25,25 @@ jobs:
     env:
       # The releases whose API this build must keep (scripts/api_additive.py), one per loader, since a
       # Fabric jar and a Forge jar cannot be compared with each other, nor a jar of another Minecraft.
-      # Empty until this line's first release on Minecraft 1.20.1; move both on at each release.
+      # Empty until this line's first release on Minecraft 1.18.2; move both on at each release.
       API_BASELINE: ''
-      NEOFORGE_API_BASELINE: ''
+      NEOFORGE_API_BASELINE: v2.1.0
     steps:
       - uses: actions/checkout@v4
 
+      # The data this line converts, from the line it is converted from.
+      - uses: actions/checkout@v4
+        with:
+          ref: 1.20.1-2.1
+          path: .upstream-1.20.1
+
+      # Gradle runs on Java 21 (the last listed, so the default); Java 17 compiles and runs the game.
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: |
+            17
+            21
 
       - uses: actions/setup-python@v5
         with:
@@ -40,10 +51,15 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Both loaders compiled once before the gates: it fails early on a compile error, and it puts the
-      # game's client jar in Loom's cache, where the recipe-collision gate reads vanilla's recipes.
-      - name: Compile both loaders
-        run: ./gradlew --console=plain :fabric:compileJava :forge:compileJava
+      - name: Let Gradle find the JDK the game runs on
+        run: |
+          mkdir -p ~/.gradle
+          echo "org.gradle.java.installations.fromEnv=JAVA_HOME_17_X64" >> ~/.gradle/gradle.properties
+
+      # Compiled once before the gates: it fails early on a compile error, and it puts the game's client
+      # jar in Loom's cache, where the recipe-collision and data gates read vanilla's recipes and ids.
+      - name: Compile
+        run: ./gradlew --console=plain :forge:compileJava
 
       - name: Fetch the released jars the API is held to
         run: |
@@ -77,7 +93,7 @@ jobs:
 
       - name: Gates
         run: |
-          args=()
+          args=(--data-from .upstream-1.20.1)
           if [ -f build/baseline/fabric.jar ]; then args+=(--released build/baseline/fabric.jar); fi
           if [ -f build/baseline/neoforge.jar ]; then args+=(--released-neoforge build/baseline/neoforge.jar); fi
           python3 scripts/gates.py "${args[@]}"

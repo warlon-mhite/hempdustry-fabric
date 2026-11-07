@@ -1,6 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.level.block.FlowerBlock;
 

@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:green_concrete_powder"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

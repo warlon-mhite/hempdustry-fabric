@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:hempcrete_powder_block"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

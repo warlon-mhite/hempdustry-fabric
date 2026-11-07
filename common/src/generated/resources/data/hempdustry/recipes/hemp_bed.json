@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "group": "bed",
   "key": {
     "#": {
@@ -16,6 +15,5 @@
   ],
   "result": {
     "item": "hempdustry:hemp_bed"
-  },
-  "show_notification": true
+  }
 }

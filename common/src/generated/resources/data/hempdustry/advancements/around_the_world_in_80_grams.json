@@ -94,6 +94,5 @@
     [
       "has_rosin"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

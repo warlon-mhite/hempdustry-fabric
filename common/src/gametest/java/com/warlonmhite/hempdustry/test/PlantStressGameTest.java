@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import java.util.Random;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.nbt.CompoundTag;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -15,7 +16,6 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import net.minecraft.world.item.ItemStack;
@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.entity.DispenserBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -54,15 +54,15 @@ public final class PlantStressGameTest {
     /** Where a light over a Purple Kush hangs: two above its LOWER. */
     private static final BlockPos LIGHT = CROP.above(2);
 
-    private static final RandomSource HIT = decided(0.0F);
-    private static final RandomSource MISS = decided(0.999F);
+    private static final Random HIT = decided(0.0F);
+    private static final Random MISS = decided(0.999F);
 
     // ----- the causes -----
 
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void stressHasMoreCausesThanLight(GameTestHelper context) {
         // The agreed numbers.
-        context.assertTrue(PlantStress.OVERFED == 1.0F / 9 && PlantStress.OVERWATERED == 1.0F / 4
+        Asserts.assertTrue(context, PlantStress.OVERFED == 1.0F / 9 && PlantStress.OVERWATERED == 1.0F / 4
                         && PlantStress.DRY_BED == 1.0F / 3 && PlantStress.STAGNANT == 1.0F / 6
                         && PlantStress.DRY_FIELD == 1.0F / 20,
                 "the stress odds are not 1 in 9 overfed, 1 in 4 overwatered, 1 in 3 dry bed, 1 in 6 stagnant, 1 in 20 dry field");
@@ -87,7 +87,7 @@ public final class PlantStressGameTest {
         Block indica = ModBlocks.INDICA_CROP;
         expect(context, step(context, indica, dryField, 3, GrowLight.NATURAL, HIT), GrowLight.STRESSED,
                 "a plain field plant stepping into flowering on bone-dry farmland");
-        context.assertTrue(context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
+        Asserts.assertTrue(context, context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
                 "a plant stressed by its ground is drawn healthy at the top — the upper half reads "
                         + context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY));
         expect(context, step(context, indica, dryField, 2, GrowLight.NATURAL, HIT), GrowLight.NATURAL,
@@ -135,7 +135,7 @@ public final class PlantStressGameTest {
                 "a flowering Lemon Haze in a dry pot");
         for (int y = 1; y <= 2; y++) {
             BlockState segment = context.getBlockState(CROP.above(y));
-            context.assertTrue(segment.is(ModBlocks.SATIVA_CROP) && segment.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
+            Asserts.assertTrue(context, segment.is(ModBlocks.SATIVA_CROP) && segment.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
                     "a stressed Lemon Haze reads " + segment + " " + y + " up");
         }
 
@@ -158,21 +158,21 @@ public final class PlantStressGameTest {
         plant(context, ModBlocks.INDICA_CROP, Blocks.FARMLAND.defaultBlockState(), 4, GrowLight.NATURAL);
         BlockState current = world.getBlockState(pos);
         BlockState hit = PlantStress.beeStep(world, pos, current, indica.getStateForAge(5), HIT);
-        context.assertTrue(hit.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
+        Asserts.assertTrue(context, hit.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
                 "a bee growing a flowering plant on bone-dry farmland could not stress it: " + hit.getValue(GrowLight.PROPERTY));
         BlockState miss = PlantStress.beeStep(world, pos, current, indica.getStateForAge(5), MISS);
-        context.assertTrue(miss.getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
+        Asserts.assertTrue(context, miss.getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
                 "a bee's missed roll stressed the plant anyway");
 
         // The light is read on a bee's step too: a lamp plant a bee grows with no lamp over it is stressed.
         plant(context, ModBlocks.INDICA_CROP, moist(), 4, GrowLight.LAMP);
         BlockState lamp = PlantStress.beeStep(world, pos, world.getBlockState(pos), indica.getStateForAge(5), MISS);
-        context.assertTrue(lamp.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
+        Asserts.assertTrue(context, lamp.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
                 "a bee grew a lamp plant with no lamp over it and it kept " + lamp.getValue(GrowLight.PROPERTY));
 
         // Anything that is not one of ours comes back exactly as the bee wrote it.
         BlockState wheat = Blocks.WHEAT.defaultBlockState();
-        context.assertTrue(PlantStress.beeStep(world, pos, wheat, ((CropBlock) Blocks.WHEAT).getStateForAge(1), HIT)
+        Asserts.assertTrue(context, PlantStress.beeStep(world, pos, wheat, ((CropBlock) Blocks.WHEAT).getStateForAge(1), HIT)
                         == ((CropBlock) Blocks.WHEAT).getStateForAge(1), "a bee's step on wheat was changed");
         context.succeed();
     }
@@ -190,26 +190,26 @@ public final class PlantStressGameTest {
 
         // Water decides the moisture; food only works in water.
         BlockState fresh = pot.defaultBlockState();
-        context.assertTrue(!fresh.getValue(GrowPotBlock.WATERED) && fresh.getValue(GrowPotBlock.FERTILITY) == 0,
+        Asserts.assertTrue(context, !fresh.getValue(GrowPotBlock.WATERED) && fresh.getValue(GrowPotBlock.FERTILITY) == 0,
                 "a fresh Grow Pot is not dry and empty");
         BlockState fedDry = fresh.setValue(GrowPotBlock.FERTILITY, 3);
-        context.assertTrue(pot.moisture(fedDry) == GrowPotBlock.DRY_MOISTURE && pot.speed(fedDry) == 1.0F,
+        Asserts.assertTrue(context, pot.moisture(fedDry) == GrowPotBlock.DRY_MOISTURE && pot.speed(fedDry) == 1.0F,
                 "a fed but dry pot grows like soil with water in it");
         BlockState fedWet = fedDry.setValue(GrowPotBlock.WATERED, true);
-        context.assertTrue(pot.moisture(fedWet) == GrowPotBlock.WET_MOISTURE && pot.speed(fedWet) == GrowPotBlock.FERTILE_SPEED,
+        Asserts.assertTrue(context, pot.moisture(fedWet) == GrowPotBlock.WET_MOISTURE && pot.speed(fedWet) == GrowPotBlock.FERTILE_SPEED,
                 "a fed, watered pot is not the best soil there is");
         BlockState plainWet = fresh.setValue(GrowPotBlock.WATERED, true);
-        context.assertTrue(pot.moisture(plainWet) == GrowPotBlock.WET_MOISTURE && pot.speed(plainWet) == 1.0F,
+        Asserts.assertTrue(context, pot.moisture(plainWet) == GrowPotBlock.WET_MOISTURE && pot.speed(plainWet) == 1.0F,
                 "a watered pot with no food is not an ordinary wet field");
 
         // A bottle from the hand waters it and hands back the glass.
         context.setBlock(SOIL, fresh);
         ItemStack bottle = waterBottle();
         player.setItemInHand(InteractionHand.MAIN_HAND, bottle);
-        context.assertTrue(Line.useItemOn(world.getBlockState(soil),bottle, world, player, InteractionHand.MAIN_HAND, onPot).consumesAction(),
+        Asserts.assertTrue(context, Line.useItemOn(world.getBlockState(soil),bottle, world, player, InteractionHand.MAIN_HAND, onPot).consumesAction(),
                 "a Grow Pot refused a water bottle");
-        context.assertTrue(context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED), "a bottle did not water the pot");
-        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.GLASS_BOTTLE),
+        Asserts.assertTrue(context, context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED), "a bottle did not water the pot");
+        Asserts.assertTrue(context, player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.GLASS_BOTTLE),
                 "watering a pot did not hand back the glass bottle");
 
         // A bucket is refused by accepting the click and doing nothing. Only an accepted result stops
@@ -219,9 +219,9 @@ public final class PlantStressGameTest {
         ItemStack bucket = new ItemStack(Items.WATER_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
         ItemInteractionResult refused = Line.useItemOn(world.getBlockState(soil),bucket, world, player, InteractionHand.MAIN_HAND, onPot);
-        context.assertTrue(refused.consumesAction(), "a Grow Pot answered a water bucket with " + refused
+        Asserts.assertTrue(context, refused.consumesAction(), "a Grow Pot answered a water bucket with " + refused
                 + " — not accepted, so the client goes on to pour it");
-        context.assertTrue(bucket.is(Items.WATER_BUCKET) && !context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
+        Asserts.assertTrue(context, bucket.is(Items.WATER_BUCKET) && !context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
                 "a refused bucket was used anyway");
 
         // A second bottle into a wet pot is overwatering: a flowering plant may be stressed, and is
@@ -229,36 +229,36 @@ public final class PlantStressGameTest {
         BlockState wet = fresh.setValue(GrowPotBlock.WATERED, true);
         plant(context, ModBlocks.INDICA_CROP, wet, 5, GrowLight.NATURAL);
         GrowPotBlock.water(world, soil, world.getBlockState(soil), HIT);
-        context.assertTrue(context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED
+        Asserts.assertTrue(context, context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED
                         && context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
                 "overwatering a flowering plant did not stress both its halves");
         plant(context, ModBlocks.INDICA_CROP, wet, 5, GrowLight.NATURAL);
         GrowPotBlock.water(world, soil, world.getBlockState(soil), MISS);
-        context.assertTrue(context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
+        Asserts.assertTrue(context, context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
                 "a missed overwatering roll stressed the plant");
         plant(context, ModBlocks.INDICA_CROP, wet, 3, GrowLight.NATURAL);
         GrowPotBlock.water(world, soil, world.getBlockState(soil), HIT);
-        context.assertTrue(context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
+        Asserts.assertTrue(context, context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
                 "overwatering stressed a plant that was not yet flowering");
         plant(context, ModBlocks.INDICA_CROP, wet, 7, GrowLight.NATURAL);
         GrowPotBlock.water(world, soil, world.getBlockState(soil), HIT);
-        context.assertTrue(context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
+        Asserts.assertTrue(context, context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
                 "overwatering stressed a ripe plant, which has finished growing");
         plant(context, ModBlocks.INDICA_CROP, fresh, 5, GrowLight.NATURAL);
         GrowPotBlock.water(world, soil, world.getBlockState(soil), HIT);
-        context.assertTrue(context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED)
+        Asserts.assertTrue(context, context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED)
                         && context.getBlockState(CROP).getValue(GrowLight.PROPERTY) == GrowLight.NATURAL,
                 "watering a dry pot was treated as overwatering");
 
         // A bottle used on the plant waters its pot — Lemon Haze clicked at the very top.
         plant(context, ModBlocks.SATIVA_CROP, fresh, 6, GrowLight.NATURAL);
         BlockPos top = context.absolutePos(CROP.above(2));
-        context.assertTrue(world.getBlockState(top).is(ModBlocks.SATIVA_CROP),
+        Asserts.assertTrue(context, world.getBlockState(top).is(ModBlocks.SATIVA_CROP),
                 "Lemon Haze did not stand three tall, so this probe proves nothing");
         ItemStack onPlant = waterBottle();
         player.setItemInHand(InteractionHand.MAIN_HAND, onPlant);
         BlockHitResult atTop = new BlockHitResult(Vec3.atCenterOf(top), Direction.UP, top, false);
-        context.assertTrue(Line.useItemOn(world.getBlockState(top),onPlant, world, player, InteractionHand.MAIN_HAND, atTop).consumesAction()
+        Asserts.assertTrue(context, Line.useItemOn(world.getBlockState(top),onPlant, world, player, InteractionHand.MAIN_HAND, atTop).consumesAction()
                         && context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
                 "a bottle used on the top of a potted plant did not water its pot");
 
@@ -267,32 +267,33 @@ public final class PlantStressGameTest {
         BlockPos crop = context.absolutePos(CROP);
         ((CropBlock) ModBlocks.INDICA_CROP).performBonemeal(world, MISS, crop, world.getBlockState(crop));
         BlockState after = context.getBlockState(SOIL);
-        context.assertTrue(!after.getValue(GrowPotBlock.WATERED) && after.getValue(GrowPotBlock.FERTILITY) == 2,
+        Asserts.assertTrue(context, !after.getValue(GrowPotBlock.WATERED) && after.getValue(GrowPotBlock.FERTILITY) == 2,
                 "a plant ripening in a pot left it " + after + " — it drinks the water and eats one charge");
 
         // Picked up, a pot keeps its food and not its water.
         ItemStack dropped = potDrop(world, soil, fedWet);
         CompoundTag kept = dropped.getTagElement("BlockStateTag");
-        context.assertTrue(kept != null && "3".equals(kept.getString("fertility"))
+        Asserts.assertTrue(context, kept != null && "3".equals(kept.getString("fertility"))
                         && !kept.contains("watered"),
                 "a watered pot at fertility 3 dropped as " + dropped + " with " + kept);
 
-        // No evaporation for a bottle: vanilla makes mud with one in the Nether, so a pot there waters.
+        // No evaporation for a bottle: the newer lines' vanilla makes mud with one in the Nether, so a pot
+        // there waters.
         ServerLevel nether = world.getServer().getLevel(Level.NETHER);
-        context.assertTrue(nether != null, "this server has no Nether, so this proves nothing");
+        Asserts.assertTrue(context, nether != null, "this server has no Nether, so this proves nothing");
         BlockPos netherPos = new BlockPos(0, 64, 0);
         nether.setBlockAndUpdate(netherPos, pot.defaultBlockState());
         GrowPotBlock.water(nether, netherPos, nether.getBlockState(netherPos), MISS);
         boolean netherWatered = nether.getBlockState(netherPos).getValue(GrowPotBlock.WATERED);
         nether.setBlockAndUpdate(netherPos, Blocks.AIR.defaultBlockState());
-        context.assertTrue(netherWatered, "a bottle did not water a pot in the Nether");
+        Asserts.assertTrue(context, netherWatered, "a bottle did not water a pot in the Nether");
         context.succeed();
     }
 
     private static final BlockPos DISPENSER = new BlockPos(0, 1, 1);
     private static final BlockPos PULSE = new BlockPos(0, 2, 1);
 
-    /** A dispenser's water bottle waters a pot and keeps the glass; anything else still gets vanilla's mud. */
+    /** A dispenser's water bottle waters a pot and keeps the glass; anything else still gets vanilla's behaviour. */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void aDispenserWatersAPot(GameTestHelper context) {
         context.setBlock(SOIL, ModBlocks.GROW_POT);
@@ -302,17 +303,21 @@ public final class PlantStressGameTest {
         context.pulseRedstone(PULSE, 1);
 
         context.runAtTickTime(10, () -> {
-            context.assertTrue(context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED), "the dispenser did not water the pot");
-            context.assertTrue(dispenser.getItem(0).is(Items.GLASS_BOTTLE),
+            Asserts.assertTrue(context, context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED), "the dispenser did not water the pot");
+            Asserts.assertTrue(context, dispenser.getItem(0).is(Items.GLASS_BOTTLE),
                     "the dispenser did not keep the glass bottle: slot 0 holds " + dispenser.getItem(0));
             context.setBlock(SOIL, Blocks.DIRT);
             dispenser.setItem(0, waterBottle());
             context.pulseRedstone(PULSE, 1);
         });
 
+        // 1.18.2 has no mud (1.19) and gives a plain potion no dispenser behaviour of its own, so
+        // vanilla's there is the default one: the bottle is shot out whole, and the dirt stays dirt.
         context.runAtTickTime(20, () -> {
-            context.assertTrue(context.getBlockState(SOIL).is(Blocks.MUD),
-                    "a dispensed water bottle no longer turns dirt to mud — vanilla's behaviour was replaced, not wrapped");
+            boolean shotOut = Asserts.getEntities(context, net.minecraft.world.entity.EntityType.ITEM, SOIL, 4.0).stream()
+                    .anyMatch(item -> item.getItem().is(Items.POTION));
+            Asserts.assertTrue(context, context.getBlockState(SOIL).is(Blocks.DIRT) && dispenser.getItem(0).isEmpty() && shotOut,
+                    "a dispensed water bottle no longer flies out over dirt — vanilla's behaviour was replaced, not wrapped");
             context.succeed();
         });
     }
@@ -320,8 +325,8 @@ public final class PlantStressGameTest {
     // ----- helpers -----
 
     /** A random whose every float is {@code value}, so a roll's outcome is decided in advance. */
-    private static RandomSource decided(float value) {
-        return new SingleThreadedRandomSource(0L) {
+    private static Random decided(float value) {
+        return new Random(0L) {
             @Override
             public float nextFloat() {
                 return value;
@@ -339,11 +344,11 @@ public final class PlantStressGameTest {
 
     private static void odds(GameTestHelper context, BlockState floor, float expected, String what) {
         float actual = PlantStress.ofGround(floor);
-        context.assertTrue(actual == expected, what + " stresses at " + actual + " a step, expected " + expected);
+        Asserts.assertTrue(context, actual == expected, what + " stresses at " + actual + " a step, expected " + expected);
     }
 
     private static void expect(GameTestHelper context, GrowLight actual, GrowLight expected, String what) {
-        context.assertTrue(actual == expected, what + " left the plant " + actual + ", expected " + expected);
+        Asserts.assertTrue(context, actual == expected, what + " left the plant " + actual + ", expected " + expected);
     }
 
     /** A plant of {@code crop} at {@code age} on {@code soil}, with its segments grown in by a same-age reconcile. */
@@ -368,25 +373,24 @@ public final class PlantStressGameTest {
 
     /** One bone meal step on a fresh plant, with its roll decided, and the record it leaves. */
     private static GrowLight step(GameTestHelper context, Block crop, BlockState soil, int age, GrowLight record,
-                                  RandomSource roll) {
+                                  Random roll) {
         plant(context, crop, soil, age, record);
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
         ((CropBlock) crop).performBonemeal(world, roll, pos, world.getBlockState(pos));
-        context.assertTrue(context.getBlockState(CROP).getValue(BlockStateProperties.AGE_7) == age + 1,
+        Asserts.assertTrue(context, context.getBlockState(CROP).getValue(BlockStateProperties.AGE_7) == age + 1,
                 "the step did not grow the plant, so this probe proves nothing");
         return context.getBlockState(CROP).getValue(GrowLight.PROPERTY);
     }
 
     private static ItemStack potDrop(ServerLevel world, BlockPos pos, BlockState state) {
-        LootTable table = world.getServer().getLootData()
-                .getLootTable(ModBlocks.GROW_POT.getLootTable());
-        LootParams params = new LootParams.Builder(world)
+        LootTable table = world.getServer().getLootTables()
+                .get(ModBlocks.GROW_POT.getLootTable());
+        LootContext.Builder params = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
                 .withParameter(LootContextParams.BLOCK_STATE, state)
-                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
-                .create(LootContextParamSets.BLOCK);
-        List<ItemStack> drops = table.getRandomItems(params, 0L);
+                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY);
+        List<ItemStack> drops = Line.roll(table, params, LootContextParamSets.BLOCK, 0L);
         return drops.isEmpty() ? ItemStack.EMPTY : drops.get(0);
     }
 }

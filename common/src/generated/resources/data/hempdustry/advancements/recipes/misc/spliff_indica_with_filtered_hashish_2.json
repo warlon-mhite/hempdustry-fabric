@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:spliff_indica_with_filtered_hashish_2"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

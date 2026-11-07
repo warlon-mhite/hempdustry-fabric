@@ -55,11 +55,11 @@ final class Sweep {
         if (!unexcused.isEmpty()) message.append(" — ").append(unexcused.size()).append(" do not:");
         unexcused.forEach((id, what) -> message.append("\n  ").append(id).append(": ").append(what));
         if (!stale.isEmpty()) message.append("\n  these exemptions no longer excuse anything, remove them: ").append(stale);
-        context.assertTrue(unexcused.isEmpty() && stale.isEmpty(), message.toString());
+        Asserts.assertTrue(context, unexcused.isEmpty() && stale.isEmpty(), message.toString());
     }
 
     static void atLeast(GameTestHelper context, String what, int seen, int floor) {
-        context.assertTrue(seen >= floor, "saw only " + seen + " " + what + " where there are at least " + floor
+        Asserts.assertTrue(context, seen >= floor, "saw only " + seen + " " + what + " where there are at least " + floor
                 + ": the sweep is no longer seeing what it checks");
     }
 

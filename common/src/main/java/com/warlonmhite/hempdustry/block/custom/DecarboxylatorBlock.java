@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import java.util.Random;
 import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -14,7 +15,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -162,7 +162,7 @@ public class DecarboxylatorBlock extends BaseEntityBlock {
 
     /** A wisp of smoke off the copper flue and a crackle while the oven is running. */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (!state.getValue(LIT)) {
             return;
         }

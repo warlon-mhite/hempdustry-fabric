@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:moon_rock_indica_hashish"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

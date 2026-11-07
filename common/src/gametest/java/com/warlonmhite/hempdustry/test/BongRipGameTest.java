@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
@@ -35,14 +36,15 @@ public final class BongRipGameTest {
         ItemStack bong = packed(world, ModItems.BONG, DeviceType.BONG);
         player.setItemInHand(InteractionHand.MAIN_HAND, bong);
         player.gameMode.useItem(player, world, bong, InteractionHand.MAIN_HAND);
-        context.assertTrue(player.isUsingItem(), "clicking a packed bong did not start a draw");
-        context.assertTrue(player.getUseItem().getUseAnimation() == UseAnim.TOOT_HORN,
+        Asserts.assertTrue(context, player.isUsingItem(), "clicking a packed bong did not start a draw");
+        // Drinking's pose: 1.18.2 has no goat horn's (1.19).
+        Asserts.assertTrue(context, player.getUseItem().getUseAnimation() == UseAnim.DRINK,
                 "a bong draw is not raised to the mouth");
         Line.equal(context, DeviceType.BONG.builtInBowl().hits(), charges(player), "the click alone took a hit");
 
         player.releaseUsingItem();
         Line.equal(context, DeviceType.BONG.builtInBowl().hits(), charges(player), "letting go early spent a charge");
-        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).getDamageValue() == 0,
+        Asserts.assertTrue(context, player.getItemInHand(InteractionHand.MAIN_HAND).getDamageValue() == 0,
                 "letting go early cost durability");
 
         player.gameMode.useItem(player, world, player.getItemInHand(InteractionHand.MAIN_HAND), InteractionHand.MAIN_HAND);
@@ -52,7 +54,7 @@ public final class BongRipGameTest {
         player.stopUsingItem();
         player.setItemInHand(InteractionHand.MAIN_HAND, after);
         Line.equal(context, DeviceType.BONG.builtInBowl().hits() - 1, charges(player), "a finished draw did not take one hit");
-        context.assertTrue(player.getCooldowns().isOnCooldown(after.getItem()),
+        Asserts.assertTrue(context, player.getCooldowns().isOnCooldown(after.getItem()),
                 "a finished draw started no cooldown");
 
         // The control: the pipe still hits on the click, and never enters a draw. A fresh player,
@@ -62,7 +64,7 @@ public final class BongRipGameTest {
         ItemStack pipe = packed(world, ModItems.WOODEN_PIPE, DeviceType.PIPE);
         other.setItemInHand(InteractionHand.MAIN_HAND, pipe);
         other.gameMode.useItem(other, world, pipe, InteractionHand.MAIN_HAND);
-        context.assertTrue(!other.isUsingItem(), "the pipe started a draw");
+        Asserts.assertTrue(context, !other.isUsingItem(), "the pipe started a draw");
         Line.equal(context, DeviceType.PIPE.builtInBowl().hits() - 1, charges(other), "the pipe no longer hits on the click");
         context.succeed();
     }
@@ -73,7 +75,7 @@ public final class BongRipGameTest {
 
     private static ItemStack packed(ServerLevel world, Item device, DeviceType type) {
         ItemStack stack = new ItemStack(device);
-        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(world.registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(DataRegistries.of(world)
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
         ModComponents.CHARGES.set(stack, type.builtInBowl().hits());
         return stack;

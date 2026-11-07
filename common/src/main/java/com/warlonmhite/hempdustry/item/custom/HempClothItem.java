@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.item.ModArmorMaterials;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.DyeableArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -12,15 +13,15 @@ import net.minecraft.world.item.ItemStack;
  * that has not been dyed.
  */
 public class HempClothItem extends DyeableArmorItem {
-    public HempClothItem(ArmorMaterial material, Type type, Properties properties) {
-        super(material, type, properties);
+    public HempClothItem(ArmorMaterial material, EquipmentSlot slot, Properties properties) {
+        super(material, slot, properties);
     }
 
     @Override
     public int getColor(ItemStack stack) {
-        CompoundTag display = stack.getTagElement(TAG_DISPLAY);
-        return display != null && display.contains(TAG_COLOR, 99)
-                ? display.getInt(TAG_COLOR)
+        CompoundTag display = stack.getTagElement("display");
+        return display != null && display.contains("color", 99)
+                ? display.getInt("color")
                 : ModArmorMaterials.HEMP_UNDYED_COLOR & 0xFFFFFF;
     }
 }

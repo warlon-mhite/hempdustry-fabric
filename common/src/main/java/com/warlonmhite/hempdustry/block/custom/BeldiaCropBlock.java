@@ -87,7 +87,7 @@ public class BeldiaCropBlock extends IndicaCropBlock {
 
     /** Bone meal is growth too, and a dry plant does not grow. */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
+    public boolean isValidBonemealTarget(BlockGetter world, BlockPos pos, BlockState state, boolean isClient) {
         return super.isValidBonemealTarget(world, pos, state, isClient) && isWatered(world, pos.below());
     }
 
@@ -111,7 +111,7 @@ public class BeldiaCropBlock extends IndicaCropBlock {
     }
 
     /** Whether the ground at {@code floor} counts as watered: a bed of ours answers for itself, sand needs water in reach. */
-    public static boolean isWatered(LevelReader world, BlockPos floor) {
+    public static boolean isWatered(BlockGetter world, BlockPos floor) {
         if (world.getBlockState(floor).getBlock() instanceof GrowMedium) {
             return true;
         }

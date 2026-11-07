@@ -99,11 +99,16 @@ public final class HempdustryGameTests {
         List<Class<?>> classes = new ArrayList<>(CLASSES);
         classes.addAll(List.of(extra));
         checkEveryTestClassIsListed(classes);
+        // -Dhempdustry.gametest.only=<regex>: only the tests whose name it finds, while working on one.
+        String only = System.getProperty("hempdustry.gametest.only");
+        java.util.regex.Pattern filter = only == null || only.isEmpty() ? null : java.util.regex.Pattern.compile(only);
         for (Class<?> testClass : classes) {
             Stream.of(testClass.getDeclaredMethods())
                     .filter(method -> method.isAnnotationPresent(GameTest.class))
                     .sorted(Comparator.comparing(Method::getName))
-                    .forEach(method -> GameTestRegistry.getAllTestFunctions().add(testFunction(method)));
+                    .map(HempdustryGameTests::testFunction)
+                    .filter(test -> filter == null || filter.matcher(test.getTestName()).find())
+                    .forEach(GameTestRegistry.getAllTestFunctions()::add);
         }
     }
 

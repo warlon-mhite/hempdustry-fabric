@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.test.forge;
 
-import net.minecraftforge.registries.DataPackRegistriesHooks;
+import io.netty.util.AttributeKey;
+import net.minecraft.network.Connection;
+import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.ForgeHooks;
@@ -11,7 +13,6 @@ import com.warlonmhite.hempdustry.api.AfterInfuseEvent;
 import com.warlonmhite.hempdustry.api.AfterSmokeEvent;
 import com.warlonmhite.hempdustry.api.AllowSmokeEvent;
 import com.warlonmhite.hempdustry.test.TestPlatform;
-import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
@@ -32,8 +33,18 @@ public final class ForgeTestPlatform implements TestPlatform {
     }
 
     @Override
-    public List<RegistryDataLoader.RegistryData<?>> dynamicRegistries() {
-        return DataPackRegistriesHooks.getDataPackRegistries();
+    public net.minecraft.world.level.storage.loot.LootTable decodeLootTable(net.minecraft.server.MinecraftServer server,
+            net.minecraft.resources.ResourceLocation id, com.google.gson.JsonElement json) {
+        // custom: a mod's or a data pack's table, as LootTables#apply reads every file outside vanilla's own
+        return ForgeHooks.loadLootTable(net.minecraft.world.level.storage.loot.Deserializers.createLootTableSerializer().create(),
+                id, json, true, server.getLootTables());
+    }
+
+    @Override
+    public void markAsHandshaken(Connection connection) {
+        // What Forge's HandshakeHandler leaves on a channel once a modded client has logged in; Forge
+        // 40's player list reads it as the player joins (NetworkHooks#getConnectionType).
+        connection.channel().attr(AttributeKey.<String>valueOf("fml:netversion")).set(NetworkConstants.NETVERSION);
     }
 
     @Override
@@ -48,7 +59,7 @@ public final class ForgeTestPlatform implements TestPlatform {
 
     @Override
     public float compostChance(ItemLike item) {
-        // Vanilla's own table, which Forge 47's composter reads.
+        // Vanilla's own table, which Forge 40's composter reads.
         return ComposterBlock.COMPOSTABLES.getOrDefault(item.asItem(), -1.0F);
     }
 
@@ -62,7 +73,7 @@ public final class ForgeTestPlatform implements TestPlatform {
         // Vanilla's table, which Forge's fire reads unless a block says otherwise.
         FireBlock fire = (FireBlock) Blocks.FIRE;
         BlockState state = block.defaultBlockState();
-        return new Flammability(fire.getIgniteOdds(state), fire.getBurnOdds(state));
+        return new Flammability(fire.getFlameOdds(state), fire.getBurnOdd(state));
     }
 
     @Override

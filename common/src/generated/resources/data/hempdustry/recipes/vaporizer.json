@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "I": {
       "item": "minecraft:iron_ingot"
@@ -19,6 +18,5 @@
   ],
   "result": {
     "item": "hempdustry:vaporizer"
-  },
-  "show_notification": true
+  }
 }

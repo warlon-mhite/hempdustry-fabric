@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:spliff_schwag_2"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

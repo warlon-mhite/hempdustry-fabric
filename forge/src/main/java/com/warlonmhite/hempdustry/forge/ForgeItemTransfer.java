@@ -6,7 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
@@ -21,7 +21,7 @@ public final class ForgeItemTransfer implements ItemTransfer {
     public Result insertWhole(Level level, BlockPos pos, Direction side, ItemStack stack) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         IItemHandler handler = blockEntity == null ? null
-                : blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
+                : blockEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).orElse(null);
         if (handler == null) {
             return Result.NO_STORAGE;
         }

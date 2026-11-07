@@ -1,8 +1,8 @@
 package com.warlonmhite.hempdustry.client.render;
 
+import com.mojang.math.Vector3f;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
@@ -89,9 +89,9 @@ public class HempBedBlockEntityRenderer implements BlockEntityRenderer<HempBedBl
                                    Direction facing, int light, int overlay, boolean foot) {
         matrices.pushPose();
         matrices.translate(0.0F, 0.5625F, foot ? -1.0F : 0.0F);
-        matrices.mulPose(Axis.XP.rotationDegrees(90.0F));
+        matrices.mulPose(Vector3f.XP.rotationDegrees(90.0F));
         matrices.translate(0.5F, 0.5F, 0.5F);
-        matrices.mulPose(Axis.ZP.rotationDegrees(180.0F + facing.toYRot()));
+        matrices.mulPose(Vector3f.ZP.rotationDegrees(180.0F + facing.toYRot()));
         matrices.translate(-0.5F, -0.5F, -0.5F);
         VertexConsumer buffer = TEXTURE.buffer(vertexConsumers, RenderType::entitySolid);
         part.render(matrices, buffer, light, overlay);

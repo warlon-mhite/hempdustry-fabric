@@ -2,7 +2,6 @@ package com.warlonmhite.hempdustry.balance;
 
 import net.minecraft.util.Mth;
 import com.warlonmhite.hempdustry.util.Codecs;
-import net.minecraft.core.registries.BuiltInRegistries;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -12,16 +11,16 @@ import com.warlonmhite.hempdustry.item.custom.Quality;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.random.RandomGenerator;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import java.util.Random;
 
 /**
  * What an edible does, as data: {@code data/<namespace>/hempdustry/edible/default.json}. One bundle
@@ -41,17 +40,17 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
      * is the long late tail an edible is known for.
      */
     public record Onset(int minTicks, int modeTicks, int maxTicks) {
-        public static final Codec<Onset> CODEC = ExtraCodecs.validate(RecordCodecBuilder.<Onset>create(instance -> instance.group(
-                ExtraCodecs.POSITIVE_INT.fieldOf("min").forGetter(Onset::minTicks),
-                ExtraCodecs.POSITIVE_INT.fieldOf("mode").forGetter(Onset::modeTicks),
-                ExtraCodecs.POSITIVE_INT.fieldOf("max").forGetter(Onset::maxTicks)
+        public static final Codec<Onset> CODEC = Codecs.validate(RecordCodecBuilder.<Onset>create(instance -> instance.group(
+                Codecs.POSITIVE_INT.fieldOf("min").forGetter(Onset::minTicks),
+                Codecs.POSITIVE_INT.fieldOf("mode").forGetter(Onset::modeTicks),
+                Codecs.POSITIVE_INT.fieldOf("max").forGetter(Onset::maxTicks)
         ).apply(instance, Onset::new)), onset -> onset.minTicks() <= onset.modeTicks()
                 && onset.modeTicks() <= onset.maxTicks()
                 ? DataResult.success(onset)
-                : DataResult.error(() -> "onset_ticks wants min <= mode <= max"));
+                : DataResult.error("onset_ticks wants min <= mode <= max"));
 
         /** One roll of the triangle, in ticks. */
-        public int roll(RandomGenerator random) {
+        public int roll(Random random) {
             if (maxTicks == minTicks) {
                 return minTicks;
             }
@@ -69,7 +68,7 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
     public record Grade(Onset onset, int durationTicks) {
         public static final Codec<Grade> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Onset.CODEC.fieldOf("onset_ticks").forGetter(Grade::onset),
-                ExtraCodecs.POSITIVE_INT.fieldOf("duration_ticks").forGetter(Grade::durationTicks)
+                Codecs.POSITIVE_INT.fieldOf("duration_ticks").forGetter(Grade::durationTicks)
         ).apply(instance, Grade::new));
     }
 
@@ -102,14 +101,14 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
         private static final Codec<List<Integer>> AMPLIFIERS =
                 Codecs.listOf(Codec.intRange(0, 255), EdibleEffects.MAX_TIER, EdibleEffects.MAX_TIER);
         private static final Codec<List<Integer>> TICKS =
-                Codecs.listOf(ExtraCodecs.POSITIVE_INT, EdibleEffects.MAX_TIER, EdibleEffects.MAX_TIER);
+                Codecs.listOf(Codecs.POSITIVE_INT, EdibleEffects.MAX_TIER, EdibleEffects.MAX_TIER);
 
         public static final Codec<Effect> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                BuiltInRegistries.MOB_EFFECT.byNameCodec().fieldOf("effect").forGetter(Effect::effect),
+                Registry.MOB_EFFECT.byNameCodec().fieldOf("effect").forGetter(Effect::effect),
                 AMPLIFIERS.fieldOf("amplifier_by_tier").forGetter(Effect::amplifierByTier),
-                ExtraCodecs.NON_NEGATIVE_INT.fieldOf("arrives_ticks").forGetter(Effect::arrivesTicks),
+                Codecs.NON_NEGATIVE_INT.fieldOf("arrives_ticks").forGetter(Effect::arrivesTicks),
                 TICKS.optionalFieldOf("duration_by_tier").forGetter(Effect::durationByTier),
-                Codec.unboundedMap(Quality.CODEC, AMPLIFIERS).optionalFieldOf("amplifier_by_quality", Map.of())
+                Codec.unboundedMap(Quality.CODEC, AMPLIFIERS).optionalFieldOf("amplifier_by_quality", ImmutableMap.of())
                         .forGetter(Effect::amplifierByQuality)
         ).apply(instance, Effect::new));
 
@@ -127,7 +126,7 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
 
     public static final Codec<EdibleBundle> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Qualities.CODEC.fieldOf("qualities").forGetter(EdibleBundle::qualities),
-            Codecs.listOf(ExtraCodecs.POSITIVE_FLOAT, EdibleEffects.MAX_TIER, EdibleEffects.MAX_TIER)
+            Codecs.listOf(Codecs.POSITIVE_FLOAT, EdibleEffects.MAX_TIER, EdibleEffects.MAX_TIER)
                     .fieldOf("tier_share").forGetter(EdibleBundle::tierShare),
             Effect.CODEC.listOf().fieldOf("effects").forGetter(EdibleBundle::effects)
     ).apply(instance, EdibleBundle::new));
@@ -156,22 +155,18 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
     public static final EdibleBundle BUILT_IN = new EdibleBundle(
             new Qualities(new Grade(new Onset(900, 2400, 5200), 3600), new Grade(new Onset(1100, 2000, 3900), 5400),
                     new Grade(new Onset(1300, 1800, 2700), 7200), new Grade(new Onset(1740, 1800, 1860), 9600)),
-            List.of(0.625F, 0.75F, 0.875F, 1.0F),
-            List.of(
-                    new Effect(MobEffects.MOVEMENT_SLOWDOWN, List.of(0, 0, 1, 1), 0, Optional.empty(),
-                            Map.of(Quality.PERFECT, List.of(0, 0, 0, 0))),
-                    new Effect(MobEffects.ABSORPTION, List.of(0, 1, 2, 3), 160, Optional.empty(), Map.of()),
-                    new Effect(MobEffects.DAMAGE_RESISTANCE, List.of(0, 0, 0, 0), 160, Optional.empty(), Map.of()),
-                    new Effect(MobEffects.HUNGER, List.of(0, 0, 0, 0), 400, Optional.empty(), Map.of()),
-                    new Effect(MobEffects.REGENERATION, List.of(0, 0, 0, 0), 600,
-                            Optional.of(List.of(100, 200, 300, 400)), Map.of())));
-
-    public static void bootstrap(BootstapContext<EdibleBundle> registerable) {
-        registerable.register(DEFAULT, BUILT_IN);
-    }
+            ImmutableList.of(0.625F, 0.75F, 0.875F, 1.0F),
+            ImmutableList.of(
+                    new Effect(MobEffects.MOVEMENT_SLOWDOWN, ImmutableList.of(0, 0, 1, 1), 0, Optional.empty(),
+                            ImmutableMap.of(Quality.PERFECT, ImmutableList.of(0, 0, 0, 0))),
+                    new Effect(MobEffects.ABSORPTION, ImmutableList.of(0, 1, 2, 3), 160, Optional.empty(), ImmutableMap.of()),
+                    new Effect(MobEffects.DAMAGE_RESISTANCE, ImmutableList.of(0, 0, 0, 0), 160, Optional.empty(), ImmutableMap.of()),
+                    new Effect(MobEffects.HUNGER, ImmutableList.of(0, 0, 0, 0), 400, Optional.empty(), ImmutableMap.of()),
+                    new Effect(MobEffects.REGENERATION, ImmutableList.of(0, 0, 0, 0), 600,
+                            Optional.of(ImmutableList.of(100, 200, 300, 400)), ImmutableMap.of())));
 
     /** The bundle every edible gives in this world. */
     public static EdibleBundle of(HolderLookup.Provider registries) {
-        return ModBalance.entry(registries, DEFAULT, BUILT_IN);
+        return ModBalance.entry(registries, REGISTRY_KEY, DEFAULT, BUILT_IN);
     }
 }

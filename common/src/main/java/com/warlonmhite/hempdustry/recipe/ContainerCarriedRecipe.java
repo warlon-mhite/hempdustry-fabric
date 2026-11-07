@@ -46,7 +46,7 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
 
     /** Vanilla's shapeless recipe in every field; its serializer reads the file. */
     public ContainerCarriedRecipe(ShapelessRecipe base) {
-        super(base.getId(), base.getGroup(), base.category(), base.getResultItem(null), base.getIngredients());
+        super(base.getId(), base.getGroup(), base.getResultItem(), base.getIngredients());
     }
 
     @Override
@@ -59,7 +59,7 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
         return ModRecipes.CONTAINER_CARRIED;
     }
 
-    public static class Serializer implements RecipeSerializer<ContainerCarriedRecipe> {
+    public static class Serializer extends ModRecipeSerializer<ContainerCarriedRecipe> {
         @Override
         public ContainerCarriedRecipe fromJson(ResourceLocation id, JsonObject json) {
             return new ContainerCarriedRecipe(RecipeJson.shapeless(id, json));

@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import net.minecraft.network.chat.TranslatableComponent;
 import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
@@ -314,7 +315,7 @@ public final class Defoliation {
      */
     private static void refuse(Level world, Player player, String key) {
         if (!world.isClientSide()) {
-            player.displayClientMessage(Component.translatable(key), true);
+            player.displayClientMessage(new TranslatableComponent(key), true);
         }
     }
 }

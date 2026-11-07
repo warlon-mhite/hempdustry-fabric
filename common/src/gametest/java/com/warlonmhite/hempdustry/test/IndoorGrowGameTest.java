@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -61,7 +61,7 @@ public final class IndoorGrowGameTest {
     public void thePlantKeepsItsLightRecord(GameTestHelper context) {
         plant(context, litGrowLamp());
         grow(context, IndicaCropBlock.MAX_AGE);
-        context.assertTrue(record(context) == GrowLight.GROW_LAMP,
+        Asserts.assertTrue(context, record(context) == GrowLight.GROW_LAMP,
                 "a plant bone-mealed to ripeness under a lit Grow Lamp recorded " + record(context));
 
         // The path carryOver guards. A growth step re-derives the record, so it survives a broken
@@ -74,9 +74,9 @@ public final class IndoorGrowGameTest {
         context.setBlock(LIGHT, Blocks.AIR);
         context.setBlock(CROP.above(), Blocks.AIR);
         tickWorld.getBlockState(ripe).randomTick(tickWorld, ripe, tickWorld.getRandom());
-        context.assertTrue(context.getBlockState(CROP.above()).is(ModBlocks.INDICA_CROP),
+        Asserts.assertTrue(context, context.getBlockState(CROP.above()).is(ModBlocks.INDICA_CROP),
                 "the random tick did not re-sprout the missing top half, so this probe proves nothing");
-        context.assertTrue(record(context) == GrowLight.GROW_LAMP, "re-sprouting a ripe plant's top half"
+        Asserts.assertTrue(context, record(context) == GrowLight.GROW_LAMP, "re-sprouting a ripe plant's top half"
                 + " with its lamp gone changed its light record to " + record(context)
                 + " — carryOver has to copy it, and a same-age reconcile must not read the light");
 
@@ -89,31 +89,31 @@ public final class IndoorGrowGameTest {
         for (int i = 0; i < 20; i++) {
             world.getBlockState(pos).randomTick(world, pos, world.getRandom());
         }
-        context.assertTrue(record(context) == GrowLight.NATURAL,
+        Asserts.assertTrue(context, record(context) == GrowLight.NATURAL,
                 "a lamp moved over a ripe plant changed its record to " + record(context));
 
         plant(context, litGrowLamp());
         grow(context, GrowLight.FLOWERING_AGE);
         context.setBlock(LIGHT, Blocks.AIR);
         grow(context, 1);
-        context.assertTrue(record(context) == GrowLight.STRESSED,
+        Asserts.assertTrue(context, record(context) == GrowLight.STRESSED,
                 "a plant that lost its lamp while flowering recorded " + record(context) + ", not STRESSED");
         // The upper half carries a copy of the record, because whatever draws a block reads only
         // that block. A stale copy is put right by the next random tick; the plant is ripe first so
         // the tick cannot grow it, leaving only the shape check to notice.
-        context.assertTrue(context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
+        Asserts.assertTrue(context, context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
                 "a stressed plant's upper half reads " + context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY));
         grow(context, IndicaCropBlock.MAX_AGE);
         context.setBlock(CROP.above(), context.getBlockState(CROP.above()).setValue(GrowLight.PROPERTY, GrowLight.NATURAL));
         world.getBlockState(pos).randomTick(world, pos, world.getRandom());
-        context.assertTrue(context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
+        Asserts.assertTrue(context, context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED,
                 "a random tick left a stale upper half reading " + context.getBlockState(CROP.above()).getValue(GrowLight.PROPERTY));
 
         plant(context, litGrowLamp());
         grow(context, 2);
         context.setBlock(LIGHT, Blocks.AIR);
         grow(context, 1);
-        context.assertTrue(record(context) == GrowLight.NATURAL,
+        Asserts.assertTrue(context, record(context) == GrowLight.NATURAL,
                 "a plant that lost its lamp while young recorded " + record(context) + ", not NATURAL");
 
         plant(context, litGrowLamp());
@@ -122,14 +122,14 @@ public final class IndoorGrowGameTest {
         grow(context, 1);
         context.setBlock(LIGHT, litGrowLamp());
         grow(context, 1);
-        context.assertTrue(record(context) == GrowLight.AMBIENT, "a Grow Lamp swapped for glowstone"
+        Asserts.assertTrue(context, record(context) == GrowLight.AMBIENT, "a Grow Lamp swapped for glowstone"
                 + " and back recorded " + record(context) + " — the weakest light it grew under must win");
 
         plant(context, Blocks.AIR.defaultBlockState());
         grow(context, 1);
         context.setBlock(LIGHT, litGrowLamp());
         grow(context, IndicaCropBlock.MAX_AGE - 1);
-        context.assertTrue(record(context) == GrowLight.NATURAL,
+        Asserts.assertTrue(context, record(context) == GrowLight.NATURAL,
                 "a plant that sprouted with no lamp earned " + record(context) + " by getting one later");
 
         // The Grow Lamp's leaf share, read off the plant's record: two leaves a trim, not one.
@@ -137,8 +137,8 @@ public final class IndoorGrowGameTest {
         player.setGameMode(GameType.SURVIVAL);
         int lampLeaves = trimLeaves(context, player, GrowLight.GROW_LAMP);
         int plainLeaves = trimLeaves(context, player, GrowLight.LAMP);
-        context.assertTrue(lampLeaves == 2, "trimming a Grow Lamp plant dropped " + lampLeaves + " leaves, not 2");
-        context.assertTrue(plainLeaves == 1, "trimming a lamp plant dropped " + plainLeaves + " leaves, not 1");
+        Asserts.assertTrue(context, lampLeaves == 2, "trimming a Grow Lamp plant dropped " + lampLeaves + " leaves, not 2");
+        Asserts.assertTrue(context, plainLeaves == 1, "trimming a lamp plant dropped " + plainLeaves + " leaves, not 1");
 
         // Lemon Haze stands three tall, so both the MIDDLE and the UPPER carry a copy — in a column of
         // its own, out of reach of anything above.
@@ -151,12 +151,12 @@ public final class IndoorGrowGameTest {
         grow(context, haze, GrowLight.FLOWERING_AGE);
         context.setBlock(haze.above(3), Blocks.AIR);
         grow(context, haze, SativaCropBlock.MAX_AGE);
-        context.assertTrue(context.getBlockState(haze).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED
+        Asserts.assertTrue(context, context.getBlockState(haze).getValue(GrowLight.PROPERTY) == GrowLight.STRESSED
                         && context.getBlockState(haze.above(2)).is(ModBlocks.SATIVA_CROP),
                 "Lemon Haze did not grow three tall and stressed, so this probe proves nothing");
         for (int y = 1; y <= 2; y++) {
             GrowLight copy = context.getBlockState(haze.above(y)).getValue(GrowLight.PROPERTY);
-            context.assertTrue(copy == GrowLight.STRESSED, "a stressed Lemon Haze reads " + copy + " " + y + " up");
+            Asserts.assertTrue(context, copy == GrowLight.STRESSED, "a stressed Lemon Haze reads " + copy + " " + y + " up");
         }
         // Both copies stale, as on a plant grown before the copy existed: one right copy alone would
         // trip a shape check that had stopped comparing the record, and hide it.
@@ -166,7 +166,7 @@ public final class IndoorGrowGameTest {
         world.getBlockState(hazePos).randomTick(world, hazePos, world.getRandom());
         for (int y = 1; y <= 2; y++) {
             GrowLight copy = context.getBlockState(haze.above(y)).getValue(GrowLight.PROPERTY);
-            context.assertTrue(copy == GrowLight.STRESSED, "a random tick left Lemon Haze reading " + copy + " " + y + " up");
+            Asserts.assertTrue(context, copy == GrowLight.STRESSED, "a random tick left Lemon Haze reading " + copy + " " + y + " up");
         }
         context.succeed();
     }
@@ -181,19 +181,19 @@ public final class IndoorGrowGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void growLampLightsWhenPowered(GameTestHelper context) {
         BlockPos lamp = new BlockPos(1, 3, 1);
-        context.assertTrue(ModBlocks.GROW_LAMP.defaultBlockState().setValue(BlockStateProperties.LIT, true).getLightEmission() == 15,
+        Asserts.assertTrue(context, ModBlocks.GROW_LAMP.defaultBlockState().setValue(BlockStateProperties.LIT, true).getLightEmission() == 15,
                 "a lit Grow Lamp's state reports luminance "
                         + ModBlocks.GROW_LAMP.defaultBlockState().setValue(BlockStateProperties.LIT, true).getLightEmission() + ", not 15");
         context.setBlock(lamp.above(), Blocks.STONE);
         context.setBlock(lamp, ModBlocks.GROW_LAMP);
         context.setBlock(lamp.east(), Blocks.REDSTONE_BLOCK);
         context.runAfterDelay(10, () -> {
-            context.assertTrue(context.getBlockState(lamp).getValue(BlockStateProperties.LIT), "a Grow Lamp beside a redstone block is not lit");
+            Asserts.assertTrue(context, context.getBlockState(lamp).getValue(BlockStateProperties.LIT), "a Grow Lamp beside a redstone block is not lit");
             int light = context.getLevel().getBrightness(LightLayer.BLOCK, context.absolutePos(lamp.below()));
-            context.assertTrue(light >= 14, "a lit Grow Lamp lights the block under it to " + light + ", not 14");
+            Asserts.assertTrue(context, light >= 14, "a lit Grow Lamp lights the block under it to " + light + ", not 14");
             // It hangs: take the ceiling away and it comes down, as a hanging lantern does.
             context.setBlock(lamp.above(), Blocks.AIR);
-            context.assertTrue(context.getBlockState(lamp).isAir(), "a Grow Lamp stayed up after its ceiling was removed");
+            Asserts.assertTrue(context, context.getBlockState(lamp).isAir(), "a Grow Lamp stayed up after its ceiling was removed");
             context.succeed();
         });
     }
@@ -206,7 +206,7 @@ public final class IndoorGrowGameTest {
         classify(context, ModBlocks.GROW_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit Grow Lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit redstone lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit redstone lamp");
-        // (No copper bulb on 1.20.1; the redstone lamp above is the lamp that switches.)
+        // (No copper bulb on 1.18.2; the redstone lamp above is the lamp that switches.)
         classify(context, Blocks.GLOWSTONE.defaultBlockState(), GrowLight.AMBIENT, "glowstone");
         classify(context, Blocks.SEA_LANTERN.defaultBlockState(), GrowLight.AMBIENT, "a sea lantern");
         classify(context, Blocks.LANTERN.defaultBlockState(), GrowLight.AMBIENT, "a lantern");
@@ -247,21 +247,21 @@ public final class IndoorGrowGameTest {
         ServerLevel world = context.getLevel();
         BlockPos soil = context.absolutePos(SOIL);
         context.setBlock(SOIL, ModBlocks.GROW_POT);
-        context.assertTrue(fertility(context) == 0, "a freshly placed Grow Pot is not empty");
+        Asserts.assertTrue(context, fertility(context) == 0, "a freshly placed Grow Pot is not empty");
 
         ItemStack meal = new ItemStack(Items.BONE_MEAL, 8);
         for (int i = 0; i < GrowPotBlock.MAX_FERTILITY; i++) {
-            context.assertTrue(BoneMealItem.growCrop(meal, world, soil),
+            Asserts.assertTrue(context, BoneMealItem.growCrop(meal, world, soil),
                     "a Grow Pot at fertility " + i + " refused bone meal");
         }
-        context.assertTrue(fertility(context) == GrowPotBlock.MAX_FERTILITY,
+        Asserts.assertTrue(context, fertility(context) == GrowPotBlock.MAX_FERTILITY,
                 "three bone meal left the pot at fertility " + fertility(context));
-        context.assertTrue(!BoneMealItem.growCrop(meal, world, soil), "a full Grow Pot took bone meal");
-        context.assertTrue(meal.getCount() == 8 - GrowPotBlock.MAX_FERTILITY,
+        Asserts.assertTrue(context, !BoneMealItem.growCrop(meal, world, soil), "a full Grow Pot took bone meal");
+        Asserts.assertTrue(context, meal.getCount() == 8 - GrowPotBlock.MAX_FERTILITY,
                 "a full Grow Pot ate the bone meal it refused");
         GrowPotBlock pot = (GrowPotBlock) ModBlocks.GROW_POT;
         context.setBlock(SOIL, context.getBlockState(SOIL).setValue(GrowPotBlock.WATERED, true));
-        context.assertTrue(pot.moisture(context.getBlockState(SOIL)) == GrowPotBlock.WET_MOISTURE
+        Asserts.assertTrue(context, pot.moisture(context.getBlockState(SOIL)) == GrowPotBlock.WET_MOISTURE
                         && pot.speed(context.getBlockState(SOIL)) == GrowPotBlock.FERTILE_SPEED,
                 "a fed, watered pot does not read as fertile soil");
 
@@ -269,22 +269,22 @@ public final class IndoorGrowGameTest {
         // passes at any time of day.
         context.setBlock(CROP.east(), Blocks.GLOWSTONE);
         BlockPos crop = context.absolutePos(CROP);
-        context.assertTrue(ModBlocks.INDICA_CROP.defaultBlockState().canSurvive(world, crop),
+        Asserts.assertTrue(context, ModBlocks.INDICA_CROP.defaultBlockState().canSurvive(world, crop),
                 "Purple Kush cannot be planted in a Grow Pot");
-        context.assertTrue(ModBlocks.SATIVA_CROP.defaultBlockState().canSurvive(world, crop),
+        Asserts.assertTrue(context, ModBlocks.SATIVA_CROP.defaultBlockState().canSurvive(world, crop),
                 "Lemon Haze cannot be planted in a Grow Pot");
-        context.assertTrue(!Blocks.WHEAT.defaultBlockState().canSurvive(world, crop),
+        Asserts.assertTrue(context, !Blocks.WHEAT.defaultBlockState().canSurvive(world, crop),
                 "wheat can be planted in a Grow Pot — it is meant for hemp");
 
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState());
         grow(context, IndicaCropBlock.MAX_AGE);
-        context.assertTrue(fertility(context) == GrowPotBlock.MAX_FERTILITY - 1,
+        Asserts.assertTrue(context, fertility(context) == GrowPotBlock.MAX_FERTILITY - 1,
                 "a plant ripening in a pot left it at fertility " + fertility(context) + " — one is spent per plant");
-        context.assertTrue(!context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
+        Asserts.assertTrue(context, !context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
                 "a plant ripening in a pot left it watered — it drinks the water");
 
         context.setBlock(SOIL, ModBlocks.GROW_POT.defaultBlockState());
-        context.assertTrue(pot.moisture(context.getBlockState(SOIL)) == GrowPotBlock.DRY_MOISTURE
+        Asserts.assertTrue(context, pot.moisture(context.getBlockState(SOIL)) == GrowPotBlock.DRY_MOISTURE
                         && pot.speed(context.getBlockState(SOIL)) == 1.0F,
                 "a dry, spent pot still reads as good soil");
         context.succeed();
@@ -305,15 +305,15 @@ public final class IndoorGrowGameTest {
         BlockState plainWater = solutionPumped.setValue(HydroTrayBlock.FED, false);
         BlockState dry = tray.defaultBlockState().setValue(HydroTrayBlock.POWERED, true);
 
-        context.assertTrue(tray.speed(solutionPumped) == HydroTrayBlock.PUMPED_SPEED,
+        Asserts.assertTrue(context, tray.speed(solutionPumped) == HydroTrayBlock.PUMPED_SPEED,
                 "a fed, pumped tray runs at " + tray.speed(solutionPumped) + "x, not " + HydroTrayBlock.PUMPED_SPEED + "x");
-        context.assertTrue(tray.speed(solutionStill) == 1.0F,
+        Asserts.assertTrue(context, tray.speed(solutionStill) == 1.0F,
                 "an unpowered tray still runs at " + tray.speed(solutionStill) + "x — the pump is what buys the speed");
-        context.assertTrue(tray.speed(plainWater) == 1.0F,
+        Asserts.assertTrue(context, tray.speed(plainWater) == 1.0F,
                 "plain water runs at " + tray.speed(plainWater) + "x — nutrients are what make it a solution");
-        context.assertTrue(tray.moisture(plainWater) == HydroTrayBlock.WET_MOISTURE,
+        Asserts.assertTrue(context, tray.moisture(plainWater) == HydroTrayBlock.WET_MOISTURE,
                 "a watered tray reads moisture " + tray.moisture(plainWater) + ", not " + HydroTrayBlock.WET_MOISTURE);
-        context.assertTrue(tray.moisture(dry) == HydroTrayBlock.DRY_MOISTURE && tray.speed(dry) == 1.0F,
+        Asserts.assertTrue(context, tray.moisture(dry) == HydroTrayBlock.DRY_MOISTURE && tray.speed(dry) == 1.0F,
                 "a dry tray is not reading as a dry bed");
 
         // Neglect costs time, never the plant.
@@ -325,7 +325,7 @@ public final class IndoorGrowGameTest {
         for (int i = 0; i < 200; i++) {
             world.getBlockState(pos).randomTick(world, pos, world.getRandom());
         }
-        context.assertTrue(context.getBlockState(CROP).is(ModBlocks.INDICA_CROP),
+        Asserts.assertTrue(context, context.getBlockState(CROP).is(ModBlocks.INDICA_CROP),
                 "a plant left in a dry tray died — neglect must only slow a crop down");
         context.succeed();
     }
@@ -346,13 +346,13 @@ public final class IndoorGrowGameTest {
         ItemStack bucket = new ItemStack(Items.WATER_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
-        context.assertTrue(Line.useItemOn(world.getBlockState(pos),bucket, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+        Asserts.assertTrue(context, Line.useItemOn(world.getBlockState(pos),bucket, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a Hydro Tray refused a water bucket");
-        context.assertTrue(level(context) == HydroTrayBlock.MAX_LEVEL,
+        Asserts.assertTrue(context, level(context) == HydroTrayBlock.MAX_LEVEL,
                 "a bucket of water left the tray at level " + level(context));
-        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET),
+        Asserts.assertTrue(context, player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET),
                 "filling a tray did not hand back an empty bucket");
-        context.assertTrue(context.getBlockState(CROP).isAir(),
+        Asserts.assertTrue(context, context.getBlockState(CROP).isAir(),
                 "filling a tray placed water above it — the plant's own space");
 
         // A full tray takes no more — and must still accept the click, or the client goes on to the
@@ -360,9 +360,9 @@ public final class IndoorGrowGameTest {
         // 2026-09-24, and a real client poured). It keeps the bucket full.
         ItemStack second = new ItemStack(Items.WATER_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, second);
-        context.assertTrue(Line.useItemOn(world.getBlockState(pos),second, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+        Asserts.assertTrue(context, Line.useItemOn(world.getBlockState(pos),second, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a full tray let a water bucket click through — the client would pour it into the plant's space");
-        context.assertTrue(second.is(Items.WATER_BUCKET) && level(context) == HydroTrayBlock.MAX_LEVEL,
+        Asserts.assertTrue(context, second.is(Items.WATER_BUCKET) && level(context) == HydroTrayBlock.MAX_LEVEL,
                 "a full tray emptied the bucket anyway");
         context.succeed();
     }
@@ -377,28 +377,28 @@ public final class IndoorGrowGameTest {
         context.setBlock(CROP, Blocks.AIR);
 
         ItemStack meal = new ItemStack(Items.BONE_MEAL, 8);
-        context.assertTrue(!BoneMealItem.growCrop(meal, world, soil),
+        Asserts.assertTrue(context, !BoneMealItem.growCrop(meal, world, soil),
                 "an empty tray took fertiliser — nutrients need water to go into");
 
-        context.assertTrue(HydroTrayBlock.fill(world, soil, world.getBlockState(soil)), "a dry tray refused to fill");
-        context.assertTrue(BoneMealItem.growCrop(meal, world, soil), "a watered tray refused fertiliser");
-        context.assertTrue(fed(context), "fertiliser did not mix into the water");
-        context.assertTrue(!BoneMealItem.growCrop(meal, world, soil), "a fed tray took fertiliser twice");
-        context.assertTrue(meal.getCount() == 7, "feeding a tray took " + (8 - meal.getCount()) + " fertiliser, not 1");
+        Asserts.assertTrue(context, HydroTrayBlock.fill(world, soil, world.getBlockState(soil)), "a dry tray refused to fill");
+        Asserts.assertTrue(context, BoneMealItem.growCrop(meal, world, soil), "a watered tray refused fertiliser");
+        Asserts.assertTrue(context, fed(context), "fertiliser did not mix into the water");
+        Asserts.assertTrue(context, !BoneMealItem.growCrop(meal, world, soil), "a fed tray took fertiliser twice");
+        Asserts.assertTrue(context, meal.getCount() == 7, "feeding a tray took " + (8 - meal.getCount()) + " fertiliser, not 1");
 
         context.setBlock(CROP.east(), Blocks.GLOWSTONE);
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState());
         grow(context, IndicaCropBlock.MAX_AGE);
-        context.assertTrue(level(context) == HydroTrayBlock.MAX_LEVEL - 1,
+        Asserts.assertTrue(context, level(context) == HydroTrayBlock.MAX_LEVEL - 1,
                 "a plant ripening in a tray left it at level " + level(context) + " — one charge is drunk per plant");
-        context.assertTrue(fed(context), "one plant drained the nutrients; they last as long as the water does");
+        Asserts.assertTrue(context, fed(context), "one plant drained the nutrients; they last as long as the water does");
 
         // Drain the rest: the nutrients go with the last of the water.
         HydroTrayBlock tray = (HydroTrayBlock) ModBlocks.HYDRO_TRAY;
         for (int i = 0; i < 2; i++) {
             tray.spend(world, soil, world.getBlockState(soil));
         }
-        context.assertTrue(level(context) == 0 && !fed(context),
+        Asserts.assertTrue(context, level(context) == 0 && !fed(context),
                 "an empty tray is still fed — the nutrients drain with the last of the water");
         context.succeed();
     }
@@ -423,18 +423,18 @@ public final class IndoorGrowGameTest {
             }
             ItemStack meal = new ItemStack(Items.BONE_MEAL, 4);
             player.setItemInHand(InteractionHand.MAIN_HAND, meal);
-            context.assertTrue(Line.useItemOn(world.getBlockState(pos),meal, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+            Asserts.assertTrue(context, Line.useItemOn(world.getBlockState(pos),meal, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                     bed.getDescriptionId() + " refused a fertiliser from the hand");
-            context.assertTrue(meal.getCount() == 3,
+            Asserts.assertTrue(context, meal.getCount() == 3,
                     bed.getDescriptionId() + " took " + (4 - meal.getCount()) + " fertiliser for one charge");
-            context.assertTrue(charge(context, bed) == 1,
+            Asserts.assertTrue(context, charge(context, bed) == 1,
                     bed.getDescriptionId() + " did not take the feed");
 
             ItemStack stone = new ItemStack(Items.STONE);
             player.setItemInHand(InteractionHand.MAIN_HAND, stone);
-            context.assertTrue(!Line.useItemOn(world.getBlockState(pos),stone, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
+            Asserts.assertTrue(context, !Line.useItemOn(world.getBlockState(pos),stone, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                     bed.getDescriptionId() + " accepted a block of stone as fertiliser");
-            context.assertTrue(stone.getCount() == 1, bed.getDescriptionId() + " ate a block of stone");
+            Asserts.assertTrue(context, stone.getCount() == 1, bed.getDescriptionId() + " ate a block of stone");
         }
         context.succeed();
     }
@@ -444,20 +444,20 @@ public final class IndoorGrowGameTest {
     public void aTrayHoldsNothingInTheNether(GameTestHelper context) {
         ServerLevel overworld = context.getLevel();
         ServerLevel nether = overworld.getServer().getLevel(Level.NETHER);
-        context.assertTrue(nether != null, "this server has no Nether, so this proves nothing");
+        Asserts.assertTrue(context, nether != null, "this server has no Nether, so this proves nothing");
         BlockPos pos = context.absolutePos(SOIL);
         BlockPos netherPos = new BlockPos(0, 64, 0);
-        context.assertTrue(!HydroTrayBlock.boilsAway(overworld, pos), "solution boils away in the overworld");
-        context.assertTrue(HydroTrayBlock.boilsAway(nether, netherPos), "solution keeps in the Nether — water does not");
+        Asserts.assertTrue(context, !HydroTrayBlock.boilsAway(overworld, pos), "solution boils away in the overworld");
+        Asserts.assertTrue(context, HydroTrayBlock.boilsAway(nether, netherPos), "solution keeps in the Nether — water does not");
 
         // A watered tray, so the test is about the dimension and not about being empty.
         BlockState watered = ModBlocks.HYDRO_TRAY.defaultBlockState().setValue(HydroTrayBlock.LEVEL, 3);
         HydroTrayBlock tray = (HydroTrayBlock) ModBlocks.HYDRO_TRAY;
-        context.assertTrue(tray.isValidBonemealTarget(overworld, pos, watered, false), "a watered tray cannot be fed in the overworld");
-        context.assertTrue(!tray.isValidBonemealTarget(nether, netherPos, watered, false), "a tray in the Nether can still be fed");
+        Asserts.assertTrue(context, tray.isValidBonemealTarget(overworld, pos, watered, false), "a watered tray cannot be fed in the overworld");
+        Asserts.assertTrue(context, !tray.isValidBonemealTarget(nether, netherPos, watered, false), "a tray in the Nether can still be fed");
 
         nether.setBlockAndUpdate(netherPos, ModBlocks.HYDRO_TRAY.defaultBlockState());
-        context.assertTrue(!HydroTrayBlock.fill(nether, netherPos, nether.getBlockState(netherPos)),
+        Asserts.assertTrue(context, !HydroTrayBlock.fill(nether, netherPos, nether.getBlockState(netherPos)),
                 "a tray in the Nether filled with water");
         context.succeed();
     }
@@ -484,8 +484,8 @@ public final class IndoorGrowGameTest {
     private static void ladder(GameTestHelper context, BlockState mature, Item buds, Item seeds) {
         ServerLevel world = context.getLevel();
         Vec3 origin = Vec3.atCenterOf(context.absolutePos(CROP));
-        LootTable table = world.getServer().getLootData()
-                .getLootTable(mature.getBlock().getLootTable());
+        LootTable table = world.getServer().getLootTables()
+                .get(mature.getBlock().getLootTable());
         String crop = mature.getBlock().getDescriptionId();
         BlockState natural = Defoliation.unworked(mature);
         java.util.Random seedSource = new java.util.Random(SEED_SOURCE);
@@ -501,7 +501,7 @@ public final class IndoorGrowGameTest {
             expect(context, harvest(table, world, origin, natural.setValue(GrowLight.PROPERTY, GrowLight.STRESSED), seed, buds, seeds),
                     base, -1, 0, 2, 0, crop + " stressed");
             int extra = harvest(table, world, origin, natural.setValue(GrowLight.PROPERTY, GrowLight.AMBIENT), seed, buds, seeds)[0] - base[0];
-            context.assertTrue(extra == 0 || extra == 1, crop + " under glowstone: " + extra + " extra buds, expected 0 or 1");
+            Asserts.assertTrue(context, extra == 0 || extra == 1, crop + " under glowstone: " + extra + " extra buds, expected 0 or 1");
             ambientPaid += extra;
 
             context.setBlock(SOIL, ModBlocks.GROW_POT);
@@ -512,7 +512,7 @@ public final class IndoorGrowGameTest {
             expect(context, harvest(table, world, origin, natural, seed, buds, seeds),
                     base, 0, 0, 0, -1, crop + " in a Hydro Tray");
         }
-        context.assertTrue(ambientPaid > 0 && ambientPaid < ROLLS, crop + " under glowstone paid its bonus "
+        Asserts.assertTrue(context, ambientPaid > 0 && ambientPaid < ROLLS, crop + " under glowstone paid its bonus "
                 + ambientPaid + " times in " + ROLLS + " — it has to be a roll, not a certainty either way");
     }
 
@@ -521,7 +521,7 @@ public final class IndoorGrowGameTest {
         int[] delta = {buds, leaves, seeds, stems};
         String[] names = {"buds", "leaves", "seeds", "stems"};
         for (int i = 0; i < delta.length; i++) {
-            context.assertTrue(got[i] == base[i] + delta[i], what + ": " + got[i] + " " + names[i]
+            Asserts.assertTrue(context, got[i] == base[i] + delta[i], what + ": " + got[i] + " " + names[i]
                     + " against " + base[i] + " for a plain plant, expected " + (delta[i] >= 0 ? "+" : "") + delta[i]);
         }
     }
@@ -529,13 +529,12 @@ public final class IndoorGrowGameTest {
     /** {buds, leaves, seeds, stems} from one roll of a crop's loot table on a given seed. */
     private static int[] harvest(LootTable table, ServerLevel world, Vec3 origin, BlockState state,
                                  long seed, Item buds, Item seeds) {
-        LootParams params = new LootParams.Builder(world)
+        LootContext.Builder params = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, origin)
                 .withParameter(LootContextParams.BLOCK_STATE, state)
-                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
-                .create(LootContextParamSets.BLOCK);
+                .withParameter(LootContextParams.TOOL, ItemStack.EMPTY);
         int[] counts = new int[4];
-        for (ItemStack stack : table.getRandomItems(params, seed)) {
+        for (ItemStack stack : Line.roll(table, params, LootContextParamSets.BLOCK, seed)) {
             // A bud that went to schwag is still a bud the plant grew; SchwagGameTest owns the split.
             if (stack.is(buds) || stack.is(ModItems.SCHWAG)) {
                 counts[0] += stack.getCount();
@@ -613,12 +612,12 @@ public final class IndoorGrowGameTest {
 
     private static void classify(GameTestHelper context, BlockState state, GrowLight expected, String what) {
         GrowLight actual = GrowLight.of(state);
-        context.assertTrue(actual == expected, what + " counts as " + actual + ", expected " + expected);
+        Asserts.assertTrue(context, actual == expected, what + " counts as " + actual + ", expected " + expected);
     }
 
     private static void reach(GameTestHelper context, ServerLevel world, BlockPos plant, GrowLight expected, String what) {
         GrowLight actual = GrowLight.over(world, plant, 2);
-        context.assertTrue(actual == expected, what + " reads as " + actual + ", expected " + expected);
+        Asserts.assertTrue(context, actual == expected, what + " reads as " + actual + ", expected " + expected);
     }
 
     /** Shears one early trim off a fresh age-3 plant with {@code light} recorded, and counts the leaves. */

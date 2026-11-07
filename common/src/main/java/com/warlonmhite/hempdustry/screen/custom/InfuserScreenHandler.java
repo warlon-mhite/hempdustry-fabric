@@ -61,7 +61,7 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
         checkContainerSize(inventory, InfuserBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
-        this.world = playerInventory.player.level();
+        this.world = playerInventory.player.level;
         inventory.startOpen(playerInventory.player);
 
         // Both hemp slots take either type; they exist so a batch can mix washed and unwashed, not
@@ -75,7 +75,7 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
     }
 
     private static Container resolveInventory(Inventory playerInventory, BlockPos pos) {
-        BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(pos);
+        BlockEntity blockEntity = playerInventory.player.level.getBlockEntity(pos);
         return blockEntity instanceof Container found
                 ? found
                 : new SimpleContainer(InfuserBlockEntity.SLOT_COUNT);
@@ -276,7 +276,7 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
         }
 
         if (inSlot.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }

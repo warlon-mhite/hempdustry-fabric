@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:moon_rock_beldia_charas"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

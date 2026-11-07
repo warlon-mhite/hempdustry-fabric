@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:hemp_stem_from_bale"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

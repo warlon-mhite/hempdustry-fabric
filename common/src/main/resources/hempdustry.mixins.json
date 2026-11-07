@@ -7,15 +7,23 @@
 	"mixins": [
 		"BeeGrowCropsGoalMixin",
 		"BlockEntityTypeAccessor",
+		"CreativeSearchMixin",
 		"CreeperEntityMixin",
+		"ganjacraft.BlockEntityMixin",
+		"ganjacraft.BlockStateMixin",
+		"ganjacraft.ChunkSerializerMixin",
+		"ganjacraft.EntityTypeMixin",
+		"ganjacraft.ItemStackMixin",
+		"ganjacraft.PaintingMixin",
+		"ganjacraft.PoiStorageMixin",
+		"ganjacraft.VillagerDataMixin",
 		"GoatBreedsOnHempLeafMixin",
 		"GoatFoodMixin",
-		"PointOfInterestTypesAccessor",
-		"ReloadableServerResourcesMixin",
-		"Schema1460Mixin",
+		"ItemCategoryMixin",
 		"LlamaAccessor",
 		"LlamaMixin",
-		"LootDataManagerMixin"
+		"LootTablesMixin",
+		"Schema1460Mixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

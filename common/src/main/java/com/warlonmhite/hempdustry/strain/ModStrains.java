@@ -5,9 +5,8 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Strain.SmokeEffect;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.worldgen.BootstapContext;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffects;
@@ -15,6 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import com.google.common.collect.ImmutableList;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 
 /**
  * The strains this mod ships, and the registration of the registry itself.
@@ -94,7 +96,7 @@ public class ModStrains {
      * <p>Not all of them are plants. {@code HASHISH} has no seeds and no flower; see {@link Strain}.
      */
     public static final List<ResourceKey<Strain>> BUILT_IN =
-            List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA);
+            ImmutableList.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -110,7 +112,7 @@ public class ModStrains {
     public static void registerStrains() {
         // Checked once, at startup: a datapack is exactly where a clashing index comes from, and the
         // registry is read only when the world opens — /reload keeps the strains it has.
-        Services.EVENTS.onServerStarted(server -> validateModelIndices(server.registryAccess()));
+        Services.EVENTS.onServerStarted(server -> validateModelIndices(DataRegistries.of(server)));
         Hempdustry.LOGGER.info("Registering Strains for " + Hempdustry.MOD_ID);
     }
 
@@ -178,17 +180,22 @@ public class ModStrains {
         return key.location().getPath();
     }
 
-    public static void bootstrap(BootstapContext<Strain> context) {
+    /**
+     * The built-in strains, each handed to {@code context} with its key: what the shipped
+     * {@code data/hempdustry/hempdustry/strain/*.json} files hold. The 1.18.2 line has no datagen, so
+     * nothing writes those files from here; this stays the one place the shipped values are stated.
+     */
+    public static void bootstrap(BiConsumer<ResourceKey<Strain>, Strain> context) {
         // Purple Kush — the body high: hard to hurt, hard to get anything done.
         //
         // The colour is every tinted Purple Kush load (pipe, bong, vaporizer LED, moon rock), and a
         // tint is a multiply: it can only come out as bright as this value. The old 0x8E6FB5 sat at
         // the vaporizer's gunmetal luminance and a packed one read as empty, so it is a brighter,
         // more saturated violet -- still purple beside the buds, readable on grey, wood and glass.
-        context.register(INDICA, new Strain("hempdustry.strain.indica", 0xB57BFF, modelIndex(INDICA),
+        context.accept(INDICA, new Strain("hempdustry.strain.indica", 0xB57BFF, modelIndex(INDICA),
                 Optional.of(ModItems.INDICA_SEEDS), ModItems.INDICA_BUDS,
                 Optional.of(ModBlocks.INDICA_FLOWER), 1.0F, 1,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true),
                         new SmokeEffect(MobEffects.DIG_SLOWDOWN, 0, true))));
@@ -197,10 +204,10 @@ public class ModStrains {
         // defence and taxes mining, sativa buffs movement and mining and taxes melee damage. Hunger
         // is in both because the munchies don't care which strain you smoked -- but they do care how
         // much: Hunger scales with the dose like any other cost, I to III.
-        context.register(SATIVA, new Strain("hempdustry.strain.sativa", 0xC7D14A, modelIndex(SATIVA),
+        context.accept(SATIVA, new Strain("hempdustry.strain.sativa", 0xC7D14A, modelIndex(SATIVA),
                 Optional.of(ModItems.SATIVA_SEEDS), ModItems.SATIVA_BUDS,
                 Optional.of(ModBlocks.SATIVA_FLOWER), 1.0F, 1,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.MOVEMENT_SPEED, 0, true),
                         new SmokeEffect(MobEffects.DIG_SPEED, 0, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true),
@@ -220,10 +227,10 @@ public class ModStrains {
         // cough_factor 0.5: the same smoke, twice the coughing.
         //
         // Warm amber rather than Lemon Haze's yellow-green, so the two read apart on a packed device.
-        context.register(BELDIA, new Strain("hempdustry.strain.beldia", 0xD9A94E, modelIndex(BELDIA),
+        context.accept(BELDIA, new Strain("hempdustry.strain.beldia", 0xD9A94E, modelIndex(BELDIA),
                 Optional.of(ModItems.BELDIA_SEEDS), ModItems.BELDIA_BUDS,
                 Optional.of(ModBlocks.BELDIA_CROP), 1.0F, 1,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.INVISIBILITY, 0, false),
                         new SmokeEffect(MobEffects.BLINDNESS, 0, false, 0.25F, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
@@ -248,9 +255,9 @@ public class ModStrains {
         // Resistance is the one scaling buff (Hunger scales too, as in every strain, but it is a
         // cost), which is what stops dosing hash being a pure downside -- but one piece is usually the right answer, which is a genuinely different
         // dose curve from the plants' and is also how hash is used.
-        context.register(HASHISH, new Strain("hempdustry.strain.hashish", 0x6B4A2F, modelIndex(HASHISH),
+        context.accept(HASHISH, new Strain("hempdustry.strain.hashish", 0x6B4A2F, modelIndex(HASHISH),
                 Optional.empty(), ModItems.HASHISH, Optional.empty(), 1.0F, 1,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.NIGHT_VISION, 0, false),
                         new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
                         new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
@@ -276,9 +283,9 @@ public class ModStrains {
         // Near-black, because that is what resin taken off a living plant and never dried actually
         // looks like -- oxidised as it forms. Colour follows process here and means nothing else:
         // a gold bar and a black bar can test the same, and no colour in this mod claims a number.
-        context.register(CHARAS, new Strain("hempdustry.strain.charas", 0x2B2118, modelIndex(CHARAS),
+        context.accept(CHARAS, new Strain("hempdustry.strain.charas", 0x2B2118, modelIndex(CHARAS),
                 Optional.empty(), ModItems.CHARAS, Optional.empty(), 1.0F, 1,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.SLOW_FALLING, 0, false),
                         new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
                         new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
@@ -302,10 +309,10 @@ public class ModStrains {
         //
         // Paler than hashish because less oxidation and less leaf really is blonder -- colour
         // follows process here as everywhere else in the family, and claims nothing about strength.
-        context.register(FILTERED_HASHISH, new Strain("hempdustry.strain.filtered_hashish", 0xC9A566,
+        context.accept(FILTERED_HASHISH, new Strain("hempdustry.strain.filtered_hashish", 0xC9A566,
                 modelIndex(FILTERED_HASHISH),
                 Optional.empty(), ModItems.FILTERED_HASHISH, Optional.empty(), 2.0F, 1,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.NIGHT_VISION, 0, false),
                         new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
                         new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
@@ -324,9 +331,9 @@ public class ModStrains {
         // bong-only. PackingRecipe measures the largest entry against the device's maxDose, and only
         // the bong's is 3. A concentrate has to be vaporised off a hot surface; a rolled paper is
         // not one, and a pipe's bowl is not either.
-        context.register(ROSIN, new Strain("hempdustry.strain.rosin", 0xD8A93A, modelIndex(ROSIN),
+        context.accept(ROSIN, new Strain("hempdustry.strain.rosin", 0xD8A93A, modelIndex(ROSIN),
                 Optional.empty(), ModItems.ROSIN, Optional.empty(), 2.0F, 3,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.DAMAGE_RESISTANCE, 0, true),
                         new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
                         new SmokeEffect(MobEffects.HUNGER, 0, true))));
@@ -345,10 +352,10 @@ public class ModStrains {
         // to overdo.
         //
         // Colour is the item's charred brown, so a packed device reads as holding exactly that.
-        context.register(SCORCHED_HEMP, new Strain("hempdustry.strain.scorched_hemp", 0x614329,
+        context.accept(SCORCHED_HEMP, new Strain("hempdustry.strain.scorched_hemp", 0x614329,
                 modelIndex(SCORCHED_HEMP),
                 Optional.empty(), ModItems.SCORCHED_HEMP, Optional.empty(), 0.0F, 1,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.MOVEMENT_SLOWDOWN, 0, false),
                         new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
@@ -365,10 +372,10 @@ public class ModStrains {
         // seeds, twice the coughing. Hunger, scaling with the dose, as every strain.
         //
         // Colour is the item's dull brown, so a packed device reads as holding exactly that.
-        context.register(SCHWAG, new Strain("hempdustry.strain.schwag", 0x8C6A3C,
+        context.accept(SCHWAG, new Strain("hempdustry.strain.schwag", 0x8C6A3C,
                 modelIndex(SCHWAG),
                 Optional.empty(), ModItems.SCHWAG, Optional.empty(), 0.0F, 1,
-                List.of(
+                ImmutableList.of(
                         new SmokeEffect(MobEffects.POISON, 0, true, SCHWAG_POISON_SHARE, false,
                                 SCHWAG_POISON_CHANCE, SCHWAG_POISON_MAX_AMPLIFIER),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),

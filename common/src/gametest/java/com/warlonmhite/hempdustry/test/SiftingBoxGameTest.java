@@ -105,8 +105,8 @@ public final class SiftingBoxGameTest {
                 // Nine loose pieces of KIEF, and NOT a bar. This block does not press; that is the
                 // Hemp Press's job and the whole reason the two are separate blocks.
                 context.assertItemEntityCountIs(ModItems.KIEF, BOX, 3.0, SiftingBoxBlock.YIELD);
-                context.assertItemEntityNotPresent(ModBlocks.HASHISH_BAR.asItem(), BOX, 3.0);
-                context.assertItemEntityNotPresent(ModItems.BUBBLE_HASH, BOX, 3.0);
+                Asserts.assertItemEntityNotPresent(context, ModBlocks.HASHISH_BAR.asItem(), BOX, 3.0);
+                Asserts.assertItemEntityNotPresent(context, ModItems.BUBBLE_HASH, BOX, 3.0);
                 context.succeed();
             });
         });
@@ -136,13 +136,13 @@ public final class SiftingBoxGameTest {
 
         // A real right-click with a bucket. The box is empty, so it takes the water.
         rightClick(context, new ItemStack(Items.WATER_BUCKET));
-        context.assertTrue(context.getBlockState(BOX).getValue(SiftingBoxBlock.FILLED),
+        Asserts.assertTrue(context, context.getBlockState(BOX).getValue(SiftingBoxBlock.FILLED),
                 "a water bucket did not fill the box");
 
         // Filled but not jacketed: the wash cannot run, and the refusal must PASS THE CLICK ON
         // rather than swallow it -- see sifterRefusesAnUnjacketedWash's sibling case below.
         ItemInteractionResult bare = Line.useItemOn(world.getBlockState(pos),buds, world, player, InteractionHand.MAIN_HAND, hit);
-        context.assertTrue(bare == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+        Asserts.assertTrue(context, bare == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
                 "an unjacketed wash swallowed the click instead of passing it on");
         Line.equal(context, context.getBlockState(BOX).getValue(SiftingBoxBlock.LEVEL), 0,
                 "a filled box with no ice around it washed a bud");
@@ -164,7 +164,7 @@ public final class SiftingBoxGameTest {
         context.setBlock(BOX.north(), Blocks.AIR.defaultBlockState());
         ItemInteractionResult melted = Line.useItemOn(world.getBlockState(pos),
                 buds, world, player, InteractionHand.MAIN_HAND, hit);
-        context.assertTrue(melted == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+        Asserts.assertTrue(context, melted == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
                 "a box whose jacket melted swallowed the click");
         Line.equal(context, SiftingBoxBlock.FULL_LEVEL - 1,
                 context.getBlockState(BOX).getValue(SiftingBoxBlock.LEVEL),
@@ -180,14 +180,14 @@ public final class SiftingBoxGameTest {
             rightClick(context, ItemStack.EMPTY);
             // The water is spent WITH the batch, not before it: a finished wash has to still
             // remember which process made it, and FILLED is how it does.
-            context.assertTrue(!context.getBlockState(BOX).getValue(SiftingBoxBlock.FILLED),
+            Asserts.assertTrue(context, !context.getBlockState(BOX).getValue(SiftingBoxBlock.FILLED),
                     "collecting the batch did not spend the box's water");
 
             context.runAfterDelay(2, () -> {
                 // The washed powder, and never the dry one. Same box, same inputs, different product
                 // -- which is the entire reason the two blocks became one.
                 context.assertItemEntityCountIs(ModItems.BUBBLE_HASH, BOX, 3.0, SiftingBoxBlock.YIELD);
-                context.assertItemEntityNotPresent(ModItems.KIEF, BOX, 3.0);
+                Asserts.assertItemEntityNotPresent(context, ModItems.KIEF, BOX, 3.0);
                 context.succeed();
             });
         });
@@ -230,7 +230,7 @@ public final class SiftingBoxGameTest {
         ItemStack kief = new ItemStack(ModItems.KIEF, 64);
         ItemInteractionResult refused = Line.useItemOn(world.getBlockState(pos),
                 kief, world, player, InteractionHand.MAIN_HAND, hit);
-        context.assertTrue(refused == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+        Asserts.assertTrue(context, refused == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
                 "a refused load must pass the click on, not swallow it with PASS");
         Line.equal(context, 2, context.getBlockState(BOX).getValue(SiftingBoxBlock.LEVEL),
                 "kief went onto a plant screen");
@@ -260,7 +260,7 @@ public final class SiftingBoxGameTest {
         ItemStack washKief = new ItemStack(ModItems.KIEF, 64);
         ItemInteractionResult wet = Line.useItemOn(world.getBlockState(pos),
                 washKief, world, player, InteractionHand.MAIN_HAND, hit);
-        context.assertTrue(wet == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+        Asserts.assertTrue(context, wet == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
                 "a wash refusing kief swallowed the click");
         Line.equal(context, context.getBlockState(BOX).getValue(SiftingBoxBlock.LEVEL), 0,
                 "the ice wash accepted kief — that is a third road to filtered hashish");
@@ -297,8 +297,8 @@ public final class SiftingBoxGameTest {
             context.assertItemEntityCountIs(ModItems.FILTERED_KIEF, BOX, 3.0, SiftingBoxBlock.YIELD);
             // Not plain kief, which is the mutation that slipped through, and not bubble hash --
             // a dry screen cannot make that however fine its mesh, because "bubble" IS the water.
-            context.assertItemEntityNotPresent(ModItems.KIEF, BOX, 3.0);
-            context.assertItemEntityNotPresent(ModItems.BUBBLE_HASH, BOX, 3.0);
+            Asserts.assertItemEntityNotPresent(context, ModItems.KIEF, BOX, 3.0);
+            Asserts.assertItemEntityNotPresent(context, ModItems.BUBBLE_HASH, BOX, 3.0);
             context.succeed();
         });
     }
@@ -315,12 +315,12 @@ public final class SiftingBoxGameTest {
     public void aRefusedBucketIsNotPoured(GameTestHelper context) {
         context.setBlock(BOX, ModBlocks.SIFTING_BOX.defaultBlockState().setValue(SiftingBoxBlock.FILLED, true));
         InteractionResult full = rightClick(context, new ItemStack(Items.WATER_BUCKET));
-        context.assertTrue(full.consumesAction(), "a box already holding water passed a water bucket on, so it pours: " + full);
+        Asserts.assertTrue(context, full.consumesAction(), "a box already holding water passed a water bucket on, so it pours: " + full);
 
         context.setBlock(BOX, ModBlocks.SIFTING_BOX.defaultBlockState().setValue(SiftingBoxBlock.LEVEL, 3));
         InteractionResult midBatch = rightClick(context, new ItemStack(Items.WATER_BUCKET));
-        context.assertTrue(midBatch.consumesAction(), "a part-sifted dry screen passed a water bucket on, so it pours: " + midBatch);
-        context.assertFalse(context.getBlockState(BOX).getValue(SiftingBoxBlock.FILLED),
+        Asserts.assertTrue(context, midBatch.consumesAction(), "a part-sifted dry screen passed a water bucket on, so it pours: " + midBatch);
+        Asserts.assertFalse(context, context.getBlockState(BOX).getValue(SiftingBoxBlock.FILLED),
                 "a part-sifted dry screen took water");
 
         context.setBlock(BOX, ModBlocks.SIFTING_BOX.defaultBlockState().setValue(SiftingBoxBlock.LEVEL, SiftingBoxBlock.READY_LEVEL));
@@ -335,7 +335,7 @@ public final class SiftingBoxGameTest {
         ServerPlayer player = Players.survival(context);
         player.moveTo(above.getX() + 0.5, above.getY(), above.getZ() + 0.5, 0, 90);
         Players.clickLikeAClient(context, player, BOX, new ItemStack(Items.WATER_BUCKET));
-        context.assertFalse(context.getLevel().getFluidState(above).is(FluidTags.WATER),
+        Asserts.assertFalse(context, context.getLevel().getFluidState(above).is(FluidTags.WATER),
                 "a full box turned a water bucket down and the bucket poured on top of it");
         context.succeed();
     }

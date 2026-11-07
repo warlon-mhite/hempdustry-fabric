@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:bread"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

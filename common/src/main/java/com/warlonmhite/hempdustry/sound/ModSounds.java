@@ -2,7 +2,6 @@ package com.warlonmhite.hempdustry.sound;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
@@ -36,7 +35,7 @@ public class ModSounds {
 
     private static SoundEvent registerSoundEvent(String id) {
         ResourceLocation identifier = new ResourceLocation(Hempdustry.MOD_ID, id);
-        return Registry.register(BuiltInRegistries.SOUND_EVENT, identifier, SoundEvent.createVariableRangeEvent(identifier));
+        return Registry.register(Registry.SOUND_EVENT, identifier, new SoundEvent(identifier));
     }
 
     public static void registerSounds(){

@@ -11,7 +11,6 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
-import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
@@ -47,15 +46,15 @@ public final class FurnitureGameTest {
 
         // Throws if the head has no block entity of ours, which is the one the bed is drawn from.
         HempBedBlockEntity bed = (HempBedBlockEntity) context.getBlockEntity(head);
-        context.assertTrue(headState.is(BlockTags.BEDS),
+        Asserts.assertTrue(context, headState.is(BlockTags.BEDS),
                 "the hemp bed is not in #minecraft:beds, which a villager's sleep task checks");
 
         context.runAfterDelay(5, () -> {
             var storage = context.getLevel().getPoiManager();
-            Optional<Holder<PoiType>> atHead = storage.getType(context.absolutePos(head));
-            context.assertTrue(atHead.isPresent() && atHead.get().is(PoiTypes.HOME),
+            Optional<PoiType> atHead = storage.getType(context.absolutePos(head));
+            Asserts.assertTrue(context, atHead.isPresent() && atHead.get() == PoiType.HOME,
                     "the hemp bed's head is not a villager's home point (found " + atHead + ")");
-            context.assertTrue(storage.getType(context.absolutePos(foot)).isEmpty(),
+            Asserts.assertTrue(context, storage.getType(context.absolutePos(foot)).isEmpty(),
                     "the hemp bed's foot is a point of interest too — vanilla files a bed by its head only");
             context.succeed();
         });
@@ -70,9 +69,9 @@ public final class FurnitureGameTest {
     public void theBedBurnsTheWoodDoesNot(GameTestHelper context) {
         var bed = TestPlatform.INSTANCE.flammability(ModBlocks.HEMP_BED);
         var wool = TestPlatform.INSTANCE.flammability(ModBlocks.HEMP_WOOL);
-        context.assertTrue(bed.igniteOdds() > 0 && bed.burnOdds() > 0,
+        Asserts.assertTrue(context, bed.igniteOdds() > 0 && bed.burnOdds() > 0,
                 "the hemp bed does not burn — it is made of hemp cloth, the one hemp material that does");
-        context.assertTrue(bed.equals(wool),
+        Asserts.assertTrue(context, bed.equals(wool),
                 "the hemp bed burns at " + bed.igniteOdds() + "/" + bed.burnOdds()
                         + " rather than at the hemp wool it is made of");
 
@@ -82,12 +81,12 @@ public final class FurnitureGameTest {
                 ModBlocks.HEMP_PLANKS_FENCE, ModBlocks.HEMP_PLANKS_FENCE_GATE, ModBlocks.HEMP_PLANKS_DOOR,
                 ModBlocks.HEMP_PLANKS_TRAPDOOR, ModBlocks.HEMP_PLANKS_BUTTON, ModBlocks.HEMP_PLANKS_PRESSURE_PLATE}) {
             var entry = TestPlatform.INSTANCE.flammability(wood);
-            context.assertTrue(entry.igniteOdds() == 0 && entry.burnOdds() == 0,
+            Asserts.assertTrue(context, entry.igniteOdds() == 0 && entry.burnOdds() == 0,
                     wood + " catches fire, and the hemp plank set is fireproof");
-            context.assertFalse(AbstractFurnaceBlockEntity.isFuel(new ItemStack(wood)),
+            Asserts.assertFalse(context, AbstractFurnaceBlockEntity.isFuel(new ItemStack(wood)),
                     wood + " burns in a furnace, and the hemp plank set is fireproof");
         }
-        context.assertTrue(AbstractFurnaceBlockEntity.isFuel(new ItemStack(Blocks.OAK_SLAB)),
+        Asserts.assertTrue(context, AbstractFurnaceBlockEntity.isFuel(new ItemStack(Blocks.OAK_SLAB)),
                 "an oak slab is not fuel either, so the check above proves nothing");
         context.succeed();
     }
@@ -104,10 +103,10 @@ public final class FurnitureGameTest {
     public void hempcreteBurnsNoLongerThanItsStems(GameTestHelper context) {
         int stem = TestPlatform.INSTANCE.burnTime(new ItemStack(ModItems.HEMP_STEM));
         int hempcrete = TestPlatform.INSTANCE.burnTime(new ItemStack(ModItems.HEMPCRETE));
-        context.assertTrue(stem > 0, "a hemp stem is no fuel, so the check below proves nothing");
-        context.assertTrue(2 * hempcrete <= 4 * stem,
+        Asserts.assertTrue(context, stem > 0, "a hemp stem is no fuel, so the check below proves nothing");
+        Asserts.assertTrue(context, 2 * hempcrete <= 4 * stem,
                 "two Hempcrete burn " + 2 * hempcrete + " ticks, and the four stems they are made of " + 4 * stem);
-        context.assertTrue(TestPlatform.INSTANCE.burnTime(new ItemStack(ModBlocks.HEMPCRETE_POWDER_BLOCK)) == 0,
+        Asserts.assertTrue(context, TestPlatform.INSTANCE.burnTime(new ItemStack(ModBlocks.HEMPCRETE_POWDER_BLOCK)) == 0,
                 "a Block of Hempcrete Powder burns in a furnace");
         context.succeed();
     }

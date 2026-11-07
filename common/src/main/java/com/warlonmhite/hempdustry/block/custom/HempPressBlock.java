@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import java.util.Random;
 import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +20,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -205,7 +205,7 @@ public class HempPressBlock extends BaseEntityBlock {
 
     /** Steam off a hot plate, and the occasional creak of the screw. */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (!state.getValue(LIT)) {
             return;
         }

@@ -8,7 +8,6 @@ import com.warlonmhite.hempdustry.screen.custom.HempPressScreenHandler;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 
@@ -18,17 +17,17 @@ public class ModScreenHandlers {
      * lets the screen resolve the block entity it belongs to.
      */
     public static final MenuType<DecarboxylatorScreenHandler> DECARBOXYLATOR =
-            Registry.register(BuiltInRegistries.MENU,
+            Registry.register(Registry.MENU,
                     new ResourceLocation(Hempdustry.MOD_ID, "decarboxylator"),
                     Services.MENUS.menuType(DecarboxylatorScreenHandler::new, Menus.Data.BLOCK_POS));
 
     public static final MenuType<InfuserScreenHandler> INFUSER =
-            Registry.register(BuiltInRegistries.MENU,
+            Registry.register(Registry.MENU,
                     new ResourceLocation(Hempdustry.MOD_ID, "infuser"),
                     Services.MENUS.menuType(InfuserScreenHandler::new, Menus.Data.BLOCK_POS));
 
     public static final MenuType<HempPressScreenHandler> HEMP_PRESS =
-            Registry.register(BuiltInRegistries.MENU,
+            Registry.register(Registry.MENU,
                     new ResourceLocation(Hempdustry.MOD_ID, "hemp_press"),
                     Services.MENUS.menuType(HempPressScreenHandler::new, Menus.Data.BLOCK_POS));
 

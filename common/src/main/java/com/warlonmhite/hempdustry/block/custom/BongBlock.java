@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import net.minecraft.core.Registry;
 import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import org.jetbrains.annotations.Nullable;
@@ -9,10 +10,9 @@ import java.util.Map;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -72,7 +72,7 @@ public class BongBlock extends BaseEntityBlock {
      */
     @Override
     public String getDescriptionId() {
-        return Util.makeDescriptionId("item", BuiltInRegistries.BLOCK.getKey(this));
+        return Util.makeDescriptionId("item", Registry.BLOCK.getKey(this));
     }
 
     /**
@@ -116,7 +116,7 @@ public class BongBlock extends BaseEntityBlock {
      * the dropped item the tag the placed one carried.
      */
     @Override
-    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+    public List<ItemStack> getDrops(BlockState state, LootContext.Builder params) {
         List<ItemStack> drops = super.getDrops(state, params);
         if (params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof BongBlockEntity bong) {
             for (ItemStack drop : drops) {

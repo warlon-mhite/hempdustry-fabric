@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": {
       "item": "hempdustry:hemp_stem"
@@ -12,6 +11,5 @@
   ],
   "result": {
     "item": "minecraft:stick"
-  },
-  "show_notification": true
+  }
 }

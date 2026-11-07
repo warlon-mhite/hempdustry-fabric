@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.test;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import net.minecraft.core.Registry;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
@@ -13,7 +14,7 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.Smoking;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -63,7 +64,7 @@ public final class RebalanceGameTest {
                         "a full green-out still lands its own Slowness II");
             }
         }
-        context.assertTrue(clean != null && sawGreenOut, "saw both a clean hit and a green-out in " + TRIES);
+        Asserts.assertTrue(context, clean != null && sawGreenOut, "saw both a clean hit and a green-out in " + TRIES);
 
         // Level II of the buffs, level III of the costs, for half as long again.
         Line.equal(context, 1, level(clean, MobEffects.MOVEMENT_SPEED), "Speed stops at II");
@@ -113,9 +114,9 @@ public final class RebalanceGameTest {
     public void aFullGreenOutEndsTheHigh(GameTestHelper context) {
         ServerPlayer full = highPlayer(context);
         Smoking.greenOut(full, 3);
-        context.assertFalse(full.hasEffect(MobEffects.MOVEMENT_SPEED), "a smoked buff ends");
-        context.assertFalse(full.hasEffect(MobEffects.ABSORPTION), "an edible's buff ends");
-        context.assertTrue(full.hasEffect(MobEffects.FIRE_RESISTANCE),
+        Asserts.assertFalse(context, full.hasEffect(MobEffects.MOVEMENT_SPEED), "a smoked buff ends");
+        Asserts.assertFalse(context, full.hasEffect(MobEffects.ABSORPTION), "an edible's buff ends");
+        Asserts.assertTrue(context, full.hasEffect(MobEffects.FIRE_RESISTANCE),
                 "a potion of a type the mod never grants is left alone");
         Line.equal(context, 0f, full.getFoodData().getSaturationLevel(), "the saturation goes");
         Line.equal(context, 600, full.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "thirty seconds of it");
@@ -123,8 +124,8 @@ public final class RebalanceGameTest {
         // The spins take nothing away.
         ServerPlayer spins = highPlayer(context);
         Smoking.greenOut(spins, 2);
-        context.assertTrue(spins.hasEffect(MobEffects.MOVEMENT_SPEED), "the spins leave the high running");
-        context.assertTrue(spins.hasEffect(MobEffects.ABSORPTION), "and the edible's");
+        Asserts.assertTrue(context, spins.hasEffect(MobEffects.MOVEMENT_SPEED), "the spins leave the high running");
+        Asserts.assertTrue(context, spins.hasEffect(MobEffects.ABSORPTION), "and the edible's");
         Line.equal(context, 5f, spins.getFoodData().getSaturationLevel(), "and the saturation");
         Line.equal(context, 300, spins.getEffect(MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "fifteen seconds of it");
         context.succeed();
@@ -179,11 +180,11 @@ public final class RebalanceGameTest {
         player.setItemInHand(InteractionHand.MAIN_HAND, pipe);
         for (int hit = 1; hit <= charges; hit++) {
             ItemStack inHand = player.getItemInHand(InteractionHand.MAIN_HAND);
-            context.assertFalse(inHand.isEmpty(), "the pipe broke with " + (charges - hit + 1) + " hits left in its bowl");
+            Asserts.assertFalse(context, inHand.isEmpty(), "the pipe broke with " + (charges - hit + 1) + " hits left in its bowl");
             player.getCooldowns().removeCooldown(ModItems.WOODEN_PIPE);
             smoke(context, player, inHand);
         }
-        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
+        Asserts.assertTrue(context, player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
                 "the pipe outlived the hit that emptied its bowl at no durability");
         context.succeed();
     }
@@ -197,7 +198,7 @@ public final class RebalanceGameTest {
         Line.equal(context, 0, find(perfect, MobEffects.REGENERATION).getAmplifier(), "Regeneration I");
         Line.equal(context, 0, find(perfect, MobEffects.MOVEMENT_SLOWDOWN).getAmplifier(), "Perfect is Slowness I");
         Line.equal(context, full, find(perfect, MobEffects.MOVEMENT_SLOWDOWN).getDuration(), "tier IV runs the full time");
-        context.assertTrue(find(perfect, MobEffects.HUNGER).getDuration() > full / 2,
+        Asserts.assertTrue(context, find(perfect, MobEffects.HUNGER).getDuration() > full / 2,
                 "the munchies last the high, not a minute");
 
         List<MobEffectInstance> rough = allowed(EdibleEffects.bundle(EdibleBundle.BUILT_IN, 4, Quality.ROUGH, 0));
@@ -228,7 +229,7 @@ public final class RebalanceGameTest {
             long sum = 0;
             for (int i = 0; i < rolls; i++) {
                 int onset = EdibleEffects.rollOnsetTicks(EdibleBundle.BUILT_IN, quality, random);
-                context.assertTrue(onset >= window.minTicks() && onset <= window.maxTicks(),
+                Asserts.assertTrue(context, onset >= window.minTicks() && onset <= window.maxTicks(),
                         quality + " rolled an onset of " + onset + " outside " + window.minTicks() + ".." + window.maxTicks());
                 atMin += onset == window.minTicks() ? 1 : 0;
                 atMax += onset == window.maxTicks() ? 1 : 0;
@@ -236,15 +237,15 @@ public final class RebalanceGameTest {
                 late += onset > window.maxTicks() - width / 20 ? 1 : 0;
                 sum += onset;
             }
-            context.assertTrue(atMin < rolls / 100 && atMax < rolls / 100,
+            Asserts.assertTrue(context, atMin < rolls / 100 && atMax < rolls / 100,
                     quality + " piles onsets on an edge of its window: " + atMin + " on the first tick, " + atMax + " on the last");
-            context.assertTrue(early > 0 && late > 0,
+            Asserts.assertTrue(context, early > 0 && late > 0,
                     quality + " never reaches an end of its window: " + early + " in the first twentieth, " + late + " in the last");
             double mean = (window.minTicks() + window.modeTicks() + window.maxTicks()) / 3.0;
-            context.assertTrue(Math.abs(sum / (double) rolls - mean) < Math.max(2, width / 50.0),
+            Asserts.assertTrue(context, Math.abs(sum / (double) rolls - mean) < Math.max(2, width / 50.0),
                     quality + "'s onsets average " + sum / rolls + " ticks, not the window's " + (int) mean);
             if (previous != null) {
-                context.assertTrue(window.maxTicks() - window.minTicks() < previous.maxTicks() - previous.minTicks()
+                Asserts.assertTrue(context, window.maxTicks() - window.minTicks() < previous.maxTicks() - previous.minTicks()
                                 && window.modeTicks() <= previous.modeTicks(),
                         quality + " is no surer or sooner than the quality below it");
             }
@@ -264,11 +265,11 @@ public final class RebalanceGameTest {
         EdibleEffects.consume(eater, 4, Quality.PERFECT);
         List<EdibleScheduler.Pending> waiting = EdibleScheduler.pending(eater);
         Line.equal(context, waiting.size(), EdibleBundle.BUILT_IN.effects().size(), "doses waiting after eating a tier-IV edible");
-        context.assertTrue(eater.getActiveEffects().isEmpty(), "an edible landed the moment it was eaten");
+        Asserts.assertTrue(context, eater.getActiveEffects().isEmpty(), "an edible landed the moment it was eaten");
 
         CompoundTag saved = eater.saveWithoutId(new CompoundTag());
         ServerPlayer back = freshPlayer(context);
-        context.assertTrue(EdibleScheduler.pending(back).isEmpty(), "a fresh player already has doses waiting");
+        Asserts.assertTrue(context, EdibleScheduler.pending(back).isEmpty(), "a fresh player already has doses waiting");
         back.load(saved);
         Line.equal(context, EdibleScheduler.pending(back), waiting, "the doses read back from the save");
         context.succeed();
@@ -279,11 +280,11 @@ public final class RebalanceGameTest {
     public void aPendingDoseLandsOnTime(GameTestHelper context) {
         ServerPlayer eater = freshPlayer(context);
         EdibleScheduler.schedule(eater, 5, new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 0));
-        context.runAtTickTime(4, () -> context.assertTrue(!eater.hasEffect(MobEffects.MOVEMENT_SLOWDOWN),
+        context.runAtTickTime(4, () -> Asserts.assertTrue(context, !eater.hasEffect(MobEffects.MOVEMENT_SLOWDOWN),
                 "a dose due in five ticks landed early"));
         context.runAtTickTime(8, () -> {
-            context.assertTrue(eater.hasEffect(MobEffects.MOVEMENT_SLOWDOWN), "a dose due in five ticks never landed");
-            context.assertTrue(EdibleScheduler.pending(eater).isEmpty(), "a landed dose is still waiting on the player");
+            Asserts.assertTrue(context, eater.hasEffect(MobEffects.MOVEMENT_SLOWDOWN), "a dose due in five ticks never landed");
+            Asserts.assertTrue(context, EdibleScheduler.pending(eater).isEmpty(), "a landed dose is still waiting on the player");
             context.succeed();
         });
     }
@@ -309,7 +310,7 @@ public final class RebalanceGameTest {
     }
 
     private static Holder<Strain> strain(GameTestHelper context, ResourceKey<Strain> key) {
-        return context.getLevel().registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
+        return DataRegistries.of(context.getLevel()).lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
     }
 
     private static ItemStack packed(GameTestHelper context, Item device, ResourceKey<Strain> strain, int dose) {
@@ -353,6 +354,6 @@ public final class RebalanceGameTest {
 
     private static MobEffectInstance find(List<MobEffectInstance> effects, MobEffect type) {
         return effects.stream().filter(e -> e.getEffect().equals(type)).findFirst()
-                .orElseThrow(() -> new AssertionError("no " + BuiltInRegistries.MOB_EFFECT.getKey(type) + " in the bundle"));
+                .orElseThrow(() -> new AssertionError("no " + Registry.MOB_EFFECT.getKey(type) + " in the bundle"));
     }
 }

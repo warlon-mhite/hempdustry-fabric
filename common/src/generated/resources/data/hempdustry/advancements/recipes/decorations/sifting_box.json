@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:sifting_box"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

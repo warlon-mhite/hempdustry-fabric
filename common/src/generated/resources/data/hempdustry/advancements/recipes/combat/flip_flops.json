@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:flip_flops"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

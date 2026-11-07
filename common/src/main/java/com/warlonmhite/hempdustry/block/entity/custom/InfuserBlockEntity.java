@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
+import net.minecraft.network.chat.TranslatableComponent;
 import com.warlonmhite.hempdustry.block.custom.InfuserBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
@@ -14,7 +15,7 @@ import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -1049,7 +1050,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
 
     @Override
     public Component getContainerName() {
-        return Component.translatable("block.hempdustry.infuser");
+        return new TranslatableComponent("block.hempdustry.infuser");
     }
 
     @Nullable

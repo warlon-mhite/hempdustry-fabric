@@ -128,7 +128,7 @@ public final class SmokeScheduler {
                 }
                 ServerPlayer player = server.getPlayerList().getPlayer(pending.player);
                 if (player != null && player.isAlive()) {
-                    Smoking.spawnExhale(player.serverLevel(), player, pending.particle);
+                    Smoking.spawnExhale(player.getLevel(), player, pending.particle);
                 }
                 return true;
             });
@@ -152,7 +152,7 @@ public final class SmokeScheduler {
                 }
                 ServerPlayer player = server.getPlayerList().getPlayer(pending.player);
                 if (player != null && player.isAlive()) {
-                    player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
+                    player.getLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
                             pending.sound, SoundSource.PLAYERS, 1f, 1f);
                 }
                 return true;

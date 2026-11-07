@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:cookie"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -3,7 +3,6 @@ package com.warlonmhite.hempdustry.particle;
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 
 public class ModParticles {
@@ -20,7 +19,7 @@ public class ModParticles {
     });
 
     private static SimpleParticleType registerParticle(String name, SimpleParticleType type) {
-        return Registry.register(BuiltInRegistries.PARTICLE_TYPE, new ResourceLocation(Hempdustry.MOD_ID, name), type);
+        return Registry.register(Registry.PARTICLE_TYPE, new ResourceLocation(Hempdustry.MOD_ID, name), type);
     }
 
     public static void registerParticles() {

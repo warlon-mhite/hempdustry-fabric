@@ -7,7 +7,7 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.Optional;
 import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
+import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.DeserializationContext;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.SerializationContext;
@@ -45,7 +45,7 @@ public class SmokeCriterion extends SimpleCriterionTrigger<SmokeCriterion.Condit
     }
 
     @Override
-    protected Conditions createInstance(JsonObject json, ContextAwarePredicate player, DeserializationContext context) {
+    protected Conditions createInstance(JsonObject json, EntityPredicate.Composite player, DeserializationContext context) {
         return new Conditions(player,
                 json.has("item") ? Optional.of(ItemPredicate.fromJson(json.get("item"))) : Optional.empty(),
                 json.has("time") ? Optional.of(TimeWindow.fromJson(GsonHelper.getAsJsonObject(json, "time"))) : Optional.empty(),
@@ -59,7 +59,7 @@ public class SmokeCriterion extends SimpleCriterionTrigger<SmokeCriterion.Condit
         private final Optional<TimeWindow> time;
         private final Optional<ResourceKey<Strain>> strain;
 
-        public Conditions(ContextAwarePredicate player, Optional<ItemPredicate> item, Optional<TimeWindow> time,
+        public Conditions(EntityPredicate.Composite player, Optional<ItemPredicate> item, Optional<TimeWindow> time,
                           Optional<ResourceKey<Strain>> strain) {
             super(ID, player);
             this.item = item;
@@ -100,20 +100,20 @@ public class SmokeCriterion extends SimpleCriterionTrigger<SmokeCriterion.Condit
         }
 
         public static Conditions any() {
-            return new Conditions(ContextAwarePredicate.ANY, Optional.empty(), Optional.empty(), Optional.empty());
+            return new Conditions(EntityPredicate.Composite.ANY, Optional.empty(), Optional.empty(), Optional.empty());
         }
 
         public static Conditions of(ResourceKey<Strain> strain) {
-            return new Conditions(ContextAwarePredicate.ANY, Optional.empty(), Optional.empty(), Optional.of(strain));
+            return new Conditions(EntityPredicate.Composite.ANY, Optional.empty(), Optional.empty(), Optional.of(strain));
         }
 
         public static Conditions with(ItemLike... items) {
-            return new Conditions(ContextAwarePredicate.ANY, Optional.of(ItemPredicate.Builder.item().of(items).build()),
+            return new Conditions(EntityPredicate.Composite.ANY, Optional.of(ItemPredicate.Builder.item().of(items).build()),
                     Optional.empty(), Optional.empty());
         }
 
         public static Conditions during(long minTicks, long maxTicks) {
-            return new Conditions(ContextAwarePredicate.ANY, Optional.empty(),
+            return new Conditions(EntityPredicate.Composite.ANY, Optional.empty(),
                     Optional.of(new TimeWindow(minTicks, maxTicks)), Optional.empty());
         }
     }

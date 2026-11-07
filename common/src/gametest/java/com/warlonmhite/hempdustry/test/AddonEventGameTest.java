@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -41,7 +42,7 @@ public final class AddonEventGameTest {
         Line.equal(context, names(hit), List.of("ALLOW_SMOKE", "AFTER_SMOKE"), "the events of one hit");
         for (TestPlatform.Heard event : hit) {
             List<Object> payload = event.payload();
-            context.assertTrue(payload.get(0) == player && contents.equals(payload.get(1)) && payload.get(2) == pipe,
+            Asserts.assertTrue(context, payload.get(0) == player && contents.equals(payload.get(1)) && payload.get(2) == pipe,
                     event.event() + " carried " + payload + " rather than the smoker, the pipe's load and the pipe");
         }
 
@@ -57,7 +58,7 @@ public final class AddonEventGameTest {
         }
         Line.equal(context, names(probe.take()), List.of("ALLOW_SMOKE"), "the events of a refused hit");
         Line.equal(context, ModComponents.CHARGES.get(refused), 4, "the charges a refused pipe kept");
-        context.assertTrue(player.getActiveEffects().isEmpty(), "a refused hit gave " + player.getActiveEffects());
+        Asserts.assertTrue(context, player.getActiveEffects().isEmpty(), "a refused hit gave " + player.getActiveEffects());
 
         EdibleEffects.consume(player, 2, Quality.CLEAN);
         List<TestPlatform.Heard> eaten = probe.take();
@@ -69,7 +70,7 @@ public final class AddonEventGameTest {
         List<TestPlatform.Heard> collected = probe.take();
         Line.equal(context, names(collected), List.of("AFTER_INFUSE"), "the events of a collected batch");
         List<Object> batch = collected.get(0).payload();
-        context.assertTrue(batch.get(0) == context.getLevel() && context.absolutePos(TUB).equals(batch.get(1))
+        Asserts.assertTrue(context, batch.get(0) == context.getLevel() && context.absolutePos(TUB).equals(batch.get(1))
                         && batch.get(2) instanceof Integer strength && strength > 0 && batch.get(3) instanceof Quality,
                 "AFTER_INFUSE carried " + batch + " rather than the tub's level, its position, a strength and a grade");
         context.succeed();
@@ -77,7 +78,7 @@ public final class AddonEventGameTest {
 
     private static ItemStack packedPipe(GameTestHelper context) {
         ItemStack pipe = new ItemStack(ModItems.WOODEN_PIPE);
-        ModComponents.SMOKE_CONTENTS.set(pipe, SmokeContents.of(context.getLevel().registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(pipe, SmokeContents.of(DataRegistries.of(context.getLevel())
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
         ModComponents.CHARGES.set(pipe, 4);
         return pipe;

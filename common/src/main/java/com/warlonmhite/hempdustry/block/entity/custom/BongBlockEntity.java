@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
+import com.warlonmhite.hempdustry.util.Stacks;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -30,7 +31,7 @@ public class BongBlockEntity extends BlockEntity {
 
     /** Keeps what the placed item carried. */
     public void takeFrom(ItemStack stack) {
-        item = stack.copyWithCount(1);
+        item = Stacks.copyWithCount(stack, 1);
         setChanged();
     }
 

@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "equipment",
   "key": {
     "#": {
       "item": "hempdustry:hemp_fiber"
@@ -12,6 +11,5 @@
   ],
   "result": {
     "item": "hempdustry:hemp_beanie"
-  },
-  "show_notification": true
+  }
 }

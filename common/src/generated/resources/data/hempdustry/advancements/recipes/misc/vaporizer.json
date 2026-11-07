@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:vaporizer"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

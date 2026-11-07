@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:cyan_bong"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

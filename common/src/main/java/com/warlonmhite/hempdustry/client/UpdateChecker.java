@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.client;
 
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.TextComponent;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -166,17 +168,17 @@ public final class UpdateChecker {
 
     /** "Hempdustry 2.1.0 is available. You have 2.0.0." followed by a clickable download link. */
     private static MutableComponent updateMessage(String latest) {
-        MutableComponent link = Component.translatable("hempdustry.update.link")
+        MutableComponent link = new TranslatableComponent("hempdustry.update.link")
                 .withStyle(style -> style
                         .withColor(ChatFormatting.GREEN)
                         .withUnderlined(true)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, downloadUrl))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                Component.translatable("hempdustry.update.tooltip"))));
+                                new TranslatableComponent("hempdustry.update.tooltip"))));
 
-        return Component.translatable("hempdustry.update.available", latest, currentVersion())
+        return new TranslatableComponent("hempdustry.update.available", latest, currentVersion())
                 .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(" "))
+                .append(new TextComponent(" "))
                 .append(link);
     }
 

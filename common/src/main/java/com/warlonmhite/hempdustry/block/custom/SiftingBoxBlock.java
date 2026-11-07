@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import java.util.Random;
+import net.minecraft.network.chat.TranslatableComponent;
 import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import com.warlonmhite.hempdustry.block.ItemUse;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -12,7 +14,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -354,7 +355,7 @@ public class SiftingBoxBlock extends Block implements ItemUse {
                     : "hempdustry.sifting_box.no_kief_in_plant";
         }
         if (key != null) {
-            player.displayClientMessage(Component.translatable(key), true);
+            player.displayClientMessage(new TranslatableComponent(key), true);
         }
     }
 
@@ -384,7 +385,7 @@ public class SiftingBoxBlock extends Block implements ItemUse {
 
     /** {@link #FULL_LEVEL} → {@link #READY_LEVEL}: the powder settles and is ready to take. */
     @Override
-    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void tick(BlockState state, ServerLevel world, BlockPos pos, Random random) {
         if (state.getValue(LEVEL) == FULL_LEVEL) {
             world.setBlock(pos, state.setValue(LEVEL, READY_LEVEL), Block.UPDATE_ALL);
             world.playSound(null, pos, SoundEvents.COMPOSTER_READY, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -411,7 +412,7 @@ public class SiftingBoxBlock extends Block implements ItemUse {
      * signal, because a dry box has no condition to fail.
      */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (!state.getValue(FILLED) || state.getValue(LEVEL) >= READY_LEVEL || jacketRate(world, pos) <= 0.0F) {
             return;
         }
@@ -538,7 +539,11 @@ public class SiftingBoxBlock extends Block implements ItemUse {
         } else {
             yield = state.getValue(FILLED) ? ModItems.BUBBLE_HASH : ModItems.KIEF;
         }
-        Vec3 spawn = Vec3.atLowerCornerWithOffset(pos, 0.5, 1.01, 0.5).offsetRandom(world.random, 0.7F);
+        // Vanilla's offsetRandom, which 1.18.2 does not have: the same three draws, in the same order.
+        Vec3 spawn = Vec3.atLowerCornerOf(pos).add(
+                0.5 + (world.random.nextFloat() - 0.5F) * 0.7F,
+                1.01 + (world.random.nextFloat() - 0.5F) * 0.7F,
+                0.5 + (world.random.nextFloat() - 0.5F) * 0.7F);
         ItemEntity dropped = new ItemEntity(world, spawn.x(), spawn.y(), spawn.z(),
                 new ItemStack(yield, YIELD));
         dropped.setDefaultPickUpDelay();

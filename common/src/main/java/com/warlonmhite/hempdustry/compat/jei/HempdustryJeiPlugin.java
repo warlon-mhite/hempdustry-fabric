@@ -1,11 +1,13 @@
 package com.warlonmhite.hempdustry.compat.jei;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -13,12 +15,11 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -118,13 +119,13 @@ public class HempdustryJeiPlugin implements IModPlugin {
         registration.addRecipes(pressing.getRecipeType(), pressing.fitted(ViewerRecipes.pressing(recipes)));
         registration.addRecipes(sifting.getRecipeType(), sifting.fitted(ViewerRecipes.sifting()));
         registration.addRecipes(iceOLator.getRecipeType(), iceOLator.fitted(ViewerRecipes.iceOLator()));
-        registration.addRecipes(world.getRecipeType(), world.fitted(ViewerRecipes.world(client.level.registryAccess())));
-        ViewerRecipes.info().forEach((item, text) -> registration.addIngredientInfo(item, text));
+        registration.addRecipes(world.getRecipeType(), world.fitted(ViewerRecipes.world(DataRegistries.of(client.level))));
+        ViewerRecipes.info().forEach((item, text) -> registration.addIngredientInfo(new ItemStack(item), VanillaTypes.ITEM_STACK, text));
 
         // Packing goes into JEI's own crafting category rather than one of ours, which is what makes
         // JEI's built-in "move ingredients into the grid" work on it without a transfer handler of
         // our own. See ViewerRecipes#packing.
-        registration.addRecipes(RecipeTypes.CRAFTING, packingAsCrafting(client.level.registryAccess()));
+        registration.addRecipes(RecipeTypes.CRAFTING, packingAsCrafting(DataRegistries.of(client.level)));
     }
 
     /**
@@ -147,7 +148,7 @@ public class HempdustryJeiPlugin implements IModPlugin {
             for (int i = 0; i < packing.inputs().size(); i++) {
                 ingredients.set(i, Ingredient.of(packing.inputs().get(i).stream()));
             }
-            out.add(new ShapelessRecipe(packing.id(), "", CraftingBookCategory.MISC, packing.output(), ingredients));
+            out.add(new ShapelessRecipe(packing.id(), "", packing.output(), ingredients));
         }
         return out;
     }

@@ -50,7 +50,7 @@ public final class Infusion {
     private static ItemStack findButter(CraftingContainer input) {
         for (int slot = 0; slot < input.getContainerSize(); slot++) {
             ItemStack stack = input.getItem(slot);
-            if (stack.is(ModItems.CANNABUTTER)) {
+            if (stack.getItem() == ModItems.CANNABUTTER) {
                 return stack;
             }
         }

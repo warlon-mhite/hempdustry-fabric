@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import com.warlonmhite.hempdustry.util.Stacks;
+import net.minecraft.network.chat.TranslatableComponent;
 import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
@@ -11,7 +14,7 @@ import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -157,7 +160,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         SimpleContainer input = new SimpleContainer(stack);
         return world.getRecipeManager()
                 .getRecipeFor(ModRecipes.PRESSING_TYPE, input, world)
-                .map(recipe -> recipe.assemble(input, world.registryAccess()))
+                .map(recipe -> recipe.assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -271,7 +274,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         Direction facing = state.getValue(HempPressBlock.FACING);
         BlockPos behind = pos.relative(facing.getOpposite());
 
-        ItemTransfer.Result moved = Services.TRANSFER.insertWhole(world, behind, facing, output.copyWithCount(1));
+        ItemTransfer.Result moved = Services.TRANSFER.insertWhole(world, behind, facing, Stacks.copyWithCount(output, 1));
         if (moved == ItemTransfer.Result.MOVED) {
             removeItem(OUTPUT_SLOT, 1);
             return true;
@@ -287,7 +290,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             return false;
         }
         // transfer() only fills the destination, so it is handed a copy and the press takes its own.
-        if (HopperBlockEntity.addItem(this, target, output.copyWithCount(1), facing).isEmpty()) {
+        if (HopperBlockEntity.addItem(this, target, Stacks.copyWithCount(output, 1), facing).isEmpty()) {
             removeItem(OUTPUT_SLOT, 1);
             return true;
         }
@@ -365,7 +368,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
 
     @Override
     public Component getContainerName() {
-        return Component.translatable("block.hempdustry.hemp_press");
+        return new TranslatableComponent("block.hempdustry.hemp_press");
     }
 
     @Nullable

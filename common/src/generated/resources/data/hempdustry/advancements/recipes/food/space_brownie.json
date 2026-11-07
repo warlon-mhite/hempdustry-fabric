@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:space_brownie"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

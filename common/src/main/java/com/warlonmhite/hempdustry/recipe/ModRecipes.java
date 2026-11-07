@@ -2,18 +2,17 @@ package com.warlonmhite.hempdustry.recipe;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
 
 public class ModRecipes {
 
     public static final RecipeSerializer<PackingRecipe> PACKING = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "packing"),
-            new SimpleCraftingRecipeSerializer<>(PackingRecipe::new));
+            new SimpleRecipeSerializer<>(PackingRecipe::new));
 
     /**
      * Shapeless, but the ingredients' containers travel into the result rather than being handed
@@ -21,22 +20,22 @@ public class ModRecipes {
      * bucket in and two out. See {@link ContainerCarriedRecipe}.
      */
     public static final RecipeSerializer<ContainerCarriedRecipe> CONTAINER_CARRIED = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "container_carried"),
             new ContainerCarriedRecipe.Serializer());
 
     /**
      * Vanilla's shaped and shapeless crafting, with a result that may carry data: the spliffs and the
-     * moon rocks, whose load is in the result. Vanilla 1.20.1 reads only a crafting result's item and
+     * moon rocks, whose load is in the result. Vanilla 1.18.2 reads only a crafting result's item and
      * count; see {@link DataShapedRecipe}.
      */
     public static final RecipeSerializer<DataShapedRecipe> DATA_SHAPED = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "crafting_shaped"),
             new DataShapedRecipe.Serializer());
 
     public static final RecipeSerializer<DataShapelessRecipe> DATA_SHAPELESS = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "crafting_shapeless"),
             new DataShapelessRecipe.Serializer());
 
@@ -46,12 +45,12 @@ public class ModRecipes {
      * to JEI/EMI — see {@link Infusion}.
      */
     public static final RecipeSerializer<InfusedShapedRecipe> INFUSED_SHAPED = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "infused_shaped"),
             new InfusedShapedRecipe.Serializer());
 
     public static final RecipeSerializer<InfusedShapelessRecipe> INFUSED_SHAPELESS = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "infused_shapeless"),
             new InfusedShapelessRecipe.Serializer());
 
@@ -68,48 +67,47 @@ public class ModRecipes {
      * {@code RecipeManager} files a loaded recipe under, and the serializer that reads its JSON.
      */
     public static final RecipeType<DecarboxylatingRecipe> DECARBOXYLATING_TYPE = Registry.register(
-            BuiltInRegistries.RECIPE_TYPE,
+            Registry.RECIPE_TYPE,
             new ResourceLocation(Hempdustry.MOD_ID, "decarboxylating"),
             recipeType("decarboxylating"));
 
     public static final RecipeSerializer<DecarboxylatingRecipe> DECARBOXYLATING = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "decarboxylating"),
             new DecarboxylatingRecipe.Serializer());
 
     public static final RecipeType<InfusingRecipe> INFUSING_TYPE = Registry.register(
-            BuiltInRegistries.RECIPE_TYPE,
+            Registry.RECIPE_TYPE,
             new ResourceLocation(Hempdustry.MOD_ID, "infusing"),
             recipeType("infusing"));
 
     public static final RecipeSerializer<InfusingRecipe> INFUSING = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "infusing"),
             new InfusingRecipe.Serializer());
 
     /** What the Hemp Press turns into what — the third machine recipe type. See {@link PressingRecipe}. */
     public static final RecipeType<PressingRecipe> PRESSING_TYPE = Registry.register(
-            BuiltInRegistries.RECIPE_TYPE,
+            Registry.RECIPE_TYPE,
             new ResourceLocation(Hempdustry.MOD_ID, "pressing"),
             recipeType("pressing"));
 
     public static final RecipeSerializer<PressingRecipe> PRESSING = Registry.register(
-            BuiltInRegistries.RECIPE_SERIALIZER,
+            Registry.RECIPE_SERIALIZER,
             new ResourceLocation(Hempdustry.MOD_ID, "pressing"),
             new PressingRecipe.Serializer());
 
     /**
      * A bare {@code RecipeType}, ready to be registered.
      *
-     * <p><b>{@code RecipeType.register} cannot be used here</b>: it builds its own id with
-     * {@code ResourceLocation.withDefaultNamespace}, so a namespaced string arrives as the
-     * <em>path</em> and the game refuses it — {@code Non [a-z0-9/._-] character in path of location:
-     * minecraft:hempdustry:decarboxylating}, thrown at class-load before anything else runs. All the
-     * method adds over this is the {@code toString}, which is worth keeping for a crash report.
+     * <p>Not {@code RecipeType.register}: 1.18.2's would take the namespaced id, but on the newer
+     * lines it builds a {@code minecraft:} id and refuses a
+     * namespaced one, so the mod registers its own bare type the same way on every line. All that
+     * method adds over this is the {@code toString}, which is kept for a crash report.
      */
     private static <T extends net.minecraft.world.item.crafting.Recipe<?>> RecipeType<T> recipeType(String path) {
         String name = Hempdustry.MOD_ID + ":" + path;
-        return new RecipeType<>() {
+        return new RecipeType<T>() {
             @Override
             public String toString() {
                 return name;

@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:magenta_bong"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

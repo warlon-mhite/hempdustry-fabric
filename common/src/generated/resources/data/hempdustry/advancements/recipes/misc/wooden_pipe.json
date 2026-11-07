@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:wooden_pipe"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

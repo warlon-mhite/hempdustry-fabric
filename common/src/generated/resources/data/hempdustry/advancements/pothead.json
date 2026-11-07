@@ -3,12 +3,7 @@
   "criteria": {
     "placed_a_grow_pot": {
       "conditions": {
-        "location": [
-          {
-            "block": "hempdustry:grow_pot",
-            "condition": "minecraft:block_state_property"
-          }
-        ]
+        "block": "hempdustry:grow_pot"
       },
       "trigger": "minecraft:placed_block"
     }
@@ -33,6 +28,5 @@
     [
       "placed_a_grow_pot"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

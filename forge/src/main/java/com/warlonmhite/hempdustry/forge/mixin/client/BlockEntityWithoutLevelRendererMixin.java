@@ -1,11 +1,11 @@
 package com.warlonmhite.hempdustry.forge.mixin.client;
 
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(BlockEntityWithoutLevelRenderer.class)
 public abstract class BlockEntityWithoutLevelRendererMixin {
     @Inject(method = "renderByItem", at = @At("HEAD"), cancellable = true)
-    private void hempdustry$drawHempBed(ItemStack stack, ItemDisplayContext context, PoseStack matrices,
+    private void hempdustry$drawHempBed(ItemStack stack, ItemTransforms.TransformType context, PoseStack matrices,
                                         MultiBufferSource buffers, int light, int overlay, CallbackInfo ci) {
         if (stack.is(ModBlocks.HEMP_BED.asItem())) {
             HempBedBlockEntityRenderer.renderItem(matrices, buffers, light, overlay);

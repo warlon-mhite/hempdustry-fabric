@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:hemp_planks"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -82,6 +82,5 @@
     "recipes": [
       "hempdustry:scorched_hemp"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

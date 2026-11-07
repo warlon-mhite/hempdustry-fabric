@@ -1,7 +1,9 @@
 package com.warlonmhite.hempdustry.screen.custom;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -38,26 +40,30 @@ public class HempPressScreen extends AbstractContainerScreen<HempPressScreenHand
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
+    protected void renderBg(PoseStack context, float delta, int mouseX, int mouseY) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, TEXTURE);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        context.blit(TEXTURE, x, y, 0, 0,
+        this.blit(context, x, y, 0, 0,
                 this.imageWidth, this.imageHeight);
 
         int filled = Math.round(this.menu.getProgress() * ARROW_W);
         if (filled > 0) {
-            context.blit(TEXTURE, x + ARROW_X, y + ARROW_Y,
+            this.blit(context, x + ARROW_X, y + ARROW_Y,
                     ARROW_U, ARROW_V, filled, ARROW_H);
         }
 
         if (this.menu.isHeated()) {
-            context.blit(TEXTURE, x + FLAME_X, y + FLAME_Y,
+            this.blit(context, x + FLAME_X, y + FLAME_Y,
                     FLAME_U, FLAME_V, FLAME_W, FLAME_H);
         }
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(PoseStack context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context);
         super.render(context, mouseX, mouseY, delta);
         this.renderTooltip(context, mouseX, mouseY);
     }

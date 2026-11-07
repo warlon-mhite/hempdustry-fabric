@@ -30,6 +30,5 @@
     "recipes": [
       "hempdustry:stick_from_stem"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }
