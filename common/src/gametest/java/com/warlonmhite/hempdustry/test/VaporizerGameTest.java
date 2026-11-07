@@ -9,14 +9,19 @@ import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.level.GameType;
@@ -146,6 +151,48 @@ public final class VaporizerGameTest {
         smokeABowl(player, world, strain(world));
         context.assertValueEqual(2, count(player, ModItems.SCORCHED_HEMP),
                 "a bowl of buds handed nothing back, so the refusals above prove nothing");
+        context.succeed();
+    }
+
+    /**
+     * A full inventory does not swallow the spent bud: it lands at the player's feet.
+     *
+     * <p>{@code Player#addItem} only tries the inventory and answers false when nothing fits; it
+     * never drops. A bowl finished with every slot taken used to hand its scorched hemp to nobody,
+     * and nothing on screen said so -- the commonest state of a survival inventory is full.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void vaporizerBowlOnAFullInventoryDropsItsAvb(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        ServerPlayer player = Players.survival(context);
+        BlockPos feet = context.absolutePos(new BlockPos(4, 1, 4));
+        player.moveTo(feet.getX() + 0.5, feet.getY(), feet.getZ() + 0.5, 0, 0);
+
+        // The first bowl, smoked with room to spare, is the control: it must still land in the inventory.
+        smokeABowl(player, world, strain(world));
+        context.assertValueEqual(count(player, ModItems.SCORCHED_HEMP), 1,
+                "a bowl with room in the inventory did not hand its scorched hemp over");
+
+        // Every slot but the hand full of something the scorched hemp cannot join, its own stack included.
+        Inventory inventory = player.getInventory();
+        for (int i = 0; i < inventory.items.size(); i++) {
+            if (i != inventory.selected) {
+                inventory.items.set(i, new ItemStack(Items.COBBLESTONE, 64));
+            }
+        }
+        inventory.offhand.set(0, new ItemStack(Items.COBBLESTONE, 64));
+        inventory.items.set(inventory.selected, packed(ModItems.VAPORIZER, strain(world), DeviceType.VAPORIZER));
+        for (int i = 0; i < DeviceType.VAPORIZER.builtInBowl().hits(); i++) {
+            hit(player, world, InteractionHand.MAIN_HAND);
+        }
+        int onTheGround = 0;
+        for (ItemEntity entity : context.getEntities(EntityType.ITEM)) {
+            if (entity.getItem().is(ModItems.SCORCHED_HEMP)) {
+                onTheGround += entity.getItem().getCount();
+            }
+        }
+        context.assertValueEqual(onTheGround, 1,
+                "a bowl finished with a full inventory lost its scorched hemp instead of dropping it");
         context.succeed();
     }
 

@@ -355,15 +355,18 @@ public class SmokingDeviceItem extends Item {
      * predicate for plant matter answers both, and anything hash-shaped a datapack adds. Schwag
      * passes it: a spoiled bud still leaves a spent one.
      *
-     * <p>{@code addItem} puts it in the inventory and drops the remainder at the player's feet
-     * if there is no room, which is vanilla's own behaviour for a bucket emptying or a bundle
-     * spilling — the yield can never be lost to a full hotbar.
+     * <p>It goes into the inventory, and what does not fit drops at the player's feet, as a bucket
+     * emptying does. {@code addItem} alone only tries the inventory: it answers false when nothing
+     * fits, drops nothing, and a full inventory would have swallowed the yield.
      */
     private void yieldSpent(Player player, SmokeContents contents) {
         int yield = DeviceStats.bowl(player.registryAccess(), device).spentYield();
         if (yield > 0 && contents.entries().stream()
                 .allMatch(entry -> ModStrains.isPlantMatter(entry.strain()))) {
-            player.addItem(new ItemStack(ModItems.SCORCHED_HEMP, yield));
+            ItemStack spent = new ItemStack(ModItems.SCORCHED_HEMP, yield);
+            if (!player.addItem(spent)) {
+                player.drop(spent, false);
+            }
         }
     }
 }
