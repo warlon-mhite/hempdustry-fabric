@@ -238,6 +238,13 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .addOptionalTag(ConventionalItemTags.SHEAR_TOOLS)
                 .addOptionalTag(ConventionalItemTags.OLD_SHEARS)
                 .addOptionalTag(ConventionalItemTags.FORGE_SHEARS);
+        // Farmer villagers plant what is in this vanilla tag and reap it ripe with destroyBlock, which takes a
+        // tall plant whole; a village with a hemp seed grows a hemp field, as villages grew it for rope and
+        // cloth. Not Beldía: it stands only on sand, and a villager plants on farmland.
+        getOrCreateTagBuilder(ItemTags.VILLAGER_PLANTABLE_SEEDS)
+                .add(ModItems.INDICA_SEEDS)
+                .add(ModItems.SATIVA_SEEDS);
+
         getOrCreateTagBuilder(ModTags.Items.FERTILIZERS)
                 .add(Items.BONE_MEAL)
                 .addOptionalTag(ConventionalItemTags.FERTILIZERS)
