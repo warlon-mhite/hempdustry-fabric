@@ -171,6 +171,9 @@ def expectedGametestLog = [
 	~/\[net\.minecraft\.world\.level\.levelgen\.WorldGenSettings\/\]: Not a registry ops/,
 	// in dev the mixins run in Mojang's names and need no refmap; the built jar carries it
 	~/\[mixin\/\]: Reference map 'hempdustry\.refmap\.json' for hempdustry\.(client\.|forge\.)?mixins\.json could not be read/,
+	// a fresh checkout's first run again: Forge writes its loader and common config the first time
+	~/\[net\.minecraftforge\.fml\.loading\.FMLConfig\/CORE\]: Incorrect key \[\w+\] was corrected from null/,
+	~/\[net\.minecraftforge\.common\.ForgeConfigSpec\/CORE\]: (Configuration file \S+\/config\/[\w-]+\.toml is not correct\. Correcting|Incorrect key [\w.]+ was corrected from null to its default)/,
 	// the test world is made anew every run, and Forge fills in its per-world config the first time
 	~/\[net\.minecraftforge\.common\.ForgeConfigSpec\/CORE\]: (Configuration file \.\/world\/serverconfig\/forge-server\.toml is not correct\. Correcting|Incorrect key server(\.\w+)? was corrected from null to its default)/,
 ]
