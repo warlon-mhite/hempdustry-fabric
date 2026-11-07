@@ -207,6 +207,11 @@ public final class HempdustryGameTests {
         register("every_recipe_for_another_mod_waits_for_it", OtherModsGameTest::everyRecipeForAnotherModWaitsForIt);
         register("every_seed_a_villager_plants_stands_on_farmland",
                 OtherModsGameTest::everySeedAVillagerPlantsStandsOnFarmland);
+        register("a_raw_growth_step_keeps_what_the_plant_went_through", RawWritesGameTest::aRawGrowthStepKeepsWhatThePlantWentThrough);
+        register("a_raw_ripening_grows_the_whole_plant_and_eats_from_its_pot", RawWritesGameTest::aRawRipeningGrowsTheWholePlantAndEatsFromItsPot);
+        register("a_raw_replant_starts_a_new_plant", RawWritesGameTest::aRawReplantStartsANewPlant);
+        register("a_raw_write_above_the_root_leaves_the_plant_whole", RawWritesGameTest::aRawWriteAboveTheRootLeavesThePlantWhole);
+        register("our_own_step_is_not_taken_for_a_raw_one", RawWritesGameTest::ourOwnStepIsNotTakenForARawOne);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */
