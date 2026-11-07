@@ -9,12 +9,18 @@ import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TallHemp;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
+import com.warlonmhite.hempdustry.util.ModTags;
+import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
@@ -117,6 +123,13 @@ public final class OtherModsGameTest {
             JsonObject recipe = Sweep.json(file.getValue()).getAsJsonObject();
             String type = recipe.has("type") ? recipe.get("type").getAsString() : "";
             String mod = type.contains(":") ? type.substring(0, type.indexOf(':')) : "minecraft";
+            // A crafting-table recipe for another mod's item (its rope, its sack) waits for that mod too: without
+            // it the result names an item that does not exist.
+            if (mod.equals("minecraft") && recipe.has("result") && recipe.get("result").isJsonObject()
+                    && recipe.getAsJsonObject("result").has("id")) {
+                String result = recipe.getAsJsonObject("result").get("id").getAsString();
+                mod = result.contains(":") ? result.substring(0, result.indexOf(':')) : "minecraft";
+            }
             if (mod.equals("minecraft") || mod.equals(Hempdustry.MOD_ID)) {
                 continue;
             }
@@ -357,5 +370,75 @@ public final class OtherModsGameTest {
             }
             context.succeed();
         });
+    }
+
+    /**
+     * Every seed of ours in vanilla's {@code #villager_plantable_seeds} stands on farmland. A farmer villager
+     * plants the block's default state on farmland without asking whether it survives there, so a seed that
+     * cannot (Beldía, a sand plant) would pop off at the next update and be planted again, for ever.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void everySeedAVillagerPlantsStandsOnFarmland(GameTestHelper context) {
+        context.setBlock(SOIL, Blocks.FARMLAND);
+        Map<String, String> findings = new TreeMap<>();
+        int seen = 0;
+        for (Holder<Item> holder : BuiltInRegistries.ITEM.getTagOrEmpty(ItemTags.VILLAGER_PLANTABLE_SEEDS)) {
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(holder.value());
+            if (!Sweep.ours(id)) {
+                continue;
+            }
+            seen++;
+            if (!(holder.value() instanceof BlockItem seed)) {
+                findings.put(id.toString(), "not a block item, and a villager plants only those");
+                continue;
+            }
+            BlockState planted = seed.getBlock().defaultBlockState();
+            if (!planted.canSurvive(context.getLevel(), context.absolutePos(CROP))) {
+                findings.put(id.toString(), "a villager plants it on farmland, where " + planted + " cannot stand");
+            }
+        }
+        Sweep.atLeast(context, "seeds of ours that villagers plant", seen, 2);
+        Sweep.report(context, "every seed a villager plants stands on farmland", findings, Map.of());
+        context.succeed();
+    }
+
+    /**
+     * Nothing of ours that Create beats into pulp is an ingredient of a Create mixer recipe of ours. Create's
+     * mixer runs the matching recipe with the most ingredients, and its pulp takes four of
+     * {@code #create:pulpifiable}: an item in both would turn a basin loaded for our recipe into pulp the
+     * moment it held four.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void nothingCreatePulpsIsOurMixersToo(GameTestHelper context) {
+        Set<String> pulped = new TreeSet<>();
+        for (Holder<Item> holder : BuiltInRegistries.ITEM.getTagOrEmpty(ModTags.OtherMods.CREATE_PULPIFIABLE)) {
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(holder.value());
+            if (Sweep.ours(id)) {
+                pulped.add(id.toString());
+            }
+        }
+        Sweep.atLeast(context, "items of ours Create pulps", pulped.size(), 1);
+        Map<String, String> findings = new TreeMap<>();
+        int mixing = 0;
+        for (Map.Entry<String, Path> file : Sweep.modFiles().entrySet()) {
+            String path = file.getKey();
+            if (!path.startsWith("data/") || !path.contains("/recipe/") || !path.endsWith(".json")) {
+                continue;
+            }
+            JsonObject recipe = Sweep.json(file.getValue()).getAsJsonObject();
+            if (!recipe.has("type") || !recipe.get("type").getAsString().equals("create:mixing")) {
+                continue;
+            }
+            mixing++;
+            for (JsonElement ingredient : recipe.getAsJsonArray("ingredients")) {
+                JsonObject entry = ingredient.getAsJsonObject();
+                if (entry.has("item") && pulped.contains(entry.get("item").getAsString())) {
+                    findings.put(path, entry.get("item").getAsString() + " is in #create:pulpifiable too");
+                }
+            }
+        }
+        Sweep.atLeast(context, "Create mixer recipes of ours", mixing, 1);
+        Sweep.report(context, "nothing Create pulps is an ingredient of our mixer recipes", findings, Map.of());
+        context.succeed();
     }
 }

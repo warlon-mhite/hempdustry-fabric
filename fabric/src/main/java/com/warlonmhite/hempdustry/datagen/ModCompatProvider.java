@@ -22,7 +22,8 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Recipes for other mods' machines, each loaded only when that mod is: Create, Mekanism and MoreMachine,
- * Farmer's Delight, Botany Pots and Immersive Engineering; and hemp as a Silent Gear material.
+ * Farmer's Delight, Botany Pots and Immersive Engineering; hemp as a Silent Gear material; and other mods'
+ * rope and sacks made from hemp fibre on the crafting table.
  *
  * <p>Every file carries both loaders' conditions, {@code neoforge:conditions} and {@code fabric:load_conditions};
  * each loader reads its own key and passes over the other's, so one file serves both jars, and without the
@@ -44,6 +45,7 @@ public class ModCompatProvider implements DataProvider {
     private static final String IMMERSIVE_ENGINEERING = "immersiveengineering";
     private static final String MORE_MACHINE = "mekmm";
     private static final String SILENT_GEAR = "silentgear";
+    private static final String SUPPLEMENTARIES = "supplementaries";
 
     /** A pot's and a cloche's harvest: a bud at two in three, two stems, a seed at one in four. */
     private static final float POT_BUD_CHANCE = 0.667F;
@@ -74,6 +76,7 @@ public class ModCompatProvider implements DataProvider {
         immersiveEngineering();
         moreMachine();
         silentGear();
+        supplementaries();
         return CompletableFuture.allOf(writes.toArray(CompletableFuture[]::new));
     }
 
@@ -158,6 +161,49 @@ public class ModCompatProvider implements DataProvider {
         // A retted stalk on the board is scutching by hand: its 6 fibre, as from the grid, and the
         // shives -- the woody core the fibre is beaten free of -- now and then as a stick.
         cutting("hemp_fiber_from_retted_hemp_stem", ModItems.RETTED_HEMP_STEM, 6);
+
+        // Rope is what hemp was grown for. Farmer's Delight twists two straw in a column into four rope; two
+        // hemp fibre give the same, so its rope fence, safety net and climbing rope can be all hemp.
+        write(FARMERS_DELIGHT, "rope", shaped(FARMERS_DELIGHT, new String[]{"#", "#"}, fiber(),
+                "farmersdelight:rope", 4));
+    }
+
+    // ----- Supplementaries -----
+
+    private void supplementaries() {
+        // Supplementaries twists three flax in a column into three rope, the rope its pulleys, rope arrows
+        // and climbing take; hemp fibre makes it at the same rate. Its own feature flags are not asked: their
+        // condition type exists only with Supplementaries loaded, and the loaders parse every condition of a
+        // file before testing any, so naming one would fail the file in every pack without it.
+        write(SUPPLEMENTARIES, "rope", shaped(SUPPLEMENTARIES, new String[]{"#", "#", "#"}, fiber(),
+                "supplementaries:rope", 3));
+        // Its sack, from seven fibre and a string tie, as from flax. Hemp sacking is the old thing: jute's
+        // burlap took its place only in the nineteenth century.
+        JsonObject sack = shaped(SUPPLEMENTARIES, new String[]{"#S#", "# #", "###"}, fiber(),
+                "supplementaries:sack", 1);
+        sack.getAsJsonObject("key").add("S", tag("c:strings"));
+        write(SUPPLEMENTARIES, "sack", sack);
+    }
+
+    /** Hemp fibre, ours or Immersive Engineering's, as the mod's own cloth recipes take it. */
+    private static JsonObject fiber() {
+        return tag(ModTags.Conventional.FIBER_HEMP.location().toString());
+    }
+
+    /** A crafting-table recipe for another mod's item: every {@code #} in {@code pattern} is {@code ingredient}. */
+    private static JsonObject shaped(String modId, String[] pattern, JsonObject ingredient, String result, int count) {
+        JsonObject recipe = conditioned(modId, "minecraft:crafting_shaped");
+        recipe.addProperty("category", "misc");
+        JsonObject key = new JsonObject();
+        key.add("#", ingredient);
+        recipe.add("key", key);
+        JsonArray rows = new JsonArray();
+        for (String row : pattern) {
+            rows.add(row);
+        }
+        recipe.add("pattern", rows);
+        recipe.add("result", result(result, count));
+        return recipe;
     }
 
     /**
