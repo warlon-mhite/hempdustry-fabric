@@ -9,8 +9,8 @@ import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.LocationPredicate;
 import net.minecraft.advancements.critereon.StatePropertiesPredicate;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.BlockItem;
@@ -23,24 +23,26 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.ConstantIntValue;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.RandomValueBounds;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.functions.ApplyExplosionDecay;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
-import net.minecraft.world.level.storage.loot.predicates.AllOfCondition;
-import net.minecraft.world.level.storage.loot.predicates.AnyOfCondition;
+import net.minecraft.world.level.storage.loot.predicates.AlternativeLootItemCondition;
+import net.minecraft.world.level.storage.loot.predicates.InvertedLootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LocationCheck;
 import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.predicates.MatchTool;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import java.util.Map;
 import java.util.Set;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Runtime tweaks to vanilla loot tables.
@@ -105,17 +107,8 @@ public class ModLootTableModifiers {
      * temple holds some: more likely than not, and the main way a player meets the plant.
      */
     private static final float DESERT_TEMPLE_SEED_CHANCE = 0.20f;
-
-    /**
-     * Weight of Beldía seeds inside the one pool of the desert well's and the desert pyramid's
-     * brushing tables. Both total 8, so this is about 11% a brush -- a brick's or an emerald's share
-     * -- and each sherd gets a ninth rarer. A weight, not a chance, so {@code loot.chanceMultiplier}
-     * leaves it alone.
-     *
-     * <p><b>Inside the existing pool, never a pool of its own.</b> A brushed block keeps exactly one
-     * item: {@code BrushableBlockEntity} logs "Expected max 1 loot from loot table" and drops the rest.
-     */
-    private static final int DESERT_ARCHAEOLOGY_SEED_WEIGHT = 1;
+    // The newer lines also put Beldía seeds in the desert well's and the desert pyramid's brushing
+    // tables. Minecraft 1.16.5 has no archaeology, so the desert temple's chests are the seeds' home.
     /**
      * Chance a plains or taiga village house chest holds 1-3 hemp seeds. Vanilla stocks each village
      * house with its biome's crop — wheat seeds in a savanna house (10 of 46), pumpkin seeds in a taiga
@@ -128,7 +121,7 @@ public class ModLootTableModifiers {
      * 1.21.2 on both keep a second (the bundle) that an edit to every pool would reach.
      */
     private static final float VILLAGE_HOUSE_SEED_CHANCE = 0.10f;
-    private static final Set<ResourceLocation> VILLAGE_HOUSE_SOURCES = Set.of(
+    private static final Set<ResourceLocation> VILLAGE_HOUSE_SOURCES = ImmutableSet.of(
             BuiltInLootTables.VILLAGE_PLAINS_HOUSE,
             BuiltInLootTables.VILLAGE_TAIGA_HOUSE);
     /** Beldía seeds in a desert village house, where the desert's farmers live — as rare as the others. */
@@ -149,10 +142,6 @@ public class ModLootTableModifiers {
     private static final int SHIPWRECK_FIBER_WEIGHT = 3;
     private static final int SHIPWRECK_CANVAS_WEIGHT = 1;
 
-    private static final Set<ResourceLocation> DESERT_ARCHAEOLOGY_SOURCES = Set.of(
-            BuiltInLootTables.DESERT_WELL_ARCHAEOLOGY,
-            BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY);
-
     /**
      * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
      *
@@ -168,11 +157,11 @@ public class ModLootTableModifiers {
      * The two-block plants that carry a hemp seed, mapped to the block itself — the block is needed
      * to build {@link #onlyTheHalfThatWasBroken}, which has to name it.
      */
-    private static final Map<ResourceLocation, Block> GRASS_SOURCES = Map.of(
+    private static final Map<ResourceLocation, Block> GRASS_SOURCES = ImmutableMap.of(
             Blocks.TALL_GRASS.getLootTable(), Blocks.TALL_GRASS,
             Blocks.LARGE_FERN.getLootTable(), Blocks.LARGE_FERN);
 
-    private static final Set<ResourceLocation> CHEST_SOURCES = Set.of(
+    private static final Set<ResourceLocation> CHEST_SOURCES = ImmutableSet.of(
             BuiltInLootTables.SHIPWRECK_SUPPLY,
             BuiltInLootTables.SIMPLE_DUNGEON,
             BuiltInLootTables.ABANDONED_MINESHAFT,
@@ -180,7 +169,7 @@ public class ModLootTableModifiers {
             BuiltInLootTables.PILLAGER_OUTPOST);
 
     /** The two chests vanilla stocks its common (creeper-droppable) discs in — 13 and cat. */
-    private static final Set<ResourceLocation> DISC_CHEST_SOURCES = Set.of(
+    private static final Set<ResourceLocation> DISC_CHEST_SOURCES = ImmutableSet.of(
             BuiltInLootTables.SIMPLE_DUNGEON,
             BuiltInLootTables.WOODLAND_MANSION);
 
@@ -188,7 +177,7 @@ public class ModLootTableModifiers {
      * Supply chests only — cordage is stores and rigging, not valuables, so it has no business in a
      * shipwreck's treasure chest and nothing to do with the map chest.
      */
-    private static final Set<ResourceLocation> FIBER_CHEST_SOURCES = Set.of(
+    private static final Set<ResourceLocation> FIBER_CHEST_SOURCES = ImmutableSet.of(
             BuiltInLootTables.SHIPWRECK_SUPPLY);
 
     /**
@@ -207,11 +196,18 @@ public class ModLootTableModifiers {
      * plant the player swings at, exactly as vanilla's own two pools arrange.
      */
     private static LootItemCondition.Builder onlyTheHalfThatWasBroken(Block plant) {
-        return AnyOfCondition.anyOf(
-                AllOfCondition.allOf(half(plant, DoubleBlockHalf.LOWER),
-                        partnerAt(plant, DoubleBlockHalf.UPPER, 1)),
-                AllOfCondition.allOf(half(plant, DoubleBlockHalf.UPPER),
-                        partnerAt(plant, DoubleBlockHalf.LOWER, -1)));
+        return AlternativeLootItemCondition.alternative(
+                allOf(half(plant, DoubleBlockHalf.LOWER), partnerAt(plant, DoubleBlockHalf.UPPER, 1)),
+                allOf(half(plant, DoubleBlockHalf.UPPER), partnerAt(plant, DoubleBlockHalf.LOWER, -1)));
+    }
+
+    /**
+     * Both of {@code a} and {@code b}. Minecraft 1.16.5 has no {@code all_of} condition; a pool's own
+     * conditions are an "and", but this one sits inside an "or", so it is written as vanilla's
+     * {@code inverted} and {@code alternative} can say it: not (not a, or not b).
+     */
+    private static LootItemCondition.Builder allOf(LootItemCondition.Builder a, LootItemCondition.Builder b) {
+        return InvertedLootItemCondition.invert(AlternativeLootItemCondition.alternative(a.invert(), b.invert()));
     }
 
     /** "The block being broken is {@code plant}, on this half." */
@@ -250,12 +246,12 @@ public class ModLootTableModifiers {
      */
     private static LootPool.Builder seedStash(HolderLookup.Provider registries, float base, boolean desert) {
         LootPool.Builder pool = LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1))
+                .setRolls(ConstantIntValue.exactly(1))
                 .when(LootItemRandomChanceCondition.randomChance(chance(base)));
         for (Holder.Reference<Strain> strain : Strain.all(registries)) {
             strain.value().seedItem().filter(seeds -> isDesertSeed(seeds) == desert)
                     .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)
-                            .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
+                            .apply(SetItemCountFunction.setCount(RandomValueBounds.between(1, 3)))));
         }
         return pool;
     }
@@ -286,7 +282,7 @@ public class ModLootTableModifiers {
                 // finding a hemp seed stays GRASS_SEED_CHANCE no matter how many strains exist, and
                 // which strain you get is a coin flip. (A pool picks exactly one of its entries.)
                 LootPool.Builder pool = LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
+                        .setRolls(ConstantIntValue.exactly(1))
                         .when(onlyTheHalfThatWasBroken(GRASS_SOURCES.get(key)))
                         .when(withoutShears(registries))
                         .when(LootItemRandomChanceCondition.randomChance(chance(GRASS_SEED_CHANCE)));
@@ -311,40 +307,33 @@ public class ModLootTableModifiers {
                 table.addPool(seedStash(registries, DESERT_TEMPLE_SEED_CHANCE, true));
             } else if (key.equals(BuiltInLootTables.VILLAGE_DESERT_HOUSE)) {
                 table.addPool(seedStash(registries, DESERT_HOUSE_SEED_CHANCE, true));
-            } else if (DESERT_ARCHAEOLOGY_SOURCES.contains(key)) {
-                // Into vanilla's one brushing pool, as a weighted entry beside the sherds.
-                for (Holder.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seedItem().filter(ModLootTableModifiers::isDesertSeed)
-                            .ifPresent(seeds -> table.addToEveryPool(LootItem.lootTableItem(seeds)
-                                    .setWeight(DESERT_ARCHAEOLOGY_SEED_WEIGHT)));
-                }
             }
 
             // Independent of the seed branch above — a shipwreck's supply chest is also a seed chest,
             // and a wreck holding both rope and a few seeds is exactly what a wreck should hold.
             if (FIBER_CHEST_SOURCES.contains(key)) {
                 table.addPool(LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
+                        .setRolls(ConstantIntValue.exactly(1))
                         .when(LootItemRandomChanceCondition.randomChance(chance(SHIPWRECK_FIBER_CHANCE)))
                         .add(LootItem.lootTableItem(ModItems.HEMP_FIBER)
                                 .setWeight(SHIPWRECK_FIBER_WEIGHT)
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 4))))
+                                .apply(SetItemCountFunction.setCount(RandomValueBounds.between(1, 4))))
                         .add(LootItem.lootTableItem(ModItems.HEMP_CANVAS)
                                 .setWeight(SHIPWRECK_CANVAS_WEIGHT)
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))));
+                                .apply(SetItemCountFunction.setCount(RandomValueBounds.between(1, 3)))));
                 table.addPool(LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
+                        .setRolls(ConstantIntValue.exactly(1))
                         .when(LootItemRandomChanceCondition.randomChance(chance(SHIPWRECK_SCHWAG_CHANCE)))
                         .add(LootItem.lootTableItem(ModItems.SCHWAG)
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 4)))));
+                                .apply(SetItemCountFunction.setCount(RandomValueBounds.between(1, 4)))));
             }
 
             // Both of these have exactly one pool, so the hemp goes in beside vanilla's own entries
-            // as a weight, the way the desert brushing tables take Beldía.
+            // as a weight.
             if (key.equals(BuiltInLootTables.VILLAGE_FISHER)) {
                 table.addToEveryPool(LootItem.lootTableItem(ModItems.TOASTED_HEMP_SEEDS)
                         .setWeight(FISHER_BAIT_WEIGHT)
-                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3))));
+                        .apply(SetItemCountFunction.setCount(RandomValueBounds.between(1, 3))));
             }
             if (key.equals(BuiltInLootTables.FISHING_JUNK)) {
                 table.addToEveryPool(LootItem.lootTableItem(ModItems.HEMP_FIBER)
@@ -356,7 +345,7 @@ public class ModLootTableModifiers {
             // many we ship, and which one you get is a coin flip.
             if (DISC_CHEST_SOURCES.contains(key)) {
                 LootPool.Builder pool = LootPool.lootPool()
-                        .setRolls(ConstantValue.exactly(1))
+                        .setRolls(ConstantIntValue.exactly(1))
                         .when(LootItemRandomChanceCondition.randomChance(chance(CHEST_DISC_CHANCE)));
                 for (Item disc : ModItems.MUSIC_DISCS) {
                     pool.add(LootItem.lootTableItem(disc));

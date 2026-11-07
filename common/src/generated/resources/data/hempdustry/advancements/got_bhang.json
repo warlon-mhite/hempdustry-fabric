@@ -4,9 +4,7 @@
     "drank_bhang": {
       "conditions": {
         "item": {
-          "items": [
-            "hempdustry:bhang_bucket"
-          ]
+          "item": "hempdustry:bhang_bucket"
         }
       },
       "trigger": "minecraft:consume_item"
@@ -32,6 +30,5 @@
     [
       "drank_bhang"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

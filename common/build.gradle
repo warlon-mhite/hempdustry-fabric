@@ -1,27 +1,33 @@
-// The mod itself, on plain Minecraft: compiled against vanilla only (MCP's 1.20.1 config, Mojang's
-// names and Parchment), so nothing here can reach a loader by accident -- an import from Fabric or Forge
-// fails to compile. Each loader's project compiles these sources into its own jar; this project's
-// own jar is never shipped.
+// The mod itself, on plain Minecraft: compiled against vanilla only (Mojang's names and Parchment), so
+// nothing here can reach a loader by accident -- an import from Forge fails to compile. The forge
+// project compiles these sources into its own jar; this project's own jar is never shipped.
 plugins {
 	id 'multiloader-common'
-	id 'net.neoforged.moddev.legacyforge'
+	id 'dev.architectury.loom'
 }
 
-legacyForge {
-	mcpVersion = mcp_version
-	// What the mod reaches in vanilla that vanilla keeps closed; Forge reads the same file from
-	// the jar. Fabric's form of it is hempdustry.accesswidener, beside it.
-	accessTransformers.from file('src/main/resources/META-INF/accesstransformer.cfg')
-	parchment {
-		minecraftVersion = parchment_minecraft
-		mappingsVersion = parchment_version
+loom {
+	// What the mod reaches in vanilla that vanilla keeps closed. Forge reads it converted to an
+	// access transformer (forge/build.gradle).
+	accessWidenerPath = file('src/main/resources/hempdustry.accesswidener')
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	mappings loom.layered {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
 	}
+	// The mixins target vanilla, so they live here; Forge 36.2 ships Mixin.
+	compileOnly "org.spongepowered:mixin:${mixin_version}"
+	// @Nullable and friends; Minecraft brings them at run time.
+	compileOnly "org.jetbrains:annotations:${jetbrains_annotations_version}"
 }
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
-// The game tests: plain Minecraft too, so they hold every loader's jar to the same rules. Compiled
-// here only to keep them loader-free; each loader's own game-test source set compiles and runs them.
+// The game tests and their harness: plain Minecraft too, so a test cannot reach Forge by accident.
+// Compiled here only to keep them loader-free; forge's game-test source set compiles and runs them.
 sourceSets {
 	gametest {
 		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
@@ -29,29 +35,13 @@ sourceSets {
 }
 
 dependencies {
-	// The mixins target vanilla, so they live here; both loaders ship Mixin and MixinExtras.
-	compileOnly "org.spongepowered:mixin:${mixin_version}"
-	compileOnly "io.github.llamalad7:mixinextras-common:${mixinextras_version}"
-	// @Nullable and friends; each loader's Minecraft brings them at run time.
-	compileOnly "org.jetbrains:annotations:${jetbrains_annotations_version}"
-
-	// The recipe viewers' plugins (compat/) are common's as well, written against each viewer's own
-	// API in Mojang's names: EMI's cross-loader API, JEI's common API, and REI's Forge build of its
-	// API -- REI's common one is in Fabric's names. Compile-only, as on the loaders, which compile the
-	// same sources against their own builds of each viewer; a player with none never loads a line of it.
-	compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}:api"
-	compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-	// REI's Forge build of its API, remapped from Forge's names into Mojang's (its common API is in
-	// Fabric's names).
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-forge:${rei_version}"
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-forge:${rei_version}"
-	// What REI's API names without bringing along -- see gradle.properties.
-	compileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"
-	modCompileOnly("dev.architectury:architectury-forge:${architectury_version}") { transitive = false }
+	// the newer lines' syntax in the tests too, as in the mod (multiloader-common)
+	gametestAnnotationProcessor "com.github.bsideup.jabel:jabel-javac-plugin:${jabel_version}"
+	gametestCompileOnly "com.github.bsideup.jabel:jabel-javac-plugin:${jabel_version}"
 }
 
-// What the loaders' projects take from here: the sources, and the resources -- hand-written and
-// generated -- that ship inside their jars; and the game tests, which ship in nothing.
+// What the forge project takes from here: the sources, and the resources -- hand-written and
+// generated -- that ship inside its jar.
 configurations {
 	commonJava {
 		canBeResolved = false

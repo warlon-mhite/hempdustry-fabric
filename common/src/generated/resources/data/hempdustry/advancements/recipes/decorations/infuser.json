@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hempcrete_block"
-            ]
+            "item": "hempdustry:hempcrete_block"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:infuser"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

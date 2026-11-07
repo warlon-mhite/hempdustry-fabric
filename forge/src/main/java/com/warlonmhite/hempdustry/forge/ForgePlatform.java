@@ -3,6 +3,9 @@ package com.warlonmhite.hempdustry.forge;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.platform.Platform;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.world.entity.Entity;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,6 +30,11 @@ public final class ForgePlatform implements Platform {
     @Override
     public String loaderName() {
         return "forge";
+    }
+
+    @Override
+    public Packet<?> entitySpawnPacket(Entity entity) {
+        return NetworkHooks.getEntitySpawningPacket(entity);
     }
 
     @Override

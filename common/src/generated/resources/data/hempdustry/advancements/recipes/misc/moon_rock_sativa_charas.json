@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:rosin"
-            ]
+            "item": "hempdustry:rosin"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:moon_rock_sativa_charas"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

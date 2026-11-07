@@ -4,9 +4,7 @@
     "smoked_a_vaporizer": {
       "conditions": {
         "item": {
-          "items": [
-            "hempdustry:vaporizer"
-          ]
+          "item": "hempdustry:vaporizer"
         }
       },
       "trigger": "hempdustry:smoke"
@@ -33,6 +31,5 @@
     [
       "smoked_a_vaporizer"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

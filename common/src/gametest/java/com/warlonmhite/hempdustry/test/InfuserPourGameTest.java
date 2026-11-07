@@ -7,8 +7,8 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
@@ -77,7 +77,7 @@ public final class InfuserPourGameTest {
         InteractionResult poured = rightClick(context, player, new ItemStack(Items.MILK_BUCKET));
         context.assertTrue(poured.consumesAction(), "pouring milk was not accepted: " + poured);
         context.assertTrue(filled(context), "pouring milk did not fill the tub");
-        context.assertTrue(player.getMainHandItem().is(Items.BUCKET),
+        context.assertTrue(player.getMainHandItem().getItem() == Items.BUCKET,
                 "the empty did not come back: holding " + player.getMainHandItem());
         context.assertFalse(screenOpen(player), "pouring milk opened the screen as well");
 
@@ -85,7 +85,7 @@ public final class InfuserPourGameTest {
         // lectern's rule. Refusing with a plain PASS would swallow it, and a player holding milk
         // could never look inside a busy tub.
         rightClick(context, player, new ItemStack(Items.MILK_BUCKET));
-        context.assertTrue(player.getMainHandItem().is(Items.MILK_BUCKET), "a full tub took a second milk");
+        context.assertTrue(player.getMainHandItem().getItem() == Items.MILK_BUCKET, "a full tub took a second milk");
         context.assertTrue(screenOpen(player),
                 "milk on a full tub did not open the screen — the fall-through is swallowing the click");
         player.closeContainer();
@@ -95,7 +95,7 @@ public final class InfuserPourGameTest {
         context.setBlock(TUB, ModBlocks.INFUSER);
         rightClick(context, player, new ItemStack(ModItems.HEMP_MILK_BUCKET));
         context.assertTrue(filled(context), "hemp milk did not fill the tub");
-        context.assertTrue(player.getMainHandItem().is(Items.BUCKET),
+        context.assertTrue(player.getMainHandItem().getItem() == Items.BUCKET,
                 "hemp milk's empty did not come back: holding " + player.getMainHandItem());
 
         context.succeed();
@@ -117,7 +117,7 @@ public final class InfuserPourGameTest {
 
         context.runAtTickTime(10, () -> {
             context.assertTrue(filled(context), "the dispenser did not pour its milk into the tub");
-            context.assertTrue(dispenser.getItem(0).is(Items.BUCKET),
+            context.assertTrue(dispenser.getItem(0).getItem() == Items.BUCKET,
                     "the dispenser did not keep the empty: slot 0 holds " + dispenser.getItem(0));
 
             dispenser.setItem(0, new ItemStack(Items.MILK_BUCKET));
@@ -125,7 +125,7 @@ public final class InfuserPourGameTest {
         });
 
         context.runAtTickTime(20, () -> {
-            context.assertTrue(dispenser.getItem(0).is(Items.MILK_BUCKET),
+            context.assertTrue(dispenser.getItem(0).getItem() == Items.MILK_BUCKET,
                     "a dispenser facing a full tub did not keep its milk: slot 0 holds " + dispenser.getItem(0));
             Line.equal(context, count(context, Items.MILK_BUCKET), 0, "milk was dropped in front of a full tub");
 
@@ -169,7 +169,7 @@ public final class InfuserPourGameTest {
     private static int count(GameTestHelper context, Item item) {
         int total = 0;
         for (ItemEntity entity : Line.entities(context, EntityType.ITEM)) {
-            if (entity.getItem().is(item)) {
+            if (entity.getItem().getItem() == item) {
                 total += entity.getItem().getCount();
             }
         }

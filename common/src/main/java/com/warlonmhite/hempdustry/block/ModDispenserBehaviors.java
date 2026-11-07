@@ -117,7 +117,9 @@ public final class ModDispenserBehaviors {
     }
 
     private static void waterGrowPots() {
-        // Vanilla registers the potion's behaviour (a water bottle turns dirt to mud); wrap it.
+        // Wrap whatever the potion already does, so only a pot in front changes it. 1.16.5's vanilla
+        // registers nothing for a drinkable potion (only splash and lingering), so it drops as an item;
+        // the newer lines' turns dirt to mud.
         DispenseItemBehavior previous = DispenserBlock.DISPENSER_REGISTRY.getOrDefault(Items.POTION, new DefaultDispenseItemBehavior());
         DispenserBlock.registerBehavior(Items.POTION, (pointer, stack) -> GrowPotBlock.isWaterBottle(stack)
                 && GrowPotBlock.isPot(pointer.getLevel().getBlockState(

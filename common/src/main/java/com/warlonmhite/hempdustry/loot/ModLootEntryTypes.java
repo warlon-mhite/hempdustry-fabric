@@ -11,12 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -28,10 +26,12 @@ import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import com.google.common.collect.ImmutableList;
+import java.util.Random;
 
 public class ModLootEntryTypes {
 
-    public static final LootPoolEntryType SPOILING = Registry.register(BuiltInRegistries.LOOT_POOL_ENTRY_TYPE,
+    public static final LootPoolEntryType SPOILING = Registry.register(Registry.LOOT_POOL_ENTRY_TYPE,
             new ResourceLocation(Hempdustry.MOD_ID, "spoiling"), new LootPoolEntryType(new SpoilingEntry.Serializer()));
 
     public static void registerLootEntryTypes() {
@@ -87,8 +87,8 @@ public class ModLootEntryTypes {
             this.child = child;
             this.into = into;
             this.enchantment = enchantment;
-            this.oneItemChances = List.copyOf(oneItemChances);
-            this.eachItemChances = List.copyOf(eachItemChances);
+            this.oneItemChances = ImmutableList.copyOf(oneItemChances);
+            this.eachItemChances = ImmutableList.copyOf(eachItemChances);
         }
 
         @Override
@@ -115,14 +115,14 @@ public class ModLootEntryTypes {
 
                 @Override
                 public void createItemStack(Consumer<ItemStack> lootConsumer, LootContext lootContext) {
-                    RandomSource random = RandomSource.create(lootContext.getRandom().nextLong());
+                    Random random = new Random(lootContext.getRandom().nextLong());
                     int level = level(lootContext);
                     choice.createItemStack(stack -> spoil(stack, random, level, lootConsumer), lootContext);
                 }
             }));
         }
 
-        private void spoil(ItemStack stack, RandomSource random, int level, Consumer<ItemStack> lootConsumer) {
+        private void spoil(ItemStack stack, Random random, int level, Consumer<ItemStack> lootConsumer) {
             int spoiled = 0;
             if (stack.getCount() > 0 && random.nextFloat() < chance(oneItemChances, level)) {
                 spoiled = 1;
@@ -153,14 +153,14 @@ public class ModLootEntryTypes {
             return chances.isEmpty() ? 0.0F : chances.get(Math.min(level, chances.size() - 1));
         }
 
-        /** The entry's JSON, as the comment above shows it; 1.20.1 reads loot through Gson, not codecs. */
+        /** The entry's JSON, as the comment above shows it; 1.16.5 reads loot through Gson, not codecs. */
         public static final class Serializer extends LootPoolEntryContainer.Serializer<SpoilingEntry> {
             @Override
             public void serializeCustom(JsonObject json, SpoilingEntry entry, JsonSerializationContext context) {
                 json.add("child", context.serialize(entry.child));
-                json.addProperty("into", BuiltInRegistries.ITEM.getKey(entry.into).toString());
+                json.addProperty("into", Registry.ITEM.getKey(entry.into).toString());
                 entry.enchantment.ifPresent(enchantment ->
-                        json.addProperty("enchantment", String.valueOf(BuiltInRegistries.ENCHANTMENT.getKey(enchantment))));
+                        json.addProperty("enchantment", String.valueOf(Registry.ENCHANTMENT.getKey(enchantment))));
                 writeChances(json, "one_item_chances", entry.oneItemChances);
                 writeChances(json, "each_item_chances", entry.eachItemChances);
             }
@@ -170,12 +170,12 @@ public class ModLootEntryTypes {
                                                    LootItemCondition[] conditions) {
                 LootPoolEntryContainer child = GsonHelper.getAsObject(json, "child", context, LootPoolEntryContainer.class);
                 ResourceLocation intoId = new ResourceLocation(GsonHelper.getAsString(json, "into"));
-                Item into = BuiltInRegistries.ITEM.getOptional(intoId)
+                Item into = Registry.ITEM.getOptional(intoId)
                         .orElseThrow(() -> new JsonSyntaxException("Unknown item '" + intoId + "'"));
                 Optional<Enchantment> enchantment = Optional.empty();
                 if (json.has("enchantment")) {
                     ResourceLocation id = new ResourceLocation(GsonHelper.getAsString(json, "enchantment"));
-                    enchantment = Optional.of(BuiltInRegistries.ENCHANTMENT.getOptional(id)
+                    enchantment = Optional.of(Registry.ENCHANTMENT.getOptional(id)
                             .orElseThrow(() -> new JsonSyntaxException("Unknown enchantment '" + id + "'")));
                 }
                 return new SpoilingEntry(child, into, enchantment, readChances(json, "one_item_chances"),
@@ -193,7 +193,7 @@ public class ModLootEntryTypes {
 
             private static List<Float> readChances(JsonObject json, String field) {
                 if (!json.has(field)) {
-                    return List.of();
+                    return ImmutableList.of();
                 }
                 List<Float> chances = new ArrayList<>();
                 for (JsonElement element : GsonHelper.getAsJsonArray(json, field)) {
@@ -215,8 +215,8 @@ public class ModLootEntryTypes {
             private final LootPoolEntryContainer.Builder<?> child;
             private final Item into;
             private Optional<Enchantment> enchantment = Optional.empty();
-            private List<Float> oneItemChances = List.of();
-            private List<Float> eachItemChances = List.of();
+            private List<Float> oneItemChances = ImmutableList.of();
+            private List<Float> eachItemChances = ImmutableList.of();
 
             private Builder(LootPoolEntryContainer.Builder<?> child, Item into) {
                 this.child = child;
@@ -229,12 +229,12 @@ public class ModLootEntryTypes {
             }
 
             public com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder oneItem(Float... chances) {
-                this.oneItemChances = List.of(chances);
+                this.oneItemChances = ImmutableList.copyOf(chances);
                 return this;
             }
 
             public com.warlonmhite.hempdustry.loot.ModLootEntryTypes.SpoilingEntry.Builder eachItem(Float... chances) {
-                this.eachItemChances = List.of(chances);
+                this.eachItemChances = ImmutableList.copyOf(chances);
                 return this;
             }
 

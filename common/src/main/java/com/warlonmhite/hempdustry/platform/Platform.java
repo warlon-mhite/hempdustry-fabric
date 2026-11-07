@@ -5,6 +5,8 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.nio.file.Path;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.world.entity.Entity;
 
 /** Facts about the running game that only the loader knows. */
 public interface Platform {
@@ -27,4 +29,10 @@ public interface Platform {
      * hemp crop grows on each loader exactly as wheat does there.
      */
     float cropGrowthSpeed(BlockState crop, BlockGetter level, BlockPos pos);
+
+    /**
+     * The packet that spawns one of our entities on a client. A 1.16.5 client builds only vanilla's
+     * own entities from vanilla's spawn packet; the loader's packet names the type.
+     */
+    Packet<?> entitySpawnPacket(Entity entity);
 }

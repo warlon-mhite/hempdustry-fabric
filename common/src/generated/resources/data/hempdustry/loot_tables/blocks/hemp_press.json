@@ -2,7 +2,6 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "condition": "minecraft:survives_explosion"
@@ -20,7 +19,7 @@
           "name": "hempdustry:hemp_press"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ]
 }

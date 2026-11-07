@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.google.common.collect.ImmutableList;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.HempPressBlock;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
@@ -7,8 +8,8 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +31,7 @@ public final class HempPressGameTest {
     /** Facing east, so its back is west: a face no default facing lands on by accident. */
     private static final BlockPos PRESS = new BlockPos(3, 1, 3);
     private static final BlockPos BEHIND = PRESS.west();
-    private static final List<BlockPos> NOT_BEHIND = List.of(PRESS.east(), PRESS.north(), PRESS.south());
+    private static final List<BlockPos> NOT_BEHIND = ImmutableList.of(PRESS.east(), PRESS.north(), PRESS.south());
     /** A press with nothing on any side of it. */
     private static final BlockPos LONE = new BlockPos(6, 1, 6);
 
@@ -53,7 +54,7 @@ public final class HempPressGameTest {
     private static int rosinOnTheFloor(GameTestHelper context) {
         int total = 0;
         for (ItemEntity entity : Line.entities(context, EntityType.ITEM)) {
-            if (entity.getItem().is(ModItems.ROSIN)) {
+            if (entity.getItem().getItem() == ModItems.ROSIN) {
                 total += entity.getItem().getCount();
             }
         }

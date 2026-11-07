@@ -28,6 +28,5 @@
     "recipes": [
       "hempdustry:hemp_milk_bucket"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

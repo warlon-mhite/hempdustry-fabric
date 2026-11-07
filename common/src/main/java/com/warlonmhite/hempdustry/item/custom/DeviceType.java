@@ -127,7 +127,7 @@ public enum DeviceType {
 
     /** The bowl this device ships with; see {@link #builtInStats()}. */
     public DeviceStats.Bowl builtInBowl() {
-        return builtInStats.bowl().orElseThrow();
+        return builtInStats.bowl().get();
     }
 
     /**
@@ -144,7 +144,7 @@ public enum DeviceType {
     /**
      * How long the use key is held for one hit, or {@code 0} for a hit on the click. Only the bong
      * draws: 30 ticks with the device raised to the mouth in vanilla's goat-horn pose
-     * ({@code UseAnim.TOOT_HORN}), its bubbling playing from the first tick and the hit landing
+     * ({@code UseAnim.DRINK} on 1.16.5, which has no goat horn), its bubbling playing from the first tick and the hit landing
      * on the last. Let go early and nothing is spent, as with a potion put down half-drunk.
      *
      * <p>A draw is a cost as well as a picture — a player ripping a bong is a player standing

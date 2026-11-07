@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.test;
 
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import com.google.common.collect.ImmutableList;
+import net.minecraft.core.Registry;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
@@ -13,9 +15,9 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.Smoking;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.core.Holder;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -47,7 +49,7 @@ public final class RebalanceGameTest {
         boolean sawGreenOut = false;
         for (int i = 0; i < TRIES && (clean == null || !sawGreenOut); i++) {
             ServerPlayer player = freshPlayer(context);
-            player.getFoodData().setSaturation(5f);
+            Line.setSaturation(player, 5f);
             ItemStack spliff = packed(context, ModItems.SPLIFF, ModStrains.SATIVA, 3);
             smoke(context, player, spliff);
             if (player.hasEffect(MobEffects.MOVEMENT_SPEED)) {
@@ -99,7 +101,7 @@ public final class RebalanceGameTest {
                     "a second bud past the lowered cap buys half the pipe's duration again");
 
             // Pairing lifts maxBuffLevel, never maxLevel, so a paired bud turns into time there too.
-            List<MobEffectInstance> paired = hit(new SmokeContents(List.of(
+            List<MobEffectInstance> paired = hit(new SmokeContents(ImmutableList.of(
                     new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
                     new SmokeContents.Entry(strain(context, ModStrains.HASHISH), 1))));
             Line.equal(context, find(paired, MobEffects.MOVEMENT_SPEED).getAmplifier(), 0, "maxLevel 1 holds paired Speed at I");
@@ -134,7 +136,7 @@ public final class RebalanceGameTest {
     public void aBudWithAConcentrateReachesThree(GameTestHelper context) {
         // Two Lemon Haze and a pinch of hash: the bud's buffs one past the cap, its costs at the dose,
         // and the hash's own Resistance at its own count.
-        List<MobEffectInstance> paired = hit(new SmokeContents(List.of(
+        List<MobEffectInstance> paired = hit(new SmokeContents(ImmutableList.of(
                 new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
                 new SmokeContents.Entry(strain(context, ModStrains.HASHISH), 1))));
         Line.equal(context, find(paired, MobEffects.MOVEMENT_SPEED).getAmplifier(), 2, "paired Speed reaches III");
@@ -143,14 +145,14 @@ public final class RebalanceGameTest {
         Line.equal(context, find(paired, MobEffects.DAMAGE_RESISTANCE).getAmplifier(), 0, "the hash's own buff is its own count");
 
         // Once: three buds and a whole rosin bowl still stop at III, and the rosin at the plain cap.
-        List<MobEffectInstance> heavy = hit(new SmokeContents(List.of(
+        List<MobEffectInstance> heavy = hit(new SmokeContents(ImmutableList.of(
                 new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 3),
                 new SmokeContents.Entry(strain(context, ModStrains.ROSIN), 3))));
         Line.equal(context, find(heavy, MobEffects.MOVEMENT_SPEED).getAmplifier(), 2, "the bonus is once, not per concentrate");
         Line.equal(context, find(heavy, MobEffects.DAMAGE_RESISTANCE).getAmplifier(), 1, "rosin's own Resistance stays at II");
 
         // Scorched hemp is no concentrate: no buff of its own, so it lifts nothing.
-        List<MobEffectInstance> scorched = hit(new SmokeContents(List.of(
+        List<MobEffectInstance> scorched = hit(new SmokeContents(ImmutableList.of(
                 new SmokeContents.Entry(strain(context, ModStrains.SATIVA), 2),
                 new SmokeContents.Entry(strain(context, ModStrains.SCORCHED_HEMP), 1))));
         Line.equal(context, find(scorched, MobEffects.MOVEMENT_SPEED).getAmplifier(), 1, "scorched hemp does not pair");
@@ -180,7 +182,7 @@ public final class RebalanceGameTest {
         for (int hit = 1; hit <= charges; hit++) {
             ItemStack inHand = player.getItemInHand(InteractionHand.MAIN_HAND);
             context.assertFalse(inHand.isEmpty(), "the pipe broke with " + (charges - hit + 1) + " hits left in its bowl");
-            player.getCooldowns().removeCooldown(ModItems.WOODEN_PIPE);
+            Line.clearCooldown(player, ModItems.WOODEN_PIPE);
             smoke(context, player, inHand);
         }
         context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
@@ -221,7 +223,7 @@ public final class RebalanceGameTest {
         java.util.Random random = new java.util.Random(48L);
         int rolls = 20000;
         EdibleBundle.Onset previous = null;
-        for (Quality quality : List.of(Quality.ROUGH, Quality.STANDARD, Quality.CLEAN, Quality.PERFECT)) {
+        for (Quality quality : ImmutableList.of(Quality.ROUGH, Quality.STANDARD, Quality.CLEAN, Quality.PERFECT)) {
             EdibleBundle.Onset window = EdibleBundle.BUILT_IN.qualities().of(quality).onset();
             int width = window.maxTicks() - window.minTicks();
             int atMin = 0, atMax = 0, early = 0, late = 0;
@@ -299,7 +301,7 @@ public final class RebalanceGameTest {
         player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1000, 1));
         player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 1000, 1));
         player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1000, 0));
-        player.getFoodData().setSaturation(5f);
+        Line.setSaturation(player, 5f);
         return player;
     }
 
@@ -309,7 +311,7 @@ public final class RebalanceGameTest {
     }
 
     private static Holder<Strain> strain(GameTestHelper context, ResourceKey<Strain> key) {
-        return context.getLevel().registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
+        return DataRegistries.of(context.getLevel()).lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
     }
 
     private static ItemStack packed(GameTestHelper context, Item device, ResourceKey<Strain> strain, int dose) {
@@ -333,7 +335,7 @@ public final class RebalanceGameTest {
                                         ResourceKey<Strain> strain, int dose) {
         for (int i = 0; i < TRIES; i++) {
             player.removeAllEffects();
-            player.getCooldowns().removeCooldown(device);
+            Line.clearCooldown(player, device);
             smoke(context, player, packed(context, device, strain, dose));
             if (player.hasEffect(MobEffects.DAMAGE_RESISTANCE)) {
                 return;
@@ -348,11 +350,11 @@ public final class RebalanceGameTest {
     }
 
     private static List<MobEffectInstance> allowed(List<EdibleEffects.Dose> bundle) {
-        return EffectPolicy.filterKeepingDuration(bundle.stream().map(EdibleEffects.Dose::effect).toList());
+        return EffectPolicy.filterKeepingDuration(bundle.stream().map(EdibleEffects.Dose::effect).collect(java.util.stream.Collectors.toList()));
     }
 
     private static MobEffectInstance find(List<MobEffectInstance> effects, MobEffect type) {
         return effects.stream().filter(e -> e.getEffect().equals(type)).findFirst()
-                .orElseThrow(() -> new AssertionError("no " + BuiltInRegistries.MOB_EFFECT.getKey(type) + " in the bundle"));
+                .orElseThrow(() -> new AssertionError("no " + Registry.MOB_EFFECT.getKey(type) + " in the bundle"));
     }
 }

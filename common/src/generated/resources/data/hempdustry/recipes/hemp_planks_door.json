@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "redstone",
   "key": {
     "#": {
       "item": "hempdustry:hemp_planks"
@@ -14,6 +13,5 @@
   "result": {
     "count": 3,
     "item": "hempdustry:hemp_planks_door"
-  },
-  "show_notification": true
+  }
 }

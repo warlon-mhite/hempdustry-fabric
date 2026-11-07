@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:charas"
-            ]
+            "item": "hempdustry:charas"
           }
         ]
       },
@@ -34,6 +32,5 @@
     [
       "has_charas"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "B": {
       "item": "minecraft:iron_bars"
@@ -19,6 +18,5 @@
   ],
   "result": {
     "item": "hempdustry:sifting_box"
-  },
-  "show_notification": true
+  }
 }

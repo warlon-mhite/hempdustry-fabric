@@ -28,6 +28,5 @@
     "recipes": [
       "hempdustry:hemp_flour"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

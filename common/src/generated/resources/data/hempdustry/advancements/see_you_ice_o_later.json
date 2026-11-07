@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:bubble_hash"
-            ]
+            "item": "hempdustry:bubble_hash"
           }
         ]
       },
@@ -34,6 +32,5 @@
     [
       "has_bubble_hash"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

@@ -5,10 +5,9 @@ import com.warlonmhite.hempdustry.block.custom.HashishBarBlock;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -101,19 +100,19 @@ public final class HashishBarGameTest {
      *
      * <p>{@code #hempdustry:hash_cutters} names {@code #c:tools/knife}, which no vanilla item joins
      * and which therefore does not exist on a client with no cooking mod installed. <b>One
-     * unresolvable <em>required</em> entry drops the entire tag</b>, taking {@code #minecraft:swords}
-     * with it — so this test runs in exactly the configuration that breaks it (no cooking mod on the
+     * unresolvable <em>required</em> entry drops the entire tag</b>, taking the swords with it (1.16.5
+     * has no {@code #minecraft:swords}, so they are listed one by one) — so this test runs in exactly
+     * the configuration that breaks it (no cooking mod on the
      * gametest runtime) and asserts the tag still has a sword in it. The failure mode it guards
      * against is a bar nobody can cut and nothing on screen to say why.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void hashCuttersTagResolves(GameTestHelper context) {
-        Holder<net.minecraft.world.item.Item> sword = BuiltInRegistries.ITEM.wrapAsHolder(Items.DIAMOND_SWORD);
-        context.assertTrue(sword.is(ModTags.Items.HASH_CUTTERS),
+        context.assertTrue(Items.DIAMOND_SWORD.is(ModTags.Items.HASH_CUTTERS),
                 "#hempdustry:hash_cutters does not contain a diamond sword — an unresolvable "
                         + "required entry has almost certainly dropped the whole tag");
         // Shears deliberately stay out of it: they mean "trim a plant" in this mod and nothing else.
-        context.assertFalse(BuiltInRegistries.ITEM.wrapAsHolder(Items.SHEARS).is(ModTags.Items.HASH_CUTTERS),
+        context.assertFalse(Items.SHEARS.is(ModTags.Items.HASH_CUTTERS),
                 "shears joined the hash cutters — they already mean 'trim a plant'");
         context.succeed();
     }

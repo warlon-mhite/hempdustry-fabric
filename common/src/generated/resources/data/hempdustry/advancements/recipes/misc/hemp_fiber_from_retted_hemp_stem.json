@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:retted_hemp_stem"
-            ]
+            "item": "hempdustry:retted_hemp_stem"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:hemp_fiber_from_retted_hemp_stem"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

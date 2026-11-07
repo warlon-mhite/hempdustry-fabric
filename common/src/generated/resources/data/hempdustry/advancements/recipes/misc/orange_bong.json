@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:orange_stained_glass"
-            ]
+            "item": "minecraft:orange_stained_glass"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:orange_bong"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

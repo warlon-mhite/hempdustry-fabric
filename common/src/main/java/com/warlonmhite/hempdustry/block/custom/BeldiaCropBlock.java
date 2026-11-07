@@ -87,8 +87,10 @@ public class BeldiaCropBlock extends IndicaCropBlock {
 
     /** Bone meal is growth too, and a dry plant does not grow. */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
-        return super.isValidBonemealTarget(world, pos, state, isClient) && isWatered(world, pos.below());
+    public boolean isValidBonemealTarget(BlockGetter world, BlockPos pos, BlockState state, boolean isClient) {
+        // 1.16.5 asks with a BlockGetter; bone meal always passes a level.
+        return super.isValidBonemealTarget(world, pos, state, isClient)
+                && world instanceof LevelReader reader && isWatered(reader, pos.below());
     }
 
     /**

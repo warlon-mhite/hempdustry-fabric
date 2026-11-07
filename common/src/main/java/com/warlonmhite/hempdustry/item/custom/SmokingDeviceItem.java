@@ -41,11 +41,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.jetbrains.annotations.Nullable;
 import java.util.List;
+import net.minecraft.network.chat.TranslatableComponent;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * A smoking device — wooden pipe, bong or vaporizer — in <em>either</em> state. Empty and packed are the same
@@ -120,12 +122,12 @@ public class SmokingDeviceItem extends Item {
         // redstone-as-repair would have been the modded tell. Allowed packed or empty — durability
         // is the same component either way.
         if (repairMaterial != null) {
-            return ingredient.is(repairMaterial);
+            return ingredient.getItem() == repairMaterial;
         }
         return switch (device) {
-            case PIPE -> ingredient.is(ItemTags.PLANKS);
-            case BONG -> ingredient.is(Items.GLASS);
-            case VAPORIZER -> ingredient.is(Items.IRON_INGOT);
+            case PIPE -> ingredient.getItem().is(ItemTags.PLANKS);
+            case BONG -> ingredient.getItem() == Items.GLASS;
+            case VAPORIZER -> ingredient.getItem() == Items.IRON_INGOT;
         };
     }
 
@@ -148,7 +150,7 @@ public class SmokingDeviceItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
         super.appendHoverText(stack, context, tooltip, type);
         if (placed != null && !contentsOf(stack).isEmpty()) {
-            tooltip.add(Component.translatable("hempdustry.bong.set_down").withStyle(ChatFormatting.GRAY));
+            tooltip.add(new TranslatableComponent("hempdustry.bong.set_down").withStyle(ChatFormatting.GRAY));
         }
     }
 
@@ -183,7 +185,7 @@ public class SmokingDeviceItem extends Item {
         BlockState state = placement.canPlace() ? placed.getStateForPlacement(placement) : null;
         if (state == null || !state.canSurvive(world, pos)
                 || !world.isUnobstructed(state, pos, player == null ? CollisionContext.empty() : CollisionContext.of(player))
-                || !world.setBlock(pos, state, Block.UPDATE_ALL_IMMEDIATE)) {
+                || !world.setBlock(pos, state, BlockFlags.UPDATE_ALL_IMMEDIATE)) {
             return InteractionResult.FAIL;
         }
         BlockEntity blockEntity = world.getBlockEntity(pos);
@@ -197,8 +199,7 @@ public class SmokingDeviceItem extends Item {
         SoundType sounds = state.getSoundType();
         world.playSound(player, pos, sounds.getPlaceSound(), SoundSource.BLOCKS,
                 (sounds.getVolume() + 1f) / 2f, sounds.getPitch() * 0.8f);
-        world.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(player, state));
-        if (!player.getAbilities().instabuild) {
+        if (!player.abilities.instabuild) {
             stack.shrink(1);
         }
         return InteractionResult.sidedSuccess(world.isClientSide);
@@ -261,7 +262,8 @@ public class SmokingDeviceItem extends Item {
 
     @Override
     public UseAnim getUseAnimation(ItemStack stack) {
-        return device.drawTicks() > 0 ? UseAnim.TOOT_HORN : UseAnim.NONE;
+        // Held to the mouth: 1.16.5 has no goat horn's pose, and drinking's is the nearest.
+        return device.drawTicks() > 0 ? UseAnim.DRINK : UseAnim.NONE;
     }
 
     /**
@@ -296,17 +298,17 @@ public class SmokingDeviceItem extends Item {
      */
     private static void wisp(ServerLevel world, LivingEntity user) {
         boolean rightHand = (user.getUsedItemHand() == InteractionHand.MAIN_HAND) == (user.getMainArm() == HumanoidArm.RIGHT);
-        Vec3 forward = Vec3.directionFromRotation(0, user.getYRot());
-        Vec3 side = Vec3.directionFromRotation(0, user.getYRot() + (rightHand ? 90 : -90));
-        Vec3 bowl = user.getEyePosition().add(forward.scale(0.4)).add(side.scale(0.3)).add(0, -0.5, 0);
+        Vec3 forward = Vec3.directionFromRotation(0, user.yRot);
+        Vec3 side = Vec3.directionFromRotation(0, user.yRot + (rightHand ? 90 : -90));
+        Vec3 bowl = user.getEyePosition(1.0F).add(forward.scale(0.4)).add(side.scale(0.3)).add(0, -0.5, 0);
         world.sendParticles(ParticleTypes.SMOKE, bowl.x, bowl.y, bowl.z, 1, 0.02, 0.02, 0.02, 0.005);
     }
 
     /** One hit, spent: effects, cooldown, a charge and a point of durability, and the bowl's end. */
     private void hit(Level world, Player player, ItemStack stack, SmokeContents contents,
                      InteractionHand hand, int soundDelayTicks) {
-        DeviceStats stats = DeviceStats.of(world.registryAccess(), device);
-        GreenOut greenOut = GreenOut.of(world.registryAccess());
+        DeviceStats stats = DeviceStats.of(DataRegistries.of(world), device);
+        GreenOut greenOut = GreenOut.of(DataRegistries.of(world));
         boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
                 stats.coughOneIn(), stats.nauseaOneIn(),
                 Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
@@ -314,7 +316,7 @@ public class SmokingDeviceItem extends Item {
         Smoking.startCooldown(player, stack,
                 EffectPolicy.cooldown(lockedOut ? greenOut.lockoutTicks() : stats.cooldownTicks()));
 
-        if (player.getAbilities().instabuild) {
+        if (player.abilities.instabuild) {
             return;
         }
         int remaining = ModComponents.CHARGES.getOrDefault(stack, 0) - 1;
@@ -358,15 +360,18 @@ public class SmokingDeviceItem extends Item {
      * predicate for plant matter answers both, and anything hash-shaped a datapack adds. Schwag
      * passes it: a spoiled bud still leaves a spent one.
      *
-     * <p>{@code addItem} puts it in the inventory and drops the remainder at the player's feet
-     * if there is no room, which is vanilla's own behaviour for a bucket emptying or a bundle
-     * spilling — the yield can never be lost to a full hotbar.
+     * <p>It goes into the inventory, and what does not fit drops at the player's feet, as a bucket
+     * emptying does. {@code addItem} alone only tries the inventory: it answers false when nothing
+     * fits, drops nothing, and a full inventory would have swallowed the yield.
      */
     private void yieldSpent(Player player, SmokeContents contents) {
-        int yield = DeviceStats.bowl(player.level().registryAccess(), device).spentYield();
+        int yield = DeviceStats.bowl(DataRegistries.of(player.level), device).spentYield();
         if (yield > 0 && contents.entries().stream()
                 .allMatch(entry -> ModStrains.isPlantMatter(entry.strain()))) {
-            player.addItem(new ItemStack(ModItems.SCORCHED_HEMP, yield));
+            ItemStack spent = new ItemStack(ModItems.SCORCHED_HEMP, yield);
+            if (!player.addItem(spent)) {
+                player.drop(spent, false);
+            }
         }
     }
 }

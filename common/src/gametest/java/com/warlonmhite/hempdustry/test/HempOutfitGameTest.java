@@ -1,13 +1,14 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.google.common.collect.ImmutableList;
 import net.minecraft.world.item.DyeableLeatherItem;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.Smoking;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -19,43 +20,25 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 /**
  * The hemp outfit: what each piece does beyond its armour points. Every one of these is a tag entry
- * or a map entry that fails without a sound — a beanie that lets you freeze, a shirt the dye recipe
- * ignores, a cauldron that will not wash it, a set bonus that never fires.
+ * or a map entry that fails without a sound — a shirt the dye recipe ignores, a cauldron that will
+ * not wash it, a set bonus that never fires.
  */
 public final class HempOutfitGameTest {
 
-    /**
-     * The beanie alone keeps a player from freezing, and the other three pieces do not.
-     *
-     * <p>{@code canFreeze} is the whole of vanilla's check: it walks the armour slots for anything in
-     * {@code #minecraft:freeze_immune_wearables}. The second half guards the other way, so the
-     * flip-flops cannot drift into the tag along with the beanie.
-     */
-    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
-    public void onlyTheBeanieKeepsOutTheCold(GameTestHelper context) {
-        Player player = Line.mockPlayer(context, GameType.SURVIVAL);
-        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ModItems.HEMP_BEANIE));
-        context.assertFalse(player.canFreeze(), "a player in a hemp beanie still freezes in powder snow");
-
-        player.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-        player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ModItems.HEMP_SHIRT));
-        player.setItemSlot(EquipmentSlot.LEGS, new ItemStack(ModItems.HEMP_HAREM_PANTS));
-        player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ModItems.FLIP_FLOPS));
-        context.assertTrue(player.canFreeze(),
-                "the shirt, the harem pants or the flip-flops keep out the cold; only the beanie should");
-        context.succeed();
-    }
+    // 1.16.5 has no powder snow and no freezing (1.17), so the newer lines' test that only the beanie
+    // keeps out the cold has nothing to ask here.
 
     /**
      * The shirt and the harem pants take dye through vanilla's own armour-dye recipe and wash out in
      * a water cauldron; the beanie and the flip-flops take none. The wash is a real click on a real
-     * cauldron, so the entry has to be in the map the cauldron actually reads.
+     * cauldron: 1.16.5's cauldron has no interaction map and washes any {@code DyeableLeatherItem} in
+     * its own {@code use}, so the garment has to be one.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void theGarmentsTakeDyeAndWashOut(GameTestHelper context) {
@@ -65,24 +48,24 @@ public final class HempOutfitGameTest {
         BlockPos pos = context.absolutePos(cauldron);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
 
-        for (Item garment : List.of(ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS)) {
+        for (Item garment : ImmutableList.of(ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS)) {
             ItemStack dyed = dye(world, garment);
             DyeableLeatherItem cloth = (DyeableLeatherItem) garment;
             // One dye on undyed cloth is that dye's colour, as vanilla's armour-dye recipe mixes it.
             float[] green = DyeColor.GREEN.getTextureDiffuseColors();
             int expected = ((int) (green[0] * 255.0F) << 16) | ((int) (green[1] * 255.0F) << 8) | (int) (green[2] * 255.0F);
-            context.assertTrue(dyed.is(garment) && cloth.hasCustomColor(dyed) && cloth.getColor(dyed) == expected,
+            context.assertTrue(dyed.getItem() == garment && cloth.hasCustomColor(dyed) && cloth.getColor(dyed) == expected,
                     garment + " and green dye made " + dyed + " (" + Integer.toHexString(cloth.getColor(dyed))
                             + "), not a green " + garment);
 
-            context.setBlock(cauldron, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
+            context.setBlock(cauldron, Blocks.CAULDRON.defaultBlockState().setValue(CauldronBlock.LEVEL, 3));
             Line.useItemOn(world.getBlockState(pos),dyed, world, player, InteractionHand.MAIN_HAND, hit);
             context.assertFalse(cloth.hasCustomColor(dyed),
                     "a water cauldron did not wash the dye out of " + garment);
-            Line.equal(context, context.getBlockState(cauldron).getValue(LayeredCauldronBlock.LEVEL), 2,
+            Line.equal(context, context.getBlockState(cauldron).getValue(CauldronBlock.LEVEL), 2,
                     "the cauldron's water level after washing " + garment);
         }
-        for (Item kept : List.of(ModItems.HEMP_BEANIE, ModItems.FLIP_FLOPS)) {
+        for (Item kept : ImmutableList.of(ModItems.HEMP_BEANIE, ModItems.FLIP_FLOPS)) {
             context.assertTrue(dye(world, kept).isEmpty(), kept + " took dye; only the shirt and pants should");
         }
         context.succeed();
@@ -112,9 +95,9 @@ public final class HempOutfitGameTest {
     /** {@code item} beside a green dye in the crafting grid, crafted; empty if nothing matched. */
     private static ItemStack dye(ServerLevel world, Item item) {
         CraftingInput grid = CraftingInput.of(2, 1,
-                List.of(new ItemStack(item), new ItemStack(Items.GREEN_DYE)));
+                ImmutableList.of(new ItemStack(item), new ItemStack(Items.GREEN_DYE)));
         return world.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, world)
-                .map(entry -> entry.assemble(grid, world.registryAccess()))
+                .map(recipe -> recipe.assemble(grid))
                 .orElse(ItemStack.EMPTY);
     }
 }

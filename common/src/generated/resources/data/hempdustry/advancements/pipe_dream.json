@@ -4,9 +4,7 @@
     "smoked_a_pipe": {
       "conditions": {
         "item": {
-          "items": [
-            "hempdustry:wooden_pipe"
-          ]
+          "item": "hempdustry:wooden_pipe"
         }
       },
       "trigger": "hempdustry:smoke"
@@ -33,6 +31,5 @@
     [
       "smoked_a_pipe"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

@@ -9,11 +9,12 @@ import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import java.util.ArrayList;
 import java.util.List;
+import com.google.common.collect.ImmutableList;
+import com.github.bsideup.jabel.Desugar;
 
 /**
  * Applies an edible's effects late, and in sequence. Where {@link SmokeScheduler} waits 38 ticks for
@@ -42,9 +43,10 @@ public final class EdibleScheduler {
     }
 
     /** One effect waiting to land, and how many ticks it has left. */
+    @Desugar
     public record Pending(int ticksLeft, MobEffectInstance effect) {
         public static final Codec<Pending> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ExtraCodecs.POSITIVE_INT.fieldOf("ticks_left").forGetter(Pending::ticksLeft),
+                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("ticks_left").forGetter(Pending::ticksLeft),
                 EFFECT_CODEC.fieldOf("effect").forGetter(Pending::effect)
         ).apply(instance, Pending::new));
     }
@@ -56,7 +58,7 @@ public final class EdibleScheduler {
     private static final Codec<MobEffectInstance> EFFECT_CODEC = CompoundTag.CODEC.comapFlatMap(
             tag -> {
                 MobEffectInstance effect = MobEffectInstance.load(tag);
-                return effect != null ? DataResult.success(effect) : DataResult.error(() -> "Unknown effect in " + tag);
+                return effect != null ? DataResult.success(effect) : DataResult.error("Unknown effect in " + tag);
             },
             effect -> effect.save(new CompoundTag()));
 
@@ -77,7 +79,7 @@ public final class EdibleScheduler {
     public static void schedule(Player player, int delayTicks, MobEffectInstance effect) {
         List<Pending> waiting = new ArrayList<>(Services.PLAYER_DATA.pendingEdibles(player));
         waiting.add(new Pending(Math.max(1, delayTicks), new MobEffectInstance(effect)));
-        Services.PLAYER_DATA.setPendingEdibles(player, List.copyOf(waiting));
+        Services.PLAYER_DATA.setPendingEdibles(player, ImmutableList.copyOf(waiting));
     }
 
     /** What {@code player} still has on its way, oldest first. */
@@ -100,7 +102,7 @@ public final class EdibleScheduler {
                     player.addEffect(new MobEffectInstance(pending.effect()));
                 }
             }
-            Services.PLAYER_DATA.setPendingEdibles(player, List.copyOf(still));
+            Services.PLAYER_DATA.setPendingEdibles(player, ImmutableList.copyOf(still));
         }
     }
 }

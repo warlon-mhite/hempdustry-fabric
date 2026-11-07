@@ -6,7 +6,6 @@ import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
-import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
@@ -74,7 +73,7 @@ public class InfuserSoundInstance extends AbstractTickableSoundInstance {
     }
 
     private InfuserSoundInstance(BlockPos pos) {
-        super(ModSounds.INFUSER_SIMMER, SoundSource.BLOCKS, SoundInstance.createUnseededRandom());
+        super(ModSounds.INFUSER_SIMMER, SoundSource.BLOCKS);
         this.pos = pos;
         // repeat with no delay is what SoundEngine reads as "loop this seamlessly"; a non-zero
         // delay would make it a metronome instead, and would also cost the loop its

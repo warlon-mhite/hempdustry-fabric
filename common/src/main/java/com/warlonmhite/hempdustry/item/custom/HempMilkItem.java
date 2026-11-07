@@ -73,6 +73,6 @@ public class HempMilkItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
-        return ItemUtils.startUsingInstantly(world, user, hand);
+        return ItemUtils.useDrink(world, user, hand);
     }
 }

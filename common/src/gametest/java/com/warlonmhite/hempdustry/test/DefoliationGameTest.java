@@ -7,8 +7,8 @@ import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -138,8 +138,7 @@ public final class DefoliationGameTest {
 
     private static void checkHarvest(GameTestHelper context, ServerLevel world, Vec3 origin,
                                      BlockState mature, Item buds) {
-        LootTable table = world.getServer().getLootData()
-                .getLootTable(mature.getBlock().getLootTable());
+        LootTable table = world.getServer().getLootTables().get(mature.getBlock().getLootTable());
         String crop = mature.getBlock().getDescriptionId();
         java.util.Random seeds = new java.util.Random(SEED_SOURCE);
         for (int roll = 0; roll < ROLLS; roll++) {
@@ -170,16 +169,18 @@ public final class DefoliationGameTest {
     /** {leaves, buds} from one roll of a crop's loot table on a given seed. */
     private static int[] harvest(LootTable table, ServerLevel world, Vec3 origin, BlockState state,
                                  long seed, Item buds) {
-        LootParams params = new LootParams.Builder(world)
+        // 1.16.5's loot context carries its own random, so the seed goes into the context.
+        LootContext loot = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, origin)
                 .withParameter(LootContextParams.BLOCK_STATE, state)
                 .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
+                .withRandom(new java.util.Random(seed))
                 .create(LootContextParamSets.BLOCK);
         int[] counts = new int[2];
-        for (ItemStack stack : table.getRandomItems(params, seed)) {
-            if (stack.is(ModItems.HEMP_LEAF)) {
+        for (ItemStack stack : table.getRandomItems(loot)) {
+            if (stack.getItem() == ModItems.HEMP_LEAF) {
                 counts[0] += stack.getCount();
-            } else if (stack.is(buds)) {
+            } else if (stack.getItem() == buds) {
                 counts[1] += stack.getCount();
             }
         }

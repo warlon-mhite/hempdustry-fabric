@@ -68,7 +68,7 @@ public class DecarboxylatorScreenHandler extends AbstractContainerMenu {
         checkContainerSize(inventory, DecarboxylatorBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
-        this.world = playerInventory.player.level();
+        this.world = playerInventory.player.level;
         inventory.startOpen(playerInventory.player);
 
         // Fuel: only things that actually burn — coal, a lava bucket, the mod's own hemp stem,
@@ -86,7 +86,7 @@ public class DecarboxylatorScreenHandler extends AbstractContainerMenu {
                     TRAY_X, TRAY_Y + tray * TRAY_SPACING) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
-                    return DecarboxylatorBlockEntity.isTrayInput(playerInventory.player.level(), stack);
+                    return DecarboxylatorBlockEntity.isTrayInput(playerInventory.player.level, stack);
                 }
             });
         }
@@ -104,7 +104,7 @@ public class DecarboxylatorScreenHandler extends AbstractContainerMenu {
     }
 
     private static Container resolveInventory(Inventory playerInventory, BlockPos pos) {
-        BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(pos);
+        BlockEntity blockEntity = playerInventory.player.level.getBlockEntity(pos);
         return blockEntity instanceof Container found
                 ? found
                 : new SimpleContainer(DecarboxylatorBlockEntity.SLOT_COUNT);
@@ -194,7 +194,7 @@ public class DecarboxylatorScreenHandler extends AbstractContainerMenu {
         }
 
         if (inSlot.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }

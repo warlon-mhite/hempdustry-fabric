@@ -7,16 +7,16 @@ import com.warlonmhite.hempdustry.item.custom.MoonRockItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+import com.github.bsideup.jabel.Desugar;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 
 /**
  * Packs an empty pipe/bong with buds in the crafting grid. The number of buds is the <b>dose</b>,
@@ -52,17 +52,22 @@ import net.minecraft.world.level.Level;
  * {@code maxDose} is 3, so rosin and moon rocks fit nothing else. No rule says so; the numbers do.
  */
 public class PackingRecipe extends CustomRecipe {
-    public PackingRecipe(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public PackingRecipe(ResourceLocation id) {
+        super(id);
     }
 
     @Override
     public boolean matches(CraftingContainer input, Level world) {
-        return find(input, world.registryAccess()) != null;
+        return find(input, DataRegistries.of(world)) != null;
     }
 
+    /**
+     * The packed device. Minecraft 1.16.5 hands {@code assemble} no registries, and a crafting result is
+     * assembled on the server only, so the bowl is measured against what the server loaded.
+     */
     @Override
-    public ItemStack assemble(CraftingContainer input, RegistryAccess lookup) {
+    public ItemStack assemble(CraftingContainer input) {
+        HolderLookup.Provider lookup = DataRegistries.SERVER;
         Match match = find(input, lookup);
         if (match == null) {
             return ItemStack.EMPTY;
@@ -70,7 +75,8 @@ public class PackingRecipe extends CustomRecipe {
         DeviceType device = ((SmokingDeviceItem) match.device.getItem()).device();
         // Copying the stack rather than building a fresh one is what carries durability and
         // enchantments through. Packing is now just two components being set on the same item.
-        ItemStack packed = match.device.copyWithCount(1);
+        ItemStack packed = match.device.copy();
+        packed.setCount(1);
         ModComponents.SMOKE_CONTENTS.set(packed, match.contents);
         ModComponents.CHARGES.set(packed, DeviceStats.bowl(lookup, device).hits());
         return packed;
@@ -156,6 +162,8 @@ public class PackingRecipe extends CustomRecipe {
         }
         return level >= 1 && level <= DeviceStats.bowl(registries, type).maxDose() ? new Match(device, contents) : null;
     }
+
+    @Desugar
 
     private record Match(ItemStack device, SmokeContents contents) {
     }

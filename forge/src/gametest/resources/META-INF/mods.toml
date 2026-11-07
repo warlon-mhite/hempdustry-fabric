@@ -1,13 +1,13 @@
 # Game tests for Hempdustry. Dev-only: this is its own source set and never ships inside the mod jar.
 modLoader="javafml"
-loaderVersion="[47,)"
+loaderVersion="[36,)"
 license="AGPL-3.0-only"
 
 [[mods]]
 modId="hempdustry_gametest"
 version="1.0.0"
 displayName="Hempdustry Game Tests"
-description='''Game tests for Hempdustry, the same ones Fabric runs.'''
+description='''Game tests for Hempdustry, the same ones the newer lines run, with the harness that runs them on Minecraft 1.16.5.'''
 
 [[dependencies.hempdustry_gametest]]
 modId="hempdustry"

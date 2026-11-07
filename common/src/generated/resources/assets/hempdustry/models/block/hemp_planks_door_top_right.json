@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/door_top_right",
-  "textures": {
-    "bottom": "hempdustry:block/hemp_planks_door_bottom",
-    "top": "hempdustry:block/hemp_planks_door_top"
-  }
-}

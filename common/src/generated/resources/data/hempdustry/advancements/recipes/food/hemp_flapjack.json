@@ -11,9 +11,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:toasted_hemp_seeds"
-            ]
+            "item": "hempdustry:toasted_hemp_seeds"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:hemp_flapjack"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

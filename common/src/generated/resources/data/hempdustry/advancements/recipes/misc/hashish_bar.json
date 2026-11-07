@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hashish"
-            ]
+            "item": "hempdustry:hashish"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:hashish_bar"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

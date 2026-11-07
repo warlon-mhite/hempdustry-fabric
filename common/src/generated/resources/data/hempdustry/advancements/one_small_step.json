@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:moon_rock"
-            ]
+            "item": "hempdustry:moon_rock"
           }
         ]
       },
@@ -34,6 +32,5 @@
     [
       "has_moon_rock"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

@@ -2,13 +2,11 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "bonus_rolls": 0.0,
       "entries": [
         {
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
               "conditions": [
                 {
                   "block": "hempdustry:hemp_parquet_slab",
@@ -18,7 +16,7 @@
                   }
                 }
               ],
-              "count": 2.0,
+              "count": 2,
               "function": "minecraft:set_count"
             },
             {
@@ -28,7 +26,7 @@
           "name": "hempdustry:hemp_parquet_slab"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ]
 }

@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "H": {
       "item": "hempdustry:hashish"
@@ -13,6 +12,5 @@
   ],
   "result": {
     "item": "hempdustry:hashish_bar"
-  },
-  "show_notification": true
+  }
 }

@@ -5,7 +5,7 @@ import java.util.EnumMap;
 import net.minecraft.Util;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -29,19 +29,19 @@ public enum ModArmorMaterials implements ArmorMaterial {
      */
     public static final int HEMP_UNDYED_COLOR = 0xFFFFDFB7;
 
-    private static final EnumMap<ArmorItem.Type, Integer> DEFENSE = Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
-        map.put(ArmorItem.Type.BOOTS, 1);
-        map.put(ArmorItem.Type.LEGGINGS, 1);
-        map.put(ArmorItem.Type.CHESTPLATE, 2);
-        map.put(ArmorItem.Type.HELMET, 1);
+    private static final EnumMap<EquipmentSlot, Integer> DEFENSE = Util.make(new EnumMap<>(EquipmentSlot.class), map -> {
+        map.put(EquipmentSlot.FEET, 1);
+        map.put(EquipmentSlot.LEGS, 1);
+        map.put(EquipmentSlot.CHEST, 2);
+        map.put(EquipmentSlot.HEAD, 1);
     });
 
     /** Vanilla's durability per slot, which every material multiplies ({@code ArmorMaterials}). */
-    private static final EnumMap<ArmorItem.Type, Integer> HEALTH_PER_SLOT = Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
-        map.put(ArmorItem.Type.BOOTS, 13);
-        map.put(ArmorItem.Type.LEGGINGS, 15);
-        map.put(ArmorItem.Type.CHESTPLATE, 16);
-        map.put(ArmorItem.Type.HELMET, 11);
+    private static final EnumMap<EquipmentSlot, Integer> HEALTH_PER_SLOT = Util.make(new EnumMap<>(EquipmentSlot.class), map -> {
+        map.put(EquipmentSlot.FEET, 13);
+        map.put(EquipmentSlot.LEGS, 15);
+        map.put(EquipmentSlot.CHEST, 16);
+        map.put(EquipmentSlot.HEAD, 11);
     });
 
     /**
@@ -51,13 +51,13 @@ public enum ModArmorMaterials implements ArmorMaterial {
     private static final int DURABILITY_MULTIPLIER = 5;
 
     @Override
-    public int getDurabilityForType(ArmorItem.Type type) {
-        return HEALTH_PER_SLOT.get(type) * DURABILITY_MULTIPLIER;
+    public int getDurabilityForSlot(EquipmentSlot slot) {
+        return HEALTH_PER_SLOT.get(slot) * DURABILITY_MULTIPLIER;
     }
 
     @Override
-    public int getDefenseForType(ArmorItem.Type type) {
-        return DEFENSE.get(type);
+    public int getDefenseForSlot(EquipmentSlot slot) {
+        return DEFENSE.get(slot);
     }
 
     @Override

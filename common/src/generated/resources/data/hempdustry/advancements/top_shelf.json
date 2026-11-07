@@ -4,9 +4,7 @@
     "harvested_top_shelf": {
       "conditions": {
         "bed": {
-          "blocks": [
-            "hempdustry:hydro_tray"
-          ]
+          "block": "hempdustry:hydro_tray"
         },
         "condition": "grow_lamp",
         "cuts": 2
@@ -34,6 +32,5 @@
     [
       "harvested_top_shelf"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

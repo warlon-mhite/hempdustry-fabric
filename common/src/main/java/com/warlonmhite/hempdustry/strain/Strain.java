@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.random.RandomGenerator;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.RegistryFixedCodec;
+import com.mojang.serialization.DataResult;
+import com.warlonmhite.hempdustry.component.StackRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
@@ -22,6 +21,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import com.google.common.collect.ImmutableList;
+import java.util.stream.Collectors;
+import java.util.Random;
+import com.github.bsideup.jabel.Desugar;
 
 /**
  * A smokeable material and what it does: what packs into a device, its colour, and the effects one
@@ -152,6 +155,7 @@ import net.minecraft.world.level.block.Blocks;
  *                        harsh leafy smoke is the {@code 0.5}. The cough is a sound, so this is
  *                        flavour rather than balance
  */
+@Desugar
 public record Strain(String translationKey, int color, int modelIndex,
                      Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                      float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
@@ -207,22 +211,36 @@ public record Strain(String translationKey, int color, int modelIndex,
             // seeds and flower are optional because a hash entry has neither -- see the class
             // javadoc. Widening a required field to optional is the one schema change compat.md
             // permits: every strain JSON already written keeps parsing unchanged.
-            BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("seeds").forGetter(Strain::seedItem),
-            BuiltInRegistries.ITEM.byNameCodec().fieldOf("buds").forGetter(Strain::buds),
-            BuiltInRegistries.BLOCK.byNameCodec().optionalFieldOf("flower").forGetter(Strain::wildFlower),
+            Registry.ITEM.optionalFieldOf("seeds").forGetter(Strain::seedItem),
+            Registry.ITEM.fieldOf("buds").forGetter(Strain::buds),
+            Registry.BLOCK.optionalFieldOf("flower").forGetter(Strain::wildFlower),
             Codec.FLOAT.optionalFieldOf("green_out_factor", 1.0F).forGetter(Strain::greenOutFactor),
             Codec.INT.optionalFieldOf("dose_per_item", 1).forGetter(Strain::dosePerItem),
-            SmokeEffect.CODEC.listOf().optionalFieldOf("effects", List.of()).forGetter(Strain::smokeEffects),
+            SmokeEffect.CODEC.listOf().optionalFieldOf("effects", ImmutableList.of()).forGetter(Strain::smokeEffects),
             Codec.FLOAT.optionalFieldOf("cough_factor", 1.0F).forGetter(Strain::coughFactor)
     ).apply(instance, Strain::new));
 
     /**
      * How a <em>reference</em> to a strain is written — in the {@code smoke_contents} component, and
-     * anywhere else that points at one. {@link RegistryFixedCodec} is what vanilla uses for the same
-     * job in {@code JukeboxPlayable}, and it refuses inline entries, so a stack always
-     * carries an id rather than a copy of the definition.
+     * anywhere else that points at one. It writes the strain's id and reads it back against the
+     * registries of the side doing the reading ({@link StackRegistries#current}), as the newer lines'
+     * {@code RegistryFixedCodec} does: never an inline copy of the definition, and an id no loaded strain
+     * has is an error, so the stack reads as having no strain rather than a made-up one.
      */
-    public static final Codec<Holder<Strain>> ENTRY_CODEC = RegistryFixedCodec.create(REGISTRY_KEY);
+    public static final Codec<Holder<Strain>> ENTRY_CODEC = ResourceLocation.CODEC.comapFlatMap(
+            id -> {
+                HolderLookup.Provider registries = StackRegistries.current();
+                if (registries == null) {
+                    return DataResult.error("No strains are loaded to read " + id + " against");
+                }
+                return registries.<Strain>lookup(REGISTRY_KEY)
+                        .flatMap(registry -> registry.get(ResourceKey.create(REGISTRY_KEY, id)))
+                        .<DataResult<Holder<Strain>>>map(DataResult::success)
+                        .orElseGet(() -> DataResult.error("Unknown strain " + id));
+            },
+            holder -> holder.unwrapKey()
+                    .orElseThrow(() -> new IllegalStateException("A strain made in code has no id to write"))
+                    .location());
 
 
     /** The strain registry as loaded for this world. */
@@ -236,7 +254,7 @@ public record Strain(String translationKey, int color, int modelIndex,
      * loot pools, so an unstable order would shuffle the tab between launches.
      */
     public static List<Holder.Reference<Strain>> all(HolderLookup.Provider registries) {
-        List<Holder.Reference<Strain>> out = new ArrayList<>(registry(registries).listElements().toList());
+        List<Holder.Reference<Strain>> out = new ArrayList<>(registry(registries).listElements().collect(Collectors.toList()));
         out.sort(Comparator.comparingInt((Holder.Reference<Strain> entry) -> entry.value().modelIndex())
                 .thenComparing(entry -> entry.key().location()));
         return out;
@@ -275,7 +293,7 @@ public record Strain(String translationKey, int color, int modelIndex,
      * dropped while the {@code smoke_contents} component decodes, leaving the device unpacked. See
      * {@code SmokeContents.ENTRIES_CODEC} for why that has to happen there rather than here.
      */
-    public List<MobEffectInstance> effects(int dose, int durationTicks, boolean onExhale, RandomGenerator random) {
+    public List<MobEffectInstance> effects(int dose, int durationTicks, boolean onExhale, Random random) {
         return effects(dose, durationTicks, onExhale, 0, random);
     }
 
@@ -285,12 +303,17 @@ public record Strain(String translationKey, int color, int modelIndex,
      * zero still never does). 2.0 had neither timing nor chance, so this is the whole list it meant.
      *
      * @deprecated kept so an addon built against 2.0 still links; use
-     *             {@link #effects(int, int, boolean, RandomGenerator)}
+     *             {@link #effects(int, int, boolean, Random)}
      */
     @Deprecated
     public List<MobEffectInstance> effects(int dose, int durationTicks) {
         // A generator whose every draw is zero: nextFloat() is 0.0, under any chance above zero.
-        RandomGenerator lands = () -> 0L;
+        Random lands = new Random() {
+            @Override
+            protected int next(int bits) {
+                return 0;
+            }
+        };
         List<MobEffectInstance> out = new ArrayList<>(effects(dose, durationTicks, false, lands));
         out.addAll(effects(dose, durationTicks, true, lands));
         return out;
@@ -302,7 +325,7 @@ public record Strain(String translationKey, int color, int modelIndex,
      * the concentrate is potency, not a bigger dose of the plant.
      */
     public List<MobEffectInstance> effects(int dose, int durationTicks, boolean onExhale, int buffBonus,
-                                              RandomGenerator random) {
+                                              Random random) {
         List<MobEffectInstance> out = new ArrayList<>(smokeEffects.size());
         for (SmokeEffect effect : smokeEffects) {
             if (effect.onExhale() != onExhale) {
@@ -350,13 +373,14 @@ public record Strain(String translationKey, int color, int modelIndex,
      *                       (the strong potion, the pufferfish) and level III takes a full-health
      *                       player to half a heart in seven seconds
      */
+    @Desugar
     public record SmokeEffect(MobEffect effect, int baseAmplifier, boolean scales,
                               float durationFactor, boolean onExhale, float chance, int maxAmplifier) {
         /** Vanilla's highest amplifier, and the default: no cap a dose could reach. */
         public static final int NO_CAP = 255;
 
         public static final Codec<SmokeEffect> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                BuiltInRegistries.MOB_EFFECT.byNameCodec().fieldOf("effect").forGetter(SmokeEffect::effect),
+                Registry.MOB_EFFECT.fieldOf("effect").forGetter(SmokeEffect::effect),
                 Codec.INT.optionalFieldOf("base_amplifier", 0).forGetter(SmokeEffect::baseAmplifier),
                 Codec.BOOL.optionalFieldOf("scales", true).forGetter(SmokeEffect::scales),
                 Codec.FLOAT.optionalFieldOf("duration_factor", 1.0F).forGetter(SmokeEffect::durationFactor),

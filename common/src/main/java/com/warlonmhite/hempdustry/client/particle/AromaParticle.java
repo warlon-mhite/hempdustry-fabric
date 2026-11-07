@@ -21,7 +21,9 @@ import net.minecraft.util.Mth;
  *       particle runs on every tick of its life. That is safe because {@code RipeAroma} only starts
  *       a wisp under open air, and a wisp never rises far enough to reach the block above that.</li>
  *   <li>No gravity and no drag: the rise is a constant and the sway a sine of the age, so nothing
- *       accumulates and nothing needs clamping.</li>
+ *       accumulates and nothing needs clamping. 1.16.5's {@code Particle#tick} always slows a
+ *       particle by 2% a tick (later versions made that a {@code friction} field), so {@link #tick}
+ *       moves the wisp itself.</li>
  * </ul>
  * Vanilla still bounds the total — every particle group is capped at 16384, the oldest evicted.
  */
@@ -45,14 +47,13 @@ public class AromaParticle extends TextureSheetParticle {
         this.sprites = sprites;
         this.hasPhysics = false;
         this.gravity = 0.0f;
-        this.friction = 1.0f;
         // Rise 0.4–0.9 of a block over the whole life: from the top of the flower it never
         // reaches the block above the air it started in.
         this.lifetime = 40 + this.random.nextInt(21);
         this.yd = 0.010 + this.random.nextDouble() * 0.005;
         this.driftX = (this.random.nextDouble() - 0.5) * 0.004;
         this.driftZ = (this.random.nextDouble() - 0.5) * 0.004;
-        this.swayPhase = this.random.nextFloat() * Mth.TWO_PI;
+        this.swayPhase = this.random.nextFloat() * ((float) Math.PI * 2.0f);
         this.quadSize = 0.16f + this.random.nextFloat() * 0.06f;
         this.alpha = 0.0f;
         this.setSpriteFromAge(sprites);
@@ -63,8 +64,13 @@ public class AromaParticle extends TextureSheetParticle {
         float sway = this.swayPhase + this.age * SWAY_SPEED;
         this.xd = this.driftX + SWAY * Mth.sin(sway);
         this.zd = this.driftZ + SWAY * Mth.cos(sway);
-        super.tick();
-        if (!this.removed) {
+        this.xo = this.x;
+        this.yo = this.y;
+        this.zo = this.z;
+        if (this.age++ >= this.lifetime) {
+            this.remove();
+        } else {
+            this.move(this.xd, this.yd, this.zd);
             this.setSpriteFromAge(this.sprites);
             float fadeIn = (float) this.age / FADE_IN_TICKS;
             float fadeOut = (this.lifetime - this.age) / (FADE_OUT_FRACTION * this.lifetime);

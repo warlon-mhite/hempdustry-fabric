@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hashish"
-            ]
+            "item": "hempdustry:hashish"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:spliff_sativa_with_hashish_3"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

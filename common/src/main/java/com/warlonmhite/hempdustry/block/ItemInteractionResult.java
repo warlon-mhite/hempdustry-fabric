@@ -34,7 +34,8 @@ public enum ItemInteractionResult {
         return switch (this) {
             case SUCCESS -> InteractionResult.SUCCESS;
             case CONSUME -> InteractionResult.CONSUME;
-            case CONSUME_PARTIAL -> InteractionResult.CONSUME_PARTIAL;
+            // 1.16.5 has no CONSUME_PARTIAL; CONSUME is what it meant before 1.17 split it off.
+            case CONSUME_PARTIAL -> InteractionResult.CONSUME;
             case PASS_TO_DEFAULT_BLOCK_INTERACTION, SKIP_DEFAULT_BLOCK_INTERACTION -> InteractionResult.PASS;
             case FAIL -> InteractionResult.FAIL;
         };

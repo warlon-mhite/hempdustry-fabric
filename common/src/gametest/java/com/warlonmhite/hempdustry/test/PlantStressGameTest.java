@@ -11,11 +11,11 @@ import com.warlonmhite.hempdustry.block.custom.PlantStress;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
+import java.util.Random;
 import net.minecraft.world.InteractionHand;
 import com.warlonmhite.hempdustry.block.ItemInteractionResult;
 import net.minecraft.world.item.ItemStack;
@@ -31,8 +31,7 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.entity.DispenserBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -54,8 +53,8 @@ public final class PlantStressGameTest {
     /** Where a light over a Purple Kush hangs: two above its LOWER. */
     private static final BlockPos LIGHT = CROP.above(2);
 
-    private static final RandomSource HIT = decided(0.0F);
-    private static final RandomSource MISS = decided(0.999F);
+    private static final Random HIT = decided(0.0F);
+    private static final Random MISS = decided(0.999F);
 
     // ----- the causes -----
 
@@ -209,7 +208,7 @@ public final class PlantStressGameTest {
         context.assertTrue(Line.useItemOn(world.getBlockState(soil),bottle, world, player, InteractionHand.MAIN_HAND, onPot).consumesAction(),
                 "a Grow Pot refused a water bottle");
         context.assertTrue(context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED), "a bottle did not water the pot");
-        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.GLASS_BOTTLE),
+        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).getItem() == Items.GLASS_BOTTLE,
                 "watering a pot did not hand back the glass bottle");
 
         // A bucket is refused by accepting the click and doing nothing. Only an accepted result stops
@@ -221,7 +220,7 @@ public final class PlantStressGameTest {
         ItemInteractionResult refused = Line.useItemOn(world.getBlockState(soil),bucket, world, player, InteractionHand.MAIN_HAND, onPot);
         context.assertTrue(refused.consumesAction(), "a Grow Pot answered a water bucket with " + refused
                 + " — not accepted, so the client goes on to pour it");
-        context.assertTrue(bucket.is(Items.WATER_BUCKET) && !context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
+        context.assertTrue(bucket.getItem() == Items.WATER_BUCKET && !context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED),
                 "a refused bucket was used anyway");
 
         // A second bottle into a wet pot is overwatering: a flowering plant may be stressed, and is
@@ -277,7 +276,8 @@ public final class PlantStressGameTest {
                         && !kept.contains("watered"),
                 "a watered pot at fertility 3 dropped as " + dropped + " with " + kept);
 
-        // No evaporation for a bottle: vanilla makes mud with one in the Nether, so a pot there waters.
+        // No evaporation for a bottle: the newer lines' vanilla makes mud with one in the Nether, so a pot
+        // there waters.
         ServerLevel nether = world.getServer().getLevel(Level.NETHER);
         context.assertTrue(nether != null, "this server has no Nether, so this proves nothing");
         BlockPos netherPos = new BlockPos(0, 64, 0);
@@ -292,7 +292,11 @@ public final class PlantStressGameTest {
     private static final BlockPos DISPENSER = new BlockPos(0, 1, 1);
     private static final BlockPos PULSE = new BlockPos(0, 2, 1);
 
-    /** A dispenser's water bottle waters a pot and keeps the glass; anything else still gets vanilla's mud. */
+    /**
+     * A dispenser's water bottle waters a pot and keeps the glass; anything else still gets vanilla's
+     * behaviour. 1.16.5 has no mud (1.19) and gives a plain potion no dispenser behaviour of its own, so
+     * vanilla's there is the default one: the bottle is shot out whole, and the dirt stays dirt.
+     */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void aDispenserWatersAPot(GameTestHelper context) {
         context.setBlock(SOIL, ModBlocks.GROW_POT);
@@ -303,7 +307,7 @@ public final class PlantStressGameTest {
 
         context.runAtTickTime(10, () -> {
             context.assertTrue(context.getBlockState(SOIL).getValue(GrowPotBlock.WATERED), "the dispenser did not water the pot");
-            context.assertTrue(dispenser.getItem(0).is(Items.GLASS_BOTTLE),
+            context.assertTrue(dispenser.getItem(0).getItem() == Items.GLASS_BOTTLE,
                     "the dispenser did not keep the glass bottle: slot 0 holds " + dispenser.getItem(0));
             context.setBlock(SOIL, Blocks.DIRT);
             dispenser.setItem(0, waterBottle());
@@ -311,8 +315,10 @@ public final class PlantStressGameTest {
         });
 
         context.runAtTickTime(20, () -> {
-            context.assertTrue(context.getBlockState(SOIL).is(Blocks.MUD),
-                    "a dispensed water bottle no longer turns dirt to mud — vanilla's behaviour was replaced, not wrapped");
+            boolean shotOut = context.getEntities(net.minecraft.world.entity.EntityType.ITEM, SOIL, 4.0).stream()
+                    .anyMatch(item -> item.getItem().getItem() == Items.POTION);
+            context.assertTrue(context.getBlockState(SOIL).is(Blocks.DIRT) && dispenser.getItem(0).isEmpty() && shotOut,
+                    "a dispensed water bottle no longer flies out over dirt — vanilla's behaviour was replaced, not wrapped");
             context.succeed();
         });
     }
@@ -320,8 +326,8 @@ public final class PlantStressGameTest {
     // ----- helpers -----
 
     /** A random whose every float is {@code value}, so a roll's outcome is decided in advance. */
-    private static RandomSource decided(float value) {
-        return new SingleThreadedRandomSource(0L) {
+    private static Random decided(float value) {
+        return new Random(0L) {
             @Override
             public float nextFloat() {
                 return value;
@@ -330,7 +336,8 @@ public final class PlantStressGameTest {
     }
 
     private static BlockState moist() {
-        return Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE);
+        // 7 is farmland's wettest; 1.16.5 names no MAX_MOISTURE for it.
+        return Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, 7);
     }
 
     private static ItemStack waterBottle() {
@@ -368,7 +375,7 @@ public final class PlantStressGameTest {
 
     /** One bone meal step on a fresh plant, with its roll decided, and the record it leaves. */
     private static GrowLight step(GameTestHelper context, Block crop, BlockState soil, int age, GrowLight record,
-                                  RandomSource roll) {
+                                  Random roll) {
         plant(context, crop, soil, age, record);
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
@@ -379,14 +386,14 @@ public final class PlantStressGameTest {
     }
 
     private static ItemStack potDrop(ServerLevel world, BlockPos pos, BlockState state) {
-        LootTable table = world.getServer().getLootData()
-                .getLootTable(ModBlocks.GROW_POT.getLootTable());
-        LootParams params = new LootParams.Builder(world)
+        LootTable table = world.getServer().getLootTables().get(ModBlocks.GROW_POT.getLootTable());
+        // 1.16.5's loot context carries its own random, so the seed goes into the context.
+        LootContext loot = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos))
                 .withParameter(LootContextParams.BLOCK_STATE, state)
                 .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
                 .create(LootContextParamSets.BLOCK);
-        List<ItemStack> drops = table.getRandomItems(params, 0L);
+        List<ItemStack> drops = table.getRandomItems(loot);
         return drops.isEmpty() ? ItemStack.EMPTY : drops.get(0);
     }
 }

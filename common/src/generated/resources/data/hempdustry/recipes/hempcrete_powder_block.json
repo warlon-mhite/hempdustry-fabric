@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": {
       "item": "hempdustry:hempcrete"
@@ -14,6 +13,5 @@
   "result": {
     "count": 4,
     "item": "hempdustry:hempcrete_powder_block"
-  },
-  "show_notification": true
+  }
 }

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hemp_milk_bucket"
-            ]
+            "item": "hempdustry:hemp_milk_bucket"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:cake"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

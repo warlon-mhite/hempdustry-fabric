@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.google.common.collect.ImmutableList;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.HempCarpetBlock;
@@ -7,15 +8,14 @@ import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
+import net.minecraft.core.Registry;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.horse.Horse;
@@ -27,6 +27,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -50,7 +51,7 @@ import java.util.List;
 public final class TagBackedBehaviourGameTest {
 
     /**
-     * Lava heats the Infuser — the fluid and a lava cauldron alike.
+     * Lava heats the Infuser, and a cauldron of water does not.
      *
      * <p>Asserted through {@link InfuserBlockEntity#isHeatedFrom} rather than by standing a tub over
      * lava and waiting, because that method <em>is</em> the feature: it is the one place the tag is
@@ -67,10 +68,9 @@ public final class TagBackedBehaviourGameTest {
         context.assertTrue(
                 InfuserBlockEntity.isHeatedFrom(Blocks.LAVA.defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LEVEL, 3)),
                 "flowing lava does not heat the Infuser, though it is the same block as the source");
-        context.assertTrue(InfuserBlockEntity.isHeatedFrom(Blocks.LAVA_CAULDRON.defaultBlockState()),
-                "a lava cauldron does not heat the Infuser — minecraft:lava_cauldron has left the tag");
-
-        context.assertFalse(InfuserBlockEntity.isHeatedFrom(Blocks.WATER_CAULDRON.defaultBlockState()),
+        // 1.16.5 has no lava cauldron (1.17), so the newer lines' third positive is not here; its one
+        // cauldron holds water at a level, and a full one is the negative.
+        context.assertFalse(InfuserBlockEntity.isHeatedFrom(Blocks.CAULDRON.defaultBlockState().setValue(CauldronBlock.LEVEL, 3)),
                 "a WATER cauldron heats the Infuser, so the tag is matching more than it should");
         context.assertFalse(InfuserBlockEntity.isHeatedFrom(Blocks.STONE.defaultBlockState()),
                 "plain stone heats the Infuser, so the tag is matching more than it should");
@@ -108,8 +108,8 @@ public final class TagBackedBehaviourGameTest {
      * Shears mine the Block of Hemp Leaves at the leaf rate.
      *
      * <p>Checked as a mining-speed number, not as tag membership, because the tag is only the means:
-     * shears' 15× rule names {@code #minecraft:leaves} inside their {@code tool} component
-     * ({@code ShearsItem#createToolComponent}), so this fails if either half moves — the block
+     * shears' 15× rule names {@code #minecraft:leaves} ({@code ShearsItem#getDestroySpeed} on this
+     * version, their {@code tool} component from 1.20.5 on), so this fails if either half moves — the block
      * leaving the tag, or a future vanilla version rewriting how shears declare their rules.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
@@ -136,7 +136,7 @@ public final class TagBackedBehaviourGameTest {
      * take it.
      *
      * <p>Two separate things on this line, both silent when missing. A llama's own check is
-     * {@code #minecraft:wool_carpets} ({@code Llama#isArmor}); but the carpet stays in the llama's
+     * {@code #minecraft:carpets} on 1.16.5 ({@code Llama#isArmor}); but the carpet stays in the llama's
      * inventory on the server, and all its clients learn is the synced swag colour, which vanilla
      * takes from a {@code WoolCarpetBlock}'s dye. So a llama in ours syncs a value of its own
      * ({@code LlamaMixin}, {@code HempCarpetBlock#isWornBy}). A dispenser asks the tag too: see the
@@ -149,8 +149,8 @@ public final class TagBackedBehaviourGameTest {
         Llama llama = context.spawn(EntityType.LLAMA, new BlockPos(1, 1, 1));
         llama.setTamed(true);
         context.assertTrue(llama.isArmor(carpet), "a tamed llama will not wear hemp carpet");
-        // Slot 401 is a llama's carpet, which /item replace and a player's click both fill.
-        context.assertTrue(llama.getSlot(401).set(carpet.copy()) && HempCarpetBlock.isWornBy(llama),
+        // Slot 401 is a llama's carpet, which /replaceitem and a player's click both fill.
+        context.assertTrue(llama.setSlot(401, carpet.copy()) && HempCarpetBlock.isWornBy(llama),
                 "a llama in hemp carpet does not tell its clients it wears one, so they draw it bare");
         Horse horse = context.spawn(EntityType.HORSE, new BlockPos(4, 1, 1));
         horse.setTamed(true);
@@ -179,12 +179,20 @@ public final class TagBackedBehaviourGameTest {
         context.pulseRedstone(new BlockPos(0, 2, 1), 1);
 
         context.runAtTickTime(10, () -> {
-            ItemStack worn = llama.getSlot(401).get();
-            context.assertTrue(worn.is(ModBlocks.HEMP_CARPET.asItem()),
+            ItemStack worn = decor(llama);
+            context.assertTrue(worn.getItem() == ModBlocks.HEMP_CARPET.asItem(),
                     "the dispenser did not put the hemp carpet on the llama, which wears " + worn);
             context.assertTrue(dispenser.getItem(0).isEmpty(), "the dispenser kept the carpet: " + dispenser.getItem(0));
             context.succeed();
         });
+    }
+
+    /**
+     * What a llama wears, as its save holds it: 1.16.5 has no slot access to read slot 401 back, and
+     * its inventory is the horse's own.
+     */
+    private static ItemStack decor(Llama llama) {
+        return ItemStack.of(llama.saveWithoutId(new CompoundTag()).getCompound("DecorItem"));
     }
 
     /**
@@ -198,14 +206,14 @@ public final class TagBackedBehaviourGameTest {
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void everyBlockHasALootTable(GameTestHelper context) {
-        var loot = context.getLevel().getServer().getLootData();
+        var loot = context.getLevel().getServer().getLootTables();
         List<String> missing = new ArrayList<>();
-        for (Block block : BuiltInRegistries.BLOCK) {
-            if (!BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(Hempdustry.MOD_ID)) {
+        for (Block block : Registry.BLOCK) {
+            if (!Registry.BLOCK.getKey(block).getNamespace().equals(Hempdustry.MOD_ID)) {
                 continue;
             }
-            if (loot.getLootTable(block.getLootTable()) == LootTable.EMPTY) {
-                missing.add(BuiltInRegistries.BLOCK.getKey(block).getPath());
+            if (loot.get(block.getLootTable()) == LootTable.EMPTY) {
+                missing.add(Registry.BLOCK.getKey(block).getPath());
             }
         }
         context.assertTrue(missing.isEmpty(), "these blocks have no loot table and drop nothing: " + missing);
@@ -224,11 +232,11 @@ public final class TagBackedBehaviourGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void pottedPlantsAndCropsHaveNoItem(GameTestHelper context) {
         List<String> items = new ArrayList<>();
-        for (Block block : BuiltInRegistries.BLOCK) {
-            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+        for (Block block : Registry.BLOCK) {
+            ResourceLocation id = Registry.BLOCK.getKey(block);
             if (id.getNamespace().equals(Hempdustry.MOD_ID)
                     && (block instanceof FlowerPotBlock || block instanceof CropBlock)
-                    && BuiltInRegistries.ITEM.containsKey(id)) {
+                    && Registry.ITEM.keySet().contains(id)) {
                 items.add(id.getPath());
             }
         }
@@ -246,7 +254,7 @@ public final class TagBackedBehaviourGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void hempFiberRepairsTheOutfit(GameTestHelper context) {
         ItemStack fiber = new ItemStack(ModItems.HEMP_FIBER);
-        for (Item piece : List.of(ModItems.HEMP_BEANIE, ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS,
+        for (Item piece : ImmutableList.of(ModItems.HEMP_BEANIE, ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS,
                 ModItems.FLIP_FLOPS)) {
             context.assertTrue(piece.isValidRepairItem(new ItemStack(piece), fiber),
                     "hemp fibre does not repair " + piece + " — the material's repair ingredient lost it");
@@ -257,27 +265,23 @@ public final class TagBackedBehaviourGameTest {
     }
 
     /**
-     * Only the shirt and the harem pants take a trim, and all four pieces still take armour's
-     * enchantments, on an anvil and at the table.
+     * All four pieces take armour's enchantments, on an anvil and at the table.
      *
-     * <p>The beanie and the flip-flops are drawn by models of their own, so a trim on either would
-     * never show. On 1.20.1 an armour piece takes its slot's enchantments by its class, and the
-     * enchanting table opens to it by the material's enchantability.
+     * <p>On the newer lines only the shirt and the harem pants take a trim (the beanie and the
+     * flip-flops are drawn by models of their own); 1.16.5 has no trims (1.20), so that half is not
+     * here. An armour piece takes its slot's enchantments by its class, and the enchanting table
+     * opens to it by the material's enchantability.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void onlyTheGarmentsTakeATrim(GameTestHelper context) {
         Enchantment protection = Enchantments.ALL_DAMAGE_PROTECTION;
-        for (Item piece : List.of(ModItems.HEMP_BEANIE, ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS,
+        for (Item piece : ImmutableList.of(ModItems.HEMP_BEANIE, ModItems.HEMP_SHIRT, ModItems.HEMP_HAREM_PANTS,
                 ModItems.FLIP_FLOPS)) {
             ItemStack stack = new ItemStack(piece);
-            boolean garment = piece == ModItems.HEMP_SHIRT || piece == ModItems.HEMP_HAREM_PANTS;
-            context.assertTrue(stack.is(ItemTags.TRIMMABLE_ARMOR) == garment, garment
-                    ? piece + " is no longer in #minecraft:trimmable_armor"
-                    : piece + " takes a trim at the smithing table, which its own model never draws");
-            for (Enchantment enchantment : List.of(Enchantments.ALL_DAMAGE_PROTECTION, Enchantments.UNBREAKING,
+            for (Enchantment enchantment : ImmutableList.of(Enchantments.ALL_DAMAGE_PROTECTION, Enchantments.UNBREAKING,
                     Enchantments.MENDING, Enchantments.BINDING_CURSE, Enchantments.VANISHING_CURSE)) {
                 context.assertTrue(enchantment.canEnchant(stack),
-                        piece + " refuses " + BuiltInRegistries.ENCHANTMENT.getKey(enchantment) + " on an anvil");
+                        piece + " refuses " + Registry.ENCHANTMENT.getKey(enchantment) + " on an anvil");
             }
             context.assertTrue(stack.isEnchantable() && protection.category.canEnchant(piece),
                     piece + " is offered no Protection at the enchanting table");
@@ -298,9 +302,9 @@ public final class TagBackedBehaviourGameTest {
         List<Item> devices = new ArrayList<>(ModItems.devices().values());
         devices.addAll(ModItems.COLORED_BONGS);
         for (Item device : devices) {
-            for (Enchantment enchantment : List.of(Enchantments.UNBREAKING, Enchantments.MENDING)) {
+            for (Enchantment enchantment : ImmutableList.of(Enchantments.UNBREAKING, Enchantments.MENDING)) {
                 context.assertTrue(enchantment.canEnchant(new ItemStack(device)),
-                        device + " refuses " + BuiltInRegistries.ENCHANTMENT.getKey(enchantment) + " — it is not damageable");
+                        device + " refuses " + Registry.ENCHANTMENT.getKey(enchantment) + " — it is not damageable");
             }
         }
         context.succeed();

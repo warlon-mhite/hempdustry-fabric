@@ -1,14 +1,21 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.github.bsideup.jabel.Desugar;
+import com.google.common.collect.ImmutableList;
+import com.mojang.serialization.Codec;
 import com.warlonmhite.hempdustry.platform.Services;
-import net.minecraft.resources.RegistryDataLoader;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * What the game tests ask of the loader they run on, beyond what the mod itself asks of it
@@ -22,10 +29,44 @@ public interface TestPlatform {
     String loaderName();
 
     /**
-     * Every datapack registry the game loads. Vanilla's own list leaves out the ones a mod adds, so
-     * the strains and the balance files are only in the loader's.
+     * Every datapack registry the mod loads, with the codec its files are read with. Minecraft 1.16.5
+     * has no datapack registries a mod can add, so the strains and the balance files are the mod's own
+     * {@link DataRegistries} on every loader; they are read off its declarations, which it keeps to
+     * itself.
      */
-    List<RegistryDataLoader.RegistryData<?>> dynamicRegistries();
+    static List<RegistryData<?>> dynamicRegistries() {
+        try {
+            Field declaredField = DataRegistries.class.getDeclaredField("DECLARED");
+            declaredField.setAccessible(true);
+            List<RegistryData<?>> out = new ArrayList<>();
+            for (Object declared : ((Map<?, ?>) declaredField.get(null)).values()) {
+                Field key = declared.getClass().getDeclaredField("key");
+                Field codec = declared.getClass().getDeclaredField("codec");
+                key.setAccessible(true);
+                codec.setAccessible(true);
+                out.add(registryData(key.get(declared), codec.get(declared)));
+            }
+            return out;
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("DataRegistries no longer keeps its declarations where the tests read them", e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static RegistryData<?> registryData(Object key, Object codec) {
+        return new RegistryData((ResourceKey) key, (Codec) codec);
+    }
+
+    /** A datapack registry and the codec its files are read with: vanilla's {@code RegistryDataLoader.RegistryData} from 1.19.3 on. */
+    @Desugar
+    record RegistryData<T>(ResourceKey<? extends Registry<T>> key, Codec<T> elementCodec) {
+    }
+
+    /**
+     * Leaves on a mock player's connection what the loader's login handshake leaves on a real
+     * client's, so the player list takes the player as it takes one who logged in.
+     */
+    void markAsHandshaken(net.minecraft.network.Connection connection);
 
     /** The folders, or the jar, the mod's resources are read from. */
     List<Path> modRoots();
@@ -49,6 +90,7 @@ public interface TestPlatform {
     Flammability flammability(Block block);
 
     /** The odds of catching fire and of burning away, vanilla's {@code igniteOdds} and {@code burnOdds}. */
+    @Desugar
     record Flammability(int igniteOdds, int burnOdds) {
     }
 
@@ -71,14 +113,14 @@ public interface TestPlatform {
 
         /** Every event heard since the last call, in order; forgets them. */
         public List<Heard> take() {
-            List<Heard> taken = List.copyOf(heard);
+            List<Heard> taken = ImmutableList.copyOf(heard);
             heard.clear();
             return taken;
         }
 
         /** For the loader's listeners: an event, named as Fabric's field is, and its payload in order. */
         public void heard(String event, Object... payload) {
-            heard.add(new Heard(event, List.of(payload)));
+            heard.add(new Heard(event, java.util.Arrays.asList(payload.clone())));
         }
 
         /** For the loader's listeners: whether to refuse the hit being asked about. */
@@ -87,6 +129,7 @@ public interface TestPlatform {
         }
     }
 
+    @Desugar
     record Heard(String event, List<Object> payload) {
     }
 }

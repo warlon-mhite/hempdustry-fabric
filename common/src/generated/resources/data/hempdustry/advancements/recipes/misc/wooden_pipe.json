@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:stick"
-            ]
+            "item": "minecraft:stick"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:wooden_pipe"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

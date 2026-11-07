@@ -12,13 +12,13 @@ import net.minecraft.world.level.block.state.BlockState;
  * thing under our type, so the hemp bed's renderer is the one that finds it.
  */
 public class HempBedBlockEntity extends BlockEntity {
-    public HempBedBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.HEMP_BED, pos, state);
+    public HempBedBlockEntity() {
+        super(ModBlockEntities.HEMP_BED);
     }
 
     // Vanilla's bed sends itself on every update, so a client never has a bed with nothing to draw.
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+        return new ClientboundBlockEntityDataPacket(this.worldPosition, 0, this.getUpdateTag());
     }
 }

@@ -1,8 +1,8 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.block.custom.HempGrowth;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 
 /**
  * The growth roll's odds, asserted as numbers rather than by growing plants and counting — a rate

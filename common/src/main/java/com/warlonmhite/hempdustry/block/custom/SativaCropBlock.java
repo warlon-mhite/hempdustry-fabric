@@ -8,7 +8,6 @@ import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -27,6 +26,8 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import java.util.Random;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * The Lemon Haze crop: a <em>three</em>-tall plant, built on the same pattern as the two-tall
@@ -169,8 +170,9 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
      * and unlike the random tick it has no light check to incidentally stop it.
      */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
-        return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+    public boolean isValidBonemealTarget(BlockGetter world, BlockPos pos, BlockState state, boolean isClient) {
+        // 1.16.5 asks with a BlockGetter; bone meal and the game tests always pass a level.
+        return isLower(state) && world instanceof LevelReader reader && this.getAge(state) < this.maxAgeFor(reader, pos);
     }
 
     /**
@@ -222,7 +224,7 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
     }
 
     @Override
-    public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void randomTick(BlockState state, ServerLevel world, BlockPos pos, Random random) {
         if (!isLower(state)) {
             return;
         }
@@ -301,12 +303,12 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel world, Random random, BlockPos pos, BlockState state) {
         this.boneMeal(world, pos, state, random);
     }
 
     /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
-    private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
+    private void boneMeal(Level world, BlockPos pos, BlockState state, Random random) {
         if (!isLower(state)) {
             return;
         }
@@ -325,7 +327,7 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
      * (see {@code BoneMealItem.useOnFertilizable}), so a false here is a wasted application.
      */
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, Random random, BlockPos pos, BlockState state) {
         return random.nextInt(BONEMEAL_FAILURE_CHANCE) != 0;
     }
 
@@ -341,7 +343,7 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
      * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
      * player later builds over keeps its age and its harvest instead of silently reverting.
      */
-    private void setAge(Level world, BlockPos pos, int newAge, float extraStress, RandomSource random) {
+    private void setAge(Level world, BlockPos pos, int newAge, float extraStress, Random random) {
         BlockState current = world.getBlockState(pos);
         int currentAge = current.is(this) && isLower(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
@@ -362,7 +364,7 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
                 }
             }
         }
-        world.setBlock(pos, lower, Block.UPDATE_CLIENTS);
+        world.setBlock(pos, lower, BlockFlags.UPDATE_CLIENTS);
 
         BlockPos midPos = pos.above();
         BlockPos topPos = pos.above(2);
@@ -372,10 +374,10 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
         if (newAge >= THREE_TALL_AGE && midFree && this.canOccupy(world, topPos)) {
             // Bottom-up: the new UPPER needs the MIDDLE under it to already be in place, otherwise
             // its canSurvive fails and the neighbour update wipes it straight back out.
-            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.MIDDLE, light), Block.UPDATE_CLIENTS);
-            world.setBlock(topPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.UPDATE_CLIENTS);
+            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.MIDDLE, light), BlockFlags.UPDATE_CLIENTS);
+            world.setBlock(topPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), BlockFlags.UPDATE_CLIENTS);
         } else if (newAge >= TWO_TALL_AGE && midFree) {
-            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), Block.UPDATE_CLIENTS);
+            world.setBlock(midPos, this.stateFor(newAge, TriplePlantSegment.UPPER, light), BlockFlags.UPDATE_CLIENTS);
         }
     }
 
@@ -436,7 +438,7 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
      * answers truthfully here.
      */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (state.getValue(AGE) >= this.getMaxAge()) {
             RipeAroma.randomDisplayTick(world, pos, random);
         }
@@ -462,7 +464,7 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
                     BlockState segment = world.getBlockState(segmentPos);
                     if (!segmentPos.equals(pos) && segment.is(this) && !isLower(segment)) {
                         world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
-                                Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+                                BlockFlags.UPDATE_ALL | BlockFlags.UPDATE_SUPPRESS_DROPS);
                     }
                 }
                 if (!lowerPos.equals(pos)) {
@@ -470,7 +472,7 @@ public class SativaCropBlock extends CropBlock implements ItemUse {
                         dropResources(lower, world, lowerPos, null, player, player.getMainHandItem());
                     }
                     world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(),
-                            Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+                            BlockFlags.UPDATE_ALL | BlockFlags.UPDATE_SUPPRESS_DROPS);
                 }
             }
         }

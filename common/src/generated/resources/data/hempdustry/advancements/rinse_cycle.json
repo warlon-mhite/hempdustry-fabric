@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:washed_decarboxylated_hemp"
-            ]
+            "item": "hempdustry:washed_decarboxylated_hemp"
           }
         ]
       },
@@ -34,6 +32,5 @@
     [
       "has_washed_hemp"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

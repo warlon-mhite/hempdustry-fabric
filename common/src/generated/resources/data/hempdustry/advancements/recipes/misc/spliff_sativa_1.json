@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:sativa_buds"
-            ]
+            "item": "hempdustry:sativa_buds"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:spliff_sativa_1"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

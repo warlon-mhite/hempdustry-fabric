@@ -21,12 +21,11 @@ import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
+import net.minecraft.tags.Tag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -37,6 +36,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.google.common.collect.ImmutableList;
+import java.util.stream.Collectors;
+import net.minecraft.network.chat.TranslatableComponent;
+import com.github.bsideup.jabel.Desugar;
+import net.minecraft.core.Registry;
 
 /**
  * What a recipe viewer should be shown, worked out once and read by both plugins.
@@ -96,6 +100,7 @@ public final class ViewerRecipes {
      *                  difference between "made up for display" and "a real recipe that has gone
      *                  missing" — the second being a bug worth reporting and the first not.
      */
+    @Desugar
     public record Entry(ResourceLocation id, List<Ingredient> inputs, ItemStack output, List<Component> notes,
                         boolean synthetic) {
     }
@@ -104,8 +109,8 @@ public final class ViewerRecipes {
     public static List<Entry> decarboxylating(RecipeManager recipes) {
         List<Entry> out = new ArrayList<>();
         for (DecarboxylatingRecipe recipe : recipes.getAllRecipesFor(ModRecipes.DECARBOXYLATING_TYPE)) {
-            out.add(new Entry(recipe.getId(), List.of(recipe.ingredient()), recipe.result(),
-                    List.of(Component.translatable("hempdustry.category.decarboxylating.info",
+            out.add(new Entry(recipe.getId(), ImmutableList.of(recipe.ingredient()), recipe.result(),
+                    ImmutableList.of(new TranslatableComponent("hempdustry.category.decarboxylating.info",
                             seconds(DecarboxylatorBlockEntity.cookTime()))),
                     false));
         }
@@ -128,10 +133,10 @@ public final class ViewerRecipes {
     public static List<Entry> infusing(RecipeManager recipes) {
         List<Entry> out = new ArrayList<>();
         for (InfusingRecipe recipe : recipes.getAllRecipesFor(ModRecipes.INFUSING_TYPE)) {
-            List<Ingredient> inputs = new ArrayList<>(List.of(recipe.container(), recipe.hemp(), recipe.washedHemp()));
-            List<Component> notes = new ArrayList<>(List.of(Component.translatable("hempdustry.category.infusing.pour"),
-                    Component.translatable("hempdustry.category.infusing.heat"),
-                    Component.translatable("hempdustry.category.infusing.batch",
+            List<Ingredient> inputs = new ArrayList<>(ImmutableList.of(recipe.container(), recipe.hemp(), recipe.washedHemp()));
+            List<Component> notes = new ArrayList<>(ImmutableList.of(new TranslatableComponent("hempdustry.category.infusing.pour"),
+                    new TranslatableComponent("hempdustry.category.infusing.heat"),
+                    new TranslatableComponent("hempdustry.category.infusing.batch",
                             InfuserBlockEntity.BATCH_CAP,
                             minutes(InfuserBlockEntity.minTime()),
                             minutes(InfuserBlockEntity.fullTime()))));
@@ -140,7 +145,7 @@ public final class ViewerRecipes {
             // one who needs telling -- and a pack that dropped it gets neither the slot nor the note.
             recipe.scorchedHemp().ifPresent(scorched -> {
                 inputs.add(scorched);
-                notes.add(Component.translatable("hempdustry.category.infusing.scorched",
+                notes.add(new TranslatableComponent("hempdustry.category.infusing.scorched",
                         InfuserBlockEntity.SCORCHED_PER_STRENGTH));
             });
             out.add(new Entry(recipe.getId(), inputs, recipe.result(), notes, false));
@@ -152,9 +157,9 @@ public final class ViewerRecipes {
     public static List<Entry> pressing(RecipeManager recipes) {
         List<Entry> out = new ArrayList<>();
         for (PressingRecipe recipe : recipes.getAllRecipesFor(ModRecipes.PRESSING_TYPE)) {
-            out.add(new Entry(recipe.getId(), List.of(recipe.ingredient()), recipe.result(),
-                    List.of(Component.translatable("hempdustry.category.pressing.heat"),
-                            Component.translatable("hempdustry.category.pressing.info",
+            out.add(new Entry(recipe.getId(), ImmutableList.of(recipe.ingredient()), recipe.result(),
+                    ImmutableList.of(new TranslatableComponent("hempdustry.category.pressing.heat"),
+                            new TranslatableComponent("hempdustry.category.pressing.info",
                                     seconds(HempPressBlockEntity.pressTime()))),
                     false));
         }
@@ -171,7 +176,7 @@ public final class ViewerRecipes {
      * single page could not say that without lying about one of the two.
      */
     public static List<Entry> sifting() {
-        return List.of(
+        return ImmutableList.of(
                 screen(ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE,
                         ModItems.KIEF, "flower"),
                 screen(ModTags.Items.SIFTABLE_RESINOUS, SiftingBoxBlock.RESINOUS_CHANCE,
@@ -185,11 +190,11 @@ public final class ViewerRecipes {
                         ModItems.FILTERED_KIEF, "kief"));
     }
 
-    private static Entry screen(TagKey<Item> input, float chance, Item output, String name) {
+    private static Entry screen(Tag.Named<Item> input, float chance, Item output, String name) {
         return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "sifting/" + name),
-                List.of(ofTag(input)),
+                ImmutableList.of(ofTag(input)),
                 new ItemStack(output, SiftingBoxBlock.YIELD),
-                List.of(Component.translatable("hempdustry.category.sifting.info",
+                ImmutableList.of(new TranslatableComponent("hempdustry.category.sifting.info",
                         Math.round(SiftingBoxBlock.FULL_LEVEL / chance))),
                 true);
     }
@@ -202,7 +207,7 @@ public final class ViewerRecipes {
      * The counts are the same arithmetic the block runs: {@code FULL_LEVEL} over the rate.
      */
     public static List<Entry> iceOLator() {
-        return List.of(
+        return ImmutableList.of(
                 wash(Items.BLUE_ICE, SiftingBoxBlock.BLUE_ICE_RATE, ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE, ""),
                 wash(Items.PACKED_ICE, SiftingBoxBlock.PACKED_ICE_RATE, ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE, ""),
                 wash(Items.ICE, SiftingBoxBlock.ICE_RATE, ModTags.Items.SIFTABLE_FLOWER, SiftingBoxBlock.FLOWER_CHANCE, ""),
@@ -213,17 +218,17 @@ public final class ViewerRecipes {
                 wash(Items.ICE, SiftingBoxBlock.ICE_RATE, ModTags.Items.SIFTABLE_RESINOUS, SiftingBoxBlock.RESINOUS_CHANCE, "resinous/"));
     }
 
-    private static Entry wash(Item jacket, float rate, TagKey<Item> buds, float budChance, String idPrefix) {
+    private static Entry wash(Item jacket, float rate, Tag.Named<Item> buds, float budChance, String idPrefix) {
         int budCount = Math.round(SiftingBoxBlock.FULL_LEVEL / (budChance * rate));
         int leaves = Math.round(SiftingBoxBlock.FULL_LEVEL / (SiftingBoxBlock.TRIM_CHANCE * rate));
-        return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "ice_o_lator/" + idPrefix + BuiltInRegistries.ITEM.getKey(jacket).getPath()),
-                List.of(ofTag(buds),
+        return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "ice_o_lator/" + idPrefix + Registry.ITEM.getKey(jacket).getPath()),
+                ImmutableList.of(ofTag(buds),
                         Ingredient.of(Items.WATER_BUCKET),
                         Ingredient.of(jacket)),
                 new ItemStack(ModItems.BUBBLE_HASH, SiftingBoxBlock.YIELD),
-                List.of(Component.translatable("hempdustry.category.ice_o_lator.jacket")
+                ImmutableList.of(new TranslatableComponent("hempdustry.category.ice_o_lator.jacket")
                                 .withStyle(ChatFormatting.DARK_GRAY),
-                        Component.translatable("hempdustry.category.ice_o_lator.info", budCount, leaves)),
+                        new TranslatableComponent("hempdustry.category.ice_o_lator.info", budCount, leaves)),
                 true);
     }
 
@@ -233,7 +238,7 @@ public final class ViewerRecipes {
      * strain's buds the moment a datapack adds them. A tag nobody filled is simply empty: a missing
      * tag is a datapack problem, not a reason for a recipe viewer to fail to open.
      */
-    private static Ingredient ofTag(TagKey<Item> tag) {
+    private static Ingredient ofTag(Tag.Named<Item> tag) {
         return Ingredient.of(tag);
     }
 
@@ -246,7 +251,7 @@ public final class ViewerRecipes {
      * numbers the block uses.
      */
     public static List<Entry> cauldron() {
-        return List.of(
+        return ImmutableList.of(
                 soak("retting", ModItems.HEMP_STEM, ModItems.RETTED_HEMP_STEM,
                         ModCauldronBehaviors.RET_PER_LEVEL),
                 soak("washing", ModItems.DECARBOXYLATED_HEMP, ModItems.WASHED_DECARBOXYLATED_HEMP,
@@ -255,9 +260,9 @@ public final class ViewerRecipes {
 
     private static Entry soak(String name, Item input, Item output, int perLevel) {
         return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "cauldron/" + name),
-                List.of(Ingredient.of(input), Ingredient.of(Items.WATER_BUCKET)),
+                ImmutableList.of(Ingredient.of(input), Ingredient.of(Items.WATER_BUCKET)),
                 new ItemStack(output),
-                List.of(Component.translatable("hempdustry.category.cauldron.info", perLevel)),
+                ImmutableList.of(new TranslatableComponent("hempdustry.category.cauldron.info", perLevel)),
                 true);
     }
 
@@ -273,52 +278,52 @@ public final class ViewerRecipes {
     public static List<Entry> world(HolderLookup.Provider registries) {
         List<Holder.Reference<Strain>> strains = Strain.all(registries);
         List<Item> seeds = strains.stream().filter(strain -> strain.value().wildFlower().isPresent())
-                .flatMap(strain -> strain.value().seedItem().stream()).toList();
+                .flatMap(strain -> strain.value().seedItem().map(java.util.stream.Stream::of).orElseGet(java.util.stream.Stream::empty)).collect(Collectors.toList());
         List<Item> spendable = strains.stream().filter(ModStrains::isPlantMatter)
-                .map(strain -> strain.value().buds()).toList();
+                .map(strain -> strain.value().buds()).collect(Collectors.toList());
         Ingredient shears = ofTag(ModTags.Items.SHEARS);
 
         List<Entry> out = new ArrayList<>();
         // A datapack can take every plant away, and a row with an empty slot shows nothing, so the
         // plant rows go too.
         if (!seeds.isEmpty()) {
-            Ingredient plant = Ingredient.of(seeds.toArray(Item[]::new));
-            out.add(inWorld("trimming", List.of(plant, shears), new ItemStack(ModItems.HEMP_LEAF),
-                    Component.translatable("hempdustry.category.world.trimming"),
-                    Component.translatable("hempdustry.category.world.trimming.pays")));
-            out.add(inWorld("rubbing", List.of(plant, shears), new ItemStack(ModItems.CHARAS),
-                    Component.translatable("hempdustry.category.world.rubbing", Defoliation.CHARAS_CHANCE_ONE_IN),
-                    Component.translatable("hempdustry.category.world.rubbing.lamps",
+            Ingredient plant = Ingredient.of(seeds.toArray(new Item[0]));
+            out.add(inWorld("trimming", ImmutableList.of(plant, shears), new ItemStack(ModItems.HEMP_LEAF),
+                    new TranslatableComponent("hempdustry.category.world.trimming"),
+                    new TranslatableComponent("hempdustry.category.world.trimming.pays")));
+            out.add(inWorld("rubbing", ImmutableList.of(plant, shears), new ItemStack(ModItems.CHARAS),
+                    new TranslatableComponent("hempdustry.category.world.rubbing", Defoliation.CHARAS_CHANCE_ONE_IN),
+                    new TranslatableComponent("hempdustry.category.world.rubbing.lamps",
                             Defoliation.CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS)));
-            out.add(inWorld("schwag", List.of(plant), new ItemStack(ModItems.SCHWAG),
-                    Component.translatable("hempdustry.category.world.schwag"),
-                    Component.translatable("hempdustry.category.world.schwag.fortune")));
+            out.add(inWorld("schwag", ImmutableList.of(plant), new ItemStack(ModItems.SCHWAG),
+                    new TranslatableComponent("hempdustry.category.world.schwag"),
+                    new TranslatableComponent("hempdustry.category.world.schwag.fortune")));
         }
         Ingredient blades = ofTag(ModTags.Items.HASH_CUTTERS);
         out.add(cut(ModBlocks.HASHISH_BAR, ModItems.HASHISH, blades));
         out.add(cut(ModBlocks.FILTERED_HASHISH_BAR, ModItems.FILTERED_HASHISH, blades));
         if (!spendable.isEmpty()) {
             out.add(inWorld("vaporizer",
-                    List.of(Ingredient.of(ModItems.VAPORIZER), Ingredient.of(spendable.toArray(Item[]::new))),
+                    ImmutableList.of(Ingredient.of(ModItems.VAPORIZER), Ingredient.of(spendable.toArray(new Item[0]))),
                     new ItemStack(ModItems.SCORCHED_HEMP,
                             DeviceStats.bowl(registries, DeviceType.VAPORIZER).spentYield()),
-                    Component.translatable("hempdustry.category.world.vaporizer"),
-                    Component.translatable("hempdustry.category.world.vaporizer.plant")));
+                    new TranslatableComponent("hempdustry.category.world.vaporizer"),
+                    new TranslatableComponent("hempdustry.category.world.vaporizer.plant")));
         }
         return out;
     }
 
     /** A bar is placed and cut, never unpacked in a grid -- five cuts, the whole bar in pieces. */
     private static Entry cut(net.minecraft.world.level.block.Block bar, Item piece, Ingredient blades) {
-        return inWorld("cutting/" + BuiltInRegistries.BLOCK.getKey(bar).getPath(),
-                List.of(Ingredient.of(bar), blades),
+        return inWorld("cutting/" + Registry.BLOCK.getKey(bar).getPath(),
+                ImmutableList.of(Ingredient.of(bar), blades),
                 new ItemStack(piece, HashishBarBlock.remaining(0)),
-                Component.translatable("hempdustry.category.world.cutting"));
+                new TranslatableComponent("hempdustry.category.world.cutting"));
     }
 
     private static Entry inWorld(String name, List<Ingredient> inputs, ItemStack output, Component... notes) {
         return new Entry(new ResourceLocation(Hempdustry.MOD_ID, "world/" + name), inputs, output,
-                List.of(notes), true);
+                ImmutableList.copyOf(notes), true);
     }
 
     /**
@@ -330,11 +335,11 @@ public final class ViewerRecipes {
     public static Map<Item, Component> info() {
         Map<Item, Component> out = new LinkedHashMap<>();
         for (Item bong : ModItems.bongs()) {
-            out.put(bong, Component.translatable("hempdustry.info.bong"));
+            out.put(bong, new TranslatableComponent("hempdustry.info.bong"));
         }
-        out.put(ModBlocks.GROW_POT.asItem(), Component.translatable("hempdustry.info.grow_pot"));
-        out.put(ModBlocks.HYDRO_TRAY.asItem(), Component.translatable("hempdustry.info.hydro_tray"));
-        out.put(ModBlocks.GROW_LAMP.asItem(), Component.translatable("hempdustry.info.grow_lamp"));
+        out.put(ModBlocks.GROW_POT.asItem(), new TranslatableComponent("hempdustry.info.grow_pot"));
+        out.put(ModBlocks.HYDRO_TRAY.asItem(), new TranslatableComponent("hempdustry.info.hydro_tray"));
+        out.put(ModBlocks.GROW_LAMP.asItem(), new TranslatableComponent("hempdustry.info.grow_lamp"));
         return out;
     }
 
@@ -367,7 +372,7 @@ public final class ViewerRecipes {
         // simply not offered.
         List<Holder.Reference<Strain>> coats = java.util.stream.Stream.of(
                         ModStrains.HASHISH, ModStrains.FILTERED_HASHISH, ModStrains.CHARAS)
-                .flatMap(key -> registry.get(key).stream()).toList();
+                .flatMap(key -> registry.get(key).map(java.util.stream.Stream::of).orElseGet(java.util.stream.Stream::empty)).collect(Collectors.toList());
         // The strains with art of their own first, in the creative tab's order; schwag and scorched
         // hemp have none (model_index 0) and would otherwise open every device's list.
         List<Holder.Reference<Strain>> strains = new ArrayList<>(Strain.all(registries));
@@ -412,7 +417,7 @@ public final class ViewerRecipes {
         // How many of the item, not how many dose points -- see the step above.
         int items = dose / Math.max(1, strain.value().dosePerItem());
         for (int i = 0; i < items; i++) {
-            inputs.add(List.of(new ItemStack(strain.value().buds())));
+            inputs.add(ImmutableList.of(new ItemStack(strain.value().buds())));
         }
         ResourceLocation id = new ResourceLocation(Hempdustry.MOD_ID,
                 "packing/" + strain.key().location().getPath() + "/"
@@ -436,7 +441,7 @@ public final class ViewerRecipes {
                 "packing/" + strain.key().location().getPath() + "/"
                         + type.name().toLowerCase(java.util.Locale.ROOT) + "_moon_rock_"
                         + coat.key().location().getPath());
-        return new Packing(id, List.of(anyOf(type, device), List.of(moonRock)), result);
+        return new Packing(id, ImmutableList.of(anyOf(type, device), ImmutableList.of(moonRock)), result);
     }
 
     /**
@@ -445,11 +450,12 @@ public final class ViewerRecipes {
      * without drawing each row eighteen times. The result stays the clear one.
      */
     private static List<ItemStack> anyOf(DeviceType type, Item device) {
-        List<Item> items = type == DeviceType.BONG ? ModItems.bongs() : List.of(device);
-        return items.stream().map(ItemStack::new).toList();
+        List<Item> items = type == DeviceType.BONG ? ModItems.bongs() : ImmutableList.of(device);
+        return items.stream().map(ItemStack::new).collect(Collectors.toList());
     }
 
     /** One packing permutation, shaped for whatever a viewer calls a shapeless crafting recipe. */
+    @Desugar
     public record Packing(ResourceLocation id, List<List<ItemStack>> inputs, ItemStack output) {
     }
 
@@ -491,7 +497,7 @@ public final class ViewerRecipes {
         }
         StringBuilder key = new StringBuilder();
         for (SmokeContents.Entry entry : contents.entries()) {
-            if (!key.isEmpty()) {
+            if (key.length() > 0) {
                 key.append(',');
             }
             key.append(entry.strain().unwrapKey().map(k -> k.location().toString()).orElse("?"))

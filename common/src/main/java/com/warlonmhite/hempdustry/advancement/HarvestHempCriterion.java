@@ -8,7 +8,7 @@ import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import java.util.Optional;
 import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
 import net.minecraft.advancements.critereon.BlockPredicate;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
+import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.DeserializationContext;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.advancements.critereon.SerializationContext;
@@ -65,7 +65,7 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
     }
 
     @Override
-    protected Conditions createInstance(JsonObject json, ContextAwarePredicate player, DeserializationContext context) {
+    protected Conditions createInstance(JsonObject json, EntityPredicate.Composite player, DeserializationContext context) {
         Optional<GrowLight> light = Optional.empty();
         if (json.has("condition")) {
             String name = GsonHelper.getAsString(json, "condition");
@@ -88,7 +88,7 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
         private final Optional<GrowLight> light;
         private final Optional<BlockPredicate> bed;
 
-        public Conditions(ContextAwarePredicate player, MinMaxBounds.Ints cuts, Optional<GrowLight> light,
+        public Conditions(EntityPredicate.Composite player, MinMaxBounds.Ints cuts, Optional<GrowLight> light,
                           Optional<BlockPredicate> bed) {
             super(ID, player);
             this.cuts = cuts;
@@ -110,8 +110,8 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
 
         public boolean matches(int cuts, Optional<GrowLight> light, ServerLevel world, BlockPos bedPos) {
             return this.cuts.matches(cuts)
-                    && (this.light.isEmpty() || this.light.equals(light))
-                    && (this.bed.isEmpty() || this.bed.get().matches(world, bedPos));
+                    && (!this.light.isPresent() || this.light.equals(light))
+                    && (!this.bed.isPresent() || this.bed.get().matches(world, bedPos));
         }
 
         @Override
@@ -138,7 +138,7 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
         }
 
         public static Conditions create(MinMaxBounds.Ints cuts, Optional<GrowLight> light, Optional<BlockPredicate> bed) {
-            return new Conditions(ContextAwarePredicate.ANY, cuts, light, bed);
+            return new Conditions(EntityPredicate.Composite.ANY, cuts, light, bed);
         }
     }
 }

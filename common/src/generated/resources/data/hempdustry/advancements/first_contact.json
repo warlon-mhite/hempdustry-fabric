@@ -2,7 +2,6 @@
   "parent": "hempdustry:hempdustry",
   "criteria": {
     "took_a_hit": {
-      "conditions": {},
       "trigger": "hempdustry:smoke"
     }
   },
@@ -26,6 +25,5 @@
     [
       "took_a_hit"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

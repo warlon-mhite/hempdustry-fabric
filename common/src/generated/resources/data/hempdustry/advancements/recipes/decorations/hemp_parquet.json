@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hemp_planks_slab"
-            ]
+            "item": "hempdustry:hemp_planks_slab"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:hemp_parquet"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

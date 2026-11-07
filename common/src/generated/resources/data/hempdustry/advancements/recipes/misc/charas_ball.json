@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:charas"
-            ]
+            "item": "hempdustry:charas"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:charas_ball"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

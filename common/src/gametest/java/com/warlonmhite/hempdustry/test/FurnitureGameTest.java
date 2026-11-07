@@ -5,13 +5,13 @@ import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
-import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
@@ -52,10 +52,10 @@ public final class FurnitureGameTest {
 
         context.runAfterDelay(5, () -> {
             var storage = context.getLevel().getPoiManager();
-            Optional<Holder<PoiType>> atHead = storage.getType(context.absolutePos(head));
-            context.assertTrue(atHead.isPresent() && atHead.get().is(PoiTypes.HOME),
+            Optional<PoiType> atHead = storage.getType(context.absolutePos(head));
+            context.assertTrue(atHead.isPresent() && atHead.get() == PoiType.HOME,
                     "the hemp bed's head is not a villager's home point (found " + atHead + ")");
-            context.assertTrue(storage.getType(context.absolutePos(foot)).isEmpty(),
+            context.assertTrue(!storage.getType(context.absolutePos(foot)).isPresent(),
                     "the hemp bed's foot is a point of interest too — vanilla files a bed by its head only");
             context.succeed();
         });

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:cannabutter"
-            ],
+            "item": "hempdustry:cannabutter",
             "nbt": "{\"hempdustry:quality\":\"perfect\"}"
           }
         ]
@@ -35,6 +33,5 @@
     [
       "has_perfect_cannabutter"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

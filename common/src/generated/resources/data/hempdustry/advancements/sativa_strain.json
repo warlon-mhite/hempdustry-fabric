@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:sativa_buds"
-            ]
+            "item": "hempdustry:sativa_buds"
           }
         ]
       },
@@ -34,6 +32,5 @@
     [
       "has_sativa_buds"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

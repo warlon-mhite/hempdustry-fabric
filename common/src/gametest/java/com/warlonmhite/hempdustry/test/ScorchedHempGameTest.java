@@ -8,9 +8,9 @@ import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.cauldron.CauldronInteraction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.block.ModCauldronBehaviors;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -118,7 +118,7 @@ public final class ScorchedHempGameTest {
             Line.equal(context, 15, infuser.getComparatorOutput(),
                     "the comparator did not read 15 for a batch with nothing left to wait for");
 
-            InfuserScreenHandler menu = (InfuserScreenHandler) infuser.createMenu(0, player.getInventory(), player);
+            InfuserScreenHandler menu = (InfuserScreenHandler) infuser.createMenu(0, player.inventory, player);
             context.assertTrue(menu.getProgress() >= 1.0F,
                     "the bar shows " + menu.getProgress() + " for a finished all-scorched batch — "
                             + "a negative purity is being read as \"no batch\"");
@@ -135,7 +135,7 @@ public final class ScorchedHempGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void scorchedHempSmeltsFromPlantOnly(GameTestHelper context) {
         for (Item plant : new Item[]{ModItems.HEMP_LEAF, ModItems.INDICA_BUDS, ModItems.SATIVA_BUDS, ModItems.SCHWAG}) {
-            context.assertTrue(smeltsTo(context, plant).is(ModItems.SCORCHED_HEMP),
+            context.assertTrue(smeltsTo(context, plant).getItem() == ModItems.SCORCHED_HEMP,
                     plant + " did not smelt to scorched hemp");
             Line.equal(context, 1, smeltsTo(context, plant).getCount(),
                     plant + " smelted to more than one scorched hemp — the oven's four-per-bud is the point");
@@ -144,7 +144,8 @@ public final class ScorchedHempGameTest {
         for (Item resin : new Item[]{ModItems.HASHISH, ModItems.CHARAS, ModItems.FILTERED_HASHISH, ModItems.ROSIN}) {
             context.assertTrue(smeltsTo(context, resin).isEmpty(), resin + " smelts — hash reaches the Infuser");
         }
-        context.assertFalse(CauldronInteraction.WATER.containsKey(ModItems.SCORCHED_HEMP),
+        // 1.16.5 has no cauldron interaction tables: the mod's washes are its own table, asked before vanilla's.
+        context.assertFalse(ModCauldronBehaviors.interaction(ModItems.SCORCHED_HEMP) != null,
                 "scorched hemp can be washed, which makes it a route to Clean and Perfect butter");
         Line.equal(context, 0.3F, TestPlatform.INSTANCE.compostChance(ModItems.SCORCHED_HEMP),
                 "scorched hemp does not compost at the leaf's 0.3");
@@ -162,7 +163,7 @@ public final class ScorchedHempGameTest {
         nbt.putInt("BatchUnwashed", unwashed);
         nbt.putInt("BatchWashed", washed);
         nbt.putInt("BatchScorched", scorched);
-        infuser.load(nbt);
+        Line.load(infuser, nbt);
         return infuser;
     }
 
@@ -181,8 +182,7 @@ public final class ScorchedHempGameTest {
     private static ItemStack smeltsTo(GameTestHelper context, Item input) {
         return context.getLevel().getRecipeManager()
                 .getRecipeFor(RecipeType.SMELTING, new SimpleContainer(new ItemStack(input)), context.getLevel())
-                .map(entry -> entry.assemble(new SimpleContainer(new ItemStack(input)),
-                        context.getLevel().registryAccess()))
+                .map(recipe -> recipe.assemble(new SimpleContainer(new ItemStack(input))))
                 .orElse(ItemStack.EMPTY);
     }
 }

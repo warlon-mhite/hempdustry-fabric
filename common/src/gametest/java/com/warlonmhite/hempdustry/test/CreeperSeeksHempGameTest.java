@@ -6,12 +6,13 @@ import com.warlonmhite.hempdustry.entity.ai.SeekHempCropGoal;
 import java.lang.reflect.Field;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -66,68 +67,73 @@ public final class CreeperSeeksHempGameTest {
         Creeper first = interested(context, CENTRE.offset(1, 0, 1));
         context.assertTrue(SeekHempCropGoal.findCover(creeper, 3, ALWAYS) == null,
                 "a field another creeper is already in drew a second one");
-        first.discard();
-
-
-        // It notices the field sooner or later -- a glance is only 8 columns in a 49x49 square, so
-        // this retries rather than expecting the first one to land. A miss has no side effects.
-        SeekHempCropGoal goal = goalOf(creeper);
-        boolean noticed = false;
-        for (int glance = 0; glance < 2000 && !noticed; glance++) {
-            goal.trigger();
-            noticed = goal.canUse();
-        }
-        context.assertTrue(noticed, "a creeper standing in a grown field never noticed it in 2000 glances");
-        goal.start();
-        goal.stop();
-
-        // Then it prowls at most MAX_PROWLS times and walks away on its own. A prowl that misses
-        // the field ends the visit early, which is allowed; staying for ever is not.
-        int prowls = 0;
-        while (prowls < 20) {
-            goal.trigger();
-            if (!goal.canUse()) {
-                break;
+        first.remove();
+        // A 1.16.5 entity removed this tick is still in the world until the world next ticks its
+        // entities (the newer lines take it out at once), and would still hold the field: carry on
+        // from the next tick.
+        context.runAfterDelay(1, () -> {
+            // It notices the field sooner or later -- a glance is only 8 columns in a 49x49 square, so
+            // this retries rather than expecting the first one to land. A miss has no side effects.
+            SeekHempCropGoal goal = goalOf(creeper);
+            boolean noticed = false;
+            for (int glance = 0; glance < 2000 && !noticed; glance++) {
+                goal.trigger();
+                noticed = goal.canUse();
             }
+            context.assertTrue(noticed, "a creeper standing in a grown field never noticed it in 2000 glances");
             goal.start();
             goal.stop();
-            prowls++;
-        }
-        context.assertTrue(prowls <= 6, "a creeper prowled a field " + prowls
-                + " times in a row; it should stop after 3-6 -- 20 means it never leaves");
-        for (int glance = 0; glance < 500; glance++) {
-            goal.trigger();
-            context.assertFalse(goal.canUse(),
-                    "a creeper that has just left a field went straight back to it instead of resting");
-        }
 
-        // An indifferent creeper never notices, however many times it looks. Alone in the field:
-        // with another creeper in it the "taken" rule refuses first and this proves nothing.
-        creeper.discard();
-        Creeper indifferent = context.spawn(EntityType.CREEPER, CENTRE.offset(-1, 0, -1));
-        indifferent.setUUID(new UUID(0L, 1L));
-        SeekHempCropGoal indifferentGoal = goalOf(indifferent);
-        for (int glance = 0; glance < 2000; glance++) {
-            indifferentGoal.trigger();
-            context.assertFalse(indifferentGoal.canUse(),
-                    "a creeper whose UUID says it ignores hemp noticed a field");
-        }
+            // Then it prowls at most MAX_PROWLS times and walks away on its own. A prowl that misses
+            // the field ends the visit early, which is allowed; staying for ever is not.
+            int prowls = 0;
+            while (prowls < 20) {
+                goal.trigger();
+                if (!goal.canUse()) {
+                    break;
+                }
+                goal.start();
+                goal.stop();
+                prowls++;
+            }
+            context.assertTrue(prowls <= 6, "a creeper prowled a field " + prowls
+                    + " times in a row; it should stop after 3-6 -- 20 means it never leaves");
+            for (int glance = 0; glance < 500; glance++) {
+                goal.trigger();
+                context.assertFalse(goal.canUse(),
+                        "a creeper that has just left a field went straight back to it instead of resting");
+            }
 
-        indifferent.discard();
+            // An indifferent creeper never notices, however many times it looks. Alone in the field:
+            // with another creeper in it the "taken" rule refuses first and this proves nothing.
+            creeper.remove();
+            context.runAfterDelay(1, () -> {
+                Creeper indifferent = context.spawn(EntityType.CREEPER, CENTRE.offset(-1, 0, -1));
+                indifferent.setUUID(new UUID(0L, 1L));
+                SeekHempCropGoal indifferentGoal = goalOf(indifferent);
+                for (int glance = 0; glance < 2000; glance++) {
+                    indifferentGoal.trigger();
+                    context.assertFalse(indifferentGoal.canUse(),
+                            "a creeper whose UUID says it ignores hemp noticed a field");
+                }
 
-        // A creeper that has arrived lurks -- the goal holds on with the navigation idle -- and
-        // then lets go by itself. A lurk with no end is the old goal's parking, back again. The
-        // AI is off so nothing else moves the navigation; the goal is driven by hand.
-        Creeper lurker = interested(context, CENTRE);
-        lurker.setNoAi(true);
-        SeekHempCropGoal lurk = new SeekHempCropGoal(lurker);
-        lurk.start();
-        lurker.getNavigation().stop();
-        context.assertTrue(lurk.canContinueToUse(), "a creeper that arrived did not lurk at all");
-        context.runAtTickTime(LURK_OVER_BY_TICK, () -> {
-            context.assertFalse(lurk.canContinueToUse(),
-                    "a creeper was still lurking " + LURK_OVER_BY_TICK + " ticks after it arrived; a lurk is 2-6 s");
-            context.succeed();
+                indifferent.remove();
+
+                // A creeper that has arrived lurks -- the goal holds on with the navigation idle -- and
+                // then lets go by itself. A lurk with no end is the old goal's parking, back again. The
+                // AI is off so nothing else moves the navigation; the goal is driven by hand.
+                Creeper lurker = interested(context, CENTRE);
+                lurker.setNoAi(true);
+                SeekHempCropGoal lurk = new SeekHempCropGoal(lurker);
+                lurk.start();
+                lurker.getNavigation().stop();
+                context.assertTrue(lurk.canContinueToUse(), "a creeper that arrived did not lurk at all");
+                context.runAtTickTime(LURK_OVER_BY_TICK, () -> {
+                    context.assertFalse(lurk.canContinueToUse(),
+                            "a creeper was still lurking " + LURK_OVER_BY_TICK + " ticks after it arrived; a lurk is 2-6 s");
+                    context.succeed();
+                });
+            });
         });
     }
 
@@ -140,11 +146,15 @@ public final class CreeperSeeksHempGameTest {
         return creeper;
     }
 
+    @SuppressWarnings("unchecked")
     private static SeekHempCropGoal goalOf(Mob mob) {
         try {
             var field = Mob.class.getDeclaredField("goalSelector");
             field.setAccessible(true);
-            return ((GoalSelector) field.get(mob)).getAvailableGoals().stream()
+            // 1.16.5 keeps the goal list to itself (no getAvailableGoals), so it is read the same way.
+            var goals = GoalSelector.class.getDeclaredField("availableGoals");
+            goals.setAccessible(true);
+            return ((java.util.Set<WrappedGoal>) goals.get(field.get(mob))).stream()
                     .map(prioritized -> prioritized.getGoal())
                     .filter(SeekHempCropGoal.class::isInstance)
                     .map(SeekHempCropGoal.class::cast)
@@ -163,8 +173,9 @@ public final class CreeperSeeksHempGameTest {
     }
 
     /**
-     * The test runner roofs every test box with barriers, so no field in a game test has open sky
-     * until the roof over this one is lifted. The goal refusing roofed fields is the point of the
+     * The newer lines' test runner roofs every test box with barriers, so no field in a game test has
+     * open sky until the roof over this one is lifted; 1.16.5's rooms have no roof, and the clearing
+     * keeps the test the same on every line. The goal refusing roofed fields is the point of the
      * glass check below, so the barrier has to go rather than the check.
      */
     private static void openSky(GameTestHelper context) {

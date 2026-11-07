@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.google.common.collect.ImmutableList;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
@@ -17,10 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.registry.Holder;
+import net.minecraft.core.Registry;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -34,7 +35,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.ValidationContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -105,9 +106,9 @@ public final class SchwagGameTest {
     public void cropLootTablesValidateClean(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         for (BlockState ripe : ripeLowers()) {
-            LootTable table = world.getServer().getLootData()
-                    .getLootTable(ripe.getBlock().getLootTable());
-            ValidationContext validation = new ValidationContext(LootContextParamSets.BLOCK, world.getServer().getLootData());
+            LootTable table = world.getServer().getLootTables().get(ripe.getBlock().getLootTable());
+            ValidationContext validation = new ValidationContext(LootContextParamSets.BLOCK,
+                    world.getServer().getPredicateManager()::get, world.getServer().getLootTables()::get);
             table.validate(validation);
             context.assertTrue(validation.getProblems().isEmpty(), ripe.getBlock().getDescriptionId()
                     + "'s loot table does not validate: " + validation.getProblems());
@@ -200,18 +201,16 @@ public final class SchwagGameTest {
         ServerLevel world = context.getLevel();
         ItemStack oven = world.getRecipeManager()
                 .getRecipeFor(ModRecipes.DECARBOXYLATING_TYPE, new SimpleContainer(new ItemStack(ModItems.SCHWAG)), world)
-                .map(entry -> entry.assemble(new SimpleContainer(new ItemStack(ModItems.SCHWAG)),
-                        world.registryAccess()))
+                .map(recipe -> recipe.assemble(new SimpleContainer(new ItemStack(ModItems.SCHWAG))))
                 .orElse(ItemStack.EMPTY);
-        context.assertTrue(oven.is(ModItems.DECARBOXYLATED_HEMP) && oven.getCount() == 2,
+        context.assertTrue(oven.getItem() == ModItems.DECARBOXYLATED_HEMP && oven.getCount() == 2,
                 "the oven made " + oven + " of a schwag, not 2 decarboxylated hemp");
 
         ItemStack furnace = world.getRecipeManager()
                 .getRecipeFor(RecipeType.SMELTING, new SimpleContainer(new ItemStack(ModItems.SCHWAG)), world)
-                .map(entry -> entry.assemble(new SimpleContainer(new ItemStack(ModItems.SCHWAG)),
-                        world.registryAccess()))
+                .map(recipe -> recipe.assemble(new SimpleContainer(new ItemStack(ModItems.SCHWAG))))
                 .orElse(ItemStack.EMPTY);
-        context.assertTrue(furnace.is(ModItems.SCORCHED_HEMP) && furnace.getCount() == 1,
+        context.assertTrue(furnace.getItem() == ModItems.SCORCHED_HEMP && furnace.getCount() == 1,
                 "a furnace made " + furnace + " of a schwag, not one scorched hemp");
 
         Holder<Strain> schwag = strain(world);
@@ -224,32 +223,33 @@ public final class SchwagGameTest {
             CraftingInput grid = CraftingInput.of(3, 3, slots);
             int wanted = dose;
             ItemStack spliff = world.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, grid, world)
-                    .map(entry -> entry.assemble(grid, world.registryAccess()))
+                    .map(recipe -> recipe.assemble(grid))
                     .orElse(ItemStack.EMPTY);
             SmokeContents contents = ModComponents.SMOKE_CONTENTS.getOrDefault(spliff, SmokeContents.EMPTY);
-            context.assertTrue(spliff.is(ModItems.SPLIFF) && contents.dose() == wanted
+            context.assertTrue(spliff.getItem() == ModItems.SPLIFF && contents.dose() == wanted
                             && contents.primaryStrain() != null && contents.primaryStrain().is(ModStrains.SCHWAG),
                     dose + " schwag over " + dose + " paper did not roll a dose-" + dose + " schwag spliff");
         }
         context.assertTrue(ModStrains.isPlantMatter(schwag), "schwag is not plant matter");
-        context.assertTrue(schwag.value().wildFlower().isEmpty(), "schwag has a plant of its own");
+        context.assertTrue(!schwag.value().wildFlower().isPresent(), "schwag has a plant of its own");
 
         Line.equal(context, TestPlatform.INSTANCE.compostChance(ModItems.INDICA_BUDS),
                 TestPlatform.INSTANCE.compostChance(ModItems.SCHWAG),
                 "schwag does not compost at a bud's rate");
         ItemStack stack = new ItemStack(ModItems.SCHWAG);
-        context.assertFalse(stack.is(ModTags.Items.SIFTABLE_FLOWER) || stack.is(ModTags.Items.SIFTABLE_RESINOUS)
-                || stack.is(ModTags.Items.SIFTABLE_TRIM), "schwag goes through the screen");
+        context.assertFalse(stack.getItem().is(ModTags.Items.SIFTABLE_FLOWER) || stack.getItem().is(ModTags.Items.SIFTABLE_RESINOUS)
+                || stack.getItem().is(ModTags.Items.SIFTABLE_TRIM), "schwag goes through the screen");
 
-        LootTable wreck = world.getServer().getLootData().getLootTable(BuiltInLootTables.SHIPWRECK_SUPPLY);
-        LootParams params = new LootParams.Builder(world)
-                .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(CROP)))
-                .create(LootContextParamSets.CHEST);
+        LootTable wreck = world.getServer().getLootTables().get(BuiltInLootTables.SHIPWRECK_SUPPLY);
+        // 1.16.5's loot context carries its own random, so each chest builds one on its seed.
+        LootContext.Builder params = new LootContext.Builder(world)
+                .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(CROP)));
         Random seeds = new Random(SEED_SOURCE);
         int chests = 1000;
         int withSchwag = 0;
         for (int i = 0; i < chests; i++) {
-            if (wreck.getRandomItems(params, seeds.nextLong()).stream().anyMatch(s -> s.is(ModItems.SCHWAG))) {
+            LootContext chest = params.withRandom(new Random(seeds.nextLong())).create(LootContextParamSets.CHEST);
+            if (wreck.getRandomItems(chest).stream().anyMatch(s -> s.getItem() == ModItems.SCHWAG)) {
                 withSchwag++;
             }
         }
@@ -263,7 +263,7 @@ public final class SchwagGameTest {
 
     /** A ripe, unworked, naturally lit LOWER of each crop, in the order indica, Beldía, sativa. */
     private static List<BlockState> ripeLowers() {
-        return List.of(
+        return ImmutableList.of(
                 Defoliation.unworked(ModBlocks.INDICA_CROP.defaultBlockState()
                         .setValue(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER)
                         .setValue(IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE)),
@@ -277,24 +277,24 @@ public final class SchwagGameTest {
 
     /** {buds, schwag} from one roll of the plant's own table, harvested with Fortune {@code level}. */
     private static int[] harvest(ServerLevel world, GameTestHelper context, BlockState state, long seed, int level) {
-        LootTable table = world.getServer().getLootData()
-                .getLootTable(state.getBlock().getLootTable());
+        LootTable table = world.getServer().getLootTables().get(state.getBlock().getLootTable());
         ItemStack tool = new ItemStack(Items.DIAMOND_HOE);
         if (level > 0) {
             tool.enchant(Enchantments.BLOCK_FORTUNE, level);
         }
-        LootParams params = new LootParams.Builder(world)
+        LootContext loot = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(context.absolutePos(CROP)))
                 .withParameter(LootContextParams.BLOCK_STATE, state)
                 .withParameter(LootContextParams.TOOL, tool)
+                .withRandom(new Random(seed))
                 .create(LootContextParamSets.BLOCK);
         Item buds = state.is(ModBlocks.INDICA_CROP) ? ModItems.INDICA_BUDS
                 : state.is(ModBlocks.BELDIA_CROP) ? ModItems.BELDIA_BUDS : ModItems.SATIVA_BUDS;
         int[] counts = new int[2];
-        for (ItemStack stack : table.getRandomItems(params, seed)) {
-            if (stack.is(buds)) {
+        for (ItemStack stack : table.getRandomItems(loot)) {
+            if (stack.getItem() == buds) {
                 counts[0] += stack.getCount();
-            } else if (stack.is(ModItems.SCHWAG)) {
+            } else if (stack.getItem() == ModItems.SCHWAG) {
                 counts[1] += stack.getCount();
             }
         }
@@ -302,7 +302,7 @@ public final class SchwagGameTest {
     }
 
     private static Holder<Strain> strain(ServerLevel world) {
-        return world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.SCHWAG);
+        return com.warlonmhite.hempdustry.registry.DataRegistries.of(world).lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.SCHWAG);
     }
 
     private static MobEffectInstance find(List<MobEffectInstance> effects,

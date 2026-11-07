@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hemp_stem"
-            ]
+            "item": "hempdustry:hemp_stem"
           }
         ]
       },
@@ -34,6 +32,5 @@
     [
       "has_hemp_stem"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

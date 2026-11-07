@@ -20,9 +20,7 @@ import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.CompositeItemModel;
-import com.warlonmhite.hempdustry.client.render.FlipFlopsModel;
 import com.warlonmhite.hempdustry.client.render.HempBeanieRenderer;
-import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.component.StackRegistries;
 import com.warlonmhite.hempdustry.item.ModArmorMaterials;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -37,14 +35,18 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.level.block.Block;
+import com.google.common.collect.ImmutableList;
+import java.util.stream.Collectors;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 
 public class HempdustryClient {
 
@@ -53,10 +55,7 @@ public class HempdustryClient {
         ClientRegistration client = ClientServices.CLIENT;
         UpdateChecker.init();
         // A stack's strain resolves, on the client, against the registries its server sent.
-        StackRegistries.client(() -> {
-            ClientPacketListener connection = Minecraft.getInstance().getConnection();
-            return connection == null ? null : connection.registryAccess();
-        });
+        StackRegistries.client(() -> Minecraft.getInstance().getConnection() != null);
 
         client.blockLayer(ModBlocks.HEMP_PLANKS_DOOR, RenderType.cutout());
         client.blockLayer(ModBlocks.HEMP_PLANKS_TRAPDOOR, RenderType.cutout());
@@ -82,12 +81,7 @@ public class HempdustryClient {
         // The compost crumbs over the pot's soil are drawn with see-through pixels.
         client.blockLayer(ModBlocks.GROW_POT, RenderType.cutout());
 
-        client.entityRenderer(ModEntities.HEMP_BOAT, ctx -> new HempBoatEntityRenderer(ctx, false));
-        client.entityRenderer(ModEntities.HEMP_CHEST_BOAT, ctx -> new HempBoatEntityRenderer(ctx, true));
-
-        // Flip-flops are drawn by a model of their own rather than as boots, and the beanie as a
-        // slouchy tam rather than a helmet: each loader's armour hook draws them.
-        client.modelLayer(ModEntityModelLayers.FLIP_FLOPS, FlipFlopsModel::createLayer);
+        client.entityRenderer(ModEntities.HEMP_BOAT, HempBoatEntityRenderer::new);
 
         client.menuScreen(ModScreenHandlers.DECARBOXYLATOR, DecarboxylatorScreen::new);
         client.menuScreen(ModScreenHandlers.INFUSER, InfuserScreen::new);
@@ -100,11 +94,13 @@ public class HempdustryClient {
         // A bed has no block model: its block entity draws it, like every vanilla bed. Its item is drawn
         // by the same renderer through each loader's item hook (HempBedBlockEntityRenderer#renderItem).
         client.blockEntityRenderer(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
+        // 1.16.5's beds atlas holds only the sixteen vanilla beds unless asked for more.
+        client.atlasSprite(Sheets.BED_SHEET, HempBedBlockEntityRenderer.TEXTURE.texture());
         // ...and they are models no block state names, so they have to be asked for by id. So are the
         // bongs' 3D hand models, which no item names either: ItemRendererMixin draws them.
         client.extraModels(HempPressBlockEntityRenderer.PARTS);
-        client.extraModels(ModItems.bongs().stream().map(ModItemProperties::inHandModel).toList());
-        client.extraModels(List.of(HempBeanieRenderer.BAND, HempBeanieRenderer.CROWN));
+        client.extraModels(ModItems.bongs().stream().map(ModItemProperties::inHandModel).collect(Collectors.toList()));
+        client.extraModels(ImmutableList.of(HempBeanieRenderer.BAND, HempBeanieRenderer.CROWN));
         // The press's icon is its four part models at rest, put together as it bakes -- the
         // composite item model the 1.21.11 build names in data. Its own model, which parents the
         // frame's, gives the display transforms.
@@ -155,7 +151,7 @@ public class HempdustryClient {
      *
      * <p>Returning ARGB is deliberate but, unlike the item tint above, the alpha byte is
      * <em>ignored</em> here — {@code ModelBlockRenderer} reads only the three colour bytes off a
-     * block tint. {@link FastColor.ARGB32#lerp} is used for the blend all the same, so the value
+     * block tint. {@link #lerp} blends all four bytes all the same, so the value
      * that leaves this method is a well-formed colour rather than one that only works by luck.
      */
     private static void registerBlockColors(ClientRegistration client) {
@@ -184,7 +180,7 @@ public class HempdustryClient {
             int tint = state.is(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getAverageGrassColor(view, pos));
             GrowLight light = state.getValue(GrowLight.PROPERTY);
             return light.artificial() && light != GrowLight.STRESSED
-                    ? FastColor.ARGB32.lerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
+                    ? lerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
         }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
@@ -192,10 +188,26 @@ public class HempdustryClient {
         // is the hand's, where the item definition has the stack to read.
         client.blockColor((state, view, pos, tintIndex) ->
                         tintIndex == 1 ? PLACED_LOAD : NO_TINT,
-                ModBlocks.DEVICE_BLOCKS.values().toArray(Block[]::new));
+                ModBlocks.DEVICE_BLOCKS.values().toArray(new Block[0]));
     }
 
     private static final int PLACED_LOAD = 0x6F8F3A;
+
+    /**
+     * Each byte of {@code from} moved {@code delta} of the way to {@code to}: what later versions
+     * ship as {@code FastColor.ARGB32.lerp}, written out the same way, which 1.16.5 does not have.
+     */
+    private static int lerp(float delta, int from, int to) {
+        return FastColor.ARGB32.color(
+                lerpByte(delta, FastColor.ARGB32.alpha(from), FastColor.ARGB32.alpha(to)),
+                lerpByte(delta, FastColor.ARGB32.red(from), FastColor.ARGB32.red(to)),
+                lerpByte(delta, FastColor.ARGB32.green(from), FastColor.ARGB32.green(to)),
+                lerpByte(delta, FastColor.ARGB32.blue(from), FastColor.ARGB32.blue(to)));
+    }
+
+    private static int lerpByte(float delta, int from, int to) {
+        return from + Mth.floor(delta * (float) (to - from));
+    }
 
     /**
      * {@code grassColor} blended towards white by {@code 1 - client.biomeTintStrength}.
@@ -204,7 +216,7 @@ public class HempdustryClient {
      * costs a lerp and nothing else, and no branch is needed to honour it.
      */
     private static int biomeTint(int grassColor) {
-        return FastColor.ARGB32.lerp(
+        return lerp(
                 (float) HempdustryConfig.get().client().biomeTintStrength(),
                 NO_TINT,
                 grassColor);
@@ -277,12 +289,12 @@ public class HempdustryClient {
      *
      * <h2>Why {@code strain} is not clamped</h2>
      *
-     * {@code ItemProperties.register} only accepts a {@code ClampedItemProperty-
+     * From 1.17 on, {@code ItemProperties.register} only accepts a {@code ClampedItemProperty-
      * Function}, which pins its result to 0..1 — so any index above 1 collapsed onto the first
-     * strain's override. {@code packed} is unaffected, being 0 or 1 by construction, and is a clamped
-     * function like vanilla's. Every property goes onto vanilla's map as given
-     * ({@link ClientRegistration#itemProperty}), so {@code strain} stays a plain one; see
-     * {@code ModelPredicateProviderRegistryAccessor} for the full reasoning.
+     * strain's override, and the newer lines put the property on vanilla's map directly. 1.16.5
+     * never clamps: every property goes on as given ({@link ClientRegistration#itemProperty}), so
+     * {@code strain} needs nothing, and {@code draw} clamps itself as the newer lines' clamped
+     * function does.
      *
      * <p>Both properties are registered on the devices even where the mod ships no override for them,
      * because that is what lets a <b>resource pack</b> add per-strain packed art without any code:
@@ -291,7 +303,7 @@ public class HempdustryClient {
      */
     private static void registerItemProperties(ClientRegistration client) {
         ResourceLocation strainId = ModItemProperties.STRAIN;
-        ItemPropertyFunction strain = (stack, world, entity, seed) -> {
+        ItemPropertyFunction strain = (stack, world, entity) -> {
             Holder<Strain> loaded =
                     ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).primaryStrain();
             return loaded == null ? 0f : loaded.value().modelIndex();
@@ -301,7 +313,7 @@ public class HempdustryClient {
         }
 
         ResourceLocation packedId = ModItemProperties.PACKED;
-        ClampedItemPropertyFunction packed = (stack, world, entity, seed) ->
+        ItemPropertyFunction packed = (stack, world, entity) ->
                 ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).isEmpty() ? 0f : 1f;
         for (Item device : everyDevice()) {
             client.itemProperty(device, packedId, packed);
@@ -309,14 +321,15 @@ public class HempdustryClient {
 
         // The bong's draw, for its 3D hand model: the bow's pulling and pull, measured against the
         // draw's own length rather than a bow's twenty ticks.
-        ClampedItemPropertyFunction drawing = (stack, world, entity, seed) ->
+        ItemPropertyFunction drawing = (stack, world, entity) ->
                 entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1f : 0f;
-        ClampedItemPropertyFunction draw = (stack, world, entity, seed) -> {
+        ItemPropertyFunction draw = (stack, world, entity) -> {
             if (entity == null || entity.getUseItem() != stack
                     || !(stack.getItem() instanceof SmokingDeviceItem device) || device.device().drawTicks() <= 0) {
                 return 0f;
             }
-            return (stack.getUseDuration() - entity.getUseItemRemainingTicks()) / (float) device.device().drawTicks();
+            return Mth.clamp((stack.getUseDuration() - entity.getUseItemRemainingTicks())
+                    / (float) device.device().drawTicks(), 0.0F, 1.0F);
         };
         for (Item bong : ModItems.bongs()) {
             client.itemProperty(bong, ModItemProperties.DRAWING, drawing);
@@ -334,7 +347,7 @@ public class HempdustryClient {
         List<Item> items = new ArrayList<>();
         items.add(ModItems.SPLIFF);
         items.addAll(everyDevice());
-        return items.toArray(Item[]::new);
+        return items.toArray(new Item[0]);
     }
 
     /**
@@ -352,8 +365,8 @@ public class HempdustryClient {
      * one item for every strain with the bud showing through its crust in that strain's colour.
      */
     private static Item[] tinted() {
-        List<Item> items = new ArrayList<>(List.of(smokingGear()));
+        List<Item> items = new ArrayList<>(ImmutableList.copyOf(smokingGear()));
         items.add(ModItems.MOON_ROCK);
-        return items.toArray(Item[]::new);
+        return items.toArray(new Item[0]);
     }
 }

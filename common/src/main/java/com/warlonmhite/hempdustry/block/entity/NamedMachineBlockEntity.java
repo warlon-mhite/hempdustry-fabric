@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.entity;
 
+import com.warlonmhite.hempdustry.util.NbtTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -26,8 +27,8 @@ public abstract class NamedMachineBlockEntity extends BlockEntity implements Nam
     @Nullable
     private Component customName;
 
-    protected NamedMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
+    protected NamedMachineBlockEntity(BlockEntityType<?> type) {
+        super(type);
     }
 
     /** The machine's own name, for when nobody has renamed it. */
@@ -66,17 +67,18 @@ public abstract class NamedMachineBlockEntity extends BlockEntity implements Nam
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
-        customName = nbt.contains(CUSTOM_NAME, Tag.TAG_STRING) ? parseName(nbt.getString(CUSTOM_NAME)) : null;
+    public void load(BlockState state, CompoundTag nbt) {
+        super.load(state, nbt);
+        customName = nbt.contains(CUSTOM_NAME, NbtTypes.STRING) ? parseName(nbt.getString(CUSTOM_NAME)) : null;
     }
 
     @Override
-    public void saveAdditional(CompoundTag nbt) {
-        super.saveAdditional(nbt);
+    public CompoundTag save(CompoundTag nbt) {
+        super.save(nbt);
         if (customName != null) {
             nbt.putString(CUSTOM_NAME, Component.Serializer.toJson(customName));
         }
+        return nbt;
     }
 
     /** A name that does not parse is no name, rather than a machine that will not load. */

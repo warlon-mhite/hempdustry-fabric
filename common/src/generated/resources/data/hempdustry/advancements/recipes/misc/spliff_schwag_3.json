@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:schwag"
-            ]
+            "item": "hempdustry:schwag"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:spliff_schwag_3"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

@@ -1,9 +1,10 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -49,6 +50,7 @@ public class SativaFlower extends DoublePlantBlock {
 
     @Override
     public boolean mayPlaceOn(BlockState floor, BlockGetter world, BlockPos pos) {
-        return floor.is(BlockTags.DEAD_BUSH_MAY_PLACE_ON) || super.mayPlaceOn(floor, world, pos);
+        // 1.16.5 has no #dead_bush_may_place_on: the dead bush's ground is its own mayPlaceOn.
+        return ((BushBlock) Blocks.DEAD_BUSH).mayPlaceOn(floor, world, pos) || super.mayPlaceOn(floor, world, pos);
     }
 }

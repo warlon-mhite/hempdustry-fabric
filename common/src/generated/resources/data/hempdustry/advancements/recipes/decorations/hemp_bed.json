@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hemp_wool"
-            ]
+            "item": "hempdustry:hemp_wool"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:hemp_bed"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

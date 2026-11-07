@@ -1,24 +1,27 @@
 package com.warlonmhite.hempdustry.test.forge;
 
-import net.minecraftforge.registries.DataPackRegistriesHooks;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraft.world.level.block.ComposterBlock;
+import com.google.common.collect.ImmutableList;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.api.AfterEatEvent;
 import com.warlonmhite.hempdustry.api.AfterInfuseEvent;
 import com.warlonmhite.hempdustry.api.AfterSmokeEvent;
 import com.warlonmhite.hempdustry.api.AllowSmokeEvent;
+import com.warlonmhite.hempdustry.test.HempdustryGameTests;
 import com.warlonmhite.hempdustry.test.TestPlatform;
-import net.minecraft.resources.RegistryDataLoader;
+import io.netty.util.AttributeKey;
+import net.minecraft.network.Connection;
+import net.minecraftforge.fml.loading.moddiscovery.ModFile;
+import net.minecraftforge.fml.network.FMLNetworkConstants;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.ModList;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -32,37 +35,41 @@ public final class ForgeTestPlatform implements TestPlatform {
     }
 
     @Override
-    public List<RegistryDataLoader.RegistryData<?>> dynamicRegistries() {
-        return DataPackRegistriesHooks.getDataPackRegistries();
+    public void markAsHandshaken(Connection connection) {
+        // What FMLHandshakeHandler leaves on a channel once a modded client has logged in; Forge 36's
+        // player list reads it as the player joins (NetworkHooks#getConnectionType), and finds null on
+        // a channel no handshake ran on.
+        connection.channel().attr(AttributeKey.<String>valueOf("fml:netversion")).set(FMLNetworkConstants.NETVERSION);
     }
 
     @Override
     public List<Path> modRoots() {
-        return roots(Hempdustry.MOD_ID);
+        return roots(Hempdustry.MOD_ID, Hempdustry.class);
     }
 
     @Override
     public List<Path> testModRoots() {
-        return roots(ForgeGameTests.MOD_ID);
+        return roots(ForgeGameTests.MOD_ID, HempdustryGameTests.class);
     }
 
     @Override
     public float compostChance(ItemLike item) {
-        // Vanilla's own table, which Forge 47's composter reads.
+        // Vanilla's own table, which Forge 36's composter reads.
         return ComposterBlock.COMPOSTABLES.getOrDefault(item.asItem(), -1.0F);
     }
 
     @Override
     public int burnTime(ItemStack stack) {
-        return ForgeHooks.getBurnTime(stack, RecipeType.SMELTING);
+        return ForgeHooks.getBurnTime(stack);
     }
 
     @Override
     public Flammability flammability(Block block) {
-        // Vanilla's table, which Forge's fire reads unless a block says otherwise.
+        // Vanilla's table, which Forge's fire reads unless a block says otherwise; 1.16.5 calls the
+        // ignite odds flame odds.
         FireBlock fire = (FireBlock) Blocks.FIRE;
         BlockState state = block.defaultBlockState();
-        return new Flammability(fire.getIgniteOdds(state), fire.getBurnOdds(state));
+        return new Flammability(fire.getFlameOdds(state), fire.getBurnOdd(state));
     }
 
     @Override
@@ -86,7 +93,20 @@ public final class ForgeTestPlatform implements TestPlatform {
         return probe;
     }
 
-    private static List<Path> roots(String modId) {
-        return List.of(ModList.get().getModFileById(modId).getFile().getSecureJar().getRootPath());
+    /**
+     * Where a mod's files are read from: the root its manifest sits in and the root one of its classes
+     * sits in -- two folders of a dev run, or the same jar. Forge 36's class loader names no code
+     * source, so the classes' root is found through the mod's file as well.
+     */
+    private static List<Path> roots(String modId, Class<?> member) {
+        ModFile file = ModList.get().getModFileById(modId).getFile();
+        Path manifest = file.findResource("META-INF/mods.toml");
+        Path type = file.findResource(member.getName().replace('.', '/') + ".class");
+        Path classes = type;
+        for (int i = 0; i < member.getName().split("\\.").length; i++) {
+            classes = classes.getParent();
+        }
+        Path resources = manifest.getParent().getParent();
+        return resources.equals(classes) ? ImmutableList.of(resources) : ImmutableList.of(resources, classes);
     }
 }

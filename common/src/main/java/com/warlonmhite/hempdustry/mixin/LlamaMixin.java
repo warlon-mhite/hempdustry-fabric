@@ -15,9 +15,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Tells the clients when a llama wears the hemp carpet. On 1.20.1 a llama's carpet stays in its
- * server-side inventory; all a client learns is the synced swag colour, which vanilla takes from a
- * {@code WoolCarpetBlock}'s {@code DyeColor} and which ours does not have. So a llama in the hemp
+ * Tells the clients when a llama wears the hemp carpet. A llama's carpet stays in its server-side
+ * inventory; all a client learns is the synced swag colour, which vanilla takes from the
+ * {@code WoolCarpetBlock}'s {@code DyeColor} -- white, nominally, for ours. So a llama in the hemp
  * carpet syncs {@link HempCarpetBlock#SWAG_ID}, a value no dye has, and the decor layer draws ours
  * for it ({@code LlamaDecorFeatureRendererMixin}).
  */
@@ -33,7 +33,7 @@ public abstract class LlamaMixin extends AbstractChestedHorse {
 
     @Inject(method = "updateContainerEquipment", at = @At("TAIL"))
     private void hempdustry$wearHempCarpet(CallbackInfo ci) {
-        if (!this.level().isClientSide && this.inventory.getItem(1).is(ModBlocks.HEMP_CARPET.asItem())) {
+        if (!this.level.isClientSide && this.inventory.getItem(1).getItem() == ModBlocks.HEMP_CARPET.asItem()) {
             this.entityData.set(DATA_SWAG_ID, HempCarpetBlock.SWAG_ID);
         }
     }

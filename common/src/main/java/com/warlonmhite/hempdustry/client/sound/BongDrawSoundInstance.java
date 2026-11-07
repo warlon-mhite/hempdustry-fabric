@@ -4,7 +4,6 @@ import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.sound.ModSounds;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
@@ -26,7 +25,7 @@ public class BongDrawSoundInstance extends AbstractTickableSoundInstance {
     private boolean finished;
 
     public BongDrawSoundInstance(LivingEntity drawer) {
-        super(ModSounds.BONGHIT, SoundSource.PLAYERS, RandomSource.create());
+        super(ModSounds.BONGHIT, SoundSource.PLAYERS);
         this.drawer = drawer;
         this.left = drawer.getUseItemRemainingTicks();
         follow();
@@ -34,7 +33,7 @@ public class BongDrawSoundInstance extends AbstractTickableSoundInstance {
 
     @Override
     public void tick() {
-        if (drawer.isRemoved()) {
+        if (drawer.removed) {
             stop();
             return;
         }

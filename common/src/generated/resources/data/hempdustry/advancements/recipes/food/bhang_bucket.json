@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:decarboxylated_hemp"
-            ]
+            "item": "hempdustry:decarboxylated_hemp"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:bhang_bucket"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

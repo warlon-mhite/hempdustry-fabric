@@ -16,6 +16,7 @@ import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.config.ModCommands;
 import com.warlonmhite.hempdustry.platform.Registration;
 import com.warlonmhite.hempdustry.platform.Services;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
@@ -32,36 +33,33 @@ import com.warlonmhite.hempdustry.sound.ModSounds;
 import com.warlonmhite.hempdustry.particle.ModParticles;
 import com.warlonmhite.hempdustry.world.ModPlacementModifiers;
 import com.warlonmhite.hempdustry.world.gen.ModWorldGeneration;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.properties.BedPart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableSet;
+import net.minecraft.core.Registry;
 
 public class Hempdustry {
 	public static final String MOD_ID = "hempdustry";
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
 	/**
-	 * The datapack registries: the strains, and the balance files a pack can tune. A loader may need
-	 * them before anything else is registered -- NeoForge asks for them before its registry events --
-	 * so each loader's entry point calls this first, then {@link #init}.
-	 *
-	 * <p>All four are <b>synced</b>, so a datapack's entries reach every client without a packet of
-	 * our own: the tinting and the naming read the loaded strain, and the creative tab and the recipe
-	 * viewers show the bowls the server actually packs. No {@code SKIP_WHEN_EMPTY}: the mod's own
-	 * entries are always present, and a client without the registry is a client without the mod.
+	 * The datapack registries: the strains, and the balance files a pack can tune. Minecraft 1.16.5 has
+	 * no datapack registries a mod can add, so {@link DataRegistries} reads them from the same folders
+	 * the newer lines' vanilla does, and the loader sends them to every client as it joins and after a
+	 * reload: the tinting and the naming read the loaded strain, and the creative tab and the recipe
+	 * viewer show the bowls the server actually packs. Called first by the loader's entry point.
 	 */
 	public static void registerDynamicRegistries() {
-		Registration registration = Services.REGISTRATION;
-		registration.registerSyncedDynamicRegistry(Strain.REGISTRY_KEY, Strain.CODEC);
-		registration.registerSyncedDynamicRegistry(DeviceStats.REGISTRY_KEY, DeviceStats.CODEC);
-		registration.registerSyncedDynamicRegistry(EdibleBundle.REGISTRY_KEY, EdibleBundle.CODEC);
-		registration.registerSyncedDynamicRegistry(GreenOut.REGISTRY_KEY, GreenOut.CODEC);
+		DataRegistries.declare(Strain.REGISTRY_KEY, Strain.CODEC);
+		DataRegistries.declare(DeviceStats.REGISTRY_KEY, DeviceStats.CODEC);
+		DataRegistries.declare(EdibleBundle.REGISTRY_KEY, EdibleBundle.CODEC);
+		DataRegistries.declare(GreenOut.REGISTRY_KEY, GreenOut.CODEC);
 	}
 
 	/**
@@ -171,13 +169,11 @@ public class Hempdustry {
 
 		registration.addValidBlocks(BlockEntityType.SIGN, ModBlocks.HEMP_PLANKS_SIGN);
 		registration.addValidBlocks(BlockEntityType.SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN);
-		registration.addValidBlocks(BlockEntityType.HANGING_SIGN, ModBlocks.HEMP_PLANKS_HANGING_SIGN);
-		registration.addValidBlocks(BlockEntityType.HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN);
 		// A villager's home is any bed head, the way vanilla lists its own sixteen.
-		registration.addPointOfInterestStates(PoiTypes.HOME,
+		registration.addPointOfInterestStates(PoiType.HOME,
 				ModBlocks.HEMP_BED.getStateDefinition().getPossibleStates().stream()
 						.filter(state -> state.getValue(BedBlock.PART) == BedPart.HEAD)
-						.collect(Collectors.toUnmodifiableSet()));
+						.collect(ImmutableSet.toImmutableSet()));
 	}
 
 	private static void registerFlammables(Registration registration) {

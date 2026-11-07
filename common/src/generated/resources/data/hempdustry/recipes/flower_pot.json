@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": {
       "item": "hempdustry:hemp_brick"
@@ -12,6 +11,5 @@
   ],
   "result": {
     "item": "minecraft:flower_pot"
-  },
-  "show_notification": true
+  }
 }

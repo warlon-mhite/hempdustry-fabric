@@ -21,6 +21,10 @@
 #
 # The shield is a separate, smaller canvas: a 10x20 window at x 2..11, y 2..21, front only, and
 # both files are required -- a missing shield sprite draws as the magenta missing texture.
+#
+# On 1.16.5 a pattern's textures are read from the minecraft namespace by the pattern's file name
+# (`BannerPattern#location`), so these render with `-o src/main/resources/assets/minecraft/textures`
+# under the file name the pattern is registered with, `hempdustry_hemp_leaf`.
 
 # ## Vanilla's grammar, measured out of the client jar
 #
@@ -54,7 +58,7 @@ w = F3F3F3        flat mask at full alpha; the dye colour is multiplied over it 
 o = F3F3F3BF      vanilla's 75% soft edge (alpha 191): leaflet tips and serration teeth
 
 # Leaf rows 8..34 of the flag's 1..40; front copy x 2..19, back copy x 23..40.
-@texture entity/banner/hemp_leaf 64x64 type=plant
+@texture entity/banner/hempdustry_hemp_leaf 64x64 type=plant
 ................................................................
 ................................................................
 ................................................................
@@ -123,7 +127,7 @@ o = F3F3F3BF      vanilla's 75% soft edge (alpha 191): leaflet tips and serratio
 # Shield: a 10x20 window at x 2..11, y 2..21, front face only. Vanilla spends only an 8x8 corner
 # of it; the leaf takes 10x13 (rows 5..17) because seven leaflets do not survive eight pixels.
 # Leaflets drop to one pixel wide here, which is what vanilla's own shield sprites do.
-@texture entity/shield/hemp_leaf 64x64 type=plant
+@texture entity/shield/hempdustry_hemp_leaf 64x64 type=plant
 ................................................................
 ................................................................
 ................................................................

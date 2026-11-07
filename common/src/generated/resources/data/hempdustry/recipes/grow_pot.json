@@ -1,13 +1,26 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "B": {
       "item": "hempdustry:hemp_brick"
     },
-    "D": {
-      "tag": "minecraft:dirt"
-    }
+    "D": [
+      {
+        "item": "minecraft:dirt"
+      },
+      {
+        "item": "minecraft:grass_block"
+      },
+      {
+        "item": "minecraft:podzol"
+      },
+      {
+        "item": "minecraft:coarse_dirt"
+      },
+      {
+        "item": "minecraft:mycelium"
+      }
+    ]
   },
   "pattern": [
     "B B",
@@ -16,6 +29,5 @@
   ],
   "result": {
     "item": "hempdustry:grow_pot"
-  },
-  "show_notification": true
+  }
 }

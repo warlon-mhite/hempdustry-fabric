@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -32,7 +31,6 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -40,6 +38,9 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.network.chat.TranslatableComponent;
+import java.util.Random;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * The Sifting Box — a screened tub that separates trichome heads from plant matter. <b>Two
@@ -282,9 +283,9 @@ public class SiftingBoxBlock extends Block implements ItemUse {
         // A bucket of water turns the box into an Ice-o-lator. Only into an EMPTY box: a half-sifted
         // dry batch must not be convertible into a wash, or the water would be retroactively
         // deciding what the last three buds became.
-        if (stack.is(Items.WATER_BUCKET) && !state.getValue(FILLED) && level == 0) {
+        if (stack.getItem() == Items.WATER_BUCKET && !state.getValue(FILLED) && level == 0) {
             if (world instanceof ServerLevel serverWorld) {
-                serverWorld.setBlock(pos, state.setValue(FILLED, true), Block.UPDATE_ALL);
+                serverWorld.setBlock(pos, state.setValue(FILLED, true), BlockFlags.UPDATE_ALL);
                 // Server-side and through ItemUtils#createFilledResult, exactly as vanilla's cauldron and
                 // ModCauldronBehaviors do it. Swapping the held stack on both sides mints a bucket
                 // the next inventory sync takes away, and creativeOverride is what stops a creative
@@ -293,14 +294,13 @@ public class SiftingBoxBlock extends Block implements ItemUse {
                         ItemUtils.createFilledResult(stack, player, new ItemStack(Items.BUCKET)));
                 player.awardStat(Stats.ITEM_USED.get(Items.WATER_BUCKET));
                 serverWorld.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-                serverWorld.gameEvent(player, GameEvent.FLUID_PLACE, pos);
             }
             return ItemInteractionResult.sidedSuccess(world.isClientSide);
         }
         // Any other water bucket is turned down with CONSUME, not super: past a refusal the client
         // goes on to the bucket's own use and pours it out on top of the box, which looks as if the
         // box took it. A ready box still falls through, so the bucket's holder can empty it.
-        if (stack.is(Items.WATER_BUCKET) && level != READY_LEVEL) {
+        if (stack.getItem() == Items.WATER_BUCKET && level != READY_LEVEL) {
             return ItemInteractionResult.CONSUME;
         }
 
@@ -325,7 +325,7 @@ public class SiftingBoxBlock extends Block implements ItemUse {
         // Outside the server branch, as vanilla's composter does it: the cost is the same on both
         // sides whatever the roll, so spending it client-side too is what makes the stack shrink on
         // the frame you click rather than on the frame the server's answer arrives.
-        if (!player.getAbilities().instabuild) {
+        if (!player.abilities.instabuild) {
             stack.shrink(1);
         }
         return ItemInteractionResult.sidedSuccess(world.isClientSide);
@@ -354,7 +354,7 @@ public class SiftingBoxBlock extends Block implements ItemUse {
                     : "hempdustry.sifting_box.no_kief_in_plant";
         }
         if (key != null) {
-            player.displayClientMessage(Component.translatable(key), true);
+            player.displayClientMessage(new TranslatableComponent(key), true);
         }
     }
 
@@ -378,15 +378,15 @@ public class SiftingBoxBlock extends Block implements ItemUse {
     @Override
     public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
         if (state.getValue(LEVEL) == FULL_LEVEL) {
-            world.scheduleTick(pos, this, SETTLE_DELAY);
+            world.getBlockTicks().scheduleTick(pos, this, SETTLE_DELAY);
         }
     }
 
     /** {@link #FULL_LEVEL} → {@link #READY_LEVEL}: the powder settles and is ready to take. */
     @Override
-    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void tick(BlockState state, ServerLevel world, BlockPos pos, Random random) {
         if (state.getValue(LEVEL) == FULL_LEVEL) {
-            world.setBlock(pos, state.setValue(LEVEL, READY_LEVEL), Block.UPDATE_ALL);
+            world.setBlock(pos, state.setValue(LEVEL, READY_LEVEL), BlockFlags.UPDATE_ALL);
             world.playSound(null, pos, SoundEvents.COMPOSTER_READY, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
     }
@@ -411,11 +411,12 @@ public class SiftingBoxBlock extends Block implements ItemUse {
      * signal, because a dry box has no condition to fail.
      */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (!state.getValue(FILLED) || state.getValue(LEVEL) >= READY_LEVEL || jacketRate(world, pos) <= 0.0F) {
             return;
         }
-        world.addParticle(ParticleTypes.SNOWFLAKE,
+        // A snowball's puff: 1.16.5 has no powder snow, and no snowflake with it.
+        world.addParticle(ParticleTypes.ITEM_SNOWBALL,
                 pos.getX() + 0.2D + random.nextDouble() * 0.6D,
                 pos.getY() + 0.9D,
                 pos.getZ() + 0.2D + random.nextDouble() * 0.6D,
@@ -476,16 +477,16 @@ public class SiftingBoxBlock extends Block implements ItemUse {
      * it into filtered kief at {@link #KIEF_CHANCE}.
      */
     private static float sieveChance(ItemStack stack) {
-        if (stack.is(ModTags.Items.SIFTABLE_RESINOUS)) {
+        if (stack.getItem().is(ModTags.Items.SIFTABLE_RESINOUS)) {
             return RESINOUS_CHANCE;
         }
-        if (stack.is(ModTags.Items.SIFTABLE_FLOWER)) {
+        if (stack.getItem().is(ModTags.Items.SIFTABLE_FLOWER)) {
             return FLOWER_CHANCE;
         }
-        if (stack.is(ModTags.Items.SIFTABLE_TRIM)) {
+        if (stack.getItem().is(ModTags.Items.SIFTABLE_TRIM)) {
             return TRIM_CHANCE;
         }
-        return stack.is(ModTags.Items.SIFTABLE_KIEF) ? KIEF_CHANCE : 0.0F;
+        return stack.getItem().is(ModTags.Items.SIFTABLE_KIEF) ? KIEF_CHANCE : 0.0F;
     }
 
     /**
@@ -497,11 +498,11 @@ public class SiftingBoxBlock extends Block implements ItemUse {
      */
     @Nullable
     private static Content contentOf(ItemStack stack) {
-        if (stack.is(ModTags.Items.SIFTABLE_FLOWER) || stack.is(ModTags.Items.SIFTABLE_RESINOUS)
-                || stack.is(ModTags.Items.SIFTABLE_TRIM)) {
+        if (stack.getItem().is(ModTags.Items.SIFTABLE_FLOWER) || stack.getItem().is(ModTags.Items.SIFTABLE_RESINOUS)
+                || stack.getItem().is(ModTags.Items.SIFTABLE_TRIM)) {
             return Content.PLANT;
         }
-        return stack.is(ModTags.Items.SIFTABLE_KIEF) ? Content.KIEF : null;
+        return stack.getItem().is(ModTags.Items.SIFTABLE_KIEF) ? Content.KIEF : null;
     }
 
     /**
@@ -514,7 +515,7 @@ public class SiftingBoxBlock extends Block implements ItemUse {
         if (steps > 0) {
             int next = Math.min(FULL_LEVEL, level + steps);
             // Reaching FULL_LEVEL schedules the settle in onPlace, which this call runs.
-            world.setBlock(pos, state.setValue(LEVEL, next), Block.UPDATE_ALL);
+            world.setBlock(pos, state.setValue(LEVEL, next), BlockFlags.UPDATE_ALL);
             world.playSound(null, pos, SoundEvents.COMPOSTER_FILL_SUCCESS, SoundSource.BLOCKS, 1.0F, 1.0F);
         } else if (state.getValue(FILLED)) {
             world.playSound(null, pos, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 0.6F, 1.4F);
@@ -538,13 +539,17 @@ public class SiftingBoxBlock extends Block implements ItemUse {
         } else {
             yield = state.getValue(FILLED) ? ModItems.BUBBLE_HASH : ModItems.KIEF;
         }
-        Vec3 spawn = Vec3.atLowerCornerWithOffset(pos, 0.5, 1.01, 0.5).offsetRandom(world.random, 0.7F);
+        // Vanilla's offsetRandom, which 1.16.5 does not have: the same three draws, in the same order.
+        Vec3 spawn = Vec3.atLowerCornerOf(pos).add(
+                0.5 + (world.random.nextFloat() - 0.5F) * 0.7F,
+                1.01 + (world.random.nextFloat() - 0.5F) * 0.7F,
+                0.5 + (world.random.nextFloat() - 0.5F) * 0.7F);
         ItemEntity dropped = new ItemEntity(world, spawn.x(), spawn.y(), spawn.z(),
                 new ItemStack(yield, YIELD));
         dropped.setDefaultPickUpDelay();
         world.addFreshEntity(dropped);
         world.setBlock(pos, state.setValue(LEVEL, 0).setValue(FILLED, false).setValue(CONTENT, Content.PLANT),
-                Block.UPDATE_ALL);
+                BlockFlags.UPDATE_ALL);
         world.playSound(null, pos, SoundEvents.COMPOSTER_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 }

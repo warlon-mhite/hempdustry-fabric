@@ -11,7 +11,7 @@ import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -31,6 +31,10 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.network.chat.TranslatableComponent;
+import com.warlonmhite.hempdustry.util.BlockFlags;
+import com.warlonmhite.hempdustry.util.Stacks;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
 
 /**
  * The Hemp Press's brain: heat and pressure, one slot in and one slot out.
@@ -60,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
  * the Infuser reads it. See {@code concentrates.md} §8.
  */
 public class HempPressBlockEntity extends NamedMachineBlockEntity
-        implements MenuProvider, ImplementedInventory {
+        implements MenuProvider, ImplementedInventory, TickableBlockEntity {
 
     public static final int INPUT_SLOT = 0;
     public static final int OUTPUT_SLOT = 1;
@@ -133,8 +137,8 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         }
     };
 
-    public HempPressBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.HEMP_PRESS, pos, state);
+    public HempPressBlockEntity() {
+        super(ModBlockEntities.HEMP_PRESS);
     }
 
     /** {@link #PRESS_TIME} after {@code world.machineSpeedMultiplier}, synced so the bar cannot lie. */
@@ -157,7 +161,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         SimpleContainer input = new SimpleContainer(stack);
         return world.getRecipeManager()
                 .getRecipeFor(ModRecipes.PRESSING_TYPE, input, world)
-                .map(recipe -> recipe.assemble(input, world.registryAccess()))
+                .map(recipe -> recipe.assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -166,6 +170,17 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
     }
 
     // ----- ticking -----
+
+    /**
+     * The level's tick, on 1.16.5, where a block entity ticks itself rather than through its block's
+     * ticker: the machine runs on the server only, as the newer lines' ticker does.
+     */
+    @Override
+    public void tick() {
+        if (level != null && !level.isClientSide()) {
+            tick(level, worldPosition, getBlockState());
+        }
+    }
 
     public void tick(Level world, BlockPos pos, BlockState state) {
         boolean wasHeated = heated;
@@ -193,12 +208,12 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         BlockState shown = state.setValue(HempPressBlock.LIT, heated).setValue(HempPressBlock.PRESSING, pressing);
         if (shown != state) {
             state = shown;
-            world.setBlock(pos, state, Block.UPDATE_ALL);
+            world.setBlock(pos, state, BlockFlags.UPDATE_ALL);
             dirty = true;
         }
 
         if (dirty) {
-            setChanged(world, pos, state);
+            setChanged();
         }
     }
 
@@ -212,7 +227,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         if (output.isEmpty()) {
             return result.getCount() <= result.getMaxStackSize();
         }
-        return ItemStack.isSameItemSameTags(output, result)
+        return Stacks.isSameItemSameTags(output, result)
                 && output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
@@ -271,7 +286,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
         Direction facing = state.getValue(HempPressBlock.FACING);
         BlockPos behind = pos.relative(facing.getOpposite());
 
-        ItemTransfer.Result moved = Services.TRANSFER.insertWhole(world, behind, facing, output.copyWithCount(1));
+        ItemTransfer.Result moved = Services.TRANSFER.insertWhole(world, behind, facing, Stacks.copyWithCount(output, 1));
         if (moved == ItemTransfer.Result.MOVED) {
             removeItem(OUTPUT_SLOT, 1);
             return true;
@@ -287,7 +302,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             return false;
         }
         // transfer() only fills the destination, so it is handed a copy and the press takes its own.
-        if (HopperBlockEntity.addItem(this, target, output.copyWithCount(1), facing).isEmpty()) {
+        if (HopperBlockEntity.addItem(this, target, Stacks.copyWithCount(output, 1), facing).isEmpty()) {
             removeItem(OUTPUT_SLOT, 1);
             return true;
         }
@@ -365,7 +380,7 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
 
     @Override
     public Component getContainerName() {
-        return Component.translatable("block.hempdustry.hemp_press");
+        return new TranslatableComponent("block.hempdustry.hemp_press");
     }
 
     @Nullable
@@ -377,15 +392,16 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
     // ----- persistence -----
 
     @Override
-    public void saveAdditional(CompoundTag nbt) {
-        super.saveAdditional(nbt);
+    public CompoundTag save(CompoundTag nbt) {
+        super.save(nbt);
         ContainerHelper.saveAllItems(nbt, inventory);
         nbt.putInt("Progress", progress);
+        return nbt;
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
+    public void load(BlockState state, CompoundTag nbt) {
+        super.load(state, nbt);
         inventory.clear();
         ContainerHelper.loadAllItems(nbt, inventory);
         progress = nbt.getInt("Progress");

@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.entity.custom.HempBoatEntity;
-import com.warlonmhite.hempdustry.entity.custom.HempChestBoatEntity;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.server.level.ServerLevel;
@@ -17,22 +16,19 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Mirrors vanilla {@code BoatItem}, but spawns {@link HempBoatEntity}/{@link HempChestBoatEntity} instead of
- * relying on the closed {@code Boat.Type} enum, which mods can't extend.
+ * Mirrors vanilla {@code BoatItem} (1.16.5's, checked in its bytecode), but spawns {@link HempBoatEntity}
+ * instead of relying on the closed {@code Boat.Type} enum, which mods can't extend. There is no chest
+ * variant: chest boats came with 1.19.
  */
 public class HempBoatItem extends Item {
     private static final Predicate<Entity> RIDERS = EntitySelector.NO_SPECTATORS.and(Entity::isPickable);
-    private final boolean chest;
-
-    public HempBoatItem(boolean chest, Properties settings) {
+    public HempBoatItem(Properties settings) {
         super(settings);
-        this.chest = chest;
     }
 
     @Override
@@ -46,7 +42,7 @@ public class HempBoatItem extends Item {
         Vec3 rotationVec = user.getViewVector(1.0F);
         List<Entity> list = world.getEntities(user, user.getBoundingBox().expandTowards(rotationVec.scale(5.0)).inflate(1.0), RIDERS);
         if (!list.isEmpty()) {
-            Vec3 eyePos = user.getEyePosition();
+            Vec3 eyePos = user.getEyePosition(1.0F);
             for (Entity entity : list) {
                 AABB box = entity.getBoundingBox().inflate((double) entity.getPickRadius());
                 if (box.contains(eyePos)) {
@@ -59,32 +55,21 @@ public class HempBoatItem extends Item {
             return InteractionResultHolder.pass(itemStack);
         }
 
-        Boat boatEntity = this.createEntity(world, hitResult, itemStack, user);
-        boatEntity.setYRot(user.getYRot());
-        if (!world.noCollision(boatEntity, boatEntity.getBoundingBox())) {
+        Vec3 pos = hitResult.getLocation();
+        Boat boatEntity = new HempBoatEntity(world, pos.x, pos.y, pos.z);
+        boatEntity.yRot = user.yRot;
+        if (!world.noCollision(boatEntity, boatEntity.getBoundingBox().inflate(-0.1D))) {
             return InteractionResultHolder.fail(itemStack);
         }
 
         if (!world.isClientSide) {
             world.addFreshEntity(boatEntity);
-            world.gameEvent(user, GameEvent.ENTITY_PLACE, hitResult.getLocation());
-            if (!user.getAbilities().instabuild) {
+            if (!user.abilities.instabuild) {
                 itemStack.shrink(1);
             }
         }
 
         user.awardStat(Stats.ITEM_USED.get(this));
         return InteractionResultHolder.sidedSuccess(itemStack, world.isClientSide());
-    }
-
-    private Boat createEntity(Level world, HitResult hitResult, ItemStack stack, Player player) {
-        Vec3 pos = hitResult.getLocation();
-        Boat boatEntity = this.chest
-                ? new HempChestBoatEntity(world, pos.x, pos.y, pos.z)
-                : new HempBoatEntity(world, pos.x, pos.y, pos.z);
-        if (world instanceof ServerLevel serverWorld) {
-            EntityType.createDefaultStackConfig(serverWorld, stack, player).accept(boatEntity);
-        }
-        return boatEntity;
     }
 }

@@ -1,0 +1,679 @@
+{
+  "blocks": {
+    "ganjacraft:weedcrop": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "0",
+        "half": "lower"
+      }
+    },
+    "ganjacraft:sativacrop": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "0",
+        "segment": "lower"
+      }
+    },
+    "ganjacraft:weedcrop1": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "1",
+        "half": "lower"
+      }
+    },
+    "ganjacraft:sativacrop_1": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "1",
+        "segment": "lower"
+      }
+    },
+    "ganjacraft:weedcrop2": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "2",
+        "half": "lower"
+      }
+    },
+    "ganjacraft:sativacrop_2": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "2",
+        "segment": "lower"
+      }
+    },
+    "ganjacraft:weedcrop3": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "3",
+        "half": "lower"
+      }
+    },
+    "ganjacraft:sativacrop_3": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "3",
+        "segment": "lower"
+      }
+    },
+    "ganjacraft:weedcrop4": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "4",
+        "half": "lower"
+      }
+    },
+    "ganjacraft:weedcrop4top": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "4",
+        "half": "upper"
+      }
+    },
+    "ganjacraft:sativacrop_4": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "4",
+        "segment": "lower"
+      }
+    },
+    "ganjacraft:sativacrop_4top": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "4",
+        "segment": "upper"
+      }
+    },
+    "ganjacraft:weedcrop5": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "5",
+        "half": "lower"
+      }
+    },
+    "ganjacraft:weedcrop5top": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "5",
+        "half": "upper"
+      }
+    },
+    "ganjacraft:sativacrop_5": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "5",
+        "segment": "lower"
+      }
+    },
+    "ganjacraft:sativacrop_5top": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "5",
+        "segment": "upper"
+      }
+    },
+    "ganjacraft:weedcrop6": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "6",
+        "half": "lower"
+      }
+    },
+    "ganjacraft:weedcrop6top": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "6",
+        "half": "upper"
+      }
+    },
+    "ganjacraft:sativacrop_6": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "6",
+        "segment": "lower"
+      }
+    },
+    "ganjacraft:sativacrop_6top": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "6",
+        "segment": "upper"
+      }
+    },
+    "ganjacraft:sativacrop_6middle": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "6",
+        "segment": "middle"
+      }
+    },
+    "ganjacraft:weedcrop7": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "7",
+        "half": "lower"
+      }
+    },
+    "ganjacraft:weedcrop7top": {
+      "to": "hempdustry:indica_crop",
+      "set": {
+        "age": "7",
+        "half": "upper"
+      }
+    },
+    "ganjacraft:sativacrop_7": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "7",
+        "segment": "lower"
+      }
+    },
+    "ganjacraft:sativacrop_7top": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "7",
+        "segment": "upper"
+      }
+    },
+    "ganjacraft:sativacrop_7middle": {
+      "to": "hempdustry:sativa_crop",
+      "set": {
+        "age": "7",
+        "segment": "middle"
+      }
+    },
+    "ganjacraft:indica_crop": {
+      "to": "hempdustry:indica_crop"
+    },
+    "ganjacraft:sativa_crop": {
+      "to": "hempdustry:sativa_crop",
+      "rename": {
+        "half": "segment"
+      },
+      "values": {
+        "age": {
+          "6": "5",
+          "7": "5"
+        }
+      }
+    },
+    "ganjacraft:hempbale": {
+      "to": "hempdustry:hemp_bale",
+      "rename": {
+        "facing": "axis"
+      },
+      "values": {
+        "axis": {
+          "north": "z",
+          "south": "z",
+          "east": "x",
+          "west": "x",
+          "up": "y",
+          "down": "y"
+        }
+      }
+    },
+    "ganjacraft:hemp_block": {
+      "to": "hempdustry:hemp_bale"
+    },
+    "ganjacraft:hempbricks": {
+      "to": "hempdustry:hemp_bricks_block"
+    },
+    "ganjacraft:hempbricksslab": {
+      "to": "hempdustry:hemp_bricks_slab"
+    },
+    "ganjacraft:hempbricksstairs": {
+      "to": "hempdustry:hemp_bricks_stairs"
+    },
+    "ganjacraft:hempbrickswall": {
+      "to": "hempdustry:hemp_bricks_wall"
+    },
+    "ganjacraft:hemp_bricks": {
+      "to": "hempdustry:hemp_bricks_block"
+    },
+    "ganjacraft:hemp_brick_slab": {
+      "to": "hempdustry:hemp_bricks_slab"
+    },
+    "ganjacraft:hemp_brick_stairs": {
+      "to": "hempdustry:hemp_bricks_stairs"
+    },
+    "ganjacraft:hemp_brick_wall": {
+      "to": "hempdustry:hemp_bricks_wall"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_planks": {
+      "to": "hempdustry:hemp_planks"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_slab": {
+      "to": "hempdustry:hemp_planks_slab"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_stairs": {
+      "to": "hempdustry:hemp_planks_stairs"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_fence": {
+      "to": "hempdustry:hemp_planks_fence"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_fence_gate": {
+      "to": "hempdustry:hemp_planks_fence_gate"
+    },
+    "ganjacraft:hemp_planks": {
+      "to": "hempdustry:hemp_planks"
+    },
+    "ganjacraft:hemp_plank_slab": {
+      "to": "hempdustry:hemp_planks_slab"
+    },
+    "ganjacraft:hemp_stairs": {
+      "to": "hempdustry:hemp_planks_stairs"
+    },
+    "ganjacraft:hemp_fence": {
+      "to": "hempdustry:hemp_planks_fence"
+    },
+    "ganjacraft:hemp_fence_gate": {
+      "to": "hempdustry:hemp_planks_fence_gate"
+    },
+    "ganjacraft:hemp_door": {
+      "to": "hempdustry:hemp_planks_door"
+    },
+    "ganjacraft:hemp_trapdoor": {
+      "to": "hempdustry:hemp_planks_trapdoor"
+    },
+    "ganjacraft:hempcrete_block": {
+      "to": "hempdustry:hempcrete_block"
+    },
+    "ganjacraft:hempcrete_powder": {
+      "to": "hempdustry:hempcrete_powder_block"
+    },
+    "ganjacraft:hemp_sign": {
+      "to": "hempdustry:hemp_planks_sign"
+    },
+    "ganjacraft:hemp_wall_sign": {
+      "to": "hempdustry:hemp_planks_wall_sign"
+    }
+  },
+  "items": {
+    "ganjacraft:weedcrop": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativacrop": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:weedcrop1": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativacrop_1": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:weedcrop2": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativacrop_2": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:weedcrop3": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativacrop_3": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:weedcrop4": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:weedcrop4top": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativacrop_4": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:sativacrop_4top": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:weedcrop5": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:weedcrop5top": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativacrop_5": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:sativacrop_5top": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:weedcrop6": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:weedcrop6top": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativacrop_6": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:sativacrop_6top": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:sativacrop_6middle": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:weedcrop7": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:weedcrop7top": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativacrop_7": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:sativacrop_7top": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:sativacrop_7middle": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:hempbale": {
+      "to": "hempdustry:hemp_bale"
+    },
+    "ganjacraft:hemp_block": {
+      "to": "hempdustry:hemp_bale"
+    },
+    "ganjacraft:hempbricks": {
+      "to": "hempdustry:hemp_bricks_block"
+    },
+    "ganjacraft:hempbricksslab": {
+      "to": "hempdustry:hemp_bricks_slab"
+    },
+    "ganjacraft:hempbricksstairs": {
+      "to": "hempdustry:hemp_bricks_stairs"
+    },
+    "ganjacraft:hempbrickswall": {
+      "to": "hempdustry:hemp_bricks_wall"
+    },
+    "ganjacraft:hemp_bricks": {
+      "to": "hempdustry:hemp_bricks_block"
+    },
+    "ganjacraft:hemp_brick_slab": {
+      "to": "hempdustry:hemp_bricks_slab"
+    },
+    "ganjacraft:hemp_brick_stairs": {
+      "to": "hempdustry:hemp_bricks_stairs"
+    },
+    "ganjacraft:hemp_brick_wall": {
+      "to": "hempdustry:hemp_bricks_wall"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_planks": {
+      "to": "hempdustry:hemp_planks"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_slab": {
+      "to": "hempdustry:hemp_planks_slab"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_stairs": {
+      "to": "hempdustry:hemp_planks_stairs"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_fence": {
+      "to": "hempdustry:hemp_planks_fence"
+    },
+    "ganjacraft:hemp_planks_woddy_stuff_fence_gate": {
+      "to": "hempdustry:hemp_planks_fence_gate"
+    },
+    "ganjacraft:hemp_planks": {
+      "to": "hempdustry:hemp_planks"
+    },
+    "ganjacraft:hemp_plank_slab": {
+      "to": "hempdustry:hemp_planks_slab"
+    },
+    "ganjacraft:hemp_stairs": {
+      "to": "hempdustry:hemp_planks_stairs"
+    },
+    "ganjacraft:hemp_fence": {
+      "to": "hempdustry:hemp_planks_fence"
+    },
+    "ganjacraft:hemp_fence_gate": {
+      "to": "hempdustry:hemp_planks_fence_gate"
+    },
+    "ganjacraft:hemp_door": {
+      "to": "hempdustry:hemp_planks_door"
+    },
+    "ganjacraft:hemp_trapdoor": {
+      "to": "hempdustry:hemp_planks_trapdoor"
+    },
+    "ganjacraft:hempcrete_block": {
+      "to": "hempdustry:hempcrete_block"
+    },
+    "ganjacraft:hempcrete_powder": {
+      "to": "hempdustry:hempcrete_powder_block"
+    },
+    "ganjacraft:hemp_sign": {
+      "to": "hempdustry:hemp_planks_sign"
+    },
+    "ganjacraft:weedseeds": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:indica_seed": {
+      "to": "hempdustry:indica_seeds"
+    },
+    "ganjacraft:sativa_seeds": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:sativa_seed": {
+      "to": "hempdustry:sativa_seeds"
+    },
+    "ganjacraft:indicabud": {
+      "to": "hempdustry:indica_buds"
+    },
+    "ganjacraft:indica_bud": {
+      "to": "hempdustry:indica_buds"
+    },
+    "ganjacraft:dried_indica_bud": {
+      "to": "hempdustry:indica_buds"
+    },
+    "ganjacraft:sativa_bud": {
+      "to": "hempdustry:sativa_buds"
+    },
+    "ganjacraft:dried_sativa_bud": {
+      "to": "hempdustry:sativa_buds"
+    },
+    "ganjacraft:hempstem": {
+      "to": "hempdustry:hemp_stem"
+    },
+    "ganjacraft:hemp_stem": {
+      "to": "hempdustry:hemp_stem"
+    },
+    "ganjacraft:hempfiberitem": {
+      "to": "hempdustry:hemp_fiber"
+    },
+    "ganjacraft:hemp_fiber": {
+      "to": "hempdustry:hemp_fiber"
+    },
+    "ganjacraft:hempbrick": {
+      "to": "hempdustry:hemp_brick"
+    },
+    "ganjacraft:hemp_brick": {
+      "to": "hempdustry:hemp_brick"
+    },
+    "ganjacraft:hempcrete": {
+      "to": "hempdustry:hempcrete"
+    },
+    "ganjacraft:hemp_flour": {
+      "to": "hempdustry:hemp_flour"
+    },
+    "ganjacraft:cannabutteritem": {
+      "to": "hempdustry:cannabutter"
+    },
+    "ganjacraft:cannabutter": {
+      "to": "hempdustry:cannabutter"
+    },
+    "ganjacraft:cooked_seeds": {
+      "to": "hempdustry:toasted_hemp_seeds"
+    },
+    "ganjacraft:cooked_seed": {
+      "to": "hempdustry:toasted_hemp_seeds"
+    },
+    "ganjacraft:hempsmoothie": {
+      "to": "hempdustry:hemp_flapjack"
+    },
+    "ganjacraft:hemp_tea": {
+      "to": "hempdustry:hemp_flapjack"
+    },
+    "ganjacraft:magiccookie": {
+      "to": "hempdustry:space_cookie"
+    },
+    "ganjacraft:magic_cookie": {
+      "to": "hempdustry:space_cookie"
+    },
+    "ganjacraft:indica_gummy": {
+      "to": "hempdustry:dawamesk"
+    },
+    "ganjacraft:sativa_gummy": {
+      "to": "hempdustry:dawamesk"
+    },
+    "ganjacraft:goldencannapple": {
+      "to": "minecraft:golden_apple"
+    },
+    "ganjacraft:golden_cannapple": {
+      "to": "minecraft:golden_apple"
+    },
+    "ganjacraft:goldencannarot": {
+      "to": "minecraft:golden_carrot"
+    },
+    "ganjacraft:golden_cannarrot": {
+      "to": "minecraft:golden_carrot"
+    },
+    "ganjacraft:indicaspliff": {
+      "to": "hempdustry:spliff",
+      "tag": "{\"hempdustry:smoke_contents\":{entries:[{strain:\"hempdustry:indica\",count:1}]}}"
+    },
+    "ganjacraft:indica_spliff": {
+      "to": "hempdustry:spliff",
+      "tag": "{\"hempdustry:smoke_contents\":{entries:[{strain:\"hempdustry:indica\",count:1}]}}"
+    },
+    "ganjacraft:sativa_spliff": {
+      "to": "hempdustry:spliff",
+      "tag": "{\"hempdustry:smoke_contents\":{entries:[{strain:\"hempdustry:sativa\",count:1}]}}"
+    },
+    "ganjacraft:indicabong": {
+      "to": "hempdustry:bong",
+      "tag": "{\"hempdustry:smoke_contents\":{entries:[{strain:\"hempdustry:indica\",count:1}]},\"hempdustry:charges\":3}"
+    },
+    "ganjacraft:indica_bong": {
+      "to": "hempdustry:bong",
+      "tag": "{\"hempdustry:smoke_contents\":{entries:[{strain:\"hempdustry:indica\",count:1}]},\"hempdustry:charges\":3}"
+    },
+    "ganjacraft:sativa_bong": {
+      "to": "hempdustry:bong",
+      "tag": "{\"hempdustry:smoke_contents\":{entries:[{strain:\"hempdustry:sativa\",count:1}]},\"hempdustry:charges\":3}"
+    },
+    "ganjacraft:emptybong": {
+      "to": "hempdustry:bong"
+    },
+    "ganjacraft:empty_bong": {
+      "to": "hempdustry:bong"
+    },
+    "ganjacraft:indica_pipe": {
+      "to": "hempdustry:wooden_pipe",
+      "tag": "{\"hempdustry:smoke_contents\":{entries:[{strain:\"hempdustry:indica\",count:1}]},\"hempdustry:charges\":2}"
+    },
+    "ganjacraft:sativa_pipe": {
+      "to": "hempdustry:wooden_pipe",
+      "tag": "{\"hempdustry:smoke_contents\":{entries:[{strain:\"hempdustry:sativa\",count:1}]},\"hempdustry:charges\":2}"
+    },
+    "ganjacraft:weed_pipe": {
+      "to": "hempdustry:wooden_pipe"
+    },
+    "ganjacraft:empty_pipe": {
+      "to": "hempdustry:wooden_pipe"
+    },
+    "ganjacraft:rolling_paper": {
+      "to": "minecraft:paper"
+    },
+    "ganjacraft:lighter": {
+      "to": "minecraft:flint_and_steel"
+    },
+    "ganjacraft:hemp_firestrater": {
+      "to": "minecraft:coal"
+    },
+    "ganjacraft:hempoutfit_helmet": {
+      "to": "hempdustry:hemp_beanie"
+    },
+    "ganjacraft:hemp_beanie": {
+      "to": "hempdustry:hemp_beanie"
+    },
+    "ganjacraft:hempoutfit_chestplate": {
+      "to": "hempdustry:hemp_shirt"
+    },
+    "ganjacraft:hemp_shirt": {
+      "to": "hempdustry:hemp_shirt"
+    },
+    "ganjacraft:hempoutfit_leggings": {
+      "to": "hempdustry:hemp_harem_pants"
+    },
+    "ganjacraft:hemp_pants": {
+      "to": "hempdustry:hemp_harem_pants"
+    },
+    "ganjacraft:hempoutfit_boots": {
+      "to": "hempdustry:flip_flops"
+    },
+    "ganjacraft:hemp_flipflops": {
+      "to": "hempdustry:flip_flops"
+    },
+    "ganjacraft:ganjadisc": {
+      "to": "hempdustry:music_disc_moonlight"
+    },
+    "ganjacraft:disc_afroman": {
+      "to": "hempdustry:music_disc_robadob"
+    }
+  },
+  "block_entities": {
+    "ganjacraft:weedcrop": null,
+    "ganjacraft:sativacrop": null,
+    "ganjacraft:weedcrop1": null,
+    "ganjacraft:sativacrop_1": null,
+    "ganjacraft:weedcrop2": null,
+    "ganjacraft:sativacrop_2": null,
+    "ganjacraft:weedcrop3": null,
+    "ganjacraft:sativacrop_3": null,
+    "ganjacraft:weedcrop4": null,
+    "ganjacraft:weedcrop4top": null,
+    "ganjacraft:sativacrop_4": null,
+    "ganjacraft:sativacrop_4top": null,
+    "ganjacraft:weedcrop5": null,
+    "ganjacraft:weedcrop5top": null,
+    "ganjacraft:sativacrop_5": null,
+    "ganjacraft:sativacrop_5top": null,
+    "ganjacraft:weedcrop6": null,
+    "ganjacraft:weedcrop6top": null,
+    "ganjacraft:sativacrop_6": null,
+    "ganjacraft:sativacrop_6top": null,
+    "ganjacraft:sativacrop_6middle": null,
+    "ganjacraft:weedcrop7": null,
+    "ganjacraft:weedcrop7top": null,
+    "ganjacraft:sativacrop_7": null,
+    "ganjacraft:sativacrop_7top": null,
+    "ganjacraft:sativacrop_7middle": null,
+    "ganjacraft:sign": "minecraft:sign"
+  },
+  "entities": {
+    "ganjacraft:weedmantest": "minecraft:villager",
+    "ganjacraft:hemp_villager": "minecraft:villager"
+  },
+  "paintings": {
+    "ganjacraft:bernard_rappaz_64x_64": "hempdustry:b_rappaz",
+    "ganjacraft:bob_marley_48x_48": "hempdustry:marley",
+    "ganjacraft:bob_marley_48x_64": "hempdustry:marley",
+    "ganjacraft:hendrix_32x_32": "hempdustry:hendrix",
+    "ganjacraft:hendrix_48x_48": "hempdustry:hendrix",
+    "ganjacraft:pineapple_express_32x48": "hempdustry:pineapple_express",
+    "ganjacraft:rihanna_32x_32": "hempdustry:rihanna",
+    "ganjacraft:snoop_dogg_32x_64": "hempdustry:snoop",
+    "ganjacraft:snoop_dogg_48x_48": "hempdustry:snoop",
+    "ganjacraft:how_high_32x_48": "minecraft:graham",
+    "ganjacraft:smoking_lady_vintage_32x_48": "minecraft:wanderer",
+    "ganjacraft:the_dude_32x_48": "minecraft:graham",
+    "ganjacraft:up_in_smoke_32x_48": "minecraft:wanderer",
+    "ganjacraft:v_wt_248x_32": "minecraft:fighters",
+    "ganjacraft:weed_leaf_16x16": "minecraft:plant",
+    "ganjacraft:weed_plant_16x_16": "minecraft:plant",
+    "ganjacraft:weed_plant_16x_32": "minecraft:wanderer",
+    "ganjacraft:weed_plant_264x_96": "minecraft:pointer",
+    "ganjacraft:weed_plant_32x_32": "minecraft:sea",
+    "ganjacraft:weed_plant_364x_96": "minecraft:pointer",
+    "ganjacraft:weed_plant_64x_96": "minecraft:skeleton"
+  }
+}

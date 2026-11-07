@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * A pressed slab of hash, sitting on the floor, that you cut pieces off with a blade. Two of these
@@ -225,19 +226,20 @@ public class HashishBarBlock extends Block implements ItemUse {
      */
     public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!stack.is(ModTags.Items.HASH_CUTTERS)) {
+        if (!stack.getItem().is(ModTags.Items.HASH_CUTTERS)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         int cuts = state.getValue(CUTS);
         if (world instanceof ServerLevel serverWorld) {
-            popResourceFromFace(serverWorld, pos, Direction.UP, new ItemStack(piece(), YIELD[cuts]));
+            // From the block, as vanilla drops anything: 1.16.5 has no popResourceFromFace.
+            popResource(serverWorld, pos, new ItemStack(piece(), YIELD[cuts]));
             // The blade is the whole cost of a cut: nothing else is spent, and the bar itself is
             // what shrinks. Same slot dance as Defoliation.tryCut.
             stack.hurtAndBreak(1, player, broken -> broken.broadcastBreakEvent(hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND));
             if (cuts + 1 >= YIELD.length) {
                 serverWorld.removeBlock(pos, false);
             } else {
-                serverWorld.setBlock(pos, state.setValue(CUTS, cuts + 1), Block.UPDATE_ALL);
+                serverWorld.setBlock(pos, state.setValue(CUTS, cuts + 1), BlockFlags.UPDATE_ALL);
             }
         }
         // Honey's break sound at a high pitch: sticky and soft, which is what parting a slab of

@@ -1,6 +1,7 @@
-// Declared once, here, so both loaders' plugins load in one classloader; each project applies its
-// own. Versions are literals because a plugins block cannot read gradle.properties.
+// Declared once, here, so both projects' plugin loads in one classloader; each project applies it.
+// Versions are literals because a plugins block cannot read gradle.properties. Architectury's Loom,
+// because it builds Forge 1.16.5 in Mojang's full names (ForgeGradle 5 keeps MCP's class names there),
+// so this line reads like the newer ones.
 plugins {
-	id 'fabric-loom' version '1.14-SNAPSHOT' apply false
-	id 'net.neoforged.moddev.legacyforge' version '2.0.148' apply false
+	id 'dev.architectury.loom' version '1.14.476' apply false
 }

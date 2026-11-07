@@ -2,14 +2,12 @@ package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Chicken;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.entity.animal.Parrot;
-import net.minecraft.world.entity.animal.goat.Goat;
-import net.minecraft.world.entity.animal.goat.GoatAi;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -17,8 +15,9 @@ import net.minecraft.world.item.Items;
 /**
  * Hemp seed is bird feed and the hemp leaf goat browse, as on the newer lines' food tags: a parrot
  * tames on every hemp seed, a chicken follows and breeds on them, a goat is tempted by the leaf and
- * breeds on it. On 1.20.1 each animal keeps its food in code of its own, so each is asked here, of a
- * real animal where there is one to ask. Nothing else eats the leaf: a cow is the control.
+ * breeds on it. On 1.16.5 each animal keeps its food in code of its own, so each is asked here, of a
+ * real animal where there is one to ask -- and there are no goats before 1.17. Nothing else eats the
+ * leaf: a cow is the control.
  */
 public final class AnimalFoodGameTest {
 
@@ -31,15 +30,12 @@ public final class AnimalFoodGameTest {
         }
         context.assertTrue(chicken.isFood(new ItemStack(Items.WHEAT_SEEDS)), "a chicken no longer eats wheat seeds");
 
-        Goat goat = context.spawn(EntityType.GOAT, new BlockPos(4, 1, 1));
+        // 1.16.5 has no goats (1.17), so the leaf's half -- a goat tempted by it and breeding on it -- is
+        // not asked here; that nothing else eats it still is.
         ItemStack leaf = new ItemStack(ModItems.HEMP_LEAF);
-        context.assertTrue(goat.isFood(leaf), "a goat does not breed on the hemp leaf");
-        context.assertTrue(GoatAi.getTemptations().test(leaf), "the hemp leaf does not tempt a goat");
-        context.assertTrue(goat.isFood(new ItemStack(Items.WHEAT)) && GoatAi.getTemptations().test(new ItemStack(Items.WHEAT)),
-                "a goat no longer eats wheat");
 
         Cow cow = context.spawn(EntityType.COW, new BlockPos(1, 1, 4));
-        context.assertFalse(cow.isFood(leaf), "a cow eats the hemp leaf, which only a goat browses");
+        context.assertFalse(cow.isFood(leaf), "a cow eats the hemp leaf, which only a goat browses on the newer lines");
         context.succeed();
     }
 }

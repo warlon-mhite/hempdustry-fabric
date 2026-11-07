@@ -1,9 +1,9 @@
 package com.warlonmhite.hempdustry.item;
 
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.core.Registry;
 
 /**
  * The item-model properties the smoking gear's models key on.
@@ -51,7 +51,7 @@ public final class ModItemProperties {
      * wherever vanilla would draw a trident's hand model. One name, so the three cannot disagree.
      */
     public static ResourceLocation inHandModel(Item item) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        ResourceLocation id = Registry.ITEM.getKey(item);
         return new ResourceLocation(id.getNamespace(), "item/" + id.getPath() + "_in_hand");
     }
 

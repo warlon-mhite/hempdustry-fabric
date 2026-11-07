@@ -2,7 +2,7 @@ package com.warlonmhite.hempdustry.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
+import com.mojang.math.Vector3f;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.platform.client.ClientServices;
@@ -12,9 +12,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
+import com.google.common.collect.ImmutableList;
 
 /**
  * The Hemp Press's moving parts: the iron platen, and the four-spoke capstan that screws it down the
@@ -30,18 +31,18 @@ import net.minecraft.resources.ResourceLocation;
  *
  * <p>Both parts are square and centred, so {@code facing} changes nothing about them and is not read.
  */
-public class HempPressBlockEntityRenderer implements BlockEntityRenderer<HempPressBlockEntity> {
+public class HempPressBlockEntityRenderer extends BlockEntityRenderer<HempPressBlockEntity> {
 
     private static final ResourceLocation PLATEN = new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press_platen");
     private static final ResourceLocation SCREW = new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press_screw");
 
     /** The models this draws, for the model loader to bake. */
-    public static final List<ResourceLocation> PARTS = List.of(PLATEN, SCREW);
+    public static final List<ResourceLocation> PARTS = ImmutableList.of(PLATEN, SCREW);
 
     /** The press's item model, drawn as {@link #ICON_PARTS} put together ({@code CompositeItemModel}). */
     public static final ResourceLocation ICON = new ResourceLocation(Hempdustry.MOD_ID, "item/hemp_press");
     /** The whole press at rest: the frame, the bed plate, then these two where the stroke starts. */
-    public static final List<ResourceLocation> ICON_PARTS = List.of(new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press"),
+    public static final List<ResourceLocation> ICON_PARTS = ImmutableList.of(new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press"),
             new ResourceLocation(Hempdustry.MOD_ID, "block/hemp_press_plate"), PLATEN, SCREW);
 
     /** Pixels the platen travels: from under the crossbeam down onto the packet. */
@@ -53,7 +54,8 @@ public class HempPressBlockEntityRenderer implements BlockEntityRenderer<HempPre
     /** Where the squeeze ends and the lift begins; the lift is quick, the way an unwound screw is. */
     private static final float HOLD = 0.9F;
 
-    public HempPressBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+    public HempPressBlockEntityRenderer(BlockEntityRenderDispatcher dispatcher) {
+        super(dispatcher);
     }
 
     /**
@@ -85,14 +87,14 @@ public class HempPressBlockEntityRenderer implements BlockEntityRenderer<HempPre
         VertexConsumer buffer = vertexConsumers.getBuffer(RenderType.cutout());
 
         matrices.pushPose();
-        matrices.translate(0.0F, -depth * TRAVEL / 16.0F, 0.0F);
+        matrices.translate(0.0D, -depth * TRAVEL / 16.0F, 0.0D);
         draw(renderer, ClientServices.CLIENT.extraModel(PLATEN), matrices, buffer, light, overlay);
 
         // A right-hand thread drives down turning clockwise seen from above: a negative turn about +Y,
         // through the rod at the middle of the block.
-        matrices.translate(0.5F, 0.0F, 0.5F);
-        matrices.mulPose(Axis.YP.rotationDegrees(-depth * TURNS * 360.0F));
-        matrices.translate(-0.5F, 0.0F, -0.5F);
+        matrices.translate(0.5D, 0.0D, 0.5D);
+        matrices.mulPose(Vector3f.YP.rotationDegrees(-depth * TURNS * 360.0F));
+        matrices.translate(-0.5D, 0.0D, -0.5D);
         draw(renderer, ClientServices.CLIENT.extraModel(SCREW), matrices, buffer, light, overlay);
         matrices.popPose();
     }

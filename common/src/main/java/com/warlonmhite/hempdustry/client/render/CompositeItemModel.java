@@ -12,8 +12,9 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
+import com.google.common.collect.ImmutableList;
+import java.util.Random;
 
 /**
  * An item model made of other baked models, drawn as one: what 1.21.11's {@code minecraft:composite}
@@ -33,23 +34,23 @@ public final class CompositeItemModel implements BakedModel {
     public CompositeItemModel(BakedModel frame, List<BakedModel> parts) {
         this.frame = frame;
         // Plain JSON models: their quads depend on neither the block state nor the random.
-        RandomSource random = RandomSource.create(42L);
+        Random random = new Random(42L);
         List<BakedQuad> faceless = new ArrayList<>();
         for (BakedModel part : parts) {
             faceless.addAll(part.getQuads(null, null, random));
         }
-        this.unculled = List.copyOf(faceless);
+        this.unculled = ImmutableList.copyOf(faceless);
         for (Direction side : Direction.values()) {
             List<BakedQuad> quads = new ArrayList<>();
             for (BakedModel part : parts) {
                 quads.addAll(part.getQuads(null, side, random));
             }
-            culled.put(side, List.copyOf(quads));
+            culled.put(side, ImmutableList.copyOf(quads));
         }
     }
 
     @Override
-    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, RandomSource random) {
+    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, Random random) {
         return face == null ? unculled : culled.get(face);
     }
 

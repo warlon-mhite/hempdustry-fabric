@@ -1,13 +1,14 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -36,7 +37,8 @@ public final class BongRipGameTest {
         player.setItemInHand(InteractionHand.MAIN_HAND, bong);
         player.gameMode.useItem(player, world, bong, InteractionHand.MAIN_HAND);
         context.assertTrue(player.isUsingItem(), "clicking a packed bong did not start a draw");
-        context.assertTrue(player.getUseItem().getUseAnimation() == UseAnim.TOOT_HORN,
+        // 1.16.5 has no goat horn's pose (1.19), so a draw takes the drinking one, also to the mouth.
+        context.assertTrue(player.getUseItem().getUseAnimation() == UseAnim.DRINK,
                 "a bong draw is not raised to the mouth");
         Line.equal(context, DeviceType.BONG.builtInBowl().hits(), charges(player), "the click alone took a hit");
 
@@ -73,7 +75,7 @@ public final class BongRipGameTest {
 
     private static ItemStack packed(ServerLevel world, Item device, DeviceType type) {
         ItemStack stack = new ItemStack(device);
-        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(world.registryAccess()
+        ModComponents.SMOKE_CONTENTS.set(stack, SmokeContents.of(DataRegistries.of(world)
                 .lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.INDICA), 1));
         ModComponents.CHARGES.set(stack, type.builtInBowl().hits());
         return stack;

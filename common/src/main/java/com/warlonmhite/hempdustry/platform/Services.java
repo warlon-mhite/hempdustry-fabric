@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.platform;
 
+import java.util.Iterator;
 import java.util.ServiceLoader;
 
 /**
@@ -25,8 +26,10 @@ public final class Services {
 
     /** The one implementation of {@code type} on the classpath; a missing one fails loudly at load. */
     public static <T> T load(Class<T> type) {
-        return ServiceLoader.load(type, Services.class.getClassLoader()).findFirst()
-                .orElseThrow(() -> new IllegalStateException(
-                        "No implementation of " + type.getName() + " for this loader"));
+        Iterator<T> found = ServiceLoader.load(type, Services.class.getClassLoader()).iterator();
+        if (!found.hasNext()) {
+            throw new IllegalStateException("No implementation of " + type.getName() + " for this loader");
+        }
+        return found.next();
     }
 }

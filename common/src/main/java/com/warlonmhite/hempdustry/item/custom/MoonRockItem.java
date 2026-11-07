@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.network.chat.TranslatableComponent;
 
 /**
  * A moon rock: a bud dipped in rosin and rolled in hashish.
@@ -57,7 +58,7 @@ public class MoonRockItem extends Item {
         SmokeContents contents = ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY);
         return contents.isEmpty()
                 ? super.getName(stack)
-                : Component.translatable(this.getDescriptionId() + ".of", contents.loadName());
+                : new TranslatableComponent(this.getDescriptionId() + ".of", contents.loadName());
     }
 
     /** The hashish coat, named the same italic way a hash spliff names its pinch. */
@@ -66,8 +67,8 @@ public class MoonRockItem extends Item {
         super.appendHoverText(stack, context, tooltip, type);
         ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).hashAdditive()
                 .ifPresent(hash -> tooltip.add(
-                        Component.translatable("hempdustry.spliff.with",
-                                        Component.translatable(hash.value().translationKey()))
+                        new TranslatableComponent("hempdustry.spliff.with",
+                                        new TranslatableComponent(hash.value().translationKey()))
                                 .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
     }
 }

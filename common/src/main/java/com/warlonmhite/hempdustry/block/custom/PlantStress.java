@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -9,6 +8,8 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import java.util.Random;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * Everything besides a lost light that can turn a flowering plant {@link GrowLight#STRESSED}.
@@ -66,7 +67,7 @@ public final class PlantStress {
      * which is where its light is read.
      */
     public static GrowLight afterStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge,
-                                      int height, float extra, RandomSource random) {
+                                      int height, float extra, Random random) {
         GrowLight next = record.afterStep(fromAge, GrowLight.over(world, lower, height));
         if (next == GrowLight.STRESSED || toAge < GrowLight.FLOWERING_AGE) {
             return next;
@@ -89,7 +90,7 @@ public final class PlantStress {
      * plant cut at maturity has no weeks left to go seedy. Vanilla never costs a finished crop its
      * yield either.
      */
-    public static void roll(Level world, BlockPos lower, float chance, RandomSource random) {
+    public static void roll(Level world, BlockPos lower, float chance, Random random) {
         BlockState plant = world.getBlockState(lower);
         if (!isFlowering(plant) || plant.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED
                 || plant.getBlock() instanceof CropBlock crop && crop.isMaxAge(plant)
@@ -99,7 +100,7 @@ public final class PlantStress {
         Block block = plant.getBlock();
         for (BlockPos pos = lower; world.getBlockState(pos).is(block); pos = pos.above()) {
             world.setBlock(pos, world.getBlockState(pos).setValue(GrowLight.PROPERTY, GrowLight.STRESSED),
-                    Block.UPDATE_CLIENTS);
+                    BlockFlags.UPDATE_CLIENTS);
         }
     }
 
@@ -110,7 +111,7 @@ public final class PlantStress {
      * through its flowering untouched.
      */
     public static BlockState beeStep(Level world, BlockPos pos, BlockState current, BlockState next,
-                                     RandomSource random) {
+                                     Random random) {
         if (!(current.getBlock() instanceof CropBlock crop) || !current.is(next.getBlock())
                 || !next.hasProperty(GrowLight.PROPERTY)) {
             return next;

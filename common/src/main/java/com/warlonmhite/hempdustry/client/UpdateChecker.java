@@ -20,15 +20,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import com.google.common.collect.ImmutableSet;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.TextComponent;
+import com.github.bsideup.jabel.Desugar;
 
 /**
  * Looks for a newer build than the one running, and tells the player once, on join.
@@ -100,23 +106,23 @@ public final class UpdateChecker {
     private static final String MODRINTH_VERSIONS_URL =
             "https://api.modrinth.com/v2/project/" + MODRINTH_PROJECT
                     + "/version?loaders=%5B%22"
-                    + URLEncoder.encode(Services.PLATFORM.loaderName(), StandardCharsets.UTF_8)
+                    + encode(Services.PLATFORM.loaderName())
                     + "%22%5D&game_versions=%5B%22"
-                    + URLEncoder.encode(gameVersion(), StandardCharsets.UTF_8)
+                    + encode(gameVersion())
                     + "%22%5D";
 
     /**
      * Which Modrinth release channels are worth interrupting a player for. Betas count as well as
      * releases, deliberately: this mod ships its features to be play-tested, and a player who wants
      * the newest one should hear about it. {@code alpha} is left out — that channel is for builds
-     * that are not expected to work. Drop back to {@code Set.of("release")} to stop announcing
+     * that are not expected to work. Drop back to {@code ImmutableSet.of("release")} to stop announcing
      * pre-releases.
      *
      * <p>The manifest's matching choice is its {@code -latest} key rather than {@code -recommended};
      * the two sources have to agree about what counts, or "prefer the higher" picks a fight between
      * them.
      */
-    private static final Set<String> NOTIFY_CHANNELS = Set.of("release", "beta");
+    private static final Set<String> NOTIFY_CHANNELS = ImmutableSet.of("release", "beta");
 
     /** Short: this runs while the player is waiting to get into a world. */
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
@@ -129,6 +135,7 @@ public final class UpdateChecker {
     }
 
     /** A version some source is offering, and where that source says to get it. */
+    @Desugar
     private record Candidate(String number, SemVer version, String homepage) {
     }
 
@@ -166,17 +173,17 @@ public final class UpdateChecker {
 
     /** "Hempdustry 2.1.0 is available. You have 2.0.0." followed by a clickable download link. */
     private static MutableComponent updateMessage(String latest) {
-        MutableComponent link = Component.translatable("hempdustry.update.link")
+        MutableComponent link = new TranslatableComponent("hempdustry.update.link")
                 .withStyle(style -> style
                         .withColor(ChatFormatting.GREEN)
                         .withUnderlined(true)
                         .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, downloadUrl))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                Component.translatable("hempdustry.update.tooltip"))));
+                                new TranslatableComponent("hempdustry.update.tooltip"))));
 
-        return Component.translatable("hempdustry.update.available", latest, currentVersion())
+        return new TranslatableComponent("hempdustry.update.available", latest, currentVersion())
                 .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(" "))
+                .append(new TextComponent(" "))
                 .append(link);
     }
 
@@ -308,31 +315,33 @@ public final class UpdateChecker {
      * One GET, or {@code null}. <b>The User-Agent is not optional</b>: Modrinth asks for a
      * uniquely-identifying one and treats a generic library string (which is what Java's HTTP client
      * sends by default) as grounds for blocking.
+     *
+     * <p>{@code HttpURLConnection} rather than the newer lines' {@code java.net.http.HttpClient}:
+     * 1.16.5 runs on Java 8, which has no such client.
      */
     private static @Nullable JsonElement fetchJsonElement(String url, String what) {
+        HttpURLConnection connection = null;
         try {
-            HttpClient httpClient = HttpClient.newBuilder()
-                    .connectTimeout(TIMEOUT)
-                    .build();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("User-Agent", "warlon-mhite/hempdustry-fabric/" + currentVersion() + " (update checker)")
-                    .timeout(TIMEOUT)
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                Hempdustry.LOGGER.debug("Update check: {} returned HTTP {}", what, response.statusCode());
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setConnectTimeout((int) TIMEOUT.toMillis());
+            connection.setReadTimeout((int) TIMEOUT.toMillis());
+            connection.setRequestProperty("User-Agent",
+                    "warlon-mhite/hempdustry-fabric/" + currentVersion() + " (update checker)");
+            int status = connection.getResponseCode();
+            if (status != 200) {
+                Hempdustry.LOGGER.debug("Update check: {} returned HTTP {}", what, status);
                 return null;
             }
-            return JsonParser.parseString(response.body());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
+            try (Reader body = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8)) {
+                return new JsonParser().parse(body);
+            }
         } catch (Exception e) {
             Hempdustry.LOGGER.debug("Update check against {} failed", what, e);
             return null;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 
@@ -351,6 +360,15 @@ public final class UpdateChecker {
       */
     private static String gameVersion() {
         return SharedConstants.getCurrentVersion().getName();
+    }
+
+    /** A query-string value; Java 8's encoder takes the charset by name. */
+    private static String encode(String value) {
+        try {
+            return URLEncoder.encode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 is always supported", e);
+        }
     }
 
     private static String currentVersion() {

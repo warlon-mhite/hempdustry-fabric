@@ -137,7 +137,7 @@ public class HempPressScreenHandler extends AbstractContainerMenu {
         }
 
         if (inSlot.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }

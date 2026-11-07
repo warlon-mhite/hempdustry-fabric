@@ -8,8 +8,9 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
@@ -33,12 +34,14 @@ final class Players {
     /**
      * Vanilla's mock player ({@code GameTestHelper#makeMockServerPlayerInLevel}), joined through a
      * connection with a channel under it. Vanilla's has none, and Forge's player list reads the
-     * channel as the player joins; the channel here is a local one that keeps what is sent to it.
+     * channel as the player joins -- on 1.16.5 also the version its handshake left there; the channel
+     * here is a local one that keeps what is sent to it, marked as the loader marks a real client's.
      * Answers CREATIVE to {@code isCreative()} whatever its game mode, as vanilla's does.
      */
     static ServerPlayer mock(GameTestHelper context) {
         ServerLevel level = context.getLevel();
-        ServerPlayer player = new ServerPlayer(level.getServer(), level, new GameProfile(UUID.randomUUID(), "test-mock-player")) {
+        ServerPlayer player = new ServerPlayer(level.getServer(), level, new GameProfile(UUID.randomUUID(), "test-mock-player"),
+                new ServerPlayerGameMode(level)) {
             @Override
             public boolean isSpectator() {
                 return false;
@@ -51,6 +54,7 @@ final class Players {
         };
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
+        TestPlatform.INSTANCE.markAsHandshaken(connection);
         level.getServer().getPlayerList().placeNewPlayer(connection, player);
         return player;
     }

@@ -8,7 +8,6 @@ import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -28,6 +27,8 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import java.util.Random;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * A two-tall crop. Redesigned around the vanilla
@@ -140,8 +141,9 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
      * has no light check to incidentally stop it.
      */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
-        return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+    public boolean isValidBonemealTarget(BlockGetter world, BlockPos pos, BlockState state, boolean isClient) {
+        // 1.16.5 asks with a BlockGetter; bone meal and the game tests always pass a level.
+        return isLower(state) && world instanceof LevelReader reader && this.getAge(state) < this.maxAgeFor(reader, pos);
     }
 
     /**
@@ -188,7 +190,7 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
     }
 
     @Override
-    public void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+    public void randomTick(BlockState state, ServerLevel world, BlockPos pos, Random random) {
         if (!isLower(state)) {
             return;
         }
@@ -268,12 +270,12 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel world, Random random, BlockPos pos, BlockState state) {
         this.boneMeal(world, pos, state, random);
     }
 
     /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
-    private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
+    private void boneMeal(Level world, BlockPos pos, BlockState state, Random random) {
         if (!isLower(state)) {
             return;
         }
@@ -303,7 +305,7 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
      * an unreliable nudge rather than a fast path to harvest for this slow plant.
      */
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, Random random, BlockPos pos, BlockState state) {
         return random.nextInt(BONEMEAL_FAILURE_CHANCE) != 0;
     }
 
@@ -319,7 +321,7 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
      * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
      * player later builds over keeps its age and its harvest instead of silently reverting.
      */
-    private void setAge(Level world, BlockPos pos, int newAge, float extraStress, RandomSource random) {
+    private void setAge(Level world, BlockPos pos, int newAge, float extraStress, Random random) {
         BlockState current = world.getBlockState(pos);
         int currentAge = current.is(this) && isLower(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
@@ -340,16 +342,16 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
                 }
             }
         }
-        world.setBlock(pos, lower, Block.UPDATE_CLIENTS);
+        world.setBlock(pos, lower, BlockFlags.UPDATE_CLIENTS);
 
         BlockPos upPos = pos.above();
         BlockState above = world.getBlockState(upPos);
         boolean upperPresent = above.is(this) && above.getValue(HALF) == DoubleBlockHalf.UPPER;
         GrowLight light = lower.getValue(GrowLight.PROPERTY);
         if (upperPresent) {
-            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, light), Block.UPDATE_CLIENTS);
+            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, light), BlockFlags.UPDATE_CLIENTS);
         } else if (newAge >= DOUBLE_BLOCK_AGE && above.isAir()) {
-            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, light), Block.UPDATE_CLIENTS);
+            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, light), BlockFlags.UPDATE_CLIENTS);
         }
     }
 
@@ -404,7 +406,7 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
      * answers truthfully here.
      */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (state.getValue(AGE) >= this.getMaxAge()) {
             RipeAroma.randomDisplayTick(world, pos, random);
         }
@@ -433,13 +435,13 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
                     if (!player.isCreative()) {
                         dropResources(lower, world, lowerPos, null, player, player.getMainHandItem());
                     }
-                    world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+                    world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), BlockFlags.UPDATE_ALL | BlockFlags.UPDATE_SUPPRESS_DROPS);
                 }
             } else {
                 BlockPos upperPos = pos.above();
                 BlockState upper = world.getBlockState(upperPos);
                 if (upper.is(this) && upper.getValue(HALF) == DoubleBlockHalf.UPPER) {
-                    world.setBlock(upperPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+                    world.setBlock(upperPos, Blocks.AIR.defaultBlockState(), BlockFlags.UPDATE_ALL | BlockFlags.UPDATE_SUPPRESS_DROPS);
                 }
             }
         }

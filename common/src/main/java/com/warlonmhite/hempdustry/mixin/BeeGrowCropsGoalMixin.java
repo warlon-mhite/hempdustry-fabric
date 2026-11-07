@@ -1,7 +1,5 @@
 package com.warlonmhite.hempdustry.mixin;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowMedium;
 import com.warlonmhite.hempdustry.block.custom.PlantStress;
@@ -11,6 +9,7 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
  * Stops a pollinating bee from wiping a hemp plant's defoliation state.
@@ -35,41 +34,36 @@ import org.spongepowered.asm.mixin.injection.At;
  * has no concept of it. {@link Defoliation#carryOver} no-ops on any state without the properties, so
  * every other crop in the game — vanilla or modded — passes through untouched.
  *
- * <p>The same wrap makes a bee's step count as a growth step for our plants: it reads the light and
+ * <p>The same redirect makes a bee's step count as a growth step for our plants: it reads the light and
  * rolls for stress like any other ({@link PlantStress#beeStep}), and a plant a bee ripens drinks and
  * eats from its bed, so a bee can neither carry a dry field through its flowering nor ripen a potted
  * plant for free.
  *
- * <h2>Why {@code @WrapOperation} and not {@code @Redirect}</h2>
+ * <h2>Why a {@code @Redirect} with {@code require = 0}</h2>
  *
- * There is exactly one {@code setBlockAndUpdate} call in {@code tick()}, so either would find its target
- * unambiguously. But <b>{@code @Redirect} is exclusive</b>: it replaces the call outright, so a
- * second mod redirecting the same instruction is an unresolvable conflict, and with
- * {@code defaultRequire: 1} the result is a <em>startup crash</em> for the whole pack rather than one
- * feature quietly not working. Bee-behaviour mods are common in the kitchen-sink packs this mod is
- * meant to live in, and losing that coin flip costs the player their world, not their defoliation.
- *
- * <p>{@code @WrapOperation} wraps the call instead of replacing it: several mods can wrap the same
- * instruction and they compose, each seeing the previous one's arguments. Passing the amended state
- * to {@link Operation#call} rather than calling {@code world.setBlockAndUpdate} directly is what keeps
- * that chain intact — a direct call would jump the queue and skip every wrapper underneath. Ships
- * inside Fabric Loader (0.15 and later) and NeoForge alike, so it costs no new dependency.
+ * There is exactly one {@code setBlockAndUpdate} call in {@code tick()}, so the target is
+ * unambiguous. The newer lines wrap it with MixinExtras' {@code @WrapOperation}, which composes with
+ * other mods'; Forge 36 ships no MixinExtras and has no jar-in-jar to carry it, and a plain
+ * {@code @ModifyArg} cannot see the level the bee writes into. So this is a {@code @Redirect}, which
+ * is exclusive: a second mod redirecting the same call wins or loses outright. {@code require = 0} is
+ * what keeps that from being a startup crash for the whole pack -- the mod that loses is skipped with
+ * a warning, and the worst case is a bee resetting a sheared plant in that one pack.
  */
 @Mixin(targets = "net.minecraft.world.entity.animal.Bee$BeeGrowCropGoal")
 public class BeeGrowCropsGoalMixin {
-    @WrapOperation(
+    @Redirect(
             method = "tick",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"
-            )
+            ),
+            require = 0
     )
-    private boolean hempdustry$preserveDefoliation(Level world, BlockPos pos, BlockState newState,
-                                                   Operation<Boolean> original) {
+    private boolean hempdustry$preserveDefoliation(Level world, BlockPos pos, BlockState newState) {
         BlockState current = world.getBlockState(pos);
         BlockState next = PlantStress.beeStep(world, pos, current, Defoliation.carryOver(current, newState),
                 world.getRandom());
-        boolean set = original.call(world, pos, next);
+        boolean set = world.setBlockAndUpdate(pos, next);
         if (set && next.getBlock() instanceof CropBlock crop && current.is(crop)
                 && crop.isMaxAge(next) && !crop.isMaxAge(current)) {
             BlockPos floorPos = pos.below();

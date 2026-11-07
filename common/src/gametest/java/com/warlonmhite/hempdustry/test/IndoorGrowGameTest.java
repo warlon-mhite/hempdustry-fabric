@@ -11,8 +11,8 @@ import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -206,7 +206,7 @@ public final class IndoorGrowGameTest {
         classify(context, ModBlocks.GROW_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit Grow Lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit redstone lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit redstone lamp");
-        // (No copper bulb on 1.20.1; the redstone lamp above is the lamp that switches.)
+        // (No copper bulb on 1.16.5; the redstone lamp above is the lamp that switches.)
         classify(context, Blocks.GLOWSTONE.defaultBlockState(), GrowLight.AMBIENT, "glowstone");
         classify(context, Blocks.SEA_LANTERN.defaultBlockState(), GrowLight.AMBIENT, "a sea lantern");
         classify(context, Blocks.LANTERN.defaultBlockState(), GrowLight.AMBIENT, "a lantern");
@@ -350,7 +350,7 @@ public final class IndoorGrowGameTest {
                 "a Hydro Tray refused a water bucket");
         context.assertTrue(level(context) == HydroTrayBlock.MAX_LEVEL,
                 "a bucket of water left the tray at level " + level(context));
-        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).is(Items.BUCKET),
+        context.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).getItem() == Items.BUCKET,
                 "filling a tray did not hand back an empty bucket");
         context.assertTrue(context.getBlockState(CROP).isAir(),
                 "filling a tray placed water above it — the plant's own space");
@@ -362,7 +362,7 @@ public final class IndoorGrowGameTest {
         player.setItemInHand(InteractionHand.MAIN_HAND, second);
         context.assertTrue(Line.useItemOn(world.getBlockState(pos),second, world, player, InteractionHand.MAIN_HAND, hit).consumesAction(),
                 "a full tray let a water bucket click through — the client would pour it into the plant's space");
-        context.assertTrue(second.is(Items.WATER_BUCKET) && level(context) == HydroTrayBlock.MAX_LEVEL,
+        context.assertTrue(second.getItem() == Items.WATER_BUCKET && level(context) == HydroTrayBlock.MAX_LEVEL,
                 "a full tray emptied the bucket anyway");
         context.succeed();
     }
@@ -484,8 +484,7 @@ public final class IndoorGrowGameTest {
     private static void ladder(GameTestHelper context, BlockState mature, Item buds, Item seeds) {
         ServerLevel world = context.getLevel();
         Vec3 origin = Vec3.atCenterOf(context.absolutePos(CROP));
-        LootTable table = world.getServer().getLootData()
-                .getLootTable(mature.getBlock().getLootTable());
+        LootTable table = world.getServer().getLootTables().get(mature.getBlock().getLootTable());
         String crop = mature.getBlock().getDescriptionId();
         BlockState natural = Defoliation.unworked(mature);
         java.util.Random seedSource = new java.util.Random(SEED_SOURCE);
@@ -529,21 +528,23 @@ public final class IndoorGrowGameTest {
     /** {buds, leaves, seeds, stems} from one roll of a crop's loot table on a given seed. */
     private static int[] harvest(LootTable table, ServerLevel world, Vec3 origin, BlockState state,
                                  long seed, Item buds, Item seeds) {
-        LootParams params = new LootParams.Builder(world)
+        // 1.16.5's loot context carries its own random, so the seed goes into the context.
+        LootContext loot = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, origin)
                 .withParameter(LootContextParams.BLOCK_STATE, state)
                 .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
+                .withRandom(new java.util.Random(seed))
                 .create(LootContextParamSets.BLOCK);
         int[] counts = new int[4];
-        for (ItemStack stack : table.getRandomItems(params, seed)) {
+        for (ItemStack stack : table.getRandomItems(loot)) {
             // A bud that went to schwag is still a bud the plant grew; SchwagGameTest owns the split.
-            if (stack.is(buds) || stack.is(ModItems.SCHWAG)) {
+            if (stack.getItem() == buds || stack.getItem() == ModItems.SCHWAG) {
                 counts[0] += stack.getCount();
-            } else if (stack.is(ModItems.HEMP_LEAF)) {
+            } else if (stack.getItem() == ModItems.HEMP_LEAF) {
                 counts[1] += stack.getCount();
-            } else if (stack.is(seeds)) {
+            } else if (stack.getItem() == seeds) {
                 counts[2] += stack.getCount();
-            } else if (stack.is(ModItems.HEMP_STEM)) {
+            } else if (stack.getItem() == ModItems.HEMP_STEM) {
                 counts[3] += stack.getCount();
             }
         }
@@ -553,7 +554,8 @@ public final class IndoorGrowGameTest {
     // ----- helpers -----
 
     private static BlockState moistFarmland() {
-        return Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, FarmBlock.MAX_MOISTURE);
+        // 7 is farmland's wettest; 1.16.5 names no MAX_MOISTURE for it.
+        return Blocks.FARMLAND.defaultBlockState().setValue(FarmBlock.MOISTURE, 7);
     }
 
     private static BlockState litGrowLamp() {
@@ -626,7 +628,8 @@ public final class IndoorGrowGameTest {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
         AABB area = Line.box(pos.offset(-3, -2, -3), pos.offset(3, 3, 3));
-        world.getEntitiesOfClass(ItemEntity.class, area, e -> true).forEach(Entity::discard);
+        // Alive only: a 1.16.5 entity removed this tick stays in the world until its entities next tick.
+        world.getEntitiesOfClass(ItemEntity.class, area, Entity::isAlive).forEach(Entity::remove);
         context.setBlock(SOIL, Blocks.FARMLAND);
         context.setBlock(CROP.above(), Blocks.AIR);
         context.setBlock(CROP, Defoliation.unworked(ModBlocks.INDICA_CROP.defaultBlockState())
@@ -637,8 +640,8 @@ public final class IndoorGrowGameTest {
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
         Line.useItemOn(world.getBlockState(pos),shears, world, player, InteractionHand.MAIN_HAND, hit);
         int leaves = 0;
-        for (ItemEntity item : world.getEntitiesOfClass(ItemEntity.class, area, e -> true)) {
-            if (item.getItem().is(ModItems.HEMP_LEAF)) {
+        for (ItemEntity item : world.getEntitiesOfClass(ItemEntity.class, area, Entity::isAlive)) {
+            if (item.getItem().getItem() == ModItems.HEMP_LEAF) {
                 leaves += item.getItem().getCount();
             }
         }

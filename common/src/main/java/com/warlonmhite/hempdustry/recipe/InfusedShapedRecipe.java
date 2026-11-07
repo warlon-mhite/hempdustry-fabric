@@ -1,7 +1,6 @@
 package com.warlonmhite.hempdustry.recipe;
 
 import com.google.gson.JsonObject;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -26,8 +25,8 @@ public class InfusedShapedRecipe extends ShapedRecipe {
      * {@code "offset"}, so vanilla's serializer reads everything but that one field.
      */
     public InfusedShapedRecipe(ShapedRecipe base, int offset) {
-        super(base.getId(), base.getGroup(), base.category(), base.getWidth(), base.getHeight(),
-                base.getIngredients(), base.getResultItem(null), base.showNotification());
+        super(base.getId(), base.getGroup(), base.getWidth(), base.getHeight(),
+                base.getIngredients(), base.getResultItem());
         this.offset = offset;
     }
 
@@ -36,8 +35,8 @@ public class InfusedShapedRecipe extends ShapedRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer input, RegistryAccess registries) {
-        return Infusion.transfer(input, super.assemble(input, registries), offset);
+    public ItemStack assemble(CraftingContainer input) {
+        return Infusion.transfer(input, super.assemble(input), offset);
     }
 
     @Override
@@ -45,7 +44,7 @@ public class InfusedShapedRecipe extends ShapedRecipe {
         return ModRecipes.INFUSED_SHAPED;
     }
 
-    public static class Serializer implements RecipeSerializer<InfusedShapedRecipe> {
+    public static class Serializer extends ModRecipeSerializer<InfusedShapedRecipe> {
         @Override
         public InfusedShapedRecipe fromJson(ResourceLocation id, JsonObject json) {
             return new InfusedShapedRecipe(RecipeJson.shaped(id, json), GsonHelper.getAsInt(json, "offset", 0));

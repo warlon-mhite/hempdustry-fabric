@@ -10,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -29,12 +28,13 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+import java.util.Random;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * The Hydro Tray: a deep-water-culture reservoir — an opaque tote, a lid holding a net pot of clay
@@ -113,7 +113,7 @@ public class HydroTrayBlock extends Block implements GrowMedium, ItemUse {
         }
         // The nutrients drain with the last of the water: an empty reservoir is an unfed one.
         world.setBlock(pos, state.setValue(LEVEL, left).setValue(FED, left > 0 && state.getValue(FED)),
-                Block.UPDATE_CLIENTS);
+                BlockFlags.UPDATE_CLIENTS);
     }
 
     @Override
@@ -150,26 +150,27 @@ public class HydroTrayBlock extends Block implements GrowMedium, ItemUse {
                 || boilsAway(world, pos)) {
             return false;
         }
-        world.setBlock(pos, state.setValue(LEVEL, MAX_LEVEL), Block.UPDATE_CLIENTS);
+        world.setBlock(pos, state.setValue(LEVEL, MAX_LEVEL), BlockFlags.UPDATE_CLIENTS);
         world.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-        world.gameEvent(null, GameEvent.FLUID_PLACE, pos);
         return true;
     }
 
     /** Nutrients need water to go into: an empty tray cannot be fed, and a fed one is already mixed. */
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
-        return state.getValue(LEVEL) > 0 && !state.getValue(FED) && !boilsAway(world, pos);
+    public boolean isValidBonemealTarget(BlockGetter world, BlockPos pos, BlockState state, boolean isClient) {
+        // 1.16.5 asks with a BlockGetter, which knows no dimension; every caller passes a level.
+        return state.getValue(LEVEL) > 0 && !state.getValue(FED)
+                && !(world instanceof LevelReader reader && boilsAway(reader, pos));
     }
 
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, Random random, BlockPos pos, BlockState state) {
         return true;
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
-        world.setBlock(pos, state.setValue(FED, true), Block.UPDATE_CLIENTS);
+    public void performBonemeal(ServerLevel world, Random random, BlockPos pos, BlockState state) {
+        world.setBlock(pos, state.setValue(FED, true), BlockFlags.UPDATE_CLIENTS);
     }
 
     /** 1.20.1's one {@code use}, played out as the two halves the newer game asks for. */
@@ -192,7 +193,7 @@ public class HydroTrayBlock extends Block implements GrowMedium, ItemUse {
      */
     public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player, InteractionHand hand, BlockHitResult hit) {
-        if (stack.is(Items.WATER_BUCKET) && state.getValue(LEVEL) < MAX_LEVEL && !boilsAway(world, pos)) {
+        if (stack.getItem() == Items.WATER_BUCKET && state.getValue(LEVEL) < MAX_LEVEL && !boilsAway(world, pos)) {
             if (!world.isClientSide()) {
                 fill(world, pos, state);
                 player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, new ItemStack(Items.BUCKET)));
@@ -200,7 +201,7 @@ public class HydroTrayBlock extends Block implements GrowMedium, ItemUse {
             }
             return ItemInteractionResult.sidedSuccess(world.isClientSide);
         }
-        if (stack.is(Items.WATER_BUCKET) && !boilsAway(world, pos)) {
+        if (stack.getItem() == Items.WATER_BUCKET && !boilsAway(world, pos)) {
             return ItemInteractionResult.CONSUME;
         }
         ItemInteractionResult fed = GrowMedium.tryFeed(stack, state, world, pos, player);
@@ -233,13 +234,13 @@ public class HydroTrayBlock extends Block implements GrowMedium, ItemUse {
         if (powered != state.getValue(POWERED)) {
             // Both ways at once, unlike a redstone lamp's four-tick fade: a pump stops when the
             // signal stops, and there is nothing here for a delay to buy.
-            world.setBlock(pos, state.setValue(POWERED, powered), Block.UPDATE_CLIENTS);
+            world.setBlock(pos, state.setValue(POWERED, powered), BlockFlags.UPDATE_CLIENTS);
         }
     }
 
     /** A running pump breaks the surface: the state is on the block, but this is what catches the eye. */
     @Override
-    public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+    public void animateTick(BlockState state, Level world, BlockPos pos, Random random) {
         if (!state.getValue(POWERED) || state.getValue(LEVEL) == 0) {
             return;
         }

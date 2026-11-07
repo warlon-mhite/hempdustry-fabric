@@ -62,13 +62,13 @@ public class BhangItem extends EdibleItem {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         ItemStack left = super.finishUsingItem(stack, world, user);
-        if (!(user instanceof Player player) || player.getAbilities().instabuild) {
+        if (!(user instanceof Player player) || player.abilities.instabuild) {
             return left;
         }
         if (left.isEmpty()) {
             return new ItemStack(Items.BUCKET);
         }
-        if (!player.getInventory().add(new ItemStack(Items.BUCKET))) {
+        if (!player.inventory.add(new ItemStack(Items.BUCKET))) {
             player.drop(new ItemStack(Items.BUCKET), false);
         }
         return left;

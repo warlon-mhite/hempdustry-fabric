@@ -5,24 +5,16 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hemp_beanie"
-            ]
+            "item": "hempdustry:hemp_beanie"
           },
           {
-            "items": [
-              "hempdustry:hemp_shirt"
-            ]
+            "item": "hempdustry:hemp_shirt"
           },
           {
-            "items": [
-              "hempdustry:hemp_harem_pants"
-            ]
+            "item": "hempdustry:hemp_harem_pants"
           },
           {
-            "items": [
-              "hempdustry:flip_flops"
-            ]
+            "item": "hempdustry:flip_flops"
           }
         ]
       },
@@ -50,6 +42,5 @@
     [
       "full_hemp_armor"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

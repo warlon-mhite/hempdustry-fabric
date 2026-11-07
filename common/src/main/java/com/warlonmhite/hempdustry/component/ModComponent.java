@@ -4,11 +4,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -108,12 +106,12 @@ public final class ModComponent<T> {
     }
 
     /**
-     * Registry-aware ops when a world is loaded, so a strain id resolves against the world's strains;
-     * plain NBT before that, which resolves no strain but reads and writes every other value.
+     * Plain NBT: a strain id resolves against the loaded strains through its own codec
+     * ({@code Strain.ENTRY_CODEC}, which asks {@link StackRegistries}), so no registry-aware ops are
+     * needed on 1.16.5.
      */
     private static DynamicOps<Tag> ops() {
-        HolderLookup.Provider registries = StackRegistries.current();
-        return registries == null ? NbtOps.INSTANCE : RegistryOps.create(NbtOps.INSTANCE, registries);
+        return NbtOps.INSTANCE;
     }
 
     @Override

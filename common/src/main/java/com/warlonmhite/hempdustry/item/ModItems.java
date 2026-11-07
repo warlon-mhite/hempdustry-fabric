@@ -4,6 +4,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
+import com.warlonmhite.hempdustry.block.ModBannerPatterns;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.custom.BhangItem;
 import com.warlonmhite.hempdustry.item.custom.CannabutterItem;
@@ -27,20 +28,19 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
 import com.warlonmhite.hempdustry.item.custom.HempClothItem;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BowlFoodItem;
 import net.minecraft.world.item.BannerPatternItem;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.HangingSignItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -50,6 +50,9 @@ import com.warlonmhite.hempdustry.item.custom.MusicDiscItem;
 import net.minecraft.world.item.SignItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.ItemLike;
+import com.google.common.collect.ImmutableList;
+import java.util.stream.Collectors;
+import com.github.bsideup.jabel.Desugar;
 
 public class ModItems {
 
@@ -57,7 +60,7 @@ public class ModItems {
     public static final Item INDICA_BUDS = registerItem("indica_buds", new Item(new Item.Properties()));
     /** Every hemp seed of the mod, the one list #hempdustry:hemp_seeds and the birds' food are built from. */
     public static List<Item> hempSeeds() {
-        return List.of(INDICA_SEEDS, SATIVA_SEEDS, BELDIA_SEEDS);
+        return ImmutableList.of(INDICA_SEEDS, SATIVA_SEEDS, BELDIA_SEEDS);
     }
 
     public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", new ItemNameBlockItem(ModBlocks.SATIVA_CROP, new Item.Properties()));
@@ -86,20 +89,20 @@ public class ModItems {
     /**
      * The fan leaf — and, since 2026-09-08, the loom's cannabis-leaf banner pattern item.
      *
-     * <p>On 1.21.1 the loom takes a pattern only from a {@link BannerPatternItem} (it asks
-     * {@code instanceof} and reads {@link BannerPatternItem#getBannerPattern()}, confirmed in
-     * {@code LoomMenu}), so the leaf is one; there is no separate {@code *_banner_pattern}
+     * <p>The loom takes a pattern only from a {@link BannerPatternItem} (it asks {@code instanceof}
+     * and reads {@link BannerPatternItem#getBannerPattern()}, confirmed in 1.16.5's {@code LoomMenu}),
+     * so the leaf is one; there is no separate {@code *_banner_pattern}
      * item, because the leaf itself is the natural stencil and vanilla never consumes a pattern item
      * anyway (the loom takes only the banner and the dye). So this costs a player one leaf they keep
-     * for ever, which is the right price for something purely cosmetic. The tag it names is the other
-     * half — see {@link ModTags.BannerPatterns#HEMP_LEAF_PATTERN_ITEM}.
+     * for ever, which is the right price for something purely cosmetic. On 1.16.5 the item names the
+     * pattern itself ({@link ModBannerPatterns#HEMP_LEAF}); the newer lines name a tag of patterns.
      *
      * <p>{@code BannerPatternItem} adds a grey tooltip line read from {@code <item key>.desc} — vanilla's
      * "Flower Charge". The leaf is a leaf first, and the 1.21.11 line shows no such line, so it is
      * left out here rather than given a key of its own.
      */
     public static final Item HEMP_LEAF = registerItem("hemp_leaf",
-            new BannerPatternItem(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM, new Item.Properties()) {
+            new BannerPatternItem(ModBannerPatterns.HEMP_LEAF, new Item.Properties()) {
                 @Override
                 public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
                 }
@@ -233,11 +236,9 @@ public class ModItems {
 
     public static final Item HEMP_PLANKS_SIGN = registerItem("hemp_planks_sign",
             new SignItem(new Item.Properties().stacksTo(16), ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN));
-    public static final Item HEMP_PLANKS_HANGING_SIGN = registerItem("hemp_planks_hanging_sign",
-            new HangingSignItem(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN, new Item.Properties().stacksTo(16)));
 
-    public static final Item HEMP_BOAT = registerItem("hemp_boat", new HempBoatItem(false, new Item.Properties().stacksTo(1)));
-    public static final Item HEMP_CHEST_BOAT = registerItem("hemp_chest_boat", new HempBoatItem(true, new Item.Properties().stacksTo(1)));
+    // No hanging sign (1.20) or chest boat (1.19) on 1.16.5.
+    public static final Item HEMP_BOAT = registerItem("hemp_boat", new HempBoatItem(new Item.Properties().stacksTo(1)));
 
     public static final Item HEMP_FLOUR = registerItem("hemp_flour", new Item(new Item.Properties()));
     public static final Item HEMP_FIBER = registerItem("hemp_fiber", new Item(new Item.Properties()));
@@ -348,6 +349,7 @@ public class ModItems {
      *
      * @see com.warlonmhite.hempdustry.recipe.Infusion
      */
+    @Desugar
     public record InfusedEdible(ItemLike item, int potencyOffset) {
         /** Lowest tier this edible can ever carry — {@link EdibleEffects#applyOffset} clamps at 1. */
         public int minTier() {
@@ -370,7 +372,7 @@ public class ModItems {
      * <p>{@link #BHANG_BUCKET} is deliberately absent: it never touches cannabutter and its recipe
      * fixes it at tier I, Rough, so it has exactly one form.
      */
-    public static final List<InfusedEdible> INFUSED_EDIBLES = List.of(
+    public static final List<InfusedEdible> INFUSED_EDIBLES = ImmutableList.of(
             new InfusedEdible(CANNABUTTER_TOAST, -1),
             new InfusedEdible(SPACE_COOKIE, -1),
             new InfusedEdible(SPACE_BROWNIE, 0),
@@ -414,10 +416,10 @@ public class ModItems {
     public static final Item VAPORIZER = registerDevice(DeviceType.VAPORIZER);
 
     /**
-     * The tinted bong, then the sixteen stained-glass ones in {@link ModBlocks#DYE_ORDER} — clear glass is
-     * {@link #BONG}. One item per colour, the way vanilla does bundles, candles and shulker boxes:
-     * a glass colour is a material identity, not a payload, so it is an item and not a component
-     * (smoking.md, <em>Shape</em>). Tinted leads because vanilla lists tinted glass beside plain.
+     * The sixteen stained-glass bongs, in {@link ModBlocks#DYE_ORDER} — clear glass is {@link #BONG}.
+     * One item per colour, the way vanilla does beds and shulker boxes: a glass colour is a material
+     * identity, not a payload, so it is an item and not a component. The newer lines lead with a
+     * tinted bong; 1.16.5 has none, because tinted glass came with 1.17.
      *
      * <p>Every one is a {@link DeviceType#BONG}, so packing, smoking, the bong's own sound and the
      * shared cooldown all reach them without a line of their own. They are deliberately <b>not</b>
@@ -439,16 +441,16 @@ public class ModItems {
      * loot pool all read this, so a new disc is one entry here plus its item, song and sounds.json
      * lines. Same "one list, no per-item plumbing" shape as {@link ModStrains#BUILT_IN}.
      */
-    public static final List<Item> MUSIC_DISCS = List.of(MUSIC_DISC_MOONLIGHT, MUSIC_DISC_ROBADOB);
+    public static final List<Item> MUSIC_DISCS = ImmutableList.of(MUSIC_DISC_MOONLIGHT, MUSIC_DISC_ROBADOB);
 
     // The beanie and the flip-flops are armour in every way but how they are drawn: worn, each is
     // drawn by its own ArmorRenderer (HempdustryClient) -- the beanie as a slouchy tam, the
     // flip-flops as a sole and a strap -- and the material's layers draw nothing for them.
     // Durability is leather's, set by the material (ModArmorMaterials).
-    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Properties()));
-    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new HempClothItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Properties()));
-    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new HempClothItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.LEGGINGS, new Item.Properties()));
-    public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, ArmorItem.Type.BOOTS, new Item.Properties()));
+    public static final Item HEMP_BEANIE = registerItem("hemp_beanie", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentSlot.HEAD, new Item.Properties()));
+    public static final Item HEMP_SHIRT = registerItem("hemp_shirt", new HempClothItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentSlot.CHEST, new Item.Properties()));
+    public static final Item HEMP_HAREM_PANTS = registerItem("hemp_harem_pants", new HempClothItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentSlot.LEGS, new Item.Properties()));
+    public static final Item FLIP_FLOPS = registerItem("flip_flops", new ArmorItem(ModArmorMaterials.HEMP_ARMOR_MATERIAL, EquipmentSlot.FEET, new Item.Properties()));
 
     private static Item registerDevice(DeviceType device) {
         Item item = registerItem(device.baseName(),
@@ -461,12 +463,12 @@ public class ModItems {
 
     private static List<Item> registerColoredBongs() {
         List<Item> bongs = new ArrayList<>();
-        bongs.add(registerBong("tinted_bong", Items.TINTED_GLASS));
+        // No tinted bong on 1.16.5: tinted glass came with 1.17.
         for (DyeColor color : ModBlocks.DYE_ORDER) {
             bongs.add(registerBong(color.getSerializedName() + "_bong",
-                    BuiltInRegistries.ITEM.get(new ResourceLocation(color.getSerializedName() + "_stained_glass"))));
+                    Registry.ITEM.get(new ResourceLocation(color.getSerializedName() + "_stained_glass"))));
         }
-        return List.copyOf(bongs);
+        return ImmutableList.copyOf(bongs);
     }
 
     /** A bong in coloured glass, repaired with the glass it is blown from. */
@@ -570,11 +572,11 @@ public class ModItems {
             // The hash spliffs, exactly as ModRecipeProvider rolls them: a plant strain's one or two
             // buds with a pinch of a built-in resin. Schwag is never rolled with hash, and a
             // concentrate (dose per item above one) is no pinch.
-            if (strain.value().wildFlower().isEmpty()) {
+            if (!strain.value().wildFlower().isPresent()) {
                 continue;
             }
             for (Holder.Reference<Strain> hash : strains) {
-                if (ModStrains.BUILT_IN.contains(hash.key()) && hash.value().wildFlower().isEmpty()
+                if (ModStrains.BUILT_IN.contains(hash.key()) && !hash.value().wildFlower().isPresent()
                         && hash.value().dosePerItem() <= 1) {
                     for (int buds = 1; buds < SPLIFF_MAX_DOSE; buds++) {
                         ItemStack stack = new ItemStack(SPLIFF);
@@ -610,7 +612,7 @@ public class ModItems {
      * @see #moonRocks
      */
     public static List<ItemStack> showcaseMoonRocks(HolderLookup.Provider registries) {
-        return moonRocks(registries, List.of(ModStrains.HASHISH));
+        return moonRocks(registries, ImmutableList.of(ModStrains.HASHISH));
     }
 
     /**
@@ -624,13 +626,13 @@ public class ModItems {
      * honest answer.
      */
     public static List<ItemStack> moonRocks(HolderLookup.Provider registries) {
-        return moonRocks(registries, List.of(ModStrains.HASHISH, ModStrains.CHARAS, ModStrains.FILTERED_HASHISH));
+        return moonRocks(registries, ImmutableList.of(ModStrains.HASHISH, ModStrains.CHARAS, ModStrains.FILTERED_HASHISH));
     }
 
     private static List<ItemStack> moonRocks(HolderLookup.Provider registries, List<ResourceKey<Strain>> coats) {
         List<ItemStack> out = new ArrayList<>();
         for (Holder.Reference<Strain> strain : Strain.all(registries)) {
-            if (strain.value().wildFlower().isEmpty()) {
+            if (!strain.value().wildFlower().isPresent()) {
                 continue;
             }
             for (ResourceKey<Strain> coat : coats) {
@@ -666,7 +668,7 @@ public class ModItems {
      * bud, and the schwag joint is the archetype.
      */
     private static List<Holder.Reference<Strain>> rollable(List<Holder.Reference<Strain>> strains) {
-        return strains.stream().filter(ModStrains::isPlantMatter).toList();
+        return strains.stream().filter(ModStrains::isPlantMatter).collect(Collectors.toList());
     }
 
     /** Highest dose a spliff can be rolled at. Devices carry their own ceiling on {@link DeviceType}. */
@@ -773,7 +775,7 @@ public class ModItems {
     }
 
     private static Item registerItem(String name, Item item){
-        return Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(Hempdustry.MOD_ID, name), item);
+        return Registry.register(Registry.ITEM, new ResourceLocation(Hempdustry.MOD_ID, name), item);
     }
     public static void registerModItems(){
         Hempdustry.LOGGER.info("Registering Mod Items for " + Hempdustry.MOD_ID);

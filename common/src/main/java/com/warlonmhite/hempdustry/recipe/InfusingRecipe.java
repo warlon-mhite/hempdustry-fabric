@@ -5,7 +5,6 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -15,6 +14,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import com.github.bsideup.jabel.Desugar;
 
 /**
  * What the Infuser turns into what: the three things it accepts, and the one thing it yields.
@@ -41,6 +41,7 @@ import net.minecraft.world.level.Level;
  * recipe the tub accepts nothing and produces nothing, which is a legitimate thing for a pack to want
  * and the only sane reading of "there is no conversion".
  */
+@Desugar
 public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredient hemp, Ingredient washedHemp,
                              Optional<Ingredient> scorchedHemp, ItemStack result)
         implements Recipe<Container> {
@@ -70,7 +71,7 @@ public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredie
     }
 
     @Override
-    public ItemStack assemble(Container input, RegistryAccess registries) {
+    public ItemStack assemble(Container input) {
         return result.copy();
     }
 
@@ -80,7 +81,7 @@ public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredie
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registries) {
+    public ItemStack getResultItem() {
         return result;
     }
 
@@ -131,7 +132,7 @@ public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredie
         return matches.length == 0 ? ItemStack.EMPTY : matches[0];
     }
 
-    public static class Serializer implements RecipeSerializer<InfusingRecipe> {
+    public static class Serializer extends ModRecipeSerializer<InfusingRecipe> {
         @Override
         public InfusingRecipe fromJson(ResourceLocation id, JsonObject json) {
             return new InfusingRecipe(id,
@@ -152,7 +153,7 @@ public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredie
                     Ingredient.fromNetwork(buf),
                     Ingredient.fromNetwork(buf),
                     Ingredient.fromNetwork(buf),
-                    buf.readOptional(Ingredient::fromNetwork),
+                    buf.readBoolean() ? Optional.of(Ingredient.fromNetwork(buf)) : Optional.empty(),
                     buf.readItem());
         }
 
@@ -161,7 +162,9 @@ public record InfusingRecipe(ResourceLocation id, Ingredient container, Ingredie
             recipe.container().toNetwork(buf);
             recipe.hemp().toNetwork(buf);
             recipe.washedHemp().toNetwork(buf);
-            buf.writeOptional(recipe.scorchedHemp(), (out, ingredient) -> ingredient.toNetwork(out));
+            // 1.16.5's buffer has no optional field: a flag, then the ingredient when there is one.
+            buf.writeBoolean(recipe.scorchedHemp().isPresent());
+            recipe.scorchedHemp().ifPresent(ingredient -> ingredient.toNetwork(buf));
             buf.writeItem(recipe.result());
         }
     }

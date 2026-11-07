@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,18 +62,19 @@ public interface GrowMedium extends BonemealableBlock {
     @Nullable
     static ItemInteractionResult tryFeed(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player) {
-        if (!stack.is(ModTags.Items.FERTILIZERS)
+        if (!stack.getItem().is(ModTags.Items.FERTILIZERS)
                 || !(state.getBlock() instanceof GrowMedium medium)
                 || !medium.isValidBonemealTarget(world, pos, state, world.isClientSide)) {
             return null;
         }
         if (world instanceof ServerLevel server) {
             medium.performBonemeal(server, server.getRandom(), pos, state);
-            if (!player.getAbilities().instabuild) {
+            if (!player.abilities.instabuild) {
                 stack.shrink(1);
             }
-            // Vanilla's own "that was fertilised" feedback, the event BoneMealItem fires.
-            server.levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, pos, 0);
+            // Vanilla's own "that was fertilised" feedback, the event BoneMealItem fires (2005: 1.16.5
+            // has no names for level events).
+            server.levelEvent(2005, pos, 0);
         }
         return ItemInteractionResult.sidedSuccess(world.isClientSide);
     }

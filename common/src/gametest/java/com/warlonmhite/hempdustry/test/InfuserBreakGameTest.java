@@ -5,8 +5,8 @@ import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -50,7 +50,7 @@ public final class InfuserBreakGameTest {
         context.setBlock(pos, ModBlocks.INFUSER);
         InfuserBlockEntity infuser = ((InfuserBlockEntity) context.getBlockEntity(pos));
         try {
-            infuser.load(TagParser.parseTag("{Progress:" + progress + ",HaveMilk:1b,BatchUnwashed:5}"));
+            Line.load(infuser, TagParser.parseTag("{Progress:" + progress + ",HaveMilk:1b,BatchUnwashed:5}"));
         } catch (CommandSyntaxException e) {
             throw new IllegalStateException(e);
         }
@@ -60,7 +60,7 @@ public final class InfuserBreakGameTest {
     private static int count(GameTestHelper context, Item item) {
         int total = 0;
         for (ItemEntity entity : Line.entities(context, EntityType.ITEM)) {
-            if (entity.getItem().is(item)) {
+            if (entity.getItem().getItem() == item) {
                 total += entity.getItem().getCount();
             }
         }

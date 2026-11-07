@@ -1,12 +1,11 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "redstone",
   "key": {
     "A": {
-      "item": "minecraft:amethyst_shard"
+      "item": "minecraft:purple_stained_glass"
     },
     "C": {
-      "item": "minecraft:copper_ingot"
+      "item": "minecraft:iron_ingot"
     },
     "L": {
       "item": "minecraft:redstone_lamp"
@@ -19,6 +18,5 @@
   ],
   "result": {
     "item": "hempdustry:grow_lamp"
-  },
-  "show_notification": true
+  }
 }

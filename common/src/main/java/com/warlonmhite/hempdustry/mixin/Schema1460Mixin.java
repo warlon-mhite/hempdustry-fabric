@@ -33,13 +33,12 @@ import net.minecraft.util.datafix.schemas.V1460;
  * fuel slot came out with no enchantments and a bare "Serialization errors" in the log, while the
  * same bow in a vanilla chest was converted.
  *
- * <p>The fix is to be in the table. Our two boats are registered the way vanilla registers its own:
- * the boat as a plain entity, the chest boat with its {@code Items} typed as item stacks, which is
- * what lets the item fixes reach what it carries (an enchanted book in a chest boat changed format
- * on the way to 1.21.11 too). Nothing else about either boat has ever needed fixing. The machines
+ * <p>The fix is to be in the table. The boat is registered the way vanilla registers its own, as a
+ * plain entity (the newer lines' chest boat, with its {@code Items} typed as item stacks, does not
+ * exist on 1.16.5). Nothing else about the boat has ever needed fixing. The machines
  * are registered as vanilla registers its furnace: their {@code Items} typed as item stacks, which is
  * the shape {@code ContainerHelper.saveAllItems} writes. (Minecraft 1.20.5 types a kept name as text
- * too; 1.20.1's schemas have no such type, and the newer lines' own copy of this class adds it.)
+ * too; 1.16.5's schemas have no such type, and the newer lines' own copy of this class adds it.)
  *
  * <p>On 1.20.1 it does one thing more: vanilla's {@code EntityType.Builder#build} asks the data fixer
  * for the new entity's id and logs an error for one it does not know. Being in the table answers it.
@@ -63,9 +62,8 @@ public class Schema1460Mixin {
     private void hempdustry$registerHempBoats(Schema schema,
                                               CallbackInfoReturnable<Map<String, Supplier<TypeTemplate>>> cir) {
         Map<String, Supplier<TypeTemplate>> entities = cir.getReturnValue();
+        // No hemp chest boat on 1.16.5: chest boats came with 1.19.
         schema.registerSimple(entities, "hempdustry:hemp_boat");
-        schema.register(entities, "hempdustry:hemp_chest_boat",
-                name -> DSL.optionalFields("Items", DSL.list(References.ITEM_STACK.in(schema))));
     }
 
     @Inject(method = "registerBlockEntities", at = @At("RETURN"), remap = false)

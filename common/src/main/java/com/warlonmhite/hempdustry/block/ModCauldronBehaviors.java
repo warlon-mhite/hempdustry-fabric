@@ -2,7 +2,6 @@ package com.warlonmhite.hempdustry.block;
 
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.cauldron.CauldronInteraction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -11,12 +10,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
+import java.util.HashMap;
+import java.util.Map;
+import net.minecraft.world.InteractionHand;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Everything the mod does with a plain water cauldron. Two jobs, no new block and no mixin.
+ * Everything the mod does with a plain water cauldron. Two jobs, no new block. Minecraft 1.16.5 has no
+ * table of cauldron interactions (1.17 added it), so {@code CauldronMixin} asks {@link #interaction}
+ * before vanilla's own hard-coded ones.
  *
  * <p><b>Retting</b> — {@code hemp_stem} → {@code retted_hemp_stem}, 1:1. Soaking is the first of the
  * four traditional steps — <i>rouissage</i> (retting), <i>broyage</i> (breaking), <i>teillage</i>
@@ -62,30 +67,33 @@ public final class ModCauldronBehaviors {
     private ModCauldronBehaviors() {
     }
 
-    public static void registerCauldronBehaviors() {
-        CauldronInteraction.WATER
-                .put(ModItems.HEMP_STEM, (state, world, pos, player, hand, stack) ->
-                        soak(state, world, pos, player, stack,
-                                ModItems.RETTED_HEMP_STEM, RET_PER_LEVEL));
-        CauldronInteraction.WATER
-                .put(ModItems.DECARBOXYLATED_HEMP, (state, world, pos, player, hand, stack) ->
-                        soak(state, world, pos, player, stack,
-                                ModItems.WASHED_DECARBOXYLATED_HEMP, WASH_PER_LEVEL));
-
-        // A dyed shirt or pair of harem pants washes out as leather does. Vanilla lists its dyeable
-        // armour one item at a time, so ours go in the same way, with vanilla's own wash: it reads
-        // #minecraft:dyeable and the dyed_color component, nothing else.
-        CauldronInteraction.WATER.put(ModItems.HEMP_SHIRT, CauldronInteraction.DYED_ITEM);
-        CauldronInteraction.WATER.put(ModItems.HEMP_HAREM_PANTS, CauldronInteraction.DYED_ITEM);
+    /** What one item does to a water cauldron, as the newer lines' {@code CauldronInteraction}. */
+    @FunctionalInterface
+    public interface Interaction {
+        InteractionResult interact(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
+                                   ItemStack stack);
     }
 
-    /**
-     * Turns as much of {@code stack} into {@code output} as the cauldron's water can cover, one for
-     * one, and spends the water levels used.
-     */
+    private static final Map<Item, Interaction> WATER = new HashMap<>();
+
+    /** The interaction for {@code item} in a cauldron holding water, or {@code null} for vanilla's. */
+    public static @Nullable Interaction interaction(Item item) {
+        return WATER.get(item);
+    }
+
+    public static void registerCauldronBehaviors() {
+        WATER.put(ModItems.HEMP_STEM, (state, world, pos, player, hand, stack) ->
+                soak(state, world, pos, player, stack, ModItems.RETTED_HEMP_STEM, RET_PER_LEVEL));
+        WATER.put(ModItems.DECARBOXYLATED_HEMP, (state, world, pos, player, hand, stack) ->
+                soak(state, world, pos, player, stack, ModItems.WASHED_DECARBOXYLATED_HEMP, WASH_PER_LEVEL));
+
+        // A dyed shirt or pair of harem pants washes out as leather does: on 1.16.5 vanilla's cauldron
+        // washes anything that is a DyeableLeatherItem, which both are, so they need nothing here.
+    }
+
     private static InteractionResult soak(BlockState state, Level world, BlockPos pos, Player player,
                                          ItemStack stack, Item output, int itemsPerLevel) {
-        int levelsAvailable = state.getValue(LayeredCauldronBlock.LEVEL);
+        int levelsAvailable = state.getValue(CauldronBlock.LEVEL);
         if (levelsAvailable <= 0) {
             return InteractionResult.PASS;
         }
@@ -98,29 +106,26 @@ public final class ModCauldronBehaviors {
 
         if (!world.isClientSide) {
             Item input = stack.getItem();
-            if (player.getAbilities().instabuild) {
+            if (player.abilities.instabuild) {
                 // Vanilla's creative rule for an exchange at a cauldron (ItemUtils#createFilledResult,
                 // creativeOverride): the input is never spent, so the output is only handed over
                 // when the player has none — otherwise every click mints another stack out of
                 // nothing. One item, not the batch: nothing was consumed to pay for a batch.
                 ItemStack one = new ItemStack(output);
-                if (!player.getInventory().contains(one)) {
-                    player.getInventory().add(one);
+                if (!player.inventory.contains(one)) {
+                    player.inventory.add(one);
                 }
             } else {
                 stack.shrink(toProcess);
                 // toProcess is capped by the input stack, so this never exceeds one legal stack.
-                player.getInventory().placeItemBackInInventory(new ItemStack(output, toProcess));
+                player.inventory.placeItemBackInInventory(world, new ItemStack(output, toProcess));
             }
             player.awardStat(Stats.USE_CAULDRON);
             player.awardStat(Stats.ITEM_USED.get(input));
 
-            for (int i = 0; i < levelsUsed; i++) {
-                LayeredCauldronBlock.lowerFillLevel(world.getBlockState(pos), world, pos);
-            }
+            ((CauldronBlock) Blocks.CAULDRON).setWaterLevel(world, pos, state, levelsAvailable - levelsUsed);
 
             world.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-            world.gameEvent(null, GameEvent.FLUID_PICKUP, pos);
         }
         return InteractionResult.sidedSuccess(world.isClientSide);
     }

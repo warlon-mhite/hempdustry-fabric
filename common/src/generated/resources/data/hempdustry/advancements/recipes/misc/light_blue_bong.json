@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:light_blue_stained_glass"
-            ]
+            "item": "minecraft:light_blue_stained_glass"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:light_blue_bong"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

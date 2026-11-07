@@ -61,7 +61,7 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
         checkContainerSize(inventory, InfuserBlockEntity.SLOT_COUNT);
         this.inventory = inventory;
         this.propertyDelegate = propertyDelegate;
-        this.world = playerInventory.player.level();
+        this.world = playerInventory.player.level;
         inventory.startOpen(playerInventory.player);
 
         // Both hemp slots take either type; they exist so a batch can mix washed and unwashed, not
@@ -75,7 +75,7 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
     }
 
     private static Container resolveInventory(Inventory playerInventory, BlockPos pos) {
-        BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(pos);
+        BlockEntity blockEntity = playerInventory.player.level.getBlockEntity(pos);
         return blockEntity instanceof Container found
                 ? found
                 : new SimpleContainer(InfuserBlockEntity.SLOT_COUNT);
@@ -94,13 +94,17 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
 
     /** An input slot that defers to the block entity for what it will accept. */
     private static class InputSlot extends Slot {
+        /** The container's own index; 1.16.5's slot keeps its copy private. */
+        private final int containerSlot;
+
         InputSlot(Container inventory, int index, int x, int y) {
             super(inventory, index, x, y);
+            this.containerSlot = index;
         }
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return this.container.canPlaceItem(this.getContainerSlot(), stack);
+            return this.container.canPlaceItem(this.containerSlot, stack);
         }
     }
 
@@ -123,11 +127,11 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
         }
 
         @Override
-        public void onTake(Player player, ItemStack stack) {
+        public ItemStack onTake(Player player, ItemStack stack) {
             if (this.container instanceof InfuserBlockEntity infuser) {
                 infuser.onPreviewTaken();
             }
-            super.onTake(player, stack);
+            return super.onTake(player, stack);
         }
     }
 
@@ -276,7 +280,7 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
         }
 
         if (inSlot.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
+            slot.set(ItemStack.EMPTY);
         } else {
             slot.setChanged();
         }

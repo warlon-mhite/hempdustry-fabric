@@ -3,7 +3,6 @@ package com.warlonmhite.hempdustry.recipe;
 import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -13,6 +12,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import com.github.bsideup.jabel.Desugar;
 
 /**
  * One squeeze in the Hemp Press: an ingredient in, whatever heat and pressure make of it out.
@@ -29,6 +29,7 @@ import net.minecraft.world.level.Level;
  * <p>Not in the recipe book: the book only knows the crafting types, and a machine recipe there
  * would be an entry the player could not click. Recipe viewers read the type directly.
  */
+@Desugar
 public record PressingRecipe(ResourceLocation id, Ingredient ingredient, ItemStack result)
         implements Recipe<Container> {
 
@@ -39,7 +40,7 @@ public record PressingRecipe(ResourceLocation id, Ingredient ingredient, ItemSta
     }
 
     @Override
-    public ItemStack assemble(Container input, RegistryAccess registries) {
+    public ItemStack assemble(Container input) {
         return result.copy();
     }
 
@@ -49,7 +50,7 @@ public record PressingRecipe(ResourceLocation id, Ingredient ingredient, ItemSta
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registries) {
+    public ItemStack getResultItem() {
         return result;
     }
 
@@ -86,7 +87,7 @@ public record PressingRecipe(ResourceLocation id, Ingredient ingredient, ItemSta
         return ModRecipes.PRESSING_TYPE;
     }
 
-    public static class Serializer implements RecipeSerializer<PressingRecipe> {
+    public static class Serializer extends ModRecipeSerializer<PressingRecipe> {
         @Override
         public PressingRecipe fromJson(ResourceLocation id, JsonObject json) {
             return new PressingRecipe(id, RecipeJson.ingredient(json, "ingredient"), RecipeJson.result(json, "result"));

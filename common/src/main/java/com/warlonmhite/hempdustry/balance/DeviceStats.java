@@ -3,14 +3,14 @@ package com.warlonmhite.hempdustry.balance;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.util.Codecs;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import java.util.Optional;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
+import com.github.bsideup.jabel.Desugar;
 
 /**
  * How one smokeable smokes, as data: {@code data/<namespace>/hempdustry/device/<id>.json}, one file
@@ -25,6 +25,7 @@ import net.minecraft.util.ExtraCodecs;
  * read. A pipe, bong or vaporizer file without one keeps the built-in bowl: a pipe that packs no
  * hits is a broken pipe, not a rebalanced one.
  */
+@Desugar
 public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, int nauseaOneIn,
                           float greenOutFactor, Optional<Bowl> bowl) {
 
@@ -33,11 +34,12 @@ public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, 
      * highest level the device reaches), and the scorched hemp a finished bowl of plant matter hands
      * back.
      */
+    @Desugar
     public record Bowl(int hits, int maxDose, int spentYield) {
         public static final Codec<Bowl> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ExtraCodecs.POSITIVE_INT.fieldOf("hits").forGetter(Bowl::hits),
-                ExtraCodecs.POSITIVE_INT.fieldOf("max_dose").forGetter(Bowl::maxDose),
-                ExtraCodecs.NON_NEGATIVE_INT.fieldOf("spent_yield").forGetter(Bowl::spentYield)
+                Codecs.POSITIVE_INT.fieldOf("hits").forGetter(Bowl::hits),
+                Codecs.POSITIVE_INT.fieldOf("max_dose").forGetter(Bowl::maxDose),
+                Codecs.NON_NEGATIVE_INT.fieldOf("spent_yield").forGetter(Bowl::spentYield)
         ).apply(instance, Bowl::new));
     }
 
@@ -45,10 +47,10 @@ public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, 
             ResourceKey.createRegistryKey(new ResourceLocation(Hempdustry.MOD_ID, "device"));
 
     public static final Codec<DeviceStats> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ExtraCodecs.POSITIVE_INT.fieldOf("duration_ticks").forGetter(DeviceStats::durationTicks),
-            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("cooldown_ticks").forGetter(DeviceStats::cooldownTicks),
-            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("cough_one_in").forGetter(DeviceStats::coughOneIn),
-            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("nausea_one_in").forGetter(DeviceStats::nauseaOneIn),
+            Codecs.POSITIVE_INT.fieldOf("duration_ticks").forGetter(DeviceStats::durationTicks),
+            Codecs.NON_NEGATIVE_INT.fieldOf("cooldown_ticks").forGetter(DeviceStats::cooldownTicks),
+            Codecs.NON_NEGATIVE_INT.fieldOf("cough_one_in").forGetter(DeviceStats::coughOneIn),
+            Codecs.NON_NEGATIVE_INT.fieldOf("nausea_one_in").forGetter(DeviceStats::nauseaOneIn),
             Codec.FLOAT.fieldOf("green_out_factor").forGetter(DeviceStats::greenOutFactor),
             Bowl.CODEC.optionalFieldOf("bowl").forGetter(DeviceStats::bowl)
     ).apply(instance, DeviceStats::new));
@@ -69,25 +71,18 @@ public record DeviceStats(int durationTicks, int cooldownTicks, int coughOneIn, 
         return ResourceKey.create(REGISTRY_KEY, new ResourceLocation(Hempdustry.MOD_ID, id));
     }
 
-    public static void bootstrap(BootstapContext<DeviceStats> registerable) {
-        for (DeviceType type : DeviceType.values()) {
-            registerable.register(key(type), type.builtInStats());
-        }
-        registerable.register(SPLIFF, SPLIFF_BUILT_IN);
-    }
-
     /** {@code type}'s numbers in this world. */
     public static DeviceStats of(HolderLookup.Provider registries, DeviceType type) {
-        return ModBalance.entry(registries, key(type), type.builtInStats());
+        return ModBalance.entry(registries, REGISTRY_KEY, key(type), type.builtInStats());
     }
 
     /** The spliff's numbers in this world. */
     public static DeviceStats spliff(HolderLookup.Provider registries) {
-        return ModBalance.entry(registries, SPLIFF, SPLIFF_BUILT_IN);
+        return ModBalance.entry(registries, REGISTRY_KEY, SPLIFF, SPLIFF_BUILT_IN);
     }
 
     /** {@code type}'s bowl in this world, or the built-in one when its file has none. */
     public static Bowl bowl(HolderLookup.Provider registries, DeviceType type) {
-        return of(registries, type).bowl().orElseGet(() -> type.builtInStats().bowl().orElseThrow());
+        return of(registries, type).bowl().orElseGet(() -> type.builtInStats().bowl().get());
     }
 }

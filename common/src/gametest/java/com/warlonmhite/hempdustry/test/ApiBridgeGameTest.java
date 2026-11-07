@@ -1,13 +1,14 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.List;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -27,7 +28,7 @@ public final class ApiBridgeGameTest {
 
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void theTwoZeroApiStillAnswers(GameTestHelper context) {
-        HolderLookup.RegistryLookup<Strain> strains = context.getLevel().registryAccess().lookupOrThrow(Strain.REGISTRY_KEY);
+        HolderLookup.RegistryLookup<Strain> strains = DataRegistries.of(context.getLevel()).lookupOrThrow(Strain.REGISTRY_KEY);
         Strain indica = strains.getOrThrow(ModStrains.INDICA).value();
 
         // 2.0's constructor and accessors: a plant strain, with the defaults 2.0 behaved by.

@@ -5,11 +5,12 @@ import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import java.util.Optional;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 
 /**
@@ -26,7 +27,7 @@ public final class BalanceGameTest {
 
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void theShippedBalanceIsTheBuiltInOne(GameTestHelper context) {
-        HolderLookup.Provider registries = context.getLevel().registryAccess();
+        HolderLookup.Provider registries = DataRegistries.of(context.getLevel());
         for (DeviceType type : DeviceType.values()) {
             assertLoaded(context, registries, DeviceStats.REGISTRY_KEY, DeviceStats.key(type), type.builtInStats());
         }
@@ -40,6 +41,6 @@ public final class BalanceGameTest {
                                          ResourceKey<Registry<T>> registry, ResourceKey<T> key, T builtIn) {
         Optional<T> loaded = registries.lookupOrThrow(registry).get(key).map(Holder.Reference::value);
         context.assertTrue(loaded.isPresent(), key.location() + " is not in this world's data");
-        Line.equal(context, loaded.orElseThrow(), builtIn, "the numbers " + key.location() + " ships");
+        Line.equal(context, loaded.get(), builtIn, "the numbers " + key.location() + " ships");
     }
 }

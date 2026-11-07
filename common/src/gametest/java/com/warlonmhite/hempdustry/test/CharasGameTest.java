@@ -7,8 +7,8 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -111,10 +111,11 @@ public final class CharasGameTest {
         AABB area = Line.box(pos.offset(-4, -2, -4), pos.offset(4, 3, 4));
         int charas = 0;
         int leaves = 0;
-        for (ItemEntity item : world.getEntitiesOfClass(ItemEntity.class, area, e -> true)) {
-            if (item.getItem().is(ModItems.CHARAS)) {
+        // Alive only: a 1.16.5 entity removed this tick stays in the world until its entities next tick.
+        for (ItemEntity item : world.getEntitiesOfClass(ItemEntity.class, area, e -> e.isAlive())) {
+            if (item.getItem().getItem() == ModItems.CHARAS) {
                 charas += item.getItem().getCount();
-            } else if (item.getItem().is(ModItems.HEMP_LEAF)) {
+            } else if (item.getItem().getItem() == ModItems.HEMP_LEAF) {
                 leaves += item.getItem().getCount();
             }
         }

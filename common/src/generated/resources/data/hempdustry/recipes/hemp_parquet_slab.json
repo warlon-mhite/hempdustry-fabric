@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "building",
   "key": {
     "#": {
       "item": "hempdustry:hemp_parquet"
@@ -12,6 +11,5 @@
   "result": {
     "count": 6,
     "item": "hempdustry:hemp_parquet_slab"
-  },
-  "show_notification": true
+  }
 }

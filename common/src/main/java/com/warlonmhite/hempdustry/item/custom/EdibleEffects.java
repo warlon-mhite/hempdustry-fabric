@@ -8,15 +8,19 @@ import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.random.RandomGenerator;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import com.google.common.collect.ImmutableList;
+import net.minecraft.network.chat.TranslatableComponent;
+import java.util.Random;
+import com.github.bsideup.jabel.Desugar;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 
 /**
  * What an edible does: the full design, and the reasoning behind every number, made executable.
@@ -67,6 +71,7 @@ public final class EdibleEffects {
     // since 2.1: EdibleBundle, whose built-in value carries the reasoning behind each of them.
 
     /** One effect of the bundle and how many ticks after eating it lands. */
+    @Desugar
     public record Dose(int delay, MobEffectInstance effect) {
     }
 
@@ -101,7 +106,7 @@ public final class EdibleEffects {
      * A random onset delay for this quality, in ticks: one roll of its window, after the server's
      * multiplier. Rough's window is the widest and latest, Perfect's nearly a point.
      */
-    public static int rollOnsetTicks(EdibleBundle bundle, Quality quality, RandomGenerator random) {
+    public static int rollOnsetTicks(EdibleBundle bundle, Quality quality, Random random) {
         EdibleBundle.Onset window = bundle.qualities().of(quality).onset();
         // Scaled by the server's onset multiplier, window and all: a server that wants a 15-second
         // come-up gets a proportionally tighter window rather than a squashed one.
@@ -125,7 +130,7 @@ public final class EdibleEffects {
             // about, and no event fires.
             return;
         }
-        EdibleBundle data = EdibleBundle.of(player.level().registryAccess());
+        EdibleBundle data = EdibleBundle.of(DataRegistries.of(player.level));
         for (Dose dose : bundle(data, tier, quality, rollOnsetTicks(data, quality, ThreadLocalRandom.current()))) {
             queue(player, dose.delay(), dose.effect());
         }
@@ -169,7 +174,7 @@ public final class EdibleEffects {
         // munchies switches and the level cap exactly as a bong hit does. Durations arrive already
         // scaled from durationTicks, so the policy's own scaling is not applied twice here -- it is
         // filter() that is wanted, and it returns nothing when the effect is switched off.
-        for (MobEffectInstance allowed : EffectPolicy.filterKeepingDuration(List.of(effect))) {
+        for (MobEffectInstance allowed : EffectPolicy.filterKeepingDuration(ImmutableList.of(effect))) {
             EdibleScheduler.schedule(player, delay, allowed);
         }
     }
@@ -187,12 +192,12 @@ public final class EdibleEffects {
         if (potency <= 0) {
             return;
         }
-        tooltip.add(Component.translatable("hempdustry.edible.potency",
-                Component.translatable("enchantment.level." + potency)).withStyle(ChatFormatting.GRAY));
+        tooltip.add(new TranslatableComponent("hempdustry.edible.potency",
+                new TranslatableComponent("enchantment.level." + potency)).withStyle(ChatFormatting.GRAY));
         Quality quality = ModComponents.QUALITY.get(stack);
         if (quality != null) {
-            tooltip.add(Component.translatable("hempdustry.edible.quality",
-                    Component.translatable(quality.getTranslationKey())).withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(new TranslatableComponent("hempdustry.edible.quality",
+                    new TranslatableComponent(quality.getTranslationKey())).withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 }

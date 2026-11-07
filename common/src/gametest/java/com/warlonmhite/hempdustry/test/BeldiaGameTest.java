@@ -1,8 +1,9 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.google.common.collect.ImmutableList;
 import net.minecraft.resources.ResourceLocation;
 import java.util.List;
-import net.minecraft.world.level.storage.loot.LootDataType;
+import net.minecraft.world.level.storage.loot.LootTables;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -20,10 +21,10 @@ import com.warlonmhite.hempdustry.util.ModTags;
 import com.warlonmhite.hempdustry.world.ModConfiguredFeatures;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.registry.Holder;
+import net.minecraft.core.Registry;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -44,9 +45,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
-import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.chunk.ChunkBiomeContainer;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -91,13 +95,14 @@ public final class BeldiaGameTest {
         context.setBlock(SOIL.east(4), Blocks.WATER);
         context.assertTrue(BeldiaCropBlock.isWatered(world, soil), "water four blocks away does not water Beldía");
 
-        // Ground: sand of any colour, or a bed of ours. Never farmland, never suspicious sand.
+        // Ground: sand of any colour, or a bed of ours. Never farmland. (1.16.5 has no suspicious sand, which
+        // came with 1.20, so the newer lines' case for it is not asked.)
         context.assertTrue(seedling.canSurvive(world, crop), "Beldía cannot stand on sand");
         for (Block ok : new Block[]{Blocks.RED_SAND, ModBlocks.GROW_POT, ModBlocks.HYDRO_TRAY}) {
             context.setBlock(SOIL, ok);
             context.assertTrue(seedling.canSurvive(world, crop), "Beldía cannot stand on " + ok);
         }
-        for (Block no : new Block[]{Blocks.FARMLAND, Blocks.SUSPICIOUS_SAND, Blocks.SANDSTONE, Blocks.DIRT}) {
+        for (Block no : new Block[]{Blocks.FARMLAND, Blocks.SANDSTONE, Blocks.DIRT}) {
             context.setBlock(SOIL, no);
             context.assertTrue(!seedling.canSurvive(world, crop), "Beldía can stand on " + no);
         }
@@ -165,12 +170,12 @@ public final class BeldiaGameTest {
                             + " against Purple Kush's " + p[0] + "/" + p[1] + "/" + p[2] + "/" + p[3]
                             + " — expected the same with one stem fewer");
         }
-        context.assertTrue(new ItemStack(ModItems.BELDIA_SEEDS).is(ModTags.Items.HEMP_SEEDS), "Beldía seeds are not hemp seeds");
+        context.assertTrue(ModItems.BELDIA_SEEDS.is(ModTags.Items.HEMP_SEEDS), "Beldía seeds are not hemp seeds");
 
         // The Sifting Box: two levels a bud, so four fill the screen and three do not — and the buds
         // sit in their own tag, not in siftable/flower, where the viewer would count them at seven.
-        context.assertTrue(new ItemStack(ModItems.BELDIA_BUDS).is(ModTags.Items.SIFTABLE_RESINOUS)
-                        && !new ItemStack(ModItems.BELDIA_BUDS).is(ModTags.Items.SIFTABLE_FLOWER),
+        context.assertTrue(ModItems.BELDIA_BUDS.is(ModTags.Items.SIFTABLE_RESINOUS)
+                        && !ModItems.BELDIA_BUDS.is(ModTags.Items.SIFTABLE_FLOWER),
                 "Beldía buds are in the wrong siftable tag");
         BlockPos boxRel = new BlockPos(5, 1, 5);
         BlockPos box = context.absolutePos(boxRel);
@@ -205,7 +210,7 @@ public final class BeldiaGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void beldiaSmokesAMirage(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        Holder<Strain> beldia = world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.BELDIA);
+        Holder<Strain> beldia = com.warlonmhite.hempdustry.registry.DataRegistries.of(world).lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(ModStrains.BELDIA);
         context.assertTrue(beldia.value().coughFactor() == 0.5F, "Beldía does not cough at twice the odds");
         int length = DeviceType.PIPE.builtInStats().durationTicks();
 
@@ -236,7 +241,7 @@ public final class BeldiaGameTest {
         });
     }
 
-    /** Where the seeds turn up: the desert's temple and its sand, never grass or the other chests. */
+    /** Where the seeds turn up: the desert's temple, never grass or the other chests. */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void beldiaStaysInTheDesert(GameTestHelper context) {
         ServerLevel world = context.getLevel();
@@ -244,28 +249,27 @@ public final class BeldiaGameTest {
         expect(context, world, Blocks.TALL_GRASS.getLootTable(), seeds, false, "hempdustry:sativa_seeds");
         expect(context, world, BuiltInLootTables.SIMPLE_DUNGEON, seeds, false, "hempdustry:indica_seeds");
         expect(context, world, BuiltInLootTables.SHIPWRECK_SUPPLY, seeds, false, "hempdustry:indica_seeds");
-        // The temple chest; 1.20.1 has no experiment pack replacing it.
+        // The temple chest; 1.16.5 has no experiment pack replacing it.
         expect(context, world, BuiltInLootTables.DESERT_PYRAMID, seeds, true, "minecraft:enchanted_golden_apple");
         expect(context, world, BuiltInLootTables.DESERT_PYRAMID, "hempdustry:indica_seeds", false, null);
-        expect(context, world, BuiltInLootTables.DESERT_WELL_ARCHAEOLOGY, seeds, true, "minecraft:arms_up_pottery_sherd");
-        expect(context, world, BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY, seeds, true, "minecraft:prize_pottery_sherd");
-        // A brushed block keeps one item, so the seeds must be inside vanilla's pool, not beside it.
-        for (ResourceLocation key : List.of(BuiltInLootTables.DESERT_WELL_ARCHAEOLOGY, BuiltInLootTables.DESERT_PYRAMID_ARCHAEOLOGY)) {
-            JsonObject json = encode(world, key).getAsJsonObject();
-            context.assertTrue(json.getAsJsonArray("pools").size() == 1,
-                    key + " has " + json.getAsJsonArray("pools").size() + " pools — brushing would drop only the first");
-        }
+        // 1.16.5 has no archaeology (1.20), so the newer lines' checks on the desert well's and the desert
+        // pyramid's brushing tables have nothing to ask: the temple's chests are the seeds' home here.
         context.succeed();
     }
 
     /**
      * The wild plant is the crop, ripe and whole, on sand right beside water only — and only where
-     * the plant itself stands in a Beldía biome. Biomes are set with /fillbiome.
+     * the plant itself stands in a Beldía biome. 1.16.5 has no /fillbiome, so the biomes are written
+     * into the chunks' own biome cells, which the feature reads.
+     *
+     * <p>1.16.5 has no feature for one plant either: the wild patch is the mod's own, which asks each of
+     * its tries the questions the newer lines' filter asks. So a spot is asked through the patch
+     * centred on it ({@link #landsAt}), and what is read is whether a plant stands on that spot.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void wildBeldiaGrowsRipe(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        fillBiome(context, new BlockPos(0, 0, 0), new BlockPos(8, 4, 8), "minecraft:plains");
+        fillBiome(context, new BlockPos(0, 0, 0), new BlockPos(8, 4, 8), Biomes.PLAINS);
         // Sand on the left, sandstone on the right, a channel of water across the middle (z 4).
         for (int x = 0; x <= 8; x++) {
             for (int z = 0; z <= 8; z++) {
@@ -276,48 +280,42 @@ public final class BeldiaGameTest {
                 context.setBlock(new BlockPos(x, 3, z), Blocks.AIR);
             }
         }
-        var feature = world.registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE)
-                .getOrThrow(ModConfiguredFeatures.BELDIA_KEY).value();
-        net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create(11L);
-        var plant = ((net.minecraft.world.level.levelgen.feature.configurations.RandomPatchConfiguration) feature.config()).feature().value();
-        var generator = world.getChunkSource().getGenerator();
+        ConfiguredFeature<?, ?> feature = world.registryAccess().registryOrThrow(Registry.CONFIGURED_FEATURE_REGISTRY)
+                .getOrThrow(ModConfiguredFeatures.BELDIA_KEY);
+        java.util.Random random = new java.util.Random(11L);
+        ChunkGenerator generator = world.getChunkSource().getGenerator();
 
         // Outside a Beldía biome, even the perfect spot is refused.
-        context.assertTrue(!plant.place(world, generator, random, context.absolutePos(new BlockPos(2, 2, 3))),
+        context.assertTrue(!landsAt(context, feature, random, new BlockPos(2, 2, 3)),
                 "the wild Beldía feature placed a plant outside a desert");
-        fillBiome(context, new BlockPos(0, 0, 0), new BlockPos(8, 4, 8), "minecraft:desert");
+        fillBiome(context, new BlockPos(0, 0, 0), new BlockPos(8, 4, 8), Biomes.DESERT);
 
         // The filter, asked directly: a live world's shape updates would pop a bad plant and hide it.
-        context.assertTrue(!plant.place(world, generator, random, context.absolutePos(new BlockPos(2, 2, 0))),
+        context.assertTrue(!landsAt(context, feature, random, new BlockPos(2, 2, 0)),
                 "the wild Beldía feature accepted sand with no water beside it");
-        context.assertTrue(!plant.place(world, generator, random, context.absolutePos(new BlockPos(6, 2, 3))),
+        context.assertTrue(!landsAt(context, feature, random, new BlockPos(6, 2, 3)),
                 "the wild Beldía feature accepted sandstone beside water");
-        context.assertTrue(plant.place(world, generator, random, context.absolutePos(new BlockPos(2, 2, 3))),
+        context.assertTrue(landsAt(context, feature, random, new BlockPos(2, 2, 3)),
                 "the wild Beldía feature refused sand right beside water");
-        context.setBlock(new BlockPos(2, 2, 3), Blocks.AIR);
-        context.setBlock(new BlockPos(2, 3, 3), Blocks.AIR);
 
         // One ground for the plant and the wild patch alike: #hempdustry:beldia_soil, which holds sand
-        // of both colours and never suspicious sand, and which both of them read, whatever the tag
-        // ends up holding in a pack.
+        // of both colours, and which both of them read, whatever the tag ends up holding in a pack.
+        // (1.16.5 has no suspicious sand, so the newer lines' check that the tag never holds it has
+        // nothing to ask.)
         context.assertTrue(Blocks.SAND.defaultBlockState().is(ModTags.Blocks.BELDIA_SOIL)
                         && Blocks.RED_SAND.defaultBlockState().is(ModTags.Blocks.BELDIA_SOIL),
                 "#hempdustry:beldia_soil lost sand or red sand");
-        context.assertTrue(!Blocks.SUSPICIOUS_SAND.defaultBlockState().is(ModTags.Blocks.BELDIA_SOIL),
-                "#hempdustry:beldia_soil holds suspicious sand");
         BlockState seedling = ModBlocks.BELDIA_CROP.defaultBlockState();
-        for (Block ground : new Block[]{Blocks.SAND, Blocks.RED_SAND, Blocks.SUSPICIOUS_SAND, Blocks.SANDSTONE,
+        for (Block ground : new Block[]{Blocks.SAND, Blocks.RED_SAND, Blocks.SANDSTONE,
                 Blocks.GRAVEL, Blocks.DIRT, Blocks.FARMLAND}) {
             boolean soil = ground.defaultBlockState().is(ModTags.Blocks.BELDIA_SOIL);
             context.setBlock(new BlockPos(2, 1, 3), ground);
             context.assertTrue(seedling.canSurvive(world, context.absolutePos(new BlockPos(2, 2, 3))) == soil,
                     "Beldía " + (soil ? "refuses " : "stands on ") + ground + ", which #hempdustry:beldia_soil "
                             + (soil ? "holds" : "does not hold"));
-            context.assertTrue(plant.place(world, generator, random, context.absolutePos(new BlockPos(2, 2, 3))) == soil,
+            context.assertTrue(landsAt(context, feature, random, new BlockPos(2, 2, 3)) == soil,
                     "the wild Beldía feature " + (soil ? "refused " : "accepted ") + ground + " beside water, which "
                             + "#hempdustry:beldia_soil " + (soil ? "holds" : "does not hold"));
-            context.setBlock(new BlockPos(2, 2, 3), Blocks.AIR);
-            context.setBlock(new BlockPos(2, 3, 3), Blocks.AIR);
         }
         context.setBlock(new BlockPos(2, 1, 3), Blocks.SAND);
 
@@ -352,12 +350,59 @@ public final class BeldiaGameTest {
 
     // ----- helpers -----
 
-    private static void fillBiome(GameTestHelper context, BlockPos from, BlockPos to, String biome) {
+    /** Patches centred on a spot before it counts as refused: 4000 tries, each landing on the centre 1 in 25. */
+    private static final int PATCHES = 200;
+
+    /**
+     * Every 4×4×4 biome cell the box touches, as /fillbiome sets them from 1.19.3 on. 1.16.5 keeps a
+     * chunk's cells in a private array and has no command for it, so the array is written.
+     */
+    private static void fillBiome(GameTestHelper context, BlockPos from, BlockPos to, ResourceKey<Biome> key) {
+        ServerLevel world = context.getLevel();
+        Biome biome = world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getOrThrow(key);
         BlockPos a = context.absolutePos(from);
         BlockPos b = context.absolutePos(to);
-        var server = context.getLevel().getServer();
-        server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(),
-                "fillbiome " + a.getX() + " " + a.getY() + " " + a.getZ() + " " + b.getX() + " " + b.getY() + " " + b.getZ() + " " + biome);
+        try {
+            java.lang.reflect.Field cells = ChunkBiomeContainer.class.getDeclaredField("biomes");
+            cells.setAccessible(true);
+            for (int x = a.getX() >> 2; x <= b.getX() >> 2; x++) {
+                for (int y = a.getY() >> 2; y <= b.getY() >> 2; y++) {
+                    for (int z = a.getZ() >> 2; z <= b.getZ() >> 2; z++) {
+                        LevelChunk chunk = world.getChunk(x >> 2, z >> 2);
+                        // ChunkBiomeContainer#getNoiseBiome's own indexing: y, then z, then x, two bits each across.
+                        ((Biome[]) cells.get(chunk.getBiomes()))[(y & ChunkBiomeContainer.VERTICAL_MASK) << 4
+                                | (z & ChunkBiomeContainer.HORIZONTAL_MASK) << 2 | (x & ChunkBiomeContainer.HORIZONTAL_MASK)] = biome;
+                        chunk.markUnsaved();
+                    }
+                }
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Whether the wild patch, centred on {@code spot} again and again, ever puts a plant on it. A try
+     * lands on the centre one time in 25, so {@link #PATCHES} patches miss a spot that qualifies about
+     * once in 10^70. The room's plants are cleared after, wherever they landed.
+     */
+    private static boolean landsAt(GameTestHelper context, ConfiguredFeature<?, ?> feature, java.util.Random random,
+                                   BlockPos spot) {
+        ServerLevel world = context.getLevel();
+        ChunkGenerator generator = world.getChunkSource().getGenerator();
+        BlockPos at = context.absolutePos(spot);
+        boolean landed = false;
+        for (int i = 0; i < PATCHES && !landed; i++) {
+            feature.place(world, generator, random, at);
+            landed = world.getBlockState(at).is(ModBlocks.BELDIA_CROP);
+        }
+        for (int x = 0; x <= 8; x++) {
+            for (int z = 0; z <= 8; z++) {
+                context.setBlock(new BlockPos(x, 3, z), Blocks.AIR);
+                context.setBlock(new BlockPos(x, 2, z), Blocks.AIR);
+            }
+        }
+        return landed;
     }
 
     private static void plant(ServerPlayer player, ServerLevel world, BlockPos soil, ItemStack seeds) {
@@ -371,7 +416,7 @@ public final class BeldiaGameTest {
         ModComponents.SMOKE_CONTENTS.set(pipe, SmokeContents.of(strain, 1));
         ModComponents.CHARGES.set(pipe, DeviceType.PIPE.builtInBowl().hits());
         player.setItemInHand(InteractionHand.MAIN_HAND, pipe);
-        player.getCooldowns().removeCooldown(ModItems.WOODEN_PIPE);
+        Line.clearCooldown(player, ModItems.WOODEN_PIPE);
         player.gameMode.useItem(player, world, pipe, InteractionHand.MAIN_HAND);
     }
 
@@ -382,26 +427,28 @@ public final class BeldiaGameTest {
     }
 
     private static LootTable table(ServerLevel world, Block block) {
-        return world.getServer().getLootData().getLootTable(block.getLootTable());
+        return world.getServer().getLootTables().get(block.getLootTable());
     }
 
     /** {buds, leaves, seeds, stems} from one roll. */
     private static int[] harvest(LootTable table, ServerLevel world, Vec3 origin, BlockState state, long seed,
                                  Item buds, Item seeds) {
-        LootParams params = new LootParams.Builder(world)
+        // 1.16.5's loot context carries its own random, so the seed goes into the context.
+        LootContext loot = new LootContext.Builder(world)
                 .withParameter(LootContextParams.ORIGIN, origin)
                 .withParameter(LootContextParams.BLOCK_STATE, state)
                 .withParameter(LootContextParams.TOOL, ItemStack.EMPTY)
+                .withRandom(new java.util.Random(seed))
                 .create(LootContextParamSets.BLOCK);
         int[] counts = new int[4];
-        for (ItemStack stack : table.getRandomItems(params, seed)) {
-            if (stack.is(buds)) {
+        for (ItemStack stack : table.getRandomItems(loot)) {
+            if (stack.getItem() == buds) {
                 counts[0] += stack.getCount();
-            } else if (stack.is(ModItems.HEMP_LEAF)) {
+            } else if (stack.getItem() == ModItems.HEMP_LEAF) {
                 counts[1] += stack.getCount();
-            } else if (stack.is(seeds)) {
+            } else if (stack.getItem() == seeds) {
                 counts[2] += stack.getCount();
-            } else if (stack.is(ModItems.HEMP_STEM)) {
+            } else if (stack.getItem() == ModItems.HEMP_STEM) {
                 counts[3] += stack.getCount();
             }
         }
@@ -409,8 +456,8 @@ public final class BeldiaGameTest {
     }
 
     private static com.google.gson.JsonElement encode(ServerLevel world, ResourceLocation key) {
-        LootTable table = world.getServer().getLootData().getLootTable(key);
-        return LootDataType.TABLE.parser().toJsonTree(table);
+        LootTable table = world.getServer().getLootTables().get(key);
+        return LootTables.serialize(table);
     }
 
     /** As in WarpedKushGameTest: the encoded table names {@code item}, or does not, beside a control that it must. */

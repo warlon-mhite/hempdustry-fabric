@@ -2,10 +2,8 @@ package com.warlonmhite.hempdustry.entity;
 
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.entity.custom.HempBoatEntity;
-import com.warlonmhite.hempdustry.entity.custom.HempChestBoatEntity;
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -26,14 +24,11 @@ public class ModEntities {
                     .sized(1.375F, 0.5625F)
                     .clientTrackingRange(10));
 
-    public static final EntityType<HempChestBoatEntity> HEMP_CHEST_BOAT = register("hemp_chest_boat",
-            EntityType.Builder.<HempChestBoatEntity>of(HempChestBoatEntity::new, MobCategory.MISC)
-                    .sized(1.375F, 0.5625F)
-                    .clientTrackingRange(10));
+    // No hemp chest boat: chest boats came with 1.19.
 
     private static <T extends Entity> EntityType<T> register(String name, EntityType.Builder<T> builder) {
         ResourceLocation id = new ResourceLocation(Hempdustry.MOD_ID, name);
-        return Registry.register(BuiltInRegistries.ENTITY_TYPE, id, Services.REGISTRATION.entityType(builder, id));
+        return Registry.register(Registry.ENTITY_TYPE, id, Services.REGISTRATION.entityType(builder, id));
     }
 
     public static void registerModEntities() {

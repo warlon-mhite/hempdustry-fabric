@@ -8,47 +8,42 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 
 public class ModFlowerGeneration {
     public static void generateFlowers() {
-        // Surface biomes (plains / jungles / swamps + modded equivalents).
+        // The decorated patches go into vanilla's built-in registry now, while the mod registers, so
+        // they carry their ids into every world's registries.
+        ModPlacedFeatures.registerPlacedFeatures();
+
+        // Surface biomes (plains / jungles / swamps + modded equivalents). No cave tier: the newer
+        // lines' grows in lush caves, which 1.16.5 does not have.
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.INDICA_FLOWER_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.INDICA_PLACED_KEY
-        );
-
-        // Cave biomes (lush caves + modded underground jungles): on the cave floor. VEGETAL, not
-        // UNDERGROUND_DECORATION: lush-cave moss is itself vegetation, so a step earlier the floor is
-        // still stone and clay, indica finds no dirt, and the tier placed nothing at all. Added
-        // features run after vanilla's in the same step, so the moss is down by the time this runs.
-        Services.REGISTRATION.addFeature(
-                ModTags.Biomes.INDICA_FLOWER_GEN_CAVE,
-                GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.INDICA_CAVE_PLACED_KEY
+                () -> ModPlacedFeatures.INDICA_PLACED
         );
 
         // Wild Lemon Haze — surface only, no cave tier: sativa is a sun plant. Three tiers thinning
-        // out as the ground gets harsher. The biome tags behind them are deliberately disjoint, so
-        // a biome only ever matches one of these and can't be decorated twice.
+        // out as the ground gets harsher. The biome selectors behind them are deliberately disjoint,
+        // so a biome only ever matches one of these and can't be decorated twice.
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.SATIVA_FLOWER_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.SATIVA_PLACED_KEY
+                () -> ModPlacedFeatures.SATIVA_PLACED
         );
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.SATIVA_FLOWER_GEN_SPARSE,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.SATIVA_SPARSE_PLACED_KEY
+                () -> ModPlacedFeatures.SATIVA_SPARSE_PLACED
         );
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.SATIVA_FLOWER_GEN_RARE,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.SATIVA_RARE_PLACED_KEY
+                () -> ModPlacedFeatures.SATIVA_RARE_PLACED
         );
 
-        // Wild Beldía, ripe, on desert riverbanks. Deserts only -- #c:is_desert holds no beach.
+        // Wild Beldía, ripe, on desert riverbanks. Deserts only -- the selector holds no beach.
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.BELDIA_GEN,
                 GenerationStep.Decoration.VEGETAL_DECORATION,
-                ModPlacedFeatures.BELDIA_PLACED_KEY
+                () -> ModPlacedFeatures.BELDIA_PLACED
         );
     }
 }

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:decarboxylator"
-            ]
+            "item": "hempdustry:decarboxylator"
           }
         ]
       },
@@ -34,6 +32,5 @@
     [
       "has_decarboxylator"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

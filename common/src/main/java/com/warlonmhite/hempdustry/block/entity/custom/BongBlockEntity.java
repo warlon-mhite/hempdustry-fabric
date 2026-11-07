@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
+import com.warlonmhite.hempdustry.util.NbtTypes;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -7,6 +8,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import com.warlonmhite.hempdustry.util.Stacks;
 
 /**
  * Holds the device a placed bong was. It has to give back everything the item carried — durability,
@@ -24,13 +26,13 @@ public class BongBlockEntity extends BlockEntity {
 
     private ItemStack item = ItemStack.EMPTY;
 
-    public BongBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.BONG, pos, state);
+    public BongBlockEntity() {
+        super(ModBlockEntities.BONG);
     }
 
     /** Keeps what the placed item carried. */
     public void takeFrom(ItemStack stack) {
-        item = stack.copyWithCount(1);
+        item = Stacks.copyWithCount(stack, 1);
         setChanged();
     }
 
@@ -42,16 +44,17 @@ public class BongBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
-        item = nbt.contains(ITEM, Tag.TAG_COMPOUND) ? ItemStack.of(nbt.getCompound(ITEM)) : ItemStack.EMPTY;
+    public void load(BlockState state, CompoundTag nbt) {
+        super.load(state, nbt);
+        item = nbt.contains(ITEM, NbtTypes.COMPOUND) ? ItemStack.of(nbt.getCompound(ITEM)) : ItemStack.EMPTY;
     }
 
     @Override
-    public void saveAdditional(CompoundTag nbt) {
-        super.saveAdditional(nbt);
+    public CompoundTag save(CompoundTag nbt) {
+        super.save(nbt);
         if (!item.isEmpty()) {
             nbt.put(ITEM, item.save(new CompoundTag()));
         }
+        return nbt;
     }
 }

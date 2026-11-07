@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -25,12 +24,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+import java.util.Random;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * A planter for hemp, any strain. It stands in for farmland — never trampled, and a plant in it never
@@ -106,7 +106,7 @@ public class GrowPotBlock extends Block implements GrowMedium, ItemUse {
     public void spend(Level world, BlockPos pos, BlockState state) {
         BlockState spent = state.setValue(FERTILITY, Math.max(0, state.getValue(FERTILITY) - 1)).setValue(WATERED, false);
         if (spent != state) {
-            world.setBlock(pos, spent, Block.UPDATE_CLIENTS);
+            world.setBlock(pos, spent, BlockFlags.UPDATE_CLIENTS);
         }
     }
 
@@ -123,7 +123,7 @@ public class GrowPotBlock extends Block implements GrowMedium, ItemUse {
     // ----- water -----
 
     public static boolean isWaterBottle(ItemStack stack) {
-        return stack.is(Items.POTION) && PotionUtils.getPotion(stack) == Potions.WATER;
+        return stack.getItem() == Items.POTION && PotionUtils.getPotion(stack) == Potions.WATER;
     }
 
     /**
@@ -132,15 +132,14 @@ public class GrowPotBlock extends Block implements GrowMedium, ItemUse {
      * vanilla's own bottle makes mud there, by hand and from a dispenser, with no evaporation — only a
      * bucket's water boils away.
      */
-    public static void water(Level world, BlockPos pos, BlockState state, RandomSource random) {
+    public static void water(Level world, BlockPos pos, BlockState state, Random random) {
         if (state.getValue(WATERED)) {
             PlantStress.roll(world, pos.above(), PlantStress.OVERWATERED, random);
         } else {
-            world.setBlock(pos, state.setValue(WATERED, true), Block.UPDATE_CLIENTS);
+            world.setBlock(pos, state.setValue(WATERED, true), BlockFlags.UPDATE_CLIENTS);
         }
         // Vanilla's feedback for a bottle poured onto dirt (PotionItem#useOnBlock).
         world.playSound(null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-        world.gameEvent(null, GameEvent.FLUID_PLACE, pos);
         if (world instanceof ServerLevel server) {
             for (int i = 0; i < 5; i++) {
                 server.sendParticles(ParticleTypes.SPLASH, pos.getX() + random.nextDouble(), pos.getY() + 1.0,
@@ -187,7 +186,7 @@ public class GrowPotBlock extends Block implements GrowMedium, ItemUse {
      */
     public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos,
                                          Player player, InteractionHand hand, BlockHitResult hit) {
-        if (stack.is(Items.WATER_BUCKET)) {
+        if (stack.getItem() == Items.WATER_BUCKET) {
             return ItemInteractionResult.CONSUME;
         }
         ItemInteractionResult watered = tryWater(stack, world, pos, player, hand);
@@ -201,18 +200,18 @@ public class GrowPotBlock extends Block implements GrowMedium, ItemUse {
     // ----- bone meal feeds the soil -----
 
     @Override
-    public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
+    public boolean isValidBonemealTarget(BlockGetter world, BlockPos pos, BlockState state, boolean isClient) {
         return state.getValue(FERTILITY) < MAX_FERTILITY;
     }
 
     @Override
-    public boolean isBonemealSuccess(Level world, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level world, Random random, BlockPos pos, BlockState state) {
         return true;
     }
 
     @Override
-    public void performBonemeal(ServerLevel world, RandomSource random, BlockPos pos, BlockState state) {
-        world.setBlock(pos, state.setValue(FERTILITY, state.getValue(FERTILITY) + 1), Block.UPDATE_CLIENTS);
+    public void performBonemeal(ServerLevel world, Random random, BlockPos pos, BlockState state) {
+        world.setBlock(pos, state.setValue(FERTILITY, state.getValue(FERTILITY) + 1), BlockFlags.UPDATE_CLIENTS);
     }
 
     /** Harvests the plant above first, as the player — see {@link GrowMedium#harvestAbove}. */

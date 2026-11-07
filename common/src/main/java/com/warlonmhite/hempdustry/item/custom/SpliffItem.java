@@ -17,6 +17,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.network.chat.TranslatableComponent;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 
 /**
  * A single-use joint. One item for every strain and every dose — what was rolled into it lives in
@@ -73,8 +75,8 @@ public class SpliffItem extends Item {
         super.appendHoverText(stack, context, tooltip, type);
         ModComponents.SMOKE_CONTENTS.getOrDefault(stack, SmokeContents.EMPTY).hashAdditive()
                 .ifPresent(hash -> tooltip.add(
-                        Component.translatable("hempdustry.spliff.with",
-                                        Component.translatable(hash.value().translationKey()))
+                        new TranslatableComponent("hempdustry.spliff.with",
+                                        new TranslatableComponent(hash.value().translationKey()))
                                 .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
     }
 
@@ -90,8 +92,8 @@ public class SpliffItem extends Item {
             if (!Smoking.allowed(player, stack, contents)) {
                 return InteractionResultHolder.pass(stack);
             }
-            DeviceStats stats = DeviceStats.spliff(world.registryAccess());
-            GreenOut greenOut = GreenOut.of(world.registryAccess());
+            DeviceStats stats = DeviceStats.spliff(DataRegistries.of(world));
+            GreenOut greenOut = GreenOut.of(DataRegistries.of(world));
             boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
                     stats.coughOneIn(), stats.nauseaOneIn(),
                     Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
@@ -100,7 +102,7 @@ public class SpliffItem extends Item {
             // from, and that is what the cooldown swipe should sit on.
             Smoking.startCooldown(player, stack,
                     EffectPolicy.cooldown(lockedOut ? greenOut.lockoutTicks() : stats.cooldownTicks()));
-            if (!player.getAbilities().instabuild) {
+            if (!player.abilities.instabuild) {
                 stack.shrink(1);
             }
         }

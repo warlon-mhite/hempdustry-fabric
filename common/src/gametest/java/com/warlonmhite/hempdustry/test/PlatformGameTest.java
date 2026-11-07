@@ -3,8 +3,8 @@ package com.warlonmhite.hempdustry.test;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.util.SemVer;
 import net.minecraft.SharedConstants;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 
 /**
  * What the update checker asks the loader, held to what each test mod knows on its own: the loader's

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:beldia_buds"
-            ]
+            "item": "hempdustry:beldia_buds"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:spliff_beldia_1"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

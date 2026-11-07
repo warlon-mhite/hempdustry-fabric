@@ -1,21 +1,17 @@
 package com.warlonmhite.hempdustry.forge.mixin;
 
+import java.util.List;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 /**
- * A pool's entries, which Forge's loot event gives no way to add to: Fabric's hands the mod a
- * builder it can add an entry to, Forge's a pool already built.
+ * A pool's entries, which Forge's loot event gives no way to add to: it hands over a pool already
+ * built. Forge 36 keeps them in a list of its own, so an entry is added to it.
  */
 @Mixin(LootPool.class)
 public interface LootPoolAccessor {
     @Accessor("entries")
-    LootPoolEntryContainer[] hempdustry$entries();
-
-    @Mutable
-    @Accessor("entries")
-    void hempdustry$setEntries(LootPoolEntryContainer[] entries);
+    List<LootPoolEntryContainer> hempdustry$entries();
 }

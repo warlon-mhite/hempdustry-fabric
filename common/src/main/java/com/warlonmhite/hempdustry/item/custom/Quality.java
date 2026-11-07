@@ -95,7 +95,7 @@ public enum Quality implements StringRepresentable {
      */
     public static final int CLEAN_SCORE = 160;
 
-    public static final Codec<Quality> CODEC = StringRepresentable.fromEnum(Quality::values);
+    public static final Codec<Quality> CODEC = StringRepresentable.fromEnum(Quality::values, Quality::byName);
 
     private final String name;
 
@@ -174,5 +174,15 @@ public enum Quality implements StringRepresentable {
     @Override
     public String toString() {
         return this.getSerializedName();
+    }
+
+    /** The quality written {@code name}, or {@code null}: what 1.16.5's {@code fromEnum} reads with. */
+    public static Quality byName(String name) {
+        for (Quality quality : values()) {
+            if (quality.name.equals(name)) {
+                return quality;
+            }
+        }
+        return null;
     }
 }

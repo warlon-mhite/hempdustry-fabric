@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:schwag"
-            ]
+            "item": "hempdustry:schwag"
           }
         ]
       },
@@ -34,6 +32,5 @@
     [
       "has_schwag"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

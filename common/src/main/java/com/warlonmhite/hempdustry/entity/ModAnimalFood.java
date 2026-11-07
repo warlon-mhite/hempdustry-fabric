@@ -12,9 +12,9 @@ import net.minecraft.world.item.crafting.Ingredient;
 /**
  * Hemp seed as bird feed: a parrot tames on it and a chicken follows it and breeds on it, as on every
  * seed of vanilla's. (Hemp seed is the classic caged-bird and coarse-fishing feed, chènevis.) The
- * newer lines join {@code #minecraft:parrot_food} and {@code #minecraft:chicken_food}; on 1.20.1 each
+ * newer lines join {@code #minecraft:parrot_food} and {@code #minecraft:chicken_food}; on 1.16.5 each
  * animal keeps its food in a field of its own, opened by the access widener and transformer, and the
- * seeds join both here. The goat's browse, a method rather than a field, is {@code GoatFoodMixin}.
+ * seeds join both here. (1.16.5 has no goats: they came with 1.17.)
  *
  * <p>Run once, after the items are registered and before any world loads: a chicken's tempt goal
  * takes the food it is born with. Forge's convention for it is its common setup, on the main thread.

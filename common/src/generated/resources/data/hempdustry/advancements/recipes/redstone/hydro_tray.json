@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:grow_pot"
-            ]
+            "item": "hempdustry:grow_pot"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:hydro_tray"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -14,7 +14,7 @@ import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -39,9 +39,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.network.chat.TranslatableComponent;
+import com.warlonmhite.hempdustry.util.BlockFlags;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
 
 /**
  * The Infuser: a hempcrete tub built around a cauldron that simmers decarboxylated hemp into a
@@ -96,7 +98,7 @@ import org.jetbrains.annotations.Nullable;
  * the player micromanaging which slot held what.
  */
 public class InfuserBlockEntity extends NamedMachineBlockEntity
-        implements MenuProvider, ImplementedInventory {
+        implements MenuProvider, ImplementedInventory, TickableBlockEntity {
 
     /**
      * <b>Retired in 2.0.1.</b> Milk used to go in through a slot here and its empty come back out
@@ -299,8 +301,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         }
     };
 
-    public InfuserBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.INFUSER, pos, state);
+    public InfuserBlockEntity() {
+        super(ModBlockEntities.INFUSER);
     }
 
     // ----- what the slots accept -----
@@ -361,6 +363,17 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
 
     // ----- ticking -----
 
+    /**
+     * The level's tick, on 1.16.5, where a block entity ticks itself rather than through its block's
+     * ticker: the machine runs on the server only, as the newer lines' ticker does.
+     */
+    @Override
+    public void tick() {
+        if (level != null && !level.isClientSide()) {
+            tick(level, worldPosition, getBlockState());
+        }
+    }
+
     public void tick(Level world, BlockPos pos, BlockState state) {
         heated = isHeatedFrom(world.getBlockState(pos.below()));
 
@@ -402,13 +415,13 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
                 .setValue(InfuserBlock.INFUSING, isInfusing());
         if (wanted != state) {
             state = wanted;
-            world.setBlock(pos, state, Block.UPDATE_ALL);
+            world.setBlock(pos, state, BlockFlags.UPDATE_ALL);
             dirty = true;
         }
 
         // No explicit comparator update here, and no "only when the level changed" guard either.
-        // BlockEntity#setChanged(Level, BlockPos, BlockState) already ends in
-        // world.updateComparators(pos, state.getBlock()) unconditionally (verified in the 1.21.1
+        // BlockEntity#setChanged already ends in
+        // level.updateNeighbourForOutputSignal(pos, block) for any block but air (verified in the 1.16.5
         // jar), so any tick that marks this block entity dirty has poked the comparators anyway. The
         // guard that used to sit here therefore saved nothing and cost an extra updateNeighbourForOutputSignal
         // plus a getAnalogOutputSignal -- which runs isAtBestQuality -- on every tick it did fire.
@@ -417,7 +430,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         previewShown = !getItem(OUTPUT_SLOT).isEmpty();
 
         if (dirty) {
-            setChanged(world, pos, state);
+            setChanged();
         }
     }
 
@@ -486,9 +499,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         }
         haveMilk = true;
         // Now rather than on the next tick, so a second click a moment later already sees a full tub.
-        this.level.setBlock(this.worldPosition, getBlockState().setValue(InfuserBlock.FILLED, true), Block.UPDATE_ALL);
+        this.level.setBlock(this.worldPosition, getBlockState().setValue(InfuserBlock.FILLED, true), BlockFlags.UPDATE_ALL);
         this.level.playSound(null, this.worldPosition, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-        this.level.gameEvent(actor, GameEvent.FLUID_PLACE, this.worldPosition);
         setChanged();
         return true;
     }
@@ -716,7 +728,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
 
     /** Whether {@code shown} is already the preview a batch of this strength and grade wants. */
     private static boolean showsPreview(ItemStack shown, InfusingRecipe recipe, int strength, Quality quality) {
-        return shown.is(recipe.result().getItem())
+        return shown.getItem() == recipe.result().getItem()
                 && shown.getCount() == recipe.result().getCount()
                 && Integer.valueOf(strength).equals(ModComponents.STRENGTH.get(shown))
                 && ModComponents.QUALITY.get(shown) == quality;
@@ -1049,7 +1061,7 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
 
     @Override
     public Component getContainerName() {
-        return Component.translatable("block.hempdustry.infuser");
+        return new TranslatableComponent("block.hempdustry.infuser");
     }
 
     @Nullable
@@ -1061,8 +1073,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     // ----- persistence -----
 
     @Override
-    public void saveAdditional(CompoundTag nbt) {
-        super.saveAdditional(nbt);
+    public CompoundTag save(CompoundTag nbt) {
+        super.save(nbt);
         ContainerHelper.saveAllItems(nbt, inventory);
         nbt.putInt("Progress", progress);
         nbt.putBoolean("HaveMilk", haveMilk);
@@ -1070,11 +1082,12 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         nbt.putInt("BatchWashed", batchWashed);
         nbt.putInt("BatchScorched", batchScorched);
         nbt.putBoolean("PreviewShown", previewShown);
+        return nbt;
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
+    public void load(BlockState state, CompoundTag nbt) {
+        super.load(state, nbt);
         inventory.clear();
         ContainerHelper.loadAllItems(nbt, inventory);
         progress = nbt.getInt("Progress");

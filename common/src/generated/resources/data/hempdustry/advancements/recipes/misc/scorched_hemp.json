@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:beldia_buds"
-            ]
+            "item": "hempdustry:beldia_buds"
           }
         ]
       },
@@ -17,9 +15,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hemp_leaf"
-            ]
+            "item": "hempdustry:hemp_leaf"
           }
         ]
       },
@@ -29,9 +25,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:indica_buds"
-            ]
+            "item": "hempdustry:indica_buds"
           }
         ]
       },
@@ -41,9 +35,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:sativa_buds"
-            ]
+            "item": "hempdustry:sativa_buds"
           }
         ]
       },
@@ -53,9 +45,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:schwag"
-            ]
+            "item": "hempdustry:schwag"
           }
         ]
       },
@@ -82,6 +72,5 @@
     "recipes": [
       "hempdustry:scorched_hemp"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

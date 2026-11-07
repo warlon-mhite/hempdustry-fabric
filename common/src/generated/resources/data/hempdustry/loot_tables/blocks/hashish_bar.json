@@ -2,7 +2,6 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -18,10 +17,9 @@
           "name": "hempdustry:hashish_bar"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -36,18 +34,16 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
-              "count": 7.0,
+              "count": 7,
               "function": "minecraft:set_count"
             }
           ],
           "name": "hempdustry:hashish"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -62,18 +58,16 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
-              "count": 5.0,
+              "count": 5,
               "function": "minecraft:set_count"
             }
           ],
           "name": "hempdustry:hashish"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -88,18 +82,16 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
-              "count": 3.0,
+              "count": 3,
               "function": "minecraft:set_count"
             }
           ],
           "name": "hempdustry:hashish"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     },
     {
-      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:hashish_bar",
@@ -114,15 +106,14 @@
           "type": "minecraft:item",
           "functions": [
             {
-              "add": false,
-              "count": 1.0,
+              "count": 1,
               "function": "minecraft:set_count"
             }
           ],
           "name": "hempdustry:hashish"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ]
 }

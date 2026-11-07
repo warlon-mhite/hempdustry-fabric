@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[47,)"
+loaderVersion="[36,)"
 license="AGPL-3.0-only AND CC-BY-NC-SA-4.0"
 issueTrackerURL="https://github.com/warlon-mhite/hempdustry-fabric/issues"
 
@@ -14,7 +14,7 @@ credits="Nefuß (music)"
 description='''${description}'''
 
 # The mixin configs (common's two, shared with Fabric, and the one holding what Forge needs to do what
-# Fabric's loot event already offers) are named in the jar's manifest, where Forge 47 looks for them;
+# Fabric's loot event already offers) are named in the jar's manifest, where Forge 36 looks for them;
 # the access transformer is META-INF/accesstransformer.cfg, where it looks by default.
 
 [[dependencies.hempdustry]]

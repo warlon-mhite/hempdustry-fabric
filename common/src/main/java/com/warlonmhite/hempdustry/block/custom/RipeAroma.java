@@ -3,8 +3,8 @@ package com.warlonmhite.hempdustry.block.custom;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.particle.ModParticles;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import java.util.Random;
 
 /**
  * The smell of a ripe plant, shared by every hemp crop: now and then a wisp drifts up off the top
@@ -40,7 +40,7 @@ public final class RipeAroma {
      * a ripe plant. Only the block with open air above it smells — the top of the plant — so the
      * wisp never starts inside a block, and a plant with something on its head gives off nothing.
      */
-    public static void randomDisplayTick(Level world, BlockPos pos, RandomSource random) {
+    public static void randomDisplayTick(Level world, BlockPos pos, Random random) {
         // The roll first: it is the cheapest test and fails fourteen times in fifteen, so the block
         // lookup above almost never happens.
         if (random.nextInt(CHANCE) != 0

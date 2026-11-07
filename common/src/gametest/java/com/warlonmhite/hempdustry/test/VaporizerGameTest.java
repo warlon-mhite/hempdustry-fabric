@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
@@ -10,15 +11,14 @@ import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.Holder;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.level.GameType;
 
 /**
@@ -149,6 +149,50 @@ public final class VaporizerGameTest {
         context.succeed();
     }
 
+    /**
+     * A full inventory does not swallow the spent bud: it lands at the player's feet.
+     *
+     * <p>{@code Player#addItem} only tries the inventory and answers false when nothing fits; it
+     * never drops. A bowl finished with every slot taken used to hand its scorched hemp to nobody,
+     * and nothing on screen said so -- the commonest state of a survival inventory is full.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void vaporizerBowlOnAFullInventoryDropsItsAvb(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        ServerPlayer player = Players.mock(context);
+        player.setGameMode(GameType.SURVIVAL);
+        net.minecraft.core.BlockPos feet = context.absolutePos(new net.minecraft.core.BlockPos(4, 1, 4));
+        player.moveTo(feet.getX() + 0.5, feet.getY(), feet.getZ() + 0.5, 0, 0);
+
+        // The first bowl, smoked with room to spare, is the control: it must still land in the inventory.
+        smokeABowl(player, world, strain(world));
+        Line.equal(context, count(player, ModItems.SCORCHED_HEMP), 1,
+                "a bowl with room in the inventory did not hand its scorched hemp over");
+
+        // Every slot but the hand full of something the scorched hemp cannot join, its own stack included.
+        for (int i = 0; i < player.inventory.items.size(); i++) {
+            if (i != player.inventory.selected) {
+                player.inventory.items.set(i, new ItemStack(net.minecraft.world.item.Items.COBBLESTONE, 64));
+            }
+        }
+        player.inventory.offhand.set(0, new ItemStack(net.minecraft.world.item.Items.COBBLESTONE, 64));
+        player.inventory.items.set(player.inventory.selected,
+                packed(ModItems.VAPORIZER, strain(world), DeviceType.VAPORIZER));
+        for (int i = 0; i < DeviceType.VAPORIZER.builtInBowl().hits(); i++) {
+            hit(player, world, InteractionHand.MAIN_HAND);
+        }
+        int onTheGround = 0;
+        for (net.minecraft.world.entity.item.ItemEntity entity
+                : Line.entities(context, net.minecraft.world.entity.EntityType.ITEM)) {
+            if (entity.getItem().getItem() == ModItems.SCORCHED_HEMP) {
+                onTheGround += entity.getItem().getCount();
+            }
+        }
+        Line.equal(context, onTheGround, 1,
+                "a bowl finished with a full inventory lost its scorched hemp instead of dropping it");
+        context.succeed();
+    }
+
     private static void smokeABowl(ServerPlayer player, ServerLevel world, Holder<Strain> strain) {
         player.setItemInHand(InteractionHand.MAIN_HAND, packed(ModItems.VAPORIZER, strain, DeviceType.VAPORIZER));
         for (int i = 0; i < DeviceType.VAPORIZER.builtInBowl().hits(); i++) {
@@ -158,7 +202,7 @@ public final class VaporizerGameTest {
 
     private static Holder<Strain> strain(ServerLevel world,
                                                 net.minecraft.resources.ResourceKey<Strain> key) {
-        return world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
+        return DataRegistries.of(world).lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
     }
 
     /**
@@ -174,13 +218,13 @@ public final class VaporizerGameTest {
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void vaporizerRefusesTwoBuds(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        PackingRecipe recipe = new PackingRecipe(new ResourceLocation("hempdustry", "packing"), CraftingBookCategory.MISC);
+        PackingRecipe recipe = new PackingRecipe(new ResourceLocation("hempdustry", "packing"));
         Item buds = strain(world).value().buds();
 
         CraftingInput one = grid(new ItemStack(ModItems.VAPORIZER), buds, 1);
         context.assertTrue(recipe.matches(one, world),
                 "a vaporizer and one bud is not a packing recipe at all");
-        ItemStack packed = recipe.assemble(one, world.registryAccess());
+        ItemStack packed = recipe.assemble(one);
         Line.equal(context, DeviceType.VAPORIZER.builtInBowl().hits(),
                 ModComponents.CHARGES.getOrDefault(packed, 0), "packing did not load a full bowl");
         Line.equal(context, 1, ModComponents.SMOKE_CONTENTS.getOrDefault(packed, SmokeContents.EMPTY)
@@ -196,7 +240,7 @@ public final class VaporizerGameTest {
 
     /** The first plant strain the server loaded — any of them packs the same. */
     private static Holder<Strain> strain(ServerLevel world) {
-        return world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY)
+        return DataRegistries.of(world).lookupOrThrow(Strain.REGISTRY_KEY)
                 .getOrThrow(ModStrains.INDICA);
     }
 
@@ -217,9 +261,9 @@ public final class VaporizerGameTest {
      */
     private static void hit(ServerPlayer player, ServerLevel world, InteractionHand hand) {
         for (Item device : ModItems.devices().values()) {
-            player.getCooldowns().removeCooldown(device);
+            Line.clearCooldown(player, device);
         }
-        player.getCooldowns().removeCooldown(ModItems.SPLIFF);
+        Line.clearCooldown(player, ModItems.SPLIFF);
         player.gameMode.useItem(player, world, player.getItemInHand(hand), hand);
     }
 
@@ -238,9 +282,9 @@ public final class VaporizerGameTest {
 
     private static int count(ServerPlayer player, Item item) {
         int total = 0;
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            if (stack.is(item)) {
+        for (int i = 0; i < player.inventory.getContainerSize(); i++) {
+            ItemStack stack = player.inventory.getItem(i);
+            if (stack.getItem() == item) {
                 total += stack.getCount();
             }
         }

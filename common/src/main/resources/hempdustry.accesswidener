@@ -1,33 +1,28 @@
 accessWidener v2 named
 
-# What the mod's own code reaches in vanilla that vanilla keeps closed. Fabric API happens to open
-# all of these for itself too; naming them here means the mod does not lean on that, and the same
-# list is the access transformer NeoForge reads.
+# What the mod's own code reaches in vanilla that vanilla keeps closed. Architectury's Loom turns this
+# file into the access transformer Forge reads, so it is the one list on this line.
 
 # The hemp wood set's blocks are vanilla's, built through constructors vanilla made protected.
 accessible method net/minecraft/world/level/block/StairBlock <init> (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
-accessible method net/minecraft/world/level/block/ButtonBlock <init> (Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;Lnet/minecraft/world/level/block/state/properties/BlockSetType;IZ)V
-accessible method net/minecraft/world/level/block/PressurePlateBlock <init> (Lnet/minecraft/world/level/block/PressurePlateBlock$Sensitivity;Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;Lnet/minecraft/world/level/block/state/properties/BlockSetType;)V
-accessible method net/minecraft/world/level/block/DoorBlock <init> (Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;Lnet/minecraft/world/level/block/state/properties/BlockSetType;)V
-accessible method net/minecraft/world/level/block/TrapDoorBlock <init> (Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;Lnet/minecraft/world/level/block/state/properties/BlockSetType;)V
+accessible method net/minecraft/world/level/block/WoodButtonBlock <init> (Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
+accessible method net/minecraft/world/level/block/PressurePlateBlock <init> (Lnet/minecraft/world/level/block/PressurePlateBlock$Sensitivity;Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
+accessible method net/minecraft/world/level/block/DoorBlock <init> (Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
+accessible method net/minecraft/world/level/block/TrapDoorBlock <init> (Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V
 
-# Which tabs a stack shows in: the creative tab puts showcase stacks in the tab and leaves the
-# search tab the plain ones.
-accessible class net/minecraft/world/item/CreativeModeTab$TabVisibility
+# The hemp wood type, for the signs: vanilla's constructor and register are closed on 1.16.5.
+accessible method net/minecraft/world/level/block/state/properties/WoodType <init> (Ljava/lang/String;)V
+accessible method net/minecraft/world/level/block/state/properties/WoodType register (Lnet/minecraft/world/level/block/state/properties/WoodType;)Lnet/minecraft/world/level/block/state/properties/WoodType;
 
-# A block entity type is built through vanilla's own builder, from a constructor typed as an
-# interface vanilla keeps private.
-accessible class net/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier
+# The mod's tags are bound the way vanilla binds its own, which 1.16.5 keeps private.
+accessible method net/minecraft/tags/ItemTags bind (Ljava/lang/String;)Lnet/minecraft/tags/Tag$Named;
+accessible method net/minecraft/tags/BlockTags bind (Ljava/lang/String;)Lnet/minecraft/tags/Tag$Named;
 
 # The dispenser behaviours the mod wraps (milk into an Infuser, water into a tray) and the carpet one
-# it reuses are read from vanilla's own table, which 1.20.1 keeps private.
+# it reuses are read from vanilla's own table, which vanilla keeps private.
 accessible field net/minecraft/world/level/block/DispenserBlock DISPENSER_REGISTRY Ljava/util/Map;
 
-# The mod's two advancement triggers join vanilla's list through vanilla's own register, private on 1.20.1.
-accessible method net/minecraft/advancements/CriteriaTriggers register (Lnet/minecraft/advancements/CriterionTrigger;)Lnet/minecraft/advancements/CriterionTrigger;
-
-# Forge's side of a block's flammability is vanilla's own fire table, filled through vanilla's own
-# setter, private on 1.20.1. (Fabric's goes through Fabric API's registry.)
+# A block's flammability is vanilla's own fire table, filled through vanilla's own setter, private.
 accessible method net/minecraft/world/level/block/FireBlock setFlammable (Lnet/minecraft/world/level/block/Block;II)V
 
 # Hemp seed joins the birds' food (ModAnimalFood): the parrot's taming set, and the chicken's food,
@@ -35,3 +30,29 @@ accessible method net/minecraft/world/level/block/FireBlock setFlammable (Lnet/m
 accessible field net/minecraft/world/entity/animal/Parrot TAME_FOOD Ljava/util/Set;
 accessible field net/minecraft/world/entity/animal/Chicken FOOD_ITEMS Lnet/minecraft/world/item/crafting/Ingredient;
 mutable field net/minecraft/world/entity/animal/Chicken FOOD_ITEMS Lnet/minecraft/world/item/crafting/Ingredient;
+
+# Our signs live in vanilla's sign block entity type, whose block list is a private, final set.
+accessible field net/minecraft/world/level/block/entity/BlockEntityType validBlocks Ljava/util/Set;
+mutable field net/minecraft/world/level/block/entity/BlockEntityType validBlocks Ljava/util/Set;
+
+# Plant stress reads a crop's age as vanilla's own growth does, through a getter 1.16.5 keeps protected.
+accessible method net/minecraft/world/level/block/CropBlock getAge (Lnet/minecraft/world/level/block/state/BlockState;)I
+
+# A slice of space cake is eaten the way vanilla eats cake, which 1.16.5 keeps private.
+accessible method net/minecraft/world/level/block/CakeBlock eat (Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/world/InteractionResult;
+
+# Wild Lemon Haze takes the dead bush's ground: 1.16.5 hard-codes it in the bush's own protected check.
+# Opened where it is declared, BushBlock: the mappings name the method there, so an entry on the dead
+# bush's override would reach Forge with no runtime name and open nothing.
+accessible method net/minecraft/world/level/block/BushBlock mayPlaceOn (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Z
+
+# The mod's two advancement triggers (smoke, harvest_hemp) join vanilla's table through vanilla's own
+# register, which 1.16.5 keeps private (Forge opens it, but common code compiles against vanilla).
+accessible method net/minecraft/advancements/CriteriaTriggers register (Lnet/minecraft/advancements/CriterionTrigger;)Lnet/minecraft/advancements/CriterionTrigger;
+
+# A full green-out empties the saturation bar; FoodData#setSaturation is client-only on 1.16.5, so a
+# dedicated server has no setter and the field is written instead.
+accessible field net/minecraft/world/food/FoodData saturationLevel F
+# LootTableOrigin: which pack a loot table won from (the manager has no public way on a server)
+accessible field net/minecraft/server/packs/resources/SimpleReloadableResourceManager namespacedPacks Ljava/util/Map;
+accessible field net/minecraft/server/packs/resources/FallbackResourceManager fallbacks Ljava/util/List;

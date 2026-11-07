@@ -16,6 +16,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.Nullable;
+import net.minecraft.network.chat.TranslatableComponent;
+import com.warlonmhite.hempdustry.util.BlockFlags;
 
 /**
  * Leaf-cutting (defoliation) shared by every hemp crop.
@@ -227,7 +229,7 @@ public final class Defoliation {
                                           int age, ItemStack stack, Player player, InteractionHand hand) {
         // A tag rather than Items.SHEARS, so a modded pair of shears works too: #hempdustry:shears
         // holds vanilla's and every convention's (#c:tools/shear, #c:shears, #forge:shears).
-        if (!stack.is(ModTags.Items.SHEARS)) {
+        if (!stack.getItem().is(ModTags.Items.SHEARS)) {
             return null;
         }
 
@@ -258,7 +260,7 @@ public final class Defoliation {
         if (!world.isClientSide) {
             // The flag first, then the leaf. The flag is what the loot table reads to take this leaf
             // back off the harvest, so the leaf is only ever handed over together with it.
-            world.setBlock(lowerPos, lowerState.setValue(window, true), Block.UPDATE_CLIENTS);
+            world.setBlock(lowerPos, lowerState.setValue(window, true), BlockFlags.UPDATE_CLIENTS);
             // A Grow Lamp plant has leaf to spare: a TRIM of one hands over a second leaf, which the
             // harvest does not take back. Read off the plant's record, never off the lamp.
             GrowLight light = lowerState.getValue(GrowLight.PROPERTY);
@@ -314,7 +316,7 @@ public final class Defoliation {
      */
     private static void refuse(Level world, Player player, String key) {
         if (!world.isClientSide()) {
-            player.displayClientMessage(Component.translatable(key), true);
+            player.displayClientMessage(new TranslatableComponent(key), true);
         }
     }
 }

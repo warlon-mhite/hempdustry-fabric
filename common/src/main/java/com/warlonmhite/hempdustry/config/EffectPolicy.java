@@ -3,12 +3,13 @@ package com.warlonmhite.hempdustry.config;
 import com.warlonmhite.hempdustry.config.HempdustryConfig.Effects;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import com.google.common.collect.ImmutableList;
 
 /**
  * The single gate every status effect this mod applies passes through.
@@ -62,7 +63,7 @@ public final class EffectPolicy {
                                                      int buffBonus) {
         Effects config = HempdustryConfig.get().effects();
         if (!config.enabled()) {
-            return List.of();
+            return ImmutableList.of();
         }
         List<MobEffectInstance> out = new ArrayList<>(effects.size());
         for (MobEffectInstance instance : effects) {

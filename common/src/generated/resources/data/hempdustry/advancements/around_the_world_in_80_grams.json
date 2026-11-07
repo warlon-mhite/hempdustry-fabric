@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:bubble_hash"
-            ]
+            "item": "hempdustry:bubble_hash"
           }
         ]
       },
@@ -17,9 +15,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:charas"
-            ]
+            "item": "hempdustry:charas"
           }
         ]
       },
@@ -29,9 +25,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:filtered_hashish"
-            ]
+            "item": "hempdustry:filtered_hashish"
           }
         ]
       },
@@ -41,9 +35,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hashish"
-            ]
+            "item": "hempdustry:hashish"
           }
         ]
       },
@@ -53,9 +45,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:rosin"
-            ]
+            "item": "hempdustry:rosin"
           }
         ]
       },
@@ -94,6 +84,5 @@
     [
       "has_rosin"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

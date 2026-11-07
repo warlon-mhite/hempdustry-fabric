@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map.Entry;
 import java.util.Optional;
+import com.github.bsideup.jabel.Desugar;
 
 /**
  * The server's balance knobs — {@code config/hempdustry.json}.
@@ -57,6 +58,7 @@ import java.util.Optional;
  *
  * <p>{@code /hempdustry reload} re-reads it in place.
  */
+@Desugar
 public record HempdustryConfig(Client client, Effects effects, World world, Infuser infuser, Loot loot) {
 
     public static final HempdustryConfig DEFAULT = new HempdustryConfig(
@@ -119,7 +121,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
                 Optional<HempdustryConfig> parsed = CODEC.parse(JsonOps.INSTANCE, merge(defaultJson(), json))
                         .resultOrPartial(error -> Hempdustry.LOGGER.error("Bad value in {}: {} — nothing in it"
                                 + " was applied, and it is left as it is", path, error));
-                if (parsed.isEmpty()) {
+                if (!parsed.isPresent()) {
                     return false;
                 }
                 loaded = parsed.get();
@@ -150,7 +152,12 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
         if (!(overrides instanceof JsonObject object)) {
             return base;
         }
-        JsonObject out = base.deepCopy();
+        // Gson 2.8.0, the one 1.16.5 ships, keeps deepCopy to itself. A copy one level deep is enough:
+        // nothing below is changed in place, only replaced.
+        JsonObject out = new JsonObject();
+        for (Entry<String, JsonElement> entry : base.entrySet()) {
+            out.add(entry.getKey(), entry.getValue());
+        }
         for (var entry : object.entrySet()) {
             JsonElement existing = out.get(entry.getKey());
             if (existing instanceof JsonObject nested && entry.getValue() instanceof JsonObject override) {
@@ -208,9 +215,8 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
             Files.createDirectories(path.getParent());
             // disableHtmlEscaping, or every "=" and "'" in the comments is written as \u003d and
             // \u0027 — valid JSON, unreadable prose.
-            Files.writeString(path,
-                    new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(root) + "\n",
-                    StandardCharsets.UTF_8);
+            Files.write(path,
+                    (new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(root) + "\n").getBytes(StandardCharsets.UTF_8));
         } catch (IOException | RuntimeException e) {
             Hempdustry.LOGGER.error("Could not write {}", path, e);
         }
@@ -268,6 +274,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      *                           Particles setting already thins them out or hides them with every
      *                           other ambient particle; this hides only these. See {@code RipeAroma}
      */
+    @Desugar
     public record Client(boolean updateCheck, double biomeTintStrength, boolean ripeAroma) {
 
         /**
@@ -309,6 +316,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @param munchies                 whether Hunger is applied
      * @param debuffs                  whether harmful effects are applied at all
      */
+    @Desugar
     public record Effects(boolean enabled, int maxLevel, int maxBuffLevel, double durationMultiplier,
                           double cooldownMultiplier, double greenOutChanceMultiplier,
                           double onsetMultiplier, boolean greenOut, boolean nausea,
@@ -359,6 +367,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @param machineSpeedMultiplier   the Decarboxylator's and the Hemp Press's speed (the Infuser has its own section)
      * @param creepersSeekHemp         whether creepers now and then wander into open hemp fields
      */
+    @Desugar
     public record World(double cropGrowthMultiplier, double machineSpeedMultiplier, boolean creepersSeekHemp) {
 
         public static final World DEFAULT = new World(1.0, 1.0, true);
@@ -385,6 +394,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * validate on the numbers themselves. <b>The screen reads these off the block's property
      * delegate</b>, so the bar and its marks stay honest whatever they are set to.
      */
+    @Desugar
     public record Infuser(int minTimeTicks, int fullTimeTicks) {
 
         /**
@@ -429,6 +439,7 @@ public record HempdustryConfig(Client client, Effects effects, World world, Infu
      * @param enabled          whether the mod adds anything to vanilla loot tables at all
      * @param chanceMultiplier scales every injected chance; the results are still clamped to 0–1
      */
+    @Desugar
     public record Loot(boolean enabled, double chanceMultiplier) {
 
         public static final Loot DEFAULT = new Loot(true, 1.0);

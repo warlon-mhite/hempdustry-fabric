@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
+import com.warlonmhite.hempdustry.util.Stacks;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
 import com.warlonmhite.hempdustry.block.entity.ImplementedInventory;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
@@ -10,7 +11,7 @@ import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -32,6 +33,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import net.minecraft.network.chat.TranslatableComponent;
+import com.warlonmhite.hempdustry.util.BlockFlags;
+import net.minecraft.world.level.block.entity.TickableBlockEntity;
 
 /**
  * The Decarboxylator's brain: an oven that gently heats hemp until it is decarboxylated — the real
@@ -54,7 +58,7 @@ import java.util.Map;
  * chain, so the pipeline downstream of here stays a single line of items.
  */
 public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
-        implements MenuProvider, ImplementedInventory {
+        implements MenuProvider, ImplementedInventory, TickableBlockEntity {
 
     public static final int FUEL_SLOT = 0;
     /** The three tray slots are contiguous from here. */
@@ -150,8 +154,8 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         }
     };
 
-    public DecarboxylatorBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.DECARBOXYLATOR, pos, state);
+    public DecarboxylatorBlockEntity() {
+        super(ModBlockEntities.DECARBOXYLATOR);
     }
 
     // ----- what the trays accept -----
@@ -175,7 +179,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         SimpleContainer input = new SimpleContainer(stack);
         return world.getRecipeManager()
                 .getRecipeFor(ModRecipes.DECARBOXYLATING_TYPE, input, world)
-                .map(recipe -> recipe.assemble(input, world.registryAccess()))
+                .map(recipe -> recipe.assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -200,6 +204,17 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     }
 
     // ----- ticking -----
+
+    /**
+     * The level's tick, on 1.16.5, where a block entity ticks itself rather than through its block's
+     * ticker: the machine runs on the server only, as the newer lines' ticker does.
+     */
+    @Override
+    public void tick() {
+        if (level != null && !level.isClientSide()) {
+            tick(level, worldPosition, getBlockState());
+        }
+    }
 
     public void tick(Level world, BlockPos pos, BlockState state) {
         boolean wasBurning = isBurning();
@@ -254,12 +269,12 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
 
         if (wasBurning != isBurning()) {
             state = state.setValue(DecarboxylatorBlock.LIT, isBurning());
-            world.setBlock(pos, state, Block.UPDATE_ALL);
+            world.setBlock(pos, state, BlockFlags.UPDATE_ALL);
             dirty = true;
         }
 
         if (dirty) {
-            setChanged(world, pos, state);
+            setChanged();
         }
     }
 
@@ -279,7 +294,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         if (output.isEmpty()) {
             return result.getCount() <= result.getMaxStackSize();
         }
-        return ItemStack.isSameItemSameTags(output, result)
+        return Stacks.isSameItemSameTags(output, result)
                 && output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
@@ -354,7 +369,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
 
     @Override
     public Component getContainerName() {
-        return Component.translatable("block.hempdustry.decarboxylator");
+        return new TranslatableComponent("block.hempdustry.decarboxylator");
     }
 
     @Nullable
@@ -366,17 +381,18 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     // ----- persistence -----
 
     @Override
-    public void saveAdditional(CompoundTag nbt) {
-        super.saveAdditional(nbt);
+    public CompoundTag save(CompoundTag nbt) {
+        super.save(nbt);
         ContainerHelper.saveAllItems(nbt, inventory);
         nbt.putInt("BurnTime", burnTime);
         nbt.putInt("FuelTime", fuelTime);
         nbt.putIntArray("Progress", progress.clone());
+        return nbt;
     }
 
     @Override
-    public void load(CompoundTag nbt) {
-        super.load(nbt);
+    public void load(BlockState state, CompoundTag nbt) {
+        super.load(state, nbt);
         inventory.clear();
         ContainerHelper.loadAllItems(nbt, inventory);
         burnTime = nbt.getInt("BurnTime");

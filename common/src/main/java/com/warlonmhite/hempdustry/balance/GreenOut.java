@@ -5,14 +5,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import java.util.List;
-import net.minecraft.core.HolderLookup;
+import com.warlonmhite.hempdustry.registry.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.data.worldgen.BootstapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import com.google.common.collect.ImmutableList;
+import com.github.bsideup.jabel.Desugar;
 
 /**
  * What smoking too much costs, as data: {@code data/<namespace>/hempdustry/green_out/default.json}.
@@ -24,6 +24,7 @@ import net.minecraft.world.effect.MobEffects;
  * <em>does</em> stays code: it replaces the hit's effects, and the full one ends every buff the mod
  * grants and empties the saturation.
  */
+@Desugar
 public record GreenOut(List<Integer> oneInByDose, int fullFromDose, List<MobEffectInstance> spins,
                        List<MobEffectInstance> full, int lockoutTicks) {
 
@@ -34,11 +35,11 @@ public record GreenOut(List<Integer> oneInByDose, int fullFromDose, List<MobEffe
             ResourceKey.create(REGISTRY_KEY, new ResourceLocation(Hempdustry.MOD_ID, "default"));
 
     public static final Codec<GreenOut> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codecs.listOf(ExtraCodecs.NON_NEGATIVE_INT, 1, Integer.MAX_VALUE).fieldOf("one_in_by_dose").forGetter(GreenOut::oneInByDose),
-            ExtraCodecs.POSITIVE_INT.fieldOf("full_from_dose").forGetter(GreenOut::fullFromDose),
+            Codecs.listOf(Codecs.NON_NEGATIVE_INT, 1, Integer.MAX_VALUE).fieldOf("one_in_by_dose").forGetter(GreenOut::oneInByDose),
+            Codecs.POSITIVE_INT.fieldOf("full_from_dose").forGetter(GreenOut::fullFromDose),
             Codecs.MOB_EFFECT_INSTANCE.listOf().fieldOf("spins").forGetter(GreenOut::spins),
             Codecs.MOB_EFFECT_INSTANCE.listOf().fieldOf("full").forGetter(GreenOut::full),
-            ExtraCodecs.NON_NEGATIVE_INT.fieldOf("lockout_ticks").forGetter(GreenOut::lockoutTicks)
+            Codecs.NON_NEGATIVE_INT.fieldOf("lockout_ticks").forGetter(GreenOut::lockoutTicks)
     ).apply(instance, GreenOut::new));
 
     /**
@@ -49,25 +50,21 @@ public record GreenOut(List<Integer> oneInByDose, int fullFromDose, List<MobEffe
      * 30 s and locks smoking out for a minute.
      */
     public static final GreenOut BUILT_IN = new GreenOut(
-            List.of(0, 12, 4),
+            ImmutableList.of(0, 12, 4),
             3,
-            List.of(new MobEffectInstance(MobEffects.CONFUSION, 400, 0),
+            ImmutableList.of(new MobEffectInstance(MobEffects.CONFUSION, 400, 0),
                     new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 300, 1),
                     new MobEffectInstance(MobEffects.WEAKNESS, 300, 1),
                     new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 300, 1)),
-            List.of(new MobEffectInstance(MobEffects.CONFUSION, 700, 0),
+            ImmutableList.of(new MobEffectInstance(MobEffects.CONFUSION, 700, 0),
                     new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 600, 1),
                     new MobEffectInstance(MobEffects.WEAKNESS, 600, 1),
                     new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 600, 1)),
             1200);
 
-    public static void bootstrap(BootstapContext<GreenOut> registerable) {
-        registerable.register(DEFAULT, BUILT_IN);
-    }
-
     /** The green-out in this world. */
     public static GreenOut of(HolderLookup.Provider registries) {
-        return ModBalance.entry(registries, DEFAULT, BUILT_IN);
+        return ModBalance.entry(registries, REGISTRY_KEY, DEFAULT, BUILT_IN);
     }
 
     /** Odds of greening out at {@code dose}, as 1-in-N; 0 is never. */

@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.network.chat.TranslatableComponent;
 
 /**
  * Cannabutter. Inert for now — what it actually <em>does</em> belongs to the effects pass — but it
@@ -36,11 +37,11 @@ public class CannabutterItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level context, List<Component> tooltip, TooltipFlag type) {
         Quality quality = ModComponents.QUALITY.get(stack);
         if (quality != null) {
-            tooltip.add(Component.translatable(quality.getTranslationKey()).withStyle(colourOf(quality)));
+            tooltip.add(new TranslatableComponent(quality.getTranslationKey()).withStyle(colourOf(quality)));
         }
         Integer strength = ModComponents.STRENGTH.get(stack);
         if (strength != null) {
-            tooltip.add(Component.translatable("item.hempdustry.cannabutter.strength", strength)
+            tooltip.add(new TranslatableComponent("item.hempdustry.cannabutter.strength", strength)
                     .withStyle(ChatFormatting.GRAY));
         }
         super.appendHoverText(stack, context, tooltip, type);

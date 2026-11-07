@@ -1,9 +1,8 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "redstone",
   "key": {
     "C": {
-      "item": "minecraft:copper_ingot"
+      "item": "minecraft:iron_ingot"
     },
     "P": {
       "item": "hempdustry:grow_pot"
@@ -18,6 +17,5 @@
   ],
   "result": {
     "item": "hempdustry:hydro_tray"
-  },
-  "show_notification": true
+  }
 }

@@ -1,4 +1,4 @@
-// What every project of the mod shares: Java 17, the repositories, the version and the jar's licences.
+// What every project of the mod shares: Java 8 classes, the repositories, the version and the jar's licences.
 plugins {
 	id 'java-library'
 	id 'maven-publish'
@@ -16,51 +16,52 @@ base {
 	archivesName = "${archives_base_name}-${project.name}"
 }
 
+// Mojang ships Java 8 to players of 1.16.5, so the classes are Java 8's. javac is 17's, with Jabel
+// letting it read the newer lines' syntax (var, switch expressions, instanceof patterns) and write it
+// as Java 8 bytecode; --release 8 keeps the Java 9+ library out of reach, and records stay refused.
 java {
-	toolchain.languageVersion = JavaLanguageVersion.of(21)
+	toolchain.languageVersion = JavaLanguageVersion.of(17)
 	withSourcesJar()
 }
 
+dependencies {
+	annotationProcessor "com.github.bsideup.jabel:jabel-javac-plugin:${jabel_version}"
+	compileOnly "com.github.bsideup.jabel:jabel-javac-plugin:${jabel_version}"
+}
+
 repositories {
-	// Parchment: parameter names and javadoc over Mojang's names, the mappings Forge's dev runs use too.
+	// Parchment: parameter names and javadoc over Mojang's names.
 	maven {
 		name = 'ParchmentMC'
 		url = 'https://maven.parchmentmc.org'
-	}
-	maven {
-		name = 'NeoForged'
-		url = 'https://maven.neoforged.net/releases'
 	}
 	maven {
 		name = 'Sponge'                  // Mixin, which common compiles its mixins against
 		url = 'https://repo.spongepowered.org/repository/maven-public/'
 		content { includeGroupAndSubgroups('org.spongepowered') }
 	}
-	// The recipe viewers. Compile-only -- see the loaders' dependencies.
 	maven {
-		name = 'TerraformersMC'          // EMI
-		url = 'https://maven.terraformersmc.com/releases/'
+		name = 'Forge'
+		url = 'https://maven.minecraftforge.net/'
 	}
+	// The recipe viewer. Compile-only -- see forge's dependencies.
 	maven {
 		name = 'BlameJared'              // JEI
 		url = 'https://maven.blamejared.com/'
-	}
-	maven {
-		name = 'shedaniel'               // REI, and the cloth-config it pulls in
-		url = 'https://maven.shedaniel.me/'
-	}
-	maven {
-		name = 'architectury'            // REI's other transitive dep, and where me.shedaniel.math lives
-		url = 'https://maven.architectury.dev/'
 	}
 	mavenCentral()
 }
 
 tasks.withType(JavaCompile).configureEach {
-	options.release = 17
+	options.release = 8
+	sourceCompatibility = '17'
 	// Pinned rather than inherited: several source files carry non-ASCII characters, and the
 	// platform default differs on a Windows contributor's machine.
 	options.encoding = 'UTF-8'
+	// -PallErrors: every compile error at once, not javac's first hundred
+	if (project.hasProperty('allErrors')) {
+		options.compilerArgs += ['-Xmaxerrs', '100000']
+	}
 }
 
 // Read here, at configuration time: a task that reaches for `project` while it runs is refused by

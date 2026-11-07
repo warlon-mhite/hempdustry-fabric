@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "group": "bong",
   "key": {
     "G": {
@@ -23,6 +22,5 @@
   ],
   "result": {
     "item": "hempdustry:blue_bong"
-  },
-  "show_notification": true
+  }
 }

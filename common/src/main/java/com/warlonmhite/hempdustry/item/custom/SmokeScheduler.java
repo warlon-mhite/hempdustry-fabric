@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Fires delayed exhale puffs so the smoke lines up with the exhale part of the smoking sound rather
@@ -112,7 +113,7 @@ public final class SmokeScheduler {
 
     /** Applies {@code effects} to {@code player} in {@code delayTicks} ticks, if they are still alive. */
     public static void scheduleEffects(Player player, List<MobEffectInstance> effects, int delayTicks) {
-        PENDING_EFFECTS.add(new PendingEffects(player.getUUID(), List.copyOf(effects), Math.max(1, delayTicks)));
+        PENDING_EFFECTS.add(new PendingEffects(player.getUUID(), ImmutableList.copyOf(effects), Math.max(1, delayTicks)));
     }
 
     /** Schedules {@code sound} to play at {@code player}'s position in {@code delayTicks} ticks. */
@@ -128,7 +129,7 @@ public final class SmokeScheduler {
                 }
                 ServerPlayer player = server.getPlayerList().getPlayer(pending.player);
                 if (player != null && player.isAlive()) {
-                    Smoking.spawnExhale(player.serverLevel(), player, pending.particle);
+                    Smoking.spawnExhale(player.getLevel(), player, pending.particle);
                 }
                 return true;
             });
@@ -152,7 +153,7 @@ public final class SmokeScheduler {
                 }
                 ServerPlayer player = server.getPlayerList().getPlayer(pending.player);
                 if (player != null && player.isAlive()) {
-                    player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
+                    player.getLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
                             pending.sound, SoundSource.PLAYERS, 1f, 1f);
                 }
                 return true;

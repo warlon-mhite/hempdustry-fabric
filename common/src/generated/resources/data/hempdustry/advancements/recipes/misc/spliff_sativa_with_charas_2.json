@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:charas"
-            ]
+            "item": "hempdustry:charas"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:spliff_sativa_with_charas_2"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

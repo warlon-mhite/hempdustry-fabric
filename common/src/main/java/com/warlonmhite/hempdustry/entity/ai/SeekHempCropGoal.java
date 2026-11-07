@@ -3,7 +3,6 @@ package com.warlonmhite.hempdustry.entity.ai;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
@@ -13,6 +12,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import java.util.Random;
 
 /**
  * Lets a creeper's ordinary wandering end up in a hemp field now and then.
@@ -151,7 +151,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
      */
     @Override
     public boolean canContinueToUse() {
-        if (!HempdustryConfig.get().world().creepersSeekHemp() || mob.hasControllingPassenger()) {
+        if (!HempdustryConfig.get().world().creepersSeekHemp() || mob.getControllingPassenger() != null) {
             return false;
         }
         if (!mob.getNavigation().isDone()) {
@@ -159,7 +159,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
         }
         long now = mob.getCommandSenderWorld().getGameTime();
         if (lurkingUntil == 0L) {
-            lurkingUntil = now + mob.getRandom().nextIntBetweenInclusive(MIN_LURK, MAX_LURK);
+            lurkingUntil = now + between(mob.getRandom(), MIN_LURK, MAX_LURK);
         }
         return now < lurkingUntil;
     }
@@ -190,9 +190,9 @@ public class SeekHempCropGoal extends RandomStrollGoal {
     @Override
     public void start() {
         super.start();
-        RandomSource random = mob.getRandom();
+        Random random = mob.getRandom();
         if (prowlsLeft == 0) {
-            prowlsLeft = random.nextIntBetweenInclusive(MIN_PROWLS, MAX_PROWLS);
+            prowlsLeft = between(random, MIN_PROWLS, MAX_PROWLS);
         } else if (--prowlsLeft == 0) {
             rest();
         }
@@ -200,7 +200,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
 
     private void rest() {
         prowlsLeft = 0;
-        restingUntil = mob.getCommandSenderWorld().getGameTime() + mob.getRandom().nextIntBetweenInclusive(MIN_REST, MAX_REST);
+        restingUntil = mob.getCommandSenderWorld().getGameTime() + between(mob.getRandom(), MIN_REST, MAX_REST);
     }
 
     /**
@@ -209,14 +209,14 @@ public class SeekHempCropGoal extends RandomStrollGoal {
      */
     public static @Nullable BlockPos findCover(PathfinderMob creeper, int range, int samples) {
         Level world = creeper.getCommandSenderWorld();
-        RandomSource random = creeper.getRandom();
+        Random random = creeper.getRandom();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int i = 0; i < samples; i++) {
-            int x = creeper.getBlockX() + random.nextIntBetweenInclusive(-range, range);
-            int z = creeper.getBlockZ() + random.nextIntBetweenInclusive(-range, range);
+            int x = creeper.blockPosition().getX() + between(random, -range, range);
+            int z = creeper.blockPosition().getZ() + between(random, -range, range);
             // Never load a chunk to answer a wandering mob.
-            pos.set(x, creeper.getBlockY(), z);
-            if (!world.hasChunkAt(x, z)) {
+            pos.set(x, creeper.blockPosition().getY(), z);
+            if (!world.hasChunkAt(pos)) {
                 continue;
             }
             pos.setY(world.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1);
@@ -229,7 +229,7 @@ public class SeekHempCropGoal extends RandomStrollGoal {
                 continue;
             }
             BlockPos root = pos.above();
-            if (Math.abs(root.getY() - creeper.getBlockY()) > MAX_Y_DIFFERENCE
+            if (Math.abs(root.getY() - creeper.blockPosition().getY()) > MAX_Y_DIFFERENCE
                     || isTaken(world, root, creeper)) {
                 continue;
             }
@@ -241,5 +241,10 @@ public class SeekHempCropGoal extends RandomStrollGoal {
     private static boolean isTaken(Level world, BlockPos root, Entity self) {
         return !world.getEntitiesOfClass(Creeper.class, new AABB(root).inflate(TAKEN_RADIUS),
                 other -> other != self).isEmpty();
+    }
+
+    /** A draw in {@code [min, max]}, as the newer lines' {@code RandomSource#nextIntBetweenInclusive}. */
+    private static int between(Random random, int min, int max) {
+        return random.nextInt(max - min + 1) + min;
     }
 }

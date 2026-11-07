@@ -101,8 +101,8 @@ public class SpaceCakeBlock extends CakeBlock implements ItemUse {
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
-    /** Vanilla's cake taking a bite: {@code CakeBlock#use} past its candle branch, as 1.20.1 writes it. */
-    private static InteractionResult eatLikeACake(BlockState state, Level world, BlockPos pos, Player player) {
+    /** Vanilla's cake taking a bite: {@code CakeBlock#use} as 1.16.5 writes it. */
+    private InteractionResult eatLikeACake(BlockState state, Level world, BlockPos pos, Player player) {
         if (world.isClientSide) {
             if (eat(world, pos, state, player).consumesAction()) {
                 return InteractionResult.SUCCESS;

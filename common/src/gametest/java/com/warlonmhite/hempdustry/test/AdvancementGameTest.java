@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.registry.DataRegistries;
+import com.github.bsideup.jabel.Desugar;
+import com.google.common.collect.ImmutableList;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
@@ -17,9 +20,9 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.registry.Holder;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -188,14 +191,67 @@ public final class AdvancementGameTest {
     }
 
     /**
+     * Bong Voyage and Burnout name every bong in one criterion each. 1.16.5's item predicate names one
+     * item, so the data names them through the mod's {@code hempdustry:any_of} predicate type: one
+     * criterion under its own name, which a newer line's world finds again. Every glass grants both,
+     * and nothing else does -- the pipe wears out (Burnout) but is no bong, and a vanilla tool is neither.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void everyBongCountsForTheBongNodes(GameTestHelper context) {
+        Advancement voyage = loaded(context, "bong_voyage", "pipe_dream");
+        Advancement burnout = loaded(context, "burnout", "pipe_dream");
+        context.assertTrue(voyage.getCriteria().size() == 1 && voyage.getCriteria().containsKey("smoked_a_bong"),
+                "Bong Voyage's criteria are " + voyage.getCriteria().keySet() + ", not the newer lines' one smoked_a_bong");
+        context.assertTrue(burnout.getCriteria().size() == 1 && burnout.getCriteria().containsKey("smoked_a_device_to_death"),
+                "Burnout's criteria are " + burnout.getCriteria().keySet() + ", not the newer lines' one smoked_a_device_to_death");
+        ServerLevel world = context.getLevel();
+        Holder<Strain> indica = strain(world, ModStrains.INDICA);
+        Sweep.atLeast(context, "bongs", ModItems.bongs().size(), 17);
+        for (Item bong : ModItems.bongs()) {
+            ServerPlayer smoker = freshPlayer(context);
+            draw(smoker, world, packed(bong, indica, DeviceType.BONG));
+            assertDone(context, smoker, voyage, "a draw from " + bong);
+            ServerPlayer wearer = freshPlayer(context);
+            wearOut(wearer, new ItemStack(bong));
+            assertDone(context, wearer, burnout, "smoking " + bong + " to death");
+        }
+        ServerPlayer piper = freshPlayer(context);
+        hit(piper, world, packed(ModItems.WOODEN_PIPE, indica, DeviceType.PIPE));
+        assertNotDone(context, piper, voyage, "a pipe");
+        wearOut(piper, new ItemStack(ModItems.WOODEN_PIPE));
+        assertDone(context, piper, burnout, "smoking a pipe to death");
+        ServerPlayer miner = freshPlayer(context);
+        wearOut(miner, new ItemStack(Items.IRON_PICKAXE));
+        assertNotDone(context, miner, burnout, "an iron pickaxe worn out");
+        context.succeed();
+    }
+
+    /** A bong's draw, held to the end: the click starts it, and the hit lands when the hold finishes. */
+    private static void draw(ServerPlayer player, ServerLevel world, ItemStack bong) {
+        for (Item item : ModItems.devices().values()) {
+            Line.clearCooldown(player, item);
+        }
+        player.setItemInHand(InteractionHand.MAIN_HAND, bong);
+        player.gameMode.useItem(player, world, bong, InteractionHand.MAIN_HAND);
+        // What LivingEntity#completeUsingItem does at the end of a hold: finish, then let go.
+        ItemStack after = player.getUseItem().finishUsingItem(world, player);
+        player.stopUsingItem();
+        player.setItemInHand(InteractionHand.MAIN_HAND, after);
+    }
+
+    /** Fires vanilla's durability trigger as the stack's last point of durability goes. */
+    private static void wearOut(ServerPlayer player, ItemStack stack) {
+        CriteriaTriggers.ITEM_DURABILITY_CHANGED.trigger(player, stack, stack.getMaxDamage());
+    }
+
+    /**
      * The nodes keyed on obtaining an item, fired through vanilla's own trigger with the item really
      * in the inventory. Around the World is the one worth the test: five criteria ANDed, so the
      * resins may come one at a time — the inventory is emptied between them — and four is not five.
      */
     @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
     public void obtainingGrantsTheExtractionNodes(GameTestHelper context) {
-        record Node(String id, String parent, Item item) {}
-        List<Node> nodes = List.of(
+        List<Node> nodes = ImmutableList.of(
                 new Node("kif_country", "hempdustry", ModItems.BELDIA_BUDS),
                 new Node("sticky_fingers", "trim_season", ModItems.CHARAS),
                 new Node("well_done", "trim_season", ModItems.SCORCHED_HEMP),
@@ -230,12 +286,12 @@ public final class AdvancementGameTest {
 
         Advancement aroundTheWorld = loaded(context, "around_the_world_in_80_grams", "its_not_pollen");
         ServerPlayer collector = freshPlayer(context);
-        List<Item> resins = List.of(ModItems.CHARAS, ModItems.HASHISH, ModItems.FILTERED_HASHISH,
+        List<Item> resins = ImmutableList.of(ModItems.CHARAS, ModItems.HASHISH, ModItems.FILTERED_HASHISH,
                 ModItems.BUBBLE_HASH, ModItems.ROSIN);
         for (Item resin : resins) {
             context.assertFalse(collector.getAdvancements().getOrStartProgress(aroundTheWorld).isDone(),
                     "Around the World was granted before " + resin + " was ever held — it wants all five");
-            collector.getInventory().clearContent();
+            collector.inventory.clearContent();
             obtain(collector, new ItemStack(resin));
         }
         assertDone(context, collector, aroundTheWorld, "all five resins, one at a time");
@@ -275,6 +331,11 @@ public final class AdvancementGameTest {
         context.succeed();
     }
 
+    /** A node keyed on obtaining an item: its id, where it hangs, and the item. */
+    @Desugar
+    private record Node(String id, String parent, Item item) {
+    }
+
     /** A ripe Purple Kush on {@code bed}, harvested by a fresh survival player; returns the player. */
     private static ServerPlayer harvestIndica(GameTestHelper context, Block bed, GrowLight light,
                                                     boolean early, boolean late, boolean fromTop) {
@@ -292,7 +353,7 @@ public final class AdvancementGameTest {
     }
 
     private static Holder<Strain> strain(ServerLevel world, ResourceKey<Strain> key) {
-        return world.registryAccess().lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
+        return DataRegistries.of(world).lookupOrThrow(Strain.REGISTRY_KEY).getOrThrow(key);
     }
 
     private static ItemStack packed(Item device, Holder<Strain> strain, DeviceType type) {
@@ -305,7 +366,7 @@ public final class AdvancementGameTest {
     /** One hit through the real click, with every smokeable's shared cooldown wound back first. */
     private static void hit(ServerPlayer player, ServerLevel world, ItemStack device) {
         for (Item item : ModItems.devices().values()) {
-            player.getCooldowns().removeCooldown(item);
+            Line.clearCooldown(player, item);
         }
         player.setItemInHand(InteractionHand.MAIN_HAND, device);
         player.gameMode.useItem(player, world, device, InteractionHand.MAIN_HAND);
@@ -317,8 +378,8 @@ public final class AdvancementGameTest {
      * else would.
      */
     private static void obtain(ServerPlayer player, ItemStack stack) {
-        player.getInventory().add(stack.copy());
-        CriteriaTriggers.INVENTORY_CHANGED.trigger(player, player.getInventory(), stack);
+        player.inventory.add(stack.copy());
+        CriteriaTriggers.INVENTORY_CHANGED.trigger(player, player.inventory, stack);
     }
 
     private static void assertDone(GameTestHelper context, ServerPlayer player, Advancement entry,

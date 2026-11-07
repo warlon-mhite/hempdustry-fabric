@@ -15,7 +15,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.registry.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,6 +30,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import com.google.common.collect.ImmutableList;
+import java.util.stream.Collectors;
+import com.warlonmhite.hempdustry.registry.DataRegistries;
 
 /**
  * Shared "take a hit" feedback so the spliff, pipe and bong don't each re-implement it. Call from
@@ -81,7 +84,7 @@ public final class Smoking {
         for (Item item : SMOKEABLES) {
             player.getCooldowns().addCooldown(item, ticks);
         }
-        ModComponents.COOLDOWN_UNTIL.set(used, player.level().getGameTime() + ticks);
+        ModComponents.COOLDOWN_UNTIL.set(used, player.level.getGameTime() + ticks);
     }
 
     /**
@@ -224,7 +227,7 @@ public final class Smoking {
         // The stack is still packed here; a spliff's contents are gone a few lines later, which is
         // why contents is handed over as its own argument.
         Services.ADDON_EVENTS.afterSmoke(player, contents, stack);
-        return greenedOut && contents.dose() >= GreenOut.of(world.registryAccess()).fullFromDose();
+        return greenedOut && contents.dose() >= GreenOut.of(DataRegistries.of(world)).fullFromDose();
     }
 
     /**
@@ -286,10 +289,10 @@ public final class Smoking {
      */
     public static int easedByOutfit(Player player, int oneIn) {
         if (oneIn <= 0
-                || !player.getItemBySlot(EquipmentSlot.HEAD).is(ModItems.HEMP_BEANIE)
-                || !player.getItemBySlot(EquipmentSlot.CHEST).is(ModItems.HEMP_SHIRT)
-                || !player.getItemBySlot(EquipmentSlot.LEGS).is(ModItems.HEMP_HAREM_PANTS)
-                || !player.getItemBySlot(EquipmentSlot.FEET).is(ModItems.FLIP_FLOPS)) {
+                || player.getItemBySlot(EquipmentSlot.HEAD).getItem() != ModItems.HEMP_BEANIE
+                || player.getItemBySlot(EquipmentSlot.CHEST).getItem() != ModItems.HEMP_SHIRT
+                || player.getItemBySlot(EquipmentSlot.LEGS).getItem() != ModItems.HEMP_HAREM_PANTS
+                || player.getItemBySlot(EquipmentSlot.FEET).getItem() != ModItems.FLIP_FLOPS) {
             return oneIn;
         }
         return (int) Math.min(Integer.MAX_VALUE, 2L * oneIn);
@@ -307,13 +310,14 @@ public final class Smoking {
      * never grants, a potion of Fire Resistance say, are left alone: a green-out is not milk.
      */
     public static void greenOut(Player player, int dose) {
-        GreenOut greenOut = GreenOut.of(player.level().registryAccess());
+        GreenOut greenOut = GreenOut.of(DataRegistries.of(player.level));
         boolean full = dose >= greenOut.fullFromDose();
         if (full) {
             for (MobEffect buff : buffsTheModGrants(player)) {
                 player.removeEffect(buff);
             }
-            player.getFoodData().setSaturation(0f);
+            // Written to the field: FoodData#setSaturation is client-only on 1.16.5 (the access widener opens it).
+            player.getFoodData().saturationLevel = 0f;
         }
         // Through the filter, which also hands back fresh instances: the listed ones belong to the
         // registry, and a status effect ticks down in place once a player wears it.
@@ -328,12 +332,12 @@ public final class Smoking {
      */
     private static Set<MobEffect> buffsTheModGrants(Player player) {
         Set<MobEffect> out = new HashSet<>();
-        for (EdibleBundle.Effect effect : EdibleBundle.of(player.level().registryAccess()).effects()) {
+        for (EdibleBundle.Effect effect : EdibleBundle.of(DataRegistries.of(player.level)).effects()) {
             if (effect.effect().getCategory() == MobEffectCategory.BENEFICIAL) {
                 out.add(effect.effect());
             }
         }
-        for (Holder<Strain> strain : Strain.registry(player.level().registryAccess()).listElements().toList()) {
+        for (Holder<Strain> strain : Strain.registry(DataRegistries.of(player.level)).listElements().collect(Collectors.toList())) {
             for (Strain.SmokeEffect effect : strain.value().smokeEffects()) {
                 if (effect.effect().getCategory() == MobEffectCategory.BENEFICIAL) {
                     out.add(effect.effect());
@@ -345,7 +349,7 @@ public final class Smoking {
 
     /** One effect, through the same gate. */
     private static void apply(Player player, MobEffectInstance effect) {
-        EffectPolicy.filter(List.of(effect)).forEach(player::addEffect);
+        EffectPolicy.filter(ImmutableList.of(effect)).forEach(player::addEffect);
     }
 
     /**

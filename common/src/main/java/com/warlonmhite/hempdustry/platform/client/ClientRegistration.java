@@ -4,13 +4,13 @@ import net.minecraft.client.color.block.BlockColor;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
-import net.minecraft.client.model.geom.ModelLayerLocation;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.particles.ParticleOptions;
@@ -33,22 +33,26 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * What the client registers to draw the mod: each loader has its own place for every one of these,
  * and some are only open while the loader says so. Called once, while the client starts.
+ *
+ * <p>1.16.5 has no entity model layers and no renderer contexts: a model builds its parts in its own
+ * constructor, an entity renderer is made from the {@link EntityRenderDispatcher} and a block entity
+ * renderer from the {@link BlockEntityRenderDispatcher}, so those are what the factories here take.
  */
 public interface ClientRegistration {
 
     /** Draws {@code block} in {@code layer} rather than solid — cut-out holes, see-through glass. */
     void blockLayer(Block block, RenderType layer);
 
-    void modelLayer(ModelLayerLocation layer, Supplier<LayerDefinition> definition);
+    <T extends Entity> void entityRenderer(EntityType<T> type,
+                                           Function<EntityRenderDispatcher, ? extends EntityRenderer<? super T>> renderer);
 
-    <T extends Entity> void entityRenderer(EntityType<? extends T> type, EntityRendererProvider<T> renderer);
-
-    <T extends BlockEntity> void blockEntityRenderer(BlockEntityType<? extends T> type, BlockEntityRendererProvider<T> renderer);
+    <T extends BlockEntity> void blockEntityRenderer(
+            BlockEntityType<T> type,
+            Function<BlockEntityRenderDispatcher, ? extends BlockEntityRenderer<? super T>> renderer);
 
     <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void menuScreen(
             MenuType<? extends M> type, ScreenFactory<M, U> screen);
@@ -61,8 +65,8 @@ public interface ClientRegistration {
     void itemColor(ItemColor color, ItemLike... items);
 
     /**
-     * An item model property of {@code item}, which its model's overrides key on. Not clamped to
-     * 0..1 unless {@code property} clamps itself, as vanilla's {@code ClampedItemPropertyFunction} does.
+     * An item model property of {@code item}, which its model's overrides key on. Never clamped:
+     * 1.16.5 hands the overrides whatever the function returns.
      */
     void itemProperty(Item item, ResourceLocation id, ItemPropertyFunction property);
 
@@ -80,10 +84,26 @@ public interface ClientRegistration {
     void composedModel(ResourceLocation id, List<ResourceLocation> parts,
                        BiFunction<BakedModel, List<BakedModel>, BakedModel> compose);
 
+    /**
+     * Stitches the texture {@code sprite} into the atlas {@code atlas} ({@code Sheets.BED_SHEET} and
+     * the like). The newer lines' atlases list their sprites in data, so any namespace's
+     * {@code entity/bed/} is in the beds atlas; 1.16.5's take only what vanilla's code names, so a
+     * modded bed's texture has to be asked for.
+     */
+    void atlasSprite(ResourceLocation atlas, ResourceLocation sprite);
+
     /** Each time the player joins a world or a server. */
     void onJoinWorld(Runnable listener);
 
-    /** A menu screen's constructor. Vanilla's own interface for it is not public. */
+    /**
+     * Rebuilds the creative inventory's search from the items as they fill the search tab now.
+     * Vanilla builds that search once, at resource load, before any world -- so stacks that depend
+     * on what a server sent (every strain's) are missing from it until it is rebuilt. Call it on the
+     * client thread once the server's data is in.
+     */
+    void refreshCreativeSearch();
+
+    /** A menu screen's constructor. */
     @FunctionalInterface
     interface ScreenFactory<M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> {
         U create(M menu, Inventory inventory, Component title);

@@ -14,10 +14,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * The flip-flops' and the tam's armour piece, as the armour layer would draw it: nothing, nor a trim
- * or a glint on it. The outfit layer draws them ({@code OutfitLayer}); Fabric's armour hook replaces
- * the piece the same way. On 1.20.1 Forge asks the item itself for anything else, and these two are
- * plain armour items.
+ * The flip-flops' and the tam's armour piece, as the armour layer would draw it: nothing, nor a glint on it. The outfit layer draws them ({@code OutfitLayer}); Fabric's armour hook replaces
+ * the piece the same way. Forge 36 asks the item itself for anything else, and these two are plain
+ * armour items.
  */
 @Mixin(HumanoidArmorLayer.class)
 public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, A extends HumanoidModel<T>> {
@@ -25,7 +24,7 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, A extends 
     private void hempdustry$skipOutfit(PoseStack poseStack, MultiBufferSource buffer, T entity, EquipmentSlot slot,
                                        int light, A model, CallbackInfo ci) {
         ItemStack worn = entity.getItemBySlot(slot);
-        if (worn.is(ModItems.FLIP_FLOPS) || worn.is(ModItems.HEMP_BEANIE)) {
+        if (worn.getItem() == ModItems.FLIP_FLOPS || worn.getItem() == ModItems.HEMP_BEANIE) {
             ci.cancel();
         }
     }

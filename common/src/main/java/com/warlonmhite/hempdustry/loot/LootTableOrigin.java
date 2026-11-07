@@ -1,30 +1,30 @@
 package com.warlonmhite.hempdustry.loot;
 
-import net.minecraft.core.RegistryAccess;
+import java.util.List;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.FilePackResources;
+import net.minecraft.server.packs.FolderPackResources;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.FallbackResourceManager;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleReloadableResourceManager;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Where a loot table came from: with the game or a mod, or from a datapack put in its place. The mod
- * adds its loot to the first kind only, on both loaders, by the same rule.
+ * adds its loot to the first kind only, by the same rule on every line.
  *
- * <p>The game knows its own packs by name, and only those: vanilla's main pack ({@code minecraft:core}),
- * each of Mojang's experiment packs ({@code minecraft:trade_rebalance}, which replaces five chests),
- * and every mod's pack on both loaders. A datapack in a world's or a server's folder has no such name
- * ({@code FolderRepositorySource} builds it with none). So the copy of a table that won is asked which
- * pack it came from, and whether the game knows that pack.
+ * <p>On 1.16.5 a datapack is known by the kind of pack it is, not by its name: the game opens each
+ * datapack of a world's (or a server's) folder as a {@link FolderPackResources} or, zipped, a
+ * {@link FilePackResources}, and nothing else as either -- vanilla's own pack, Forge's and every mod's
+ * jar are packs of other kinds. The names do not tell them apart: the pack is listed as
+ * {@code file/<folder>}, but the files it serves name the folder alone as their source. So the pack
+ * whose copy of a table wins is found, and asked what kind it is.
  */
 public final class LootTableOrigin {
-    /** The resources the loot tables are being read from, kept by {@code LootDataManagerMixin}. */
+    /** The resources the loot tables are being read from, kept by {@code LootTablesMixin}. */
     public static volatile @Nullable ResourceManager loading;
-
-    /**
-     * The registries the loot tables are being loaded against, kept by
-     * {@code ReloadableServerResourcesMixin}: the world's strains, which the mod's loot is built from.
-     */
-    public static volatile @Nullable RegistryAccess registries;
 
     private LootTableOrigin() {
     }
@@ -40,13 +40,25 @@ public final class LootTableOrigin {
      * A table with no file at all was built in code by whoever registered it, and counts as theirs.
      */
     public static boolean fromTheGameOrAMod(ResourceManager resources, ResourceLocation table) {
-        return resources.getResource(new ResourceLocation(table.getNamespace(), "loot_tables/" + table.getPath() + ".json"))
-                .map(LootTableOrigin::fromTheGameOrAMod)
-                .orElse(true);
-    }
-
-    /** Whether {@code file} came from a pack other than a folder datapack. */
-    public static boolean fromTheGameOrAMod(Resource file) {
-        return !file.sourcePackId().startsWith("file/");
+        ResourceLocation file = new ResourceLocation(table.getNamespace(), "loot_tables/" + table.getPath() + ".json");
+        if (!(resources instanceof SimpleReloadableResourceManager)) {
+            // Not the server's kind of manager, so its packs cannot be asked (listPacks is client-only
+            // on 1.16.5): count the table as the game's, as the newer lines do a table with no file.
+            return true;
+        }
+        FallbackResourceManager namespace = ((SimpleReloadableResourceManager) resources).namespacedPacks.get(table.getNamespace());
+        if (namespace == null) {
+            return true;
+        }
+        // Packs are kept in the order they were added, and a later pack's file wins over an earlier
+        // one's (FallbackResourceManager reads them last to first).
+        List<PackResources> packs = namespace.fallbacks;
+        for (int i = packs.size() - 1; i >= 0; i--) {
+            PackResources pack = packs.get(i);
+            if (pack.hasResource(PackType.SERVER_DATA, file)) {
+                return !(pack instanceof FolderPackResources || pack instanceof FilePackResources);
+            }
+        }
+        return true;
     }
 }

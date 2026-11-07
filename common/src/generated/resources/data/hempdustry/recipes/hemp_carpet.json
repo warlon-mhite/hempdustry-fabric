@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "#": {
       "item": "hempdustry:hemp_wool"
@@ -12,6 +11,5 @@
   "result": {
     "count": 3,
     "item": "hempdustry:hemp_carpet"
-  },
-  "show_notification": true
+  }
 }

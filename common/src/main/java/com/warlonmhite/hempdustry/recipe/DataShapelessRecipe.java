@@ -10,7 +10,7 @@ import net.minecraft.world.item.crafting.ShapelessRecipe;
 public class DataShapelessRecipe extends ShapelessRecipe {
 
     public DataShapelessRecipe(ShapelessRecipe base) {
-        super(base.getId(), base.getGroup(), base.category(), base.getResultItem(null), base.getIngredients());
+        super(base.getId(), base.getGroup(), base.getResultItem(), base.getIngredients());
     }
 
     @Override
@@ -18,7 +18,7 @@ public class DataShapelessRecipe extends ShapelessRecipe {
         return ModRecipes.DATA_SHAPELESS;
     }
 
-    public static class Serializer implements RecipeSerializer<DataShapelessRecipe> {
+    public static class Serializer extends ModRecipeSerializer<DataShapelessRecipe> {
         @Override
         public DataShapelessRecipe fromJson(ResourceLocation id, JsonObject json) {
             return new DataShapelessRecipe(RecipeJson.shapeless(id, json));

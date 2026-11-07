@@ -4,9 +4,7 @@
     "harvested_from_a_tray": {
       "conditions": {
         "bed": {
-          "blocks": [
-            "hempdustry:hydro_tray"
-          ]
+          "block": "hempdustry:hydro_tray"
         }
       },
       "trigger": "hempdustry:harvest_hemp"
@@ -32,6 +30,5 @@
     [
       "harvested_from_a_tray"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

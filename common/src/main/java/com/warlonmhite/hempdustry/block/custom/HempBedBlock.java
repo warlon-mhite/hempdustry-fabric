@@ -6,6 +6,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.BlockGetter;
 
 /**
  * A bed made up in hemp cloth — the seventeenth bed, beside vanilla's sixteen dyed ones.
@@ -24,7 +25,7 @@ public class HempBedBlock extends BedBlock {
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new HempBedBlockEntity(pos, state);
+    public BlockEntity newBlockEntity(BlockGetter world) {
+        return new HempBedBlockEntity();
     }
 }

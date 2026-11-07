@@ -28,6 +28,5 @@
     "recipes": [
       "hempdustry:toasted_hemp_seeds"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

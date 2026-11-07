@@ -5,14 +5,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraftforge.common.extensions.IForgeMenuType;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.common.extensions.IForgeContainerType;
+import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraft.network.Connection;
 
 public final class ForgeMenus implements Menus {
     @Override
     public <T extends AbstractContainerMenu, D> MenuType<T> menuType(Factory<T, D> factory, Data<D> codec) {
-        return IForgeMenuType.create((containerId, inventory, buf) -> factory.create(containerId, inventory, codec.read(buf)));
+        return IForgeContainerType.create((containerId, inventory, buf) -> factory.create(containerId, inventory, codec.read(buf)));
     }
 
     /**
@@ -33,7 +33,7 @@ public final class ForgeMenus implements Menus {
             // data. It gets the same menu, the vanilla way.
             player.openMenu(provider);
         } else {
-            NetworkHooks.openScreen(player, provider, buf -> codec.write(buf, data));
+            NetworkHooks.openGui(player, provider, buf -> codec.write(buf, data));
         }
     }
 }

@@ -4,9 +4,7 @@
     "ate_dawamesk": {
       "conditions": {
         "item": {
-          "items": [
-            "hempdustry:dawamesk"
-          ]
+          "item": "hempdustry:dawamesk"
         }
       },
       "trigger": "minecraft:consume_item"
@@ -32,6 +30,5 @@
     [
       "ate_dawamesk"
     ]
-  ],
-  "sends_telemetry_event": true
+  ]
 }

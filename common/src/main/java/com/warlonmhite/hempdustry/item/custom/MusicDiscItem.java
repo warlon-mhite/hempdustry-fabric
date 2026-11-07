@@ -10,6 +10,7 @@ import net.minecraft.world.item.RecordItem;
  */
 public class MusicDiscItem extends RecordItem {
     public MusicDiscItem(int comparatorOutput, SoundEvent sound, Properties properties, int lengthInSeconds) {
-        super(comparatorOutput, sound, properties, lengthInSeconds);
+        // 1.16.5's jukebox knows no length: the disc plays until its sound ends.
+        super(comparatorOutput, sound, properties);
     }
 }

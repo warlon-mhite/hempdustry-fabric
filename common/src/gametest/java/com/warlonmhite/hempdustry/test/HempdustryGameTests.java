@@ -1,10 +1,9 @@
 package com.warlonmhite.hempdustry.test;
 
-import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.GameTestRegistry;
-import net.minecraft.gametest.framework.StructureUtils;
-import net.minecraft.gametest.framework.TestFunction;
+import com.google.common.collect.ImmutableList;
+import com.warlonmhite.hempdustry.test.framework.GameTest;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.TestFunction;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -14,7 +13,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -25,13 +26,10 @@ import java.util.stream.Stream;
 /**
  * Registers the game tests: every {@code @GameTest} method of {@link #CLASSES}, on every loader.
  *
- * <p>On this version a test is an annotated method, and each loader reads the annotation its own way
- * -- Fabric takes the template as a structure id, Forge prefixes it with a namespace and the
- * class's name unless told otherwise in annotations of its own. So neither reads ours: each loader's
- * test mod hands {@link #register} the classes, and the tests become vanilla's {@code TestFunction}s
- * here, named and placed the way Fabric names them -- {@code hempdustry-gametest:<class>.<method>},
- * in the structure the template names. The tests stand in {@link #EMPTY}, an 8×8×8 structure of air
- * shipped beside them, rather than a structure of one loader's.
+ * <p>A test is an annotated method, as on 1.20.1. Minecraft 1.16.5 has no game-test server and no
+ * annotation, so the tests become {@link TestFunction}s of the harness in {@code test.framework}
+ * here, named as the newer lines name them -- {@code hempdustry-gametest:<class>.<method>} -- and run
+ * by it. Every test stands in a room of {@link #EMPTY}'s size, 8×8×8 of air.
  *
  * <p>A class with a test in it that is on no list is a hard startup failure, rather than a test that
  * silently never runs.
@@ -46,7 +44,7 @@ public final class HempdustryGameTests {
     public static final String EMPTY = NAMESPACE + ":empty";
 
     /** Every test class that runs on every loader. */
-    public static final List<Class<?>> CLASSES = List.of(
+    public static final List<Class<?>> CLASSES = ImmutableList.of(
             AddonEventGameTest.class,
             AnimalFoodGameTest.class,
             AdvancementGameTest.class,
@@ -92,28 +90,28 @@ public final class HempdustryGameTests {
     }
 
     /**
-     * Adds every test of {@link #CLASSES} and of the loader's own {@code extra} classes to vanilla's
-     * registry, which the game test server runs. Call once, before the server starts.
+     * Every test of {@link #CLASSES} and of the loader's own {@code extra} classes, in the order they
+     * run: class by class as listed, each class's tests by name.
      */
-    public static void register(Class<?>... extra) {
+    public static List<TestFunction> all(Class<?>... extra) {
         List<Class<?>> classes = new ArrayList<>(CLASSES);
-        classes.addAll(List.of(extra));
+        classes.addAll(Arrays.asList(extra));
         checkEveryTestClassIsListed(classes);
+        List<TestFunction> functions = new ArrayList<>();
         for (Class<?> testClass : classes) {
             Stream.of(testClass.getDeclaredMethods())
                     .filter(method -> method.isAnnotationPresent(GameTest.class))
                     .sorted(Comparator.comparing(Method::getName))
-                    .forEach(method -> GameTestRegistry.getAllTestFunctions().add(testFunction(method)));
+                    .forEach(method -> functions.add(testFunction(method)));
         }
+        return functions;
     }
 
     private static TestFunction testFunction(Method method) {
         GameTest test = method.getAnnotation(GameTest.class);
         String name = NAMESPACE + ":" + method.getDeclaringClass().getSimpleName().toLowerCase(Locale.ROOT)
                 + "." + method.getName().toLowerCase(Locale.ROOT);
-        return new TestFunction(test.batch(), name, test.template().isEmpty() ? name : test.template(),
-                StructureUtils.getRotationForRotationSteps(test.rotationSteps()), test.timeoutTicks(),
-                test.setupTicks(), test.required(), test.requiredSuccesses(), test.attempts(),
+        return new TestFunction(test.batch(), name, test.timeoutTicks(), test.setupTicks(), test.required(),
                 helper -> invoke(method, helper));
     }
 
@@ -142,16 +140,17 @@ public final class HempdustryGameTests {
         // first is only the test mod's resources.
         Set<Path> roots = new HashSet<>(TestPlatform.INSTANCE.testModRoots());
         try {
-            roots.add(Path.of(HempdustryGameTests.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
+            roots.add(Paths.get(HempdustryGameTests.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
         } catch (URISyntaxException | RuntimeException e) {
             // A class loaded from somewhere that is no path: the test mod's roots are all there is.
         }
         for (Path root : roots) {
-            Path dir = root.resolve(HempdustryGameTests.class.getPackageName().replace('.', '/'));
+            Path dir = root.resolve(HempdustryGameTests.class.getPackage().getName().replace('.', '/'));
             if (!Files.isDirectory(dir)) {
                 continue;
             }
-            try (Stream<Path> walk = Files.walk(dir)) {
+            // this package only: the harness beside it (test.framework) holds no tests
+            try (Stream<Path> walk = Files.walk(dir, 1)) {
                 walk.map(path -> root.relativize(path).toString().replace('\\', '/'))
                         .filter(path -> path.endsWith("GameTest.class"))
                         .map(path -> path.substring(0, path.length() - ".class".length()).replace('/', '.'))

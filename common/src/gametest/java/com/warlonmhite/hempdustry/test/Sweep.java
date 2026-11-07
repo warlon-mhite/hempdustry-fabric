@@ -1,9 +1,10 @@
 package com.warlonmhite.hempdustry.test;
 
+import java.nio.file.Paths;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.warlonmhite.hempdustry.Hempdustry;
-import net.minecraft.gametest.framework.GameTestHelper;
+import com.warlonmhite.hempdustry.test.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -71,10 +72,15 @@ final class Sweep {
     static Map<String, Path> modFiles() {
         if (files == null) {
             Set<Path> roots = new HashSet<>(TestPlatform.INSTANCE.modRoots());
-            try {
-                roots.add(Path.of(Hempdustry.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
-            } catch (URISyntaxException e) {
-                throw new IllegalStateException(e);
+            // Where the classes were loaded from, when the class loader says (Forge 36's does not: the
+            // loader's roots hold the classes there).
+            java.security.CodeSource source = Hempdustry.class.getProtectionDomain().getCodeSource();
+            if (source != null) {
+                try {
+                    roots.add(Paths.get(source.getLocation().toURI()));
+                } catch (URISyntaxException e) {
+                    throw new IllegalStateException(e);
+                }
             }
             Map<String, Path> found = new TreeMap<>();
             for (Path root : roots) {
@@ -99,6 +105,7 @@ final class Sweep {
     }
 
     static JsonElement json(Path file) {
-        return JsonParser.parseString(new String(bytes(file), StandardCharsets.UTF_8));
+        // 1.16.5's Gson has no static JsonParser.parseString
+        return new JsonParser().parse(new String(bytes(file), StandardCharsets.UTF_8));
     }
 }

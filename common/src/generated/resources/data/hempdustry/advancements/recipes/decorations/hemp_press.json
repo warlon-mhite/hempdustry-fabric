@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hemp_bricks_block"
-            ]
+            "item": "hempdustry:hemp_bricks_block"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:hemp_press"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

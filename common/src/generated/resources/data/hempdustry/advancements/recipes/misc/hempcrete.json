@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "hempdustry:hemp_stem"
-            ]
+            "item": "hempdustry:hemp_stem"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "hempdustry:hempcrete"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -9,15 +9,15 @@ import java.util.Map;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.core.Registry;
 
 /**
  * A bong standing on something — empty, or packed and set down by sneaking to be picked up and
@@ -71,7 +72,17 @@ public class BongBlock extends BaseEntityBlock {
      */
     @Override
     public String getDescriptionId() {
-        return Util.makeDescriptionId("item", BuiltInRegistries.BLOCK.getKey(this));
+        return Util.makeDescriptionId("item", Registry.BLOCK.getKey(this));
+    }
+
+    /**
+     * Drawn from its block model. {@code BaseEntityBlock} answers {@code INVISIBLE} (up to 1.21.1),
+     * for block entities that draw themselves; this one only holds the stack, so without this the
+     * standing bong is an outline with nothing in it.
+     */
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
@@ -96,8 +107,8 @@ public class BongBlock extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new BongBlockEntity(pos, state);
+    public @Nullable BlockEntity newBlockEntity(BlockGetter world) {
+        return new BongBlockEntity();
     }
 
     /**
@@ -105,11 +116,11 @@ public class BongBlock extends BaseEntityBlock {
      * the dropped item the tag the placed one carried.
      */
     @Override
-    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+    public List<ItemStack> getDrops(BlockState state, LootContext.Builder params) {
         List<ItemStack> drops = super.getDrops(state, params);
         if (params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof BongBlockEntity bong) {
             for (ItemStack drop : drops) {
-                if (drop.is(asItem())) {
+                if (drop.getItem() == asItem()) {
                     bong.giveTo(drop);
                 }
             }
