@@ -78,6 +78,12 @@ def java8 = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.o
 tasks.withType(JavaExec).configureEach {
 	javaLauncher = java8
 }
+// With CI set, Loom starts each run under xvfb-run, and on Java 8 that launch finds no main class
+// (net.fabricmc.devlaunchinjector.Main). Nothing here needs a display (the game tests are a server), so
+// the runs start as they do at home.
+tasks.withType(net.fabricmc.loom.task.AbstractRunTask).configureEach {
+	useXvfb.set(false)
+}
 
 dependencies {
 	// the newer lines' syntax in the tests too, as in the mod (multiloader-common)
