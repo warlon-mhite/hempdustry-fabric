@@ -72,7 +72,9 @@ public class BeeGrowCropsGoalMixin {
         BlockState current = world.getBlockState(pos);
         BlockState next = PlantStress.beeStep(world, pos, current, Defoliation.carryOver(current, newState),
                 world.getRandom());
-        boolean set = original.call(world, pos, next);
+        // Already a step by the plant's rules, so the crop's raw-write repair must not take it for a raw one
+        // and run the step again (a second roll, a second meal from the pot).
+        boolean set = TallHemp.ownWrite(() -> original.call(world, pos, next));
         if (set && next.getBlock() instanceof CropBlock crop && current.is(crop)
                 && crop.isMaxAge(next) && !crop.isMaxAge(current)) {
             BlockPos floorPos = pos.below();
