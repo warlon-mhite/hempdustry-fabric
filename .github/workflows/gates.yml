@@ -27,7 +27,7 @@ jobs:
       # Fabric jar and a Forge jar cannot be compared with each other, nor a jar of another Minecraft.
       # Empty until this line's first release on Minecraft 1.16.5; move both on at each release.
       API_BASELINE: ''
-      NEOFORGE_API_BASELINE: ''
+      NEOFORGE_API_BASELINE: v2.1.0
     steps:
       - uses: actions/checkout@v4
 

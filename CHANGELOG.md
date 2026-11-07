@@ -9,7 +9,65 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.1.0.
+Nothing yet — everything below shipped in 2.1.0+1.16.5.
+
+## [2.1.0+1.16.5] — 2026-11-07
+
+2.1.0 for Minecraft 1.16.5, on Forge: everything in [2.1.0] that Minecraft 1.16.5 can hold, and the
+changes below. It also opens GanjaCraft worlds.
+
+### Added — on Minecraft 1.16.5
+
+- **Hempdustry on Minecraft 1.16.5, for Forge.** One download, `hempdustry-forge-2.1.0+1.16.5.jar`,
+  for Forge 36.2.39 or newer on Java 8. It needs nothing else; JEI 7 shows its pages, as on the newer
+  versions. There is no REI or EMI for it. The ids, the config file and its keys are the same as on
+  every other version, and data packs and resource packs take `pack_format` 6.
+- **GanjaCraft worlds open as Hempdustry worlds.** Every GanjaCraft build for Forge 1.16.5 is read,
+  BETA v0.4, v0.5 and v0.5.1 and 1.0.0 to 1.0.6, with no tool to run: back the world up, take the
+  GanjaCraft jar out of `mods`, put Hempdustry's in and open the world. Forge does not ask about the
+  missing GanjaCraft entries. Each part of the world converts the first time it loads: the player's
+  inventory, armour and ender chest, the blocks, what chests, barrels, shulker boxes, minecarts, item
+  frames, armour stands and donkeys hold, dropped items, signs with their text, paintings and
+  villagers. Crops keep their stage, blocks keep their shape and the way they face, packed spliffs,
+  bongs and pipes stay packed with their strain. GanjaCraft things Hempdustry has no equivalent for
+  become the nearest Hempdustry or vanilla item, so nothing you owned vanishes.
+  - **What does not come through:** a ripe Lemon Haze from GanjaCraft 1.0.x arrives one stage short
+    of ripe and grows its top on its own; a packed spliff, bong or pipe holds one bud, with fresh
+    charges; the golden cannapple and cannarot become a vanilla golden apple and golden carrot,
+    without their effects; hemp villagers and the Weedman become ordinary villagers, without their
+    trades; a 2 × 3 or 3 × 2 painting takes the nearest vanilla size; a crop's growth timer starts
+    again.
+  - **Stacks keep their count.** GanjaCraft stacked empty bongs and pipes to 64, and its BETA spliffs
+    to 64; Hempdustry's stack to 1 and 16. A converted slot keeps what it held and is used one at a
+    time; anything made from then on stacks by Hempdustry's limits.
+  - GanjaCraft for other Minecraft versions, and Hemp-Craft (the mod its rewrite became, under a new
+    id), are not read.
+
+### Changed — on Minecraft 1.16.5
+
+These build on things Minecraft added after 1.16.5, so the 1.16.5 build goes without them:
+
+- **Not there:** the Hemp Hanging Sign (hanging signs came with 1.20), the Hemp Boat with Chest
+  (1.19), the Tinted Bong (tinted glass, 1.17), the Hemp Shelf, the Hemp Harness and bundles from
+  canvas (not on 1.21.1 either), wild Purple Kush in lush caves (1.17; it still grows in plains,
+  jungles and swamps), goats and the hemp leaf (1.17), the lava cauldron as a heat source (1.17; lava
+  and magma blocks still heat), hemp in archaeology finds (1.20) and armour trims on the hemp outfit
+  (1.20).
+- **Two recipes change:** anything that takes a copper ingot takes an iron ingot, and the Grow Lamp
+  takes purple stained glass in place of amethyst.
+- The Hemp Press's hot plate and the Hydro Tray's light are not drawn glowing: they work the same.
+
+### Fixed
+
+- **The Redstone Vaporizer keeps its scorched hemp when your inventory is full.** A bowl finished with
+  every slot taken handed its scorched hemp to nobody; what does not fit now drops at your feet. (In
+  2.1.0 on every other version too.)
+
+### Known issues
+
+- **Moving a 1.16.5 world on to a newer Minecraft wants Hempdustry 2.1.1 or newer there.** 2.1.0 on
+  the newer versions opens the world, but packed spliffs, bongs and pipes saved on 1.16.5 come out
+  empty.
 
 ## [2.1.0] — 2026-10-27
 
@@ -742,7 +800,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B1.21.1...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B1.16.5...HEAD
+[2.1.0+1.16.5]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.1.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.3
 [2.0.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.2
