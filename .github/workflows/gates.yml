@@ -37,13 +37,15 @@ jobs:
           ref: 1.20.1-2.1
           path: .upstream-1.20.1
 
-      # Java 17 compiles (javac with Jabel, to Java 8 bytecode), Java 8 runs the game.
+      # Gradle runs on Java 21 (the last listed, so the default), Architectury Loom needs it; Java 17
+      # compiles (javac with Jabel, to Java 8 bytecode), Java 8 runs the game.
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: |
             8
             17
+            21
 
       - uses: actions/setup-python@v5
         with:
