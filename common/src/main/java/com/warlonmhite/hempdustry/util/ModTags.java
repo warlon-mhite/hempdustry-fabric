@@ -182,6 +182,25 @@ public class ModTags {
         }
     }
 
+    /**
+     * Other mods' own tags that hemp joins, each read only by that mod: a file of ours under their
+     * namespace adds to theirs ({@code replace} false) and sits unread in a pack without them.
+     */
+    public static class OtherMods {
+
+        /** Seeds Forbidden Arcanus' magical farmland does not double; it lists vanilla's own. */
+        public static final TagKey<Item> MAGICAL_FARMLAND_BLACKLISTED = item("forbidden_arcanus", "magical_farmland_blacklisted");
+        /** What Bibliocraft's cookie jar holds. */
+        public static final TagKey<Item> COOKIE_JAR_COOKIES = item("bibliocraft", "cookie_jar_cookies");
+
+        private static TagKey<Item> item(String namespace, String path) {
+            return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(namespace, path));
+        }
+
+        private OtherMods() {
+        }
+    }
+
     public static class BannerPatterns {
 
         /**

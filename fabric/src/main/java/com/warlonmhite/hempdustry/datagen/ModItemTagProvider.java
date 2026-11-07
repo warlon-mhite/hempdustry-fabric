@@ -309,6 +309,20 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                 .addOptional(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("farmingforblockheads", "green_fertilizer")))
                 .addOptional(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("farmingforblockheads", "yellow_fertilizer")));
 
+        // Farmer villagers plant what is in this vanilla tag and reap it ripe with destroyBlock, which takes a
+        // tall plant whole; a village with a hemp seed grows a hemp field, as villages grew it for rope and
+        // cloth. Not Beldía: it stands only on sand, and a villager plants on farmland.
+        valueLookupBuilder(ItemTags.VILLAGER_PLANTABLE_SEEDS)
+                .add(ModItems.INDICA_SEEDS)
+                .add(ModItems.SATIVA_SEEDS);
+
+        // Forbidden Arcanus' magical farmland doubles a ripe crop's drops; it keeps vanilla's seeds out of it,
+        // and ours too, since seeds are what the breeding game is scarce in. The buds still double, as wheat does.
+        valueLookupBuilder(ModTags.OtherMods.MAGICAL_FARMLAND_BLACKLISTED)
+                .addOptionalTag(ModTags.Items.HEMP_SEEDS);
+        // Bibliocraft's cookie jar shows what it holds.
+        valueLookupBuilder(ModTags.OtherMods.COOKIE_JAR_COOKIES).add(ModItems.SPACE_COOKIE);
+
         valueLookupBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         valueLookupBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
         // The rest of the plank set's wooden tags, as the block side has them. Vanilla makes every one

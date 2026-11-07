@@ -122,6 +122,8 @@
   "tag.item.c.milk.hempmilk": "Конопляное молоко",
   "tag.item.c.nuts": "Орехи",
   "tag.item.c.nuts.hempseeds": "Семена конопли",
+  "tag.item.forbidden_arcanus.magical_farmland_blacklisted": "Не удваивается на магической пашне",
+  "tag.item.bibliocraft.cookie_jar_cookies": "Печенье для банки с печеньем",
   "tag.item.hempdustry.fertilizers": "Удобрения",
   "material.hempdustry.hemp": "Конопля",
   "tag.item.hempdustry.hemp_seeds": "Семена конопли",
