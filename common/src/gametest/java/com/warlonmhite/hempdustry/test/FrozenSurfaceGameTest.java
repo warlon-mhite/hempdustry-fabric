@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Comparator;
-import net.minecraft.world.level.storage.loot.Deserializers;
 import net.minecraft.world.level.storage.loot.LootTables;
 import com.warlonmhite.hempdustry.registry.DataRegistries;
 import com.warlonmhite.hempdustry.registry.HolderLookup;
@@ -58,7 +57,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.level.storage.loot.LootTable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -81,8 +79,7 @@ import java.util.stream.Stream;
  * config key — one per line) and {@code <version>.json} (every data file, every stack the creative tab
  * builds, every block entity's save, the default config). Cutting a release copies the two into
  * {@code src/gametest/resources/frozen/}, and from then on every later build is checked against them.
- * This line has had no release yet, so {@code frozen/} holds none of its own: its first release
- * starts it.
+ * This line's releases sit at the top of {@code frozen/}, from 2.1.0, its first.
  *
  * <p><b>A world made on this line moves to a newer Minecraft, never the other way.</b> So
  * {@code frozen/1.21.1/} holds the 1.21.1 line's releases, and {@link #aWorldFromThisLineUpgrades}
@@ -439,7 +436,7 @@ public final class FrozenSurfaceGameTest {
                 return null;
             }
             if (inside.startsWith("loot_tables/")) {
-                return Deserializers.createLootTableSerializer().create().fromJson(file, LootTable.class) != null
+                return TestPlatform.INSTANCE.decodeLootTable(world.getServer(), id(namespace, inside, "loot_tables/"), file) != null
                         ? null : "no longer decodes";
             }
             if (inside.startsWith("tags/")) {

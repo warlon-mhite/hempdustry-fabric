@@ -68,6 +68,14 @@ public interface TestPlatform {
      */
     void markAsHandshaken(net.minecraft.network.Connection connection);
 
+    /**
+     * A loot table file read as the server reads one from a data pack. Forge 36 names each pool and
+     * entry while it reads, from a context only its own loading sets up, so vanilla's serializer
+     * alone throws on any table with a pool.
+     */
+    net.minecraft.world.level.storage.loot.LootTable decodeLootTable(net.minecraft.server.MinecraftServer server,
+            net.minecraft.resources.ResourceLocation id, com.google.gson.JsonElement json);
+
     /** The folders, or the jar, the mod's resources are read from. */
     List<Path> modRoots();
 

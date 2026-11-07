@@ -35,6 +35,14 @@ public final class ForgeTestPlatform implements TestPlatform {
     }
 
     @Override
+    public net.minecraft.world.level.storage.loot.LootTable decodeLootTable(net.minecraft.server.MinecraftServer server,
+            net.minecraft.resources.ResourceLocation id, com.google.gson.JsonElement json) {
+        // custom: a mod's or a data pack's table, as LootTables#apply reads every file outside vanilla's own
+        return ForgeHooks.loadLootTable(net.minecraft.world.level.storage.loot.Deserializers.createLootTableSerializer().create(),
+                id, json, true, server.getLootTables());
+    }
+
+    @Override
     public void markAsHandshaken(Connection connection) {
         // What FMLHandshakeHandler leaves on a channel once a modded client has logged in; Forge 36's
         // player list reads it as the player joins (NetworkHooks#getConnectionType), and finds null on
