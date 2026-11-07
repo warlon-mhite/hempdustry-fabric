@@ -236,7 +236,7 @@ public class SativaCropBlock extends CropBlock {
         // but each still paid a chunk lookup. isShapeSettled answers the same question in one or
         // two block reads.
         if (grown != age || !this.isShapeSettled(world, pos, age, state)) {
-            this.setAge(world, pos, grown, 0.0F, random);
+            this.setAge(world, pos, world.getBlockState(pos), grown, 0.0F, random);
         }
         // Told from the age written, not the roll: a plant held back by its headroom rolls as often as
         // any other while writeAge keeps it where it is, and a listener paid per growth (Ars Nouveau's
@@ -299,8 +299,42 @@ public class SativaCropBlock extends CropBlock {
         if (!isLower(state)) {
             return;
         }
-        this.setAge(world, pos, this.getAge(state) + this.getBonemealAgeIncrease(world),
+        this.setAge(world, pos, world.getBlockState(pos), this.getAge(state) + this.getBonemealAgeIncrease(world),
                 PlantStress.ofBoneMeal(world, pos, state), random);
+    }
+
+    /**
+     * Puts right a raw write from another mod, as {@link IndicaCropBlock#onPlace} does, for a plant of three
+     * blocks: a root state written onto the MIDDLE or the UPPER goes back to that segment, a replanting takes
+     * both segments away (top first, so neither is left standing on nothing), and growth is one step of the
+     * plant's own.
+     */
+    @Override
+    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean moved) {
+        super.onPlace(state, world, pos, old, moved);
+        if (world.isClientSide() || !TallHemp.isRawWrite(this, state, old)) {
+            return;
+        }
+        if (!isLower(old)) {
+            TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            return;
+        }
+        int age = this.getAge(state);
+        if (age == this.getAge(old)) {
+            return; // a plant set afresh where it stood, as /setblock does: nothing grew, nothing to keep
+        }
+        boolean replanted = age < this.getAge(old);
+        if (replanted) {
+            for (int offset = 2; offset >= 1; offset--) {
+                BlockPos segmentPos = pos.above(offset);
+                BlockState segment = world.getBlockState(segmentPos);
+                if (segment.is(this) && !isLower(segment)) {
+                    world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
+                            Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+                }
+            }
+        }
+        this.setAge(world, pos, replanted ? state : old, age, 0.0F, world.getRandom());
     }
 
     /** A flat one stage per successful bonemeal, for the same reasons as {@link IndicaCropBlock}. */
@@ -329,9 +363,20 @@ public class SativaCropBlock extends CropBlock {
      *
      * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
      * player later builds over keeps its age and its harvest instead of silently reverting.
+     *
+     * <p>{@code current} is the plant the step starts from: the block at {@code pos}, except when
+     * {@link #onPlace} replays a raw write, where it is the state that write replaced.
      */
-    private void setAge(Level world, BlockPos pos, int newAge, float extraStress, RandomSource random) {
-        BlockState current = world.getBlockState(pos);
+    private void setAge(Level world, BlockPos pos, BlockState current, int newAge, float extraStress,
+                        RandomSource random) {
+        TallHemp.ownWrite(() -> {
+            this.writeAge(world, pos, current, newAge, extraStress, random);
+            return true;
+        });
+    }
+
+    private void writeAge(Level world, BlockPos pos, BlockState current, int newAge, float extraStress,
+                          RandomSource random) {
         int currentAge = current.is(this) && isLower(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
         newAge = Math.min(newAge, Math.max(currentAge, this.maxAgeFor(world, pos)));

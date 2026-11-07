@@ -204,6 +204,11 @@ public final class HempdustryGameTests {
         register("growing_asks_the_loader_and_tells_it", OtherModsGameTest::growingAsksTheLoaderAndTellsIt);
         register("a_plant_with_no_room_to_grow_tells_nobody_it_grew",
                 OtherModsGameTest::aPlantWithNoRoomToGrowTellsNobodyItGrew);
+        register("a_raw_growth_step_keeps_what_the_plant_went_through", RawWritesGameTest::aRawGrowthStepKeepsWhatThePlantWentThrough);
+        register("a_raw_ripening_grows_the_whole_plant_and_eats_from_its_pot", RawWritesGameTest::aRawRipeningGrowsTheWholePlantAndEatsFromItsPot);
+        register("a_raw_replant_starts_a_new_plant", RawWritesGameTest::aRawReplantStartsANewPlant);
+        register("a_raw_write_above_the_root_leaves_the_plant_whole", RawWritesGameTest::aRawWriteAboveTheRootLeavesThePlantWhole);
+        register("our_own_step_is_not_taken_for_a_raw_one", RawWritesGameTest::ourOwnStepIsNotTakenForARawOne);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

@@ -206,7 +206,7 @@ public class IndicaCropBlock extends CropBlock {
         // state early-outs in LevelChunk#setBlockState) but each still paid a chunk lookup.
         // isShapeSettled answers the same question in one block read.
         if (grown != age || !this.isShapeSettled(world, pos, age, state)) {
-            this.setAge(world, pos, grown, 0.0F, random);
+            this.setAge(world, pos, world.getBlockState(pos), grown, 0.0F, random);
         }
         // Told from the age written, not the roll: a plant held back by its headroom rolls as often as
         // any other while writeAge keeps it where it is, and a listener paid per growth (Ars Nouveau's
@@ -270,8 +270,50 @@ public class IndicaCropBlock extends CropBlock {
         if (!isLower(state)) {
             return;
         }
-        this.setAge(world, pos, this.getAge(state) + this.getBonemealAgeIncrease(world),
+        this.setAge(world, pos, world.getBlockState(pos), this.getAge(state) + this.getBonemealAgeIncrease(world),
                 PlantStress.ofBoneMeal(world, pos, state), random);
+    }
+
+    /**
+     * Puts right a raw write from another mod ({@link TallHemp#isRawWrite}): a harvester that replants, an
+     * instant fertiliser, a growth soil or a bee that writes {@code getStateForAge}. Every such write lands
+     * here, on both loaders, whoever made it, so no mod needs a fix of its own.
+     *
+     * <ul>
+     *   <li><b>Onto a block above the root</b>, the harvester took a ripe top for a crop of its own. The top
+     *       goes back as it was: the plant's loot is on the root, and a root up there would break off.</li>
+     *   <li><b>A younger age on the root</b> is a replanting. The written state is already a new plant's;
+     *       what is left of the old one above it goes, its harvest having been taken from the root.</li>
+     *   <li><b>An older age</b> is growth, taken as one step of the plant's own: the trims, the rub and the
+     *       light record carry over, the light and the ground are read, a pot is eaten from on ripening, the
+     *       plant stops short of a block in its way, and the top grows at once.</li>
+     *   <li><b>The same age</b> is left as written. No harvester, fertiliser or soil writes a plant's own age
+     *       back onto it; {@code /setblock} does, and means a fresh plant by it.</li>
+     * </ul>
+     */
+    @Override
+    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean moved) {
+        super.onPlace(state, world, pos, old, moved);
+        if (world.isClientSide() || !TallHemp.isRawWrite(this, state, old)) {
+            return;
+        }
+        if (!isLower(old)) {
+            TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            return;
+        }
+        int age = this.getAge(state);
+        if (age == this.getAge(old)) {
+            return; // a plant set afresh where it stood, as /setblock does: nothing grew, nothing to keep
+        }
+        boolean replanted = age < this.getAge(old);
+        if (replanted) {
+            BlockPos upPos = pos.above();
+            BlockState above = world.getBlockState(upPos);
+            if (above.is(this) && !isLower(above)) {
+                world.setBlock(upPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
+        }
+        this.setAge(world, pos, replanted ? state : old, age, 0.0F, world.getRandom());
     }
 
     /**
@@ -311,9 +353,20 @@ public class IndicaCropBlock extends CropBlock {
      *
      * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
      * player later builds over keeps its age and its harvest instead of silently reverting.
+     *
+     * <p>{@code current} is the plant the step starts from: the block at {@code pos}, except when
+     * {@link #onPlace} replays a raw write, where it is the state that write replaced.
      */
-    private void setAge(Level world, BlockPos pos, int newAge, float extraStress, RandomSource random) {
-        BlockState current = world.getBlockState(pos);
+    private void setAge(Level world, BlockPos pos, BlockState current, int newAge, float extraStress,
+                        RandomSource random) {
+        TallHemp.ownWrite(() -> {
+            this.writeAge(world, pos, current, newAge, extraStress, random);
+            return true;
+        });
+    }
+
+    private void writeAge(Level world, BlockPos pos, BlockState current, int newAge, float extraStress,
+                          RandomSource random) {
         int currentAge = current.is(this) && isLower(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
         newAge = Math.min(newAge, Math.max(currentAge, this.maxAgeFor(world, pos)));
