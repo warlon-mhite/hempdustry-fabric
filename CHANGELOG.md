@@ -9,7 +9,67 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.1.0.
+Nothing yet — everything below shipped in 2.1.0 and 2.1.0+1.18.2.
+
+## [2.1.0+1.18.2] — 2026-11-07
+
+2.1.0 for Minecraft 1.18.2, on Forge: everything in [2.1.0] that Minecraft 1.18.2 can hold, and the
+changes below. It also opens Hemp-Craft and GanjaCraft worlds.
+
+### Added — on Minecraft 1.18.2
+
+- **Hempdustry on Minecraft 1.18.2, for Forge.** One download, `hempdustry-forge-2.1.0+1.18.2.jar`,
+  for Forge 40.3.12 or newer on Java 17. It needs nothing else; JEI 10 and REI 8 show its pages, as on
+  the newer versions (REI wants Architectury and Cloth Config beside it). There is no EMI for it. The
+  ids, the config file and its keys are the same as on every other version, and data packs and
+  resource packs take `pack_format` 8. What Minecraft 1.17 and 1.18 added is there: copper in the
+  Decarboxylator, Hydro Tray and Grow Lamp recipes, amethyst in the Grow Lamp, the Tinted Bong,
+  goats and the hemp leaf, the lava cauldron as a heat source, the beanie's immunity to powder snow
+  and wild Purple Kush in lush caves.
+- **Hemp-Craft worlds open as Hempdustry worlds.** Hemp-Craft is the Forge 1.18 mod GanjaCraft's
+  rewrite became, under a new id; all three of its builds (1.18.1, 1.18.2-1.0.0 and 1.18.2-1.0.1) are
+  read, whichever Minecraft 1.18 version the world was last saved on. There is no tool to run: back
+  the world up, take the Hemp-Craft jar out of `mods`, put Hempdustry's in and open the world. Forge
+  does not ask about the missing entries. Each part of the world converts the first time it loads: the
+  player's inventory, armour and ender chest, the blocks, what chests, barrels, shulker boxes,
+  minecarts, item frames, armour stands, donkeys and villagers hold, dropped items, signs with their
+  text, and the points of interest villagers remember. Crops keep their stage, blocks keep their
+  shape and the way they face, and packed spliffs, bongs and pipes stay packed with their strain.
+  Hemp-Craft things Hempdustry has no equivalent for become the nearest Hempdustry or vanilla item,
+  so nothing you owned vanishes: gummies become dawamesk, the lighter a flint and steel, the Afroman
+  disc RobaDob.
+  - **The Hemp Farmer becomes a vanilla Farmer.** A farmer that had traded keeps its level,
+    experience and the trades it had rolled (the seeds it sells are now Hempdustry's). Hemp bricks are
+    no longer a job site, so a Hemp Farmer that never traded (level 1, no experience) loses its job
+    and, as any such villager does, goes back to no profession until it finds a workstation.
+  - **Stacks keep their count.** Hemp-Craft stacked empty bongs and pipes to 64; Hempdustry's stack
+    to 1 and 16. A converted slot keeps what it held and is used one at a time; anything made from
+    then on stacks by Hempdustry's limits.
+- **GanjaCraft worlds open on 1.18.2 too.** Every GanjaCraft build for Forge 1.16.5 is read through the
+  same table as in Hempdustry's own 1.16.5 build, BETA v0.4 to v0.5.1 and 1.0.0 to 1.0.6; the 1.0.6 and
+  BETA v0.5.1 worlds were checked on this build, straight from 1.16.5, with nothing lost. A ripe Lemon
+  Haze from GanjaCraft 1.0.x arrives one stage short of ripe, a packed spliff, bong or pipe holds one
+  bud with fresh charges, the golden cannapple and cannarot become a vanilla golden apple and golden
+  carrot without their effects, hemp villagers and the Weedman become ordinary villagers, and a
+  2 × 3 or 3 × 2 painting takes the nearest vanilla size. GanjaCraft for other Minecraft versions is
+  not read.
+
+### Changed — on Minecraft 1.18.2
+
+These build on things Minecraft added after 1.18.2, so the 1.18.2 build goes without them:
+
+- **Not there:** the Hemp Hanging Sign (hanging signs came with 1.20), the Hemp Boat with Chest
+  (1.19), the Hemp Shelf, the Hemp Harness and bundles from canvas (not on 1.21.1 either), hemp in
+  archaeology finds (1.20) and armour trims on the hemp outfit (1.20).
+- A device in use is held like a drink, as the goat horn's pose came with 1.19.
+
+### Fixed
+
+- **The Redstone Vaporizer keeps its scorched hemp when your inventory is full.** A bowl finished with
+  every slot taken handed its scorched hemp to nobody; what does not fit now drops at your feet. (In
+  2.1.0 on every other version too.)
+- **A bong set down on a block is drawn.** Standing bongs, the plain one and all sixteen glass
+  colours, showed only their outline. (In 2.1.0 on 1.21.1 too.)
 
 ## [2.1.0] — 2026-10-27
 
@@ -742,7 +802,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B1.21.1...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B1.18.2...HEAD
+[2.1.0+1.18.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.1.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
 [2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.3
 [2.0.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.2
