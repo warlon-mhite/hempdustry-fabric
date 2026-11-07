@@ -91,6 +91,8 @@ def main():
     checked = []
     for block, prop in sorted(plants.items()):
         path = GENERATED / "data/hempdustry/loot_table/blocks" / f"{block}.json"
+        if not path.exists():  # the folder's name until 1.21
+            path = GENERATED / "data/hempdustry/loot_tables/blocks" / f"{block}.json"
         if not path.exists():
             continue  # a block with no loot table of its own drops nothing; nothing to double
         table = json.loads(path.read_text(encoding="utf-8"))
@@ -101,6 +103,8 @@ def main():
                 problems.append(f"{block}: pool {index} has no '{prop}' condition, so it rolls "
                                 f"once per block of the plant and pays out twice")
 
+    if not checked:
+        sys.exit("no multi-block plant has a loot table -- has the loot table folder moved?")
     if problems:
         print("multi-block plant loot can double-roll:")
         for problem in problems:

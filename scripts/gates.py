@@ -41,6 +41,9 @@ GENERATED = str(LAYOUT.generated.relative_to(ROOT))
 NEOFORGE_GENERATED = str(LAYOUT.neoforge_generated.relative_to(ROOT)) if LAYOUT.neoforge else None
 
 
+CONVERTED_DATA = ROOT / "scripts/convert_data_116.py"
+
+
 def minecraft_version():
     for line in (ROOT / "gradle.properties").read_text().splitlines():
         if line.startswith("minecraft_version="):
@@ -91,12 +94,18 @@ def gates(args):
     yield "recipe collisions", py + [script("recipe_collisions.py"), GENERATED, str(vanilla_data())], \
         last(r"scanned|collision")
     tests_verdict = lambda output: last(r"nobody expected")(output) or last(r"required tests")(output) or last(r"BUILD")(output)
-    yield "game tests", ["./gradlew", LAYOUT.fabric + "runGametest", "--console=plain"], tests_verdict
+    if LAYOUT.fabric is not None:
+        yield "game tests", ["./gradlew", LAYOUT.fabric + "runGametest", "--console=plain"], tests_verdict
     if LAYOUT.neoforge:
         yield f"{SECOND} game tests", ["./gradlew", LAYOUT.neoforge + "runGameTestServer", "--console=plain"], tests_verdict
     if not args.quick:
-        yield "cold datagen", cold(LAYOUT.fabric + "runDatagen", GENERATED), last(r"\S")
-        if LAYOUT.neoforge:
+        if LAYOUT.fabric is not None:
+            yield "cold datagen", cold(LAYOUT.fabric + "runDatagen", GENERATED), last(r"\S")
+        elif CONVERTED_DATA.exists():
+            # No datagen on a line without Fabric: its data is another line's datagen output, converted.
+            # The gate is that converting it again would change nothing.
+            yield "data converted", py + [str(CONVERTED_DATA), "--check", "--from", args.data_from], last(r"\S")
+        if LAYOUT.neoforge and LAYOUT.fabric is not None:
             yield f"{SECOND} cold datagen", cold(LAYOUT.neoforge + "runData", NEOFORGE_GENERATED), last(r"\S")
         yield "build", ["./gradlew", "build", "--console=plain"], last(r"BUILD")
     if args.released:
@@ -120,9 +129,13 @@ def main():
     parser.add_argument("--released", metavar="JAR", help="the last release's remapped jar, for the API check")
     parser.add_argument("--released-neoforge", metavar="JAR",
                         help="the last release's NeoForge jar, for the same check on NeoForge's jar")
+    parser.add_argument("--data-from", metavar="CHECKOUT", default=str(ROOT.parent / "hempdustry-1.20.1-2.1"),
+                        help="on a line whose data is converted from another's, that line's checkout")
     args = parser.parse_args()
     if args.released_neoforge and not LAYOUT.neoforge:
         parser.error("this branch builds no NeoForge jar")
+    if args.released and LAYOUT.fabric is None:
+        parser.error("this branch builds no Fabric jar")
     LOGS.mkdir(parents=True, exist_ok=True)
     results = []
     for name, command, verdict in gates(args):
