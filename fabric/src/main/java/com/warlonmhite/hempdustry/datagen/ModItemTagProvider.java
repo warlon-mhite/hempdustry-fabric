@@ -304,6 +304,13 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 .addOptional(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("farmingforblockheads", "green_fertilizer")))
                 .addOptional(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("farmingforblockheads", "yellow_fertilizer")));
 
+        // Farmer villagers plant what is in this vanilla tag and reap it ripe with destroyBlock, which takes a
+        // tall plant whole; a village with a hemp seed grows a hemp field, as villages grew it for rope and
+        // cloth. Not Beldía: it stands only on sand, and a villager plants on farmland.
+        valueLookupBuilder(ItemTags.VILLAGER_PLANTABLE_SEEDS)
+                .add(ModItems.INDICA_SEEDS)
+                .add(ModItems.SATIVA_SEEDS);
+
         valueLookupBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         valueLookupBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
         // The rest of the plank set's wooden tags, as the block side has them. Vanilla makes every one
