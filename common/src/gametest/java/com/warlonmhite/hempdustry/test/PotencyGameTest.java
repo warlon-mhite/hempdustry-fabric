@@ -40,6 +40,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -295,6 +296,15 @@ public final class PotencyGameTest {
         context.assertValueEqual(2, hunger(SmokeContents.of(kush, 2, com.warlonmhite.hempdustry.strain.Chemotype.THC_DOMINANT,
                 PotencyBand.EXTRA_HIGH)), "an extra-high pipe of two's Hunger amplifier");
         context.assertValueEqual(1, hunger(SmokeContents.of(kush, 2)), "a mid pipe of two's Hunger amplifier");
+        // An entry's dose has no cap of its own: a bong of three Extra-High Warped Kush is dose 4. The load's
+        // dose, the green-out, stops at 3, a buff at maxBuffLevel, and only a cost feels the rest -- Hunger IV,
+        // the price of the strongest bowl, as vanilla's Turtle Master pays for its Resistance with Slowness IV.
+        SmokeContents strongest = SmokeContents.of(Strain.registry(registries).getOrThrow(ModStrains.WARPED_KUSH), 3,
+                com.warlonmhite.hempdustry.strain.Chemotype.THC_DOMINANT, PotencyBand.EXTRA_HIGH);
+        context.assertValueEqual(3, strongest.thcDose(), "an extra-high Warped Kush bong of three's green-out dose");
+        context.assertValueEqual(3, hunger(strongest), "an extra-high Warped Kush bong of three's Hunger amplifier");
+        context.assertValueEqual(1, amplifier(strongest, MobEffects.JUMP_BOOST),
+                "an extra-high Warped Kush bong of three's Jump Boost amplifier, a buff held at II");
 
         // Written to a stack, a mid load is what 2.1 wrote; a high one keeps its band.
         Tag mid = SmokeContents.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE),
@@ -361,8 +371,12 @@ public final class PotencyGameTest {
     }
 
     private static int hunger(SmokeContents contents) {
+        return amplifier(contents, MobEffects.HUNGER);
+    }
+
+    private static int amplifier(SmokeContents contents, Holder<MobEffect> wanted) {
         for (MobEffectInstance effect : contents.effects(700, false, () -> 0L)) {
-            if (effect.getEffect() == MobEffects.HUNGER) {
+            if (effect.getEffect() == wanted) {
                 return effect.getAmplifier();
             }
         }
