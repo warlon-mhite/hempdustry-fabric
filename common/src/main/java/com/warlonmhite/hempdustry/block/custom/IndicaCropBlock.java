@@ -107,16 +107,20 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
     }
 
     // ----- support / placement -----
-    // The UPPER half only survives directly above a LOWER half of this block. The
-    // LOWER half uses the standard crop rule (enough light + farmland below), which
+    // The UPPER half only survives directly above a LOWER half of this block old enough to have grown
+    // one. The LOWER half uses the standard crop rule (enough light + farmland below), which
     // also prevents seeds from being placed onto an existing plant. BushBlock's
     // updateShape (inherited) breaks either half as soon as canSurvive
-    // fails, so removing the lower half cascades to the upper.
+    // fails, so removing the lower half cascades to the upper. The age matters when another mod
+    // harvests and replants the root inside a block update (Just Dire Things' goo soil): the update
+    // that breaks the old upper half is queued until the outer one ends, and by then a seedling
+    // stands under it. Only its age tells that this upper half is not its own.
     @Override
     public boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
             BlockState below = world.getBlockState(pos.below());
-            return below.is(this) && below.getValue(HALF) == DoubleBlockHalf.LOWER;
+            return below.is(this) && below.getValue(HALF) == DoubleBlockHalf.LOWER
+                    && this.getAge(below) >= DOUBLE_BLOCK_AGE;
         }
         return super.canSurvive(state, world, pos);
     }
@@ -307,13 +311,21 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
         }
         boolean replanted = age < this.getAge(old);
         if (replanted) {
-            BlockPos upPos = pos.above();
-            BlockState above = world.getBlockState(upPos);
-            if (above.is(this) && !isLower(above)) {
-                world.setBlock(upPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-            }
+            this.removeSegmentsAbove(world, pos);
         }
         this.setAge(world, pos, replanted ? state : old, age, 0.0F, world.getRandom());
+    }
+
+    /**
+     * Takes away the upper half standing on {@code pos}, without drops: its plant's harvest is the root's, and
+     * whoever replaced the root has had it.
+     */
+    private void removeSegmentsAbove(Level world, BlockPos pos) {
+        BlockPos upPos = pos.above();
+        BlockState above = world.getBlockState(upPos);
+        if (above.is(this) && !isLower(above)) {
+            world.setBlock(upPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+        }
     }
 
     /**
@@ -387,6 +399,15 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
             }
         }
         world.setBlock(pos, lower, Block.UPDATE_CLIENTS);
+        if (world.getBlockState(pos) != lower) {
+            // Something answered that write by taking the plant: a soil that harvests what ripens on it
+            // (Just Dire Things' goo soil) hears the shape update and replants before this returns. The
+            // upper half is no longer this plant's to grow; written now, it would stand ripe on a seedling.
+            // Nor will the old one fall by itself: the update that would break it was raised inside this
+            // write's own, so the game queues it, and by the time it runs a new root stands under it again.
+            this.removeSegmentsAbove(world, pos);
+            return;
+        }
 
         BlockPos upPos = pos.above();
         BlockState above = world.getBlockState(upPos);

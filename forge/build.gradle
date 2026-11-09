@@ -61,6 +61,9 @@ legacyForge {
 			sourceSet = sourceSets.gametest
 			loadedMods = [mods.hempdustry, mods.hempdustry_gametest]
 			gameDirectory = file('build/gametest')
+			// the test mod's own mixins (the farmland that harvests what ripens on it): Forge 47 reads mixin
+			// configs from the launch arguments in dev, not from a mods.toml
+			programArguments.addAll('--mixin.config', 'hempdustry_gametest.mixins.json')
 		}
 		// The files only Forge reads -- the biome modifiers -- written from
 		// the same calls Fabric's registries take, so the two cannot drift apart:
