@@ -164,6 +164,7 @@ public final class HempdustryGameTests {
         register("a_strain_reusing_items_keeps_the_tab_whole",
                 DatapackStrainGameTest::aStrainReusingItemsKeepsTheTabWhole);
         register("a_broken_infuser_spills_its_batch", InfuserBreakGameTest::aBrokenInfuserSpillsItsBatch);
+        register("a_mixed_batch_spills_each_chemotype_as_it_went_in", InfuserBreakGameTest::aMixedBatchSpillsEachChemotypeAsItWentIn);
         register("the_machines_contents_are_upgraded", DataFixerGameTest::theMachinesContentsAreUpgraded);
         register("every_value_of_ours_comes_back_from_1_20_1", DataFixerGameTest::everyValueOfOursComesBackFrom1201);
         register("the_machines_contents_come_back_from_1_20_1", DataFixerGameTest::theMachinesContentsComeBackFrom1201);
