@@ -5,6 +5,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import java.util.function.UnaryOperator;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -99,6 +100,14 @@ public class ModComponents {
      */
     public static final DataComponentType<Chemotype> CHEMOTYPE = register("chemotype",
             builder -> builder.persistent(Chemotype.CODEC).networkSynchronized(Chemotype.PACKET_CODEC));
+
+    /**
+     * The potency band of the plant a bud came from, or a leaf's mark ({@code high}, from a high or
+     * extra-high plant). Absent is mid, every bud and leaf 2.1 made; mid is never written, so a new mid
+     * bud stacks with an old one. Nothing after the oven carries it. See {@link PotencyBand}.
+     */
+    public static final DataComponentType<PotencyBand> POTENCY_BAND = register("potency_band",
+            builder -> builder.persistent(PotencyBand.CODEC).networkSynchronized(PotencyBand.PACKET_CODEC));
 
     private static <T> DataComponentType<T> register(String id, UnaryOperator<DataComponentType.Builder<T>> builderOp) {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,

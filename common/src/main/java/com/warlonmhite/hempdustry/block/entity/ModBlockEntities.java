@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.HempBedBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -48,6 +49,16 @@ public class ModBlockEntities {
                     Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp_bed"),
                     Services.REGISTRATION.blockEntityType(HempBedBlockEntity::new,
                             ModBlocks.HEMP_BED));
+
+    // On the root of every crop that grows buds: the plant's own rolls (see PlantRecordBlockEntity).
+    // Industrial Hemp grows none and keeps no record.
+    public static final BlockEntityType<PlantRecordBlockEntity> PLANT_RECORD =
+            Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
+                    Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "plant_record"),
+                    Services.REGISTRATION.blockEntityType(PlantRecordBlockEntity::new,
+                            ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
+                            ModBlocks.WARPED_KUSH_CROP, ModBlocks.RUDERALIS_CROP, ModBlocks.CRIMSON_CROP,
+                            ModBlocks.ENDER_HAZE_CROP));
 
     public static void registerBlockEntities() {
         Hempdustry.LOGGER.info("Registering Block Entities for " + Hempdustry.MOD_ID);

@@ -8,6 +8,8 @@ import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
 import com.warlonmhite.hempdustry.recipe.Stamping;
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.Potency;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import net.minecraft.core.BlockPos;
@@ -99,14 +101,15 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     }
 
     /**
-     * Decarboxylated hemp yielded per bud. Buds are the good stuff and pay out accordingly.
+     * Decarboxylated hemp yielded per mid bud, every strain's base ({@link Potency#DEFAULT_BASE}). Buds
+     * are the good stuff and pay out accordingly; a bud's potency band moves it (see {@link #resultFor}).
      *
-     * <p><b>These two are the shipped recipes' numbers, not the machine's.</b> Since the conversion
+     * <p><b>These are the shipped recipes' numbers, not the machine's.</b> Since the conversion
      * became {@code hempdustry:decarboxylating} they are read by {@code ModRecipeProvider} and by
      * nothing at runtime — a datapack decides what any given tray-load is worth. Kept as constants
      * so the balance is still written down in one place.
      */
-    public static final int BUDS_OUTPUT = 4;
+    public static final int BUDS_OUTPUT = Potency.DEFAULT_BASE;
     /** Decarboxylated hemp yielded per fan leaf — bulk trim, worth a quarter of a bud. */
     public static final int LEAF_OUTPUT = 1;
     /**
@@ -114,12 +117,6 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
      * spoiled one costs its grower half its oven value on top of its whole high.
      */
     public static final int SCHWAG_OUTPUT = BUDS_OUTPUT / 2;
-    /**
-     * Decarboxylated hemp yielded per Ruderalis bud: half a bud. It is the cheapest plant in the mod
-     * to keep -- no farmland, no water, nothing to tend -- and edibles do not care which strain went
-     * in, so at a full bud's price it would be the best butter farm there is.
-     */
-    public static final int RUDERALIS_OUTPUT = BUDS_OUTPUT / 2;
     // There is deliberately NO hashish figure here. Nothing in the hash family decarboxylates:
     // the oven takes plant matter, the bowl takes resin. See ModRecipeProvider and SiftingBoxBlock.
 
@@ -205,8 +202,17 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         // Through the synchronized view, so this answers on a client too — the screen's tray slots
         // ask the same question. See ModRecipes#allOfType. The output keeps what went in: a CBD bud
         // bakes to CBD decarboxylated hemp.
+        //
+        // A bud's potency band, or a leaf's high mark, moves the recipe's count by its offset (a high
+        // bud of a 4 bakes into 5, a marked leaf into 2), never below one: the recipe says what a mid
+        // piece is worth, and a datapack that changes it still moves every band with it.
+        PotencyBand band = PotencyBand.of(stack);
         return Services.RECIPES.firstMatch(world, ModRecipes.DECARBOXYLATING_TYPE, input)
-                .map(entry -> Stamping.apply(entry.value().assemble(input, world.registryAccess()), chemotype))
+                .map(entry -> {
+                    ItemStack result = Stamping.apply(entry.value().assemble(input, world.registryAccess()), chemotype);
+                    result.setCount(Math.max(1, result.getCount() + band.offset()));
+                    return result;
+                })
                 .orElse(ItemStack.EMPTY);
     }
 

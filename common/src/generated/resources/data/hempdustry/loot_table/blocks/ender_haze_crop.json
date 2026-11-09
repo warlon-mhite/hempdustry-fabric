@@ -7,6 +7,9 @@
     {
       "function": "hempdustry:set_chemotype",
       "strain": "hempdustry:ender_haze"
+    },
+    {
+      "function": "hempdustry:set_potency"
     }
   ],
   "pools": [

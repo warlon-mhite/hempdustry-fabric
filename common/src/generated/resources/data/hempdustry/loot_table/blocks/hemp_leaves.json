@@ -4,6 +4,9 @@
     {
       "from_block": true,
       "function": "hempdustry:set_chemotype"
+    },
+    {
+      "function": "hempdustry:set_potency"
     }
   ],
   "pools": [

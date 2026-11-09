@@ -82,5 +82,7 @@ public class Schema1460Mixin {
         schema.register(blockEntities, "hempdustry:bong",
                 name -> DSL.optionalFields("Item", References.ITEM_STACK.in(schema)));
         schema.registerSimple(blockEntities, "hempdustry:hemp_bed");
+        // A plant's record holds no item, but a block entity the fixer does not know is one it skips.
+        schema.registerSimple(blockEntities, "hempdustry:plant_record");
     }
 }

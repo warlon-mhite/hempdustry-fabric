@@ -161,9 +161,10 @@ public final class RuderalisGameTest {
             }
         }
 
-        // The oven takes its bud at half; Purple Kush's is the control.
-        context.assertTrue(decarboxylates(context, ModItems.RUDERALIS_BUDS) == 2,
-                "a Ruderalis bud decarboxylates to " + decarboxylates(context, ModItems.RUDERALIS_BUDS) + ", expected 2");
+        // A mid Ruderalis bud bakes like any strain's, its base 4: the plant is weak by its bands (half
+        // its plants roll low), no longer by a half-price oven. Purple Kush's is the control.
+        context.assertTrue(decarboxylates(context, ModItems.RUDERALIS_BUDS) == 4,
+                "a Ruderalis bud decarboxylates to " + decarboxylates(context, ModItems.RUDERALIS_BUDS) + ", expected 4");
         context.assertTrue(decarboxylates(context, ModItems.INDICA_BUDS) == 4, "a Purple Kush bud no longer decarboxylates to 4");
         context.assertTrue(new ItemStack(ModItems.RUDERALIS_BUDS).is(ModTags.Items.SIFTABLE_FLOWER),
                 "Ruderalis buds do not sift as flower");

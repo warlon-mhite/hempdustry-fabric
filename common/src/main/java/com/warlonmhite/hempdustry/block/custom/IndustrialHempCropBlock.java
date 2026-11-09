@@ -36,6 +36,12 @@ import net.minecraft.world.level.block.state.BlockState;
  * <p>Not a {@code Strain}: a strain is something you smoke, and it must name buds.
  */
 public class IndustrialHempCropBlock extends SativaCropBlock {
+    /** Fibre hemp grows no bud and its leaves are never strong: nothing of its own to roll. */
+    @Override
+    protected boolean keepsRecord() {
+        return false;
+    }
+
     private static final float GROWTH_RESISTANCE = 25.0F;
 
     public IndustrialHempCropBlock(Properties settings) {

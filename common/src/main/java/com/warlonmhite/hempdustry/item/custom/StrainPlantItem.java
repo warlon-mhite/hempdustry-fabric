@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.strain.Terpene;
 import java.util.Optional;
@@ -16,7 +17,8 @@ import net.minecraft.world.item.component.TooltipDisplay;
 
 /**
  * The tooltip a strain's buds and seeds share, the way a seed bank prints it on the packet: the
- * strain's chemotype in a word, grey, then its terpene's name in the terpene's colour. Read off the
+ * strain's chemotype in a word, grey, then — on a bud — its potency band, then its terpene's name in
+ * the terpene's colour. Read off the
  * registries the world loaded, so a datapack that makes a strain CBD-dominant, or gives it another
  * terpene, changes the lines on every bud and seed already in a chest. Nothing further down the
  * chain (leaves, hash, butter, edibles) names a terpene: the smell is the flower's.
@@ -43,12 +45,13 @@ public final class StrainPlantItem {
 
     /**
      * Adds the chemotype line, from the strain, or from {@code fallback} for a plant with no strain
-     * record, then the strain's terpene if the world defines it.
+     * record, then {@code band}'s line if there is one, then the strain's terpene if the world defines it.
      */
     public static void appendProfile(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip,
-                                     Optional<Chemotype> fallback) {
+                                     Optional<Chemotype> fallback, Optional<PotencyBand> band) {
         Optional<Strain> strain = strainOf(stack.getItem(), context);
         strain.map(Strain::chemotype).or(() -> fallback).ifPresent(value -> tooltip.accept(value.tooltipLine()));
+        band.ifPresent(value -> tooltip.accept(value.tooltipLine()));
         HolderLookup.Provider registries = context.registries();
         Optional<Terpene> terpene = strain.flatMap(value -> value.loadedTerpene(registries));
         if (terpene.isEmpty() && registries != null && stack.getItem() instanceof BlockItem plants) {
@@ -67,7 +70,8 @@ public final class StrainPlantItem {
         @Override
         public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
                                     Consumer<Component> tooltip, TooltipFlag flag) {
-            appendProfile(stack, context, tooltip, Optional.empty());
+            // Mid included: an unmarked bud is mid, and saying so tells it apart from a high one.
+            appendProfile(stack, context, tooltip, Optional.empty(), Optional.of(PotencyBand.of(stack)));
             super.appendHoverText(stack, context, display, tooltip, flag);
         }
     }
@@ -91,7 +95,7 @@ public final class StrainPlantItem {
         @Override
         public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
                                     Consumer<Component> tooltip, TooltipFlag flag) {
-            appendProfile(stack, context, tooltip, fallback);
+            appendProfile(stack, context, tooltip, fallback, Optional.empty());
             super.appendHoverText(stack, context, display, tooltip, flag);
         }
     }

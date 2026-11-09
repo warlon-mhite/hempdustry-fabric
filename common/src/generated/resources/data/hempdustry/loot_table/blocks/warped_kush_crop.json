@@ -7,6 +7,9 @@
     {
       "function": "hempdustry:set_chemotype",
       "strain": "hempdustry:warped_kush"
+    },
+    {
+      "function": "hempdustry:set_potency"
     }
   ],
   "pools": [

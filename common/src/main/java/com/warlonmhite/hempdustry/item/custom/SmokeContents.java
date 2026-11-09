@@ -7,6 +7,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.Potency;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.List;
@@ -142,26 +144,46 @@ public record SmokeContents(List<Entry> entries) {
      * already in a chest. {@link Strain#ENTRY_CODEC} refuses inline entries, which is what stops a
      * stack from carrying a stale copy of a definition.
      */
-    public record Entry(Holder<Strain> strain, int count, Chemotype stamp) {
+    public record Entry(Holder<Strain> strain, int count, Chemotype stamp, int potency) {
         /**
-         * {@code chemotype} is optional and left out when THC-dominant, so every entry 2.1 wrote reads
-         * as what it was, and a THC-dominant load written now is byte for byte what 2.1 would write.
+         * {@code chemotype} is optional and left out when THC-dominant, and {@code potency} when 0, so
+         * every entry 2.1 wrote reads as what it was, and a THC-dominant load of mid buds written now is
+         * byte for byte what 2.1 would write.
+         *
+         * <p>{@code potency} is the sum of the band offsets ({@link PotencyBand#offset}) of a plant's buds
+         * in the entry: a high bud and a mid one are +1, two low ones -2. Buds of different bands load
+         * together, and the sum is exactly what their THC averages to, so nothing is lost by mixing.
          */
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Strain.ENTRY_CODEC.fieldOf("strain").forGetter(Entry::strain),
                 Codec.INT.fieldOf("count").forGetter(Entry::count),
-                Chemotype.CODEC.optionalFieldOf("chemotype", Chemotype.THC_DOMINANT).forGetter(Entry::stamp)
+                Chemotype.CODEC.optionalFieldOf("chemotype", Chemotype.THC_DOMINANT).forGetter(Entry::stamp),
+                Codec.INT.optionalFieldOf("potency", 0).forGetter(Entry::potency)
         ).apply(instance, Entry::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, Entry> PACKET_CODEC = StreamCodec.composite(
                 Strain.ENTRY_PACKET_CODEC, Entry::strain,
                 ByteBufCodecs.VAR_INT, Entry::count,
                 Chemotype.PACKET_CODEC, Entry::stamp,
+                ByteBufCodecs.VAR_INT, Entry::potency,
                 Entry::new);
 
         /** An entry with no stamp: a plant's buds, or anything 2.1 packed. */
         public Entry(Holder<Strain> strain, int count) {
             this(strain, count, Chemotype.THC_DOMINANT);
+        }
+
+        /** An entry of mid buds, or of anything that is not a plant's buds. */
+        public Entry(Holder<Strain> strain, int count, Chemotype stamp) {
+            this(strain, count, stamp, 0);
+        }
+
+        /**
+         * This entry with its plant's buds' band offsets summing to {@code potency}; anything that is
+         * not a plant's buds has none.
+         */
+        public Entry withPotency(int potency) {
+            return strain.value().wildFlower().isPresent() ? new Entry(strain, count, stamp, potency) : this;
         }
 
         /**
@@ -174,10 +196,37 @@ public record SmokeContents(List<Entry> entries) {
             return value.wildFlower().isPresent() ? value.chemotype() : stamp;
         }
 
-        /** This entry's THC dose: its count weighed by its chemotype ({@link Chemotype#thcDose}). */
-        public int thcDose() {
-            return chemotype().thcDose(count);
+        /**
+         * The THC in this entry, in halves of a THC-dominant mid bud's, times {@link Potency#DEFAULT_BASE}:
+         * its chemotype's THC times what it is worth in decarboxylated hemp. A plant's buds are worth
+         * what they would bake into, the strain's base each moved by its band ({@link #potency}), never
+         * less than one each; anything else the default base per item, so schwag and hash weigh what they
+         * always did.
+         */
+        public long thcWeight() {
+            Strain value = strain.value();
+            long worth = value.wildFlower().isPresent()
+                    ? Math.max(count, (long) count * value.potency().base() + potency)
+                    : (long) count * Potency.DEFAULT_BASE;
+            return worth * chemotype().thcHalves();
         }
+
+        /**
+         * This entry's THC dose: its count weighed by its chemotype and its bands, rounded down, never
+         * below one with any THC. For a THC-dominant mid bud it is the count, as before bands existed.
+         */
+        public int thcDose() {
+            return dose(thcWeight(), Integer.MAX_VALUE);
+        }
+    }
+
+    /** A THC weight ({@link Entry#thcWeight}) as a dose: rounded down, at least one with any THC, at most {@code cap}. */
+    private static int dose(long weight, int cap) {
+        if (weight <= 0) {
+            return 0;
+        }
+        long dose = weight / ((long) Chemotype.FULL_WEIGHT * Potency.DEFAULT_BASE);
+        return (int) Math.min(cap, Math.max(1, dose));
     }
 
     /** A single-strain load. */
@@ -188,6 +237,25 @@ public record SmokeContents(List<Entry> entries) {
     /** A single-strain load of stamped matter (schwag, scorched hemp, hash); a plant's buds ignore the stamp. */
     public static SmokeContents of(Holder<Strain> strain, int count, Chemotype stamp) {
         return new SmokeContents(List.of(new Entry(strain, count, stamp)));
+    }
+
+    /** A single-strain load whose buds, if a plant's, have band offsets summing to {@code potency}. */
+    public static SmokeContents of(Holder<Strain> strain, int count, Chemotype stamp, int potency) {
+        return new SmokeContents(List.of(new Entry(strain, count, stamp).withPotency(potency)));
+    }
+
+    /** A single-strain load whose buds, if a plant's, are all of {@code band}. */
+    public static SmokeContents of(Holder<Strain> strain, int count, Chemotype stamp, PotencyBand band) {
+        return of(strain, count, stamp, count * band.offset());
+    }
+
+    /** This load with its plant's buds' band offsets summing to {@code potency}. */
+    public SmokeContents withPotency(int potency) {
+        List<Entry> banded = new ArrayList<>(entries.size());
+        for (Entry entry : entries) {
+            banded.add(entry.withPotency(potency));
+        }
+        return new SmokeContents(banded);
     }
 
     /**
@@ -223,19 +291,18 @@ public record SmokeContents(List<Entry> entries) {
 
     /**
      * The THC in the load as a dose: each entry's units weighed by its chemotype's THC (a balanced
-     * bud is half a THC-dominant one), summed in halves and rounded down, <b>never below one when
-     * anything in it has THC</b>, and never above {@link #MAX_THC_DOSE}. A load with no THC is dose 0:
+     * bud is half a THC-dominant one) and a bud's by its potency band (a high bud of base 4 bakes into
+     * 5 decarboxylated hemp, so it is 5/4 of a mid one), summed and rounded down, <b>never below one
+     * when anything in it has THC</b>, and never above {@link #MAX_THC_DOSE}. So a pipe of two
+     * extra-high buds is a full green-out, and buds of mixed bands come out at their average. A load with no THC is dose 0:
      * no high, no green-out, only the smoke and the cough.
      */
     public int thcDose() {
-        int halves = 0;
+        long weight = 0;
         for (Entry entry : entries) {
-            halves += entry.count() * entry.chemotype().thcHalves();
+            weight += entry.thcWeight();
         }
-        if (halves <= 0) {
-            return 0;
-        }
-        return Math.min(MAX_THC_DOSE, Math.max(1, halves / Chemotype.FULL_WEIGHT));
+        return dose(weight, MAX_THC_DOSE);
     }
 
     /**
@@ -394,8 +461,8 @@ public record SmokeContents(List<Entry> entries) {
         for (Entry entry : entries) {
             int bonus = entry.strain().value().wildFlower().isPresent() ? load : 0;
             int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel(bonus));
-            for (MobEffectInstance effect : entry.strain().value().effects(entry.count(), entry.chemotype(),
-                    durationTicks + durationTicks * past / 2, onExhale, bonus, random)) {
+            for (MobEffectInstance effect : entry.strain().value().effects(entry.count(), entry.thcDose(),
+                    entry.chemotype(), durationTicks + durationTicks * past / 2, onExhale, bonus, random)) {
                 out.add(new MobEffectInstance(effect.getEffect(), effect.getDuration(),
                         EffectPolicy.amplifier(effect.getEffect(), effect.getAmplifier(), bonus)));
             }

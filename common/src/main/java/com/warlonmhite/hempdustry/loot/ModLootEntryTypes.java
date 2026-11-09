@@ -37,6 +37,10 @@ public class ModLootEntryTypes {
     public static final LootItemFunctionType<SetChemotypeFunction> SET_CHEMOTYPE = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "set_chemotype"), new LootItemFunctionType<>(SetChemotypeFunction.CODEC));
 
+    /** {@code hempdustry:set_potency}: a harvested bud takes its plant's band, a leaf its high mark. */
+    public static final LootItemFunctionType<SetPotencyFunction> SET_POTENCY = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "set_potency"), new LootItemFunctionType<>(SetPotencyFunction.CODEC));
+
     public static void registerLootEntryTypes() {
         Hempdustry.LOGGER.info("Registering Loot Entry Types for " + Hempdustry.MOD_ID);
     }

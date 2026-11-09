@@ -251,7 +251,8 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.INVISIBILITY, 0, false),
                         new SmokeEffect(MobEffects.BLINDNESS, 0, false, 0.25F, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
-                0.5F, Chemotype.BALANCED).withTerpene(Terpene.MYRCENE));
+                0.5F, Chemotype.BALANCED).withTerpene(Terpene.MYRCENE)
+                .withPotency(Potency.odds(30, 50, 20, 0)));
         // Warped Kush -- the Nether's plant, after Blueberry and Blue Dream, and a strain that
         // literally gets you high.
         //
@@ -275,7 +276,8 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.FIRE_RESISTANCE, 0, false),
                         new SmokeEffect(MobEffects.JUMP_BOOST, 0, true),
                         new SmokeEffect(MobEffects.DARKNESS, 0, false),
-                        new SmokeEffect(MobEffects.HUNGER, 0, true))).withTerpene(Terpene.EUCALYPTOL));
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))).withTerpene(Terpene.EUCALYPTOL)
+                .withPotency(Potency.odds(20, 50, 25, 5)));
 
         // Ruderalis -- the feral ancestor, and the lucky one.
         //
@@ -301,7 +303,8 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(MobEffects.LUCK, 0, false),
                         new SmokeEffect(MobEffects.HUNGER, 0, EffectLabel.THC, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
-                0.5F, Chemotype.BALANCED).withTerpene(Terpene.PINENE));
+                0.5F, Chemotype.BALANCED).withTerpene(Terpene.PINENE)
+                .withPotency(Potency.odds(50, 40, 10, 0)));
 
         // Crimson Weed -- the crimson forest's plant, Warped Kush's opposite number.
         //
@@ -323,7 +326,8 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(MobEffects.STRENGTH, 0, true),
                         new SmokeEffect(MobEffects.GLOWING, 0, false),
-                        new SmokeEffect(MobEffects.HUNGER, 0, true))).withTerpene(Terpene.CARYOPHYLLENE));
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))).withTerpene(Terpene.CARYOPHYLLENE)
+                .withPotency(Potency.odds(20, 50, 25, 5)));
 
         // Ender Haze -- the End's plant, and the second Haze: Speed is the family's, as Hunger is
         // everyone's.
@@ -352,7 +356,8 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.LEVITATION, 0, EffectLabel.STRAIN, LEVITATION_DURATION_FACTOR, true,
                                 1.0F, SmokeEffect.NO_CAP),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
-                1.0F, Chemotype.BALANCED).withTerpene(Terpene.TERPINOLENE));
+                1.0F, Chemotype.BALANCED).withTerpene(Terpene.TERPINOLENE)
+                .withPotency(Potency.odds(28, 50, 20, 2)));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

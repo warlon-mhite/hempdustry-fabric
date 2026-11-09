@@ -1,6 +1,11 @@
 package com.warlonmhite.hempdustry.recipe;
 
+import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.ChemotypeBlocks;
+import com.warlonmhite.hempdustry.block.custom.HempLeavesBlock;
+import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.item.custom.StrainPlantItem;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.StampedBlockItem;
@@ -24,6 +29,13 @@ import net.minecraft.world.item.crafting.CraftingInput;
  * one bowl pack nothing: nine leaves make a block of one kind, and a spliff burns one material. Only
  * the Infuser, the sieve and bhang mix chemotypes, by their dosage ({@link Chemotype#dosage}). A bud
  * in the grid is not stamped matter: it is its strain, and the result names its strain already.
+ *
+ * <h2>Bands mix, marks do not</h2>
+ *
+ * Buds carry their plant's band ({@link PotencyBand}): a spliff or a moon rock rolled from buds of
+ * different bands keeps the sum of their offsets, which is what their THC averages to. Leaves carry a
+ * high mark, and a block holds one: a grid of marked and plain leaves matches nothing, and the result
+ * takes the mark they share — the block of nine marked leaves, the nine leaves out of it.
  */
 public final class Stamping {
     private Stamping() {
@@ -59,15 +71,82 @@ public final class Stamping {
         return Optional.ofNullable(found);
     }
 
-    /** Whether the stamped matter in {@code input} is all of one chemotype. */
-    public static boolean agrees(CraftingInput input) {
-        return shared(input) != null;
+    /** The high mark a leaf or a leaf block brings (mid when unmarked); empty for anything else. */
+    public static Optional<PotencyBand> markOf(ItemStack stack) {
+        if (stack.is(ModItems.HEMP_LEAF)) {
+            return Optional.of(PotencyBand.of(stack));
+        }
+        if (stack.is(ModBlocks.HEMP_LEAVES.asItem())) {
+            return Optional.of(HempLeavesBlock.markOfBlockItem(stack));
+        }
+        return Optional.empty();
     }
 
-    /** The result of a craft over {@code input}, stamped with the chemotype its stamped matter shares. */
+    /**
+     * The one mark the leaves and leaf blocks in {@code input} share: empty when there are none, and
+     * {@code null} when two disagree, which refuses the craft — a block holds one mark.
+     */
+    public static Optional<PotencyBand> sharedMark(CraftingInput input) {
+        PotencyBand found = null;
+        for (int slot = 0; slot < input.size(); slot++) {
+            Optional<PotencyBand> mark = markOf(input.getItem(slot));
+            if (mark.isEmpty()) {
+                continue;
+            }
+            if (found != null && found != mark.get()) {
+                return null;
+            }
+            found = mark.get();
+        }
+        return Optional.ofNullable(found);
+    }
+
+    /**
+     * The sum of the band offsets of the buds in {@code input} (one bud per occupied slot, as crafting
+     * takes), empty when there are none: what a spliff or a moon rock rolled from them carries, so buds
+     * of different bands come out at their average.
+     */
+    public static Optional<Integer> budPotency(CraftingInput input) {
+        int sum = 0;
+        boolean any = false;
+        for (int slot = 0; slot < input.size(); slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack.getItem() instanceof StrainPlantItem.Buds) {
+                sum += PotencyBand.of(stack).offset();
+                any = true;
+            }
+        }
+        return any ? Optional.of(sum) : Optional.empty();
+    }
+
+    /** Whether the stamped matter in {@code input} is all of one chemotype, and its leaves of one mark. */
+    public static boolean agrees(CraftingInput input) {
+        return shared(input) != null && sharedMark(input) != null;
+    }
+
+    /**
+     * The result of a craft over {@code input}, stamped with the chemotype its stamped matter shares,
+     * marked like its leaves, and, for a loaded spliff or moon rock, carrying its buds' bands.
+     */
     public static ItemStack carry(CraftingInput input, ItemStack result) {
         Optional<Chemotype> chemotype = shared(input);
-        return chemotype == null || chemotype.isEmpty() ? result : apply(result, chemotype.get());
+        if (chemotype != null && chemotype.isPresent()) {
+            result = apply(result, chemotype.get());
+        }
+        Optional<PotencyBand> mark = sharedMark(input);
+        if (mark != null && mark.isPresent()) {
+            if (result.is(ModItems.HEMP_LEAF)) {
+                PotencyBand.stamp(result, mark.get().marksLeaf() ? PotencyBand.HIGH : PotencyBand.MID);
+            } else if (result.is(ModBlocks.HEMP_LEAVES.asItem())) {
+                HempLeavesBlock.markBlockItem(result, mark.get());
+            }
+        }
+        Optional<Integer> potency = budPotency(input);
+        SmokeContents contents = result.get(ModComponents.SMOKE_CONTENTS);
+        if (potency.isPresent() && potency.get() != 0 && contents != null && !contents.isEmpty()) {
+            result.set(ModComponents.SMOKE_CONTENTS, contents.withPotency(potency.get()));
+        }
+        return result;
     }
 
     /**

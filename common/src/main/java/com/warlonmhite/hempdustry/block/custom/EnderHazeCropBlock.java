@@ -23,6 +23,10 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -70,7 +74,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * <p>Only the root random-ticks, is fertilizable and drops loot; breaking any segment takes the
  * whole plant and pays it once. The wild plant is this block, generated ripe on the outer islands.
  */
-public class EnderHazeCropBlock extends CropBlock {
+public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
     /** How tall the plant stands grown. */
     public static final int HEIGHT = 5;
     /** Which block of the plant this is, counted up from the root at 0. */
@@ -404,7 +408,9 @@ public class EnderHazeCropBlock extends CropBlock {
                 }
                 if (!rootPos.equals(pos)) {
                     if (!player.isCreative()) {
-                        dropResources(root, world, rootPos, null, player, player.getMainHandItem());
+                        // With the root's record: the buds take the plant's band from it.
+                        dropResources(root, world, rootPos, world.getBlockEntity(rootPos), player,
+                                player.getMainHandItem());
                     }
                     world.setBlock(rootPos, Blocks.AIR.defaultBlockState(),
                             Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
@@ -445,6 +451,30 @@ public class EnderHazeCropBlock extends CropBlock {
     @Override
     protected IntegerProperty getAgeProperty() {
         return AGE;
+    }
+
+    // ----- the plant's record -----
+
+    /**
+     * The plant's record ({@link PlantRecordBlockEntity}) sits on its root only: every other block of
+     * the plant answers none.
+     */
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return isRoot(state) ? new PlantRecordBlockEntity(pos, state) : null;
+    }
+
+    /**
+     * A root set back to age 0 in place — by a harvester that replants, through vanilla's
+     * {@code getStateForAge} — is a new plant, and rolls again.
+     */
+    @Override
+    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, world, pos, oldState, movedByPiston);
+        if (oldState.is(this) && isRoot(oldState) && isRoot(state)
+                && oldState.getValue(AGE) > 0 && state.getValue(AGE) == 0) {
+            PlantRecordBlockEntity.replantAt(world, pos);
+        }
     }
 
     @Override

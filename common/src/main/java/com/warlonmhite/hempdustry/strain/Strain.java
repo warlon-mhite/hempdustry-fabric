@@ -164,12 +164,25 @@ import net.minecraft.world.level.block.Blocks;
  *                        aroma. A cosmetic: it changes nothing the strain does
  * @param smokeColor      the colour its smoke takes, RGB, when it is not its terpene's: schwag has no
  *                        terpene and smokes the colour of stale hay
+ * @param potency         a plant strain's potency sheet (see {@link Potency}): a mid bud's worth at the
+ *                        oven and the odds of each band a plant rolls. {@link Potency#DEFAULT} when the
+ *                        file names none; read only for the buds of a plant
  */
 public record Strain(String translationKey, int color, int modelIndex,
                      Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                      float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
                      float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
-                     Optional<Integer> smokeColor) {
+                     Optional<Integer> smokeColor, Potency potency) {
+
+    /** A strain with the default potency sheet. */
+    public Strain(String translationKey, int color, int modelIndex,
+                  Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
+                  float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
+                  float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
+                  Optional<Integer> smokeColor) {
+        this(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem, smokeEffects,
+                coughFactor, chemotype, terpene, smokeColor, Potency.DEFAULT);
+    }
 
     /** A strain with no terpene and the plain smoke. */
     public Strain(String translationKey, int color, int modelIndex,
@@ -231,13 +244,19 @@ public record Strain(String translationKey, int color, int modelIndex,
     /** This strain with {@code terpene} as its signature. */
     public Strain withTerpene(ResourceKey<Terpene> terpene) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor);
+                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor, potency);
     }
 
     /** This strain smoking {@code rgb} rather than its terpene's colour. */
     public Strain withSmokeColor(int rgb) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb));
+                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb), potency);
+    }
+
+    /** This strain with {@code potency} as its sheet. */
+    public Strain withPotency(Potency potency) {
+        return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency);
     }
 
     /** The terpene the world loaded under this strain's {@link #terpene} key, if both exist. */
@@ -272,7 +291,8 @@ public record Strain(String translationKey, int color, int modelIndex,
             // By key, looked up when used: a strain naming a terpene the world does not define still
             // loads, and smokes plain.
             ResourceKey.codec(Terpene.REGISTRY_KEY).optionalFieldOf("terpene").forGetter(Strain::terpene),
-            Codec.INT.optionalFieldOf("smoke_color").forGetter(Strain::smokeColor)
+            Codec.INT.optionalFieldOf("smoke_color").forGetter(Strain::smokeColor),
+            Potency.CODEC.optionalFieldOf("potency", Potency.DEFAULT).forGetter(Strain::potency)
     ).apply(instance, Strain::new));
 
     /**
@@ -393,7 +413,16 @@ public record Strain(String translationKey, int color, int modelIndex,
      */
     public List<MobEffectInstance> effects(int units, Chemotype chemotype, int durationTicks, boolean onExhale,
                                               int buffBonus, RandomGenerator random) {
-        int thcDose = chemotype.thcDose(units);
+        return effects(units, chemotype.thcDose(units), chemotype, durationTicks, onExhale, buffBonus, random);
+    }
+
+    /**
+     * As above, with the THC dose given rather than read off the units: a bowl weighs a bud's THC by
+     * its potency band as well as its chemotype (see {@code SmokeContents.Entry#thcDose}), so a pipe of
+     * two extra-high buds is a dose of three.
+     */
+    public List<MobEffectInstance> effects(int units, int thcDose, Chemotype chemotype, int durationTicks,
+                                              boolean onExhale, int buffBonus, RandomGenerator random) {
         List<MobEffectInstance> out = new ArrayList<>(smokeEffects.size());
         for (SmokeEffect effect : smokeEffects) {
             if (effect.onExhale() != onExhale) {

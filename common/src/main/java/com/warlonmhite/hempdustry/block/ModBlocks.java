@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.BongBlock;
 import com.warlonmhite.hempdustry.block.custom.CharasBallBlock;
+import com.warlonmhite.hempdustry.block.custom.HempLeavesBlock;
 import com.warlonmhite.hempdustry.block.custom.StampedBlock;
 import com.warlonmhite.hempdustry.item.custom.StampedBlockItem;
 import com.warlonmhite.hempdustry.item.custom.StrainPlantItem;
@@ -223,7 +224,7 @@ public class ModBlocks {
      * stone reads as a bug. {@code randomTicks} is the one vanilla setting left out: it only
      * drives decay.
      */
-    public static final Block HEMP_LEAVES = registerBlockWithItem("hemp_leaves", StampedBlock::new,
+    public static final Block HEMP_LEAVES = registerBlockWithItem("hemp_leaves", HempLeavesBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.PLANT)
                     .strength(0.2F)
