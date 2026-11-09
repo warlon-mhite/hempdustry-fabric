@@ -2,6 +2,7 @@
   "values": [
     "hempdustry:indica_crop",
     "hempdustry:sativa_crop",
-    "hempdustry:industrial_hemp_crop"
+    "hempdustry:industrial_hemp_crop",
+    "hempdustry:cherry_wine_crop"
   ]
 }

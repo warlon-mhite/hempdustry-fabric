@@ -32,7 +32,7 @@ LAYERS = {
     "sulfur": (SULFUR, 0.22, 0.06, "sulfured"),
 }
 
-CROPS = ("indica_crop", "sativa_crop", "beldia_crop")
+CROPS = ("indica_crop", "sativa_crop", "beldia_crop", "cherry_wine_crop")
 STAGE = re.compile(r"^(?:%s)_stage\d+(?:_(?:bottom|middle|top))?$" % "|".join(CROPS))
 
 

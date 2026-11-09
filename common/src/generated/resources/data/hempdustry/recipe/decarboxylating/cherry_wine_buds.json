@@ -1,0 +1,9 @@
+{
+  "type": "hempdustry:decarboxylating",
+  "count_from_strain": true,
+  "ingredient": "hempdustry:cherry_wine_buds",
+  "result": {
+    "count": 4,
+    "id": "hempdustry:decarboxylated_hemp"
+  }
+}

@@ -32,7 +32,8 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         valueLookupBuilder(BlockTags.MAINTAINS_FARMLAND)
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP)
-                .add(ModBlocks.INDUSTRIAL_HEMP_CROP);
+                .add(ModBlocks.INDUSTRIAL_HEMP_CROP)
+                .add(ModBlocks.CHERRY_WINE_CROP);
 
         // Nothing in 1.21.1's *code* reads #minecraft:crops (the only class referencing it is the
         // vanilla tag provider that builds it) — its one effect is that #minecraft:bee_growables
@@ -48,7 +49,8 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(ModBlocks.INDICA_CROP)
                 .add(ModBlocks.SATIVA_CROP)
                 .add(ModBlocks.BELDIA_CROP)
-                .add(ModBlocks.INDUSTRIAL_HEMP_CROP);
+                .add(ModBlocks.INDUSTRIAL_HEMP_CROP)
+                .add(ModBlocks.CHERRY_WINE_CROP);
 
         // "A hemp plant you can defoliate", strain-agnostic. The "Trim Season" advancement matches
         // shears-used-on-a-block-in-this-tag, which is exactly where Defoliation#tryCut succeeds
@@ -63,7 +65,8 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(ModBlocks.WARPED_KUSH_CROP)
                 .add(ModBlocks.RUDERALIS_CROP)
                 .add(ModBlocks.CRIMSON_CROP)
-                .add(ModBlocks.ENDER_HAZE_CROP);
+                .add(ModBlocks.ENDER_HAZE_CROP)
+                .add(ModBlocks.CHERRY_WINE_CROP);
 
         // Hoglins keep about eight blocks from anything in here (HoglinSpecificSensor), and vanilla's
         // only plant in it is warped fungus. Warped Kush grows beside it and joins it: a field of it
@@ -114,6 +117,7 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         // the *item* tag #minecraft:small_flowers (suspicious stew -- see ModBlocks).
         valueLookupBuilder(BlockTags.SWORD_EFFICIENT)
                 .add(ModBlocks.INDICA_FLOWER)
+                .add(ModBlocks.CHERRY_WINE_FLOWER)
                 .add(ModBlocks.SATIVA_FLOWER)
                 .add(ModBlocks.DITCHWEED);
         // SATIVA_FLOWER is deliberately absent: it is two blocks tall, and an enderman lifts ONE
@@ -122,7 +126,8 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         // ever be put back down as a lone half that immediately breaks again. Vanilla has no double
         // plant in this tag for the same reason.
         valueLookupBuilder(BlockTags.ENDERMAN_HOLDABLE)
-                .add(ModBlocks.INDICA_FLOWER);
+                .add(ModBlocks.INDICA_FLOWER)
+                .add(ModBlocks.CHERRY_WINE_FLOWER);
 
         // What will heat an Infuser standing on top of it. Anything here that carries a LIT
         // property must also be lit (see InfuserBlockEntity#isHeatedFrom), which is what makes the

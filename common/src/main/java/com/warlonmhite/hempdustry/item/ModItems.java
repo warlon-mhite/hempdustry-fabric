@@ -87,6 +87,8 @@ public class ModItems {
     public static final Item CRIMSON_BUDS = registerItem("crimson_buds", StrainPlantItem.Buds::new);
     public static final Item ENDER_HAZE_SEEDS = registerItem("ender_haze_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.ENDER_HAZE_CROP, settings));
     public static final Item ENDER_HAZE_BUDS = registerItem("ender_haze_buds", StrainPlantItem.Buds::new);
+    public static final Item CHERRY_WINE_SEEDS = registerItem("cherry_wine_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.CHERRY_WINE_CROP, settings));
+    public static final Item CHERRY_WINE_BUDS = registerItem("cherry_wine_buds", StrainPlantItem.Buds::new);
     public static final Item HEMP_STEM = registerItem("hemp_stem", settings -> new Item(settings));
     /**
      * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has

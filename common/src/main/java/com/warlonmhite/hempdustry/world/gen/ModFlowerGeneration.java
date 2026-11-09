@@ -80,6 +80,13 @@ public class ModFlowerGeneration {
                 ModPlacedFeatures.CRIMSON_PLACED_KEY
         );
 
+        // Cherry Wine, ripe and wild, in cherry groves.
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.CHERRY_WINE_GEN,
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ModPlacedFeatures.CHERRY_WINE_PLACED_KEY
+        );
+
         // Ender Haze, ripe and wild, on the outer End islands -- never the dragon's.
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.ENDER_HAZE_GEN,

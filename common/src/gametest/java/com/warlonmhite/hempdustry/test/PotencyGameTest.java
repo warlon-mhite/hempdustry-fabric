@@ -84,6 +84,7 @@ public final class PotencyGameTest {
         SHEETS.put(ModStrains.CRIMSON, Potency.odds(20, 50, 25, 5));
         SHEETS.put(ModStrains.ENDER_HAZE, Potency.odds(28, 50, 20, 2));
         SHEETS.put(ModStrains.RUDERALIS, Potency.odds(50, 40, 10, 0));
+        SHEETS.put(ModStrains.CHERRY_WINE, Potency.odds(40, 50, 10, 0));
     }
 
     /**
@@ -97,6 +98,7 @@ public final class PotencyGameTest {
         Predicate<BlockState> lower = state -> state.getValue(IndicaCropBlock.HALF) == DoubleBlockHalf.LOWER;
         roots.put(ModBlocks.INDICA_CROP, lower);
         roots.put(ModBlocks.BELDIA_CROP, lower);
+        roots.put(ModBlocks.CHERRY_WINE_CROP, lower);
         roots.put(ModBlocks.WARPED_KUSH_CROP, lower);
         roots.put(ModBlocks.CRIMSON_CROP, state -> state.getValue(IndicaCropBlock.HALF) == DoubleBlockHalf.UPPER);
         roots.put(ModBlocks.SATIVA_CROP, state -> state.getValue(SativaCropBlock.SEGMENT) == TriplePlantSegment.LOWER);
@@ -116,7 +118,7 @@ public final class PotencyGameTest {
                 findings.put(strain.key().identifier().toString(), BuiltInRegistries.BLOCK.getKey(crop) + " keeps no record");
             }
         }
-        Sweep.atLeast(context, "plant strains", strains, 7);
+        Sweep.atLeast(context, "plant strains", strains, 8);
         for (Map.Entry<Block, Predicate<BlockState>> crop : roots.entrySet()) {
             String id = BuiltInRegistries.BLOCK.getKey(crop.getKey()).toString();
             for (BlockState state : crop.getKey().getStateDefinition().getPossibleStates()) {

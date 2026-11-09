@@ -130,8 +130,9 @@ public class HempdustryClient {
             public int colorInWorld(BlockState state, BlockAndTintGetter view, BlockPos pos) {
                 return biomeTint(BiomeColors.getAverageGrassColor(view, pos));
             }
-        }), ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER, ModBlocks.DITCHWEED,
+        }), ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER, ModBlocks.DITCHWEED, ModBlocks.CHERRY_WINE_FLOWER,
                 ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER, ModBlocks.POTTED_DITCHWEED,
+                ModBlocks.POTTED_CHERRY_WINE_FLOWER,
                 // A crop, but one with no light record for the crops' source below to read: it
                 // takes the biome and nothing else, like the wild plants it is kin to.
                 ModBlocks.RUDERALIS_CROP);
@@ -163,7 +164,7 @@ public class HempdustryClient {
                 return Set.of(GrowLight.PROPERTY);
             }
         }), ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
-                ModBlocks.INDUSTRIAL_HEMP_CROP);
+                ModBlocks.INDUSTRIAL_HEMP_CROP, ModBlocks.CHERRY_WINE_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
         // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour

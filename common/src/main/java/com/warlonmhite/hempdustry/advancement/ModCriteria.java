@@ -21,6 +21,11 @@ public class ModCriteria {
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "harvest_hemp"),
             new HarvestHempCriterion());
 
+    public static final EdibleKicksInCriterion EDIBLE_KICKS_IN = Registry.register(
+            BuiltInRegistries.TRIGGER_TYPES,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "edible_kicks_in"),
+            new EdibleKicksInCriterion());
+
     public static void registerCriteria() {
         Hempdustry.LOGGER.info("Registering Advancement Criteria for " + Hempdustry.MOD_ID);
     }

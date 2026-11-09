@@ -256,6 +256,9 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         add(ModBlocks.BELDIA_CROP, beldiaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.BELDIA))
                 .apply(SetPotencyFunction.setPotency()));
         add(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
+        add(ModBlocks.CHERRY_WINE_FLOWER, wildFlowerDrops(ModBlocks.CHERRY_WINE_FLOWER, ModItems.CHERRY_WINE_SEEDS));
+        add(ModBlocks.CHERRY_WINE_CROP, cherryWineCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.CHERRY_WINE))
+                .apply(SetPotencyFunction.setPotency()));
 
         add(ModBlocks.SATIVA_CROP, sativaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.SATIVA))
                 .apply(SetPotencyFunction.setPotency()));
@@ -264,6 +267,7 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         // settings does not bring its table along -- a block reads the table under its own id -- so
         // both pots dropped nothing until 2.0.2.
         dropPottedContents(ModBlocks.POTTED_INDICA_FLOWER);
+        dropPottedContents(ModBlocks.POTTED_CHERRY_WINE_FLOWER);
         dropPottedContents(ModBlocks.POTTED_SATIVA_FLOWER);
 
         // Fibre hemp is CBD-dominant with low totals; the feral plant drifts back to a little of each.
@@ -467,10 +471,15 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
      * the crop's seeds (base 1 + binomial(fortuneLevel + 3, 0.40)).
      */
     private LootTable.Builder indicaFlowerDrops() {
+        return wildFlowerDrops(ModBlocks.INDICA_FLOWER, ModItems.INDICA_SEEDS);
+    }
+
+    /** A one-block wild flower of Purple Kush's kind: itself with shears or Silk Touch, else its seeds. */
+    private LootTable.Builder wildFlowerDrops(Block flower, Item seeds) {
         Holder<Enchantment> fortune = this.enchantments.getOrThrow(Enchantments.FORTUNE);
-        return this.createSilkTouchOrShearsDispatchTable(ModBlocks.INDICA_FLOWER,
-                this.applyExplosionDecay(ModBlocks.INDICA_FLOWER,
-                        LootItem.lootTableItem(ModItems.INDICA_SEEDS)
+        return this.createSilkTouchOrShearsDispatchTable(flower,
+                this.applyExplosionDecay(flower,
+                        LootItem.lootTableItem(seeds)
                                 .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.40F, 3))));
     }
 
@@ -771,6 +780,16 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
      * plant, which here is none. It is also its own wild plant, so a ripe one found on a desert
      * riverbank pays exactly this.
      */
+    private LootTable.Builder cherryWineCropDrops() {
+        // Purple Kush's body and Purple Kush's harvest, cut for cut. It is also its own wild plant,
+        // so a ripe one found in a cherry grove pays exactly this.
+        return this.hempCropDrops(ModBlocks.CHERRY_WINE_CROP,
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
+                IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
+                ModItems.CHERRY_WINE_BUDS, ModItems.CHERRY_WINE_SEEDS,
+                5, 2);
+    }
+
     private LootTable.Builder beldiaCropDrops() {
         return this.hempCropDrops(ModBlocks.BELDIA_CROP,
                 () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),

@@ -131,6 +131,7 @@ public class ModModelProvider extends FabricModelProvider {
         // carry "tintindex": 0 — vanilla's own ferns are potted through the tinted pair, so a
         // potted wild flower picking up the room's biome is what a player already expects.
         blockStateModelGenerator.createPlantWithDefaultItem(ModBlocks.INDICA_FLOWER, ModBlocks.POTTED_INDICA_FLOWER, BlockModelGenerators.PlantType.TINTED);
+        blockStateModelGenerator.createPlantWithDefaultItem(ModBlocks.CHERRY_WINE_FLOWER, ModBlocks.POTTED_CHERRY_WINE_FLOWER, BlockModelGenerators.PlantType.TINTED);
         registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
         registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.DITCHWEED, ModBlocks.POTTED_DITCHWEED);
 
@@ -187,6 +188,8 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(ModItems.CRIMSON_BUDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.ENDER_HAZE_SEEDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.ENDER_HAZE_BUDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.CHERRY_WINE_SEEDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.CHERRY_WINE_BUDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.RUDERALIS_SEEDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.RUDERALIS_BUDS, ModelTemplates.FLAT_ITEM);
         // Smoking gear. One item per device carries every strain in a component, so the visual

@@ -1,0 +1,27 @@
+{
+  "buds": "hempdustry:cherry_wine_buds",
+  "chemotype": "cbd_dominant",
+  "color": 16021918,
+  "effects": [
+    {
+      "effect": "minecraft:regeneration",
+      "label": "cbd",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:slowness",
+      "label": "cbd",
+      "scales": false
+    }
+  ],
+  "flower": "hempdustry:cherry_wine_flower",
+  "green_out_factor": 0.0,
+  "model_index": 12,
+  "potency": {
+    "high": 10,
+    "low": 40
+  },
+  "seeds": "hempdustry:cherry_wine_seeds",
+  "terpene": "hempdustry:geraniol",
+  "translation_key": "hempdustry.strain.cherry_wine"
+}

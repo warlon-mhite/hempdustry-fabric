@@ -1,0 +1,30 @@
+{
+  "type": "hempdustry:stamped_shaped",
+  "group": "spliff",
+  "key": {
+    "B": "hempdustry:cherry_wine_buds",
+    "H": "hempdustry:hashish",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "BHB",
+    "PPP"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 2,
+            "strain": "hempdustry:cherry_wine"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:hashish"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:spliff"
+  }
+}
