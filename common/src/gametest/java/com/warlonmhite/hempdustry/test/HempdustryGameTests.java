@@ -131,6 +131,11 @@ public final class HempdustryGameTests {
         register("beldia_smokes_a_mirage", BeldiaGameTest::beldiaSmokesAMirage);
         register("beldia_stays_in_the_desert", BeldiaGameTest::beldiaStaysInTheDesert);
         register("wild_beldia_grows_ripe", BeldiaGameTest::wildBeldiaGrowsRipe);
+        register("cherry_wine_plants_on_farmland", CherryWineGameTest::cherryWinePlantsOnFarmland);
+        register("cherry_wine_smokes_cbd_only", CherryWineGameTest::cherryWineSmokesCbdOnly);
+        register("cherry_wine_seeds_skip_the_grass", CherryWineGameTest::cherryWineSeedsSkipTheGrass);
+        register("wild_cherry_wine_is_a_flower", CherryWineGameTest::wildCherryWineIsAFlower);
+        register("it_doesnt_work_like_that", CherryWineGameTest::itDoesntWorkLikeThat);
         register("crop_loot_tables_validate_clean", SchwagGameTest::cropLootTablesValidateClean);
         register("healthy_plants_spoil_one_bud_in_fifty", SchwagGameTest::healthyPlantsSpoilOneBudInFifty);
         register("stressed_buds_spoil_one_by_one", SchwagGameTest::stressedBudsSpoilOneByOne);

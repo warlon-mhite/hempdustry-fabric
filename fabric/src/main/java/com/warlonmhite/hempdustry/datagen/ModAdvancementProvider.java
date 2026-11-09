@@ -1,7 +1,9 @@
 package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.advancement.EdibleKicksInCriterion;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
+import com.warlonmhite.hempdustry.advancement.ModCriteria;
 import com.warlonmhite.hempdustry.advancement.SmokeCriterion;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
@@ -24,6 +26,7 @@ import net.minecraft.advancements.criterion.BlockPredicate;
 import net.minecraft.advancements.criterion.ConsumeItemTrigger;
 import net.minecraft.advancements.criterion.DataComponentMatchers;
 import net.minecraft.advancements.criterion.EntityPredicate;
+import net.minecraft.advancements.criterion.MobEffectsPredicate;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
 import net.minecraft.advancements.criterion.ItemDurabilityTrigger;
 import net.minecraft.advancements.criterion.ItemPredicate;
@@ -49,6 +52,7 @@ import net.minecraft.world.level.ItemLike;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.world.effect.MobEffects;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -287,6 +291,22 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .addCriterion("took_a_hit", SmokeCriterion.Conditions.any())
                 .parent(rootAdvancement)
                 .save(consumer, Hempdustry.MOD_ID + ":first_contact");
+
+        // A joke, so hidden: CBD fixes nothing. Smoke Cherry Wine, or feel a CBD-dominant edible kick
+        // in, while greened out -- and the Nausea stays. "Greened out" is the player still carrying
+        // Nausea, asked through vanilla's own player predicate. Under First Contact, since the
+        // obvious way in is a hit; either criterion grants it.
+        EntityPredicate.Builder nauseous = EntityPredicate.Builder.entity()
+                .effects(MobEffectsPredicate.Builder.effects().and(MobEffects.NAUSEA));
+        Advancement.Builder.advancement()
+                .display(display(ModItems.CHERRY_WINE_BUDS, "it_doesnt_work_like_that", AdvancementType.TASK, true))
+                .addCriterion("smoked_cherry_wine_greened_out", ModCriteria.SMOKE.createCriterion(new SmokeCriterion.Conditions(
+                        Optional.of(EntityPredicate.wrap(nauseous)), Optional.empty(), Optional.empty(),
+                        Optional.of(ModStrains.CHERRY_WINE))))
+                .addCriterion("cbd_edible_kicked_in_greened_out", EdibleKicksInCriterion.Conditions.cbdDominant(nauseous))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .parent(firstContact)
+                .save(consumer, Hempdustry.MOD_ID + ":it_doesnt_work_like_that");
 
         // Hidden easter-egg: take a hit while the in-game clock reads ~4:20 PM. Vanilla day = 24000
         // ticks, tick 0 = 6:00 AM, 1000 ticks/hour → 4:20 PM = 10333. Window ±210 ticks (10123–10543,

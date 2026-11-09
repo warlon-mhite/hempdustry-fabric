@@ -83,6 +83,8 @@ public class ModStrains {
     public static final ResourceKey<Strain> CRIMSON = key("crimson");
     /** The End's plant, five tall on end stone. Its wild flower is its own crop, generated ripe on the outer islands. */
     public static final ResourceKey<Strain> ENDER_HAZE = key("ender_haze");
+    /** The CBD plant, Purple Kush's body. Its wild flower is a flower of its own, Purple Kush's kind, in cherry groves. */
+    public static final ResourceKey<Strain> CHERRY_WINE = key("cherry_wine");
     /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
@@ -108,7 +110,7 @@ public class ModStrains {
      */
     public static final List<ResourceKey<Strain>> BUILT_IN =
             List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH, RUDERALIS,
-                    CRIMSON, ENDER_HAZE);
+                    CRIMSON, ENDER_HAZE, CHERRY_WINE);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -358,6 +360,30 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
                 1.0F, Chemotype.BALANCED).withTerpene(Terpene.TERPINOLENE)
                 .withPotency(Potency.odds(28, 50, 20, 2)));
+
+        // Cherry Wine -- the CBD plant, a real high-CBD cultivar bred from hemp for its flower, and the
+        // first strain whose smoke carries CBD-labelled effects only.
+        //
+        // REGENERATION is the signature, a game shortcut for CBD's one modest medical claim, and
+        // SLOWNESS the tax: sleepiness is purified CBD's commonest side effect. Both are CBD's, so both
+        // stay at level I and last 50 ticks for each mid bud's worth of CBD in the bowl, at most 150
+        // (SmokeContents#cbdTicks): one bud heals half a heart, a bong of three a heart and a half, less
+        // than a Potion of Regeneration. Butter is the stronger CBD route, as edibles last longer.
+        //
+        // NO HUNGER, and no rule needed for it: the munchies are THC-labelled, and a CBD-dominant bud
+        // carries no THC, so its THC dose is 0 -- no high, no Hunger, nothing to green you out with.
+        // green_out_factor 0 says the same in the codec's own words. Nothing here cancels THC: smoked
+        // while greened out, the Nausea stays.
+        //
+        // Cherry-blossom pink, the grove it grows in, and readable on a packed vaporizer's gunmetal.
+        context.register(CHERRY_WINE, new Strain("hempdustry.strain.cherry_wine", 0xF4799E, modelIndex(CHERRY_WINE),
+                Optional.of(ModItems.CHERRY_WINE_SEEDS), ModItems.CHERRY_WINE_BUDS,
+                Optional.of(ModBlocks.CHERRY_WINE_FLOWER), 0.0F, 1,
+                List.of(
+                        new SmokeEffect(MobEffects.REGENERATION, 0, EffectLabel.CBD, 1.0F, false, 1.0F, SmokeEffect.NO_CAP),
+                        new SmokeEffect(MobEffects.SLOWNESS, 0, EffectLabel.CBD, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
+                1.0F, Chemotype.CBD_DOMINANT).withTerpene(Terpene.GERANIOL)
+                .withPotency(Potency.odds(40, 50, 10, 0)));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

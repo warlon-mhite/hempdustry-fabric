@@ -68,6 +68,9 @@ public class HempdustryClient {
         client.blockLayer(ModBlocks.RUDERALIS_CROP, ChunkSectionLayer.CUTOUT);
         client.blockLayer(ModBlocks.CRIMSON_CROP, ChunkSectionLayer.CUTOUT);
         client.blockLayer(ModBlocks.ENDER_HAZE_CROP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.CHERRY_WINE_CROP, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.CHERRY_WINE_FLOWER, ChunkSectionLayer.CUTOUT);
+        client.blockLayer(ModBlocks.POTTED_CHERRY_WINE_FLOWER, ChunkSectionLayer.CUTOUT);
         // The chains the Grow Lamp hangs from are see-through between the links.
         client.blockLayer(ModBlocks.GROW_LAMP, ChunkSectionLayer.CUTOUT);
         // The compost crumbs over the pot's soil are drawn with see-through pixels.
@@ -151,8 +154,9 @@ public class HempdustryClient {
                 return NO_TINT;
             }
             return biomeTint(BiomeColors.getAverageGrassColor(view, pos));
-        }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER, ModBlocks.DITCHWEED,
+        }, ModBlocks.INDICA_FLOWER, ModBlocks.SATIVA_FLOWER, ModBlocks.DITCHWEED, ModBlocks.CHERRY_WINE_FLOWER,
                 ModBlocks.POTTED_INDICA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER, ModBlocks.POTTED_DITCHWEED,
+                ModBlocks.POTTED_CHERRY_WINE_FLOWER,
                 // A crop, but one with no light record for the crops' provider below to read: it
                 // takes the biome and nothing else, like the wild plants it is kin to.
                 ModBlocks.RUDERALIS_CROP);
@@ -174,7 +178,7 @@ public class HempdustryClient {
             return light.artificial() && light != GrowLight.STRESSED
                     ? ARGB.srgbLerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
         }, ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
-                ModBlocks.INDUSTRIAL_HEMP_CROP);
+                ModBlocks.INDUSTRIAL_HEMP_CROP, ModBlocks.CHERRY_WINE_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
         // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour

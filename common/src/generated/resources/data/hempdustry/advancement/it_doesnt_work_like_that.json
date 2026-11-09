@@ -1,0 +1,60 @@
+{
+  "parent": "hempdustry:first_contact",
+  "criteria": {
+    "cbd_edible_kicked_in_greened_out": {
+      "conditions": {
+        "cbd_dominant": true,
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "effects": {
+                "minecraft:nausea": {}
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "hempdustry:edible_kicks_in"
+    },
+    "smoked_cherry_wine_greened_out": {
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "effects": {
+                "minecraft:nausea": {}
+              }
+            }
+          }
+        ],
+        "strain": "hempdustry:cherry_wine"
+      },
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "background": "hempdustry:block/hempcrete_powder_block",
+    "description": {
+      "translate": "advancements.hempdustry.it_doesnt_work_like_that.description"
+    },
+    "hidden": true,
+    "icon": {
+      "count": 1,
+      "id": "hempdustry:cherry_wine_buds"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.it_doesnt_work_like_that.title"
+    }
+  },
+  "requirements": [
+    [
+      "smoked_cherry_wine_greened_out",
+      "cbd_edible_kicked_in_greened_out"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

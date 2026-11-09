@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.item.custom;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.advancement.ModCriteria;
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -39,12 +40,22 @@ public final class EdibleScheduler {
     private EdibleScheduler() {
     }
 
-    /** One effect waiting to land, and how many ticks it has left. */
-    public record Pending(int ticksLeft, MobEffectInstance effect) {
+    /**
+     * One effect waiting to land, and how many ticks it has left. {@code onset} marks the edible's
+     * first effect, the moment it kicks in, and {@code cbdDominant} whether that edible had more CBD
+     * than THC in it. Both are written only when true, so a save from before them reads as it did.
+     */
+    public record Pending(int ticksLeft, MobEffectInstance effect, boolean onset, boolean cbdDominant) {
         public static final Codec<Pending> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ExtraCodecs.POSITIVE_INT.fieldOf("ticks_left").forGetter(Pending::ticksLeft),
-                MobEffectInstance.CODEC.fieldOf("effect").forGetter(Pending::effect)
+                MobEffectInstance.CODEC.fieldOf("effect").forGetter(Pending::effect),
+                Codec.BOOL.optionalFieldOf("onset", false).forGetter(Pending::onset),
+                Codec.BOOL.optionalFieldOf("cbd_dominant", false).forGetter(Pending::cbdDominant)
         ).apply(instance, Pending::new));
+
+        public Pending(int ticksLeft, MobEffectInstance effect) {
+            this(ticksLeft, effect, false, false);
+        }
     }
 
     /**
@@ -62,8 +73,17 @@ public final class EdibleScheduler {
 
     /** Applies {@code effect} to {@code player} in {@code delayTicks} ticks. */
     public static void schedule(Player player, int delayTicks, MobEffectInstance effect) {
+        schedule(player, delayTicks, effect, false, false);
+    }
+
+    /**
+     * As above; {@code onset} marks the edible's first effect, which fires the "kicks in" trigger as
+     * it lands, and {@code cbdDominant} says what kind of edible it was.
+     */
+    public static void schedule(Player player, int delayTicks, MobEffectInstance effect, boolean onset,
+                                boolean cbdDominant) {
         List<Pending> waiting = new ArrayList<>(Services.PLAYER_DATA.pendingEdibles(player));
-        waiting.add(new Pending(Math.max(1, delayTicks), new MobEffectInstance(effect)));
+        waiting.add(new Pending(Math.max(1, delayTicks), new MobEffectInstance(effect), onset, onset && cbdDominant));
         Services.PLAYER_DATA.setPendingEdibles(player, List.copyOf(waiting));
     }
 
@@ -82,9 +102,13 @@ public final class EdibleScheduler {
             List<Pending> still = new ArrayList<>(waiting.size());
             for (Pending pending : waiting) {
                 if (pending.ticksLeft() > 1) {
-                    still.add(new Pending(pending.ticksLeft() - 1, pending.effect()));
+                    still.add(new Pending(pending.ticksLeft() - 1, pending.effect(), pending.onset(),
+                            pending.cbdDominant()));
                 } else {
                     player.addEffect(new MobEffectInstance(pending.effect()));
+                    if (pending.onset()) {
+                        ModCriteria.EDIBLE_KICKS_IN.trigger(player, pending.cbdDominant());
+                    }
                 }
             }
             Services.PLAYER_DATA.setPendingEdibles(player, List.copyOf(still));

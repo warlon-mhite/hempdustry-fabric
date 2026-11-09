@@ -6,6 +6,15 @@
     "hempdustry:beldia_seeds": {
       "chance": 0.3
     },
+    "hempdustry:cherry_wine_buds": {
+      "chance": 0.5
+    },
+    "hempdustry:cherry_wine_flower": {
+      "chance": 0.65
+    },
+    "hempdustry:cherry_wine_seeds": {
+      "chance": 0.3
+    },
     "hempdustry:crimson_buds": {
       "chance": 0.5
     },

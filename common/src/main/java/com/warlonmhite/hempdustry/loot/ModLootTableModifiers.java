@@ -44,6 +44,7 @@ import net.minecraft.world.level.storage.loot.predicates.MatchTool;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.CherryWineCropBlock;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -338,6 +339,15 @@ public class ModLootTableModifiers {
     }
 
     /**
+     * Whether these seeds plant Cherry Wine: a farm strain, so in the generic chests and the village
+     * houses with the other two, but never in the tall grass -- found growing, it is the cherry
+     * grove's plant, and grass anywhere would make the grove no place to go.
+     */
+    private static boolean isGroveSeed(Item seeds) {
+        return plants(seeds) instanceof CherryWineCropBlock;
+    }
+
+    /**
      * Whether these seeds belong to one place, and so stay out of the tall grass and the generic
      * chests that every other strain shares. Each such strain is found where it belongs, and leaving
      * all of them out keeps the others' share of those rolls what it was.
@@ -409,9 +419,10 @@ public class ModLootTableModifiers {
                 // Seedless strains — the hash family — are simply not in the pool: there is no
                 // seed to find, and a pool entry per plant strain is what keeps the coin flip fair.
                 // Nor is a region's own: Beldía is found where it grows, nothing from warped nylium
-                // grows in a meadow's grass, and Ruderalis grows nowhere until it is dug up.
+                // grows in a meadow's grass, and Ruderalis grows nowhere until it is dug up. Nor is
+                // Cherry Wine's, which the chests share but the grass leaves to its grove.
                 for (Holder.Reference<Strain> strain : Strain.all(registries)) {
-                    strain.value().seedItem().filter(seeds -> !isRegionBound(seeds))
+                    strain.value().seedItem().filter(seeds -> !isRegionBound(seeds) && !isGroveSeed(seeds))
                             .ifPresent(seeds -> pool.add(LootItem.lootTableItem(seeds)
                             .apply(ApplyBonusCount.addUniformBonusCount(fortune, 2))
                             .apply(ApplyExplosionDecay.explosionDecay())));

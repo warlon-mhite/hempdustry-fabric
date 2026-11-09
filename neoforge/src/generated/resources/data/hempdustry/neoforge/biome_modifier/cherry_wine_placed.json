@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#hempdustry:cherry_wine_gen",
+  "features": "hempdustry:cherry_wine_placed",
+  "step": "vegetal_decoration"
+}

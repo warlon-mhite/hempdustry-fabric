@@ -53,6 +53,7 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> RUDERALIS_KEY = registerKey("ruderalis");
     public static final ResourceKey<ConfiguredFeature<?, ?>> CRIMSON_KEY = registerKey("crimson");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ENDER_HAZE_KEY = registerKey("ender_haze");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> CHERRY_WINE_KEY = registerKey("cherry_wine");
 
     /** A handful of plants on one stretch of an island: tries within three blocks, on the centre's level or one off. */
     private static final int ENDER_HAZE_TRIES = 8;
@@ -135,6 +136,10 @@ public class ModConfiguredFeatures {
                                         BlockPredicate.matchesFluids(new Vec3i(0, -1, 1), Fluids.WATER, Fluids.FLOWING_WATER),
                                         BlockPredicate.matchesFluids(new Vec3i(0, -1, -1), Fluids.WATER, Fluids.FLOWING_WATER)))),
                         ModPlacementModifiers.InBeldiaBiomePlacementModifier.INSTANCE)));
+
+        // Wild Cherry Wine: a flower of its own, as Wild Purple Kush is.
+        register(context, CHERRY_WINE_KEY, wildPatch(ModBlocks.CHERRY_WINE_FLOWER));
+
         // Ditchweed — feral Industrial Hemp — grows where escaped fibre crops do, along water. So it
         // is placed exactly as sugar cane is: each plant must stand on its ground with water beside
         // that ground, vanilla's own filter, which is why most tries of a patch land nothing.

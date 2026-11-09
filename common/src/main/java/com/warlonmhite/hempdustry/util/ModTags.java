@@ -36,6 +36,11 @@ public class ModTags {
          * that tag, or this one by name.
          */
         public static final TagKey<Biome> ENDER_HAZE_GEN = createTag("ender_haze_gen");
+        /**
+         * Where Cherry Wine grows wild: the cherry grove. A modded cherry or sakura biome joins by
+         * name.
+         */
+        public static final TagKey<Biome> CHERRY_WINE_GEN = createTag("cherry_wine_gen");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }

@@ -103,6 +103,7 @@ public class Hempdustry {
 		registration.compostable(ModItems.RUDERALIS_SEEDS, 0.3f);
 		registration.compostable(ModItems.CRIMSON_SEEDS, 0.3f);
 		registration.compostable(ModItems.ENDER_HAZE_SEEDS, 0.3f);
+		registration.compostable(ModItems.CHERRY_WINE_SEEDS, 0.3f);
 		registration.compostable(ModItems.HEMP_FIBER, 0.3f);
 		// Woven cloth, so it sits with the armour at 0.5 rather than with the loose fibre at 0.3.
 		registration.compostable(ModItems.HEMP_CANVAS, 0.5f);
@@ -117,6 +118,7 @@ public class Hempdustry {
 		registration.compostable(ModItems.RUDERALIS_BUDS, 0.5f);
 		registration.compostable(ModItems.CRIMSON_BUDS, 0.5f);
 		registration.compostable(ModItems.ENDER_HAZE_BUDS, 0.5f);
+		registration.compostable(ModItems.CHERRY_WINE_BUDS, 0.5f);
 		// The two cannabutter-chain intermediates. Composting them is a ridiculous use of a fuelled
 		// oven, which is exactly why it should be allowed: everything else organic in the mod goes in
 		// the composter, and a lone pair of items that bounce off it reads as an oversight. They sit
@@ -137,6 +139,7 @@ public class Hempdustry {
 		registration.compostable(ModItems.FLIP_FLOPS, 0.5f);
 		// 0.65 is what vanilla gives every small flower; ours are plants too and had been missed.
 		registration.compostable(ModBlocks.INDICA_FLOWER, 0.65f);
+		registration.compostable(ModBlocks.CHERRY_WINE_FLOWER, 0.65f);
 		registration.compostable(ModBlocks.SATIVA_FLOWER, 0.65f);
 		registration.compostable(ModBlocks.DITCHWEED, 0.65f);
 		registration.compostable(ModBlocks.HEMPCRETE_POWDER_BLOCK, 0.85f);
@@ -190,8 +193,10 @@ public class Hempdustry {
 	private static void registerFlammables(Registration registration) {
 		registration.flammable(ModBlocks.INDICA_CROP, 10, 25);
 		registration.flammable(ModBlocks.INDICA_FLOWER, 20, 40);
+		registration.flammable(ModBlocks.CHERRY_WINE_FLOWER, 20, 40);
 		registration.flammable(ModBlocks.SATIVA_CROP, 10, 25);
 		registration.flammable(ModBlocks.BELDIA_CROP, 10, 25);
+		registration.flammable(ModBlocks.CHERRY_WINE_CROP, 10, 25);
 		registration.flammable(ModBlocks.SATIVA_FLOWER, 20, 40);
 		registration.flammable(ModBlocks.INDUSTRIAL_HEMP_CROP, 10, 25);
 		registration.flammable(ModBlocks.RUDERALIS_CROP, 10, 25);

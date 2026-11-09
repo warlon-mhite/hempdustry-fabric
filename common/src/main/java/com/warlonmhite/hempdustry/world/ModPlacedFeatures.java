@@ -46,6 +46,7 @@ public class ModPlacedFeatures {
     public static final ResourceKey<PlacedFeature> RUDERALIS_PLACED_KEY = registerKey("ruderalis_placed");
     public static final ResourceKey<PlacedFeature> CRIMSON_PLACED_KEY = registerKey("crimson_placed");
     public static final ResourceKey<PlacedFeature> ENDER_HAZE_PLACED_KEY = registerKey("ender_haze_placed");
+    public static final ResourceKey<PlacedFeature> CHERRY_WINE_PLACED_KEY = registerKey("cherry_wine_placed");
 
     /**
      * One attempt per this many outer-island chunks for a wild Ender Haze patch, on the island's top.
@@ -135,6 +136,11 @@ public class ModPlacedFeatures {
                 configured.getOrThrow(ModConfiguredFeatures.SATIVA_SPARSE_KEY), surfacePatch(128));
         register(context, SATIVA_RARE_PLACED_KEY,
                 configured.getOrThrow(ModConfiguredFeatures.SATIVA_RARE_KEY), surfacePatch(256));
+
+        // Wild Cherry Wine: Purple Kush's surface patch, in cherry groves -- one per 48 chunks,
+        // small, one in ten big. The flower keeps to its own ground, as every wild flower does.
+        register(context, CHERRY_WINE_PLACED_KEY,
+                configured.getOrThrow(ModConfiguredFeatures.CHERRY_WINE_KEY), surfacePatch(48));
 
         // Wild Beldía: an attempt every few desert chunks, but the attempt only grows where sand meets
         // water, so in practice a riverbank find. The seeds' real home is the desert temple.

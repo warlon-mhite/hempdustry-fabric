@@ -1,0 +1,27 @@
+{
+  "type": "hempdustry:stamped_shaped",
+  "category": "misc",
+  "group": "spliff",
+  "key": {
+    "B": "hempdustry:cherry_wine_buds",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "B",
+    "P"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 1,
+            "strain": "hempdustry:cherry_wine"
+          }
+        ]
+      }
+    },
+    "count": 1,
+    "id": "hempdustry:spliff"
+  }
+}
