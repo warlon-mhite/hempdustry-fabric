@@ -237,6 +237,10 @@ public final class HempdustryGameTests {
         register("cbd_butter_and_a_mixed_sieve", ChemotypeGameTest::cbdButterAndAMixedSieve);
         register("every_plant_strain_smells_of_its_own_terpene", TerpeneGameTest::everyPlantStrainSmellsOfItsOwnTerpene);
         register("the_smoke_takes_the_terpenes_colour", TerpeneGameTest::theSmokeTakesTheTerpenesColour);
+        register("a_plant_keeps_its_record_on_its_root", PotencyGameTest::aPlantKeepsItsRecordOnItsRoot);
+        register("a_plant_rolls_its_band_from_its_strains_odds", PotencyGameTest::aPlantRollsItsBandFromItsStrainsOdds);
+        register("the_harvest_carries_the_plants_band", PotencyGameTest::theHarvestCarriesThePlantsBand);
+        register("the_band_moves_the_oven_the_bowl_and_the_craft", PotencyGameTest::theBandMovesTheOvenTheBowlAndTheCraft);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

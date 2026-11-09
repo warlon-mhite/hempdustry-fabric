@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import java.util.function.Consumer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -24,6 +26,10 @@ public class StampedItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Chemotype.of(stack).tooltipLine());
+        // A leaf of a high or extra-high plant: its one mark. Nothing else stamped carries a band.
+        if (stack.has(ModComponents.POTENCY_BAND)) {
+            tooltip.accept(PotencyBand.of(stack).tooltipLine());
+        }
         super.appendHoverText(stack, context, display, tooltip, flag);
     }
 }

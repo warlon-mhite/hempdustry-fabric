@@ -7,6 +7,9 @@
     {
       "type": "hempdustry:set_chemotype",
       "strain": "hempdustry:sativa"
+    },
+    {
+      "type": "hempdustry:set_potency"
     }
   ],
   "pools": [

@@ -20,6 +20,10 @@
   ],
   "flower": "hempdustry:beldia_crop",
   "model_index": 7,
+  "potency": {
+    "high": 20,
+    "low": 30
+  },
   "seeds": "hempdustry:beldia_seeds",
   "terpene": "hempdustry:myrcene",
   "translation_key": "hempdustry.strain.beldia"

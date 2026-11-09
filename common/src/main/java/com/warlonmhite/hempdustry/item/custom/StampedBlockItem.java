@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.block.custom.ChemotypeBlocks;
+import com.warlonmhite.hempdustry.block.custom.HempLeavesBlock;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import java.util.function.Consumer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
@@ -23,6 +25,9 @@ public class StampedBlockItem extends BlockItem {
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(ChemotypeBlocks.ofBlockItem(stack).tooltipLine());
+        if (HempLeavesBlock.markOfBlockItem(stack).marksLeaf()) {
+            tooltip.accept(PotencyBand.HIGH.tooltipLine());
+        }
         super.appendHoverText(stack, context, display, tooltip, flag);
     }
 }

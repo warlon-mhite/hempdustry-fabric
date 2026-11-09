@@ -7,6 +7,9 @@
     {
       "type": "hempdustry:set_chemotype",
       "strain": "hempdustry:beldia"
+    },
+    {
+      "type": "hempdustry:set_potency"
     }
   ],
   "pools": [

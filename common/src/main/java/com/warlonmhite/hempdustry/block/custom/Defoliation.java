@@ -1,7 +1,9 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -297,7 +299,12 @@ public final class Defoliation {
             // What comes off the plant is the plant's chemotype.
             Chemotype chemotype = Chemotype.ofPlant(lowerState.getBlock(), world.registryAccess());
             if (leaves > 0) {
-                Block.popResource(world, lowerPos, Chemotype.stamp(new ItemStack(ModItems.HEMP_LEAF, leaves), chemotype));
+                ItemStack leaf = Chemotype.stamp(new ItemStack(ModItems.HEMP_LEAF, leaves), chemotype);
+                // And of a high or extra-high plant, it is marked: asked of the plant's record.
+                if (PlantRecordBlockEntity.bandAt(world, lowerPos).marksLeaf()) {
+                    PotencyBand.stamp(leaf, PotencyBand.HIGH);
+                }
+                Block.popResource(world, lowerPos, leaf);
             }
             if (rub) {
                 // The age is untouched, and the charas is a roll on top of the leaf.

@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.loot.SetChemotypeFunction;
+import com.warlonmhite.hempdustry.loot.SetPotencyFunction;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -207,7 +208,8 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         dropSelf(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         dropSelf(ModBlocks.HEMP_BALE);
         // The block keeps its leaves' chemotype as a state, and hands it back on its item.
-        add(ModBlocks.HEMP_LEAVES, createSingleItemTable(ModBlocks.HEMP_LEAVES).apply(SetChemotypeFunction.fromBlock()));
+        add(ModBlocks.HEMP_LEAVES, createSingleItemTable(ModBlocks.HEMP_LEAVES).apply(SetChemotypeFunction.fromBlock())
+                .apply(SetPotencyFunction.setPotency()));
         dropSelf(ModBlocks.HEMP_WOOL);
         dropSelf(ModBlocks.HEMP_CARPET);
         // Two halves, one bed: vanilla's beds drop from the head half only, and so does this one.
@@ -249,11 +251,14 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         dropSelf(ModBlocks.HEMP_PLANKS_SIGN);
         dropSelf(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
 
-        add(ModBlocks.INDICA_CROP, indicaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.INDICA)));
-        add(ModBlocks.BELDIA_CROP, beldiaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.BELDIA)));
+        add(ModBlocks.INDICA_CROP, indicaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.INDICA))
+                .apply(SetPotencyFunction.setPotency()));
+        add(ModBlocks.BELDIA_CROP, beldiaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.BELDIA))
+                .apply(SetPotencyFunction.setPotency()));
         add(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
 
-        add(ModBlocks.SATIVA_CROP, sativaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.SATIVA)));
+        add(ModBlocks.SATIVA_CROP, sativaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.SATIVA))
+                .apply(SetPotencyFunction.setPotency()));
         add(ModBlocks.SATIVA_FLOWER, sativaFlowerDrops());
         // The pot and the plant back, as every vanilla potted plant gives. Copying a potted allium's
         // settings does not bring its table along -- a block reads the table under its own id -- so
@@ -266,13 +271,17 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         add(ModBlocks.DITCHWEED, ditchweedDrops().apply(SetChemotypeFunction.of(Chemotype.BALANCED)));
         dropPottedContents(ModBlocks.POTTED_DITCHWEED);
 
-        add(ModBlocks.WARPED_KUSH_CROP, warpedKushCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.WARPED_KUSH)));
+        add(ModBlocks.WARPED_KUSH_CROP, warpedKushCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.WARPED_KUSH))
+                .apply(SetPotencyFunction.setPotency()));
 
-        add(ModBlocks.RUDERALIS_CROP, ruderalisCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.RUDERALIS)));
+        add(ModBlocks.RUDERALIS_CROP, ruderalisCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.RUDERALIS))
+                .apply(SetPotencyFunction.setPotency()));
 
-        add(ModBlocks.CRIMSON_CROP, crimsonCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.CRIMSON)));
+        add(ModBlocks.CRIMSON_CROP, crimsonCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.CRIMSON))
+                .apply(SetPotencyFunction.setPotency()));
 
-        add(ModBlocks.ENDER_HAZE_CROP, enderHazeCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.ENDER_HAZE)));
+        add(ModBlocks.ENDER_HAZE_CROP, enderHazeCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.ENDER_HAZE))
+                .apply(SetPotencyFunction.setPotency()));
     }
 
     /**

@@ -23,6 +23,11 @@
   ],
   "flower": "hempdustry:ender_haze_crop",
   "model_index": 11,
+  "potency": {
+    "extra_high": 2,
+    "high": 20,
+    "low": 28
+  },
   "seeds": "hempdustry:ender_haze_seeds",
   "terpene": "hempdustry:terpinolene",
   "translation_key": "hempdustry.strain.ender_haze"

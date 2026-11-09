@@ -9,6 +9,7 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -125,6 +126,7 @@ public class PackingRecipe extends CustomRecipe {
         SmokeContents preloaded = null;
         Holder<Strain> strain = null;
         Chemotype stamp = null;
+        int potency = 0;
         int dose = 0;
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
@@ -158,6 +160,9 @@ public class PackingRecipe extends CustomRecipe {
                     return null;
                 }
                 stamp = itemStamp;
+                // A plant's buds carry their plant's band, and buds of different bands load together:
+                // the load keeps the sum of their offsets, which is what their THC averages to.
+                potency += PotencyBand.of(stack).offset();
                 strain = budStrain;
                 // One item from each slot, never the stack's count: crafting takes one per slot,
                 // and counting the stack packed three buds' worth out of one. And one item is not
@@ -175,7 +180,7 @@ public class PackingRecipe extends CustomRecipe {
             }
             contents = preloaded;
         } else if (strain != null && dose >= 1) {
-            contents = SmokeContents.of(strain, dose, stamp);
+            contents = SmokeContents.of(strain, dose, stamp, potency);
         } else {
             return null;
         }

@@ -12,6 +12,10 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -41,7 +45,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * ModLootTableModifiers}) — and a relict stand in the taigas, ripe and very rare, is luck
  * ({@code ModConfiguredFeatures}).
  */
-public class RuderalisCropBlock extends CropBlock {
+public class RuderalisCropBlock extends CropBlock implements EntityBlock {
     /** {@code floor(3 / 1) + 1}: one random tick in four. */
     private static final float GROWTH_RESISTANCE = 3.0F;
     /** Vanilla's crop threshold, read the way {@code CropBlock#randomTick} reads it. */
@@ -49,6 +53,24 @@ public class RuderalisCropBlock extends CropBlock {
 
     public RuderalisCropBlock(Properties settings) {
         super(settings);
+    }
+
+    /** The plant's record ({@link PlantRecordBlockEntity}): one block tall, so this block is its root. */
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new PlantRecordBlockEntity(pos, state);
+    }
+
+    /**
+     * Set back to age 0 in place — by a harvester that replants, through vanilla's
+     * {@code getStateForAge} — it is a new plant, and rolls again.
+     */
+    @Override
+    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, world, pos, oldState, movedByPiston);
+        if (oldState.is(this) && this.getAge(oldState) > 0 && this.getAge(state) == 0) {
+            PlantRecordBlockEntity.replantAt(world, pos);
+        }
     }
 
     @Override

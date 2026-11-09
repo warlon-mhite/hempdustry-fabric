@@ -15,6 +15,10 @@
   ],
   "flower": "hempdustry:crimson_crop",
   "model_index": 10,
+  "potency": {
+    "extra_high": 5,
+    "low": 20
+  },
   "seeds": "hempdustry:crimson_seeds",
   "terpene": "hempdustry:caryophyllene",
   "translation_key": "hempdustry.strain.crimson"

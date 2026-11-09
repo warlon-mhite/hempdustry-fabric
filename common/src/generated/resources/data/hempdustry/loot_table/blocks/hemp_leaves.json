@@ -1,9 +1,14 @@
 {
   "type": "minecraft:block",
-  "modifier": {
-    "type": "hempdustry:set_chemotype",
-    "from_block": true
-  },
+  "modifier": [
+    {
+      "type": "hempdustry:set_chemotype",
+      "from_block": true
+    },
+    {
+      "type": "hempdustry:set_potency"
+    }
+  ],
   "pools": [
     {
       "condition": {
