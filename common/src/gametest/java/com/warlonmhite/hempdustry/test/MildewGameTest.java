@@ -79,6 +79,27 @@ public final class MildewGameTest {
         context.succeed();
     }
 
+    /**
+     * The strains that never catch it: Industrial Hemp (no bud for it to spoil, no shears to clear it)
+     * and the two Nether plants (too hot and dry, and under a ceiling that would roof every one), by
+     * {@link Mildew.Host}; Ruderalis and Ender Haze carry no mildew record at all. The step's own roll,
+     * under a glass roof, on a hit -- Purple Kush the control -- and the spread asks the same thing of
+     * the neighbour it picks.
+     */
+    public static void strainsWithoutMildewNeverCatchIt(GameTestHelper context) {
+        context.setBlock(ROOF, Blocks.GLASS);
+        ServerLevel world = context.getLevel();
+        BlockPos lower = context.absolutePos(CROP);
+        expect(context, Mildew.afterStep(world, lower, ModBlocks.INDICA_CROP.defaultBlockState(), Mildew.CLEAN, HIT),
+                Mildew.MILDEWED, "the control, a Purple Kush seedling under a glass roof,");
+        for (Block crop : List.of(ModBlocks.INDUSTRIAL_HEMP_CROP, ModBlocks.WARPED_KUSH_CROP, ModBlocks.CRIMSON_CROP,
+                ModBlocks.RUDERALIS_CROP, ModBlocks.ENDER_HAZE_CROP)) {
+            expect(context, Mildew.afterStep(world, lower, crop.defaultBlockState(), Mildew.CLEAN, HIT), Mildew.CLEAN,
+                    crop.getDescriptionId() + " under a glass roof");
+        }
+        context.succeed();
+    }
+
     public static void mildewSpreadsOnePlantAtATime(GameTestHelper context) {
         ServerLevel world = context.getLevel();
         BlockPos sick = new BlockPos(2, 2, 2);
