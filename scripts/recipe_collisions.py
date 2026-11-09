@@ -47,10 +47,12 @@ SHAPELESS_TYPES = {
     "minecraft:crafting_shapeless",
     "hempdustry:container_carried",   # shapeless; suppresses its ingredients' recipe remainders
     "hempdustry:infused_shapeless",   # shapeless; copies cannabutter's potency/quality to the output
+    "hempdustry:stamped_shapeless",   # shapeless; one chemotype per craft, carried to the output
 }
 SHAPED_TYPES = {
     "minecraft:crafting_shaped",
     "hempdustry:infused_shaped",      # shaped; copies cannabutter's potency/quality to the output
+    "hempdustry:stamped_shaped",      # shaped; one chemotype per craft, carried to the output
 }
 # Recipe types that never touch the crafting grid, so they cannot collide in it. Listed rather than
 # left to fall through the `else`, because a silently ignored type is exactly how this scanner has
@@ -60,6 +62,7 @@ NON_CRAFTING_TYPES = {
     "hempdustry:decarboxylating",     # one tray-load in the Decarboxylator
     "hempdustry:infusing",            # the Infuser's whole conversion, in one recipe
     "hempdustry:pressing",            # one squeeze in the Hemp Press
+    "hempdustry:stamped_smelting",    # a furnace's smelting, keeping what burned's chemotype
     # In the grid, but unscannable: a SpecialCraftingRecipe's JSON carries no ingredient list at
     # all, so there is nothing here to compare. Its matcher requires a hempdustry device plus
     # hempdustry buds, which nothing else in the game can produce. See the module docstring.

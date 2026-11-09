@@ -239,8 +239,9 @@ public final class EnderHazeGameTest {
 
     /**
      * A real pipe hit: Speed, Averted Gaze and Hunger with it, Levitation only on the exhale and for a
-     * tenth of the hit, never on a player who died in the window. Levitation scales with the dose,
-     * Averted Gaze does not, and debuffs=false takes Levitation and leaves the rest.
+     * tenth of the hit, never on a player who died in the window. Levitation and Averted Gaze are the
+     * plant's own and stay flat; Speed is the THC's, and the plant is balanced, so a bong of three is
+     * a THC dose of one. debuffs=false takes Levitation and leaves the rest.
      */
     public static void enderHazeLiftsYou(GameTestHelper context) {
         ServerLevel world = context.getLevel();
@@ -248,7 +249,9 @@ public final class EnderHazeGameTest {
         int length = DeviceType.PIPE.builtInStats().durationTicks();
 
         List<MobEffectInstance> three = haze.value().effects(3, 700);
-        context.assertTrue(level(three, MobEffects.LEVITATION) == 2, "a dose of three gave Levitation " + (level(three, MobEffects.LEVITATION) + 1));
+        context.assertTrue(level(three, MobEffects.LEVITATION) == 0, "a dose of three gave Levitation " + (level(three, MobEffects.LEVITATION) + 1));
+        context.assertTrue(level(three, MobEffects.SPEED) == 0,
+                "a balanced bong of three gave Speed " + (level(three, MobEffects.SPEED) + 1) + ", not the THC dose of one");
         context.assertTrue(level(three, ModEffects.AVERTED_GAZE) == 0, "Averted Gaze scaled with the dose");
         context.assertTrue(has(EffectPolicy.filter(three), MobEffects.LEVITATION), "Levitation was taken away with debuffs on");
         ConfigGameTest.withConfig("{ \"effects\": { \"debuffs\": false } }", () -> {

@@ -8,6 +8,7 @@ import com.warlonmhite.hempdustry.item.custom.MoonRockItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.platform.Services;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -68,6 +69,11 @@ public class PackingRecipe extends CustomRecipe {
     private static volatile HolderLookup.Provider serverRegistries;
 
     /** Keeps {@link #serverRegistries} to the server that is running, from start to stop. */
+    /** The running server's registries, or null with no server running: for every recipe that must ask one. */
+    static HolderLookup.Provider serverRegistries() {
+        return serverRegistries;
+    }
+
     static void trackServerRegistries() {
         Services.EVENTS.onServerStarted(server -> serverRegistries = server.registryAccess());
         Services.EVENTS.onServerStopped(server -> serverRegistries = null);
@@ -118,6 +124,7 @@ public class PackingRecipe extends CustomRecipe {
         // which is why it may not share the grid with loose buds: the two would be two loads.
         SmokeContents preloaded = null;
         Holder<Strain> strain = null;
+        Chemotype stamp = null;
         int dose = 0;
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
@@ -144,6 +151,13 @@ public class PackingRecipe extends CustomRecipe {
                 if (budStrain == null || (strain != null && strain != budStrain)) {
                     return null; // a foreign item, or a second strain (no mixing yet)
                 }
+                // Schwag, scorched hemp and hash carry their plant's chemotype as a stamp, and two
+                // stamps in one bowl are two materials: refused like a second strain.
+                Chemotype itemStamp = Chemotype.of(stack);
+                if (stamp != null && stamp != itemStamp) {
+                    return null;
+                }
+                stamp = itemStamp;
                 strain = budStrain;
                 // One item from each slot, never the stack's count: crafting takes one per slot,
                 // and counting the stack packed three buds' worth out of one. And one item is not
@@ -161,7 +175,7 @@ public class PackingRecipe extends CustomRecipe {
             }
             contents = preloaded;
         } else if (strain != null && dose >= 1) {
-            contents = SmokeContents.of(strain, dose);
+            contents = SmokeContents.of(strain, dose, stamp);
         } else {
             return null;
         }

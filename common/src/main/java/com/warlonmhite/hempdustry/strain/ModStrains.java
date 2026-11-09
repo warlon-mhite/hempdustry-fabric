@@ -212,7 +212,7 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(MobEffects.RESISTANCE, 0, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true),
-                        new SmokeEffect(MobEffects.MINING_FATIGUE, 0, true))));
+                        new SmokeEffect(MobEffects.MINING_FATIGUE, 0, true))).withTerpene(Terpene.LINALOOL));
 
         // Lemon Haze — the head high, and a deliberate mirror of Purple Kush: where indica buffs
         // defence and taxes mining, sativa buffs movement and mining and taxes melee damage. Hunger
@@ -225,7 +225,7 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.SPEED, 0, true),
                         new SmokeEffect(MobEffects.HASTE, 0, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true),
-                        new SmokeEffect(MobEffects.WEAKNESS, 0, true))));
+                        new SmokeEffect(MobEffects.WEAKNESS, 0, true))).withTerpene(Terpene.LIMONENE));
 
         // Beldía -- the Rif's traditional landrace ("of the country" in Darija), grown for the sieve
         // rather than the bowl: its buds count double at the Sifting Box, and its flower smokes harsh.
@@ -240,6 +240,9 @@ public class ModStrains {
         //
         // cough_factor 0.5: the same smoke, twice the coughing.
         //
+        // Balanced, half THC and half CBD: the old Rif landrace and its hash were milder and richer in
+        // CBD than the modern hybrids. Twice the kief, half the strength -- quantity against strength.
+        //
         // Warm amber rather than Lemon Haze's yellow-green, so the two read apart on a packed device.
         context.register(BELDIA, new Strain("hempdustry.strain.beldia", 0xD9A94E, modelIndex(BELDIA),
                 Optional.of(ModItems.BELDIA_SEEDS), ModItems.BELDIA_BUDS,
@@ -248,7 +251,7 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.INVISIBILITY, 0, false),
                         new SmokeEffect(MobEffects.BLINDNESS, 0, false, 0.25F, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
-                0.5F));
+                0.5F, Chemotype.BALANCED).withTerpene(Terpene.MYRCENE));
         // Warped Kush -- the Nether's plant, after Blueberry and Blue Dream, and a strain that
         // literally gets you high.
         //
@@ -272,7 +275,7 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.FIRE_RESISTANCE, 0, false),
                         new SmokeEffect(MobEffects.JUMP_BOOST, 0, true),
                         new SmokeEffect(MobEffects.DARKNESS, 0, false),
-                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))).withTerpene(Terpene.EUCALYPTOL));
 
         // Ruderalis -- the feral ancestor, and the lucky one.
         //
@@ -283,10 +286,13 @@ public class ModStrains {
         // quality weight to "fix" that: the inertness is the joke.
         //
         // Nothing scales, so a bong of three hits exactly like a pipe of one -- the one strain where
-        // dosing buys nothing, and that is its price. Hunger, as ever.
+        // dosing buys nothing, and that is its price. Hunger, as ever, is the THC's: balanced, a bowl of
+        // three is still a THC dose of one.
         //
         // green_out_factor 2.0 halves the risk: there is not enough in ditch weed to overdo.
         // cough_factor 0.5 doubles the coughing: feral and seedy smoke is harsh.
+        //
+        // Balanced: feral cannabis drifts back to a little of each.
         //
         // Plain field green, the one strain that is simply green on a packed device.
         context.register(RUDERALIS, new Strain("hempdustry.strain.ruderalis", 0x8CCB5E, modelIndex(RUDERALIS),
@@ -294,8 +300,8 @@ public class ModStrains {
                 Optional.of(ModBlocks.RUDERALIS_CROP), 2.0F, 1,
                 List.of(
                         new SmokeEffect(MobEffects.LUCK, 0, false),
-                        new SmokeEffect(MobEffects.HUNGER, 0, false)),
-                0.5F));
+                        new SmokeEffect(MobEffects.HUNGER, 0, EffectLabel.THC, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
+                0.5F, Chemotype.BALANCED).withTerpene(Terpene.PINENE));
 
         // Crimson Weed -- the crimson forest's plant, Warped Kush's opposite number.
         //
@@ -317,7 +323,7 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(MobEffects.STRENGTH, 0, true),
                         new SmokeEffect(MobEffects.GLOWING, 0, false),
-                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
+                        new SmokeEffect(MobEffects.HUNGER, 0, true))).withTerpene(Terpene.CARYOPHYLLENE));
 
         // Ender Haze -- the End's plant, and the second Haze: Speed is the family's, as Hunger is
         // everyone's.
@@ -329,9 +335,12 @@ public class ModStrains {
         // for the job you smoke it for: only Speed and the tax scale.
         //
         // LEVITATION is the tax, the End's own effect from the End's own mob, and it lands on the
-        // exhale for a tenth of the hit: you take the hit, and then the ground leaves. It scales, so a
-        // greedy bong over a void edge is how you die, and at dose 1 it is nearly a perk. Harmful to
-        // vanilla, so debuffs=false takes it and leaves the signature. Hunger, as ever.
+        // exhale for a tenth of the hit: you take the hit, and then the ground leaves. It is the
+        // plant's own, not the THC's, so it is flat and stays on whatever this strain is ever crossed
+        // with. Harmful to vanilla, so debuffs=false takes it and leaves the signature. Hunger, as ever.
+        //
+        // Balanced, the second native strain to be: the End's plant never had the breeders' push toward
+        // THC.
         //
         // The End's own sky colour, declared in its dimension type and never applied to its light.
         context.register(ENDER_HAZE, new Strain("hempdustry.strain.ender_haze", 0xE580FF, modelIndex(ENDER_HAZE),
@@ -340,8 +349,10 @@ public class ModStrains {
                 List.of(
                         new SmokeEffect(MobEffects.SPEED, 0, true),
                         new SmokeEffect(ModEffects.AVERTED_GAZE, 0, false),
-                        new SmokeEffect(MobEffects.LEVITATION, 0, true, LEVITATION_DURATION_FACTOR, true),
-                        new SmokeEffect(MobEffects.HUNGER, 0, true))));
+                        new SmokeEffect(MobEffects.LEVITATION, 0, EffectLabel.STRAIN, LEVITATION_DURATION_FACTOR, true,
+                                1.0F, SmokeEffect.NO_CAP),
+                        new SmokeEffect(MobEffects.HUNGER, 0, true)),
+                1.0F, Chemotype.BALANCED).withTerpene(Terpene.TERPINOLENE));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity
@@ -467,7 +478,7 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.HUNGER, 0, true))));
 
         // Schwag -- the poisonous potato of the bud system, and smoked the way the potato is eaten:
-        // a gamble with nothing to win. POISON on 60% of hits, the potato's odds, for a seventh of
+        // a gamble with nothing to win. POISON, the smoke's own and not the THC's, on 60% of hits, the potato's odds, for a seventh of
         // the device's duration -- 100 ticks from a pipe, the potato's number again -- and no buff at
         // all. Poison scales like any effect but STOPS AT II, the highest survival vanilla ever
         // gives (the strong potion, the pufferfish): a bong of two is about 12 damage over seven
@@ -483,11 +494,17 @@ public class ModStrains {
                 modelIndex(SCHWAG),
                 Optional.empty(), ModItems.SCHWAG, Optional.empty(), 0.0F, 1,
                 List.of(
-                        new SmokeEffect(MobEffects.POISON, 0, true, SCHWAG_POISON_SHARE, false,
+                        new SmokeEffect(MobEffects.POISON, 0, EffectLabel.SMOKE, SCHWAG_POISON_SHARE, false,
                                 SCHWAG_POISON_CHANCE, SCHWAG_POISON_MAX_AMPLIFIER),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
-                0.5F));
+                0.5F).withSmokeColor(SCHWAG_SMOKE));
     }
+
+    /**
+     * Schwag's smoke: stale hay, the colour of spoiled bud burning. It has no terpene -- the smell is
+     * what spoiled -- so it names no line on a tooltip, only this colour in its smoke and vapour.
+     */
+    private static final int SCHWAG_SMOKE = 0xA89A6E;
 
     /** A pipe's 700 ticks times this is 100, the poisonous potato's Poison. */
     private static final float SCHWAG_POISON_SHARE = 1.0F / 7.0F;

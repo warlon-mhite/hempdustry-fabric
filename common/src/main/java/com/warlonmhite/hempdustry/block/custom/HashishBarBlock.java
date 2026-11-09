@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -126,12 +127,13 @@ public class HashishBarBlock extends Block {
         // CUTS spelled out even though an IntegerProperty has no BooleanProperty's first-value trap
         // (left out of the default state, a boolean comes back true): writing it means the next
         // person does not have to go and check.
-        registerDefaultState(defaultBlockState().setValue(CUTS, 0).setValue(FACING, Direction.NORTH));
+        registerDefaultState(defaultBlockState().setValue(CUTS, 0).setValue(FACING, Direction.NORTH)
+                .setValue(ChemotypeBlocks.CHEMOTYPE, Chemotype.THC_DOMINANT));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(CUTS, FACING);
+        builder.add(CUTS, FACING, ChemotypeBlocks.CHEMOTYPE);
     }
 
     /**
@@ -219,7 +221,8 @@ public class HashishBarBlock extends Block {
         }
         int cuts = state.getValue(CUTS);
         if (world instanceof ServerLevel serverWorld) {
-            popResourceFromFace(serverWorld, pos, Direction.UP, new ItemStack(piece(), YIELD[cuts]));
+            popResourceFromFace(serverWorld, pos, Direction.UP,
+                    Chemotype.stamp(new ItemStack(piece(), YIELD[cuts]), ChemotypeBlocks.of(state)));
             // The blade is the whole cost of a cut: nothing else is spent, and the bar itself is
             // what shrinks. Same slot dance as Defoliation.tryCut.
             stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);

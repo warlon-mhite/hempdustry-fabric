@@ -266,7 +266,10 @@ public final class DataFixerGameTest {
                 findings.put(id, "came back as " + stack.get(type) + ", not " + expected);
             }
         }
-        Sweep.report(context, "Every value of ours on a 1.20.1 stack comes back as its component", findings, Map.of());
+        Sweep.report(context, "Every value of ours on a 1.20.1 stack comes back as its component", findings, Map.of(
+                "hempdustry:chemotype", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one",
+                "hempdustry:cbd_strength", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one",
+                "hempdustry:cbd_potency", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one"));
         context.succeed();
     }
 

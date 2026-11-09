@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "hempdustry:stamped_shapeless",
   "group": "moon_rock",
   "ingredients": [
     "hempdustry:beldia_buds",

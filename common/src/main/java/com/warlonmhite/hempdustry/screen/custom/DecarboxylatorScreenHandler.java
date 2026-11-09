@@ -53,7 +53,8 @@ public class DecarboxylatorScreenHandler extends AbstractContainerMenu {
      * The result slot, centred on the column of trays (they span y=17..68, midpoint 42.5) and drawn
      * as a furnace's oversized result well — see {@code gui_common.Sheet.big_slot}.
      */
-    public static final int OUTPUT_X = 121, OUTPUT_Y = 35;
+    /** Each tray's output sits level with it, past its arrow. */
+    public static final int OUTPUT_X = 117;
     public static final int FUEL_X = 26, FUEL_Y = 54;
 
     /** Client-side constructor: the block position arrives via the extended screen handler type. */
@@ -91,13 +92,16 @@ public class DecarboxylatorScreenHandler extends AbstractContainerMenu {
             });
         }
 
-        // Collection slot: take-only.
-        this.addSlot(new Slot(inventory, DecarboxylatorBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return false;
-            }
-        });
+        // Collection slots, one per tray and level with it: take-only.
+        for (int tray = 0; tray < DecarboxylatorBlockEntity.TRAY_COUNT; tray++) {
+            this.addSlot(new Slot(inventory, DecarboxylatorBlockEntity.outputSlot(tray),
+                    OUTPUT_X, TRAY_Y + tray * TRAY_SPACING) {
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return false;
+                }
+            });
+        }
 
         addPlayerSlots(playerInventory);
         this.addDataSlots(propertyDelegate);

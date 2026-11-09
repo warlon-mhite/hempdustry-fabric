@@ -10,7 +10,9 @@ import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.platform.ItemTransfer;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
+import com.warlonmhite.hempdustry.recipe.Stamping;
 import com.warlonmhite.hempdustry.screen.custom.InfuserScreenHandler;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -107,13 +109,38 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * {@link #ejectRetiredSlots} hands back whatever an old world left there.
      */
     public static final int RETIRED_MILK_SLOT = 0;
-    /** The two interchangeable hemp slots are contiguous from here. */
+    /** The first of 2.1's two hemp slots, the right-hand column of the grid. */
     public static final int FIRST_HEMP_SLOT = 1;
-    public static final int HEMP_SLOT_COUNT = 2;
+    /**
+     * The four interchangeable hemp slots, in the order the batch takes from them: <b>reading order
+     * over the 2×2 grid</b>, top row left to right, then the bottom row. 2.1's two (1 and 2) are the
+     * right-hand column and keep their numbers, so an old save loads its hemp where it was; 2.2's two
+     * (5 and 6) are the left-hand column, after the retired slots. Four, because chemotype stamps
+     * keep CBD and THC hemp from sharing a stack, and a batch may take both.
+     */
+    public static final int[] HEMP_SLOTS = {5, 1, 6, 2};
+    public static final int HEMP_SLOT_COUNT = HEMP_SLOTS.length;
     public static final int OUTPUT_SLOT = 3;
     /** Retired in 2.0.1 with {@link #RETIRED_MILK_SLOT}: where emptied buckets used to come back. */
     public static final int RETIRED_BUCKET_SLOT = 4;
-    public static final int SLOT_COUNT = 5;
+    public static final int SLOT_COUNT = 7;
+    /** What a hopper or pipe fills, in this order: 2.1's two first, then the new ones. */
+    private static final int[] FILL_ORDER = {1, 2, 5, 6};
+    /**
+     * THC and CBD are summed in eighths of a THC-dominant decarboxylated hemp: an item of it is 8, a
+     * scorched one 2 (it counts a quarter), and a balanced one half of each. Fine enough that every
+     * mix is a whole number.
+     */
+    private static final int EIGHTHS = 8;
+
+    public static boolean isHempSlot(int slot) {
+        for (int hemp : HEMP_SLOTS) {
+            if (hemp == slot) {
+                return true;
+            }
+        }
+        return false;
+    }
     private static final int[] RETIRED_SLOTS = {RETIRED_MILK_SLOT, RETIRED_BUCKET_SLOT};
 
     /**
@@ -250,6 +277,11 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
     private int batchUnwashed;
     private int batchWashed;
     private int batchScorched;
+    /** THC and CBD drawn into the batch, in {@link #EIGHTHS}. Together they decide its chemotype. */
+    private int batchThc;
+    private int batchCbd;
+    /** Where in {@link #HEMP_SLOTS} the next absorption starts looking: the batch takes in turn. */
+    private int absorbCursor;
     /**
      * Throttles {@link #pushOutput}. Not persisted — a few ticks of timer is not worth a save field.
      */
@@ -340,10 +372,14 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         return recipe != null && recipe.isScorched(stack);
     }
 
-    /** Any of the three hemps — both hemp slots accept all of them. */
+    /**
+     * Any of the three hemps — every hemp slot accepts all of them — of a chemotype that makes THC or
+     * CBD. The Infuser is the second door into an edible, and scorched hemp reaches it without the
+     * oven, so it turns the other two away here as well.
+     */
     public static boolean isHemp(@Nullable Level world, ItemStack stack) {
         InfusingRecipe recipe = recipe(world);
-        return recipe != null
+        return recipe != null && Chemotype.of(stack).infusable()
                 && (recipe.hemp().test(stack) || recipe.washedHemp().test(stack) || recipe.isScorched(stack));
     }
 
@@ -568,32 +604,40 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         if (batchHemp() >= BATCH_CAP) {
             return;
         }
-        for (int pass = 0; pass < 3; pass++) {
-            for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
-                ItemStack stack = getItem(FIRST_HEMP_SLOT + i);
-                boolean match = switch (pass) {
-                    case 0 -> isScorchedHemp(this.level, stack);
-                    case 1 -> isUnwashedHemp(this.level, stack);
-                    default -> isWashedHemp(this.level, stack);
-                };
-                if (match) {
-                    stack.shrink(1);
-                    switch (pass) {
-                        case 0 -> batchScorched++;
-                        case 1 -> batchUnwashed++;
-                        default -> batchWashed++;
-                    }
-                    return;
-                }
+        // One item, from the next slot in reading order that holds hemp: so four slots of four
+        // kinds go in evenly, and the batch's chemotype is the dosage of what it took.
+        for (int step = 0; step < HEMP_SLOT_COUNT; step++) {
+            int index = (absorbCursor + step) % HEMP_SLOT_COUNT;
+            ItemStack stack = getItem(HEMP_SLOTS[index]);
+            if (!isHemp(this.level, stack)) {
+                continue;
             }
+            Chemotype chemotype = Chemotype.of(stack);
+            int share;
+            if (isScorchedHemp(this.level, stack)) {
+                batchScorched++;
+                share = EIGHTHS / Chemotype.FULL_WEIGHT / SCORCHED_PER_STRENGTH;
+            } else {
+                if (isWashedHemp(this.level, stack)) {
+                    batchWashed++;
+                } else {
+                    batchUnwashed++;
+                }
+                share = EIGHTHS / Chemotype.FULL_WEIGHT;
+            }
+            batchThc += chemotype.thcHalves() * share;
+            batchCbd += chemotype.cbdHalves() * share;
+            stack.shrink(1);
+            absorbCursor = (index + 1) % HEMP_SLOT_COUNT;
+            return;
         }
     }
 
     /** Hemp sitting in the slots that the batch could still draw on. */
     private int availableHemp() {
         int total = 0;
-        for (int i = 0; i < HEMP_SLOT_COUNT; i++) {
-            ItemStack stack = getItem(FIRST_HEMP_SLOT + i);
+        for (int slot : HEMP_SLOTS) {
+            ItemStack stack = getItem(slot);
             if (isHemp(this.level, stack)) {
                 total += stack.getCount();
             }
@@ -614,9 +658,24 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      * washed or not (washing changes purity, not potency), and scorched hemp counts one per
      * {@link #SCORCHED_PER_STRENGTH}, rounded up.
      */
+    /**
+     * The batch's THC sum, which is the butter's strength: one per THC-dominant hemp, half per
+     * balanced one, a quarter per scorched one, rounded up so that any THC in the batch is at least
+     * strength 1. A CBD-dominant batch has strength 0. A THC-dominant batch comes out exactly as 2.1
+     * counted it, every hemp one and scorched hemp a quarter, rounded up.
+     */
     public int strength() {
-        return batchUnwashed + batchWashed
-                + (batchScorched + SCORCHED_PER_STRENGTH - 1) / SCORCHED_PER_STRENGTH;
+        return Mth.positiveCeilDiv(batchThc, EIGHTHS);
+    }
+
+    /** The batch's CBD sum, counted as {@link #strength} counts THC. */
+    public int cbdStrength() {
+        return Mth.positiveCeilDiv(batchCbd, EIGHTHS);
+    }
+
+    /** What the batch is, by the dosage of what it took ({@link Chemotype#ofShares}). */
+    public Chemotype chemotype() {
+        return Chemotype.ofShares(batchThc, batchCbd);
     }
 
     /**
@@ -713,15 +772,18 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         ItemStack butter = recipe.result().create();
         butter.set(ModComponents.STRENGTH, strength);
         butter.set(ModComponents.QUALITY, quality);
+        Chemotype.stampButter(butter, chemotype(), cbdStrength());
         return butter;
     }
 
     /** Whether {@code shown} is already the preview a batch of this strength and grade wants. */
-    private static boolean showsPreview(ItemStack shown, InfusingRecipe recipe, int strength, Quality quality) {
+    private boolean showsPreview(ItemStack shown, InfusingRecipe recipe, int strength, Quality quality) {
         return shown.is(recipe.result().item())
                 && shown.getCount() == recipe.result().count()
                 && Integer.valueOf(strength).equals(shown.get(ModComponents.STRENGTH))
-                && shown.get(ModComponents.QUALITY) == quality;
+                && shown.get(ModComponents.QUALITY) == quality
+                && Chemotype.of(shown) == chemotype()
+                && shown.getOrDefault(ModComponents.CBD_STRENGTH, 0) == cbdStrength();
     }
 
     /**
@@ -873,6 +935,8 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         batchUnwashed = 0;
         batchWashed = 0;
         batchScorched = 0;
+        batchThc = 0;
+        batchCbd = 0;
         progress = 0;
         setChanged();
     }
@@ -951,23 +1015,28 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         // The batch counts items, not stacks, so which of an ingredient's matches went in is not
         // recorded anywhere. The first match is the only answer available, and the right one for
         // every single-item ingredient — which both of the shipped ones are.
-        addBatchStacks(spill, InfusingRecipe.representative(recipe.hemp()).getItem(), batchUnwashed);
-        addBatchStacks(spill, InfusingRecipe.representative(recipe.washedHemp()).getItem(), batchWashed);
+        //
+        // Nor is which chemotype each was: the batch keeps sums. What spills is stamped with the
+        // batch's own chemotype, its dosage -- never a THC stamp on CBD matter, which is the one
+        // direction that must not happen.
+        Chemotype chemotype = chemotype();
+        addBatchStacks(spill, InfusingRecipe.representative(recipe.hemp()).getItem(), batchUnwashed, chemotype);
+        addBatchStacks(spill, InfusingRecipe.representative(recipe.washedHemp()).getItem(), batchWashed, chemotype);
         // A pack that has since dropped scorched hemp from the recipe has nothing to name it by,
         // so those few go with the tub -- the same answer as an ingredient with no matching stacks.
         recipe.scorchedHemp().ifPresent(scorched ->
-                addBatchStacks(spill, InfusingRecipe.representative(scorched).getItem(), batchScorched));
+                addBatchStacks(spill, InfusingRecipe.representative(scorched).getItem(), batchScorched, chemotype));
         return spill;
     }
 
-    private static void addBatchStacks(NonNullList<ItemStack> out, Item item, int count) {
+    private static void addBatchStacks(NonNullList<ItemStack> out, Item item, int count, Chemotype chemotype) {
         if (item == Items.AIR) {
             return; // an ingredient with no matching stacks: nothing sensible to hand back
         }
         int max = item.getDefaultMaxStackSize();
         while (count > 0) {
             int take = Math.min(count, max);
-            out.add(new ItemStack(item, take));
+            out.add(Stamping.apply(new ItemStack(item, take), chemotype));
             count -= take;
         }
     }
@@ -1031,14 +1100,14 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
      */
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return slot >= FIRST_HEMP_SLOT && slot < FIRST_HEMP_SLOT + HEMP_SLOT_COUNT && isHemp(this.level, stack);
+        return isHempSlot(slot) && isHemp(this.level, stack);
     }
 
     @Override
     public int[] getSlotsForFace(Direction side) {
         return switch (side) {
             case DOWN -> new int[]{OUTPUT_SLOT};
-            default -> new int[]{FIRST_HEMP_SLOT, FIRST_HEMP_SLOT + 1};
+            default -> FILL_ORDER.clone();
         };
     }
 
@@ -1090,6 +1159,9 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         view.putInt("BatchUnwashed", batchUnwashed);
         view.putInt("BatchWashed", batchWashed);
         view.putInt("BatchScorched", batchScorched);
+        view.putInt("BatchThc", batchThc);
+        view.putInt("BatchCbd", batchCbd);
+        view.putInt("AbsorbCursor", absorbCursor);
         view.putBoolean("PreviewShown", previewShown);
     }
 
@@ -1104,6 +1176,12 @@ public class InfuserBlockEntity extends NamedMachineBlockEntity
         batchWashed = view.getIntOr("BatchWashed", 0);
         // Absent in every world written before scorched hemp existed, and none is what those held.
         batchScorched = view.getIntOr("BatchScorched", 0);
+        // Absent in every world written before chemotypes: everything such a batch took was
+        // THC-dominant, so its THC is what 2.1 counted and it holds no CBD.
+        batchThc = view.getIntOr("BatchThc",
+                (batchUnwashed + batchWashed) * EIGHTHS + batchScorched * (EIGHTHS / SCORCHED_PER_STRENGTH));
+        batchCbd = view.getIntOr("BatchCbd", 0);
+        absorbCursor = Math.floorMod(view.getIntOr("AbsorbCursor", 0), HEMP_SLOT_COUNT);
         // Absent in worlds written before this field existed, and false is what those meant.
         previewShown = view.getBooleanOr("PreviewShown", false);
     }

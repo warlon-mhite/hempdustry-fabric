@@ -65,8 +65,8 @@ public final class InfuserPourGameTest {
         // Anything that is not milk opens the screen, exactly as a right-click always has.
         rightClick(context, player, new ItemStack(Items.IRON_PICKAXE));
         context.assertTrue(screenOpen(player), "right-clicking with a pickaxe did not open the screen");
-        context.assertValueEqual(player.containerMenu.slots.size(), 3 + 36,
-                "the menu should hold the two hemp slots, the preview and the player's 36 — a milk or bucket slot is back");
+        context.assertValueEqual(player.containerMenu.slots.size(), 5 + 36,
+                "the menu should hold the four hemp slots, the preview and the player's 36 — a milk or bucket slot is back");
         player.closeContainer();
 
         // Milk into an empty tub: poured, the empty handed back, and no screen.

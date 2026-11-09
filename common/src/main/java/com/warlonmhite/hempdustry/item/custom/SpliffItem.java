@@ -97,7 +97,7 @@ public class SpliffItem extends Item {
             GreenOut greenOut = GreenOut.of(world.registryAccess());
             boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
                     stats.coughOneIn(), stats.nauseaOneIn(),
-                    Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
+                    Smoking.greenOutChanceOneIn(greenOut, contents.thcDose(), stats.greenOutFactor()),
                     ParticleTypes.CAMPFIRE_COSY_SMOKE);
             // Marks the stack before it shrinks: what is left of it is what the player smoked
             // from, and that is what the cooldown swipe should sit on.

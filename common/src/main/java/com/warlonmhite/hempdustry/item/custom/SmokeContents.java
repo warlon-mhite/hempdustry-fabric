@@ -6,6 +6,7 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.List;
@@ -141,21 +142,52 @@ public record SmokeContents(List<Entry> entries) {
      * already in a chest. {@link Strain#ENTRY_CODEC} refuses inline entries, which is what stops a
      * stack from carrying a stale copy of a definition.
      */
-    public record Entry(Holder<Strain> strain, int count) {
+    public record Entry(Holder<Strain> strain, int count, Chemotype stamp) {
+        /**
+         * {@code chemotype} is optional and left out when THC-dominant, so every entry 2.1 wrote reads
+         * as what it was, and a THC-dominant load written now is byte for byte what 2.1 would write.
+         */
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Strain.ENTRY_CODEC.fieldOf("strain").forGetter(Entry::strain),
-                Codec.INT.fieldOf("count").forGetter(Entry::count)
+                Codec.INT.fieldOf("count").forGetter(Entry::count),
+                Chemotype.CODEC.optionalFieldOf("chemotype", Chemotype.THC_DOMINANT).forGetter(Entry::stamp)
         ).apply(instance, Entry::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, Entry> PACKET_CODEC = StreamCodec.composite(
                 Strain.ENTRY_PACKET_CODEC, Entry::strain,
                 ByteBufCodecs.VAR_INT, Entry::count,
+                Chemotype.PACKET_CODEC, Entry::stamp,
                 Entry::new);
+
+        /** An entry with no stamp: a plant's buds, or anything 2.1 packed. */
+        public Entry(Holder<Strain> strain, int count) {
+            this(strain, count, Chemotype.THC_DOMINANT);
+        }
+
+        /**
+         * What this entry is. <b>A plant's buds are their strain's chemotype</b>, whatever the entry
+         * says, so a Beldía spliff 2.1 rolled reads balanced like every Beldía bud; the stamp speaks for
+         * the matter that has no plant of its own to ask (schwag, scorched hemp, the hash family).
+         */
+        public Chemotype chemotype() {
+            Strain value = strain.value();
+            return value.wildFlower().isPresent() ? value.chemotype() : stamp;
+        }
+
+        /** This entry's THC dose: its count weighed by its chemotype ({@link Chemotype#thcDose}). */
+        public int thcDose() {
+            return chemotype().thcDose(count);
+        }
     }
 
     /** A single-strain load. */
     public static SmokeContents of(Holder<Strain> strain, int count) {
         return new SmokeContents(List.of(new Entry(strain, count)));
+    }
+
+    /** A single-strain load of stamped matter (schwag, scorched hemp, hash); a plant's buds ignore the stamp. */
+    public static SmokeContents of(Holder<Strain> strain, int count, Chemotype stamp) {
+        return new SmokeContents(List.of(new Entry(strain, count, stamp)));
     }
 
     /**
@@ -173,13 +205,37 @@ public record SmokeContents(List<Entry> entries) {
         return entries.isEmpty();
     }
 
-    /** Total buds loaded. This is the <em>dose</em>, and it drives the amplifier and green-out odds. */
+    /**
+     * Total units loaded: how much is burned. It names the item ("Bong III") and drives the smoke's
+     * own effects; the THC in it is {@link #thcDose}, which is what drives the high and the green-out.
+     * For a THC-dominant load the two are the same number.
+     */
     public int dose() {
         int total = 0;
         for (Entry entry : entries) {
             total += entry.count();
         }
         return total;
+    }
+
+    /** The most a bowl's THC dose can be: a full green-out, and a bong of three THC-dominant buds. */
+    public static final int MAX_THC_DOSE = 3;
+
+    /**
+     * The THC in the load as a dose: each entry's units weighed by its chemotype's THC (a balanced
+     * bud is half a THC-dominant one), summed in halves and rounded down, <b>never below one when
+     * anything in it has THC</b>, and never above {@link #MAX_THC_DOSE}. A load with no THC is dose 0:
+     * no high, no green-out, only the smoke and the cough.
+     */
+    public int thcDose() {
+        int halves = 0;
+        for (Entry entry : entries) {
+            halves += entry.count() * entry.chemotype().thcHalves();
+        }
+        if (halves <= 0) {
+            return 0;
+        }
+        return Math.min(MAX_THC_DOSE, Math.max(1, halves / Chemotype.FULL_WEIGHT));
     }
 
     /**
@@ -338,7 +394,7 @@ public record SmokeContents(List<Entry> entries) {
         for (Entry entry : entries) {
             int bonus = entry.strain().value().wildFlower().isPresent() ? load : 0;
             int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel(bonus));
-            for (MobEffectInstance effect : entry.strain().value().effects(entry.count(),
+            for (MobEffectInstance effect : entry.strain().value().effects(entry.count(), entry.chemotype(),
                     durationTicks + durationTicks * past / 2, onExhale, bonus, random)) {
                 out.add(new MobEffectInstance(effect.getEffect(), effect.getDuration(),
                         EffectPolicy.amplifier(effect.getEffect(), effect.getAmplifier(), bonus)));

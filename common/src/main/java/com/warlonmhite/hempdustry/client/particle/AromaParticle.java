@@ -5,6 +5,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -93,6 +94,26 @@ public class AromaParticle extends SingleQuadParticle {
         public Particle createParticle(SimpleParticleType type, ClientLevel world, double x, double y, double z,
                                        double velocityX, double velocityY, double velocityZ, RandomSource random) {
             return new AromaParticle(world, x, y, z, this.sprites);
+        }
+    }
+
+    /**
+     * {@code hempdustry:terpene_aroma}: the same wisp, tinted with the colour the plant's terpene
+     * gave it (already mixed toward white, so it stays a faint wisp with a cast).
+     */
+    public static class TerpeneFactory implements ParticleProvider<ColorParticleOption> {
+        private final SpriteSet sprites;
+
+        public TerpeneFactory(SpriteSet sprites) {
+            this.sprites = sprites;
+        }
+
+        @Override
+        public Particle createParticle(ColorParticleOption option, ClientLevel world, double x, double y, double z,
+                                       double velocityX, double velocityY, double velocityZ, RandomSource random) {
+            AromaParticle particle = new AromaParticle(world, x, y, z, this.sprites);
+            particle.setColor(option.getRed(), option.getGreen(), option.getBlue());
+            return particle;
         }
     }
 }

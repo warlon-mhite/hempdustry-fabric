@@ -15,5 +15,6 @@
   "flower": "hempdustry:indica_flower",
   "model_index": 1,
   "seeds": "hempdustry:indica_seeds",
+  "terpene": "hempdustry:linalool",
   "translation_key": "hempdustry.strain.indica"
 }

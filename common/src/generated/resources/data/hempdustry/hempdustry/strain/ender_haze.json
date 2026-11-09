@@ -1,5 +1,6 @@
 {
   "buds": "hempdustry:ender_haze_buds",
+  "chemotype": "balanced",
   "color": 15040767,
   "effects": [
     {
@@ -12,7 +13,9 @@
     {
       "duration_factor": 0.1,
       "effect": "minecraft:levitation",
-      "on_exhale": true
+      "label": "strain",
+      "on_exhale": true,
+      "scales": false
     },
     {
       "effect": "minecraft:hunger"
@@ -21,5 +24,6 @@
   "flower": "hempdustry:ender_haze_crop",
   "model_index": 11,
   "seeds": "hempdustry:ender_haze_seeds",
+  "terpene": "hempdustry:terpinolene",
   "translation_key": "hempdustry.strain.ender_haze"
 }

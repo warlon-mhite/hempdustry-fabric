@@ -1,8 +1,14 @@
 {
   "type": "minecraft:block",
-  "modifier": {
-    "type": "minecraft:explosion_decay"
-  },
+  "modifier": [
+    {
+      "type": "minecraft:explosion_decay"
+    },
+    {
+      "type": "hempdustry:set_chemotype",
+      "strain": "hempdustry:indica"
+    }
+  ],
   "pools": [
     {
       "condition": {

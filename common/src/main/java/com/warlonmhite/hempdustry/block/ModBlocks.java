@@ -4,6 +4,10 @@ import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.BongBlock;
 import com.warlonmhite.hempdustry.block.custom.CharasBallBlock;
+import com.warlonmhite.hempdustry.block.custom.StampedBlock;
+import com.warlonmhite.hempdustry.item.custom.StampedBlockItem;
+import com.warlonmhite.hempdustry.item.custom.StrainPlantItem;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
@@ -83,6 +87,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -218,7 +223,7 @@ public class ModBlocks {
      * stone reads as a bug. {@code randomTicks} is the one vanilla setting left out: it only
      * drives decay.
      */
-    public static final Block HEMP_LEAVES = registerBlock("hemp_leaves", Block::new,
+    public static final Block HEMP_LEAVES = registerBlockWithItem("hemp_leaves", StampedBlock::new,
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.PLANT)
                     .strength(0.2F)
@@ -228,7 +233,8 @@ public class ModBlocks {
                     .isValidSpawn(ModBlocks::ocelotOrParrot)
                     .isSuffocating(ModBlocks::never)
                     .isRedstoneConductor(ModBlocks::never)
-                    .pushReaction(PushReaction.POPPED));
+                    .pushReaction(PushReaction.POPPED),
+            StampedBlockItem::new, new Item.Properties());
 
 
     /**
@@ -356,8 +362,10 @@ public class ModBlocks {
     // Ditchweed: feral Industrial Hemp, the fibre crops' descendants along ditches and riverbanks.
     // Two tall and a plain DoublePlantBlock, like Wild Lemon Haze and for the same reasons (no bone
     // meal duplication); unlike it, dirt only, since it grows by water rather than in badlands.
-    public static final Block DITCHWEED = registerBlock("ditchweed", DoublePlantBlock::new,
-            BlockBehaviour.Properties.ofFullCopy(Blocks.ROSE_BUSH));
+    public static final Block DITCHWEED = registerBlockWithItem("ditchweed", DoublePlantBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.ROSE_BUSH),
+            (block, settings) -> new StrainPlantItem.Seeds(block, settings, Optional.of(Chemotype.BALANCED)),
+            new Item.Properties());
     public static final Block POTTED_DITCHWEED = registerBlockWithoutItem("potted_ditchweed", settings -> new FlowerPotBlock(DITCHWEED, settings),
             BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_DANDELION));
 
@@ -506,25 +514,27 @@ public class ModBlocks {
      * shapeless unpack this block exists to refuse. A bar unpacks <em>by being cut</em>, with a blade
      * and a durability cost; a tag that quietly undoes that is worse than no tag at all.
      */
-    public static final Block HASHISH_BAR = registerBlock("hashish_bar", HashishBarBlock::new,
+    public static final Block HASHISH_BAR = registerBlockWithItem("hashish_bar", HashishBarBlock::new,
             BlockBehaviour.Properties.of()
                     .strength(0.5F)
                     .sound(SoundType.HONEY_BLOCK)
                     .noOcclusion()
-                    .pushReaction(PushReaction.POPPED));
+                    .pushReaction(PushReaction.POPPED),
+            StampedBlockItem::new, new Item.Properties());
 
     /**
      * The blonde bar — nine filtered hashish, crafted together. Properties copied from
      * {@link #HASHISH_BAR} because it <em>is</em> that block in a different colour; see
      * {@link FilteredHashishBarBlock} for why the symmetry is deliberate.
      */
-    public static final Block FILTERED_HASHISH_BAR = registerBlock("filtered_hashish_bar",
+    public static final Block FILTERED_HASHISH_BAR = registerBlockWithItem("filtered_hashish_bar",
             FilteredHashishBarBlock::new,
             BlockBehaviour.Properties.of()
                     .strength(0.5F)
                     .sound(SoundType.HONEY_BLOCK)
                     .noOcclusion()
-                    .pushReaction(PushReaction.POPPED));
+                    .pushReaction(PushReaction.POPPED),
+            StampedBlockItem::new, new Item.Properties());
 
     /**
      * Nine charas, rolled together. <b>A ball and not a bar, and that is the whole point.</b>
@@ -541,12 +551,13 @@ public class ModBlocks {
      *
      * <p>Honey sound group, like the two bars: sticky, soft, resinous.
      */
-    public static final Block CHARAS_BALL = registerBlock("charas_ball", CharasBallBlock::new,
+    public static final Block CHARAS_BALL = registerBlockWithItem("charas_ball", CharasBallBlock::new,
             BlockBehaviour.Properties.of()
                     .strength(0.5F)
                     .sound(SoundType.HONEY_BLOCK)
                     .noOcclusion()
-                    .pushReaction(PushReaction.POPPED));
+                    .pushReaction(PushReaction.POPPED),
+            StampedBlockItem::new, new Item.Properties());
 
     /**
      * Space Cake — vanilla's cake, baked with cannabutter. Copies {@code Blocks.CAKE}'s settings

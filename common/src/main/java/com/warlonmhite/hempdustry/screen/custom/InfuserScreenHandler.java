@@ -42,6 +42,8 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
     /** Layout, shared with the screen and the GUI-texture generator. */
     public static final int HEMP_X = 62, HEMP_Y = 17;
     public static final int WASHED_X = 62, WASHED_Y = 53;
+    /** 2.2's two hemp slots, the grid's left column, block-entity slots 5 and 6. */
+    public static final int LEFT_X = 44;
     /**
      * The batch preview, drawn as a furnace's oversized result well — vanilla marks "this is what
      * comes out" by making the slot bigger, and this one is doubly worth marking because taking
@@ -64,10 +66,13 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
         this.world = playerInventory.player.level();
         inventory.startOpen(playerInventory.player);
 
-        // Both hemp slots take either type; they exist so a batch can mix washed and unwashed, not
-        // so each type has a home. The block entity's two retired slots get no Slot at all.
+        // Every hemp slot takes every type; they exist so a batch can mix washed and unwashed, and
+        // THC and CBD hemp, not so each kind has a home. The block entity's two retired slots get
+        // no Slot at all. 2.1's pair first, so the menu's first two slots are still what they were.
         this.addSlot(new InputSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT, HEMP_X, HEMP_Y));
         this.addSlot(new InputSlot(inventory, InfuserBlockEntity.FIRST_HEMP_SLOT + 1, WASHED_X, WASHED_Y));
+        this.addSlot(new InputSlot(inventory, 5, LEFT_X, HEMP_Y));
+        this.addSlot(new InputSlot(inventory, 6, LEFT_X, WASHED_Y));
         this.addSlot(new PreviewSlot(inventory, InfuserBlockEntity.OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y));
 
         addPlayerSlots(playerInventory);
@@ -249,7 +254,7 @@ public class InfuserScreenHandler extends AbstractContainerMenu {
         moved = inSlot.copy();
 
         // Indices into this menu's slot list, not the block entity's inventory: the menu holds the
-        // two hemp slots and the preview, in that order, and then the player's.
+        // four hemp slots and the preview, in that order, and then the player's.
         int blockSlots = InfuserBlockEntity.HEMP_SLOT_COUNT + 1;
         int playerStart = blockSlots;
         int playerEnd = this.slots.size();

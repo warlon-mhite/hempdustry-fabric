@@ -6,6 +6,8 @@ import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.block.entity.NamedMachineBlockEntity;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
+import com.warlonmhite.hempdustry.recipe.Stamping;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.screen.custom.DecarboxylatorScreenHandler;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import java.util.Optional;
@@ -69,8 +71,24 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     /** The three tray slots are contiguous from here. */
     public static final int FIRST_TRAY_SLOT = 1;
     public static final int TRAY_COUNT = 3;
+    /** Tray 1's output, and the oven's only one until 2.2: an oven saved by 2.1 keeps it here. */
     public static final int OUTPUT_SLOT = 4;
-    public static final int SLOT_COUNT = 5;
+    /**
+     * Since 2.2 every tray has its own output, because the chemotype stamp keeps a CBD tray's hemp
+     * from stacking with a THC tray's: tray 1 pours into {@link #OUTPUT_SLOT}, trays 2 and 3 into the
+     * two slots after it. One shared output would stall the oven the moment two trays disagreed.
+     */
+    public static final int[] OUTPUT_SLOTS = {OUTPUT_SLOT, 5, 6};
+    public static final int SLOT_COUNT = 7;
+
+    /** The output slot {@code tray} pours into. */
+    public static int outputSlot(int tray) {
+        return OUTPUT_SLOTS[tray];
+    }
+
+    public static boolean isOutputSlot(int slot) {
+        return slot == OUTPUT_SLOTS[0] || slot == OUTPUT_SLOTS[1] || slot == OUTPUT_SLOTS[2];
+    }
 
     /**
      * Ticks one item spends in a tray. Sits between ore smelting (200t) and campfire smoking
@@ -187,11 +205,18 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         if (world == null || stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
+        // The oven is one of the two doors into an edible, so it turns away the chemotypes that make
+        // neither THC nor CBD: decarboxylated, they would make butter that does nothing.
+        Chemotype chemotype = Chemotype.ofMatter(stack, world.registryAccess());
+        if (!chemotype.infusable()) {
+            return ItemStack.EMPTY;
+        }
         SingleRecipeInput input = new SingleRecipeInput(stack);
         // Through the synchronized view, so this answers on a client too — the screen's tray slots
-        // ask the same question. See ModRecipes#allOfType.
+        // ask the same question. See ModRecipes#allOfType. The output keeps what went in: a CBD bud
+        // bakes to CBD decarboxylated hemp.
         return Services.RECIPES.firstMatch(world, ModRecipes.DECARBOXYLATING_TYPE, input)
-                .map(entry -> entry.value().assemble(input))
+                .map(entry -> Stamping.apply(entry.value().assemble(input), chemotype))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -303,7 +328,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         if (result.isEmpty()) {
             return false;
         }
-        ItemStack output = getItem(OUTPUT_SLOT);
+        ItemStack output = getItem(outputSlot(tray));
         if (output.isEmpty()) {
             return result.getCount() <= result.getMaxStackSize();
         }
@@ -317,9 +342,9 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         if (result.isEmpty()) {
             return;
         }
-        ItemStack output = getItem(OUTPUT_SLOT);
+        ItemStack output = getItem(outputSlot(tray));
         if (output.isEmpty()) {
-            setItem(OUTPUT_SLOT, result);
+            setItem(outputSlot(tray), result);
         } else {
             output.grow(result.getCount());
         }
@@ -339,11 +364,10 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return switch (slot) {
-            case FUEL_SLOT -> isFuel(this.level, stack);
-            case OUTPUT_SLOT -> false;
-            default -> isTrayInput(this.level, stack);
-        };
+        if (isOutputSlot(slot)) {
+            return false;
+        }
+        return slot == FUEL_SLOT ? isFuel(this.level, stack) : isTrayInput(this.level, stack);
     }
 
     // Hopper access mirrors a furnace: input from above, fuel from the sides, output out the bottom.
@@ -351,7 +375,8 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     public int[] getSlotsForFace(Direction side) {
         return switch (side) {
             case UP -> new int[]{FIRST_TRAY_SLOT, FIRST_TRAY_SLOT + 1, FIRST_TRAY_SLOT + 2};
-            case DOWN -> new int[]{OUTPUT_SLOT, FUEL_SLOT};
+            // Output 1, then 2, then 3: a hopper underneath drains them in that order.
+            case DOWN -> new int[]{OUTPUT_SLOTS[0], OUTPUT_SLOTS[1], OUTPUT_SLOTS[2], FUEL_SLOT};
             default -> new int[]{FUEL_SLOT};
         };
     }
@@ -365,7 +390,7 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
     public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
         // The output is always drainable. The fuel slot only gives back leftover containers
         // (an empty bucket), never the fuel a hopper just inserted.
-        if (slot == OUTPUT_SLOT) {
+        if (isOutputSlot(slot)) {
             return true;
         }
         return slot == FUEL_SLOT && !isFuel(this.level, stack);

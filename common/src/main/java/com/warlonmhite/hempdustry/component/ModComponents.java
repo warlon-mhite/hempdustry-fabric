@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import java.util.function.UnaryOperator;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -73,9 +74,31 @@ public class ModComponents {
     public static final DataComponentType<Integer> STRENGTH = register("strength",
             builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    /**
+     * Cannabutter's CBD sum, beside {@link #STRENGTH}, which is its THC sum: one per CBD-dominant
+     * hemp, half per balanced one, capped like strength. Absent is 0, every butter 2.1 made. Edibles
+     * carry the tier it reads as in {@link #CBD_POTENCY}, as they carry strength's in {@link #POTENCY}.
+     */
+    public static final DataComponentType<Integer> CBD_STRENGTH = register("cbd_strength",
+            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /** An edible's CBD tier, 1–4, read off its butter's {@link #CBD_STRENGTH}. Absent: no CBD. */
+    public static final DataComponentType<Integer> CBD_POTENCY = register("cbd_potency",
+            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
     /** How well the batch was made — patience plus ingredient prep. */
     public static final DataComponentType<Quality> QUALITY = register("quality",
             builder -> builder.persistent(Quality.CODEC).networkSynchronized(Quality.PACKET_CODEC));
+
+    /**
+     * What a piece of shared hemp matter carries from its plant: THC-dominant, balanced, CBD-dominant
+     * and the two that make neither. Absent reads THC-dominant, everything 2.1 made, and that value is
+     * never written ({@link Chemotype#stamp}). Leaves, schwag, decarboxylated and scorched hemp and the
+     * whole hash family carry it, because the matter is the same item whatever plant it came from; a
+     * bud and a seed never do, their strain is their chemotype.
+     */
+    public static final DataComponentType<Chemotype> CHEMOTYPE = register("chemotype",
+            builder -> builder.persistent(Chemotype.CODEC).networkSynchronized(Chemotype.PACKET_CODEC));
 
     private static <T> DataComponentType<T> register(String id, UnaryOperator<DataComponentType.Builder<T>> builderOp) {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,

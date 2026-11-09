@@ -13,9 +13,9 @@ jar and checked by `check_panel.py`.
 
 Must stay in step with InfuserScreenHandler (slots) and InfuserScreen (sprite regions).
 
-               [hemp]
+           [hemp][hemp]
     (milk)                ==|==!==>  [ OUT ]  | dark NOTCH = collectable from here
-               [hemp]       (flame)            ! bright MARK = next grade (moves with the ratio)
+           [hemp][hemp]     (flame)            ! bright MARK = next grade (moves with the ratio)
 
 Milk has no slot. It is poured into the tub in the world, like water into a cauldron, so the left
 column only reports it: an empty pot outline that fills white once there is milk in the tub. It
@@ -29,8 +29,11 @@ rather than slots because nothing goes in either.
 The notch is the whole point of the bar. A plain fill would say "cooking"; the notch says
 "collectable from here, but not finished" -- which is the actual decision the player is making.
 
-Slots are empty. **No hint icons** -- see the note in decarboxylator_gui.py. Both hemp slots take
-either type, so any icon drawn in them would have been a half-truth from the start.
+Four hemp slots since 2.2, a 2x2 grid: a chemotype stamp keeps CBD and THC hemp apart in the
+inventory, and a batch may take both, so the two added ones sit left of 2.1's pair.
+
+Slots are empty. **No hint icons** -- see the note in decarboxylator_gui.py. Every hemp slot takes
+every type, so any icon drawn in one would have been a half-truth from the start.
 """
 
 import gui_common as gui
@@ -38,6 +41,9 @@ import gui_common as gui
 # Slots — must match InfuserScreenHandler.
 HEMP = (62, 17)
 WASHED = (62, 53)
+# 2.2's two, left of 2.1's pair, on the same rows.
+HEMP_LEFT = (44, 17)
+WASHED_LEFT = (44, 53)
 OUTPUT = (138, 35)
 
 # Live overlays — must match InfuserScreen.
@@ -111,7 +117,7 @@ BAR_RAMP = [
 sheet = gui.Sheet()
 sheet.panel()
 
-for slot in (HEMP, WASHED):
+for slot in (HEMP, WASHED, HEMP_LEFT, WASHED_LEFT):
     sheet.slot(*slot)
 # Furnace-sized result well: vanilla marks what comes out by size.
 sheet.big_slot(*OUTPUT)

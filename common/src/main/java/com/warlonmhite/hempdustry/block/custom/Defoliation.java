@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -293,8 +294,10 @@ public final class Defoliation {
             // harvest does not take back. Read off the plant's record, never off the lamp.
             GrowLight light = lowerState.getValue(GrowLight.PROPERTY);
             int leaves = cure ? 0 : !rub && light == GrowLight.GROW_LAMP ? 2 : 1;
+            // What comes off the plant is the plant's chemotype.
+            Chemotype chemotype = Chemotype.ofPlant(lowerState.getBlock(), world.registryAccess());
             if (leaves > 0) {
-                Block.popResource(world, lowerPos, new ItemStack(ModItems.HEMP_LEAF, leaves));
+                Block.popResource(world, lowerPos, Chemotype.stamp(new ItemStack(ModItems.HEMP_LEAF, leaves), chemotype));
             }
             if (rub) {
                 // The age is untouched, and the charas is a roll on top of the leaf.
@@ -314,7 +317,7 @@ public final class Defoliation {
                 // bar is cut to it too -- so "that noise means resin" is one thing to learn.
                 boolean gotCharas = world.getRandom().nextInt(charasOneIn(lowerState)) == 0;
                 if (gotCharas) {
-                    Block.popResource(world, lowerPos, new ItemStack(ModItems.CHARAS));
+                    Block.popResource(world, lowerPos, Chemotype.stamp(new ItemStack(ModItems.CHARAS), chemotype));
                 }
                 world.playSound(null, lowerPos,
                         gotCharas ? SoundEvents.HONEY_BLOCK_BREAK

@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "hempdustry:stamped_shaped",
   "category": "building",
   "key": {
     "#": "hempdustry:hemp_leaf"

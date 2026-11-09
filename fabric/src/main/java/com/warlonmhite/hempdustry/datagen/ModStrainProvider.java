@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.strain.Strain;
+import com.warlonmhite.hempdustry.strain.Terpene;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider;
 import net.minecraft.core.HolderLookup;
@@ -25,6 +26,8 @@ public class ModStrainProvider extends FabricDynamicRegistryProvider {
     @Override
     protected void configure(HolderLookup.Provider registries, Entries entries) {
         entries.addAll(registries.lookupOrThrow(Strain.REGISTRY_KEY));
+        // The terpenes the strains name, in the same pack: data/hempdustry/hempdustry/terpene/.
+        entries.addAll(registries.lookupOrThrow(Terpene.REGISTRY_KEY));
     }
 
     @Override

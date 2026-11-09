@@ -1,5 +1,6 @@
 {
   "buds": "hempdustry:ruderalis_buds",
+  "chemotype": "balanced",
   "color": 9227102,
   "cough_factor": 0.5,
   "effects": [
@@ -9,12 +10,13 @@
     },
     {
       "effect": "minecraft:hunger",
-      "scales": false
+      "label": "thc"
     }
   ],
   "flower": "hempdustry:ruderalis_crop",
   "green_out_factor": 2.0,
   "model_index": 9,
   "seeds": "hempdustry:ruderalis_seeds",
+  "terpene": "hempdustry:pinene",
   "translation_key": "hempdustry.strain.ruderalis"
 }

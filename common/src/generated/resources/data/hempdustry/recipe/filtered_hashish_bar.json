@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "hempdustry:stamped_shaped",
   "key": {
     "H": "hempdustry:filtered_hashish"
   },

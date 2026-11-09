@@ -7,6 +7,7 @@
       "chance": 0.6,
       "duration_factor": 0.14285715,
       "effect": "minecraft:poison",
+      "label": "smoke",
       "max_amplifier": 1
     },
     {
@@ -14,5 +15,6 @@
     }
   ],
   "green_out_factor": 0.0,
+  "smoke_color": 11049582,
   "translation_key": "hempdustry.strain.schwag"
 }

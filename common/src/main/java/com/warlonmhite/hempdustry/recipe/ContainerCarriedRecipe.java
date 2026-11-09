@@ -60,6 +60,15 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
         this.ingredients = ingredients;
     }
 
+    /**
+     * A dosed result (bhang) takes the chemotype of the hemp that went in, by dosage
+     * ({@link Infusion#bhang}); anything else comes out as written.
+     */
+    @Override
+    public ItemStack assemble(CraftingInput input) {
+        return Infusion.bhang(input, super.assemble(input));
+    }
+
     /** No remainders: every ingredient's container is considered part of the product. */
     @Override
     public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {

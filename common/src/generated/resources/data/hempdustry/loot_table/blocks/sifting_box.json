@@ -1,5 +1,9 @@
 {
   "type": "minecraft:block",
+  "modifier": {
+    "type": "hempdustry:set_chemotype",
+    "from_block": true
+  },
   "pools": [
     {
       "condition": {

@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.block;
 
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.cauldron.CauldronInteractions;
 import net.minecraft.sounds.SoundEvents;
@@ -98,14 +99,17 @@ public final class ModCauldronBehaviors {
                 // creativeOverride): the input is never spent, so the output is only handed over
                 // when the player has none — otherwise every click mints another stack out of
                 // nothing. One item, not the batch: nothing was consumed to pay for a batch.
-                ItemStack one = new ItemStack(output);
+                ItemStack one = Chemotype.stamp(new ItemStack(output), Chemotype.of(stack));
                 if (!player.getInventory().contains(one)) {
                     player.getInventory().add(one);
                 }
             } else {
+                // Washing keeps the chemotype: it rinses the plant taste out, not the cannabinoids.
+                Chemotype chemotype = Chemotype.of(stack);
                 stack.shrink(toProcess);
                 // toProcess is capped by the input stack, so this never exceeds one legal stack.
-                player.getInventory().placeItemBackInInventory(new ItemStack(output, toProcess), Prediction.SERVER_ONLY);
+                player.getInventory().placeItemBackInInventory(
+                        Chemotype.stamp(new ItemStack(output, toProcess), chemotype), Prediction.SERVER_ONLY);
             }
             player.awardStat(Stats.USE_CAULDRON);
             player.awardStat(Stats.ITEM_USED.get(input));

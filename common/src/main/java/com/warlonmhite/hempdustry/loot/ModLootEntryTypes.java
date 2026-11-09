@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -31,6 +32,10 @@ public class ModLootEntryTypes {
 
     public static final MapCodec<SpoilingEntry> SPOILING = Registry.register(BuiltInRegistries.LOOT_POOL_ENTRY_TYPE,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "spoiling"), SpoilingEntry.CODEC);
+
+    /** {@code hempdustry:set_chemotype}: a dropped leaf, schwag or hash takes its source's chemotype. */
+    public static final MapCodec<SetChemotypeFunction> SET_CHEMOTYPE = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "set_chemotype"), SetChemotypeFunction.CODEC);
 
     public static void registerLootEntryTypes() {
         Hempdustry.LOGGER.info("Registering Loot Entry Types for " + Hempdustry.MOD_ID);
@@ -124,12 +129,13 @@ public class ModLootEntryTypes {
                 public void createItemStack(Consumer<ItemStack> lootConsumer, LootContext lootContext) {
                     RandomSource random = RandomSource.create(lootContext.getRandom().nextLong());
                     int level = level(lootContext);
-                    choice.createItemStack(stack -> spoil(stack, random, level, lootConsumer), lootContext);
+                    choice.createItemStack(stack -> spoil(stack, random, level, lootContext, lootConsumer), lootContext);
                 }
             }));
         }
 
-        private void spoil(ItemStack stack, RandomSource random, int level, Consumer<ItemStack> lootConsumer) {
+        private void spoil(ItemStack stack, RandomSource random, int level, LootContext context,
+                           Consumer<ItemStack> lootConsumer) {
             int spoiled = 0;
             if (stack.getCount() > 0 && random.nextFloat() < chance(oneItemChances, level)) {
                 spoiled = 1;
@@ -143,7 +149,9 @@ public class ModLootEntryTypes {
                 }
             }
             if (spoiled > 0) {
-                lootConsumer.accept(new ItemStack(into, spoiled));
+                // Spoiled bud is still its plant's matter: schwag from a CBD plant is CBD schwag.
+                lootConsumer.accept(Chemotype.stamp(new ItemStack(into, spoiled),
+                        Chemotype.ofMatter(stack, context.getLevel().registryAccess())));
                 stack.shrink(spoiled);
             }
             if (!stack.isEmpty()) {

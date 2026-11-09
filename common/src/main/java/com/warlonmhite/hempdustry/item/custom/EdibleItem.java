@@ -32,11 +32,12 @@ public class EdibleItem extends Item {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity user) {
         int potency = EdibleEffects.potencyOf(stack);
+        int cbd = EdibleEffects.cbdPotencyOf(stack);
         Quality quality = EdibleEffects.qualityOf(stack);
         // Read before super, which may empty the stack and take the components with it.
         ItemStack result = super.finishUsingItem(stack, world, user);
         if (!world.isClientSide() && user instanceof Player player) {
-            EdibleEffects.consume(player, potency, quality);
+            EdibleEffects.consume(player, potency, cbd, quality);
         }
         return result;
     }

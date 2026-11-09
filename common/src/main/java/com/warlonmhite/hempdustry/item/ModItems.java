@@ -15,6 +15,9 @@ import com.warlonmhite.hempdustry.item.custom.HempBoatItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.item.custom.SpliffItem;
+import com.warlonmhite.hempdustry.item.custom.StampedItem;
+import com.warlonmhite.hempdustry.item.custom.StrainPlantItem;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
@@ -25,6 +28,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -56,12 +60,12 @@ import net.minecraft.world.level.ItemLike;
 
 public class ModItems {
 
-    public static final Item INDICA_SEEDS = registerItem("indica_seeds", settings -> new BlockItem(ModBlocks.INDICA_CROP, settings));
-    public static final Item INDICA_BUDS = registerItem("indica_buds", settings -> new Item(settings));
-    public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", settings -> new BlockItem(ModBlocks.SATIVA_CROP, settings));
-    public static final Item SATIVA_BUDS = registerItem("sativa_buds", settings -> new Item(settings));
-    public static final Item BELDIA_SEEDS = registerItem("beldia_seeds", settings -> new BlockItem(ModBlocks.BELDIA_CROP, settings));
-    public static final Item BELDIA_BUDS = registerItem("beldia_buds", settings -> new Item(settings));
+    public static final Item INDICA_SEEDS = registerItem("indica_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.INDICA_CROP, settings));
+    public static final Item INDICA_BUDS = registerItem("indica_buds", StrainPlantItem.Buds::new);
+    public static final Item SATIVA_SEEDS = registerItem("sativa_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.SATIVA_CROP, settings));
+    public static final Item SATIVA_BUDS = registerItem("sativa_buds", StrainPlantItem.Buds::new);
+    public static final Item BELDIA_SEEDS = registerItem("beldia_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.BELDIA_CROP, settings));
+    public static final Item BELDIA_BUDS = registerItem("beldia_buds", StrainPlantItem.Buds::new);
     /**
      * Schwag — a bud gone wrong: seedy, stemmy and weak. Vanilla's poisonous potato, moved into the
      * bud system: it is what a ripe plant's bud sometimes becomes rather than an extra drop, rarely
@@ -72,16 +76,16 @@ public class ModItems {
      * cultivar, the same way there is one poisonous potato whichever plant grew it. It is its own
      * strain entry with no seeds and no flower.
      */
-    public static final Item SCHWAG = registerItem("schwag", settings -> new Item(settings));
-    public static final Item INDUSTRIAL_HEMP_SEEDS = registerItem("industrial_hemp_seeds", settings -> new BlockItem(ModBlocks.INDUSTRIAL_HEMP_CROP, settings));
-    public static final Item WARPED_KUSH_SEEDS = registerItem("warped_kush_seeds", settings -> new BlockItem(ModBlocks.WARPED_KUSH_CROP, settings));
-    public static final Item WARPED_KUSH_BUDS = registerItem("warped_kush_buds", settings -> new Item(settings));
-    public static final Item RUDERALIS_SEEDS = registerItem("ruderalis_seeds", settings -> new BlockItem(ModBlocks.RUDERALIS_CROP, settings));
-    public static final Item RUDERALIS_BUDS = registerItem("ruderalis_buds", settings -> new Item(settings));
-    public static final Item CRIMSON_SEEDS = registerItem("crimson_seeds", settings -> new BlockItem(ModBlocks.CRIMSON_CROP, settings));
-    public static final Item CRIMSON_BUDS = registerItem("crimson_buds", settings -> new Item(settings));
-    public static final Item ENDER_HAZE_SEEDS = registerItem("ender_haze_seeds", settings -> new BlockItem(ModBlocks.ENDER_HAZE_CROP, settings));
-    public static final Item ENDER_HAZE_BUDS = registerItem("ender_haze_buds", settings -> new Item(settings));
+    public static final Item SCHWAG = registerItem("schwag", StampedItem::new);
+    public static final Item INDUSTRIAL_HEMP_SEEDS = registerItem("industrial_hemp_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.INDUSTRIAL_HEMP_CROP, settings, Optional.of(Chemotype.CBD_DOMINANT)));
+    public static final Item WARPED_KUSH_SEEDS = registerItem("warped_kush_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.WARPED_KUSH_CROP, settings));
+    public static final Item WARPED_KUSH_BUDS = registerItem("warped_kush_buds", StrainPlantItem.Buds::new);
+    public static final Item RUDERALIS_SEEDS = registerItem("ruderalis_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.RUDERALIS_CROP, settings));
+    public static final Item RUDERALIS_BUDS = registerItem("ruderalis_buds", StrainPlantItem.Buds::new);
+    public static final Item CRIMSON_SEEDS = registerItem("crimson_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.CRIMSON_CROP, settings));
+    public static final Item CRIMSON_BUDS = registerItem("crimson_buds", StrainPlantItem.Buds::new);
+    public static final Item ENDER_HAZE_SEEDS = registerItem("ender_haze_seeds", settings -> new StrainPlantItem.Seeds(ModBlocks.ENDER_HAZE_CROP, settings));
+    public static final Item ENDER_HAZE_BUDS = registerItem("ender_haze_buds", StrainPlantItem.Buds::new);
     public static final Item HEMP_STEM = registerItem("hemp_stem", settings -> new Item(settings));
     /**
      * A stalk that has been soaked until the pectin gluing its bast fibre to the woody core has
@@ -100,15 +104,15 @@ public class ModItems {
      * the right price for something purely cosmetic. The tag it names is the other half — see
      * {@link ModTags.BannerPatterns#HEMP_LEAF_PATTERN_ITEM}.
      */
-    public static final Item HEMP_LEAF = registerItem("hemp_leaf", settings -> new Item(
+    public static final Item HEMP_LEAF = registerItem("hemp_leaf", settings -> new StampedItem(
             settings.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS,
                     context -> context.getOrThrow(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM))));
 
     // The cannabutter chain's two intermediates. Both are strain-agnostic: every strain's buds and
     // the leaf all decarboxylate to the same thing, so the pipeline downstream stays a single line
     // of items. Strain identity is carried by the smoking system, not by edibles.
-    public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", settings -> new Item(settings));
-    public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", settings -> new Item(settings));
+    public static final Item DECARBOXYLATED_HEMP = registerItem("decarboxylated_hemp", StampedItem::new);
+    public static final Item WASHED_DECARBOXYLATED_HEMP = registerItem("washed_decarboxylated_hemp", StampedItem::new);
     /**
      * Hemp heated past the point of use — the furnace's version of the oven's work, and what a
      * vaporizer bowl leaves behind (<b>AVB</b>, "already vaped bud").
@@ -123,14 +127,14 @@ public class ModItems {
      * heat has already broken the chlorophyll down to brown, so there is nothing green left for
      * water to take out.
      */
-    public static final Item SCORCHED_HEMP = registerItem("scorched_hemp", settings -> new Item(settings));
+    public static final Item SCORCHED_HEMP = registerItem("scorched_hemp", StampedItem::new);
 
     /**
      * What falls through the screen when plant matter is shaken over it dry. <b>Not smokeable</b> —
      * loose powder falls straight through a bowl's screen, which is exactly why the trade presses it.
      * Press it into {@link #HASHISH}, or stick it to a bud as a moon rock's coat.
      */
-    public static final Item KIEF = registerItem("kief", settings -> new Item(settings));
+    public static final Item KIEF = registerItem("kief", StampedItem::new);
     /**
      * Kief put over the screen a second time at a finer mesh — the trade's <i>3× filtré</i>, at two
      * passes rather than three. <b>The dry road to a blonde product</b>, and the expensive one: each
@@ -140,13 +144,13 @@ public class ModItems {
      * <b>the two buy the same thing</b> — smoothness — and pressing is pressing. Where they differ is
      * the price: see {@code SiftingBoxBlock.KIEF_CHANCE}.
      */
-    public static final Item FILTERED_KIEF = registerItem("filtered_kief", settings -> new Item(settings));
+    public static final Item FILTERED_KIEF = registerItem("filtered_kief", StampedItem::new);
     /**
      * The same trichome heads, washed out in ice water instead of screened out dry: cleaner, with
      * almost no leaf in it. Presses into {@link #FILTERED_HASHISH}, which is where the smoothness
      * shows up. Not smokeable, for the same reason kief is not.
      */
-    public static final Item BUBBLE_HASH = registerItem("bubble_hash", settings -> new Item(settings));
+    public static final Item BUBBLE_HASH = registerItem("bubble_hash", StampedItem::new);
     /**
      * Hashish — {@link #KIEF} pressed in the Hemp Press, one for one: resin separated from the
      * plant and squeezed together.
@@ -163,7 +167,7 @@ public class ModItems {
      * oven takes plant matter and the bowl takes resin, so hash is a smoking material only, and the
      * flame is its heat.
      */
-    public static final Item HASHISH = registerItem("hashish", settings -> new Item(settings));
+    public static final Item HASHISH = registerItem("hashish", StampedItem::new);
 
     /**
      * Charas — soft black resin rubbed off a <b>living</b> plant, and the only hash you can have
@@ -187,7 +191,7 @@ public class ModItems {
      * no memory of which plant it came off, and it never decarboxylates: only heat does that, and
      * resin in the hand is as raw as the plant it came off.
      */
-    public static final Item CHARAS = registerItem("charas", settings -> new Item(settings));
+    public static final Item CHARAS = registerItem("charas", StampedItem::new);
 
     /**
      * Filtered hashish — loose blonde powder, the cleanest thing the screen makes.
@@ -217,12 +221,12 @@ public class ModItems {
      * whole 1×–3× range. A third pass would be a second near-identical blonde for no mechanic, and
      * the re-sift's three to one already says what a pass costs.
      */
-    public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", settings -> new Item(settings));
+    public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", StampedItem::new);
     /**
      * Pressed out of filtered hashish in the Hemp Press. A strain entry with no flower, like the
      * rest of the hash family — but the only one whose {@code dose_per_item} is not 1.
      */
-    public static final Item ROSIN = registerItem("rosin", settings -> new Item(settings));
+    public static final Item ROSIN = registerItem("rosin", StampedItem::new);
     /**
      * A bud dipped in rosin and rolled in a hash coat — hashish, charas or filtered hashish. One
      * item for every strain and every coat: the strain rides in
