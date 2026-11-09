@@ -1,5 +1,6 @@
 {
   "buds": "hempdustry:beldia_buds",
+  "chemotype": "balanced",
   "color": 14264654,
   "cough_factor": 0.5,
   "effects": [
@@ -20,5 +21,6 @@
   "flower": "hempdustry:beldia_crop",
   "model_index": 7,
   "seeds": "hempdustry:beldia_seeds",
+  "terpene": "hempdustry:myrcene",
   "translation_key": "hempdustry.strain.beldia"
 }

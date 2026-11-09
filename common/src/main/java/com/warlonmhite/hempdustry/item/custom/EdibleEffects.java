@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.EffectLabel;
 import com.warlonmhite.hempdustry.balance.EdibleBundle;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
@@ -120,13 +122,21 @@ public final class EdibleEffects {
      * from either call site. An edible added later joins by using the same door.
      */
     public static void consume(Player player, int tier, Quality quality) {
-        if (tier <= 0) {
+        consume(player, tier, 0, quality);
+    }
+
+    /**
+     * Eats an edible of THC tier {@code tier} and CBD tier {@code cbdTier} (0 for none of either).
+     * The addon event reports the THC tier, as it always has: a CBD-only edible fires with tier 0.
+     */
+    public static void consume(Player player, int tier, int cbdTier, Quality quality) {
+        if (tier <= 0 && cbdTier <= 0) {
             // Undosed: nothing is queued, so nothing was consumed in the sense a listener cares
             // about, and no event fires.
             return;
         }
         EdibleBundle data = EdibleBundle.of(player.registryAccess());
-        for (Dose dose : bundle(data, tier, quality, rollOnsetTicks(data, quality, ThreadLocalRandom.current()))) {
+        for (Dose dose : bundle(data, tier, cbdTier, quality, rollOnsetTicks(data, quality, ThreadLocalRandom.current()))) {
             queue(player, dose.delay(), dose.effect());
         }
 
@@ -146,15 +156,45 @@ public final class EdibleEffects {
      * multiplier, as Regeneration's never was.
      */
     public static List<Dose> bundle(EdibleBundle data, int tier, Quality quality, int onset) {
-        int index = Mth.clamp(tier, 1, MAX_TIER) - 1;
-        int duration = (int) (durationTicks(data, quality) * (double) data.tierShare().get(index));
+        return bundle(data, tier, 0, quality, onset);
+    }
+
+    /**
+     * What an edible of THC tier {@code tier} and CBD tier {@code cbdTier} queues. A THC effect reads
+     * the THC tier exactly as before; a CBD effect reads the CBD tier for its length and stays at
+     * level I. An effect that answers both takes the longer of its two runs and the higher of its
+     * two levels, never their sum: CBD adds no strength to a high and takes none away.
+     */
+    public static List<Dose> bundle(EdibleBundle data, int tier, int cbdTier, Quality quality, int onset) {
         List<Dose> out = new ArrayList<>();
         for (EdibleBundle.Effect effect : data.effects()) {
-            int length = effect.durationByTier().map(ticks -> ticks.get(index))
-                    .orElse(duration - effect.arrivesTicks());
-            add(out, onset + effect.arrivesTicks(), effect.effect(), effect.amplifier(index, quality), length);
+            int amplifier = -1;
+            int length = 0;
+            if (tier > 0 && effect.answers(EffectLabel.THC)) {
+                int index = Mth.clamp(tier, 1, MAX_TIER) - 1;
+                amplifier = effect.amplifier(index, quality);
+                length = lengthAt(data, effect, index, quality);
+            }
+            if (cbdTier > 0 && effect.answers(EffectLabel.CBD)) {
+                int index = Mth.clamp(cbdTier, 1, MAX_TIER) - 1;
+                amplifier = Math.max(amplifier, 0);
+                length = Math.max(length, lengthAt(data, effect, index, quality));
+            }
+            if (amplifier >= 0) {
+                add(out, onset + effect.arrivesTicks(), effect.effect(), amplifier, length);
+            }
         }
         return out;
+    }
+
+    private static int lengthAt(EdibleBundle data, EdibleBundle.Effect effect, int index, Quality quality) {
+        int duration = (int) (durationTicks(data, quality) * (double) data.tierShare().get(index));
+        return effect.durationByTier().map(ticks -> ticks.get(index)).orElse(duration - effect.arrivesTicks());
+    }
+
+    /** An edible's CBD tier, 0 for none. */
+    public static int cbdPotencyOf(ItemStack stack) {
+        return stack.getOrDefault(ModComponents.CBD_POTENCY, 0);
     }
 
     private static void add(List<Dose> out, int delay, Holder<MobEffect> effect,
@@ -184,11 +224,19 @@ public final class EdibleEffects {
      */
     public static void appendTooltip(ItemStack stack, Consumer<Component> tooltip) {
         int potency = potencyOf(stack);
-        if (potency <= 0) {
+        int cbd = cbdPotencyOf(stack);
+        if (potency <= 0 && cbd <= 0) {
             return;
         }
-        tooltip.accept(Component.translatable("hempdustry.edible.potency",
-                Component.translatable("enchantment.level." + potency)).withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Chemotype.of(stack).tooltipLine());
+        if (potency > 0) {
+            tooltip.accept(Component.translatable("hempdustry.edible.potency",
+                    Component.translatable("enchantment.level." + potency)).withStyle(ChatFormatting.GRAY));
+        }
+        if (cbd > 0) {
+            tooltip.accept(Component.translatable("hempdustry.edible.cbd_potency",
+                    Component.translatable("enchantment.level." + cbd)).withStyle(ChatFormatting.GRAY));
+        }
         Quality quality = stack.get(ModComponents.QUALITY);
         if (quality != null) {
             tooltip.accept(Component.translatable("hempdustry.edible.quality",

@@ -13,7 +13,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * ball's own 8x6x8 footprint, so the selection box and the collision hug a small lump on the
  * floor instead of a whole cube of air around it.
  */
-public class CharasBallBlock extends Block {
+public class CharasBallBlock extends StampedBlock {
     public static final MapCodec<CharasBallBlock> CODEC = simpleCodec(CharasBallBlock::new);
 
     // The widest extent of the three boxes in models/block/charas_ball.json.

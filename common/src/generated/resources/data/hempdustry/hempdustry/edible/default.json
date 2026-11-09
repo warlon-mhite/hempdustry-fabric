@@ -16,7 +16,11 @@
         1
       ],
       "arrives_ticks": 0,
-      "effect": "minecraft:slowness"
+      "effect": "minecraft:slowness",
+      "labels": [
+        "thc",
+        "cbd"
+      ]
     },
     {
       "amplifier_by_tier": [
@@ -62,7 +66,11 @@
         300,
         400
       ],
-      "effect": "minecraft:regeneration"
+      "effect": "minecraft:regeneration",
+      "labels": [
+        "thc",
+        "cbd"
+      ]
     }
   ],
   "qualities": {

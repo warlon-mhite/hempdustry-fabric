@@ -3,6 +3,10 @@
   "functions": [
     {
       "function": "minecraft:explosion_decay"
+    },
+    {
+      "chemotype": "cbd_dominant",
+      "function": "hempdustry:set_chemotype"
     }
   ],
   "pools": [

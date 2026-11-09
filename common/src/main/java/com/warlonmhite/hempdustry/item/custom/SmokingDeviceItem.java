@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import org.jetbrains.annotations.Nullable;
 
@@ -269,7 +270,7 @@ public class SmokingDeviceItem extends Item {
         GreenOut greenOut = GreenOut.of(world.registryAccess());
         boolean lockedOut = Smoking.takeHit(world, player, stack, contents, stats.durationTicks(),
                 stats.coughOneIn(), stats.nauseaOneIn(),
-                Smoking.greenOutChanceOneIn(greenOut, contents.dose(), stats.greenOutFactor()),
+                Smoking.greenOutChanceOneIn(greenOut, contents.thcDose(), stats.greenOutFactor()),
                 device.exhaleParticle(), soundDelayTicks);
         Smoking.startCooldown(player, stack,
                 EffectPolicy.cooldown(lockedOut ? greenOut.lockoutTicks() : stats.cooldownTicks()));
@@ -324,9 +325,12 @@ public class SmokingDeviceItem extends Item {
      */
     private void yieldSpent(Player player, SmokeContents contents) {
         int yield = DeviceStats.bowl(player.registryAccess(), device).spentYield();
-        if (yield > 0 && contents.entries().stream()
+        if (yield > 0 && !contents.isEmpty() && contents.entries().stream()
                 .allMatch(entry -> ModStrains.isPlantMatter(entry.strain()))) {
-            ItemStack spent = new ItemStack(ModItems.SCORCHED_HEMP, yield);
+            // Spent bud is still its plant's matter. A bowl is one material, so its primary entry
+            // speaks for it.
+            ItemStack spent = Chemotype.stamp(new ItemStack(ModItems.SCORCHED_HEMP, yield),
+                    contents.entries().getFirst().chemotype());
             if (!player.addItem(spent)) {
                 player.drop(spent, false);
             }

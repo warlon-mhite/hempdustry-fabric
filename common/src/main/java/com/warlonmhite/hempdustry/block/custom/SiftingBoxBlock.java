@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -117,6 +118,15 @@ public class SiftingBoxBlock extends Block {
 
     /** Vanilla's own 0–8 property, so the blockstate reads exactly like a composter's. */
     public static final IntegerProperty LEVEL = BlockStateProperties.LEVEL_COMPOSTER;
+    /**
+     * The batch's share of THC among its cannabinoids, in twelfths: 12 all THC-dominant, 6 balanced,
+     * 0 all CBD-dominant. Each piece moves it by what it adds to the yield (its levels), so the batch
+     * takes the dosage rule -- four THC buds and four CBD buds sift a balanced kief -- without the
+     * box having to remember a single item. Its {@link ChemotypeBlocks#CHEMOTYPE} follows it, and is
+     * what the yield is stamped with.
+     */
+    public static final IntegerProperty THC_SHARE = IntegerProperty.create("thc_share", 0, 12);
+    private static final int SHARE_WHOLE = 12;
     /**
      * Whether there is water in the tub — and therefore <b>which of the two processes is running</b>.
      *
@@ -239,7 +249,8 @@ public class SiftingBoxBlock extends Block {
         // Both named explicitly. A BooleanProperty left out of the default state comes back TRUE,
         // because its values are ImmutableSet.of(true, false) -- the trap that shipped pre-trimmed
         // seeds for two days. A box that starts full of water is the same bug.
-        registerDefaultState(defaultBlockState().setValue(LEVEL, 0).setValue(FILLED, false).setValue(CONTENT, Content.PLANT));
+        registerDefaultState(defaultBlockState().setValue(LEVEL, 0).setValue(FILLED, false).setValue(CONTENT, Content.PLANT)
+                .setValue(ChemotypeBlocks.CHEMOTYPE, Chemotype.THC_DOMINANT).setValue(THC_SHARE, SHARE_WHOLE));
     }
 
     @Override
@@ -249,7 +260,9 @@ public class SiftingBoxBlock extends Block {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LEVEL, FILLED, CONTENT);
+        // The batch's chemotype, set by its first piece: the box keeps no item, so the state is what
+        // remembers that a CBD batch makes CBD kief.
+        builder.add(LEVEL, FILLED, CONTENT, ChemotypeBlocks.CHEMOTYPE, THC_SHARE);
     }
 
     @Override
@@ -304,21 +317,33 @@ public class SiftingBoxBlock extends Block {
 
         Content content = contentOf(stack);
         float chance = sieveChance(stack) * rate(world, pos, state);
-        // An empty screen takes whichever arrives first and is stamped with it; a part-full one
-        // refuses the other kind outright -- with super, never PASS, so the click still falls
-        // through to useWithoutItem and a ready screen can still be emptied.
+        Chemotype chemotype = Chemotype.ofMatter(stack, world.registryAccess());
+        // THC, balanced and CBD matter mix by dosage; the two with neither cannabinoid have no share
+        // to mix by, so they sift only with their own kind.
+        Chemotype batchChemotype = ChemotypeBlocks.of(state);
+        boolean otherChemotype = level > 0 && chemotype != batchChemotype
+                && (!mixes(chemotype) || !mixes(batchChemotype));
+        // An empty screen takes whichever arrives first and is stamped with it -- its kind and its
+        // chemotype; a part-full one refuses the other kind, and the other chemotype, outright --
+        // with super, never PASS, so the click still falls through to useWithoutItem and a ready
+        // screen can still be emptied.
         //
         // A WASH TAKES PLANT MATTER AND NOTHING ELSE. Ice-washing kief is a real thing, but it is a
         // third road to a product that already has two, and every extra road here is one more way
         // for one of them to become a trap.
         if (level >= FULL_LEVEL || chance <= 0.0F || content == null
                 || (state.getValue(FILLED) && content != Content.PLANT)
-                || (level > 0 && content != state.getValue(CONTENT))) {
-            explainRefusal(world, player, state, content, level);
+                || (level > 0 && content != state.getValue(CONTENT))
+                || otherChemotype) {
+            explainRefusal(world, player, state, content, level, otherChemotype);
             return super.useItemOn(stack, state, world, pos, player, hand, hit);
         }
         if (world instanceof ServerLevel serverWorld) {
-            sift(serverWorld, pos, level == 0 ? state.setValue(CONTENT, content) : state, level, chance);
+            BlockState batch = level == 0
+                    ? state.setValue(CONTENT, content).setValue(ChemotypeBlocks.CHEMOTYPE, chemotype)
+                            .setValue(THC_SHARE, shareOf(chemotype))
+                    : state;
+            sift(serverWorld, pos, batch, level, chance, chemotype);
         }
         // Outside the server branch, as vanilla's composter does it: the cost is the same on both
         // sides whatever the roll, so spending it client-side too is what makes the stack shrink on
@@ -335,7 +360,7 @@ public class SiftingBoxBlock extends Block {
      * arrive twice.
      */
     private static void explainRefusal(Level world, Player player, BlockState state,
-                                       Content content, int level) {
+                                       Content content, int level, boolean otherChemotype) {
         if (world.isClientSide() || content == null || level >= FULL_LEVEL) {
             return;
         }
@@ -348,6 +373,9 @@ public class SiftingBoxBlock extends Block {
             key = content == Content.PLANT
                     ? "hempdustry.sifting_box.no_plant_in_kief"
                     : "hempdustry.sifting_box.no_kief_in_plant";
+        }
+        if (key == null && otherChemotype) {
+            key = "hempdustry.sifting_box.one_chemotype";
         }
         if (key != null) {
             player.displayClientMessage(Component.translatable(key), true);
@@ -506,12 +534,22 @@ public class SiftingBoxBlock extends Block {
      * for certain and the fraction as a roll, so a resinous bud in a packed-ice wash (2 × 0.75) is one
      * level and a coin flip on a second. A level past full is simply lost, as in a composter.
      */
-    private static void sift(ServerLevel world, BlockPos pos, BlockState state, int level, float chance) {
+    private static void sift(ServerLevel world, BlockPos pos, BlockState state, int level, float chance,
+                             Chemotype chemotype) {
         int steps = (int) chance + (world.random.nextFloat() < chance - (int) chance ? 1 : 0);
         if (steps > 0) {
             int next = Math.min(FULL_LEVEL, level + steps);
+            BlockState mixed = state;
+            if (level > 0 && mixes(chemotype)) {
+                // The new piece weighs what it added; the batch so far weighs what it holds.
+                int added = next - level;
+                int share = Math.round((state.getValue(THC_SHARE) * level + shareOf(chemotype) * added)
+                        / (float) next);
+                mixed = state.setValue(THC_SHARE, share)
+                        .setValue(ChemotypeBlocks.CHEMOTYPE, Chemotype.ofShares(share, SHARE_WHOLE - share));
+            }
             // Reaching FULL_LEVEL schedules the settle in onPlace, which this call runs.
-            world.setBlock(pos, state.setValue(LEVEL, next), Block.UPDATE_ALL);
+            world.setBlock(pos, mixed.setValue(LEVEL, next), Block.UPDATE_ALL);
             world.playSound(null, pos, SoundEvents.COMPOSTER_FILL_SUCCESS, SoundSource.BLOCKS, 1.0F, 1.0F);
         } else if (state.getValue(FILLED)) {
             world.playSound(null, pos, SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 0.6F, 1.4F);
@@ -537,11 +575,23 @@ public class SiftingBoxBlock extends Block {
         }
         Vec3 spawn = Vec3.atLowerCornerWithOffset(pos, 0.5, 1.01, 0.5).offsetRandom(world.random, 0.7F);
         ItemEntity dropped = new ItemEntity(world, spawn.x(), spawn.y(), spawn.z(),
-                new ItemStack(yield, YIELD));
+                Chemotype.stamp(new ItemStack(yield, YIELD), ChemotypeBlocks.of(state)));
         dropped.setDefaultPickUpDelay();
         world.addFreshEntity(dropped);
-        world.setBlock(pos, state.setValue(LEVEL, 0).setValue(FILLED, false).setValue(CONTENT, Content.PLANT),
+        world.setBlock(pos, state.setValue(LEVEL, 0).setValue(FILLED, false).setValue(CONTENT, Content.PLANT)
+                        .setValue(ChemotypeBlocks.CHEMOTYPE, Chemotype.THC_DOMINANT).setValue(THC_SHARE, SHARE_WHOLE),
                 Block.UPDATE_ALL);
         world.playSound(null, pos, SoundEvents.COMPOSTER_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+    }
+
+    /** Whether matter of {@code chemotype} has a THC share to mix by: THC, balanced or CBD. */
+    private static boolean mixes(Chemotype chemotype) {
+        return chemotype.infusable();
+    }
+
+    /** A piece's THC share among its cannabinoids, in twelfths. */
+    private static int shareOf(Chemotype chemotype) {
+        int total = chemotype.thcHalves() + chemotype.cbdHalves();
+        return total == 0 ? 0 : SHARE_WHOLE * chemotype.thcHalves() / total;
     }
 }

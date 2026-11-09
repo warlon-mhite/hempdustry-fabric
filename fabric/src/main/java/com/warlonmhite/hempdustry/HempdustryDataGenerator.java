@@ -6,6 +6,7 @@ import com.warlonmhite.hempdustry.balance.GreenOut;
 import com.warlonmhite.hempdustry.datagen.*;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
+import com.warlonmhite.hempdustry.strain.Terpene;
 import com.warlonmhite.hempdustry.world.ModConfiguredFeatures;
 import com.warlonmhite.hempdustry.world.ModPlacedFeatures;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -31,6 +32,7 @@ public class HempdustryDataGenerator implements DataGeneratorEntrypoint {
 
 	@Override
 	public void buildRegistry(RegistrySetBuilder registryBuilder) {
+		registryBuilder.add(Terpene.REGISTRY_KEY, Terpene::bootstrap);
 		registryBuilder.add(Strain.REGISTRY_KEY, ModStrains::bootstrap);
 		registryBuilder.add(DeviceStats.REGISTRY_KEY, DeviceStats::bootstrap);
 		registryBuilder.add(EdibleBundle.REGISTRY_KEY, EdibleBundle::bootstrap);

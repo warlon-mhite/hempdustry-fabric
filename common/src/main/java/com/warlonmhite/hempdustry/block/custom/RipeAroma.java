@@ -2,10 +2,15 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.particle.ModParticles;
+import com.warlonmhite.hempdustry.strain.Terpene;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 
 /**
  * The smell of a ripe plant, shared by every hemp crop: now and then a wisp drifts up off the top
@@ -31,7 +36,12 @@ import net.minecraft.world.level.Level;
 public final class RipeAroma {
 
     /** One sampling of a ripe plant's top in this many lets off a wisp. */
-    private static final int CHANCE = 15;
+    public static final int CHANCE = 15;
+    /**
+     * The fibre crop's: half as often. Fibre hemp flowers and smells like any hemp, but it is sown for
+     * stalk, with fewer and smaller flowers, so its field is fainter.
+     */
+    public static final int FAINT_CHANCE = 2 * CHANCE;
 
     private RipeAroma() {
     }
@@ -50,18 +60,35 @@ public final class RipeAroma {
      * end below, so its wisp starts low in the tip and rises past the plant.
      */
     public static void randomDisplayTick(Level world, BlockPos pos, RandomSource random, Direction growth) {
+        randomDisplayTick(world, pos, random, growth, CHANCE);
+    }
+
+    /** As above, one sampling in {@code chance} letting off a wisp. */
+    public static void randomDisplayTick(Level world, BlockPos pos, RandomSource random, Direction growth,
+                                         int chance) {
         // The roll first: it is the cheapest test and fails fourteen times in fifteen, so the block
         // lookup above almost never happens.
-        if (random.nextInt(CHANCE) != 0
+        if (random.nextInt(chance) != 0
                 || !HempdustryConfig.get().client().ripeAroma()
                 || !world.getBlockState(pos.relative(growth)).isAir()) {
             return;
         }
         double low = growth == Direction.DOWN ? 0.05 : 0.55;
-        world.addParticle(ModParticles.AROMA,
+        world.addParticle(wisp(world, world.getBlockState(pos).getBlock()),
                 pos.getX() + 0.25 + random.nextDouble() * 0.5,
                 pos.getY() + low + random.nextDouble() * 0.3,
                 pos.getZ() + 0.25 + random.nextDouble() * 0.5,
                 0.0, 0.0, 0.0);
+    }
+
+    /**
+     * The wisp a plant of {@code block} lets off: tinted by its terpene ({@link Terpene#ofPlant}), mixed
+     * toward white by the smoke's share so it stays a faint cast, or the plain one for a plant with none.
+     */
+    public static ParticleOptions wisp(Level world, Block block) {
+        return Terpene.ofPlant(block, world.registryAccess())
+                .<ParticleOptions>map(terpene -> ColorParticleOption.create(ModParticles.TERPENE_AROMA,
+                        ARGB.opaque(Terpene.mix(0xFFFFFF, terpene.color(), Terpene.SMOKE_SHARE))))
+                .orElse(ModParticles.AROMA);
     }
 }

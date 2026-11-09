@@ -17,11 +17,15 @@ import com.warlonmhite.hempdustry.recipe.DecarboxylatingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusingRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusedShapedRecipe;
 import com.warlonmhite.hempdustry.recipe.InfusedShapelessRecipe;
+import com.warlonmhite.hempdustry.recipe.StampedShapedRecipe;
+import com.warlonmhite.hempdustry.recipe.StampedShapelessRecipe;
+import com.warlonmhite.hempdustry.recipe.StampedSmeltingRecipe;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
@@ -32,6 +36,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
@@ -44,6 +49,7 @@ import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CookingBookCategory;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -247,18 +253,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .unlockedBy(getHasName(ModBlocks.HEMP_BALE), has(ModBlocks.HEMP_BALE))
                 .save(output, id("hemp_stem_from_bale"));
 
-        shaped(RecipeCategory.BUILDING_BLOCKS, ModBlocks.HEMP_LEAVES)
-                .pattern("###")
-                .pattern("###")
-                .pattern("###")
-                .define('#', ModItems.HEMP_LEAF)
-                .unlockedBy(getHasName(ModItems.HEMP_LEAF), has(ModItems.HEMP_LEAF))
-                .save(output, id("hemp_leaves"));
-
-        shapeless(RecipeCategory.MISC, ModItems.HEMP_LEAF, 9)
-                .requires(ModBlocks.HEMP_LEAVES)
-                .unlockedBy(getHasName(ModBlocks.HEMP_LEAVES), has(ModBlocks.HEMP_LEAVES))
-                .save(output, id("hemp_leaf_from_leaves"));
+        // Stamped both ways: nine leaves of one chemotype make a block of it, and the block gives
+        // the nine back as they went in (Stamping).
+        offerStampedPack(RecipeCategory.BUILDING_BLOCKS, ModItems.HEMP_LEAF, ModBlocks.HEMP_LEAVES, '#', "hemp_leaves");
+        offerStampedUnpack(ModBlocks.HEMP_LEAVES, ModItems.HEMP_LEAF, "hemp_leaf_from_leaves");
 
         // Hempcrete -> planks, brick, powder block
         shaped(RecipeCategory.MISC, ModBlocks.HEMP_PLANKS)
@@ -604,13 +602,19 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 scorchable.add(strain.buds());
             }
         }
-        SimpleCookingRecipeBuilder scorching = SimpleCookingRecipeBuilder.smelting(
-                Ingredient.of(scorchable.toArray(ItemLike[]::new)),
-                RecipeCategory.MISC, ModItems.SCORCHED_HEMP, 0.1F, 200);
+        // Stamped: what chars keeps the chemotype of what burned. Built by hand, since 1.21.11's
+        // SimpleCookingRecipeBuilder refuses a serializer that is not one of vanilla's four.
+        ResourceKey<Recipe<?>> scorchedId = id("scorched_hemp");
+        Advancement.Builder scorching = output.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(scorchedId))
+                .rewards(AdvancementRewards.Builder.recipe(scorchedId))
+                .requirements(AdvancementRequirements.Strategy.OR);
         for (ItemLike input : scorchable) {
-            scorching.unlockedBy(getHasName(input), has(input));
+            scorching.addCriterion(getHasName(input), has(input));
         }
-        scorching.save(output, id("scorched_hemp"));
+        output.accept(scorchedId, new StampedSmeltingRecipe("", CookingBookCategory.MISC,
+                        Ingredient.of(scorchable.toArray(ItemLike[]::new)), new ItemStack(ModItems.SCORCHED_HEMP), 0.1F, 200),
+                scorching.build(scorchedId.identifier().withPrefix("recipes/misc/")));
 
         // NOTHING IN THE HASH FAMILY DECARBOXYLATES, and that is the rule rather than an omission:
         // the oven takes plant matter, the bowl takes resin. Hash is a smoking material and only a
@@ -633,40 +637,18 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // THERE IS DELIBERATELY NO SHAPELESS UNPACK. Every vanilla storage block has one; this one
         // unpacks by being cut, because the cut is the mechanic. A crafting-grid unpack would make
         // the block, the blade and the durability cost all optional at once.
-        shaped(RecipeCategory.MISC, ModBlocks.HASHISH_BAR)
-                .pattern("HHH")
-                .pattern("HHH")
-                .pattern("HHH")
-                .define('H', ModItems.HASHISH)
-                .unlockedBy(getHasName(ModItems.HASHISH), has(ModItems.HASHISH))
-                .save(output, id("hashish_bar"));
+        offerStampedPack(RecipeCategory.MISC, ModItems.HASHISH, ModBlocks.HASHISH_BAR, 'H', "hashish_bar");
 
         // Nine charas rolled into a ball. UNLIKE THE TWO BARS THIS UNPACKS IN THE GRID TOO, and the
         // asymmetry is the point: a bar is cut with a blade because pressing is what a bar is, and
         // charas is never pressed -- you roll it between your palms and you pull it apart the same
         // way. It is also the one member rare enough that a blade toll on top would sting.
-        shaped(RecipeCategory.MISC, ModBlocks.CHARAS_BALL)
-                .pattern("CCC")
-                .pattern("CCC")
-                .pattern("CCC")
-                .define('C', ModItems.CHARAS)
-                .unlockedBy(getHasName(ModItems.CHARAS), has(ModItems.CHARAS))
-                .save(output, id("charas_ball"));
-
-        shapeless(RecipeCategory.MISC, ModItems.CHARAS, 9)
-                .requires(ModBlocks.CHARAS_BALL)
-                .unlockedBy(getHasName(ModBlocks.CHARAS_BALL), has(ModBlocks.CHARAS_BALL))
-                .save(output, id("charas_from_charas_ball"));
+        offerStampedPack(RecipeCategory.MISC, ModItems.CHARAS, ModBlocks.CHARAS_BALL, 'C', "charas_ball");
+        offerStampedUnpack(ModBlocks.CHARAS_BALL, ModItems.CHARAS, "charas_from_charas_ball");
 
         // The blonde bar packs the same way. Two 3x3 squares of a single material would collide if
         // they were the same material -- they are not, and that is the whole rule (materials.md).
-        shaped(RecipeCategory.MISC, ModBlocks.FILTERED_HASHISH_BAR)
-                .pattern("HHH")
-                .pattern("HHH")
-                .pattern("HHH")
-                .define('H', ModItems.FILTERED_HASHISH)
-                .unlockedBy(getHasName(ModItems.FILTERED_HASHISH), has(ModItems.FILTERED_HASHISH))
-                .save(output, id("filtered_hashish_bar"));
+        offerStampedPack(RecipeCategory.MISC, ModItems.FILTERED_HASHISH, ModBlocks.FILTERED_HASHISH_BAR, 'H', "filtered_hashish_bar");
 
         // The Sifting Box: vanilla's composter with its two holes filled in. The composter is seven
         // wooden slabs in a U; a sift box is that same slatted box with a screen in it, so filling
@@ -1243,7 +1225,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         ItemStack result = ModItems.moonRock(strain, coat);
         ResourceKey<Recipe<?>> recipeId = id("moon_rock_" + ModStrains.id(strain.key())
                 + "_" + coatName);
-        ShapelessRecipe recipe = new ShapelessRecipe("moon_rock", CraftingBookCategory.MISC, result,
+        ShapelessRecipe recipe = new StampedShapelessRecipe("moon_rock", CraftingBookCategory.MISC, result,
                 List.of(Ingredient.of(strain.value().buds()),
                         Ingredient.of(ModItems.ROSIN),
                         coatIngredient));
@@ -1264,6 +1246,35 @@ public class ModRecipeProvider extends FabricRecipeProvider {
     }
 
     /** A recipe is addressed by a {@code ResourceKey<Recipe<?>>} since 1.21.4, not a bare id. */
+    /**
+     * Nine pieces of stamped matter packed into their block, the block keeping their chemotype:
+     * a {@link StampedShapedRecipe}, so nine of two kinds make nothing. Built by hand as
+     * {@link #offerSpliff} is, since {@link ShapedRecipeBuilder} only makes vanilla's own recipe.
+     */
+    private void offerStampedPack(RecipeCategory category, ItemLike piece, ItemLike block, char symbol, String name) {
+        String row = String.valueOf(symbol).repeat(3);
+        offerStamped(category, name, piece, new StampedShapedRecipe("", RecipeBuilder.determineBookCategory(category),
+                ShapedRecipePattern.of(Map.of(symbol, Ingredient.of(piece)), row, row, row), new ItemStack(block)));
+    }
+
+    /** A block of stamped matter unpacked into its nine pieces, each carrying the block's chemotype. */
+    private void offerStampedUnpack(ItemLike block, ItemLike piece, String name) {
+        offerStamped(RecipeCategory.MISC, name, block, new StampedShapelessRecipe("",
+                RecipeBuilder.determineBookCategory(RecipeCategory.MISC), new ItemStack(piece, 9),
+                List.of(Ingredient.of(block))));
+    }
+
+    /** A hand-built recipe with the unlock advancement vanilla's builders give theirs. */
+    private void offerStamped(RecipeCategory category, String name, ItemLike unlock, Recipe<?> recipe) {
+        ResourceKey<Recipe<?>> recipeId = id(name);
+        output.accept(recipeId, recipe, output.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion(getHasName(unlock), has(unlock))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.identifier().withPrefix("recipes/" + category.getFolderName() + "/")));
+    }
+
     private static ResourceKey<Recipe<?>> id(String path) {
         return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, path));
     }
@@ -1289,7 +1300,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 buds, paper);
 
         ResourceKey<Recipe<?>> recipeId = id("spliff_" + ModStrains.id(strain.key()) + "_" + dose);
-        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingBookCategory.MISC, raw, result);
+        ShapedRecipe recipe = new StampedShapedRecipe("spliff", CraftingBookCategory.MISC, raw, result);
         output.accept(recipeId, recipe, output.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
                 .addCriterion(getHasName(budItem), has(budItem))
@@ -1330,7 +1341,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
         ResourceKey<Recipe<?>> recipeId = id("spliff_" + ModStrains.id(strain.key())
                 + "_with_" + ModStrains.id(hash.key()) + "_" + (buds + 1));
-        ShapedRecipe recipe = new ShapedRecipe("spliff", CraftingBookCategory.MISC, raw, result);
+        ShapedRecipe recipe = new StampedShapedRecipe("spliff", CraftingBookCategory.MISC, raw, result);
         output.accept(recipeId, recipe, output.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
                 .addCriterion(getHasName(hashItem), has(hashItem))

@@ -15,9 +15,13 @@ arrow art measured out of the client jar — see `check_panel.py`. Nothing here 
 Layout must stay in step with DecarboxylatorScreenHandler (slot positions) and
 DecarboxylatorScreen (sprite regions), which hold the same numbers as constants.
 
-         [T1] ===>
-  (flame)[T2] ===>  [ OUT ]      one arrow per tray, each filling on its own timer
-  [FUEL] [T3] ===>               result slot centred on the tray column, furnace-sized
+         [T1] ===> [O1]
+  (flame)[T2] ===> [O2]      one arrow per tray, each filling on its own timer
+  [FUEL] [T3] ===> [O3]      and each pouring into its own output, level with it
+
+Three outputs since 2.2, not one furnace-sized well: a chemotype stamp keeps a CBD tray's hemp from
+stacking with a THC tray's, so each tray needs somewhere of its own to pour. They are normal slots,
+each 8px past its arrow, where the well's bevel used to start.
 
 Reads left to right, because that is the direction every vanilla machine reads in. The trays used
 to be a row across the top firing arrows downward into a slot beneath -- a layout no vanilla
@@ -34,7 +38,7 @@ import gui_common as gui
 
 # Slot origins — must match DecarboxylatorScreenHandler.
 TRAYS = [(62, 17), (62, 35), (62, 53)]
-OUTPUT = (121, 35)
+OUTPUTS = [(117, 17), (117, 35), (117, 53)]
 FUEL = (26, 54)
 
 # Where the screen draws the live overlays. Each arrow is level with its own tray, and the gaps
@@ -53,8 +57,9 @@ sheet.panel()
 sheet.slot(*FUEL)
 for tray in TRAYS:
     sheet.slot(*tray)
-# Furnace-sized result well: vanilla marks "this is what comes out" by size, not by position.
-sheet.big_slot(*OUTPUT)
+# One output per tray, level with it.
+for output in OUTPUTS:
+    sheet.slot(*output)
 
 sheet.player_inventory()
 

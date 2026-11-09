@@ -216,6 +216,13 @@ public final class HempdustryGameTests {
         register("every_tooltip_names_a_real_key", LangGameTest::everyTooltipNamesARealKey);
         register("every_translation_keeps_its_placeholders",
                 LangGameTest::everyTranslationKeepsItsPlaceholders);
+        register("every_route_keeps_the_chemotype", ChemotypeGameTest::everyRouteKeepsTheChemotype);
+        register("nine_leaves_make_a_block_of_their_kind", ChemotypeGameTest::nineLeavesMakeABlockOfTheirKind);
+        register("crops_drop_their_chemotype", ChemotypeGameTest::cropsDropTheirChemotype);
+        register("a_bowls_thc_is_weighed_by_chemotype", ChemotypeGameTest::aBowlsThcIsWeighedByChemotype);
+        register("cbd_butter_and_a_mixed_sieve", ChemotypeGameTest::cbdButterAndAMixedSieve);
+        register("every_plant_strain_smells_of_its_own_terpene", TerpeneGameTest::everyPlantStrainSmellsOfItsOwnTerpene);
+        register("the_smoke_takes_the_terpenes_colour", TerpeneGameTest::theSmokeTakesTheTerpenesColour);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

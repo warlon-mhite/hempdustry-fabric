@@ -16,6 +16,7 @@ import com.warlonmhite.hempdustry.platform.Registration;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
+import com.warlonmhite.hempdustry.strain.Terpene;
 import com.warlonmhite.hempdustry.screen.ModScreenHandlers;
 import com.warlonmhite.hempdustry.effect.ModEffects;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -57,6 +58,7 @@ public class Hempdustry {
 	 */
 	public static void registerDynamicRegistries() {
 		Registration registration = Services.REGISTRATION;
+		registration.registerSyncedDynamicRegistry(Terpene.REGISTRY_KEY, Terpene.CODEC);
 		registration.registerSyncedDynamicRegistry(Strain.REGISTRY_KEY, Strain.CODEC);
 		registration.registerSyncedDynamicRegistry(DeviceStats.REGISTRY_KEY, DeviceStats.CODEC);
 		registration.registerSyncedDynamicRegistry(EdibleBundle.REGISTRY_KEY, EdibleBundle.CODEC);

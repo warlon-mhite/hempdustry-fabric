@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -57,6 +58,15 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
         super(group, category, result, ingredients);
         this.result = result;
         this.ingredients = ingredients;
+    }
+
+    /**
+     * A dosed result (bhang) takes the chemotype of the hemp that went in, by dosage
+     * ({@link Infusion#bhang}); anything else comes out as written.
+     */
+    @Override
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider lookup) {
+        return Infusion.bhang(input, super.assemble(input, lookup));
     }
 
     /** No remainders: every ingredient's container is considered part of the product. */

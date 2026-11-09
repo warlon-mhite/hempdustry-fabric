@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 
@@ -40,12 +41,53 @@ public final class Infusion {
             return result;
         }
         int strength = butter.getOrDefault(ModComponents.STRENGTH, 1);
+        int cbd = butter.getOrDefault(ModComponents.CBD_STRENGTH, 0);
         Quality quality = butter.getOrDefault(ModComponents.QUALITY, Quality.ROUGH);
 
-        result.set(ModComponents.POTENCY,
-                EdibleEffects.applyOffset(EdibleEffects.tierFromStrength(strength), offset));
+        // The THC sum gives the potency and the CBD sum the CBD tier, each through the same four
+        // tiers and the edible's own offset. CBD butter has strength 0, so its edibles carry no
+        // potency at all: no high, no munchies, only what answers to CBD.
+        if (strength > 0) {
+            result.set(ModComponents.POTENCY,
+                    EdibleEffects.applyOffset(EdibleEffects.tierFromStrength(strength), offset));
+        } else {
+            result.remove(ModComponents.POTENCY);
+        }
+        if (cbd > 0) {
+            result.set(ModComponents.CBD_POTENCY,
+                    EdibleEffects.applyOffset(EdibleEffects.tierFromStrength(cbd), offset));
+        }
         result.set(ModComponents.QUALITY, quality);
-        return result;
+        return Chemotype.stamp(result, Chemotype.of(butter));
+    }
+
+    /**
+     * Bhang's dose: the dosage of its two decarboxylated hemp decides its chemotype (two THC-dominant
+     * or one with a balanced one are THC-dominant; one of each end, or two balanced, are balanced; the
+     * rest CBD-dominant). The THC is fixed at tier I, as it always was, and CBD bhang takes tier I of
+     * the CBD's length. Rough, like every bhang.
+     */
+    public static ItemStack bhang(CraftingInput input, ItemStack result) {
+        int[] counts = new int[Chemotype.values().length];
+        boolean any = false;
+        for (int slot = 0; slot < input.size(); slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack.is(ModItems.DECARBOXYLATED_HEMP) || stack.is(ModItems.WASHED_DECARBOXYLATED_HEMP)) {
+                counts[Chemotype.of(stack).ordinal()]++;
+                any = true;
+            }
+        }
+        if (!any || !result.has(ModComponents.POTENCY)) {
+            return result;
+        }
+        Chemotype chemotype = Chemotype.dosage(counts);
+        if (!chemotype.hasThc()) {
+            result.remove(ModComponents.POTENCY);
+        }
+        if (chemotype.cbdHalves() > 0) {
+            result.set(ModComponents.CBD_POTENCY, 1);
+        }
+        return Chemotype.stamp(result, chemotype);
     }
 
     private static ItemStack findButter(CraftingInput input) {

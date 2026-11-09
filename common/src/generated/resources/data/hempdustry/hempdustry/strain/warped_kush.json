@@ -20,5 +20,6 @@
   "flower": "hempdustry:warped_kush_crop",
   "model_index": 8,
   "seeds": "hempdustry:warped_kush_seeds",
+  "terpene": "hempdustry:eucalyptol",
   "translation_key": "hempdustry.strain.warped_kush"
 }

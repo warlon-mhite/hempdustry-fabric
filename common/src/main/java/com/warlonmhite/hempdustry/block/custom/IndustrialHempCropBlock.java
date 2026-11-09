@@ -3,6 +3,7 @@ package com.warlonmhite.hempdustry.block.custom;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ItemLike;
@@ -24,8 +25,9 @@ import net.minecraft.world.level.block.state.BlockState;
  *   <li><b>No trimming, no rubbing.</b> There are no buds to push a harvest towards and no resin
  *       worth taking. Shears fall through to vanilla.</li>
  *   <li><b>Farmland only.</b> The Grow Pot and the Hydro Tray are for buds; fibre is a field crop.</li>
- *   <li>Its own seeds, and its own loot table — heavy on stems, next to no leaf, never a bud. And
- *       with no bud to ripen, no smell when ripe.</li>
+ *   <li>Its own seeds, and its own loot table — heavy on stems, next to no leaf, never a bud. It
+ *       still flowers and smells of humulene when ripe, half as often as a bud crop: the wisp says
+ *       the crop is ready, and every hemp crop says it the same way.</li>
  *   <li><b>Never stressed.</b> Fibre cultivars are commonly bred monoecious — both sexes on one plant
  *       by design — so "it went hermaphrodite" means nothing for it. It keeps a light record, which
  *       its schwag reads; losing a lamp only lowers it.</li>
@@ -78,10 +80,14 @@ public class IndustrialHempCropBlock extends SativaCropBlock {
     }
 
     /**
-     * No smell when ripe. The wisp tells a player a plant's buds are ready, and fibre hemp has none,
-     * so a ripe field of it stays as quiet as an unripe one.
+     * A ripe field smells, fainter than a bud crop: one sampling in {@link RipeAroma#FAINT_CHANCE}.
+     * Reads {@code AGE} itself, as the Lemon Haze crop does (every segment mirrors the root's age).
+     * No mildew to show: the fibre crop never catches it.
      */
     @Override
     public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
+        if (state.getValue(AGE) >= this.getMaxAge()) {
+            RipeAroma.randomDisplayTick(world, pos, random, Direction.UP, RipeAroma.FAINT_CHANCE);
+        }
     }
 }

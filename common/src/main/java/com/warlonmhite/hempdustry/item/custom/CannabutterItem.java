@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -40,8 +41,18 @@ public class CannabutterItem extends Item {
             tooltip.accept(Component.translatable(quality.getTranslationKey()).withStyle(colourOf(quality)));
         }
         Integer strength = stack.get(ModComponents.STRENGTH);
-        if (strength != null) {
+        int cbd = stack.getOrDefault(ModComponents.CBD_STRENGTH, 0);
+        // The chemotype word on any butter that came out of an Infuser; a bare stack names nothing.
+        if (strength != null || cbd > 0) {
+            tooltip.accept(Chemotype.of(stack).tooltipLine());
+        }
+        // The THC sum is the strength; CBD butter has none, and says only its CBD.
+        if (strength != null && strength > 0) {
             tooltip.accept(Component.translatable("item.hempdustry.cannabutter.strength", strength)
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        if (cbd > 0) {
+            tooltip.accept(Component.translatable("item.hempdustry.cannabutter.cbd_strength", cbd)
                     .withStyle(ChatFormatting.GRAY));
         }
         super.appendHoverText(stack, context, displayComponent, tooltip, type);

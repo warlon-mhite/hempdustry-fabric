@@ -58,6 +58,21 @@ public class ModRecipes {
      * <p>A {@code RecipeType} is two registrations, not one — the type itself, which is what
      * {@code RecipeManager} files a loaded recipe under, and the serializer that reads its JSON.
      */
+    public static final RecipeSerializer<StampedShapedRecipe> STAMPED_SHAPED = Registry.register(
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "stamped_shaped"),
+            new StampedShapedRecipe.Serializer());
+
+    public static final RecipeSerializer<StampedShapelessRecipe> STAMPED_SHAPELESS = Registry.register(
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "stamped_shapeless"),
+            new StampedShapelessRecipe.Serializer());
+
+    public static final RecipeSerializer<StampedSmeltingRecipe> STAMPED_SMELTING = Registry.register(
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "stamped_smelting"),
+            StampedSmeltingRecipe.serializer());
+
     public static final RecipeType<DecarboxylatingRecipe> DECARBOXYLATING_TYPE = Registry.register(
             BuiltInRegistries.RECIPE_TYPE,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "decarboxylating"),

@@ -18,5 +18,6 @@
   "flower": "hempdustry:sativa_flower",
   "model_index": 2,
   "seeds": "hempdustry:sativa_seeds",
+  "terpene": "hempdustry:limonene",
   "translation_key": "hempdustry.strain.sativa"
 }

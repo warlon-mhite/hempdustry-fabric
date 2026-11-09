@@ -8,6 +8,8 @@ import com.warlonmhite.hempdustry.config.HempdustryConfig;
 import com.warlonmhite.hempdustry.platform.ItemTransfer;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.ModRecipes;
+import com.warlonmhite.hempdustry.recipe.Stamping;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.screen.custom.HempPressScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -155,8 +157,10 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             return ItemStack.EMPTY;
         }
         SingleRecipeInput input = new SingleRecipeInput(stack);
+        // Pressed resin keeps its chemotype: CBD kief presses into CBD hashish.
+        Chemotype chemotype = Chemotype.ofMatter(stack, world.registryAccess());
         return Services.RECIPES.firstMatch(world, ModRecipes.PRESSING_TYPE, input)
-                .map(entry -> entry.value().assemble(input, world.registryAccess()))
+                .map(entry -> Stamping.apply(entry.value().assemble(input, world.registryAccess()), chemotype))
                 .orElse(ItemStack.EMPTY);
     }
 

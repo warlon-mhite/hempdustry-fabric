@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.datagen;
 
+import com.warlonmhite.hempdustry.loot.SetChemotypeFunction;
+import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
@@ -196,7 +199,8 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         dropSelf(ModBlocks.HEMPCRETE_BLOCK);
         dropSelf(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         dropSelf(ModBlocks.HEMP_BALE);
-        dropSelf(ModBlocks.HEMP_LEAVES);
+        // The block keeps its leaves' chemotype as a state, and hands it back on its item.
+        add(ModBlocks.HEMP_LEAVES, createSingleItemTable(ModBlocks.HEMP_LEAVES).apply(SetChemotypeFunction.fromBlock()));
         dropSelf(ModBlocks.HEMP_WOOL);
         dropSelf(ModBlocks.HEMP_CARPET);
         // Two halves, one bed: vanilla's beds drop from the head half only, and so does this one.
@@ -210,7 +214,7 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         // stands).
         add(ModBlocks.DECARBOXYLATOR, createNameableBlockEntityTable(ModBlocks.DECARBOXYLATOR));
         add(ModBlocks.INFUSER, createNameableBlockEntityTable(ModBlocks.INFUSER));
-        add(ModBlocks.SIFTING_BOX, siftingBoxDrops());
+        add(ModBlocks.SIFTING_BOX, siftingBoxDrops().apply(SetChemotypeFunction.fromBlock()));
         add(ModBlocks.HEMP_PRESS, createNameableBlockEntityTable(ModBlocks.HEMP_PRESS));
         dropSelf(ModBlocks.GROW_LAMP);
         add(ModBlocks.GROW_POT, growPotDrops());
@@ -226,21 +230,23 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
                     .add(LootItem.lootTableItem(bong.asItem())
                             .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY))))));
         }
-        dropSelf(ModBlocks.CHARAS_BALL);
-        add(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH));
+        add(ModBlocks.CHARAS_BALL, createSingleItemTable(ModBlocks.CHARAS_BALL).apply(SetChemotypeFunction.fromBlock()));
+        add(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH)
+                .apply(SetChemotypeFunction.fromBlock()));
         add(ModBlocks.FILTERED_HASHISH_BAR,
-                hashishBarDrops(ModBlocks.FILTERED_HASHISH_BAR, ModItems.FILTERED_HASHISH));
+                hashishBarDrops(ModBlocks.FILTERED_HASHISH_BAR, ModItems.FILTERED_HASHISH)
+                        .apply(SetChemotypeFunction.fromBlock()));
 
         // Wall sign / wall hanging sign share the standing block's loot table (see ModBlocks#dropsLike),
         // so they must not get their own dropSelf call here.
         dropSelf(ModBlocks.HEMP_PLANKS_SIGN);
         dropSelf(ModBlocks.HEMP_PLANKS_HANGING_SIGN);
 
-        add(ModBlocks.INDICA_CROP, indicaCropDrops());
-        add(ModBlocks.BELDIA_CROP, beldiaCropDrops());
+        add(ModBlocks.INDICA_CROP, indicaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.INDICA)));
+        add(ModBlocks.BELDIA_CROP, beldiaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.BELDIA)));
         add(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
 
-        add(ModBlocks.SATIVA_CROP, sativaCropDrops());
+        add(ModBlocks.SATIVA_CROP, sativaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.SATIVA)));
         add(ModBlocks.SATIVA_FLOWER, sativaFlowerDrops());
         // The pot and the plant back, as every vanilla potted plant gives. Copying a potted allium's
         // settings does not bring its table along -- a block reads the table under its own id -- so
@@ -248,17 +254,18 @@ public class ModLootTableProvider extends FabricBlockLootTableProvider {
         dropPottedContents(ModBlocks.POTTED_INDICA_FLOWER);
         dropPottedContents(ModBlocks.POTTED_SATIVA_FLOWER);
 
-        add(ModBlocks.INDUSTRIAL_HEMP_CROP, industrialHempCropDrops());
-        add(ModBlocks.DITCHWEED, ditchweedDrops());
+        // Fibre hemp is CBD-dominant with low totals; the feral plant drifts back to a little of each.
+        add(ModBlocks.INDUSTRIAL_HEMP_CROP, industrialHempCropDrops().apply(SetChemotypeFunction.of(Chemotype.CBD_DOMINANT)));
+        add(ModBlocks.DITCHWEED, ditchweedDrops().apply(SetChemotypeFunction.of(Chemotype.BALANCED)));
         dropPottedContents(ModBlocks.POTTED_DITCHWEED);
 
-        add(ModBlocks.WARPED_KUSH_CROP, warpedKushCropDrops());
+        add(ModBlocks.WARPED_KUSH_CROP, warpedKushCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.WARPED_KUSH)));
 
-        add(ModBlocks.RUDERALIS_CROP, ruderalisCropDrops());
+        add(ModBlocks.RUDERALIS_CROP, ruderalisCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.RUDERALIS)));
 
-        add(ModBlocks.CRIMSON_CROP, crimsonCropDrops());
+        add(ModBlocks.CRIMSON_CROP, crimsonCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.CRIMSON)));
 
-        add(ModBlocks.ENDER_HAZE_CROP, enderHazeCropDrops());
+        add(ModBlocks.ENDER_HAZE_CROP, enderHazeCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.ENDER_HAZE)));
     }
 
     /**

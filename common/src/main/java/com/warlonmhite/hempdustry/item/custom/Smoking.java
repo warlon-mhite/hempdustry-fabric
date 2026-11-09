@@ -16,7 +16,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.core.Holder;
+import com.warlonmhite.hempdustry.particle.ModParticles;
+import com.warlonmhite.hempdustry.strain.Terpene;
+import java.util.Optional;
+import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.ARGB;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -183,7 +189,7 @@ public final class Smoking {
                 && ThreadLocalRandom.current().nextInt(greenOutOdds) == 0;
 
         if (greenedOut) {
-            greenOut(player, contents.dose());
+            greenOut(player, contents.thcDose());
         } else {
             for (MobEffectInstance effect : EffectPolicy.filter(contents.effects(durationTicks, false, ThreadLocalRandom.current()), contents.buffBonus())) {
                 player.addEffect(effect);
@@ -207,7 +213,7 @@ public final class Smoking {
         }
 
         if (!world.isClientSide()) {
-            SmokeScheduler.schedule(player, exhaleParticle, EXHALE_DELAY_TICKS + soundDelayTicks);
+            SmokeScheduler.schedule(player, tinted(world, exhaleParticle, contents), EXHALE_DELAY_TICKS + soundDelayTicks);
         }
 
         int coughOdds = easedByOutfit(player, harshened(coughChanceOneIn, contents));
@@ -227,7 +233,7 @@ public final class Smoking {
         // The stack is still packed here; a spliff's contents are gone a few lines later, which is
         // why contents is handed over as its own argument.
         Services.ADDON_EVENTS.afterSmoke(player, contents, stack);
-        return greenedOut && contents.dose() >= GreenOut.of(world.registryAccess()).fullFromDose();
+        return greenedOut && contents.thcDose() >= GreenOut.of(world.registryAccess()).fullFromDose();
     }
 
     /**
@@ -349,6 +355,32 @@ public final class Smoking {
     /** One effect, through the same gate. */
     private static void apply(Player player, MobEffectInstance effect) {
         EffectPolicy.filter(List.of(effect)).forEach(player::addEffect);
+    }
+
+    /**
+     * The exhale, coloured by what was smoked: a third of its strain's smoke colour mixed into the
+     * smoke's grey, a quarter into the vapour's white. The tint multiplies vanilla's own sprites, so
+     * it is a mix toward the colour from white. A load whose primary strain has no terpene and no smoke
+     * colour of its own (hash, scorched hemp) exhales the plain particle.
+     */
+    public static ParticleOptions tinted(Level world, ParticleOptions base, SmokeContents contents) {
+        Holder<Strain> primary = contents.primaryStrain();
+        if (primary == null) {
+            return base;
+        }
+        Optional<Integer> tint = primary.value().smokeTint(world.registryAccess());
+        if (tint.isEmpty()) {
+            return base;
+        }
+        if (base == ParticleTypes.CAMPFIRE_COSY_SMOKE) {
+            return ColorParticleOption.create(ModParticles.TERPENE_SMOKE,
+                    ARGB.opaque(Terpene.mix(0xFFFFFF, tint.get(), Terpene.SMOKE_SHARE)));
+        }
+        if (base == ParticleTypes.CLOUD) {
+            return ColorParticleOption.create(ModParticles.TERPENE_VAPOUR,
+                    ARGB.opaque(Terpene.mix(0xFFFFFF, tint.get(), Terpene.VAPOUR_SHARE)));
+        }
+        return base;
     }
 
     /**

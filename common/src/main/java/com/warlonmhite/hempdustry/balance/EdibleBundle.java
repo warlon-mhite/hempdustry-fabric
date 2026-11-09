@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.balance;
 
+import com.warlonmhite.hempdustry.strain.EffectLabel;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -93,9 +94,25 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
      * One effect of the bundle. It lands {@code arrives_ticks} after the edible kicks in and lasts to
      * the end of the high, so everything ends together, unless it has a length of its own per tier.
      * {@code amplifier_by_quality} replaces the per-tier amplifiers for the qualities it names.
+     *
+     * <p>{@code labels} names what the effect answers to: {@code thc} (every 2.1 effect, the default)
+     * takes the butter's THC tier, {@code cbd} its CBD tier, flat at level I. An effect with both
+     * comes from whichever tier gives it the longer run, never from the two added together.
      */
     public record Effect(Holder<MobEffect> effect, List<Integer> amplifierByTier, int arrivesTicks,
-                         Optional<List<Integer>> durationByTier, Map<Quality, List<Integer>> amplifierByQuality) {
+                         Optional<List<Integer>> durationByTier, Map<Quality, List<Integer>> amplifierByQuality,
+                         List<EffectLabel> labels) {
+
+        /** An effect written before labels: the THC's, as every 2.1 effect was. */
+        public Effect(Holder<MobEffect> effect, List<Integer> amplifierByTier, int arrivesTicks,
+                      Optional<List<Integer>> durationByTier, Map<Quality, List<Integer>> amplifierByQuality) {
+            this(effect, amplifierByTier, arrivesTicks, durationByTier, amplifierByQuality, List.of(EffectLabel.THC));
+        }
+
+        public boolean answers(EffectLabel label) {
+            return labels.contains(label);
+        }
+
         private static final Codec<List<Integer>> AMPLIFIERS =
                 Codec.intRange(0, 255).listOf(EdibleEffects.MAX_TIER, EdibleEffects.MAX_TIER);
         private static final Codec<List<Integer>> TICKS =
@@ -107,7 +124,8 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("arrives_ticks").forGetter(Effect::arrivesTicks),
                 TICKS.optionalFieldOf("duration_by_tier").forGetter(Effect::durationByTier),
                 Codec.unboundedMap(Quality.CODEC, AMPLIFIERS).optionalFieldOf("amplifier_by_quality", Map.of())
-                        .forGetter(Effect::amplifierByQuality)
+                        .forGetter(Effect::amplifierByQuality),
+                EffectLabel.CODEC.listOf().optionalFieldOf("labels", List.of(EffectLabel.THC)).forGetter(Effect::labels)
         ).apply(instance, Effect::new));
 
         /** The amplifier at {@code tierIndex} (tier I is 0) for an edible of {@code quality}. */
@@ -148,6 +166,10 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
      *       Regeneration I last, at +30 s, for 5 to 20 s by tier (5 s is the golden apple's).
      *       Perfect butter's Slowness never passes I. Absorption asks for the tier and the config's
      *       {@code maxBuffLevel} stops it, at II by default.</li>
+     *   <li><b>Labels</b> (2.2): Slowness and Regeneration answer THC and CBD -- somnolence is the
+     *       commonest effect of purified CBD, and Regeneration is the game's shortcut for its
+     *       reputation -- so CBD butter gives Slowness I and Regeneration I and nothing else: no
+     *       munchies, no high. Absorption, Resistance and Hunger are the THC's alone.</li>
      * </ul>
      */
     public static final EdibleBundle BUILT_IN = new EdibleBundle(
@@ -156,12 +178,13 @@ public record EdibleBundle(Qualities qualities, List<Float> tierShare, List<Effe
             List.of(0.625F, 0.75F, 0.875F, 1.0F),
             List.of(
                     new Effect(MobEffects.SLOWNESS, List.of(0, 0, 1, 1), 0, Optional.empty(),
-                            Map.of(Quality.PERFECT, List.of(0, 0, 0, 0))),
+                            Map.of(Quality.PERFECT, List.of(0, 0, 0, 0)), List.of(EffectLabel.THC, EffectLabel.CBD)),
                     new Effect(MobEffects.ABSORPTION, List.of(0, 1, 2, 3), 160, Optional.empty(), Map.of()),
                     new Effect(MobEffects.RESISTANCE, List.of(0, 0, 0, 0), 160, Optional.empty(), Map.of()),
                     new Effect(MobEffects.HUNGER, List.of(0, 0, 0, 0), 400, Optional.empty(), Map.of()),
                     new Effect(MobEffects.REGENERATION, List.of(0, 0, 0, 0), 600,
-                            Optional.of(List.of(100, 200, 300, 400)), Map.of())));
+                            Optional.of(List.of(100, 200, 300, 400)), Map.of(),
+                            List.of(EffectLabel.THC, EffectLabel.CBD))));
 
     public static void bootstrap(BootstrapContext<EdibleBundle> registerable) {
         registerable.register(DEFAULT, BUILT_IN);

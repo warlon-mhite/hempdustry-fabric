@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import net.minecraft.core.BlockPos;
@@ -50,26 +51,43 @@ public class SpaceCakeBlock extends CakeBlock {
     public static final IntegerProperty POTENCY = IntegerProperty.create("potency", 0, EdibleEffects.MAX_TIER);
     /** Carried so a cake baked from a Perfect batch is still a Perfect cake once it is placed. */
     public static final EnumProperty<Quality> QUALITY = EnumProperty.create("quality", Quality.class);
+    /**
+     * What the butter was: THC-dominant, balanced or CBD-dominant (the oven and the Infuser turn the
+     * other two away, so no cake is ever either). {@link #POTENCY} is the THC tier of a THC-dominant
+     * or balanced cake and the CBD tier of a CBD-dominant one; a balanced cake reads it as both, as a
+     * balanced batch carries about as much of each. A cake placed by 2.1 has no such property and
+     * loads THC-dominant, which is what it was.
+     */
+    public static final EnumProperty<Chemotype> CHEMOTYPE = EnumProperty.create("chemotype", Chemotype.class,
+            chemotype -> chemotype == Chemotype.THC_DOMINANT || chemotype == Chemotype.BALANCED
+                    || chemotype == Chemotype.CBD_DOMINANT);
 
     public SpaceCakeBlock(Properties settings) {
         super(settings);
         // Spelled out rather than trusted: a property left out of registerDefaultState resolves to the
         // first value of its set, which is exactly how the crops shipped pre-trimmed for two days.
-        registerDefaultState(defaultBlockState().setValue(POTENCY, 0).setValue(QUALITY, Quality.ROUGH));
+        registerDefaultState(defaultBlockState().setValue(POTENCY, 0).setValue(QUALITY, Quality.ROUGH)
+                .setValue(CHEMOTYPE, Chemotype.THC_DOMINANT));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(POTENCY, QUALITY);
+        builder.add(POTENCY, QUALITY, CHEMOTYPE);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         ItemStack stack = ctx.getItemInHand();
+        Chemotype chemotype = Chemotype.of(stack);
+        if (!CHEMOTYPE.getPossibleValues().contains(chemotype)) {
+            chemotype = Chemotype.THC_DOMINANT;
+        }
+        int tier = chemotype.hasThc() ? EdibleEffects.potencyOf(stack) : EdibleEffects.cbdPotencyOf(stack);
         return defaultBlockState()
-                .setValue(POTENCY, Mth.clamp(EdibleEffects.potencyOf(stack), 0, EdibleEffects.MAX_TIER))
-                .setValue(QUALITY, EdibleEffects.qualityOf(stack));
+                .setValue(POTENCY, Mth.clamp(tier, 0, EdibleEffects.MAX_TIER))
+                .setValue(QUALITY, EdibleEffects.qualityOf(stack))
+                .setValue(CHEMOTYPE, chemotype);
     }
 
     @Override
@@ -78,9 +96,11 @@ public class SpaceCakeBlock extends CakeBlock {
         // Read the dose off the pre-use state: super may take a bite and rewrite the block.
         int potency = state.getValue(POTENCY);
         Quality quality = state.getValue(QUALITY);
+        Chemotype chemotype = state.getValue(CHEMOTYPE);
         InteractionResult result = super.useWithoutItem(state, world, pos, player, hit);
         if (result.consumesAction() && !world.isClientSide()) {
-            EdibleEffects.consume(player, potency, quality);
+            EdibleEffects.consume(player, chemotype.hasThc() ? potency : 0,
+                    chemotype.cbdHalves() > 0 ? potency : 0, quality);
         }
         return result;
     }

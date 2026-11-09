@@ -1,5 +1,11 @@
 {
   "type": "minecraft:block",
+  "functions": [
+    {
+      "chemotype": "balanced",
+      "function": "hempdustry:set_chemotype"
+    }
+  ],
   "pools": [
     {
       "bonus_rolls": 0.0,

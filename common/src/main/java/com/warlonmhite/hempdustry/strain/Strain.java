@@ -21,6 +21,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -155,11 +156,38 @@ import net.minecraft.world.level.block.Blocks;
  *                        green-out's: {@code 2.0} halves them, {@code 0.5} doubles them. Beldía's
  *                        harsh leafy smoke is the {@code 0.5}. The cough is a sound, so this is
  *                        flavour rather than balance
+ * @param chemotype       what the plant makes, THC, CBD, both or neither (see {@link Chemotype}). A
+ *                        bud's and a seed's chemotype is always their strain's; everything else from
+ *                        the plant is stamped with it as it drops. THC-dominant when the file names none
+ * @param terpene         the terpene its smell is known for (see {@link Terpene}), if any: its name on
+ *                        the bud's and the seed's tooltip, and the colour of its smoke and its plant's
+ *                        aroma. A cosmetic: it changes nothing the strain does
+ * @param smokeColor      the colour its smoke takes, RGB, when it is not its terpene's: schwag has no
+ *                        terpene and smokes the colour of stale hay
  */
 public record Strain(String translationKey, int color, int modelIndex,
                      Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                      float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
-                     float coughFactor) {
+                     float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
+                     Optional<Integer> smokeColor) {
+
+    /** A strain with no terpene and the plain smoke. */
+    public Strain(String translationKey, int color, int modelIndex,
+                  Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
+                  float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
+                  float coughFactor, Chemotype chemotype) {
+        this(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem, smokeEffects,
+                coughFactor, chemotype, Optional.empty(), Optional.empty());
+    }
+
+    /** Every strain written before {@code chemotype} existed is THC-dominant, as 2.1 had them all. */
+    public Strain(String translationKey, int color, int modelIndex,
+                  Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
+                  float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
+                  float coughFactor) {
+        this(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem, smokeEffects,
+                coughFactor, Chemotype.THC_DOMINANT);
+    }
 
     /** Every strain written before {@code cough_factor} existed coughs like the device does. */
     public Strain(String translationKey, int color, int modelIndex,
@@ -200,6 +228,28 @@ public record Strain(String translationKey, int color, int modelIndex,
         return wildFlower.orElse(Blocks.AIR);
     }
 
+    /** This strain with {@code terpene} as its signature. */
+    public Strain withTerpene(ResourceKey<Terpene> terpene) {
+        return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
+                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor);
+    }
+
+    /** This strain smoking {@code rgb} rather than its terpene's colour. */
+    public Strain withSmokeColor(int rgb) {
+        return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
+                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb));
+    }
+
+    /** The terpene the world loaded under this strain's {@link #terpene} key, if both exist. */
+    public Optional<Terpene> loadedTerpene(HolderLookup.Provider registries) {
+        return terpene.flatMap(key -> Terpene.resolve(registries, key));
+    }
+
+    /** The colour its smoke takes: its own smoke colour, else its terpene's, else none (plain smoke). */
+    public Optional<Integer> smokeTint(HolderLookup.Provider registries) {
+        return smokeColor.or(() -> loadedTerpene(registries).map(Terpene::color));
+    }
+
     /** The dynamic registry itself. Entries load from {@code data/<namespace>/hempdustry/strain/<id>.json}. */
     public static final ResourceKey<Registry<Strain>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "strain"));
@@ -217,7 +267,12 @@ public record Strain(String translationKey, int color, int modelIndex,
             Codec.FLOAT.optionalFieldOf("green_out_factor", 1.0F).forGetter(Strain::greenOutFactor),
             Codec.INT.optionalFieldOf("dose_per_item", 1).forGetter(Strain::dosePerItem),
             SmokeEffect.CODEC.listOf().optionalFieldOf("effects", List.of()).forGetter(Strain::smokeEffects),
-            Codec.FLOAT.optionalFieldOf("cough_factor", 1.0F).forGetter(Strain::coughFactor)
+            Codec.FLOAT.optionalFieldOf("cough_factor", 1.0F).forGetter(Strain::coughFactor),
+            Chemotype.CODEC.optionalFieldOf("chemotype", Chemotype.THC_DOMINANT).forGetter(Strain::chemotype),
+            // By key, looked up when used: a strain naming a terpene the world does not define still
+            // loads, and smokes plain.
+            ResourceKey.codec(Terpene.REGISTRY_KEY).optionalFieldOf("terpene").forGetter(Strain::terpene),
+            Codec.INT.optionalFieldOf("smoke_color").forGetter(Strain::smokeColor)
     ).apply(instance, Strain::new));
 
     /**
@@ -234,6 +289,19 @@ public record Strain(String translationKey, int color, int modelIndex,
     /** The strain registry as loaded for this world. */
     public static HolderLookup.RegistryLookup<Strain> registry(HolderLookup.Provider registries) {
         return registries.lookupOrThrow(REGISTRY_KEY);
+    }
+
+    /**
+     * The strain {@code block} is a plant of: the one whose seeds plant it, or whose wild flower it is.
+     * Empty for a plant no strain names (Industrial Hemp is fibre, not a smoking strain).
+     */
+    public static Optional<Holder.Reference<Strain>> ofPlant(Block block, HolderLookup.Provider registries) {
+        return registry(registries).listElements().filter(strain -> {
+            Strain value = strain.value();
+            return value.seedItem().filter(seed -> seed instanceof BlockItem blockItem
+                    && blockItem.getBlock() == block).isPresent()
+                    || value.wildFlower().filter(flower -> flower == block).isPresent();
+        }).findFirst();
     }
 
     /**
@@ -309,9 +377,32 @@ public record Strain(String translationKey, int color, int modelIndex,
      */
     public List<MobEffectInstance> effects(int dose, int durationTicks, boolean onExhale, int buffBonus,
                                               RandomGenerator random) {
+        // The strain's own chemotype: a balanced plant's bong of three is a THC dose of one however
+        // it is asked. A strainless entry (hash) is THC-dominant unless its file says otherwise.
+        return effects(dose, chemotype, durationTicks, onExhale, buffBonus, random);
+    }
+
+    /**
+     * As above, for {@code units} of material of {@code chemotype}: each effect reads what its
+     * {@link EffectLabel} says moves it. A {@link EffectLabel#THC THC} effect scales with the THC dose
+     * ({@link Chemotype#thcDose}) and is not there at all without THC; a {@link EffectLabel#SMOKE
+     * SMOKE} effect scales with the units burned; a {@link EffectLabel#STRAIN STRAIN} effect is flat;
+     * a {@link EffectLabel#CBD CBD} effect is flat, lasts as long as the CBD share allows and is not
+     * there without CBD. For THC-dominant material the THC dose is the unit count, so every effect
+     * comes out exactly as it did before chemotypes existed.
+     */
+    public List<MobEffectInstance> effects(int units, Chemotype chemotype, int durationTicks, boolean onExhale,
+                                              int buffBonus, RandomGenerator random) {
+        int thcDose = chemotype.thcDose(units);
         List<MobEffectInstance> out = new ArrayList<>(smokeEffects.size());
         for (SmokeEffect effect : smokeEffects) {
             if (effect.onExhale() != onExhale) {
+                continue;
+            }
+            EffectLabel label = effect.label();
+            // Before the chance draw: an effect the chemotype rules out never takes a random number,
+            // so a THC-dominant load draws exactly what it always did.
+            if ((label == EffectLabel.THC && thcDose == 0) || (label == EffectLabel.CBD && chemotype.cbdHalves() == 0)) {
                 continue;
             }
             // A certain effect draws nothing, so every strain written before chance existed takes
@@ -319,14 +410,20 @@ public record Strain(String translationKey, int color, int modelIndex,
             if (effect.chance() < 1.0F && random.nextFloat() >= effect.chance()) {
                 continue;
             }
-            int amplifier = effect.baseAmplifier() + (effect.scales() ? Math.max(0, dose - 1) : 0);
-            if (effect.scales() && effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL) {
+            int level = switch (label) {
+                case THC -> thcDose;
+                case SMOKE -> units;
+                case STRAIN, CBD -> 1;
+            };
+            int amplifier = effect.baseAmplifier() + Math.max(0, level - 1);
+            if (label.scales() && effect.effect().value().getCategory() == MobEffectCategory.BENEFICIAL) {
                 amplifier += buffBonus;
             }
             amplifier = Math.min(effect.maxAmplifier(), amplifier);
+            float share = label == EffectLabel.CBD ? (float) chemotype.cbdHalves() / Chemotype.FULL_WEIGHT : 1.0F;
             // At least a tick: a datapack's 0 or negative factor is a very short effect, never one
             // that silently does not exist.
-            int duration = Math.max(1, Math.round(durationTicks * effect.durationFactor()));
+            int duration = Math.max(1, Math.round(durationTicks * effect.durationFactor() * share));
             out.add(new MobEffectInstance(effect.effect(), duration, amplifier));
         }
         return out;
@@ -355,9 +452,13 @@ public record Strain(String translationKey, int color, int modelIndex,
      *                       {@code 1}, level II, because survival vanilla never goes past Poison II
      *                       (the strong potion, the pufferfish) and level III takes a full-health
      *                       player to half a heart in seven seconds
+     * @param declaredLabel  what the effect comes from, and so what makes it stronger (see
+     *                       {@link EffectLabel}); when a file names none, {@link #label} reads it off
+     *                       {@code scales}
      */
     public record SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales,
-                              float durationFactor, boolean onExhale, float chance, int maxAmplifier) {
+                              float durationFactor, boolean onExhale, float chance, int maxAmplifier,
+                              Optional<EffectLabel> declaredLabel) {
         /** Vanilla's highest amplifier, and the default: no cap a dose could reach. */
         public static final int NO_CAP = 255;
 
@@ -368,8 +469,27 @@ public record Strain(String translationKey, int color, int modelIndex,
                 Codec.FLOAT.optionalFieldOf("duration_factor", 1.0F).forGetter(SmokeEffect::durationFactor),
                 Codec.BOOL.optionalFieldOf("on_exhale", false).forGetter(SmokeEffect::onExhale),
                 Codec.floatRange(0.0F, 1.0F).optionalFieldOf("chance", 1.0F).forGetter(SmokeEffect::chance),
-                Codec.intRange(0, NO_CAP).optionalFieldOf("max_amplifier", NO_CAP).forGetter(SmokeEffect::maxAmplifier)
+                Codec.intRange(0, NO_CAP).optionalFieldOf("max_amplifier", NO_CAP).forGetter(SmokeEffect::maxAmplifier),
+                EffectLabel.CODEC.optionalFieldOf("label").forGetter(SmokeEffect::declaredLabel)
         ).apply(instance, SmokeEffect::new));
+
+        /** Every effect written before {@code label} existed: the label its {@code scales} stood for. */
+        public SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales,
+                           float durationFactor, boolean onExhale, float chance, int maxAmplifier) {
+            this(effect, baseAmplifier, scales, durationFactor, onExhale, chance, maxAmplifier, Optional.empty());
+        }
+
+        /** An effect with its label named, its {@code scales} flag kept in step for older readers. */
+        public SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, EffectLabel label,
+                           float durationFactor, boolean onExhale, float chance, int maxAmplifier) {
+            this(effect, baseAmplifier, label.scales(), durationFactor, onExhale, chance, maxAmplifier,
+                    Optional.of(label));
+        }
+
+        /** What the effect comes from: the label the file names, or the one {@code scales} stood for. */
+        public EffectLabel label() {
+            return declaredLabel.orElseGet(() -> EffectLabel.fromScales(scales));
+        }
 
         /** The whole duration, from the hit — every effect written before the last four fields existed. */
         public SmokeEffect(Holder<MobEffect> effect, int baseAmplifier, boolean scales) {
