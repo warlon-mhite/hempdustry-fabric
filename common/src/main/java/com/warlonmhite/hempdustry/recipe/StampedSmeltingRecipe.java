@@ -24,6 +24,14 @@ public class StampedSmeltingRecipe extends SmeltingRecipe {
         super(commonInfo, bookInfo, ingredient, result, experience, cookingTime);
     }
 
+    /**
+     * The result as the recipe file writes it, before {@link #assemble} stamps it: what a machine of
+     * another mod gets when it copies the result rather than assembling it.
+     */
+    public ItemStackTemplate template() {
+        return result();
+    }
+
     @Override
     public ItemStack assemble(SingleRecipeInput input) {
         return Stamping.apply(super.assemble(input), Stamping.matter(input.item()));

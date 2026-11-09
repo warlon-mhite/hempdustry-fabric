@@ -1,6 +1,15 @@
 package com.warlonmhite.hempdustry.recipe;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.warlonmhite.hempdustry.Hempdustry;
+import com.warlonmhite.hempdustry.strain.Strain;
+import java.util.Optional;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -33,9 +42,65 @@ import net.minecraft.world.level.Level;
  *
  * <p>Not in the recipe book: the book only knows the crafting types, and a machine recipe there would
  * be an entry the player could not click. Recipe viewers read the type directly.
+ *
+ * <h2>A bud's count is its strain's</h2>
+ *
+ * A strain's {@code potency.base} is what one of its mid buds is worth, to the oven and to the bowl
+ * alike, so the two never disagree. A bud's recipe says so with {@code "count_from_strain": true}
+ * ({@link #countFromStrain}): the oven then takes the strain's base, and the result's count is only
+ * what a viewer or another mod reading the file sees. A recipe that leaves the field out keeps its
+ * own count, which then moves the oven alone: a pack retuning edibles changes no bowl, and a 2.1
+ * datapack recipe with a count works as it did. A separate field because a result's count cannot be
+ * left out: {@code ItemStackTemplate} reads a missing one as 1. A recipe whose count disagrees with
+ * its bud's strain is named in the log once the server is up ({@link #reportOverrides}).
  */
-public record DecarboxylatingRecipe(Ingredient ingredient, ItemStackTemplate result)
+public record DecarboxylatingRecipe(Ingredient ingredient, ItemStackTemplate result, boolean countFromStrain)
         implements Recipe<SingleRecipeInput> {
+
+    /** A recipe that keeps its own count: a leaf's, schwag's, or anything 2.1 wrote. */
+    public DecarboxylatingRecipe(Ingredient ingredient, ItemStackTemplate result) {
+        this(ingredient, result, false);
+    }
+
+    /**
+     * What one mid piece of {@code input} bakes into: its strain's base when this recipe takes it and
+     * the piece is a plant's bud, otherwise the result's count. A band then moves it.
+     */
+    public int midCount(ItemStack input, HolderLookup.Provider registries) {
+        if (countFromStrain) {
+            Optional<Integer> base = strainBase(input.getItem(), registries);
+            if (base.isPresent()) {
+                return base.get();
+            }
+        }
+        return result.count();
+    }
+
+    private static Optional<Integer> strainBase(Item item, HolderLookup.Provider registries) {
+        return Strain.fromBuds(registries, item)
+                .filter(strain -> strain.value().wildFlower().isPresent())
+                .map(strain -> strain.value().potency().base());
+    }
+
+    /**
+     * Names in the log every recipe that writes its own count for a plant strain's bud when that count
+     * is not the strain's base: the oven then pays it, while the bowl still weighs the base. Not a
+     * mistake on its face (a pack may want exactly that), so a plain line, not a warning.
+     */
+    public static void reportOverrides(MinecraftServer server) {
+        HolderLookup.Provider registries = server.registryAccess();
+        for (RecipeHolder<DecarboxylatingRecipe> holder : ModRecipes.allOfType(server.overworld(), ModRecipes.DECARBOXYLATING_TYPE)) {
+            DecarboxylatingRecipe recipe = holder.value();
+            if (recipe.countFromStrain()) {
+                continue;
+            }
+            recipe.ingredient().items().forEach(item -> strainBase(item.value(), registries)
+                    .filter(base -> base != recipe.result().count())
+                    .ifPresent(base -> Hempdustry.LOGGER.info(
+                            "Decarboxylating recipe {} bakes {} into {}, not its strain's base {}: the oven pays the recipe, the bowl the base",
+                            holder.id().identifier(), item.getRegisteredName(), recipe.result().count(), base)));
+        }
+    }
 
     @Override
     public boolean matches(SingleRecipeInput input, Level world) {
@@ -90,11 +155,13 @@ public record DecarboxylatingRecipe(Ingredient ingredient, ItemStackTemplate res
     /** The recipe's JSON; {@link ModRecipes} makes its serializer of this and {@link #STREAM_CODEC}. */
     public static final MapCodec<DecarboxylatingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Ingredient.CODEC.fieldOf("ingredient").forGetter(DecarboxylatingRecipe::ingredient),
-            ItemStackTemplate.CODEC.fieldOf("result").forGetter(DecarboxylatingRecipe::result)
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(DecarboxylatingRecipe::result),
+            Codec.BOOL.optionalFieldOf("count_from_strain", false).forGetter(DecarboxylatingRecipe::countFromStrain)
     ).apply(instance, DecarboxylatingRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, DecarboxylatingRecipe> STREAM_CODEC = StreamCodec.composite(
             Ingredient.CONTENTS_STREAM_CODEC, DecarboxylatingRecipe::ingredient,
             ItemStackTemplate.STREAM_CODEC, DecarboxylatingRecipe::result,
+            ByteBufCodecs.BOOL, DecarboxylatingRecipe::countFromStrain,
             DecarboxylatingRecipe::new);
 }

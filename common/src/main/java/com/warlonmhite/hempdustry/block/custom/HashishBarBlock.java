@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -153,6 +154,16 @@ public class HashishBarBlock extends Block {
      * <p>Nothing else moves. The models and the {@link #shape} switch already key off {@code FACING}
      * with the same convention, so this is one expression and no new state.
      */
+    /**
+     * A creative pick-block hands back a bar of the chemotype this one is. A cut bar picks as a whole
+     * one, as vanilla's cake does.
+     */
+    @Override
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        return ChemotypeBlocks.stampBlockItem(super.getCloneItemStack(level, pos, state, includeData),
+                ChemotypeBlocks.of(state));
+    }
+
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getCounterClockWise());

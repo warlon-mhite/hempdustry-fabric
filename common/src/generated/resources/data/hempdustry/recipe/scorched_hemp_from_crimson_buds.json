@@ -1,0 +1,9 @@
+{
+  "type": "hempdustry:stamped_smelting",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": "hempdustry:crimson_buds",
+  "result": {
+    "id": "hempdustry:scorched_hemp"
+  }
+}

@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -64,7 +65,8 @@ public final class StrainPlantItem {
     /** A strain's buds. */
     public static class Buds extends Item {
         public Buds(Properties settings) {
-            super(settings);
+            // Mid on the prototype, so an explicit mid stacks with a plain bud; never a chemotype.
+            super(settings.component(ModComponents.POTENCY_BAND, PotencyBand.MID));
         }
 
         @Override

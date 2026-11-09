@@ -29,7 +29,8 @@ import net.minecraft.world.item.component.TooltipDisplay;
 public class CannabutterItem extends Item {
 
     public CannabutterItem(Properties settings) {
-        super(settings);
+        // THC-dominant on the prototype, so an explicit default stacks with a plain stack.
+        super(settings.component(ModComponents.CHEMOTYPE, Chemotype.THC_DOMINANT));
     }
 
     @Override

@@ -7,6 +7,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ByIdMap;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 
@@ -25,8 +26,9 @@ import net.minecraft.world.item.ItemStack;
  * <h2>Absent means mid</h2>
  *
  * Every bud and leaf 2.1 made reads mid, which bakes and smokes exactly as 2.1 did, and
- * {@link #stamp} never writes mid: a new mid bud still stacks with an old one. Colour is never the
- * band's: only the extra-high line is red, as a warning.
+ * {@link #stamp} never writes mid: a new mid bud still stacks with an old one. Buds and the leaf carry
+ * mid on their prototype too, so a stack naming it explicitly loses it and stacks with a plain one.
+ * Colour is never the band's: only the extra-high line is red, as a warning.
  */
 public enum PotencyBand implements StringRepresentable {
     LOW("low", -1),
@@ -38,9 +40,12 @@ public enum PotencyBand implements StringRepresentable {
     public static final int EXTRA_HIGH_COLOR = 0xFF5555;
 
     public static final Codec<PotencyBand> CODEC = StringRepresentable.fromEnum(PotencyBand::values);
-    /** Ordinal-based: this only travels over the wire, never to disk. */
-    public static final StreamCodec<ByteBuf, PotencyBand> PACKET_CODEC =
-            ByteBufCodecs.VAR_INT.map(ordinal -> values()[ordinal], PotencyBand::ordinal);
+    /**
+     * Ordinal-based: this only travels over the wire, never to disk. An id out of range (a bad
+     * creative packet) reads low, the first band, rather than throwing.
+     */
+    public static final StreamCodec<ByteBuf, PotencyBand> PACKET_CODEC = ByteBufCodecs.idMapper(
+            ByIdMap.continuous(PotencyBand::ordinal, values(), ByIdMap.OutOfBoundsStrategy.ZERO), PotencyBand::ordinal);
 
     private final String name;
     private final int offset;
@@ -65,14 +70,12 @@ public enum PotencyBand implements StringRepresentable {
         return stack.getOrDefault(ModComponents.POTENCY_BAND, MID);
     }
 
-    /** Writes {@code band} on {@code stack}, or clears it for mid. Returns the stack. */
+    /**
+     * Writes {@code band} on {@code stack}; mid writes nothing. Returns the stack. See
+     * {@link ModComponents#putDefaulted}.
+     */
     public static ItemStack stamp(ItemStack stack, PotencyBand band) {
-        if (band == MID) {
-            stack.remove(ModComponents.POTENCY_BAND);
-        } else {
-            stack.set(ModComponents.POTENCY_BAND, band);
-        }
-        return stack;
+        return ModComponents.putDefaulted(stack, ModComponents.POTENCY_BAND, band, MID);
     }
 
     /** Translation key of the line the player reads, e.g. {@code hempdustry.potency.high}. */

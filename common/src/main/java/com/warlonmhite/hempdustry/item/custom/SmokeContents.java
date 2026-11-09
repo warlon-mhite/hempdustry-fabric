@@ -204,11 +204,36 @@ public record SmokeContents(List<Entry> entries) {
          * always did.
          */
         public long thcWeight() {
+            return worth() * chemotype().thcHalves();
+        }
+
+        /**
+         * The CBD in this entry, weighed as {@link #thcWeight} weighs its THC: the band moves the CBD
+         * too, since a plant's total cannabinoids are polygenic and the chemotype only splits them.
+         */
+        public long cbdWeight() {
+            return worth() * chemotype().cbdHalves();
+        }
+
+        /** What this entry is worth in decarboxylated hemp, the number both weights multiply. */
+        private long worth() {
             Strain value = strain.value();
-            long worth = value.wildFlower().isPresent()
+            return value.wildFlower().isPresent()
                     ? Math.max(count, (long) count * value.potency().base() + potency)
                     : (long) count * Potency.DEFAULT_BASE;
-            return worth * chemotype().thcHalves();
+        }
+
+        /**
+         * This entry's THC as an exact dose, unrounded: a mid THC-dominant bud is 1.0, a high one 1.25,
+         * a balanced one 0.5. {@link #thcDose} rounds it down for the level; the rest buys time.
+         */
+        public double thcUnits() {
+            return units(thcWeight());
+        }
+
+        /** This entry's CBD as an exact dose, unrounded: a mid CBD-dominant bud is 1.0. */
+        public double cbdUnits() {
+            return units(cbdWeight());
         }
 
         /**
@@ -227,6 +252,44 @@ public record SmokeContents(List<Entry> entries) {
         }
         long dose = weight / ((long) Chemotype.FULL_WEIGHT * Potency.DEFAULT_BASE);
         return (int) Math.min(cap, Math.max(1, dose));
+    }
+
+    /** A weight as an exact dose: one is a mid THC-dominant bud's worth of THC (or a CBD bud's of CBD). */
+    private static double units(long weight) {
+        return weight / (double) ((long) Chemotype.FULL_WEIGHT * Potency.DEFAULT_BASE);
+    }
+
+    /** The most the exact dose may stretch a THC-labelled effect: twice the device's duration. */
+    public static final double MAX_THC_STRETCH = 2.0;
+
+    /**
+     * How long a THC-labelled effect of an entry lasts: <b>the level rounds down, the exact dose buys
+     * time</b>. With {@code units} the entry's exact THC dose D, its level ⌊D⌋ (at least one) and
+     * {@code b} that level held to the buff cap, the device's duration stretches by
+     * {@code 1 + (D - b) / 2}, at most {@link #MAX_THC_STRETCH} times. A mid bud, a mid pipe of two and
+     * a mid bong of three (D = 3, b = 2, one and a half) last exactly what they always did; a high bud
+     * lasts an eighth longer, a low one an eighth shorter, and a balanced bong of three, D = 1.5, a
+     * quarter longer rather than a half: it has less THC in it. Vanilla's grammar, where glowstone buys
+     * level and redstone buys time.
+     */
+    public static int thcTicks(int durationTicks, double units, int level, int buffCap) {
+        int held = Math.min(level, buffCap);
+        double stretch = Math.min(MAX_THC_STRETCH, 1.0 + (units - held) / 2.0);
+        return (int) Math.round(durationTicks * stretch);
+    }
+
+    /** Ticks of a CBD-labelled smoke effect per whole unit of CBD smoked: one Regeneration I heal. */
+    public static final int CBD_TICKS_PER_UNIT = 50;
+    /** The longest a CBD-labelled smoke effect runs, whatever the device: three units' worth. */
+    public static final int MAX_CBD_TICKS = 150;
+
+    /**
+     * How long a CBD-labelled smoke effect lasts, whatever the device: {@link #CBD_TICKS_PER_UNIT} per
+     * unit of the exact CBD dose, at most {@link #MAX_CBD_TICKS}. Level I always. Edibles stay the
+     * stronger CBD route (five to twenty seconds of Regeneration), as they last longer in life.
+     */
+    public static int cbdTicks(double units) {
+        return (int) Math.min(MAX_CBD_TICKS, Math.round(CBD_TICKS_PER_UNIT * units));
     }
 
     /** A single-strain load. */
@@ -444,11 +507,17 @@ public record SmokeContents(List<Entry> entries) {
      * the exhale ({@code onExhale} true), before the config's {@code EffectPolicy}. An effect with a
      * {@code chance} below one is rolled on {@code random}, once per call.
      *
-     * <p><b>A bud past the buff cap buys time, not level</b>: each one over
-     * {@link EffectPolicy#maxBuffLevel} adds half the device's duration to that strain's effects,
-     * so a bong of three lasts 75 s instead of 50. Without it the third bud would buy only a bigger
-     * Hunger once the buffs stop at II. Counted per entry, so a two-and-one mix, each strain at its
-     * own count, has nothing past the cap.
+     * <p><b>THC-labelled effects: the level rounds down, the exact dose buys time</b>
+     * ({@link #thcTicks}). A bong of three mid buds still lasts 75 s instead of 50, and a band moves it:
+     * a high bud lasts longer than a mid one, a balanced bong less long than a THC one.
+     *
+     * <p><b>Strain- and smoke-labelled effects: a bud past the buff cap buys time, not level</b>: each
+     * one over {@link EffectPolicy#maxBuffLevel} adds half the device's duration, counted in buds and
+     * never in THC, so a band never lengthens Beldía's Invisibility. Counted per entry, so a
+     * two-and-one mix, each strain at its own count, has nothing past the cap.
+     *
+     * <p><b>CBD-labelled effects</b> run at level I for {@link #cbdTicks} of the entry's CBD, whatever
+     * the device.
      *
      * <p><b>A bud loaded with a concentrate goes one level past the cap</b> (see {@link #buffBonus}):
      * its scaling buffs rise by one and may reach {@code maxBuffLevel + 1}. Every other entry, the
@@ -460,9 +529,13 @@ public record SmokeContents(List<Entry> entries) {
         List<MobEffectInstance> out = new ArrayList<>();
         for (Entry entry : entries) {
             int bonus = entry.strain().value().wildFlower().isPresent() ? load : 0;
-            int past = Math.max(0, entry.count() - EffectPolicy.maxBuffLevel(bonus));
-            for (MobEffectInstance effect : entry.strain().value().effects(entry.count(), entry.thcDose(),
-                    entry.chemotype(), durationTicks + durationTicks * past / 2, onExhale, bonus, random)) {
+            int cap = EffectPolicy.maxBuffLevel(bonus);
+            int past = Math.max(0, entry.count() - cap);
+            Strain.Burn burn = new Strain.Burn(entry.count(), entry.thcDose(), entry.chemotype(),
+                    thcTicks(durationTicks, entry.thcUnits(), entry.thcDose(), cap),
+                    durationTicks + durationTicks * past / 2,
+                    cbdTicks(entry.cbdUnits()));
+            for (MobEffectInstance effect : entry.strain().value().effects(burn, onExhale, bonus, random)) {
                 out.add(new MobEffectInstance(effect.getEffect(), effect.getDuration(),
                         EffectPolicy.amplifier(effect.getEffect(), effect.getAmplifier(), bonus)));
             }

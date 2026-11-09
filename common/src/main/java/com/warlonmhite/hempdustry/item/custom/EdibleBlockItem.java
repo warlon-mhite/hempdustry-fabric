@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
+import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.component.ModComponents;
 import java.util.function.Consumer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
@@ -15,7 +17,8 @@ import net.minecraft.world.level.block.Block;
  */
 public class EdibleBlockItem extends BlockItem {
     public EdibleBlockItem(Block block, Properties settings) {
-        super(block, settings);
+        // THC-dominant on the prototype, as every edible: an explicit default stacks with a plain cake.
+        super(block, settings.component(ModComponents.CHEMOTYPE, Chemotype.THC_DOMINANT));
     }
 
     @Override

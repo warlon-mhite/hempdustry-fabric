@@ -90,6 +90,22 @@ public final class Infusion {
         return Chemotype.stamp(result, chemotype);
     }
 
+    /**
+     * Whether bhang takes the hemp in {@code input}: not the two chemotypes that make neither THC nor
+     * CBD. The oven and the Infuser already turn them away, so this third door into an edible must too
+     * (they reach a grid only through a command or a datapack).
+     */
+    public static boolean bhangTakes(CraftingInput input) {
+        for (int slot = 0; slot < input.size(); slot++) {
+            ItemStack stack = input.getItem(slot);
+            if ((stack.is(ModItems.DECARBOXYLATED_HEMP) || stack.is(ModItems.WASHED_DECARBOXYLATED_HEMP))
+                    && !Chemotype.of(stack).infusable()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static ItemStack findButter(CraftingInput input) {
         for (int slot = 0; slot < input.size(); slot++) {
             ItemStack stack = input.getItem(slot);

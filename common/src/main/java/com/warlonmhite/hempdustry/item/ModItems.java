@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.item;
 
+import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -106,7 +107,9 @@ public class ModItems {
      */
     public static final Item HEMP_LEAF = registerItem("hemp_leaf", settings -> new StampedItem(
             settings.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS,
-                    context -> context.getOrThrow(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM))));
+                    context -> context.getOrThrow(ModTags.BannerPatterns.HEMP_LEAF_PATTERN_ITEM))
+                    // Unmarked on the prototype, as a bud is mid: an explicit mid stacks with a plain leaf.
+                    .component(ModComponents.POTENCY_BAND, PotencyBand.MID)));
 
     // The cannabutter chain's two intermediates. Both are strain-agnostic: every strain's buds and
     // the leaf all decarboxylate to the same thing, so the pipeline downstream stays a single line

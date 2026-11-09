@@ -228,7 +228,9 @@ public final class PotencyGameTest {
                             "a " + band + " plant dropped " + banded + " where the same seed drops " + plain);
                     PotencyBand expected = got.is(ModItems.INDICA_BUDS) ? (band == PotencyBand.MID ? null : band)
                             : got.is(ModItems.HEMP_LEAF) && band.marksLeaf() ? PotencyBand.HIGH : null;
-                    context.assertTrue(java.util.Objects.equals(got.get(ModComponents.POTENCY_BAND), expected),
+                    // Mid writes nothing: a stack with no band of its own is the plain one 2.1 made.
+                    context.assertTrue(PotencyBand.of(got) == (expected == null ? PotencyBand.MID : expected)
+                                    && (expected != null || got.getComponentsPatch().isEmpty()),
                             "the band on " + got + " from a " + band + " plant: expected " + expected);
                 }
             }
@@ -355,7 +357,7 @@ public final class PotencyGameTest {
         List<ItemStack> plain = Block.getDrops(world.getBlockState(pos), world, pos, null);
         context.assertTrue(plain.size() == 1 && ItemStack.isSameItemSameComponents(plain.getFirst(), new ItemStack(ModBlocks.HEMP_LEAVES)),
                 "a placed plain block broke into " + plain + ", which no longer stacks with 2.1's");
-        context.assertTrue(!PotencyBand.stamp(new ItemStack(ModItems.INDICA_BUDS), PotencyBand.MID).has(ModComponents.POTENCY_BAND)
+        context.assertTrue(PotencyBand.stamp(new ItemStack(ModItems.INDICA_BUDS), PotencyBand.MID).getComponentsPatch().isEmpty()
                         && !new ItemStack(ModBlocks.HEMP_LEAVES).has(DataComponents.BLOCK_STATE),
                 "a mid bud or a plain block item carries a value 2.1's do not");
         context.succeed();

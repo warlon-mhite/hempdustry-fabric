@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.compat;
 
+import com.warlonmhite.hempdustry.item.custom.StampedItem;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.balance.DeviceStats;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -107,7 +110,11 @@ public final class ViewerRecipes {
         List<Entry> out = new ArrayList<>();
         for (RecipeHolder<DecarboxylatingRecipe> entry : ModRecipes.allOfType(world, ModRecipes.DECARBOXYLATING_TYPE)) {
             DecarboxylatingRecipe recipe = entry.value();
-            out.add(new Entry(entry.id().identifier(), List.of(recipe.ingredient()), recipe.result().create(),
+            // A bud's page shows its strain's base, which is what the oven pays a mid one.
+            ItemStack output = recipe.result().create();
+            recipe.ingredient().items().findFirst().ifPresent(item ->
+                    output.setCount(recipe.midCount(new ItemStack(item), world.registryAccess())));
+            out.add(new Entry(entry.id().identifier(), List.of(recipe.ingredient()), output,
                     List.of(Component.translatable("hempdustry.category.decarboxylating.info",
                             seconds(DecarboxylatorBlockEntity.cookTime()))),
                     false));
@@ -517,6 +524,29 @@ public final class ViewerRecipes {
      * viewer that a packed vaporizer and an empty one are different entries, and a device left out
      * of it silently folds every load of that device into the empty one in the item list.
      */
+    /**
+     * What sets one piece of stamped matter apart from another of the same item in a viewer's list:
+     * its chemotype, and a leaf's high mark. Empty for a plain THC-dominant, unmarked piece, so every
+     * stack 2.1 made keeps the one entry it always had.
+     */
+    public static String stampKey(ItemStack stack) {
+        Chemotype chemotype = Chemotype.of(stack);
+        PotencyBand band = PotencyBand.of(stack);
+        String key = chemotype == Chemotype.THC_DOMINANT ? "" : chemotype.getSerializedName();
+        return band == PotencyBand.MID ? key : key + "/" + band.getSerializedName();
+    }
+
+    /** The items {@link #stampKey} applies to: every piece of stamped hemp matter. */
+    public static List<Item> stamped() {
+        List<Item> out = new ArrayList<>();
+        for (Item item : BuiltInRegistries.ITEM) {
+            if (item instanceof StampedItem) {
+                out.add(item);
+            }
+        }
+        return out;
+    }
+
     public static List<Item> smokeables() {
         List<Item> out = new ArrayList<>();
         out.add(ModItems.SPLIFF);

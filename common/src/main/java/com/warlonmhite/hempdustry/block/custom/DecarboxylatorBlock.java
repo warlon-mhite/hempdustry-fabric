@@ -138,9 +138,16 @@ public class DecarboxylatorBlock extends BaseEntityBlock {
         return true;
     }
 
+    /**
+     * What a 2.1 oven holding the same load would read: {@link DecarboxylatorBlockEntity#comparatorSignal}.
+     * The oven grew from five slots to seven, and vanilla's average over seven reads lower than 2.1's
+     * over five, which would stop a redstone line built on 2.1 firing.
+     */
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction side) {
-        return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(world.getBlockEntity(pos));
+        return world.getBlockEntity(pos) instanceof DecarboxylatorBlockEntity oven
+                ? oven.comparatorSignal()
+                : AbstractContainerMenu.getRedstoneSignalFromBlockEntity(world.getBlockEntity(pos));
     }
 
     // ----- ambience -----

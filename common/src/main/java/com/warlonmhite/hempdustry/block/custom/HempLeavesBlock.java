@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.core.BlockPos;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
@@ -29,6 +31,13 @@ public class HempLeavesBlock extends StampedBlock {
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(HIGH_POTENCY);
+    }
+
+    /** A creative pick-block keeps the mark too, beside the chemotype {@link StampedBlock} keeps. */
+    @Override
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        return markBlockItem(super.getCloneItemStack(level, pos, state, includeData),
+                state.getValue(HIGH_POTENCY) ? PotencyBand.HIGH : PotencyBand.MID);
     }
 
     /** The mark a block item will place with: high when its state says so, else mid. */

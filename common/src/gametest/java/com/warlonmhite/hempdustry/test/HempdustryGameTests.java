@@ -242,6 +242,16 @@ public final class HempdustryGameTests {
         register("a_plant_rolls_its_band_from_its_strains_odds", PotencyGameTest::aPlantRollsItsBandFromItsStrainsOdds);
         register("the_harvest_carries_the_plants_band", PotencyGameTest::theHarvestCarriesThePlantsBand);
         register("the_band_moves_the_oven_the_bowl_and_the_craft", PotencyGameTest::theBandMovesTheOvenTheBowlAndTheCraft);
+        register("a_band_buys_time_not_level", BandWorthGameTest::aBandBuysTimeNotLevel);
+        register("the_strains_base_is_the_ovens_count", BandWorthGameTest::theStrainsBaseIsTheOvensCount);
+        register("a_moon_rock_counts_its_band_once", BandWorthGameTest::aMoonRockCountsItsBandOnce);
+        register("a_cbd_bowl_lasts_by_its_cbd", BandWorthGameTest::aCbdBowlLastsByItsCbd);
+        register("a_default_never_costs_a_slot", StampedMatterGameTest::aDefaultNeverCostsASlot);
+        register("a_stamped_block_picks_as_it_is", StampedMatterGameTest::aStampedBlockPicksAsItIs);
+        register("bhang_refuses_hemp_without_thc_or_cbd", StampedMatterGameTest::bhangRefusesHempWithoutThcOrCbd);
+        register("every_bud_scorches_by_its_own_recipe", StampedMatterGameTest::everyBudScorchesByItsOwnRecipe);
+        register("the_space_cake_carries_both_tiers", StampedMatterGameTest::theSpaceCakeCarriesBothTiers);
+        register("the_ovens_comparator_reads_a_2_1_oven", StampedMatterGameTest::theOvensComparatorReadsA21Oven);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

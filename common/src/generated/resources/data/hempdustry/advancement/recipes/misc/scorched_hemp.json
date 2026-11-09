@@ -1,71 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_beldia_buds": {
-      "conditions": {
-        "items": [
-          {
-            "items": "hempdustry:beldia_buds"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "has_crimson_buds": {
-      "conditions": {
-        "items": [
-          {
-            "items": "hempdustry:crimson_buds"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "has_ender_haze_buds": {
-      "conditions": {
-        "items": [
-          {
-            "items": "hempdustry:ender_haze_buds"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
     "has_hemp_leaf": {
       "conditions": {
         "items": [
           {
             "items": "hempdustry:hemp_leaf"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "has_indica_buds": {
-      "conditions": {
-        "items": [
-          {
-            "items": "hempdustry:indica_buds"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "has_ruderalis_buds": {
-      "conditions": {
-        "items": [
-          {
-            "items": "hempdustry:ruderalis_buds"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "has_sativa_buds": {
-      "conditions": {
-        "items": [
-          {
-            "items": "hempdustry:sativa_buds"
           }
         ]
       },
@@ -86,30 +26,13 @@
         "recipes": "hempdustry:scorched_hemp"
       },
       "trigger": "minecraft:recipe_unlocked"
-    },
-    "has_warped_kush_buds": {
-      "conditions": {
-        "items": [
-          {
-            "items": "hempdustry:warped_kush_buds"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
     }
   },
   "requirements": [
     [
       "has_the_recipe",
       "has_hemp_leaf",
-      "has_schwag",
-      "has_indica_buds",
-      "has_sativa_buds",
-      "has_beldia_buds",
-      "has_warped_kush_buds",
-      "has_ruderalis_buds",
-      "has_crimson_buds",
-      "has_ender_haze_buds"
+      "has_schwag"
     ]
   ],
   "rewards": {

@@ -81,7 +81,7 @@ public final class ChemotypeGameTest {
         context.assertTrue(Chemotype.of(scorchedBud) == Chemotype.BALANCED,
                 "a Beldía bud charred into " + Chemotype.of(scorchedBud) + " scorched hemp, not balanced");
         ItemStack scorchedKush = smelt(world, new ItemStack(ModItems.INDICA_BUDS));
-        context.assertTrue(!scorchedKush.has(ModComponents.CHEMOTYPE),
+        context.assertTrue(scorchedKush.getComponentsPatch().isEmpty(),
                 "a Purple Kush bud charred into stamped scorched hemp, which no longer stacks with 2.1's");
 
         ItemStack baked = DecarboxylatorBlockEntity.resultFor(world, new ItemStack(ModItems.BELDIA_BUDS));
@@ -168,7 +168,7 @@ public final class ChemotypeGameTest {
                         "a Beldía bud dropped with a stamp: a bud is its strain");
             }
             for (ItemStack stack : drops(world, origin, ripe(ModBlocks.INDICA_CROP), seed)) {
-                context.assertTrue(!stack.has(ModComponents.CHEMOTYPE),
+                context.assertTrue(stack.getComponentsPatch().isEmpty(),
                         "a ripe Purple Kush dropped stamped " + stack + ", which no longer stacks with 2.1's");
             }
             BlockState hemp = ModBlocks.INDUSTRIAL_HEMP_CROP.defaultBlockState()
