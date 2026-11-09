@@ -204,6 +204,8 @@ public final class HempdustryGameTests {
         register("a_raw_replant_starts_a_new_plant", RawWritesGameTest::aRawReplantStartsANewPlant);
         register("a_raw_write_above_the_root_leaves_the_plant_whole", RawWritesGameTest::aRawWriteAboveTheRootLeavesThePlantWhole);
         register("our_own_step_is_not_taken_for_a_raw_one", RawWritesGameTest::ourOwnStepIsNotTakenForARawOne);
+        register("a_plant_taken_as_it_ripens_leaves_only_the_replanting",
+                RawWritesGameTest::aPlantTakenAsItRipensLeavesOnlyTheReplanting);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

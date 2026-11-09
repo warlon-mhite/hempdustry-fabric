@@ -13,6 +13,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmlandBlock;
@@ -57,6 +58,38 @@ public final class RawWritesGameTest {
             raw(context, crop, CROP, 4);
             expect(context, crop, root(crop, 4, GrowLight.STRESSED, true, false, false),
                     "grown one stage raw from a trimmed, stressed age 3");
+        }
+        context.succeed();
+    }
+
+    /**
+     * A ground that harvests what ripens on it (Just Dire Things' goo soil): it takes the plant inside the very
+     * write that ripened it, and plants a seed in its place. What stands afterwards is that seedling alone,
+     * never a ripe top over it, whether the plant ripened by a step of ours (bone meal) or by the soil's own
+     * raw write, which is how the goo soil grows a crop.
+     */
+    public static void aPlantTakenAsItRipensLeavesOnlyTheReplanting(GameTestHelper context) {
+        BlockPos soil = context.absolutePos(SOIL);
+        for (boolean ours : new boolean[]{true, false}) {
+            String how = ours ? "by bone meal" : "by a raw write";
+            for (Block crop : CROPS) {
+                ground(context, wetFarmland());
+                place(context, crop, root(crop, IndicaCropBlock.MAX_AGE - 1, GrowLight.NATURAL, false, false, false));
+                HarvestingGround.watch(soil);
+                try {
+                    if (ours) {
+                        ((BonemealableBlock) crop).performBonemeal(context.getLevel(), MISS,
+                                context.absolutePos(CROP), context.getBlockState(CROP));
+                    } else {
+                        raw(context, crop, CROP, IndicaCropBlock.MAX_AGE);
+                    }
+                } finally {
+                    HarvestingGround.forget(soil);
+                }
+                context.assertTrue(!HarvestingGround.taken().isEmpty(),
+                        name(crop) + " ripened " + how + " on a harvesting ground and the ground took nothing");
+                expect(context, crop, crop.defaultBlockState(), "ripened " + how + " and harvested by its ground");
+            }
         }
         context.succeed();
     }
