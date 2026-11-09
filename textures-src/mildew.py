@@ -14,6 +14,10 @@ parts too, replacing the ones it wrote before, so it is the one place to change 
 
 The powder's colours are the mod's own off-whites (the Infuser's milk, the hemp-leaf banner). The
 sulfur's are vanilla's sulfur block's, because the dust is that sulfur.
+
+White Widow is white already, so white powder would vanish on it. Its powder is the grey that real
+mildew turns as it ages, darker than the frost and the pale oak leaves, and twice as thick, since grey
+specks on a pale plant read far less than white ones on a green one: a sick plant still shows.
 """
 import hashlib
 import json
@@ -24,6 +28,7 @@ import sys
 from PIL import Image
 
 POWDER = {"top": (0xF3, 0xF3, 0xF3), "body": (0xE7, 0xE2, 0xD2), "shade": (0xDD, 0xD7, 0xC4)}
+GREY_POWDER = {"top": (0x74, 0x76, 0x6E), "body": (0x5E, 0x60, 0x58), "shade": (0x4C, 0x4E, 0x46)}
 SULFUR = {"top": (0xE0, 0xD6, 0x75), "body": (0xCF, 0xC8, 0x6A), "shade": (0xC2, 0xB3, 0x6B)}
 
 # The odds a pixel of the plant takes a speck: with open air above it, and without.
@@ -32,7 +37,11 @@ LAYERS = {
     "sulfur": (SULFUR, 0.22, 0.06, "sulfured"),
 }
 
-CROPS = ("indica_crop", "sativa_crop", "beldia_crop", "cherry_wine_crop")
+# A crop whose own colours would hide the usual powder: the powder it takes instead, and its odds
+# (with open air above, without).
+POWDER_FOR = {"white_widow_crop": (GREY_POWDER, 0.75, 0.30)}
+
+CROPS = ("indica_crop", "sativa_crop", "beldia_crop", "cherry_wine_crop", "white_widow_crop")
 STAGE = re.compile(r"^(?:%s)_stage\d+(?:_(?:bottom|middle|top))?$" % "|".join(CROPS))
 
 
@@ -69,6 +78,9 @@ def main(assets):
     for stage in stages:
         image = Image.open(os.path.join(textures, stage + ".png")).convert("RGBA")
         for suffix, (colours, top, body, _) in LAYERS.items():
+            if suffix == "mildew":
+                colours, top, body = next((own for crop, own in POWDER_FOR.items() if stage.startswith(crop + "_")),
+                                          (colours, top, body))
             overlay(stage, image, colours, top, body, suffix).save(os.path.join(textures, "%s_%s.png" % (stage, suffix)))
             with open(os.path.join(models, "%s_%s.json" % (stage, suffix)), "w") as out:
                 json.dump({"parent": "hempdustry:block/crop_overlay",

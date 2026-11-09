@@ -1,0 +1,6 @@
+{
+  "parent": "hempdustry:block/tinted_crop",
+  "textures": {
+    "cross": "hempdustry:block/white_widow_crop_stage9_stressed"
+  }
+}

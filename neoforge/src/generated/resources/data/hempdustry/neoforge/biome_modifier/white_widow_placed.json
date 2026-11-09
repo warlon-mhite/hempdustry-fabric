@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#hempdustry:white_widow_gen",
+  "features": "hempdustry:white_widow_placed",
+  "step": "vegetal_decoration"
+}

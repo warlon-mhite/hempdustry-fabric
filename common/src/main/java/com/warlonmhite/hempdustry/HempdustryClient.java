@@ -152,8 +152,11 @@ public class HempdustryClient {
             public int colorInWorld(BlockState state, BlockAndTintGetter view, BlockPos pos) {
                 // Beldía is drawn in its own colours, so it skips the biome and keeps only the light
                 // cue: a desert's grass colour is a dry olive that would turn a sand-grown plant to
-                // straw (and a potted one would change colour with the room it stands in).
-                int tint = state.is(ModBlocks.BELDIA_CROP) ? NO_TINT : biomeTint(BiomeColors.getAverageGrassColor(view, pos));
+                // straw (and a potted one would change colour with the room it stands in). White
+                // Widow too: a multiply cannot make white out of grey in a green biome, so its colour
+                // is baked in, as vanilla's pale oak leaves' is.
+                int tint = state.is(ModBlocks.BELDIA_CROP) || state.is(ModBlocks.WHITE_WIDOW_CROP)
+                        ? NO_TINT : biomeTint(BiomeColors.getAverageGrassColor(view, pos));
                 GrowLight light = state.getValue(GrowLight.PROPERTY);
                 return light.artificial() && light != GrowLight.STRESSED
                         ? ARGB.srgbLerp(0.25F, tint, LAMP_GROWN_TINT) : tint;
@@ -164,7 +167,7 @@ public class HempdustryClient {
                 return Set.of(GrowLight.PROPERTY);
             }
         }), ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
-                ModBlocks.INDUSTRIAL_HEMP_CROP, ModBlocks.CHERRY_WINE_CROP);
+                ModBlocks.INDUSTRIAL_HEMP_CROP, ModBlocks.CHERRY_WINE_CROP, ModBlocks.WHITE_WIDOW_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
         // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour

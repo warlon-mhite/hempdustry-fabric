@@ -136,6 +136,13 @@ public final class HempdustryGameTests {
         register("cherry_wine_seeds_skip_the_grass", CherryWineGameTest::cherryWineSeedsSkipTheGrass);
         register("wild_cherry_wine_is_a_flower", CherryWineGameTest::wildCherryWineIsAFlower);
         register("it_doesnt_work_like_that", CherryWineGameTest::itDoesntWorkLikeThat);
+        register("white_widow_grows_and_smokes", WhiteWidowGameTest::whiteWidowGrowsAndSmokes);
+        register("white_widow_leaks_at_night", WhiteWidowGameTest::whiteWidowLeaksAtNight);
+        register("every_growth_step_reads_the_leak", WhiteWidowGameTest::everyGrowthStepReadsTheLeak);
+        register("a_daylight_detector_is_the_widows_timer", WhiteWidowGameTest::aDaylightDetectorIsTheWidowsTimer);
+        register("wild_white_widow_keeps_the_eyeblossoms_hours", WhiteWidowGameTest::wildWhiteWidowKeepsTheEyeblossomsHours);
+        register("white_widow_seeds_stay_in_the_pale_garden", WhiteWidowGameTest::whiteWidowSeedsStayInThePaleGarden);
+        register("lights_out", WhiteWidowGameTest::lightsOut);
         register("crop_loot_tables_validate_clean", SchwagGameTest::cropLootTablesValidateClean);
         register("healthy_plants_spoil_one_bud_in_fifty", SchwagGameTest::healthyPlantsSpoilOneBudInFifty);
         register("stressed_buds_spoil_one_by_one", SchwagGameTest::stressedBudsSpoilOneByOne);

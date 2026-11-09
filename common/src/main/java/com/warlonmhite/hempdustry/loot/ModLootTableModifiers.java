@@ -43,6 +43,8 @@ import net.minecraft.world.level.storage.loot.predicates.MatchBlock;
 import net.minecraft.world.level.storage.loot.predicates.MatchTool;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.CherryWineCropBlock;
+import com.warlonmhite.hempdustry.block.custom.WhiteWidowCropBlock;
+import net.minecraft.world.level.biome.Biomes;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
@@ -219,6 +221,21 @@ public class ModLootTableModifiers {
     private static final float END_CITY_SEED_CHANCE = 0.19f;
 
     /**
+     * Chance a woodland mansion chest holds White Widow seeds: a roll of its own beside the shared
+     * seed stash, at that stash's chance. Vanilla builds mansions in dark forests and pale gardens
+     * ({@code #minecraft:has_structure/woodland_mansion}), so the mansion is the pale garden's own
+     * house, and the pale garden is small and rare enough that its plant needs a second door.
+     */
+    private static final float MANSION_SEED_CHANCE = CHEST_SEED_CHANCE;
+
+    /**
+     * Chance an abandoned camp's common chest holds White Widow seeds, in a pale garden only. The
+     * camps share their chest tables across every biome they stand in, so the roll carries a biome
+     * check of its own: a camp anywhere else never has them.
+     */
+    private static final float PALE_CAMP_SEED_CHANCE = CHEST_SEED_CHANCE;
+
+    /**
      * Vanilla's own "player didn't use shears" gate — same one wheat seeds use on grass.
      *
      * <p>A method rather than a constant since 1.21.5: an item predicate names items through a
@@ -347,13 +364,21 @@ public class ModLootTableModifiers {
     }
 
     /**
+     * Whether these seeds plant White Widow, the pale garden's: found in its mansions and its camps,
+     * never in the grass, the shared chests or the villages.
+     */
+    private static boolean isPaleSeed(Item seeds) {
+        return plants(seeds) instanceof WhiteWidowCropBlock;
+    }
+
+    /**
      * Whether these seeds belong to one place, and so stay out of the tall grass and the generic
      * chests that every other strain shares. Each such strain is found where it belongs, and leaving
      * all of them out keeps the others' share of those rolls what it was.
      */
     private static boolean isRegionBound(Item seeds) {
         return isDesertSeed(seeds) || isNetherSeed(seeds) || isBuriedSeed(seeds) || isStableSeed(seeds)
-                || isEndSeed(seeds);
+                || isEndSeed(seeds) || isPaleSeed(seeds);
     }
 
     /** The block these seeds plant, or null for an item that plants nothing. */
@@ -366,7 +391,8 @@ public class ModLootTableModifiers {
      * {@code found} there, at equal weight, so the chance stays {@code base} however many strains exist
      * and which you get is a coin flip. A region-bound plant is found only where it belongs -- Beldía
      * in the desert, Warped Kush in the Nether, Ruderalis underground, Crimson Weed in the hoglin
-     * stables, Ender Haze in the end cities -- and every other strain everywhere else. Driven off the loaded strain registry, so a
+     * stables, Ender Haze in the end cities, White Widow in the pale garden's mansions and camps -- and
+     * every other strain everywhere else. Driven off the loaded strain registry, so a
      * datapack strain appears here without touching this file.
      */
     private static LootPool.Builder seedStash(HolderGetter.Provider registries, float base, Predicate<Item> found) {
@@ -429,6 +455,13 @@ public class ModLootTableModifiers {
                 table.addPool(pool);
             } else if (CHEST_SOURCES.contains(key)) {
                 table.addPool(seedStash(registries, CHEST_SEED_CHANCE, seeds -> !isRegionBound(seeds)));
+                if (key.equals(BuiltInLootTables.WOODLAND_MANSION)) {
+                    table.addPool(seedStash(registries, MANSION_SEED_CHANCE, ModLootTableModifiers::isPaleSeed));
+                }
+            } else if (key.equals(BuiltInLootTables.ABANDONED_CAMP_COMMON_CHEST)) {
+                table.addPool(seedStash(registries, PALE_CAMP_SEED_CHANCE, ModLootTableModifiers::isPaleSeed)
+                        .when(LocationCheck.checkLocation(LocationPredicate.Builder.inBiome(
+                                registries.lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.PALE_GARDEN)))));
             } else if (VILLAGE_HOUSE_SOURCES.contains(key)) {
                 table.addPool(seedStash(registries, VILLAGE_HOUSE_SEED_CHANCE, seeds -> !isRegionBound(seeds)));
             } else if (key.equals(BuiltInLootTables.DESERT_PYRAMID)) {

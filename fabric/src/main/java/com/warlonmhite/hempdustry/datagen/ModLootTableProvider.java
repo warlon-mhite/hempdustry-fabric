@@ -259,6 +259,10 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         add(ModBlocks.CHERRY_WINE_FLOWER, wildFlowerDrops(ModBlocks.CHERRY_WINE_FLOWER, ModItems.CHERRY_WINE_SEEDS));
         add(ModBlocks.CHERRY_WINE_CROP, cherryWineCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.CHERRY_WINE))
                 .apply(SetPotencyFunction.setPotency()));
+        // Open or closed, the same drop: the flower's hours are its look, never its loot.
+        add(ModBlocks.WHITE_WIDOW_FLOWER, wildFlowerDrops(ModBlocks.WHITE_WIDOW_FLOWER, ModItems.WHITE_WIDOW_SEEDS));
+        add(ModBlocks.WHITE_WIDOW_CROP, whiteWidowCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.WHITE_WIDOW))
+                .apply(SetPotencyFunction.setPotency()));
 
         add(ModBlocks.SATIVA_CROP, sativaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.SATIVA))
                 .apply(SetPotencyFunction.setPotency()));
@@ -268,6 +272,7 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         // both pots dropped nothing until 2.0.2.
         dropPottedContents(ModBlocks.POTTED_INDICA_FLOWER);
         dropPottedContents(ModBlocks.POTTED_CHERRY_WINE_FLOWER);
+        dropPottedContents(ModBlocks.POTTED_WHITE_WIDOW_FLOWER);
         dropPottedContents(ModBlocks.POTTED_SATIVA_FLOWER);
 
         // Fibre hemp is CBD-dominant with low totals; the feral plant drifts back to a little of each.
@@ -787,6 +792,16 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                 () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
                 IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
                 ModItems.CHERRY_WINE_BUDS, ModItems.CHERRY_WINE_SEEDS,
+                5, 2);
+    }
+
+    private LootTable.Builder whiteWidowCropDrops() {
+        // Purple Kush's body and Purple Kush's harvest, cut for cut. Its wild plant is a flower, so
+        // only a farmed plant pays this.
+        return this.hempCropDrops(ModBlocks.WHITE_WIDOW_CROP,
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
+                IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
+                ModItems.WHITE_WIDOW_BUDS, ModItems.WHITE_WIDOW_SEEDS,
                 5, 2);
     }
 

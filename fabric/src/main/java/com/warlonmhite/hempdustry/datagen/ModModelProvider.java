@@ -135,6 +135,9 @@ public class ModModelProvider extends FabricModelProvider {
         registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.SATIVA_FLOWER, ModBlocks.POTTED_SATIVA_FLOWER);
         registerTallFlowerPotPlant(blockStateModelGenerator, ModBlocks.DITCHWEED, ModBlocks.POTTED_DITCHWEED);
 
+        // Wild White Widow and its pot are hand-written under resources/: two looks each, open at
+        // night and closed by day, and untinted, its colour baked in as pale oak leaves' is.
+
         // The crops' blockstates and stage models are hand-written under resources/ — the model
         // generator has no notion of a two- or three-tall crop, so INDICA_CROP and SATIVA_CROP
         // are deliberately absent here.
@@ -190,6 +193,8 @@ public class ModModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(ModItems.ENDER_HAZE_BUDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.CHERRY_WINE_SEEDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.CHERRY_WINE_BUDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.WHITE_WIDOW_SEEDS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.WHITE_WIDOW_BUDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.RUDERALIS_SEEDS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.RUDERALIS_BUDS, ModelTemplates.FLAT_ITEM);
         // Smoking gear. One item per device carries every strain in a component, so the visual

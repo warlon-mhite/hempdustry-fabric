@@ -10,6 +10,9 @@ import com.warlonmhite.hempdustry.item.custom.StampedBlockItem;
 import com.warlonmhite.hempdustry.item.custom.StrainPlantItem;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.block.custom.CherryWineCropBlock;
+import com.warlonmhite.hempdustry.block.custom.WhiteWidowCropBlock;
+import com.warlonmhite.hempdustry.block.custom.WhiteWidowFlowerBlock;
+import com.warlonmhite.hempdustry.block.custom.WhiteWidowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.block.custom.CustomConcreteBlock;
 import com.warlonmhite.hempdustry.block.custom.DecarboxylatorBlock;
@@ -404,6 +407,18 @@ public class ModBlocks {
     public static final Block CHERRY_WINE_FLOWER = registerBlock("cherry_wine_flower", settings -> new IndicaFlower(MobEffects.REGENERATION, 1, settings),
             BlockBehaviour.Properties.ofFullCopy(Blocks.ALLIUM));
     public static final Block POTTED_CHERRY_WINE_FLOWER = registerBlockWithoutItem("potted_cherry_wine_flower", settings -> new FlowerPotBlock(CHERRY_WINE_FLOWER, settings),
+            BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_ALLIUM));
+
+    // No block item, for the reason on INDICA_CROP above.
+    public static final Block WHITE_WIDOW_CROP = registerBlockWithoutItem("white_widow_crop", WhiteWidowCropBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT));
+
+    // Wild White Widow, Purple Kush's kind of wild flower that opens at night like an eyeblossom. Its
+    // suspicious-stew effect is as dead as Wild Purple Kush's (see INDICA_FLOWER), and kept meaningful
+    // the same way: Health Boost is what the strain does when smoked.
+    public static final Block WHITE_WIDOW_FLOWER = registerBlock("white_widow_flower", settings -> new WhiteWidowFlowerBlock(MobEffects.HEALTH_BOOST, 1, settings),
+            BlockBehaviour.Properties.ofFullCopy(Blocks.ALLIUM));
+    public static final Block POTTED_WHITE_WIDOW_FLOWER = registerBlockWithoutItem("potted_white_widow_flower", settings -> new WhiteWidowPotBlock(WHITE_WIDOW_FLOWER, settings),
             BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_ALLIUM));
 
 

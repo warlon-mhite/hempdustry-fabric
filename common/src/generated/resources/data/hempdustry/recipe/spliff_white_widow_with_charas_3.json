@@ -1,0 +1,30 @@
+{
+  "type": "hempdustry:stamped_shaped",
+  "group": "spliff",
+  "key": {
+    "B": "hempdustry:white_widow_buds",
+    "H": "hempdustry:charas",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "BHB",
+    "PPP"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 2,
+            "strain": "hempdustry:white_widow"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:charas"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:spliff"
+  }
+}

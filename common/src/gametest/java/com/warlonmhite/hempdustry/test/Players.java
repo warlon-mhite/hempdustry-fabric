@@ -38,7 +38,11 @@ final class Players {
      * for removal. This one's game mode is its own.
      */
     static ServerPlayer survival(GameTestHelper context) {
-        ServerLevel level = context.getLevel();
+        return survival(context, context.getLevel());
+    }
+
+    /** As {@link #survival(GameTestHelper)}, joined to {@code level} instead (another dimension). */
+    static ServerPlayer survival(GameTestHelper context, ServerLevel level) {
         CommonListenerCookie cookie = CommonListenerCookie.createInitial(
                 new GameProfile(UUID.randomUUID(), "test-mock-player"), false);
         ServerPlayer player = new ServerPlayer(level.getServer(), level, cookie.gameProfile(), cookie.clientInformation());

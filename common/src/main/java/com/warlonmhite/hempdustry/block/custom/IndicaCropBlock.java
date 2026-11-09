@@ -213,6 +213,14 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         return true;
     }
 
+    /**
+     * Whether a light at night stresses the plant, and a lost light a stage early: the light leak
+     * ({@link PlantStress#touchyStep}). White Widow only.
+     */
+    protected boolean leaksAtNight() {
+        return false;
+    }
+
     // ----- growth -----
     // Only the lower half is fertile and random-ticks; it drives the whole plant.
     @Override
@@ -417,7 +425,8 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         if (newAge > currentAge && current.is(this)) {
             if (this.recordsLight()) {
                 lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
-                        current.getValue(GrowLight.PROPERTY), currentAge, newAge, 2, extraStress, random, true));
+                        current.getValue(GrowLight.PROPERTY), currentAge, newAge, 2, extraStress, random, true,
+                        this.leaksAtNight()));
             }
             lower = lower.setValue(Mildew.PROPERTY, Mildew.afterStep(world, pos, current,
                     current.getValue(Mildew.PROPERTY), random));

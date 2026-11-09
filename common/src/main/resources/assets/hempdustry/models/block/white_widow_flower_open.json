@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "hempdustry:block/white_widow_flower_open"
+  }
+}

@@ -47,6 +47,7 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<Feature> CRIMSON_KEY = registerKey("crimson");
     public static final ResourceKey<Feature> ENDER_HAZE_KEY = registerKey("ender_haze");
     public static final ResourceKey<Feature> CHERRY_WINE_KEY = registerKey("cherry_wine");
+    public static final ResourceKey<Feature> WHITE_WIDOW_KEY = registerKey("white_widow");
 
     public static ResourceKey<Feature> registerKey(String name) {
         return ResourceKey.create(Registries.FEATURE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
@@ -88,6 +89,10 @@ public class ModConfiguredFeatures {
 
         // Wild Cherry Wine: a flower of its own, as Wild Purple Kush is.
         register(context, CHERRY_WINE_KEY, flower(ModBlocks.CHERRY_WINE_FLOWER));
+
+        // Wild White Widow: a flower of its own, as Wild Purple Kush is. It generates closed and
+        // opens at its first night's random tick, as a flower set down by day would.
+        register(context, WHITE_WIDOW_KEY, flower(ModBlocks.WHITE_WIDOW_FLOWER));
 
         // Ditchweed, feral Industrial Hemp: one plant. It grows where escaped fibre crops do, along
         // water, which is the placed feature's filter to say, as it is for vanilla's sugar cane.

@@ -8,6 +8,9 @@ import java.util.Optional;
 import net.minecraft.advancements.triggers.Criterion;
 import net.minecraft.advancements.predicates.BlockPredicate;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
+import com.warlonmhite.hempdustry.strain.Strain;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.advancements.predicates.MinMaxBounds;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
@@ -39,7 +42,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * plant kept a record of (read off the plant, never off the lamp, so it cannot be cheated at the
  * last moment); and the {@code bed} it grew in, a vanilla {@link BlockPredicate} tested against the
  * block under the LOWER segment — so a datapack can ask for a Hydro Tray, a Grow Pot, or a tray that
- * was fed, in the same vocabulary as {@code minecraft:location}.
+ * was fed, in the same vocabulary as {@code minecraft:location}; and the {@code strain} the plant is,
+ * a key in the datapack strain registry, read off the plant's block ({@link Strain#ofPlant}) so a
+ * strain a pack adds can be asked for exactly as the mod's own are.
  */
 public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCriterion.Conditions> {
 
@@ -59,8 +64,9 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
         int cuts = Defoliation.cutCount(lowerState);
         Optional<GrowLight> light = lowerState.getOptionalValue(GrowLight.PROPERTY);
         BlockPos bedPos = lowerPos.below();
+        Block plant = lowerState.getBlock();
         ModCriteria.HARVEST_HEMP.trigger(serverPlayer,
-                conditions -> conditions.matches(cuts, light, world, bedPos));
+                conditions -> conditions.matches(cuts, light, world, bedPos, plant));
     }
 
     @Override
@@ -72,24 +78,37 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
     private static final Codec<GrowLight> LIGHT_CODEC = StringRepresentable.fromEnum(GrowLight::values);
 
     /**
-     * The optional fields are additive: a criterion written before {@code condition} and {@code bed}
-     * existed decodes with both empty and means exactly what it meant.
+     * The optional fields are additive: a criterion written before {@code condition}, {@code bed} and
+     * {@code strain} existed decodes with all three empty and means exactly what it meant.
      */
     public record Conditions(Optional<Holder<LootItemCondition>> player, MinMaxBounds.Ints cuts,
-                             Optional<GrowLight> light, Optional<BlockPredicate> bed)
+                             Optional<GrowLight> light, Optional<BlockPredicate> bed,
+                             Optional<ResourceKey<Strain>> strain)
             implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 LootItemCondition.CODEC.optionalFieldOf("player").forGetter(Conditions::player),
                 MinMaxBounds.Ints.CODEC.optionalFieldOf("cuts", MinMaxBounds.Ints.ANY).forGetter(Conditions::cuts),
                 LIGHT_CODEC.optionalFieldOf("condition").forGetter(Conditions::light),
-                BlockPredicate.CODEC.optionalFieldOf("bed").forGetter(Conditions::bed)
+                BlockPredicate.CODEC.optionalFieldOf("bed").forGetter(Conditions::bed),
+                ResourceKey.codec(Strain.REGISTRY_KEY).optionalFieldOf("strain").forGetter(Conditions::strain)
         ).apply(instance, Conditions::new));
 
-        /** A plant with no light record (a crop without the property) never matches a light filter. */
-        public boolean matches(int cuts, Optional<GrowLight> light, ServerLevel world, BlockPos bedPos) {
+        /** The four fields before {@code strain}, for a criterion that asks no strain. */
+        public Conditions(Optional<Holder<LootItemCondition>> player, MinMaxBounds.Ints cuts,
+                          Optional<GrowLight> light, Optional<BlockPredicate> bed) {
+            this(player, cuts, light, bed, Optional.empty());
+        }
+
+        /**
+         * A plant with no light record (a crop without the property) never matches a light filter, nor
+         * a plant no strain names (Industrial Hemp) a strain filter.
+         */
+        public boolean matches(int cuts, Optional<GrowLight> light, ServerLevel world, BlockPos bedPos, Block plant) {
             return this.cuts.matches(cuts)
                     && (this.light.isEmpty() || this.light.equals(light))
-                    && (this.bed.isEmpty() || this.bed.get().matches(world, bedPos));
+                    && (this.bed.isEmpty() || this.bed.get().matches(world, bedPos))
+                    && (this.strain.isEmpty() || Strain.ofPlant(plant, world.registryAccess())
+                            .filter(entry -> entry.is(this.strain.get())).isPresent());
         }
 
         /** Only counts a harvest of a plant cut in <b>both</b> windows. */
@@ -105,6 +124,13 @@ public class HarvestHempCriterion extends SimpleCriterionTrigger<HarvestHempCrit
         /** Only counts a plant whose bed — the block under it — matches {@code bed}. */
         public static Criterion<Conditions> grownIn(BlockPredicate.Builder bed) {
             return create(MinMaxBounds.Ints.ANY, Optional.empty(), Optional.of(bed.build()));
+        }
+
+        /** Only counts {@code strain}, kept under {@code light} all the way to harvest, by a harvester matching {@code player}. */
+        public static Criterion<Conditions> strainGrownUnder(ResourceKey<Strain> strain, GrowLight light,
+                                                              Optional<Holder<LootItemCondition>> player) {
+            return ModCriteria.HARVEST_HEMP.createCriterion(new Conditions(player, MinMaxBounds.Ints.ANY,
+                    Optional.of(light), Optional.empty(), Optional.of(strain)));
         }
 
         public static Criterion<Conditions> create(MinMaxBounds.Ints cuts, Optional<GrowLight> light,

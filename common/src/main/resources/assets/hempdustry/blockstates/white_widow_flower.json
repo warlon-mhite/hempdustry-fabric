@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "open=false": {
+      "model": "hempdustry:block/white_widow_flower"
+    },
+    "open=true": {
+      "model": "hempdustry:block/white_widow_flower_open"
+    }
+  }
+}

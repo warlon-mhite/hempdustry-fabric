@@ -1,0 +1,33 @@
+{
+  "buds": "hempdustry:white_widow_buds",
+  "color": 15330532,
+  "effects": [
+    {
+      "effect": "minecraft:health_boost",
+      "label": "thc"
+    },
+    {
+      "effect": "minecraft:hunger",
+      "label": "thc"
+    },
+    {
+      "effect": "minecraft:weaving",
+      "label": "strain",
+      "scales": false
+    },
+    {
+      "effect": "minecraft:unluck",
+      "label": "strain",
+      "scales": false
+    }
+  ],
+  "flower": "hempdustry:white_widow_flower",
+  "model_index": 13,
+  "potency": {
+    "extra_high": 5,
+    "low": 20
+  },
+  "seeds": "hempdustry:white_widow_seeds",
+  "terpene": "hempdustry:nerolidol",
+  "translation_key": "hempdustry.strain.white_widow"
+}

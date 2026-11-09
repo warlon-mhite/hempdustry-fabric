@@ -87,6 +87,13 @@ public class ModFlowerGeneration {
                 ModPlacedFeatures.CHERRY_WINE_PLACED_KEY
         );
 
+        // White Widow, wild, in pale gardens.
+        Services.REGISTRATION.addFeature(
+                ModTags.Biomes.WHITE_WIDOW_GEN,
+                GenerationStep.Decoration.VEGETAL_DECORATION,
+                ModPlacedFeatures.WHITE_WIDOW_PLACED_KEY
+        );
+
         // Ender Haze, ripe and wild, on the outer End islands -- never the dragon's.
         Services.REGISTRATION.addFeature(
                 ModTags.Biomes.ENDER_HAZE_GEN,

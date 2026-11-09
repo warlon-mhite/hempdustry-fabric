@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:simple_block",
+  "to_place": {
+    "id": "hempdustry:white_widow_flower",
+    "properties": {
+      "open": "false"
+    }
+  }
+}

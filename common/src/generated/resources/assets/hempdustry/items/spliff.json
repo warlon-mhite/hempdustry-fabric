@@ -78,6 +78,13 @@
       {
         "model": {
           "type": "minecraft:model",
+          "model": "hempdustry:item/spliff_white_widow"
+        },
+        "threshold": 13.0
+      },
+      {
+        "model": {
+          "type": "minecraft:model",
           "model": "hempdustry:item/spliff_tinted",
           "tints": [
             {
@@ -90,7 +97,7 @@
             }
           ]
         },
-        "threshold": 13.0
+        "threshold": 14.0
       }
     ],
     "fallback": {

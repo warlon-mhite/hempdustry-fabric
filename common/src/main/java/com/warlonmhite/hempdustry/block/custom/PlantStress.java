@@ -1,7 +1,11 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -43,6 +47,11 @@ public final class PlantStress {
     /** Still water and no air: the roots rot, which is the classic way a deep-water-culture grow fails. */
     public static final float STAGNANT = 1.0F / 6;
     public static final float DRY_FIELD = 1.0F / 20;
+    /**
+     * The age from which a lost light, or a light leaking into the night, stresses a plant touchy about
+     * its light: a stage before {@link GrowLight#FLOWERING_AGE}, as a weak plant would be.
+     */
+    public static final int TOUCHY_AGE = 3;
 
     private PlantStress() {
     }
@@ -69,7 +78,18 @@ public final class PlantStress {
      */
     public static GrowLight afterStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge,
                                       int height, float extra, RandomSource random, boolean stressable) {
-        GrowLight next = record.afterStep(fromAge, GrowLight.over(world, lower, height));
+        return afterStep(world, lower, record, fromAge, toAge, height, extra, random, stressable, false);
+    }
+
+    /**
+     * As above; a {@code touchy} plant reads its light by {@link #touchyStep}: stressed a stage early
+     * by a lost light, and by a light that leaks into its night.
+     */
+    public static GrowLight afterStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge,
+                                      int height, float extra, RandomSource random, boolean stressable,
+                                      boolean touchy) {
+        GrowLight next = touchy ? touchyStep(world, lower, record, fromAge, toAge, height)
+                : record.afterStep(fromAge, GrowLight.over(world, lower, height));
         if (!stressable) {
             return next == GrowLight.STRESSED ? GrowLight.NATURAL : next;
         }
@@ -78,6 +98,106 @@ public final class PlantStress {
         }
         float chance = Math.max(ofGround(world.getBlockState(lower.below())), extra);
         return chance > 0.0F && random.nextFloat() < chance ? GrowLight.STRESSED : next;
+    }
+
+    /**
+     * The light record after one growth step of a plant touchy about its light (White Widow), which a
+     * light at night stresses: the indoor grower's light leak, a lit bulb in the dark period turning a
+     * flowering plant hermaphrodite.
+     *
+     * <ul>
+     *   <li><b>Day and night</b> are what a daylight detector beside the plant would say ({@link #hours}),
+     *       so a Grow Lamp wired to one is a 12/12 timer: lit whenever the plant reads day, dark whenever
+     *       it reads night, in any weather. Around each switch lies a twilight in which neither a leak nor
+     *       a loss counts, as long as the detector takes to notice and the lamp to go out.</li>
+     *   <li><b>A leak</b>, at night and from {@link #TOUCHY_AGE}, is a lit light over the plant (anything
+     *       the record counts) or a light-15 block touching it ({@link #leaks}). It stresses the plant.</li>
+     *   <li><b>Darkness at night never counts as a lost light.</b> A dark night keeps the record as it
+     *       was; a dark lamp still hanging there counts as the lamp it is, which is also what the plant's
+     *       first step reads if it falls at night.</li>
+     *   <li><b>By day</b>, the record's own ladder, but a lost light stresses from {@link #TOUCHY_AGE}.</li>
+     * </ul>
+     */
+    static GrowLight touchyStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge, int height) {
+        Hours hours = hours(world, lower);
+        if (hours == Hours.DAY) {
+            return record.afterStep(fromAge, GrowLight.over(world, lower, height), TOUCHY_AGE);
+        }
+        if (hours == Hours.NIGHT && toAge >= TOUCHY_AGE && leaks(world, lower, height)) {
+            return GrowLight.STRESSED;
+        }
+        GrowLight fixture = GrowLight.fixtureOver(world, lower, height);
+        return fixture == GrowLight.NATURAL ? record : record.afterStep(fromAge, fixture, TOUCHY_AGE);
+    }
+
+    /** Day, night, or the twilight around the switch between them, as a plant touchy about its light keeps them. */
+    public enum Hours { DAY, TWILIGHT, NIGHT }
+
+    /**
+     * How far from a daylight detector's switch, in its own signal before rounding, a step must fall to
+     * count as day or night. The detector looks at the sky once a second and a lamp goes out four ticks
+     * after it, so a lamp may lag the sky by 24 ticks; a quarter of a signal step is at least 50 ticks of
+     * a clear dusk or dawn, and longer under rain, where the signal moves slower.
+     */
+    static final float TWILIGHT_SIGNAL = 0.25F;
+
+    /**
+     * The hours at {@code pos}, read the way a daylight detector with open sky above it reads them: night
+     * where it would give no signal, day where it would give one. A dimension with no sky light has no
+     * night at all, as the eyeblossom's attribute has none there.
+     */
+    public static Hours hours(Level world, BlockPos pos) {
+        if (!world.dimensionType().hasSkyLight()) {
+            return Hours.DAY;
+        }
+        float signal = daylightSignal(world, pos);
+        if (signal < 0.5F - TWILIGHT_SIGNAL) {
+            return Hours.NIGHT;
+        }
+        return signal >= 0.5F + TWILIGHT_SIGNAL ? Hours.DAY : Hours.TWILIGHT;
+    }
+
+    /**
+     * What a daylight detector at {@code pos} under open sky would output, before it rounds: vanilla's
+     * {@code DaylightDetectorBlock#updateSignalStrength} with sky light 15 — the sky's brightness less
+     * the darkening of night and weather, times the cosine of the sun's angle eased a fifth toward noon.
+     * It rounds to 0 below one half.
+     */
+    static float daylightSignal(Level world, BlockPos pos) {
+        int sky = Math.max(15 - world.getSkyDarken(), 0);
+        if (sky == 0) {
+            return 0.0F;
+        }
+        float angle = world.environmentAttributes().getValue(EnvironmentAttributes.SUN_ANGLE, pos) * Mth.DEG_TO_RAD;
+        float noon = angle < Mth.PI ? 0.0F : Mth.TWO_PI;
+        angle += (noon - angle) * 0.2F;
+        return sky * Mth.cos(angle);
+    }
+
+    /**
+     * Whether light leaks onto the plant whose LOWER is at {@code lower}: a lit light over it, as the
+     * record reads one, or a light-15 block touching one of its segments on any face — a lantern, a
+     * lit lamp, a lit campfire, fire or lava beside it. Only 15: a torch (14) beside a field never
+     * counts, nor anything a block away, so a torch-lit farm is safe.
+     */
+    public static boolean leaks(BlockGetter world, BlockPos lower, int height) {
+        if (GrowLight.over(world, lower, height) != GrowLight.NATURAL) {
+            return true;
+        }
+        Block plant = world.getBlockState(lower).getBlock();
+        for (int i = 0; i < height; i++) {
+            BlockPos segment = lower.above(i);
+            if (i > 0 && !world.getBlockState(segment).is(plant)) {
+                break;
+            }
+            for (Direction side : Direction.values()) {
+                BlockState touching = world.getBlockState(segment.relative(side));
+                if (!touching.is(plant) && touching.getLightEmission() >= 15) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** The odds a bone meal step on the plant at {@code lower} overfeeds it: flowering already, in a fed bed. */
@@ -123,8 +243,9 @@ public final class PlantStress {
         }
         int height = crop instanceof EnderHazeCropBlock ? EnderHazeCropBlock.HEIGHT : crop instanceof SativaCropBlock ? 3 : 2;
         boolean stressable = !(crop instanceof SativaCropBlock sativa) || sativa.canBeStressed();
+        boolean touchy = crop instanceof IndicaCropBlock indica && indica.leaksAtNight();
         return next.setValue(GrowLight.PROPERTY, afterStep(world, pos, current.getValue(GrowLight.PROPERTY),
-                crop.getAge(current), crop.getAge(next), height, 0.0F, random, stressable));
+                crop.getAge(current), crop.getAge(next), height, 0.0F, random, stressable, touchy));
     }
 
     /** A hemp plant at or past {@link GrowLight#FLOWERING_AGE}, with a record to lose. */

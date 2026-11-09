@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "hempdustry:spliff_white_widow_3"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_white_widow_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:white_widow_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_white_widow_buds"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:spliff_white_widow_3"
+    ]
+  }
+}

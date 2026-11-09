@@ -41,6 +41,10 @@ public class ModTags {
          * name.
          */
         public static final TagKey<Biome> CHERRY_WINE_GEN = createTag("cherry_wine_gen");
+        /**
+         * Where White Widow grows wild: the pale garden. A modded pale biome joins by name.
+         */
+        public static final TagKey<Biome> WHITE_WIDOW_GEN = createTag("white_widow_gen");
         private static TagKey<Biome> createTag(String name) {
             return TagKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }

@@ -7,6 +7,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import java.util.function.Function;
 
 /**
  * The light a hemp plant grew under — a <b>record the plant keeps</b>, never a reading of the lamp
@@ -73,6 +74,15 @@ public enum GrowLight implements StringRepresentable {
 
     /** The record after one growth step taken from {@code fromAge}, with {@code now} overhead. */
     public GrowLight afterStep(int fromAge, GrowLight now) {
+        return this.afterStep(fromAge, now, FLOWERING_AGE);
+    }
+
+    /**
+     * As {@link #afterStep(int, GrowLight)}, for a plant that a lost light stresses once a step takes
+     * it to {@code lossAge} or past: {@link #FLOWERING_AGE} for most, a stage earlier for a plant
+     * touchy about its light ({@link PlantStress#TOUCHY_AGE}).
+     */
+    public GrowLight afterStep(int fromAge, GrowLight now, int lossAge) {
         if (fromAge == 0) {
             return now;
         }
@@ -80,7 +90,7 @@ public enum GrowLight implements StringRepresentable {
             return this;
         }
         if (now == NATURAL) {
-            return fromAge + 1 >= FLOWERING_AGE ? STRESSED : NATURAL;
+            return fromAge + 1 >= lossAge ? STRESSED : NATURAL;
         }
         return now.ordinal() < this.ordinal() ? now : this;
     }
@@ -111,11 +121,36 @@ public enum GrowLight implements StringRepresentable {
         return best;
     }
 
+    /**
+     * The light hanging over the plant, lit or not: what {@link #over} would read with every lamp
+     * there switched on. A dark Grow Lamp reads {@link #GROW_LAMP}, a dark redstone lamp {@link #LAMP}.
+     * It is what a plant keeps through a night with its lamp off: the lamp is still there.
+     */
+    public static GrowLight fixtureOver(BlockGetter world, BlockPos lower, int height) {
+        GrowLight best = NATURAL;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                GrowLight found = scan(world, lower.offset(dx, height, dz), GrowLight::ofFixture);
+                if (found == GROW_LAMP) {
+                    return GROW_LAMP;
+                }
+                if (dx == 0 && dz == 0) {
+                    best = found;
+                }
+            }
+        }
+        return best;
+    }
+
     /** Walks up from {@code from}: light passes glass and plants, and an opaque block stops it. */
     private static GrowLight scan(BlockGetter world, BlockPos from) {
+        return scan(world, from, GrowLight::of);
+    }
+
+    private static GrowLight scan(BlockGetter world, BlockPos from, Function<BlockState, GrowLight> reading) {
         for (int i = 0; i < REACH; i++) {
             BlockState state = world.getBlockState(from.above(i));
-            GrowLight tier = of(state);
+            GrowLight tier = reading.apply(state);
             if (tier != NATURAL || state.isSolidRender()) {
                 return tier;
             }
@@ -138,5 +173,10 @@ public enum GrowLight implements StringRepresentable {
             return NATURAL;
         }
         return state.hasProperty(BlockStateProperties.LIT) ? LAMP : AMBIENT;
+    }
+
+    /** What one block counts as once lit: {@link #of} with any {@code LIT} switched on. */
+    public static GrowLight ofFixture(BlockState state) {
+        return of(state.hasProperty(BlockStateProperties.LIT) ? state.setValue(BlockStateProperties.LIT, true) : state);
     }
 }

@@ -55,6 +55,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemEntityPropertyCondition;
@@ -473,6 +474,19 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                         MinMaxBounds.Ints.exactly(2), Optional.of(GrowLight.GROW_LAMP), Optional.of(hydroTray.build())))
                 .parent(midnightSun)
                 .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "top_shelf"));
+
+        // Hidden: White Widow is the one plant a light at night stresses, so a Grow Lamp left on over
+        // it ruins it. A harvest still on its Grow Lamp record means the lamp went dark every night --
+        // a daylight detector on it, or a player at the lever -- which is the whole trick. Only in the
+        // Overworld: the Nether and the End have no night, so a lamp left on there would earn it too.
+        Advancement.Builder.advancement()
+                .display(display(ModItems.WHITE_WIDOW_BUDS, "lights_out", AdvancementType.TASK, true))
+                .addCriterion("harvested_white_widow_under_a_grow_lamp",
+                        HarvestHempCriterion.Conditions.strainGrownUnder(ModStrains.WHITE_WIDOW, GrowLight.GROW_LAMP,
+                                Optional.of(EntityPredicate.wrap(EntityPredicate.Builder.entity()
+                                        .located(LocationPredicate.Builder.inDimension(Level.OVERWORLD))))))
+                .parent(midnightSun)
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "lights_out"));
 
         // A GOAL, and it earns it the way vanilla's create_full_beacon does: the Decarboxylator is 7
         // hemp bricks *blocks* — 504 hemp stem, roughly 252 indica or 126 sativa mature plants. The

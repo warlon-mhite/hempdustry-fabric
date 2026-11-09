@@ -85,6 +85,8 @@ public class ModStrains {
     public static final ResourceKey<Strain> ENDER_HAZE = key("ender_haze");
     /** The CBD plant, Purple Kush's body. Its wild flower is a flower of its own, Purple Kush's kind, in cherry groves. */
     public static final ResourceKey<Strain> CHERRY_WINE = key("cherry_wine");
+    /** The pale garden's plant, Purple Kush's body, touchy about its light. Its wild flower opens at night. */
+    public static final ResourceKey<Strain> WHITE_WIDOW = key("white_widow");
     /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
@@ -110,7 +112,7 @@ public class ModStrains {
      */
     public static final List<ResourceKey<Strain>> BUILT_IN =
             List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH, RUDERALIS,
-                    CRIMSON, ENDER_HAZE, CHERRY_WINE);
+                    CRIMSON, ENDER_HAZE, CHERRY_WINE, WHITE_WIDOW);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -384,6 +386,31 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.SLOWNESS, 0, EffectLabel.CBD, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
                 1.0F, Chemotype.CBD_DOMINANT).withTerpene(Terpene.GERANIOL)
                 .withPotency(Potency.odds(40, 50, 10, 0)));
+
+        // White Widow -- the pale garden's plant, and the resin strain: the real cultivar is named
+        // for the white frost of trichomes on its buds, and the pale garden is vanilla's resin garden.
+        //
+        // HEALTH BOOST is the signature, the one buff no strain had, and it scales with the THC like
+        // every high: hard to kill, as a Cup winner should be. HUNGER, as ever, is the THC's.
+        //
+        // WEAVING and BAD LUCK are the plant's own, flat, and both are the tax. Weaving is the widow's
+        // web -- cobwebs slow you less, and you leave webs where you die. Bad Luck is the garden's
+        // curse, Ruderalis's Luck turned round, and nearly as inert for now: vanilla's one reader is
+        // fishing. Both are harmful to vanilla, so debuffs=false takes them and keeps the signature.
+        //
+        // Night Vision would have suited a plant of the night, but it is the dry-sift hash's own.
+        //
+        // Frost white, the trichomes; bright, so a packed device still reads it on gunmetal.
+        context.register(WHITE_WIDOW, new Strain("hempdustry.strain.white_widow", 0xE9ECE4, modelIndex(WHITE_WIDOW),
+                Optional.of(ModItems.WHITE_WIDOW_SEEDS), ModItems.WHITE_WIDOW_BUDS,
+                Optional.of(ModBlocks.WHITE_WIDOW_FLOWER), 1.0F, 1,
+                List.of(
+                        new SmokeEffect(MobEffects.HEALTH_BOOST, 0, EffectLabel.THC, 1.0F, false, 1.0F, SmokeEffect.NO_CAP),
+                        new SmokeEffect(MobEffects.HUNGER, 0, EffectLabel.THC, 1.0F, false, 1.0F, SmokeEffect.NO_CAP),
+                        new SmokeEffect(MobEffects.WEAVING, 0, EffectLabel.STRAIN, 1.0F, false, 1.0F, SmokeEffect.NO_CAP),
+                        new SmokeEffect(MobEffects.UNLUCK, 0, EffectLabel.STRAIN, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
+                1.0F, Chemotype.THC_DOMINANT).withTerpene(Terpene.NEROLIDOL)
+                .withPotency(Potency.odds(20, 50, 25, 5)));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

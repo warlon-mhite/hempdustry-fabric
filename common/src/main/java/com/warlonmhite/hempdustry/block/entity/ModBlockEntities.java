@@ -51,7 +51,8 @@ public class ModBlockEntities {
                     Services.REGISTRATION.blockEntityType(PlantRecordBlockEntity::new,
                             ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
                             ModBlocks.WARPED_KUSH_CROP, ModBlocks.RUDERALIS_CROP, ModBlocks.CRIMSON_CROP,
-                            ModBlocks.ENDER_HAZE_CROP, ModBlocks.CHERRY_WINE_CROP));
+                            ModBlocks.ENDER_HAZE_CROP, ModBlocks.CHERRY_WINE_CROP,
+                            ModBlocks.WHITE_WIDOW_CROP));
 
     public static void registerBlockEntities() {
         Hempdustry.LOGGER.info("Registering Block Entities for " + Hempdustry.MOD_ID);

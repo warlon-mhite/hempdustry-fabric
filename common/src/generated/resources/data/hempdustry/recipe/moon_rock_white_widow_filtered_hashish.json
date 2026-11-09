@@ -1,0 +1,30 @@
+{
+  "type": "hempdustry:stamped_shapeless",
+  "group": "moon_rock",
+  "ingredients": [
+    "hempdustry:white_widow_buds",
+    "hempdustry:rosin",
+    [
+      "hempdustry:filtered_hashish",
+      "hempdustry:bubble_hash",
+      "hempdustry:filtered_kief"
+    ]
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 3,
+            "strain": "hempdustry:white_widow"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:filtered_hashish"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:moon_rock"
+  }
+}
