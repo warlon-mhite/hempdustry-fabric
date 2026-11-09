@@ -1,12 +1,15 @@
 package com.warlonmhite.hempdustry.compat.rei;
 
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
+import me.shedaniel.rei.api.common.entry.comparison.EntryComparator;
 import me.shedaniel.rei.api.common.entry.comparison.ItemComparatorRegistry;
 import me.shedaniel.rei.api.common.plugins.REICommonPlugin;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 /**
- * Tells REI that what is loaded makes a smokeable a different item.
+ * Tells REI that what is loaded makes a smokeable a different item, and what stamped matter carries
+ * (its chemotype and a leaf's high mark) a different entry.
  *
  * <p>Without this every packed pipe, bong and spliff collapses into one entry in the item list, and
  * so do the packing rows in {@link HempdustryReiPlugin}, which differ only by their output's
@@ -25,6 +28,14 @@ public class HempdustryReiCommonPlugin implements REICommonPlugin {
     public void registerItemComparators(ItemComparatorRegistry registry) {
         for (Item smokeable : ViewerRecipes.smokeables()) {
             registry.register((context, stack) -> ViewerRecipes.smokeKey(stack).hashCode(), smokeable);
+        }
+        // A CBD leaf, a balanced hash, a high-potency leaf: each its own entry, as in JEI, so a stamped
+        // recipe output (a Beldía bud's scorched hemp is balanced) shows what it really makes. Exact
+        // comparisons only: a recipe takes the item whatever its stamp, and REI matches recipes fuzzily,
+        // so a CBD leaf still finds the recipes a plain one does. A plain stack hashes as before.
+        EntryComparator<ItemStack> stamp = (context, stack) -> ViewerRecipes.stampKey(stack).hashCode();
+        for (Item stamped : ViewerRecipes.stamped()) {
+            registry.register(stamp.onlyExact(), stamped);
         }
     }
 }

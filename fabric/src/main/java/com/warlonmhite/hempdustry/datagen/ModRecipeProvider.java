@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.datagen;
 
+import com.warlonmhite.hempdustry.strain.Chemotype;
+import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
@@ -29,6 +31,7 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -558,10 +561,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 continue;
             }
             // A mid bud's worth is the strain's potency base (4 for every strain the mod ships,
-            // Ruderalis included); a bud's band moves it at the oven, on top of this count.
-            offerDecarboxylating(Ingredient.of(strain.buds()),
-                    new ItemStack(ModItems.DECARBOXYLATED_HEMP, strain.potency().base()),
-                    BuiltInRegistries.ITEM.getKey(strain.buds()).getPath());
+            // Ruderalis included), read off the strain at the oven so the bowl and the oven share one
+            // number; the count written here is what a viewer or another mod reading the file sees. A
+            // bud's band moves it at the oven, on top.
+            output.accept(id("decarboxylating/" + BuiltInRegistries.ITEM.getKey(strain.buds()).getPath()),
+                    new DecarboxylatingRecipe(Ingredient.of(strain.buds()),
+                            new ItemStack(ModItems.DECARBOXYLATED_HEMP, strain.potency().base()), true),
+                    null);
         }
         // Fan leaf: bulk trim, worth a quarter of a bud, and strain-agnostic like everything else
         // downstream of the oven.
@@ -590,17 +596,10 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // vanilla keeps those two for food, and the mod's own toasted seeds follow that rule.
         // Vanilla's numbers for the sea pickle and the chorus fruit: 200 ticks, 0.1 experience.
         //
-        // One recipe over every input rather than one per input, which is the charcoal shape. The
-        // unlock is any of them: a recipe's unlock advancement ORs its criteria.
-        List<ItemLike> scorchable = new java.util.ArrayList<>();
-        scorchable.add(ModItems.HEMP_LEAF);
-        scorchable.add(ModItems.SCHWAG);
-        for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
-            Strain strain = strains.getOrThrow(key).value();
-            if (strain.wildFlower().isPresent()) {
-                scorchable.add(strain.buds());
-            }
-        }
+        // The leaf and schwag share one recipe, the charcoal shape: they carry their chemotype per
+        // stack, so only the recipe's assemble can stamp them. The unlock is either of them: a
+        // recipe's unlock advancement ORs its criteria.
+        List<ItemLike> scorchable = List.of(ModItems.HEMP_LEAF, ModItems.SCHWAG);
         // Stamped: what chars keeps the chemotype of what burned. Built by hand, since 1.21.11's
         // SimpleCookingRecipeBuilder refuses a serializer that is not one of vanilla's four.
         ResourceKey<Recipe<?>> scorchedId = id("scorched_hemp");
@@ -614,6 +613,15 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         output.accept(scorchedId, new StampedSmeltingRecipe("", CookingBookCategory.MISC,
                         Ingredient.of(scorchable.toArray(ItemLike[]::new)), new ItemStack(ModItems.SCORCHED_HEMP), 0.1F, 200),
                 scorching.build(scorchedId.identifier().withPrefix("recipes/misc/")));
+        // A bud is its strain's chemotype, so each bud gets a recipe of its own whose result already
+        // carries it: a machine of another mod that copies a smelting recipe's result instead of
+        // assembling it (Mekanism's smelter on 1.21.x does) still makes CBD scorched hemp of a CBD bud.
+        for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
+            Strain strain = strains.getOrThrow(key).value();
+            if (strain.wildFlower().isPresent()) {
+                offerScorching(strain.buds(), strain.chemotype());
+            }
+        }
 
         // NOTHING IN THE HASH FAMILY DECARBOXYLATES, and that is the rule rather than an omission:
         // the oven takes plant matter, the bowl takes resin. Hash is a smoking material and only a
@@ -1180,6 +1188,30 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .group("hempdustry_concrete_powder")
                 .unlockedBy(getHasName(ModItems.HEMPCRETE), has(ModItems.HEMPCRETE))
                 .save(output, id(BuiltInRegistries.ITEM.getKey(result.asItem()).getPath()));
+    }
+
+    /**
+     * One bud's furnace recipe, {@code scorched_hemp_from_<bud>}: one scorched hemp carrying the bud's
+     * strain's chemotype in its result, so the recipe's own result is right even read without its
+     * assemble. Still stamped: a datapack moving a strain's chemotype moves what the furnace makes.
+     * Built by hand, as the moon rocks are: the cooking builder's result carries no components.
+     */
+    private void offerScorching(Item bud, Chemotype chemotype) {
+        ResourceKey<Recipe<?>> recipeId = id("scorched_hemp_from_" + BuiltInRegistries.ITEM.getKey(bud).getPath());
+        DataComponentPatch.Builder stamp = DataComponentPatch.builder();
+        if (chemotype != Chemotype.THC_DOMINANT) {
+            stamp.set(ModComponents.CHEMOTYPE, chemotype);
+        }
+        ItemStack result = new ItemStack(ModItems.SCORCHED_HEMP);
+        result.applyComponents(stamp.build());
+        StampedSmeltingRecipe recipe = new StampedSmeltingRecipe("", CookingBookCategory.MISC, Ingredient.of(bud),
+                result, 0.1F, 200);
+        output.accept(recipeId, recipe, output.advancement()
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .addCriterion(getHasName(bud), has(bud))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.identifier().withPrefix("recipes/misc/")));
     }
 
     /**

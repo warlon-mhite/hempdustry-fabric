@@ -144,5 +144,9 @@ public class ModRecipes {
         Services.REGISTRATION.syncRecipes(DECARBOXYLATING_TYPE, DECARBOXYLATING);
         Services.REGISTRATION.syncRecipes(INFUSING_TYPE, INFUSING);
         Services.REGISTRATION.syncRecipes(PRESSING_TYPE, PRESSING);
+        // Scorched hemp is vanilla smelting under a serializer of ours, which Fabric sends a client only
+        // when asked: without this a viewer on Fabric shows no furnace row for it at all.
+        Services.REGISTRATION.syncRecipes(RecipeType.SMELTING, STAMPED_SMELTING);
+        Services.EVENTS.onServerStarted(DecarboxylatingRecipe::reportOverrides);
     }
 }

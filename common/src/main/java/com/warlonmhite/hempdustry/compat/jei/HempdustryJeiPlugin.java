@@ -80,6 +80,14 @@ public class HempdustryJeiPlugin implements IModPlugin {
             registration.registerSubtypeInterpreter(smokeable,
                     (ItemStack stack, UidContext context) -> ViewerRecipes.smokeKey(stack));
         }
+        // A CBD leaf, a balanced hash, a high-potency leaf: each its own entry in the item list, so a
+        // stamped recipe output (a Beldía bud's scorched hemp is balanced) shows what it really makes.
+        // Not when JEI matches a recipe: every recipe takes the item whatever its stamp, and a CBD
+        // leaf must still find the recipes a plain one does.
+        for (net.minecraft.world.item.Item stamped : ViewerRecipes.stamped()) {
+            registration.registerSubtypeInterpreter(stamped,
+                    (ItemStack stack, UidContext context) -> context == UidContext.Recipe ? "" : ViewerRecipes.stampKey(stack));
+        }
     }
 
     @Override

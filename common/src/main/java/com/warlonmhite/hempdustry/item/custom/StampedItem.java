@@ -19,15 +19,17 @@ import net.minecraft.world.item.component.TooltipDisplay;
 public class StampedItem extends Item {
 
     public StampedItem(Properties settings) {
-        super(settings);
+        // THC-dominant on the prototype, so an explicit default stacks with a plain stack.
+        super(settings.component(ModComponents.CHEMOTYPE, Chemotype.THC_DOMINANT));
     }
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
                                 Consumer<Component> tooltip, TooltipFlag flag) {
         tooltip.accept(Chemotype.of(stack).tooltipLine());
-        // A leaf of a high or extra-high plant: its one mark. Nothing else stamped carries a band.
-        if (stack.has(ModComponents.POTENCY_BAND)) {
+        // A leaf of a high or extra-high plant: its one mark. Nothing else stamped carries a band, and
+        // the leaf's prototype carries mid, so the question is the value, never whether it is there.
+        if (PotencyBand.of(stack) != PotencyBand.MID) {
             tooltip.accept(PotencyBand.of(stack).tooltipLine());
         }
         super.appendHoverText(stack, context, display, tooltip, flag);

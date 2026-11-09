@@ -5,14 +5,7 @@
   "experience": 0.1,
   "ingredient": [
     "hempdustry:hemp_leaf",
-    "hempdustry:schwag",
-    "hempdustry:indica_buds",
-    "hempdustry:sativa_buds",
-    "hempdustry:beldia_buds",
-    "hempdustry:warped_kush_buds",
-    "hempdustry:ruderalis_buds",
-    "hempdustry:crimson_buds",
-    "hempdustry:ender_haze_buds"
+    "hempdustry:schwag"
   ],
   "result": {
     "id": "hempdustry:scorched_hemp"

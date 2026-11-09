@@ -132,7 +132,7 @@ public class PackingRecipe extends CustomRecipe {
                 stamp = itemStamp;
                 // A plant's buds carry their plant's band, and buds of different bands load together:
                 // the load keeps the sum of their offsets, which is what their THC averages to.
-                potency += PotencyBand.of(stack).offset();
+                potency += Stamping.budOffset(stack, registries);
                 strain = budStrain;
                 // One item from each slot, never the stack's count: crafting takes one per slot,
                 // and counting the stack packed three buds' worth out of one. And one item is not

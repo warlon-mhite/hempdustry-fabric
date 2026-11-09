@@ -1,0 +1,10 @@
+{
+  "type": "hempdustry:stamped_smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": "hempdustry:sativa_buds",
+  "result": {
+    "id": "hempdustry:scorched_hemp"
+  }
+}

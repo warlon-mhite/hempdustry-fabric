@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.strain;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.Hempdustry;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -314,6 +315,11 @@ public record Strain(String translationKey, int color, int modelIndex,
     /**
      * The strain {@code block} is a plant of: the one whose seeds plant it, or whose wild flower it is.
      * Empty for a plant no strain names (Industrial Hemp is fibre, not a smoking strain).
+     *
+     * <p>When a datapack strain names the same seeds or flower as one of the mod's, the plant stays the
+     * mod's own, then the lowest id, as {@link #fromBuds} rules: a datapack's {@code aaa:kush} reusing
+     * Purple Kush's seeds must not hand every Purple Kush plant its odds, while the plant's loot still
+     * stamps by its own table.
      */
     public static Optional<Holder.Reference<Strain>> ofPlant(Block block, HolderLookup.Provider registries) {
         return registry(registries).listElements().filter(strain -> {
@@ -321,7 +327,8 @@ public record Strain(String translationKey, int color, int modelIndex,
             return value.seedItem().filter(seed -> seed instanceof BlockItem blockItem
                     && blockItem.getBlock() == block).isPresent()
                     || value.wildFlower().filter(flower -> flower == block).isPresent();
-        }).findFirst();
+        }).min(Comparator.comparing((Holder.Reference<Strain> entry) -> !entry.key().identifier().getNamespace().equals(Hempdustry.MOD_ID))
+                .thenComparing(entry -> entry.key().identifier()));
     }
 
     /**
@@ -407,8 +414,8 @@ public record Strain(String translationKey, int color, int modelIndex,
      * {@link EffectLabel} says moves it. A {@link EffectLabel#THC THC} effect scales with the THC dose
      * ({@link Chemotype#thcDose}) and is not there at all without THC; a {@link EffectLabel#SMOKE
      * SMOKE} effect scales with the units burned; a {@link EffectLabel#STRAIN STRAIN} effect is flat;
-     * a {@link EffectLabel#CBD CBD} effect is flat, lasts as long as the CBD share allows and is not
-     * there without CBD. For THC-dominant material the THC dose is the unit count, so every effect
+     * a {@link EffectLabel#CBD CBD} effect is flat, lasts by the CBD smoked
+     * ({@code SmokeContents#cbdTicks}) and is not there without CBD. For THC-dominant material the THC dose is the unit count, so every effect
      * comes out exactly as it did before chemotypes existed.
      */
     public List<MobEffectInstance> effects(int units, Chemotype chemotype, int durationTicks, boolean onExhale,
@@ -419,10 +426,31 @@ public record Strain(String translationKey, int color, int modelIndex,
     /**
      * As above, with the THC dose given rather than read off the units: a bowl weighs a bud's THC by
      * its potency band as well as its chemotype (see {@code SmokeContents.Entry#thcDose}), so a pipe of
-     * two extra-high buds is a dose of three.
+     * two extra-high buds is a dose of three. Every label lasts {@code durationTicks} but CBD's, which
+     * takes the smoked-CBD rule at the units' worth of CBD.
      */
     public List<MobEffectInstance> effects(int units, int thcDose, Chemotype chemotype, int durationTicks,
                                               boolean onExhale, int buffBonus, RandomGenerator random) {
+        return effects(new Burn(units, thcDose, chemotype, durationTicks, durationTicks,
+                        SmokeContents.cbdTicks(units * (double) chemotype.cbdHalves() / Chemotype.FULL_WEIGHT)),
+                onExhale, buffBonus, random);
+    }
+
+    /**
+     * One entry of a bowl as its effects read it: how many units burn, the THC dose that sets a THC
+     * effect's level, the chemotype, and how long each kind of effect lasts — {@code thcTicks} for a
+     * THC-labelled one (the exact dose buys time, {@code SmokeContents#thcTicks}), {@code ticks} for a
+     * strain- or smoke-labelled one (a bud past the buff cap buys time), {@code cbdTicks} for a
+     * CBD-labelled one ({@code SmokeContents#cbdTicks}).
+     */
+    public record Burn(int units, int thcDose, Chemotype chemotype, int thcTicks, int ticks, int cbdTicks) {
+    }
+
+    /** Fresh status-effect instances for one hit of {@code burn}, each label at its own level and length. */
+    public List<MobEffectInstance> effects(Burn burn, boolean onExhale, int buffBonus, RandomGenerator random) {
+        int units = burn.units();
+        int thcDose = burn.thcDose();
+        Chemotype chemotype = burn.chemotype();
         List<MobEffectInstance> out = new ArrayList<>(smokeEffects.size());
         for (SmokeEffect effect : smokeEffects) {
             if (effect.onExhale() != onExhale) {
@@ -449,10 +477,14 @@ public record Strain(String translationKey, int color, int modelIndex,
                 amplifier += buffBonus;
             }
             amplifier = Math.min(effect.maxAmplifier(), amplifier);
-            float share = label == EffectLabel.CBD ? (float) chemotype.cbdHalves() / Chemotype.FULL_WEIGHT : 1.0F;
+            int ticks = switch (label) {
+                case THC -> burn.thcTicks();
+                case CBD -> burn.cbdTicks();
+                case STRAIN, SMOKE -> burn.ticks();
+            };
             // At least a tick: a datapack's 0 or negative factor is a very short effect, never one
             // that silently does not exist.
-            int duration = Math.max(1, Math.round(durationTicks * effect.durationFactor() * share));
+            int duration = Math.max(1, Math.round(ticks * effect.durationFactor()));
             out.add(new MobEffectInstance(effect.effect(), duration, amplifier));
         }
         return out;

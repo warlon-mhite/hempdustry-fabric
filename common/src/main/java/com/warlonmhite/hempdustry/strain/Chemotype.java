@@ -11,6 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ByIdMap;
 import net.minecraft.util.StringRepresentable;
 import com.warlonmhite.hempdustry.block.custom.IndustrialHempCropBlock;
 import net.minecraft.world.item.ItemStack;
@@ -42,6 +43,11 @@ import net.minecraft.world.level.block.Block;
  * definition, so an item with no {@code hempdustry:chemotype} component reads THC-dominant, and
  * {@link #stamp} never writes that value. A new THC-dominant leaf therefore still stacks with an old
  * one: only the chemotypes 2.1 never had cost a slot.
+ *
+ * <p>The stamped items carry THC-dominant on their prototype as well, the way vanilla's potions carry
+ * an empty {@code potion_contents}: a stack that names the default explicitly (a {@code /give}, a
+ * datapack's {@code set_components}, another mod's copy) then loses it on the way in, as vanilla drops
+ * any value equal to the prototype's, and still stacks with a plain one.
  */
 public enum Chemotype implements StringRepresentable {
     THC_DOMINANT("thc_dominant", 2, 0),
@@ -54,9 +60,12 @@ public enum Chemotype implements StringRepresentable {
     public static final int FULL_WEIGHT = 2;
 
     public static final Codec<Chemotype> CODEC = StringRepresentable.fromEnum(Chemotype::values);
-    /** Ordinal-based: this only travels over the wire, never to disk. */
-    public static final StreamCodec<ByteBuf, Chemotype> PACKET_CODEC =
-            ByteBufCodecs.VAR_INT.map(ordinal -> values()[ordinal], Chemotype::ordinal);
+    /**
+     * Ordinal-based: this only travels over the wire, never to disk. An id out of range (a bad
+     * creative packet) reads THC-dominant, the absent default, rather than throwing.
+     */
+    public static final StreamCodec<ByteBuf, Chemotype> PACKET_CODEC = ByteBufCodecs.idMapper(
+            ByIdMap.continuous(Chemotype::ordinal, values(), ByIdMap.OutOfBoundsStrategy.ZERO), Chemotype::ordinal);
 
     private final String name;
     private final int thcHalves;
@@ -113,6 +122,7 @@ public enum Chemotype implements StringRepresentable {
      * what goes into it.
      */
     public static Chemotype ofMatter(ItemStack stack, HolderLookup.Provider registries) {
+        // A bud's item carries no chemotype, not even on its prototype: its strain answers.
         if (!stack.has(ModComponents.CHEMOTYPE)) {
             Optional<Holder.Reference<Strain>> strain = Strain.fromBuds(registries, stack.getItem());
             if (strain.isPresent() && strain.get().value().wildFlower().isPresent()) {
@@ -139,16 +149,11 @@ public enum Chemotype implements StringRepresentable {
     }
 
     /**
-     * Writes {@code chemotype} on {@code stack}, or clears the stamp for THC-dominant so the stack
-     * still merges with everything 2.1 made. Returns the stack.
+     * Writes {@code chemotype} on {@code stack}; THC-dominant writes nothing, so the stack still merges
+     * with everything 2.1 made. Returns the stack. See {@link ModComponents#putDefaulted}.
      */
     public static ItemStack stamp(ItemStack stack, Chemotype chemotype) {
-        if (chemotype == THC_DOMINANT) {
-            stack.remove(ModComponents.CHEMOTYPE);
-        } else {
-            stack.set(ModComponents.CHEMOTYPE, chemotype);
-        }
-        return stack;
+        return ModComponents.putDefaulted(stack, ModComponents.CHEMOTYPE, chemotype, THC_DOMINANT);
     }
 
     /**

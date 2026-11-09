@@ -15,6 +15,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
+import net.minecraft.world.level.Level;
 
 /**
  * A shapeless recipe whose ingredients' containers <em>travel into the result</em> instead of being
@@ -58,6 +59,12 @@ public class ContainerCarriedRecipe extends ShapelessRecipe {
         super(group, category, result, ingredients);
         this.result = result;
         this.ingredients = ingredients;
+    }
+
+    /** Bhang refuses hemp that makes neither THC nor CBD ({@link Infusion#bhangTakes}). */
+    @Override
+    public boolean matches(CraftingInput input, Level level) {
+        return super.matches(input, level) && Infusion.bhangTakes(input);
     }
 
     /**

@@ -14,7 +14,9 @@ import com.warlonmhite.hempdustry.strain.Chemotype;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import com.warlonmhite.hempdustry.strain.Strain;
 import net.minecraft.core.HolderLookup;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 
@@ -23,12 +25,15 @@ import net.minecraft.world.item.crafting.CraftingInput;
  * into THC matter. Every route that takes stamped matter in and gives stamped matter out goes
  * through here: the leaf block and the hash blocks both ways, spliffs and moon rocks, the furnace.
  *
- * <h2>One chemotype to a craft</h2>
+ * <h2>One chemotype of stamped matter to a craft</h2>
  *
  * A crafting grid holding two chemotypes of stamped matter matches nothing, the way two strains in
  * one bowl pack nothing: nine leaves make a block of one kind, and a spliff burns one material. Only
  * the Infuser, the sieve and bhang mix chemotypes, by their dosage ({@link Chemotype#dosage}). A bud
- * in the grid is not stamped matter: it is its strain, and the result names its strain already.
+ * in the grid is not stamped matter: it is its strain, and the result names its strain already. So a
+ * bud may meet stamped matter of another chemotype (a Beldía bud with THC hashish in a hash spliff, a
+ * Purple Kush bud with CBD kief in a moon rock): the load then holds two entries, each keeping its
+ * own chemotype, and the bowl weighs each as it is.
  *
  * <h2>Bands mix, marks do not</h2>
  *
@@ -105,18 +110,35 @@ public final class Stamping {
      * The sum of the band offsets of the buds in {@code input} (one bud per occupied slot, as crafting
      * takes), empty when there are none: what a spliff or a moon rock rolled from them carries, so buds
      * of different bands come out at their average.
+     *
+     * <p><b>A moon rock counts its bud's band once.</b> Its other two units are hash and rosin, which
+     * carry no band, so the coat never scales it: concentrate is most of the rock's THC. Only a bud
+     * worth more than one unit ({@code dose_per_item}, a datapack's) carries its band on each unit,
+     * twice the mass at the same share ({@link #budOffset}).
      */
-    public static Optional<Integer> budPotency(CraftingInput input) {
+    public static Optional<Integer> budPotency(CraftingInput input, @Nullable HolderLookup.Provider registries) {
         int sum = 0;
         boolean any = false;
         for (int slot = 0; slot < input.size(); slot++) {
             ItemStack stack = input.getItem(slot);
             if (stack.getItem() instanceof StrainPlantItem.Buds) {
-                sum += PotencyBand.of(stack).offset();
+                sum += budOffset(stack, registries);
                 any = true;
             }
         }
         return any ? Optional.of(sum) : Optional.empty();
+    }
+
+    /**
+     * One bud's band offset as a load counts it: the band's offset on each unit the bud is worth
+     * ({@code dose_per_item}, one for every strain the mod ships), so a load's sum stays exactly what
+     * its THC averages to. With no registries to ask (nothing is crafting), one unit.
+     */
+    public static int budOffset(ItemStack bud, @Nullable HolderLookup.Provider registries) {
+        int units = registries == null ? 1 : Strain.fromBuds(registries, bud.getItem())
+                .map(strain -> Math.max(1, strain.value().dosePerItem()))
+                .orElse(1);
+        return PotencyBand.of(bud).offset() * units;
     }
 
     /** Whether the stamped matter in {@code input} is all of one chemotype, and its leaves of one mark. */
@@ -128,7 +150,7 @@ public final class Stamping {
      * The result of a craft over {@code input}, stamped with the chemotype its stamped matter shares,
      * marked like its leaves, and, for a loaded spliff or moon rock, carrying its buds' bands.
      */
-    public static ItemStack carry(CraftingInput input, ItemStack result) {
+    public static ItemStack carry(CraftingInput input, ItemStack result, HolderLookup.Provider registries) {
         Optional<Chemotype> chemotype = shared(input);
         if (chemotype != null && chemotype.isPresent()) {
             result = apply(result, chemotype.get());
@@ -141,7 +163,7 @@ public final class Stamping {
                 HempLeavesBlock.markBlockItem(result, mark.get());
             }
         }
-        Optional<Integer> potency = budPotency(input);
+        Optional<Integer> potency = budPotency(input, registries);
         SmokeContents contents = result.get(ModComponents.SMOKE_CONTENTS);
         if (potency.isPresent() && potency.get() != 0 && contents != null && !contents.isEmpty()) {
             result.set(ModComponents.SMOKE_CONTENTS, contents.withPotency(potency.get()));

@@ -12,6 +12,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Custom data components.
@@ -96,7 +97,8 @@ public class ModComponents {
      * and the two that make neither. Absent reads THC-dominant, everything 2.1 made, and that value is
      * never written ({@link Chemotype#stamp}). Leaves, schwag, decarboxylated and scorched hemp and the
      * whole hash family carry it, because the matter is the same item whatever plant it came from; a
-     * bud and a seed never do, their strain is their chemotype.
+     * bud and a seed never do, their strain is their chemotype. The stamped items, butter and the
+     * edibles carry THC-dominant on their prototype (see {@link #putDefaulted}); a bud and a seed don't.
      */
     public static final DataComponentType<Chemotype> CHEMOTYPE = register("chemotype",
             builder -> builder.persistent(Chemotype.CODEC).networkSynchronized(Chemotype.PACKET_CODEC));
@@ -104,10 +106,29 @@ public class ModComponents {
     /**
      * The potency band of the plant a bud came from, or a leaf's mark ({@code high}, from a high or
      * extra-high plant). Absent is mid, every bud and leaf 2.1 made; mid is never written, so a new mid
-     * bud stacks with an old one. Nothing after the oven carries it. See {@link PotencyBand}.
+     * bud stacks with an old one. Nothing after the oven carries it. Buds and the leaf carry mid on their
+     * prototype (see {@link #putDefaulted}). See {@link PotencyBand}.
      */
     public static final DataComponentType<PotencyBand> POTENCY_BAND = register("potency_band",
             builder -> builder.persistent(PotencyBand.CODEC).networkSynchronized(PotencyBand.PACKET_CODEC));
+
+    /**
+     * Puts {@code value} on {@code stack} so that a default never costs a slot.
+     *
+     * <p>An item that carries {@code absent} on its prototype ({@code Item.Properties#component}) gets
+     * a {@code set}: vanilla keeps a value equal to the prototype's out of the stack's patch, so the
+     * default writes nothing. A {@code remove} there would be wrong, as it writes a removal
+     * ({@code !hempdustry:chemotype}) that no plain stack has. An item without the prototype value
+     * gets the default removed and any other value set, as before the prototypes existed.
+     */
+    public static <T> ItemStack putDefaulted(ItemStack stack, DataComponentType<T> type, T value, T absent) {
+        if (value.equals(absent) && !stack.getPrototype().has(type)) {
+            stack.remove(type);
+        } else {
+            stack.set(type, value);
+        }
+        return stack;
+    }
 
     private static <T> DataComponentType<T> register(String id, UnaryOperator<DataComponentType.Builder<T>> builderOp) {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE,

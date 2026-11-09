@@ -1,6 +1,5 @@
 package com.warlonmhite.hempdustry.block.custom;
 
-import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import net.minecraft.core.BlockPos;
@@ -27,14 +26,18 @@ import net.minecraft.world.phys.BlockHitResult;
  *
  * {@code BlockItem} only preserves an item's components into a <b>block entity</b>, and a cake has
  * none — so a placed cake would lose its potency and quality entirely and all seven bites would do
- * nothing. Rather than give a cake a block entity, the two axes are blockstate properties:
- * {@link #POTENCY} 0–4 and {@link #QUALITY}. Placement reads them off the stack, eating reads them
- * back off the block. No block entity, no sync, no NBT — surviving placement is what blockstates are
- * <em>for</em>.
+ * nothing. Rather than give a cake a block entity, the three axes are blockstate properties:
+ * {@link #POTENCY} 0–4, {@link #CBD_POTENCY} 0–4 and {@link #QUALITY}. Placement reads them off the
+ * stack, eating reads them back off the block. No block entity, no sync, no NBT — surviving
+ * placement is what blockstates are <em>for</em>.
+ *
+ * <p><b>One butter, one answer.</b> A cake carries both tiers its butter gave, as a cookie does, and
+ * is eaten through the same function: baking changes the serving, never the THC:CBD ratio.
  *
  * <p><b>The generated blockstate JSON needs no change for this.</b> Its variant keys list only
  * {@code bites}, and Minecraft treats unlisted properties as wildcards — the same partial-match trick
- * the hand-written crop blockstates rely on. Seven variants still cover all 140 states.
+ * the hand-written crop blockstates rely on. Seven variants still cover all 700 states, under
+ * vanilla's redstone wire (1,296).
  *
  * <p>Potency <b>0 means inert</b>, which is what a creative-tab or {@code /give} cake is, and is why
  * the property starts at 0 rather than 1.
@@ -47,47 +50,37 @@ import net.minecraft.world.phys.BlockHitResult;
  * duplicating vanilla's — and would throw the dose away with it.
  */
 public class SpaceCakeBlock extends CakeBlock {
-    /** Dose per bite. <b>0 is inert</b>, for a cake placed without a component. */
+    /** THC tier per bite. <b>0 is no THC</b>, as for a cake placed without a component. */
     public static final IntegerProperty POTENCY = IntegerProperty.create("potency", 0, EdibleEffects.MAX_TIER);
     /** Carried so a cake baked from a Perfect batch is still a Perfect cake once it is placed. */
     public static final EnumProperty<Quality> QUALITY = EnumProperty.create("quality", Quality.class);
     /**
-     * What the butter was: THC-dominant, balanced or CBD-dominant (the oven and the Infuser turn the
-     * other two away, so no cake is ever either). {@link #POTENCY} is the THC tier of a THC-dominant
-     * or balanced cake and the CBD tier of a CBD-dominant one; a balanced cake reads it as both, as a
-     * balanced batch carries about as much of each. A cake placed by 2.1 has no such property and
-     * loads THC-dominant, which is what it was.
+     * CBD tier per bite, 0 for none: the butter's CBD, as a cookie's {@code hempdustry:cbd_potency}.
+     * A cake placed by 2.1 has no such property and loads 0, which is what it was.
      */
-    public static final EnumProperty<Chemotype> CHEMOTYPE = EnumProperty.create("chemotype", Chemotype.class,
-            chemotype -> chemotype == Chemotype.THC_DOMINANT || chemotype == Chemotype.BALANCED
-                    || chemotype == Chemotype.CBD_DOMINANT);
+    public static final IntegerProperty CBD_POTENCY = IntegerProperty.create("cbd_potency", 0, EdibleEffects.MAX_TIER);
 
     public SpaceCakeBlock(Properties settings) {
         super(settings);
         // Spelled out rather than trusted: a property left out of registerDefaultState resolves to the
         // first value of its set, which is exactly how the crops shipped pre-trimmed for two days.
         registerDefaultState(defaultBlockState().setValue(POTENCY, 0).setValue(QUALITY, Quality.ROUGH)
-                .setValue(CHEMOTYPE, Chemotype.THC_DOMINANT));
+                .setValue(CBD_POTENCY, 0));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(POTENCY, QUALITY, CHEMOTYPE);
+        builder.add(POTENCY, QUALITY, CBD_POTENCY);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         ItemStack stack = ctx.getItemInHand();
-        Chemotype chemotype = Chemotype.of(stack);
-        if (!CHEMOTYPE.getPossibleValues().contains(chemotype)) {
-            chemotype = Chemotype.THC_DOMINANT;
-        }
-        int tier = chemotype.hasThc() ? EdibleEffects.potencyOf(stack) : EdibleEffects.cbdPotencyOf(stack);
         return defaultBlockState()
-                .setValue(POTENCY, Mth.clamp(tier, 0, EdibleEffects.MAX_TIER))
-                .setValue(QUALITY, EdibleEffects.qualityOf(stack))
-                .setValue(CHEMOTYPE, chemotype);
+                .setValue(POTENCY, Mth.clamp(EdibleEffects.potencyOf(stack), 0, EdibleEffects.MAX_TIER))
+                .setValue(CBD_POTENCY, Mth.clamp(EdibleEffects.cbdPotencyOf(stack), 0, EdibleEffects.MAX_TIER))
+                .setValue(QUALITY, EdibleEffects.qualityOf(stack));
     }
 
     @Override
@@ -95,12 +88,12 @@ public class SpaceCakeBlock extends CakeBlock {
                                  BlockHitResult hit) {
         // Read the dose off the pre-use state: super may take a bite and rewrite the block.
         int potency = state.getValue(POTENCY);
+        int cbd = state.getValue(CBD_POTENCY);
         Quality quality = state.getValue(QUALITY);
-        Chemotype chemotype = state.getValue(CHEMOTYPE);
         InteractionResult result = super.useWithoutItem(state, world, pos, player, hit);
         if (result.consumesAction() && !world.isClientSide()) {
-            EdibleEffects.consume(player, chemotype.hasThc() ? potency : 0,
-                    chemotype.cbdHalves() > 0 ? potency : 0, quality);
+            // The cookie's own call: one butter eats the same however it was served.
+            EdibleEffects.consume(player, potency, cbd, quality);
         }
         return result;
     }

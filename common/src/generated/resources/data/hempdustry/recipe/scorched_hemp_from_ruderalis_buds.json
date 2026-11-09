@@ -1,0 +1,13 @@
+{
+  "type": "hempdustry:stamped_smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": "hempdustry:ruderalis_buds",
+  "result": {
+    "components": {
+      "hempdustry:chemotype": "balanced"
+    },
+    "id": "hempdustry:scorched_hemp"
+  }
+}

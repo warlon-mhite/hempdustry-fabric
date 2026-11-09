@@ -37,7 +37,7 @@ public class StampedShapedRecipe extends ShapedRecipe {
 
     @Override
     public ItemStack assemble(CraftingInput input, HolderLookup.Provider lookup) {
-        return Stamping.carry(input, super.assemble(input, lookup));
+        return Stamping.carry(input, super.assemble(input, lookup), lookup);
     }
 
     // As InfusedShapedRecipe: ShapedRecipe's declaration is invariant, and the cast is sound.

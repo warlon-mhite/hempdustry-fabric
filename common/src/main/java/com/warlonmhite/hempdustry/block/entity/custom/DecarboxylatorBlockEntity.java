@@ -17,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -203,17 +204,46 @@ public class DecarboxylatorBlockEntity extends NamedMachineBlockEntity
         // ask the same question. See ModRecipes#allOfType. The output keeps what went in: a CBD bud
         // bakes to CBD decarboxylated hemp.
         //
-        // A bud's potency band, or a leaf's high mark, moves the recipe's count by its offset (a high
-        // bud of a 4 bakes into 5, a marked leaf into 2), never below one: the recipe says what a mid
-        // piece is worth, and a datapack that changes it still moves every band with it.
+        // A bud's potency band, or a leaf's high mark, moves a mid piece's count by its offset (a high
+        // bud of a 4 bakes into 5, a marked leaf into 2), never below one. A mid bud is worth its
+        // strain's base, as in the bowl, unless its recipe writes a count of its own, which then moves
+        // the oven alone (DecarboxylatingRecipe#midCount).
         PotencyBand band = PotencyBand.of(stack);
         return Services.RECIPES.firstMatch(world, ModRecipes.DECARBOXYLATING_TYPE, input)
                 .map(entry -> {
                     ItemStack result = Stamping.apply(entry.value().assemble(input, world.registryAccess()), chemotype);
-                    result.setCount(Math.max(1, result.getCount() + band.offset()));
+                    int mid = entry.value().midCount(stack, world.registryAccess());
+                    result.setCount(Math.max(1, mid + band.offset()));
                     return result;
                 })
                 .orElse(ItemStack.EMPTY);
+    }
+
+    /**
+     * The comparator's reading, as a 2.1 oven would give it: vanilla's formula
+     * ({@code AbstractContainerMenu#getRedstoneSignalFromContainer}) over five slots — the fuel, the
+     * three trays, and <b>the three outputs pooled as one</b>, full at one stack. 2.1's oven had one
+     * output; trays 2 and 3 now pour into two more, so reading only slots 0 to 4 would miss what they
+     * make, and averaging over all seven would read lower than 2.1 for the same load. Every load a 2.1
+     * oven could hold reads exactly what it did.
+     */
+    public int comparatorSignal() {
+        float fill = 0.0F;
+        for (int slot = 0; slot < FIRST_TRAY_SLOT + TRAY_COUNT; slot++) {
+            ItemStack stack = getItem(slot);
+            if (!stack.isEmpty()) {
+                fill += stack.getCount() / (float) getMaxStackSize(stack);
+            }
+        }
+        float outputs = 0.0F;
+        for (int slot : OUTPUT_SLOTS) {
+            ItemStack stack = getItem(slot);
+            if (!stack.isEmpty()) {
+                outputs += stack.getCount() / (float) getMaxStackSize(stack);
+            }
+        }
+        fill += Math.min(1.0F, outputs);
+        return Mth.lerpDiscrete(fill / (FIRST_TRAY_SLOT + TRAY_COUNT + 1), 0, 15);
     }
 
     public static boolean isTrayInput(@Nullable Level world, ItemStack stack) {
