@@ -2,151 +2,185 @@
 
 *Minecraft for stoners and hemprepreneurs.*
 
-A hemp and cannabis mod for **Minecraft 1.21.11** on **Fabric**. Grow it, harvest it, smoke it, cook with
-it or use it as a building material, because that is most of what hemp has
-actually been for over the last five thousand years.
+Hempdustry is a hemp and cannabis mod for Minecraft Java Edition. This repository holds every
+supported version of it: one branch per Minecraft version, each one a complete project that builds
+its own jars for its own loaders.
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-brightgreen)](https://www.minecraft.net/)
-[![Fabric](https://img.shields.io/badge/Loader-Fabric-lightgrey)](https://fabricmc.net/)
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/)
+**Links:** [Website](https://hempdustry.fun) · [Wiki](https://github.com/warlon-mhite/hempdustry-java/wiki) ·
+[Releases](https://github.com/warlon-mhite/hempdustry-java/releases) · CurseForge · NexusMods
+
 [![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
 [![Art & music](https://img.shields.io/badge/Art%20%26%20music-CC%20BY--NC--SA%204.0-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-**Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-fabric/releases)
+---
 
-**Needs:** [Fabric Loader](https://fabricmc.net/use/) and [Fabric API](https://modrinth.com/mod/fabric-api).
-JEI or REI is optional, and with either one the mod adds pages for its machines, for packing a pipe
-or bong, and for the cauldron steps. On a dedicated server, JEI shows Hempdustry's crafting recipes
-only if JEI is installed on the server too: since Minecraft 1.21.2 a server no longer sends players
-its recipes. The machine and packing pages show either way.
+## Which version to use
 
-> **Status: version 2.0.3, stable**
-> This is a rewrite for Fabric 1.21.11 of an older Forge 1.16 mod (GanjaCraft) that was built with
-> MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
-> original is back. Some features have been reimagined and the mod is a bit different from the original.
->
-> **Stable** is a promise about your worlds, not a claim that nothing is left to find: from 2.0.2 on,
-> a world made with any version of Hempdustry 2 opens on every later one, with nothing for you to do.
-> It builds, it loads on a dedicated server without a warning, its data all validates, and it has
-> been through a real client on both Minecraft versions. Bug reports are still welcome.
+Pick the row for your Minecraft version. Each release jar is named for its mod version and Minecraft
+version, `2.1.0+26.3` for example, and the loader is the one the jar is built for.
+
+| Minecraft | Loaders | Branch | Support | Latest release |
+|---|---|---|---|---|
+| 26.3 | Fabric, NeoForge | `26.3-2.1` | **Active** | `v2.1.0+26.3` |
+| 1.21.11 | Fabric, NeoForge | `2.1` | **Active** | `v2.1.0` |
+| 1.21.1 | Fabric, NeoForge | `1.21.1-2.1` | **Active** | `v2.1.0+1.21.1` |
+| 26.2 | Fabric, NeoForge | `26.2-2.1` | Last patch (2.1.1), then ends | `v2.1.0+26.2` |
+| 1.20.1 | Fabric, Forge | `1.20.1-2.1` | Maintained | first release planned as 2.1.1 |
+| 1.18.2 | Forge | `1.18.2-2.1` | Maintained | `v2.1.0+1.18.2` |
+| 1.16.5 | Forge | `1.16.5-2.1` | Maintained | `v2.1.0+1.16.5` |
+| 1.21.11 (2.0.3) | Fabric | `master` | End of life | `v2.0.3` |
+| 1.21.1 (2.0.3) | Fabric | `1.21.1` | End of life | `v2.0.3+1.21.1` |
+
+The 1.21.11 release of 2.1.0 is tagged `v2.1.0` and its jars are on that GitHub release; the other
+releases have their own `v<version>+<minecraft>` tag.
+
+Minecraft 26.4 is not ported yet. It gets its own branch once Fabric and NeoForge both build for it.
+
+### Support levels
+
+- **Active** — developed. Gets new features in the next minor release and every bug fix, on each
+  loader the branch builds for.
+- **Maintained** — no new features and no new minor releases. Gets fixes for crashes, world loss and
+  world-import bugs. Nothing else.
+- **Last patch** — one final patch release, then the branch is closed.
+- **End of life** — no releases. The code stays for history.
+
+Levels are reviewed at release checkpoints, from download numbers per line. The table above is the
+current decision.
 
 ---
 
-## What's in it
+## Branches
 
-### The plant
+- **Naming:** `<minecraft>-2.1` for every line of the 2.1 series. The 1.21.11 line predates the
+  pattern and is simply `2.1`.
+- **Each branch stands alone.** It has its own Gradle build, its own pinned versions and its own CI.
+  A branch never builds for a Minecraft version other than its name.
+- **`master`** is the old 2.0.3 Fabric trunk for 1.21.11, closed. It is kept for history and holds two
+  things that stay live: this README, and the update manifest the in-game checker reads
+  (`updates/hempdustry.json`, see [For server owners](#for-server-owners)).
+- **Feature branches** (a modpack integration, a new content set, a rebase) appear and disappear. They
+  carry no stability promise; the table above is the only one that matters to a player.
+- **Tags:** `v<version>+<minecraft>` for each release, plus `v<version>` for the 1.21.11 line.
 
-Two strains, **Purple Kush** and **Lemon Haze**, each with its own crop, seeds, buds and wild flower.
-They differ in shape and in what they give you rather than in some claimed difference of feeling:
-Purple Kush is a short, leafy two-block plant, Lemon Haze is a three-block one that grows slower,
-wants headroom, and pays out in stems instead of leaves.
+## Repository layout
 
-Wild flowers generate across a curated set of biomes — jungle, swamp and lush caves for Purple Kush,
-savanna through to badlands for Lemon Haze — and can be sheared up intact for a flower pot. Hemp
-seeds also turn up in tall grass and in a handful of exploration chests, so you can stumble into the
-mod without looking for it.
+A branch has the same shape on every line, with the loaders it builds for:
 
-**Defoliation.** A growing plant can be sheared twice, in two windows during its life. Each cut hands
-you a hemp leaf on the spot and shifts that plant's eventual harvest one step towards buds and away
-from leaves. Ignoring it entirely is a perfectly good way to play — the plant matures either way, it
-just finishes leaf-heavy instead of bud-heavy.
-
-Bees will pollinate hemp. Parrots and chickens eat the seeds; goats eat the leaves.
-
-### Smoking
-
-Three things to smoke with — a **spliff**, a **wooden pipe** and a **bong** — and what's loaded is
-data on the item rather than a separate item per combination, the same way a potion carries its
-contents.
-
-- **The device sets the duration, the dose sets the strength.** Pack more buds for a stronger hit;
-  the bong's bowl simply takes more of them than the pipe's. A helpful effect stops at level II,
-  where a beacon stops, so a third bud makes the high last longer instead.
-- **Every strain is a bundle of good and bad.** Purple Kush trades mining speed for damage
-  resistance; Lemon Haze trades melee damage for movement and mining speed. Dosing raises both halves.
-- **Green out.** Big doses carry a real chance of losing the hit entirely and spending a while
-  nauseous and useless instead; at a dose of three it also ends the high you already had and keeps
-  you from smoking for a minute. A single-bud hit never does.
-- Pipes and bongs are damageable, enchantable and anvil-repairable, packed or empty.
-
-### From crop to cannabutter
-
-A four-step chain, and each step is a thing you can see happening:
-
-1. **Decarboxylator** — a hemp-brick oven with three trays that cook on their own timers. It is
-   expensive on purpose; edibles are meant to be a goal, not a first-day crop.
-2. **A water cauldron** — rinse the decarboxylated hemp. Optional, but it decides how good the
-   result can get. (The same cauldron also *rets* hemp stems into fibre, at a better rate than the
-   crafting grid gives you.)
-3. **Infuser** — a hempcrete tub around a cauldron that takes its heat from whatever is burning
-   underneath it. A campfire is cheap and always lit; a furnace only works while it is itself busy.
-   The batch carries two independent axes, **strength** (how much hemp went in) and **quality** (how
-   patient and how well-prepared you were), and pours itself into a chest through a visible spout
-   when it peaks.
-4. **Cannabutter**, and then the food.
-
-### Edibles, and food that isn't
-
-**Space Cookies, Space Brownies, Space Cake, Cannabutter Toast, Dawamesk** and a **Bucket of Bhang**.
-One batch of butter spreads across eight cookies or concentrates into a single dawamesk, and that
-dilution is what sets the tiers apart.
-
-They do not hit straight away. There's a delay of anywhere from thirty seconds to three minutes
-before anything happens, the first thing you feel is your legs getting heavy, and the good part
-arrives after that. A better batch of butter narrows how unpredictable the wait is and makes the
-effects last longer. Eating a second one because the first "isn't working" is a mistake the game
-will let you make.
-
-Separately, and with nothing psychoactive in it at all: **toasted hemp seeds**, a **hemp seed bar**,
-a **bucket of hemp milk** (which clears effects like cow's milk and works anywhere milk does — the
-Infuser, Space Cake, bhang, even a plain vanilla cake — so you can skip the cow entirely) and
-**siemieniotka**, the Silesian hemp-seed soup eaten at Christmas Eve.
-
-### Materials and building
-
-Hemp is a fibre crop first, and the mod treats it that way.
-
-- **Cloth chain:** stems → fibre → canvas → hemp wool → hemp carpet, reversible one step at a time.
-  Canvas stands in for leather where vanilla uses leather; hemp wool stands in for wool where vanilla
-  uses wool. Between them you get books, item frames, paintings and a bed without a cow or a sheep.
-- **Hempcrete**, including a powder form that sets on contact with water like concrete does.
-- **Hemp bricks** and a full **hemp plank set** — stairs, slabs, doors, trapdoors, fences, signs,
-  hanging signs, boats — which is fireproof, the way Crimson and Warped are.
-- A hemp **armour set**: beanie, shirt, harem pants and flip-flops. It is not good armour.
-
-### Odds and ends
-
-Six paintings, two music discs with original tracks by **Nefuß**, twenty-four advancements, **recipe
-pages in both JEI and REI** (including the cauldron steps, which are not recipes and which nothing
-else can show you), and full
-translations in twelve locales
-(five English variants and three French, with regional vocabulary rather than copy-paste — Quebec
-gets *gougounes* and its own slang — plus Russian, translated by **MargoxaTheGamer**, and German and Swiss German, translated by **Gülps'sch420**).
-
----
-
-## Building from source
-
-Requires **JDK 21**.
-
-```bash
-./gradlew build          # the mod jar lands in build/libs/
-./gradlew runClient      # a dev client with the mod loaded
-./gradlew runDatagen     # regenerate models, recipes, loot tables, tags, advancements
-./gradlew runGametest    # boot a headless server and run the game tests
+```
+common/       code and data shared by every loader (vanilla APIs only)
+fabric/       Fabric entry points, Fabric's side of the platform layer
+neoforge/     NeoForge entry points (branches that build for NeoForge)
+forge/        Forge entry points (1.16.5, 1.18.2, 1.20.1)
+buildSrc/     shared Gradle build logic
+scripts/      the checks run by scripts/gates.py (and scripts/twins.py on the 1.21.11 and 26.x lines)
+textures-src/ editable sources for the generated placeholder textures
+updates/      the update manifest (master, 2.1, 26.3-2.1 and 26.2-2.1; master's copy is the live one)
 ```
 
-The game tests live in `src/gametest/` — their own source set, so nothing in them reaches the mod
-jar. They run real server code against the real registry, and `runGametest` exits non-zero if any of
-them fails.
+Generated data (recipes, loot tables, tags, advancements, models, worldgen) is committed, and the
+`runDatagen` task writes it. Hand-written assets and lang files sit beside it in `common/` and each
+loader's module.
 
-Most of the mod's data is generated rather than hand-written; if you change a recipe, a loot table,
-a tag or an advancement, run `runDatagen` and commit what it produces.
+Where a loader's module is named (`:fabric`, `:neoforge`, `:forge`), the Gradle tasks take that
+prefix.
 
-## Contributing
+---
 
-Issues and pull requests are welcome. If you are reporting a bug, the Minecraft version, the Fabric
-Loader version and anything else in your mods folder are the three things that will help most.
+## For developers
+
+### Toolchains
+
+Each branch's `gradle.properties` is the source of truth for its Minecraft, loader and API versions.
+What differs by line:
+
+| Lines | Java to build with |
+|---|---|
+| `2.1`, `1.21.1-2.1`, `1.20.1-2.1` | 21 (1.20.1 targets bytecode 17) |
+| `26.3-2.1`, `26.2-2.1` | 25 |
+| `1.18.2-2.1` | 17 |
+| `1.16.5-2.1` | 17 toolchain, Java 8 bytecode through Jabel |
+
+Install the JDKs yourself: no branch downloads one. Gradle picks the right installed JDK for each
+branch, and `org.gradle.java.installations.paths` in your own `~/.gradle/gradle.properties` points it
+at one it does not find.
+
+### Build and run
+
+```bash
+git clone -b 26.3-2.1 https://github.com/warlon-mhite/hempdustry-java.git
+cd hempdustry-fabric
+./gradlew build                  # both loaders' jars, in each module's build/libs/
+./gradlew :fabric:runClient      # dev client, Fabric (JEI on the runtime; -Pviewer=rei or -Pviewer=none)
+./gradlew :neoforge:runClient    # dev client, NeoForge
+./gradlew :fabric:runDatagen     # regenerate the data; commit what it writes
+./gradlew :fabric:runGametest    # headless server and the game tests, on Fabric
+./gradlew :neoforge:runGameTestServer   # the same tests, on NeoForge
+python3 scripts/gates.py         # every gate, in the order CI runs them (--quick to skip build and datagen)
+```
+
+Forge branches use `:forge` in place of `:neoforge`. `scripts/gates.py` runs the script checks, both
+loaders' game tests (with a log gate that fails on any unexpected warning), a cold datagen that must
+reproduce the committed data exactly, and the build. Its full output for each gate is kept in
+`build/gates/`.
+
+The game tests run real server code against the real registry and never reach the shipped jar.
+
+### Making a change
+
+- **Start on the line you can play-test the change on.** A fix for a reported bug starts on the line
+  it was reported on.
+- **Every change goes to every Active line that has the bug.** A change is carried to the other lines
+  as a *twin*: the same commit subject and author, rewritten where the game's code differs. Run
+  `python3 scripts/twins.py <other-branch>` to list what one line lacks.
+- **A commit that belongs to one Minecraft version** carries a trailer instead:
+  `Line-only: 26.3`.
+- **Never carry build files between lines.** `gradle.properties`, the build scripts, the wrapper and
+  the version ranges in the manifests are per line by design.
+- A change is finished when `python3 scripts/gates.py` is green on the branch it lands on.
+- After a change to a provider, run `runDatagen` and commit the output.
+
+### Reporting a bug or opening a pull request
+
+Name the Minecraft version, the loader, the Hempdustry jar and any other mods in the game. The branch
+is named after the Minecraft version, so the version alone tells a maintainer where to look. A pull
+request should say which lines it should reach.
+
+---
+
+## For modpack makers
+
+- **Pick the jar for your Minecraft version and your loader.** One line per Minecraft version; a jar
+  built for another version will not load.
+- **Dependencies.** On Fabric: Fabric Loader and Fabric API. On NeoForge: NeoForge only. On Forge:
+  Forge only.
+- **Optional:** JEI or REI. With either one the mod adds pages for its machines, for packing a pipe or
+  bong, and for the cauldron steps. Without one, everything still works.
+- **Worlds.** From 2.0.2 on, a world made with any Hempdustry 2 release opens on every later one.
+  Nothing needs doing on your side.
+- **Licences.** The ordinary case is fine, including a pack that earns money: see
+  [Licences](#licences).
+
+## For server owners
+
+- **Install the same jar on the server and on every client**, with the loader and Fabric API on the
+  server if you run Fabric.
+- **Recipe pages on a dedicated server.** Since Minecraft 1.21.2 a server no longer sends players its
+  recipes. If you want JEI to show Hempdustry's crafting recipes to players, install JEI on the server
+  too. The machine and packing pages show either way.
+- **Update checker.** The in-game checker reads `updates/hempdustry.json` from the `master` branch over
+  `raw.githubusercontent.com`, so it works whichever site a player downloaded the mod from. Each
+  Minecraft version has a `-latest` and a `-recommended` key. The file is maintained by hand and is
+  updated as part of each release.
+- **Moving a world to a newer Minecraft version** goes through Minecraft's own data upgrade. Back up
+  a world before you change its Minecraft version.
+
+## Support and feedback
+
+Bug reports go to the issue tracker on this repository. Include the Minecraft version, the loader, the
+Hempdustry jar name and the output of the game log around the problem.
+
+---
 
 ## Credits
 
