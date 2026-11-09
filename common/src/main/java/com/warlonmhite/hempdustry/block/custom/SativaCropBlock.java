@@ -138,11 +138,20 @@ public class SativaCropBlock extends CropBlock {
     @Override
     protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         BlockState below = world.getBlockState(pos.below());
+        // A segment also asks the LOWER's age: another mod that harvests and replants the root inside a
+        // block update (Just Dire Things' goo soil) leaves the old segments standing, because the update
+        // that would break them is queued until the outer one ends, and by then a seedling stands under
+        // them. Only its age tells that they are not its own.
         return switch (state.getValue(SEGMENT)) {
             // The UPPER sits on the LOWER while the plant is two tall, and on the MIDDLE once
             // it is three tall, so it accepts either.
-            case UPPER -> below.is(this) && below.getValue(SEGMENT) != TriplePlantSegment.UPPER;
-            case MIDDLE -> below.is(this) && below.getValue(SEGMENT) == TriplePlantSegment.LOWER;
+            case UPPER -> below.is(this) && switch (below.getValue(SEGMENT)) {
+                case MIDDLE -> true;
+                case LOWER -> this.getAge(below) >= TWO_TALL_AGE;
+                case UPPER -> false;
+            };
+            case MIDDLE -> below.is(this) && below.getValue(SEGMENT) == TriplePlantSegment.LOWER
+                    && this.getAge(below) >= THREE_TALL_AGE;
             case LOWER -> super.canSurvive(state, world, pos);
         };
     }
@@ -322,16 +331,24 @@ public class SativaCropBlock extends CropBlock {
         }
         boolean replanted = age < this.getAge(old);
         if (replanted) {
-            for (int offset = 2; offset >= 1; offset--) {
-                BlockPos segmentPos = pos.above(offset);
-                BlockState segment = world.getBlockState(segmentPos);
-                if (segment.is(this) && !isLower(segment)) {
-                    world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
-                            Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                }
-            }
+            this.removeSegmentsAbove(world, pos);
         }
         this.setAge(world, pos, replanted ? state : old, age, 0.0F, world.getRandom());
+    }
+
+    /**
+     * Takes away the segments standing on {@code pos}, top down and without drops: their plant's harvest is the
+     * root's, and whoever replaced the root has had it.
+     */
+    private void removeSegmentsAbove(Level world, BlockPos pos) {
+        for (int offset = 2; offset >= 1; offset--) {
+            BlockPos segmentPos = pos.above(offset);
+            BlockState segment = world.getBlockState(segmentPos);
+            if (segment.is(this) && !isLower(segment)) {
+                world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
+        }
     }
 
     /** A flat one stage per successful bonemeal, for the same reasons as {@link IndicaCropBlock}. */
@@ -394,6 +411,15 @@ public class SativaCropBlock extends CropBlock {
             }
         }
         world.setBlock(pos, lower, Block.UPDATE_CLIENTS);
+        if (world.getBlockState(pos) != lower) {
+            // Something answered that write by taking the plant: a soil that harvests what ripens on it
+            // (Just Dire Things' goo soil) hears the shape update and replants before this returns. The
+            // segments are no longer this plant's to grow; written now, they would stand ripe on a seedling.
+            // Nor will the old ones fall by themselves: the update that would break them was raised inside this
+            // write's own, so the game queues it, and by the time it runs a new root stands under them again.
+            this.removeSegmentsAbove(world, pos);
+            return;
+        }
 
         BlockPos midPos = pos.above();
         BlockPos topPos = pos.above(2);

@@ -9,6 +9,10 @@ version="1.0.0"
 displayName="Hempdustry Game Tests"
 description='''Game tests for Hempdustry, the same ones Fabric runs.'''
 
+# Test-only mixins: the farmland that harvests what ripens on it (HarvestingGround).
+[[mixins]]
+config="hempdustry_gametest.mixins.json"
+
 [[dependencies.hempdustry_gametest]]
 modId="hempdustry"
 type="required"
