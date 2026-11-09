@@ -65,6 +65,9 @@ public final class AddonEventGameTest {
         List<TestPlatform.Heard> eaten = probe.take();
         context.assertValueEqual(List.of("AFTER_EAT"), names(eaten), "the events of an edible");
         context.assertValueEqual(List.<Object>of(player, 2, Quality.CLEAN), eaten.get(0).payload(), "what AFTER_EAT carried");
+        // A CBD-only edible has no THC tier, and the event's tier is 1..4: nothing fires.
+        EdibleEffects.consume(player, 0, 2, Quality.CLEAN);
+        context.assertValueEqual(names(probe.take()), List.of(), "the events of a CBD-only edible");
 
         InfuserBlockEntity infuser = InfuserBreakGameTest.place(context, TUB, InfuserBlockEntity.minTime());
         infuser.onPreviewTaken();
@@ -74,6 +77,12 @@ public final class AddonEventGameTest {
         context.assertTrue(batch.get(0) == context.getLevel() && context.absolutePos(TUB).equals(batch.get(1))
                         && batch.get(2) instanceof Integer strength && strength > 0 && batch.get(3) instanceof Quality,
                 "AFTER_INFUSE carried " + batch + " rather than the tub's level, its position, a strength and a grade");
+        // Its strength is the hemp that went in, whatever its chemotype: 24 CBD hemp is 24, not 0.
+        InfuserBreakGameTest.place(context, TUB, "{Progress:" + InfuserBlockEntity.minTime()
+                + ",HaveMilk:1b,BatchUnwashed:24,BatchUnwashedChemotypes:{cbd_dominant:24}}").onPreviewTaken();
+        List<TestPlatform.Heard> cbd = probe.take();
+        context.assertValueEqual(names(cbd), List.of("AFTER_INFUSE"), "the events of a collected CBD batch");
+        context.assertValueEqual(cbd.get(0).payload().get(2), 24, "the strength AFTER_INFUSE gave 24 CBD hemp");
         context.succeed();
     }
 

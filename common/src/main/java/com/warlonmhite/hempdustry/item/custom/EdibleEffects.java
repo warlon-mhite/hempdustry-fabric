@@ -127,7 +127,8 @@ public final class EdibleEffects {
 
     /**
      * Eats an edible of THC tier {@code tier} and CBD tier {@code cbdTier} (0 for none of either).
-     * The addon event reports the THC tier, as it always has: a CBD-only edible fires with tier 0.
+     * The addon event reports the THC tier, 1..4, as it always has, and so fires only when there is
+     * one: a CBD-only edible is eaten without it, as its contract says of a tier-0 edible.
      */
     public static void consume(Player player, int tier, int cbdTier, Quality quality) {
         if (tier <= 0 && cbdTier <= 0) {
@@ -142,7 +143,9 @@ public final class EdibleEffects {
 
         // Fired on the swallow, not on the onset: the effects above are queued behind a come-up and
         // then ramp in stages, so there is no single later instant that means "this happened".
-        Services.ADDON_EVENTS.afterEat(player, tier, quality);
+        if (tier > 0) {
+            Services.ADDON_EVENTS.afterEat(player, tier, quality);
+        }
     }
 
     /**

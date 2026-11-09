@@ -222,8 +222,9 @@ public final class ChemotypeGameTest {
         nbt.putInt("Progress", InfuserBlockEntity.fullTime());
         nbt.putBoolean("HaveMilk", true);
         nbt.putInt("BatchUnwashed", 8);
-        nbt.putInt("BatchThc", 0);
-        nbt.putInt("BatchCbd", 64);
+        CompoundTag cbdCounts = new CompoundTag();
+        cbdCounts.putInt("cbd_dominant", 8);
+        nbt.put("BatchUnwashedChemotypes", cbdCounts);
         infuser.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, world.registryAccess(), nbt));
         context.assertValueEqual(infuser.strength(), 0, "eight CBD hemp's THC sum");
         context.assertValueEqual(infuser.cbdStrength(), 8, "eight CBD hemp's CBD sum");
