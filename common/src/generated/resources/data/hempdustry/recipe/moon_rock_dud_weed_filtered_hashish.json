@@ -1,0 +1,30 @@
+{
+  "type": "hempdustry:stamped_shapeless",
+  "group": "moon_rock",
+  "ingredients": [
+    "hempdustry:dud_weed_buds",
+    "hempdustry:rosin",
+    [
+      "hempdustry:filtered_hashish",
+      "hempdustry:bubble_hash",
+      "hempdustry:filtered_kief"
+    ]
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 3,
+            "strain": "hempdustry:dud_weed"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:filtered_hashish"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:moon_rock"
+  }
+}

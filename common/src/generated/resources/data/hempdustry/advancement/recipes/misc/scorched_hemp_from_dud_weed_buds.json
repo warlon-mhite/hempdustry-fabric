@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dud_weed_buds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "hempdustry:dud_weed_buds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "hempdustry:scorched_hemp_from_dud_weed_buds"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dud_weed_buds"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "hempdustry:scorched_hemp_from_dud_weed_buds"
+    ]
+  }
+}

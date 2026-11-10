@@ -1,0 +1,30 @@
+{
+  "type": "hempdustry:stamped_shaped",
+  "group": "spliff",
+  "key": {
+    "B": "hempdustry:dud_weed_buds",
+    "H": "hempdustry:filtered_hashish",
+    "P": "minecraft:paper"
+  },
+  "pattern": [
+    "BH",
+    "PP"
+  ],
+  "result": {
+    "components": {
+      "hempdustry:smoke_contents": {
+        "entries": [
+          {
+            "count": 1,
+            "strain": "hempdustry:dud_weed"
+          },
+          {
+            "count": 1,
+            "strain": "hempdustry:filtered_hashish"
+          }
+        ]
+      }
+    },
+    "id": "hempdustry:spliff"
+  }
+}

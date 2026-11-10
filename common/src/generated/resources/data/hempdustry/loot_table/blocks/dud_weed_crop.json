@@ -1,0 +1,1135 @@
+{
+  "type": "minecraft:block",
+  "modifier": [
+    {
+      "type": "minecraft:explosion_decay"
+    },
+    {
+      "type": "hempdustry:set_chemotype",
+      "strain": "hempdustry:dud_weed"
+    },
+    {
+      "type": "hempdustry:set_potency"
+    }
+  ],
+  "pools": [
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:dud_weed_crop",
+        "state": {
+          "half": "lower"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 1
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "trimmed_early": "false",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "condition": "stressed",
+                      "half": "lower"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 2
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:dud_weed_crop",
+                        "state": {
+                          "age": "7",
+                          "half": "lower",
+                          "trimmed_early": "true",
+                          "trimmed_late": "false"
+                        }
+                      },
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:dud_weed_crop",
+                        "state": {
+                          "age": "7",
+                          "half": "lower",
+                          "trimmed_early": "false",
+                          "trimmed_late": "true"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "condition": "stressed",
+                      "half": "lower"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 3
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "trimmed_early": "true",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "condition": "stressed",
+                      "half": "lower"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 2
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "trimmed_early": "false",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "mildew": "mildewed"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 3
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:dud_weed_crop",
+                        "state": {
+                          "age": "7",
+                          "half": "lower",
+                          "trimmed_early": "true",
+                          "trimmed_late": "false"
+                        }
+                      },
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:dud_weed_crop",
+                        "state": {
+                          "age": "7",
+                          "half": "lower",
+                          "trimmed_early": "false",
+                          "trimmed_late": "true"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "mildew": "mildewed"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 4
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "trimmed_early": "true",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "mildew": "mildewed"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.25,
+                0.2,
+                0.15,
+                0.1
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 2
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "trimmed_early": "false",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "mildew": "sulfured"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.1,
+                0.08,
+                0.06,
+                0.04
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 3
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:any_of",
+                    "terms": [
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:dud_weed_crop",
+                        "state": {
+                          "age": "7",
+                          "half": "lower",
+                          "trimmed_early": "true",
+                          "trimmed_late": "false"
+                        }
+                      },
+                      {
+                        "type": "minecraft:match_block",
+                        "blocks": "hempdustry:dud_weed_crop",
+                        "state": {
+                          "age": "7",
+                          "half": "lower",
+                          "trimmed_early": "false",
+                          "trimmed_late": "true"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "mildew": "sulfured"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.1,
+                0.08,
+                0.06,
+                0.04
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 4
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "trimmed_early": "true",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "mildew": "sulfured"
+                    }
+                  }
+                ]
+              },
+              "each_item_chances": [
+                0.1,
+                0.08,
+                0.06,
+                0.04
+              ],
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag"
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 2
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:dud_weed_crop",
+                "state": {
+                  "age": "7",
+                  "half": "lower",
+                  "trimmed_early": "false",
+                  "trimmed_late": "false"
+                }
+              },
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 3
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:any_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "trimmed_early": "true",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "trimmed_early": "false",
+                      "trimmed_late": "true"
+                    }
+                  }
+                ]
+              },
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "hempdustry:spoiling",
+              "child": {
+                "type": "minecraft:item",
+                "modifier": [
+                  {
+                    "type": "minecraft:set_count",
+                    "count": 4
+                  },
+                  {
+                    "type": "minecraft:apply_bonus",
+                    "enchantment": "minecraft:fortune",
+                    "formula": "minecraft:binomial_with_bonus_count",
+                    "parameters": {
+                      "extra": 2,
+                      "probability": 0.2
+                    }
+                  }
+                ],
+                "name": "hempdustry:dud_weed_buds"
+              },
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:dud_weed_crop",
+                "state": {
+                  "age": "7",
+                  "half": "lower",
+                  "trimmed_early": "true",
+                  "trimmed_late": "true"
+                }
+              },
+              "enchantment": "minecraft:fortune",
+              "into": "hempdustry:schwag",
+              "one_item_chances": [
+                0.02,
+                0.0
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "hempdustry:dud_weed_seeds"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:dud_weed_crop",
+        "state": {
+          "age": "7",
+          "half": "lower"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:dud_weed_crop",
+                "state": {
+                  "age": "7",
+                  "half": "lower",
+                  "rubbed": "false",
+                  "trimmed_early": "false",
+                  "trimmed_late": "false"
+                }
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 3
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:any_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "rubbed": "false",
+                      "trimmed_early": "true",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "rubbed": "false",
+                      "trimmed_early": "false",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "rubbed": "true",
+                      "trimmed_early": "false",
+                      "trimmed_late": "false"
+                    }
+                  }
+                ]
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 2
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:any_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "rubbed": "false",
+                      "trimmed_early": "true",
+                      "trimmed_late": "true"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "rubbed": "true",
+                      "trimmed_early": "true",
+                      "trimmed_late": "false"
+                    }
+                  },
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "half": "lower",
+                      "rubbed": "true",
+                      "trimmed_early": "false",
+                      "trimmed_late": "true"
+                    }
+                  }
+                ]
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 1
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:dud_weed_crop",
+                "state": {
+                  "age": "7",
+                  "half": "lower",
+                  "rubbed": "true",
+                  "trimmed_early": "true",
+                  "trimmed_late": "true"
+                }
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 0
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_leaf"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:dud_weed_crop",
+        "state": {
+          "age": "7",
+          "half": "lower"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:dud_weed_crop",
+                "state": {
+                  "age": "7",
+                  "condition": "grow_lamp",
+                  "half": "lower"
+                }
+              },
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 2
+              },
+              "name": "hempdustry:dud_weed_buds"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:dud_weed_crop",
+                "state": {
+                  "age": "7",
+                  "condition": "lamp",
+                  "half": "lower"
+                }
+              },
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 1
+              },
+              "name": "hempdustry:dud_weed_buds"
+            },
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:all_of",
+                "terms": [
+                  {
+                    "type": "minecraft:match_block",
+                    "blocks": "hempdustry:dud_weed_crop",
+                    "state": {
+                      "age": "7",
+                      "condition": "ambient",
+                      "half": "lower"
+                    }
+                  },
+                  {
+                    "type": "minecraft:random_chance",
+                    "chance": 0.5
+                  }
+                ]
+              },
+              "modifier": {
+                "type": "minecraft:set_count",
+                "count": 1
+              },
+              "name": "hempdustry:dud_weed_buds"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:all_of",
+        "terms": [
+          {
+            "type": "minecraft:match_block",
+            "blocks": "hempdustry:dud_weed_crop",
+            "state": {
+              "age": "7",
+              "half": "lower"
+            }
+          },
+          {
+            "type": "minecraft:any_of",
+            "terms": [
+              {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:dud_weed_crop",
+                "state": {
+                  "age": "7",
+                  "condition": "grow_lamp",
+                  "half": "lower"
+                }
+              },
+              {
+                "type": "minecraft:match_block",
+                "blocks": "hempdustry:dud_weed_crop",
+                "state": {
+                  "age": "7",
+                  "condition": "lamp",
+                  "half": "lower"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hempdustry:hemp_leaf"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:dud_weed_crop",
+        "state": {
+          "age": "7",
+          "condition": "stressed",
+          "half": "lower"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": {
+            "type": "minecraft:set_count",
+            "count": 2
+          },
+          "name": "hempdustry:dud_weed_seeds"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:dud_weed_crop",
+        "state": {
+          "age": "7",
+          "half": "lower"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": [
+            {
+              "type": "minecraft:set_count",
+              "count": 5
+            },
+            {
+              "type": "minecraft:apply_bonus",
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:binomial_with_bonus_count",
+              "parameters": {
+                "extra": 3,
+                "probability": 0.4
+              }
+            }
+          ],
+          "name": "hempdustry:dud_weed_seeds"
+        }
+      ],
+      "rolls": 1
+    },
+    {
+      "condition": {
+        "type": "minecraft:match_block",
+        "blocks": "hempdustry:dud_weed_crop",
+        "state": {
+          "age": "7",
+          "half": "lower"
+        }
+      },
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "condition": {
+                "type": "minecraft:location_check",
+                "offsetY": -1,
+                "predicate": {
+                  "block": {
+                    "blocks": [
+                      "hempdustry:grow_pot",
+                      "hempdustry:hydro_tray"
+                    ]
+                  }
+                }
+              },
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 1
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_stem"
+            },
+            {
+              "type": "minecraft:item",
+              "modifier": [
+                {
+                  "type": "minecraft:set_count",
+                  "count": 2
+                },
+                {
+                  "type": "minecraft:apply_bonus",
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:binomial_with_bonus_count",
+                  "parameters": {
+                    "extra": 3,
+                    "probability": 0.3
+                  }
+                }
+              ],
+              "name": "hempdustry:hemp_stem"
+            }
+          ]
+        }
+      ],
+      "rolls": 1
+    }
+  ]
+}

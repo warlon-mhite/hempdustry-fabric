@@ -480,7 +480,10 @@ public record Strain(String translationKey, int color, int modelIndex,
             EffectLabel label = effect.label();
             // Before the chance draw: an effect the chemotype rules out never takes a random number,
             // so a THC-dominant load draws exactly what it always did.
-            if ((label == EffectLabel.THC && thcDose == 0) || (label == EffectLabel.CBD && chemotype.cbdHalves() == 0)) {
+            // Cannabinoid-free material has none of the strain's own effects either, a hash's or a
+            // scorched bud's: only what any smoke does (schwag's Poison) is left.
+            if ((label == EffectLabel.THC && thcDose == 0) || (label == EffectLabel.CBD && chemotype.cbdHalves() == 0)
+                    || (label == EffectLabel.STRAIN && chemotype == Chemotype.CANNABINOID_FREE)) {
                 continue;
             }
             // A certain effect draws nothing, so every strain written before chance existed takes

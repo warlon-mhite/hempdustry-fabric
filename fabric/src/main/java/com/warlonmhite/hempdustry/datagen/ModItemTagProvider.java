@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
@@ -40,7 +41,8 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                 .add(ModItems.CRIMSON_SEEDS)
                 .add(ModItems.ENDER_HAZE_SEEDS)
                 .add(ModItems.CHERRY_WINE_SEEDS)
-                .add(ModItems.WHITE_WIDOW_SEEDS);
+                .add(ModItems.WHITE_WIDOW_SEEDS)
+                .add(ModItems.DUD_WEED_SEEDS);
 
         // Striders eat warped fungus, and only that; Warped Kush grows beside it. Joining the tag is
         // the whole feature -- breeding, and #minecraft:strider_tempt_items includes it, so a strider
@@ -250,8 +252,10 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
             Strain strain = strains.getOrThrow(key).value();
             // Only things that grew on a plant are plant matter. Hashish is a strain entry too, but
             // its "buds" are resin, and resin never goes back into the screen: only kief re-sifts.
-            // Beldía's buds sit in their own tag below, at their own rate.
-            if (strain.wildFlower().isPresent() && strain.buds() != ModItems.BELDIA_BUDS) {
+            // Beldía's buds sit in their own tag below, at their own rate. A strain with no cannabinoids
+            // has no resin worth the screen, and the box refuses it.
+            if (strain.wildFlower().isPresent() && strain.buds() != ModItems.BELDIA_BUDS
+                    && strain.chemotype() != Chemotype.CANNABINOID_FREE) {
                 flower.add(strain.buds());
             }
         }
@@ -285,6 +289,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                 .add(ModItems.ENDER_HAZE_BUDS)
                 .add(ModItems.CHERRY_WINE_BUDS)
                 .add(ModItems.WHITE_WIDOW_BUDS)
+                .add(ModItems.DUD_WEED_BUDS)
                 .add(ModItems.HEMP_LEAF);
         valueLookupBuilder(ConventionalItemTags.CROPS)
                 .addOptionalTag(ModTags.Conventional.HEMP_CROPS);

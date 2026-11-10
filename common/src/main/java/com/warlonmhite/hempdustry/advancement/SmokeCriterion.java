@@ -10,6 +10,7 @@ import net.minecraft.advancements.triggers.Criterion;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.advancements.predicates.ItemPredicate;
+import net.minecraft.advancements.predicates.MinMaxBounds;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -49,18 +50,29 @@ public class SmokeCriterion extends SimpleCriterionTrigger<SmokeCriterion.Condit
     }
 
     public record Conditions(Optional<Holder<LootItemCondition>> player, Optional<ItemPredicate> item,
-                             Optional<TimeWindow> time, Optional<ResourceKey<Strain>> strain)
+                             Optional<TimeWindow> time, Optional<ResourceKey<Strain>> strain,
+                             Optional<MinMaxBounds.Ints> thcDose)
             implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 LootItemCondition.CODEC.optionalFieldOf("player").forGetter(Conditions::player),
                 ItemPredicate.CODEC.optionalFieldOf("item").forGetter(Conditions::item),
                 TimeWindow.CODEC.optionalFieldOf("time").forGetter(Conditions::time),
-                ResourceKey.codec(Strain.REGISTRY_KEY).optionalFieldOf("strain").forGetter(Conditions::strain)
+                ResourceKey.codec(Strain.REGISTRY_KEY).optionalFieldOf("strain").forGetter(Conditions::strain),
+                MinMaxBounds.Ints.CODEC.optionalFieldOf("thc_dose").forGetter(Conditions::thcDose)
         ).apply(instance, Conditions::new));
+
+        public Conditions(Optional<Holder<LootItemCondition>> player, Optional<ItemPredicate> item,
+                          Optional<TimeWindow> time, Optional<ResourceKey<Strain>> strain) {
+            this(player, item, time, strain, Optional.empty());
+        }
 
         /** True when no optional filter is set, or the hit satisfies every one that is. */
         public boolean matches(long timeOfDay, ItemStack stack) {
             if (time.isPresent() && !time.get().contains(timeOfDay)) {
+                return false;
+            }
+            if (thcDose.isPresent() && !thcDose.get().matches(
+                    stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY).thcDose())) {
                 return false;
             }
             if (strain.isPresent() && stack.getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY)
@@ -98,6 +110,14 @@ public class SmokeCriterion extends SimpleCriterionTrigger<SmokeCriterion.Condit
                     Optional.of(ItemPredicate.Builder.item()
                             .of(registries.lookupOrThrow(Registries.ITEM), items).build()),
                     Optional.empty(), Optional.empty()));
+        }
+
+        /**
+         * Only counts a hit whose load holds {@code strain} and comes to a THC dose of exactly {@code dose}.
+         */
+        public static Criterion<Conditions> of(ResourceKey<Strain> strain, int dose) {
+            return ModCriteria.SMOKE.createCriterion(new Conditions(Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.of(strain), Optional.of(MinMaxBounds.Ints.exactly(dose))));
         }
 
         /** Only counts a hit taken while the time of day is within {@code [minTicks, maxTicks]} (inclusive). */

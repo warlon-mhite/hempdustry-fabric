@@ -328,6 +328,16 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                 .parent(firstContact)
                 .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "it_doesnt_work_like_that"));
 
+        // A joke too, so hidden: smoke the plant with nothing in it, and nothing happens. A damp squib
+        // is a firework that fails to go off, as a dud is; the French "pétard mouillé" is the same idiom,
+        // and a pétard is a joint. Beside the other joke under First Contact. Only a load that comes to
+        // no THC at all: Dud Weed rolled with hashish goes off, and is no damp squib.
+        Advancement.Builder.advancement()
+                .display(display(ModItems.DUD_WEED_BUDS, "damp_squib", AdvancementType.TASK, true))
+                .addCriterion("smoked_dud_weed", SmokeCriterion.Conditions.of(ModStrains.DUD_WEED, 0))
+                .parent(firstContact)
+                .save(consumer, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "damp_squib"));
+
         // Hidden easter-egg: take a hit while the in-game clock reads ~4:20 PM. Vanilla day = 24000
         // ticks, tick 0 = 6:00 AM, 1000 ticks/hour → 4:20 PM = 10333. Window ±210 ticks (10123–10543,
         // 420 ticks wide ≈ 21 real seconds) as a nod to the number. Time gate lives in the criterion

@@ -1,0 +1,16 @@
+{
+  "buds": "hempdustry:dud_weed_buds",
+  "chemotype": "cannabinoid_free",
+  "color": 12171108,
+  "flower": "hempdustry:dud_weed_crop",
+  "green_out_factor": 0.0,
+  "model_index": 14,
+  "potency": {
+    "high": 0,
+    "low": 60,
+    "mid": 40
+  },
+  "seeds": "hempdustry:dud_weed_seeds",
+  "terpene": "hempdustry:humulene",
+  "translation_key": "hempdustry.strain.dud_weed"
+}

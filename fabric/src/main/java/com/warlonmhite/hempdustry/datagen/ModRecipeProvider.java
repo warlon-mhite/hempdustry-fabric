@@ -565,10 +565,12 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // do, so strain #3 is decarboxylatable the moment it exists.
         //
         // Plant strains only: a hash entry's "buds" are resin, and the oven takes plant matter,
-        // never resin -- hash is a smoking material and nothing else.
+        // never resin -- hash is a smoking material and nothing else. And only the plants the oven
+        // takes: it turns away a chemotype with neither THC nor CBD (Dud Weed), so a recipe for one
+        // would be a page in a viewer that the machine refuses.
         for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
             Strain strain = strains.getOrThrow(key).value();
-            if (strain.wildFlower().isEmpty()) {
+            if (strain.wildFlower().isEmpty() || !strain.chemotype().infusable()) {
                 continue;
             }
             // A mid bud's worth is the strain's potency base (4 for every strain the mod ships,

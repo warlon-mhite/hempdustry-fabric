@@ -307,11 +307,13 @@ public class SiftingBoxBlock extends Block {
             return InteractionResult.CONSUME;
         }
 
-        Content content = contentOf(stack);
-        float chance = sieveChance(stack) * rate(world, pos, state);
         Chemotype chemotype = Chemotype.ofMatter(stack, world.registryAccess());
-        // THC, balanced and CBD matter mix by dosage; the two with neither cannabinoid have no share
-        // to mix by, so they sift only with their own kind.
+        // Cannabinoid-free matter carries no resin worth the screen: the box takes nothing from it,
+        // silently, as it takes nothing from a stick.
+        Content content = chemotype == Chemotype.CANNABINOID_FREE ? null : contentOf(stack);
+        float chance = sieveChance(stack) * rate(world, pos, state);
+        // THC, balanced and CBD matter mix by dosage; CBG-dominant matter has no share to mix by, so it
+        // sifts only with its own kind.
         Chemotype batchChemotype = ChemotypeBlocks.of(state);
         boolean otherChemotype = level > 0 && chemotype != batchChemotype
                 && (!mixes(chemotype) || !mixes(batchChemotype));

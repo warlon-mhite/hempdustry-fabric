@@ -41,7 +41,7 @@ LAYERS = {
 # (with open air above, without).
 POWDER_FOR = {"white_widow_crop": (GREY_POWDER, 0.75, 0.30)}
 
-CROPS = ("indica_crop", "sativa_crop", "beldia_crop", "cherry_wine_crop", "white_widow_crop")
+CROPS = ("indica_crop", "sativa_crop", "beldia_crop", "cherry_wine_crop", "white_widow_crop", "dud_weed_crop")
 STAGE = re.compile(r"^(?:%s)_stage\d+(?:_(?:bottom|middle|top))?$" % "|".join(CROPS))
 
 

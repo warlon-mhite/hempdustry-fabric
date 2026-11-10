@@ -167,7 +167,8 @@ public class HempdustryClient {
                 return Set.of(GrowLight.PROPERTY);
             }
         }), ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
-                ModBlocks.INDUSTRIAL_HEMP_CROP, ModBlocks.CHERRY_WINE_CROP, ModBlocks.WHITE_WIDOW_CROP);
+                ModBlocks.INDUSTRIAL_HEMP_CROP, ModBlocks.CHERRY_WINE_CROP, ModBlocks.WHITE_WIDOW_CROP,
+                ModBlocks.DUD_WEED_CROP);
 
         // A packed bong set down shows its load on tint index 1. A block tint can ask the world and
         // not the stack, so it is one dried-bud green whatever the strain; the strain's own colour

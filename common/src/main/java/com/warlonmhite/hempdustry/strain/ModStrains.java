@@ -88,6 +88,12 @@ public class ModStrains {
     /** The pale garden's plant, Purple Kush's body, touchy about its light. Its wild flower opens at night. */
     public static final ResourceKey<Strain> WHITE_WIDOW = key("white_widow");
     /**
+     * The cannabinoid-free plant, Purple Kush's body with the fibre family's outline. It has no wild
+     * plant: its {@code flower} is its own crop, which the world never generates, and it is found as a
+     * sport of ripe Industrial Hemp and in shipwrecks' stores.
+     */
+    public static final ResourceKey<Strain> DUD_WEED = key("dud_weed");
+    /**
      * Not a plant and not resin: spent hemp, smoked for what little is left in it. <b>Deliberately
      * outside {@link #BUILT_IN}</b> — it has no art and no recipes of its own, so it takes
      * {@code model_index} 0 and the shared tinted look, and none of the per-strain datagen loops
@@ -112,7 +118,7 @@ public class ModStrains {
      */
     public static final List<ResourceKey<Strain>> BUILT_IN =
             List.of(INDICA, SATIVA, HASHISH, CHARAS, FILTERED_HASHISH, ROSIN, BELDIA, WARPED_KUSH, RUDERALIS,
-                    CRIMSON, ENDER_HAZE, CHERRY_WINE, WHITE_WIDOW);
+                    CRIMSON, ENDER_HAZE, CHERRY_WINE, WHITE_WIDOW, DUD_WEED);
 
     /** First {@code model_index} this mod claims for its own art. */
     public static final int RESERVED_MODEL_INDEX_MIN = 1;
@@ -411,6 +417,26 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.UNLUCK, 0, EffectLabel.STRAIN, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
                 1.0F, Chemotype.THC_DOMINANT).withTerpene(Terpene.NEROLIDOL)
                 .withPotency(Potency.odds(20, 50, 25, 5)));
+
+        // Dud Weed -- the cannabinoid-free plant. Real cannabinoid-free lines were bred out of fibre
+        // hemp (de Meijer et al. 2009), and the trait is recessive, so it turns up in a hemp field
+        // now and then, which is where this one is found.
+        //
+        // NO EFFECTS, by its chemistry rather than by a rule: it makes neither THC nor CBD, so a bowl of
+        // it has a THC dose of 0 (no high, no Hunger, no green-out) and nothing for a CBD effect to read.
+        // What is left is the smoke, its humulene colour, and the cough. green_out_factor 0 says the same
+        // in the codec's own words. The oven and the Infuser turn its flowers away (Chemotype#infusable).
+        //
+        // Potency odds 60 / 40 / 0 / 0, the lowest in the mod: the band weighs nothing on a plant with no
+        // THC, but it is rolled and kept like any plant's, and hardiness comes at that price.
+        //
+        // The khaki of Industrial Hemp's ripe tops, the fibre crop it comes from.
+        context.register(DUD_WEED, new Strain("hempdustry.strain.dud_weed", 0xB9B764, modelIndex(DUD_WEED),
+                Optional.of(ModItems.DUD_WEED_SEEDS), ModItems.DUD_WEED_BUDS,
+                Optional.of(ModBlocks.DUD_WEED_CROP), 0.0F, 1,
+                List.of(),
+                1.0F, Chemotype.CANNABINOID_FREE).withTerpene(Terpene.HUMULENE)
+                .withPotency(Potency.odds(60, 40, 0, 0)));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

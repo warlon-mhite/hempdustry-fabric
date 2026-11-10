@@ -10,6 +10,7 @@ import com.warlonmhite.hempdustry.item.custom.StampedBlockItem;
 import com.warlonmhite.hempdustry.item.custom.StrainPlantItem;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.block.custom.CherryWineCropBlock;
+import com.warlonmhite.hempdustry.block.custom.DudWeedCropBlock;
 import com.warlonmhite.hempdustry.block.custom.WhiteWidowCropBlock;
 import com.warlonmhite.hempdustry.block.custom.WhiteWidowFlowerBlock;
 import com.warlonmhite.hempdustry.block.custom.WhiteWidowPotBlock;
@@ -420,6 +421,11 @@ public class ModBlocks {
             BlockBehaviour.Properties.ofFullCopy(Blocks.ALLIUM));
     public static final Block POTTED_WHITE_WIDOW_FLOWER = registerBlockWithoutItem("potted_white_widow_flower", settings -> new WhiteWidowPotBlock(WHITE_WIDOW_FLOWER, settings),
             BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_ALLIUM));
+
+    // No block item, for the reason on INDICA_CROP above. No wild flower either: Dud Weed is found
+    // in a field of Industrial Hemp, never growing wild.
+    public static final Block DUD_WEED_CROP = registerBlockWithoutItem("dud_weed_crop", DudWeedCropBlock::new,
+            BlockBehaviour.Properties.ofFullCopy(Blocks.WHEAT));
 
 
     /**

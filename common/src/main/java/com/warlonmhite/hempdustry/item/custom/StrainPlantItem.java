@@ -19,7 +19,8 @@ import net.minecraft.world.item.component.TooltipDisplay;
 /**
  * The tooltip a strain's buds and seeds share, the way a seed bank prints it on the packet: the
  * strain's chemotype in a word, grey, then — on a bud — its potency band, then its terpene's name in
- * the terpene's colour. Read off the
+ * the terpene's colour. A cannabinoid-free bud has no band line: "Cannabinoid-free · Low potency"
+ * contradicts itself, so its band is kept on the bud and never shown. Read off the
  * registries the world loaded, so a datapack that makes a strain CBD-dominant, or gives it another
  * terpene, changes the lines on every bud and seed already in a chest. Nothing further down the
  * chain (leaves, hash, butter, edibles) names a terpene: the smell is the flower's.
@@ -46,13 +47,19 @@ public final class StrainPlantItem {
 
     /**
      * Adds the chemotype line, from the strain, or from {@code fallback} for a plant with no strain
-     * record, then {@code band}'s line if there is one, then the strain's terpene if the world defines it.
+     * record, then {@code band}'s line if there is one and the plant makes any cannabinoid, then the
+     * strain's terpene if the world defines it.
      */
     public static void appendProfile(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip,
                                      Optional<Chemotype> fallback, Optional<PotencyBand> band) {
         Optional<Strain> strain = strainOf(stack.getItem(), context);
-        strain.map(Strain::chemotype).or(() -> fallback).ifPresent(value -> tooltip.accept(value.tooltipLine()));
-        band.ifPresent(value -> tooltip.accept(value.tooltipLine()));
+        Optional<Chemotype> chemotype = strain.map(Strain::chemotype).or(() -> fallback);
+        chemotype.ifPresent(value -> tooltip.accept(value.tooltipLine()));
+        // Only the plant with nothing in it at all loses the line: a CBG-dominant bud's band is how much
+        // CBG it carries, so that one keeps it.
+        if (chemotype.filter(value -> value == Chemotype.CANNABINOID_FREE).isEmpty()) {
+            band.ifPresent(value -> tooltip.accept(value.tooltipLine()));
+        }
         HolderLookup.Provider registries = context.registries();
         Optional<Terpene> terpene = strain.flatMap(value -> value.loadedTerpene(registries));
         if (terpene.isEmpty() && registries != null && stack.getItem() instanceof BlockItem plants) {

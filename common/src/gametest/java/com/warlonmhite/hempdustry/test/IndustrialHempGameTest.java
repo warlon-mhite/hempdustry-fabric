@@ -333,7 +333,9 @@ public final class IndustrialHempGameTest {
                 counts[2] += stack.getCount();
             } else if (stack.is(ModItems.INDUSTRIAL_HEMP_SEEDS)) {
                 counts[3] += stack.getCount();
-            } else {
+            } else if (!stack.is(ModItems.DUD_WEED_SEEDS)) {
+                // Everything else is schwag, but for the sport's seed, a pool of its own
+                // (DudWeedGameTest#industrialHempSportsDudWeed).
                 counts[4] += stack.getCount();
             }
         }

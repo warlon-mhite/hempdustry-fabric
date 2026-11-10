@@ -143,6 +143,14 @@ public final class HempdustryGameTests {
         register("wild_white_widow_keeps_the_eyeblossoms_hours", WhiteWidowGameTest::wildWhiteWidowKeepsTheEyeblossomsHours);
         register("white_widow_seeds_stay_in_the_pale_garden", WhiteWidowGameTest::whiteWidowSeedsStayInThePaleGarden);
         register("lights_out", WhiteWidowGameTest::lightsOut);
+        register("dud_weed_plants_on_farmland", DudWeedGameTest::dudWeedPlantsOnFarmland);
+        register("dud_weed_harvests_seeds", DudWeedGameTest::dudWeedHarvestsSeeds);
+        register("dud_weed_smokes_nothing", DudWeedGameTest::dudWeedSmokesNothing);
+        register("dud_weed_has_no_resin", DudWeedGameTest::dudWeedHasNoResin);
+        register("dud_weed_shows_no_potency", DudWeedGameTest::dudWeedShowsNoPotency);
+        register("industrial_hemp_sports_dud_weed", DudWeedGameTest::industrialHempSportsDudWeed);
+        register("dud_weed_seeds_come_from_wrecks", DudWeedGameTest::dudWeedSeedsComeFromWrecks);
+        register("damp_squib", DudWeedGameTest::dampSquib);
         register("crop_loot_tables_validate_clean", SchwagGameTest::cropLootTablesValidateClean);
         register("healthy_plants_spoil_one_bud_in_fifty", SchwagGameTest::healthyPlantsSpoilOneBudInFifty);
         register("stressed_buds_spoil_one_by_one", SchwagGameTest::stressedBudsSpoilOneByOne);

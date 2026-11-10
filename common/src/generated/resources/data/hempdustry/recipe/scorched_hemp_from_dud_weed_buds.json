@@ -1,0 +1,12 @@
+{
+  "type": "hempdustry:stamped_smelting",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": "hempdustry:dud_weed_buds",
+  "result": {
+    "components": {
+      "hempdustry:chemotype": "cannabinoid_free"
+    },
+    "id": "hempdustry:scorched_hemp"
+  }
+}

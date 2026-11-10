@@ -1,0 +1,30 @@
+{
+  "parent": "hempdustry:first_contact",
+  "criteria": {
+    "smoked_dud_weed": {
+      "conditions": {
+        "strain": "hempdustry:dud_weed",
+        "thc_dose": 0
+      },
+      "trigger": "hempdustry:smoke"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.hempdustry.damp_squib.description"
+    },
+    "hidden": true,
+    "icon": {
+      "id": "hempdustry:dud_weed_buds"
+    },
+    "title": {
+      "translate": "advancements.hempdustry.damp_squib.title"
+    }
+  },
+  "requirements": [
+    [
+      "smoked_dud_weed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

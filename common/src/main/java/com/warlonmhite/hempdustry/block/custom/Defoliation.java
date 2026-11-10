@@ -322,7 +322,9 @@ public final class Defoliation {
                 // success-or-not distinction (COMPOSTER_FILL vs COMPOSTER_FILL_SUCCESS), and what
                 // vanilla's composter does before it. Honey is the mod's resin sound -- a hashish
                 // bar is cut to it too -- so "that noise means resin" is one thing to learn.
-                boolean gotCharas = world.getRandom().nextInt(charasOneIn(lowerState)) == 0;
+                // A plant with no cannabinoids has no resin to rub off: the roll is still taken, and never pays.
+                boolean gotCharas = world.getRandom().nextInt(charasOneIn(lowerState)) == 0
+                        && chemotype != Chemotype.CANNABINOID_FREE;
                 if (gotCharas) {
                     Block.popResource(world, lowerPos, Chemotype.stamp(new ItemStack(ModItems.CHARAS), chemotype));
                 }

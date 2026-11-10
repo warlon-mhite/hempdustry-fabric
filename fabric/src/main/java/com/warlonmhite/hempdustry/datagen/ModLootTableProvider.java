@@ -151,6 +151,12 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
     private static final int LAMP_BUDS = 1;
     private static final float AMBIENT_BUD_CHANCE = 0.5F;
     private static final int STRESSED_SEEDS = 2;
+    /**
+     * A ripe plant's seeds before Fortune: the same for every strain but Dud Weed, the seed crop, which
+     * moves two of Purple Kush's leaves onto them ({@link #DUD_WEED_SEEDS_AT_HARVEST}).
+     */
+    private static final int SEEDS_AT_HARVEST = 3;
+    private static final int DUD_WEED_SEEDS_AT_HARVEST = 5;
 
     /**
      * Schwag, by Fortune level: the odds a <b>healthy</b> ripe plant loses one bud to it — the
@@ -262,6 +268,8 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
         // Open or closed, the same drop: the flower's hours are its look, never its loot.
         add(ModBlocks.WHITE_WIDOW_FLOWER, wildFlowerDrops(ModBlocks.WHITE_WIDOW_FLOWER, ModItems.WHITE_WIDOW_SEEDS));
         add(ModBlocks.WHITE_WIDOW_CROP, whiteWidowCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.WHITE_WIDOW))
+                .apply(SetPotencyFunction.setPotency()));
+        add(ModBlocks.DUD_WEED_CROP, dudWeedCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.DUD_WEED))
                 .apply(SetPotencyFunction.setPotency()));
 
         add(ModBlocks.SATIVA_CROP, sativaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.SATIVA))
@@ -387,13 +395,19 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
      */
     private static final float INDUSTRIAL_SCHWAG_NATURAL = 0.25F;
     private static final float INDUSTRIAL_SCHWAG_LIT = 0.5F;
+    /**
+     * Dud Weed, the cannabinoid-free sport of fibre hemp: one ripe Industrial Hemp harvest in this many
+     * drops one Dud Weed seed, about one per 8 x 8 field. Twice as rare as vanilla's rarest mutation, a
+     * panda's recessive gene (1 in 32), because this one is a whole new strain.
+     */
+    private static final int DUD_WEED_SPORT_ONE_IN = 64;
     /** A broken Ditchweed's schwag. Lifted whole with shears or Silk Touch, it gives none. */
     private static final float DITCHWEED_SCHWAG_CHANCE = 0.25F;
 
     /**
      * Industrial Hemp, the fibre crop: <b>never a bud</b>, lamp or no lamp. A ripe LOWER pays
      * 5 + binomial(fortune + 3, 4/7) stems (6.7 on average, 8.4 with Fortune III), wheat's exact seed
-     * rule, and half a leaf. Unripe, it is one seed back. Every pool is pinned to the LOWER, the only
+     * rule, and half a leaf, and one harvest in {@value #DUD_WEED_SPORT_ONE_IN} a Dud Weed seed. Unripe, it is one seed back. Every pool is pinned to the LOWER, the only
      * segment that drops — the three-tall plant's other segments never roll.
      */
     private LootTable.Builder industrialHempCropDrops() {
@@ -429,7 +443,15 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                                 .when(lit(crop, GrowLight.GROW_LAMP))
                                 .otherwise(schwagAt(INDUSTRIAL_SCHWAG_LIT).when(lit(crop, GrowLight.LAMP)))
                                 .otherwise(schwagAt(INDUSTRIAL_SCHWAG_LIT).when(lit(crop, GrowLight.AMBIENT)))
-                                .otherwise(schwagAt(INDUSTRIAL_SCHWAG_NATURAL)))));
+                                .otherwise(schwagAt(INDUSTRIAL_SCHWAG_NATURAL))))
+                // The sport, after everything else: a count of 0 or 1 (never a condition), so it takes
+                // one draw on every ripe harvest and nothing before it moves. Fortune never touches it,
+                // and any break of a ripe plant rolls it, a harvester's included.
+                .withPool(LootPool.lootPool()
+                        .when(isMatureLower)
+                        .add(LootItem.lootTableItem(ModItems.DUD_WEED_SEEDS)
+                                .apply(SetItemCountFunction.setCount(
+                                        ContextIntProviders.binomial(1, 1.0F / DUD_WEED_SPORT_ONE_IN))))));
     }
 
     /** Industrial Hemp's LOWER with {@code light} on its record. */
@@ -517,10 +539,10 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
      * buds: the sugar leaf it takes is not defoliation. Stems are <b>flat</b> — stalk is structural,
      * and pruning foliage has no business changing how much of it there is.
      *
-     * <p><b>Seeds are strain-independent, and so are buds but for Crimson Weed</b> (see
-     * {@link #BUDS_AT_ZERO_CUTS}); stem and leaf counts are the per-crop numbers. Keep it that way: a
-     * strain should be told apart by its effects and its leaf/stem character, not by handing over
-     * more of the same premium drop.
+     * <p><b>Seeds are strain-independent but for the seed crop, Dud Weed, and so are buds but for Crimson
+     * Weed</b> (see {@link #SEEDS_AT_HARVEST}, {@link #BUDS_AT_ZERO_CUTS}); stem and leaf counts are the
+     * per-crop numbers. Keep it that way: a strain should be told apart by its effects and its leaf/stem
+     * character, not by handing over more of the same premium drop.
      *
      * <p>Note that the leaves a player takes during the two cuts and the rub exactly replace the
      * leaves they give up at harvest, so a plant yields the same number of leaves either way and
@@ -545,6 +567,15 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                                             IntegerProperty ageProperty, int maxAge,
                                             Item buds, Item seeds,
                                             int budsAtZeroCuts, int leavesAtZeroCuts, int stemCount) {
+        return this.hempCropDrops(crop, lowerPredicate, ageProperty, maxAge, buds, seeds,
+                budsAtZeroCuts, SEEDS_AT_HARVEST, leavesAtZeroCuts, stemCount);
+    }
+
+    /** As above, with the ripe plant's seeds given rather than {@link #SEEDS_AT_HARVEST}. */
+    private LootTable.Builder hempCropDrops(Block crop, Supplier<StatePropertiesPredicate.Builder> lowerPredicate,
+                                            IntegerProperty ageProperty, int maxAge,
+                                            Item buds, Item seeds,
+                                            int budsAtZeroCuts, int seedsAtHarvest, int leavesAtZeroCuts, int stemCount) {
         if (leavesAtZeroCuts < LEAVES_TAKEN.length) {
             throw new IllegalArgumentException(crop + " has " + leavesAtZeroCuts + " leaves at harvest,"
                     + " fewer than the " + LEAVES_TAKEN.length + " a player can take off it while it grows");
@@ -627,11 +658,12 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                                 .when(stressed)
                                 .add(LootItem.lootTableItem(seeds)
                                         .apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(STRESSED_SEEDS)))))
-                        // Seeds when mature. Identical across strains, so replanting either costs the same.
+                        // Seeds when mature. The same for every strain but the seed crop, so replanting
+                        // any of them costs the same.
                         .withPool(LootPool.lootPool()
                                 .when(isMatureLower)
                                 .add(LootItem.lootTableItem(seeds)
-                                        .apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(3)))
+                                        .apply(SetItemCountFunction.setCount(ContextIntProviders.exactly(seedsAtHarvest)))
                                         .apply(ApplyBonusCount.addBonusBinomialDistributionCount(fortune, 0.40F, 3))))
                         // Hemp stem when mature. Unaffected by trimming — but one short in any bed of
                         // ours: a plant with its roots boxed in (a pot's soil, a tray's net pot) grows a
@@ -793,6 +825,21 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                 IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
                 ModItems.CHERRY_WINE_BUDS, ModItems.CHERRY_WINE_SEEDS,
                 5, 2);
+    }
+
+    /**
+     * Dud Weed, the seed crop: Purple Kush's harvest with two leaves moved onto the seeds -- 2 buds,
+     * 5 seeds, 3 leaves, 2 stems -- the trade the seed-yield gene makes, seeds against leaves and never
+     * buds. Three leaves, not two, because the two trims and the rub take three off a growing plant and
+     * the harvest gives each one back. It is also its own "wild" plant in the strain file, but the world
+     * never generates it, so only a farmed plant pays this.
+     */
+    private LootTable.Builder dudWeedCropDrops() {
+        return this.hempCropDrops(ModBlocks.DUD_WEED_CROP,
+                () -> StatePropertiesPredicate.Builder.properties().hasProperty(IndicaCropBlock.HALF, DoubleBlockHalf.LOWER),
+                IndicaCropBlock.AGE, IndicaCropBlock.MAX_AGE,
+                ModItems.DUD_WEED_BUDS, ModItems.DUD_WEED_SEEDS,
+                BUDS_AT_ZERO_CUTS, DUD_WEED_SEEDS_AT_HARVEST, 3, 2);
     }
 
     private LootTable.Builder whiteWidowCropDrops() {
