@@ -200,8 +200,8 @@ public final class IndoorGrowGameTest {
         classify(context, ModBlocks.GROW_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit Grow Lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit redstone lamp");
         classify(context, Blocks.REDSTONE_LAMP.defaultBlockState(), GrowLight.NATURAL, "an unlit redstone lamp");
-        classify(context, Blocks.COPPER_BULB.weathering().unaffected().defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit copper bulb");
-        classify(context, Blocks.COPPER_BULB.weathering().oxidized().defaultBlockState().setValue(BlockStateProperties.LIT, true),
+        classify(context, Blocks.COPPER_BULB.defaultBlockState().setValue(BlockStateProperties.LIT, true), GrowLight.LAMP, "a lit copper bulb");
+        classify(context, Blocks.OXIDIZED_COPPER_BULB.defaultBlockState().setValue(BlockStateProperties.LIT, true),
                 GrowLight.NATURAL, "a lit oxidised copper bulb (light 4)");
         classify(context, Blocks.GLOWSTONE.defaultBlockState(), GrowLight.AMBIENT, "glowstone");
         classify(context, Blocks.SEA_LANTERN.defaultBlockState(), GrowLight.AMBIENT, "a sea lantern");

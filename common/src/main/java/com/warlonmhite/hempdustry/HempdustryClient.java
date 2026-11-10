@@ -15,6 +15,7 @@ import com.warlonmhite.hempdustry.client.sound.BongDrawSoundInstance;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.client.render.HempBoatEntityRenderer;
+import com.warlonmhite.hempdustry.client.render.HempBedBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.HempPressBlockEntityRenderer;
 import com.warlonmhite.hempdustry.client.render.ModEntityModelLayers;
 import com.warlonmhite.hempdustry.entity.ModEntities;
@@ -69,6 +70,8 @@ public class HempdustryClient {
 
         // The press's platen and capstan move, so a renderer draws them rather than the block model.
         client.blockEntityRenderer(ModBlockEntities.HEMP_PRESS, HempPressBlockEntityRenderer::new);
+        // A bed has no block model: its block entity draws it, like every vanilla bed.
+        client.blockEntityRenderer(ModBlockEntities.HEMP_BED, HempBedBlockEntityRenderer::new);
 
         registerItemModelHooks(client);
         registerBlockColors(client);

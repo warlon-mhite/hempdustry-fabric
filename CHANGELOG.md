@@ -9,7 +9,15 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.1.0+26.2.
+2.1.0 for Minecraft 26.1.2: everything in [2.1.0+26.2], except what is built on things only
+Minecraft 26.2 has. A world from 2.1.0 on Minecraft 1.21.11 opens on it and keeps everything in it.
+
+### Not on Minecraft 26.1.2
+
+- **The footbag** needs sulfur cubes, **Powdery Mildew** needs potent sulfur and its gas, and **jelly
+  legs** need the friction attribute sulfur cubes move by. All three came with Minecraft 26.2, so the
+  26.1.2 build has none of them. The 4:20 marker, *The Munchies*, hemp on other mods' farmland and the
+  baby-sized outfit are all here.
 
 ## [2.1.0+26.2] — 2026-11-02
 

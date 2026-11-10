@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Unit;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 
 /**
  * Flip-flops as flip-flops: a sole under each foot and a thong strap over it, where vanilla would
@@ -55,7 +55,7 @@ public final class FlipFlopsModel {
      * ({@code HumanoidArmorLayer#renderArmorPiece}).
      */
     public static boolean wornByABaby(HumanoidRenderState state) {
-        return state.isBaby && state.entityType != EntityTypes.ARMOR_STAND;
+        return state.isBaby && state.entityType != EntityType.ARMOR_STAND;
     }
 
     /** The model around {@code root}, the {@link ModEntityModelLayers#FLIP_FLOPS} layer once baked. */

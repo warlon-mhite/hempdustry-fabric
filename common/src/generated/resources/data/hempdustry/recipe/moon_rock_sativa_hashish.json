@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shapeless",
+  "category": "misc",
   "group": "moon_rock",
   "ingredients": [
     "hempdustry:sativa_buds",

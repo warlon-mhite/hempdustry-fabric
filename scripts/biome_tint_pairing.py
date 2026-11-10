@@ -57,23 +57,13 @@ def registered_blocks():
 
 
 def models_by_block():
-    """block id -> every hempdustry model its blockstate can show, overlays aside."""
+    """block id -> every hempdustry model its blockstate can show."""
     out = {}
     for assets in ASSETS:
         for state in sorted((assets / "blockstates").glob("*.json")):
             refs = set(re.findall(r"hempdustry:block/([a-z0-9_]+)", state.read_text(encoding="utf-8")))
-            out.setdefault(state.stem, set()).update(ref for ref in refs if not is_overlay(ref))
+            out.setdefault(state.stem, set()).update(refs)
     return out
-
-
-# A layer drawn over a plant rather than the plant itself: mildew's powder and the sulfur's dust
-# are their own colours, and must not take the grass's.
-OVERLAY_PARENT = "hempdustry:block/crop_overlay"
-
-
-def is_overlay(name):
-    model = find_model(name)
-    return model is not None and model.get("parent") == OVERLAY_PARENT
 
 
 def find_model(name):

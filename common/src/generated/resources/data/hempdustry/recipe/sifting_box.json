@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
     "B": "minecraft:iron_bars",
     "C": "hempdustry:hemp_canvas",

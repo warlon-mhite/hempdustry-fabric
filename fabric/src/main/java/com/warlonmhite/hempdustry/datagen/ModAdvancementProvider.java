@@ -20,34 +20,34 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.DisplayInfo;
-import net.minecraft.advancements.predicates.BlockPredicate;
-import net.minecraft.advancements.triggers.ConsumeItemTrigger;
-import net.minecraft.advancements.predicates.DataComponentMatchers;
-import net.minecraft.advancements.predicates.entity.EntityPredicate;
-import net.minecraft.advancements.triggers.InventoryChangeTrigger;
-import net.minecraft.advancements.triggers.ItemDurabilityTrigger;
-import net.minecraft.advancements.predicates.ItemPredicate;
-import net.minecraft.advancements.triggers.ItemUsedOnLocationTrigger;
-import net.minecraft.advancements.predicates.LocationPredicate;
-import net.minecraft.advancements.predicates.MinMaxBounds;
-import net.minecraft.advancements.triggers.PlayerInteractTrigger;
-import net.minecraft.advancements.predicates.StatePropertiesPredicate;
-import net.minecraft.advancements.triggers.TameAnimalTrigger;
+import net.minecraft.advancements.criterion.BlockPredicate;
+import net.minecraft.advancements.criterion.ConsumeItemTrigger;
+import net.minecraft.advancements.criterion.DataComponentMatchers;
+import net.minecraft.advancements.criterion.EntityPredicate;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.ItemDurabilityTrigger;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.criterion.ItemUsedOnLocationTrigger;
+import net.minecraft.advancements.criterion.LocationPredicate;
+import net.minecraft.advancements.criterion.MinMaxBounds;
+import net.minecraft.advancements.criterion.PlayerInteractTrigger;
+import net.minecraft.advancements.criterion.StatePropertiesPredicate;
+import net.minecraft.advancements.criterion.TameAnimalTrigger;
 import net.minecraft.core.ClientAsset;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentExactPredicate;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.advancements.predicates.FoodPredicate;
-import net.minecraft.advancements.predicates.MobEffectsPredicate;
-import net.minecraft.advancements.predicates.entity.PlayerPredicate;
-import net.minecraft.advancements.triggers.CriteriaTriggers;
+import net.minecraft.advancements.criterion.FoodPredicate;
+import net.minecraft.advancements.criterion.MobEffectsPredicate;
+import net.minecraft.advancements.criterion.PlayerPredicate;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
@@ -258,11 +258,11 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         Advancement.Builder.advancement()
                 .display(display(Items.FEATHER, "parrot_tamer", AdvancementType.TASK))
                 .addCriterion("tamed_a_parrot", TameAnimalTrigger.TriggerInstance.tamedAnimal(
-                        EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityTypes.PARROT)))
+                        EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityType.PARROT)))
                 .addCriterion("fed_a_parrot_hemp_seeds", PlayerInteractTrigger.TriggerInstance.itemUsedOnEntity(
                         ItemPredicate.Builder.item().of(items(registryLookup), ModTags.Items.HEMP_SEEDS),
                         Optional.of(EntityPredicate.wrap(
-                                EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityTypes.PARROT)))))
+                                EntityPredicate.Builder.entity().of(registryLookup.lookupOrThrow(Registries.ENTITY_TYPE), EntityType.PARROT)))))
                 .parent(rootAdvancement)
                 .save(consumer, Hempdustry.MOD_ID + ":parrot_tamer");
 
@@ -309,7 +309,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
         // ticks of a day genuinely *are* the 420 ticks after getting up. It also catches anyone who
         // stayed up through the night and lit one at sunrise, which is if anything more on-theme.
         Advancement.Builder.advancement()
-                .display(display(Items.BED.red(), "wake_and_bake", AdvancementType.CHALLENGE, true))
+                .display(display(Items.RED_BED, "wake_and_bake", AdvancementType.CHALLENGE, true))
                 .addCriterion("smoked_at_dawn", SmokeCriterion.Conditions.during(0L, 420L))
                 .parent(firstContact)
                 .save(consumer, Hempdustry.MOD_ID + ":wake_and_bake");
@@ -324,7 +324,7 @@ public class ModAdvancementProvider extends FabricAdvancementProvider {
                         new ConsumeItemTrigger.TriggerInstance(
                                 Optional.of(EntityPredicate.wrap(EntityPredicate.Builder.entity()
                                         .effects(MobEffectsPredicate.Builder.effects().and(MobEffects.HUNGER))
-                                        .player(PlayerPredicate.Builder.player()
+                                        .subPredicate(PlayerPredicate.Builder.player()
                                                 .setFood(FoodPredicate.Builder.food()
                                                         .withLevel(MinMaxBounds.Ints.atMost(6)).build())
                                                 .build()))),

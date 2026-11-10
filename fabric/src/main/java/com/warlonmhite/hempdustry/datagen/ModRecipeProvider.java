@@ -24,7 +24,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
+import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentPatch;
@@ -1077,7 +1077,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .save(output, id("cake"));
 
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(ModItems.HEMP_STEM), RecipeCategory.MISC, CookingBookCategory.MISC,
-                        Items.DYE.green(), 1.0F, 200)
+                        Items.GREEN_DYE, 1.0F, 200)
                 .group("dye")
                 .unlockedBy(getHasName(ModItems.HEMP_STEM), has(ModItems.HEMP_STEM))
                 .save(output, id("green_dye"));
@@ -1111,7 +1111,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         for (DyeColor color : ModBlocks.DYE_ORDER) {
             Item bed = BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(color.getName() + "_bed"));
             shapeless(RecipeCategory.DECORATIONS, bed)
-                    .requires(Items.DYE.pick(color))
+                    .requires(vanillaColoured(color, "_dye"))
                     .requires(ModBlocks.HEMP_BED)
                     .group("bed_dye")
                     .unlockedBy(getHasName(ModBlocks.HEMP_BED), has(ModBlocks.HEMP_BED))
@@ -1125,7 +1125,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         for (DyeColor color : ModBlocks.DYE_ORDER) {
             Item harness = BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(color.getName() + "_harness"));
             shapeless(RecipeCategory.TOOLS, harness)
-                    .requires(Items.DYE.pick(color))
+                    .requires(vanillaColoured(color, "_dye"))
                     .requires(ModItems.HEMP_HARNESS)
                     .group("harness_dye")
                     .unlockedBy(getHasName(ModItems.HEMP_HARNESS), has(ModItems.HEMP_HARNESS))
@@ -1183,7 +1183,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // had them swapped).
         // ---------------------------------------------------------------------
         for (DyeColor color : ModBlocks.DYE_ORDER) {
-            offerConcretePowder(Items.DYE.pick(color), Items.CONCRETE_POWDER.pick(color));
+            offerConcretePowder(vanillaColoured(color, "_dye"), vanillaColoured(color, "_concrete_powder"));
         }
     }
 
@@ -1275,6 +1275,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
     private static ResourceKey<Recipe<?>> id(String path) {
         return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, path));
+    }
+
+    /**
+     * Vanilla's {@code <colour><suffix>} item ({@code red_dye}, {@code red_concrete_powder}): 26.1 keeps
+     * one field per colour and no lookup by colour, so the item is found by its id.
+     */
+    private static Item vanillaColoured(DyeColor color, String suffix) {
+        return BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(color.getName() + suffix));
     }
 
     /**

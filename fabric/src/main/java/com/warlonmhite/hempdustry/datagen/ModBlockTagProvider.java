@@ -6,21 +6,13 @@ import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import java.util.concurrent.CompletableFuture;
 
 public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
     public ModBlockTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
-    }
-
-    /** {@code tag}'s builder, taking blocks rather than their keys (see {@link ValueTagAppender}). */
-    private ValueTagAppender<Block> valueLookupBuilder(TagKey<Block> tag) {
-        return new ValueTagAppender<>(builder(tag), BuiltInRegistries.BLOCK);
     }
 
     @Override
@@ -159,8 +151,6 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(ModBlocks.HYDRO_TRAY);
 
         valueLookupBuilder(ModTags.Blocks.GROW_LAMPS).add(ModBlocks.GROW_LAMP);
-        // Empty on purpose, so the file exists for a datapack or an addon crop to join: see Mildew.
-        valueLookupBuilder(ModTags.Blocks.MILDEW_RESISTANT);
         // Light 15 with no business counting as a light over a plant. The fire tags rather than the
         // blocks by name, so a modded campfire or fire joins by joining vanilla's tag.
         valueLookupBuilder(ModTags.Blocks.NOT_GROW_LIGHTS)

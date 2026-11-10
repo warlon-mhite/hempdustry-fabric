@@ -1,5 +1,6 @@
 {
   "type": "hempdustry:container_carried",
+  "category": "misc",
   "ingredients": [
     "#hempdustry:hemp_seeds",
     "#hempdustry:hemp_seeds",

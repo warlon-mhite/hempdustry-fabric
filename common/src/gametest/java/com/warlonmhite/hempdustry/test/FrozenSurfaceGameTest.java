@@ -399,6 +399,15 @@ public final class FrozenSurfaceGameTest {
     }
 
     /** The release baselines this test mod ships, by name inside {@code frozen/}. */
+    /**
+     * The captures this build is held to, by file name, and {@code retired.txt}.
+     *
+     * <p>A capture taken on a newer Minecraft than this build's is left out, both its files: Minecraft
+     * opens a world only in the version that saved it or a newer one, and a datapack is made for one
+     * version, so nothing a release for 26.2 wrote can ever reach a 26.1.2 game. What such a release
+     * added on top (26.2's mildew, its block-model beds and signs) is that game's, not a promise this
+     * one broke. A capture that names no Minecraft is kept, and {@link #oldDataStillLoads} says so.
+     */
     private static Map<String, Path> frozenFiles() {
         Map<String, Path> files = new TreeMap<>();
         for (Path root : TestPlatform.INSTANCE.testModRoots()) {
@@ -410,7 +419,29 @@ public final class FrozenSurfaceGameTest {
                 throw new UncheckedIOException(e);
             }
         }
+        String running = SharedConstants.getCurrentVersion().name();
+        for (String name : List.copyOf(files.keySet())) {
+            if (!name.endsWith(".json")) continue;
+            JsonElement builtFor = Sweep.json(files.get(name)).getAsJsonObject().get("minecraft");
+            if (builtFor != null && newerGame(builtFor.getAsString(), running)) {
+                String release = name.substring(0, name.length() - ".json".length());
+                files.remove(name);
+                files.remove(release + ".txt");
+            }
+        }
         return files;
+    }
+
+    /** Whether release version {@code a} ({@code 26.2}) is a later Minecraft than {@code b} ({@code 26.1.2}). */
+    static boolean newerGame(String a, String b) {
+        String[] x = a.split("\\.");
+        String[] y = b.split("\\.");
+        for (int i = 0; i < Math.max(x.length, y.length); i++) {
+            int p = i < x.length ? Integer.parseInt(x[i]) : 0;
+            int q = i < y.length ? Integer.parseInt(y[i]) : 0;
+            if (p != q) return p > q;
+        }
+        return false;
     }
 
     /** The release this build would be: {@code 2.1.0-beta} out of {@code 2.1.0-beta+1.21.11}. */

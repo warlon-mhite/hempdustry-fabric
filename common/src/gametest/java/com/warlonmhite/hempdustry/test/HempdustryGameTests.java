@@ -133,7 +133,6 @@ public final class HempdustryGameTests {
                 DatapackStrainGameTest::aStrainReusingItemsKeepsTheTabWhole);
         register("a_broken_infuser_spills_its_batch", InfuserBreakGameTest::aBrokenInfuserSpillsItsBatch);
         register("the_machines_contents_are_upgraded", DataFixerGameTest::theMachinesContentsAreUpgraded);
-        register("an_old_hemp_bed_loses_its_block_entity", DataFixerGameTest::anOldHempBedLosesItsBlockEntity);
         register("hemp_fiber_repairs_the_outfit", TagBackedBehaviourGameTest::hempFiberRepairsTheOutfit);
         register("only_the_garments_take_a_trim", TagBackedBehaviourGameTest::onlyTheGarmentsTakeATrim);
         register("every_device_takes_unbreaking", TagBackedBehaviourGameTest::everyDeviceTakesUnbreaking);
@@ -184,16 +183,9 @@ public final class HempdustryGameTests {
         register("every_translation_keeps_its_placeholders",
                 LangGameTest::everyTranslationKeepsItsPlaceholders);
         register("hemp_takes_any_soil_in_vanillas_crop_tags", SoilTagsGameTest::hempTakesAnySoilInVanillasCropTags);
-        register("a_hemp_bale_makes_a_footbag", FootbagGameTest::aHempBaleMakesAFootbag);
         register("four_twenty_is_a_time_marker", FourTwentyGameTest::fourTwentyIsATimeMarker);
         register("the_munchies_want_hunger_and_an_empty_stomach",
                 FourTwentyGameTest::theMunchiesWantHungerAndAnEmptyStomach);
-        register("a_green_out_softens_the_legs_while_it_slows", JellyLegsGameTest::aGreenOutSoftensTheLegsWhileItSlows);
-        register("mildew_starts_only_under_a_roof", MildewGameTest::mildewStartsOnlyUnderARoof);
-        register("mildew_spreads_one_plant_at_a_time", MildewGameTest::mildewSpreadsOnePlantAtATime);
-        register("sulfur_gas_clears_and_prevents_mildew", MildewGameTest::sulfurGasClearsAndPreventsMildew);
-        register("shears_clear_mildew_in_a_trim_window", MildewGameTest::shearsClearMildewInATrimWindow);
-        register("mildewed_buds_spoil_one_by_one", SchwagGameTest::mildewedBudsSpoilOneByOne);
         register("every_outfit_comes_in_a_baby_size", BabyLayerGameTest::everyOutfitComesInABabySize);
     }
 

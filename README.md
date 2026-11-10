@@ -2,11 +2,11 @@
 
 *Minecraft for stoners and hemprepreneurs.*
 
-A hemp and cannabis mod for **Minecraft 26.2** on **Fabric** and **NeoForge**. Grow it, harvest it, smoke it, cook with
+A hemp and cannabis mod for **Minecraft 26.1.2** on **Fabric** and **NeoForge**. Grow it, harvest it, smoke it, cook with
 it or use it as a building material, because that is most of what hemp has
 actually been for over the last five thousand years.
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.2-brightgreen)](https://www.minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.1.2-brightgreen)](https://www.minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-lightgrey)](https://fabricmc.net/)
 [![NeoForge](https://img.shields.io/badge/Loader-NeoForge-lightgrey)](https://neoforged.net/)
 [![Java](https://img.shields.io/badge/Java-25-orange)](https://adoptium.net/)
@@ -23,7 +23,7 @@ only if JEI is installed on the server too: since Minecraft 1.21.2 a server no l
 its recipes. The machine and packing pages show either way.
 
 > **Status: version 2.1.0, stable**
-> This is a rewrite, for Fabric and NeoForge on 26.2, of an older Forge 1.16 mod (GanjaCraft) built with
+> This is a rewrite, for Fabric and NeoForge on 26.1.2, of an older Forge 1.16 mod (GanjaCraft) built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
 >

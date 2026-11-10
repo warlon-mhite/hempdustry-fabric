@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "group": "bong",
   "key": {
     "G": "minecraft:lime_stained_glass",

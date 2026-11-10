@@ -3,34 +3,68 @@
     "type": "minecraft:composite",
     "models": [
       {
-        "type": "minecraft:model",
-        "model": "hempdustry:block/hemp_bed_head"
-      },
-      {
-        "type": "minecraft:model",
-        "model": "hempdustry:block/hemp_bed_foot",
+        "type": "minecraft:special",
+        "base": "hempdustry:item/hemp_bed",
+        "model": {
+          "type": "minecraft:bed",
+          "part": "head",
+          "texture": "hempdustry:hemp"
+        },
         "transformation": {
           "left_rotation": [
             0.0,
-            0.0,
-            0.0,
-            1.0
+            -0.70710677,
+            0.70710677,
+            0.0
           ],
           "right_rotation": [
-            0.0,
-            0.0,
-            0.0,
+            -0.0,
+            -0.0,
+            -0.0,
             1.0
           ],
           "scale": [
-            1.0,
-            1.0,
-            1.0
+            0.99999994,
+            0.9999999,
+            0.9999999
           ],
           "translation": [
+            0.99999994,
+            0.5625,
+            0.99999994
+          ]
+        }
+      },
+      {
+        "type": "minecraft:special",
+        "base": "hempdustry:item/hemp_bed",
+        "model": {
+          "type": "minecraft:bed",
+          "part": "foot",
+          "texture": "hempdustry:hemp"
+        },
+        "transformation": {
+          "left_rotation": [
             0.0,
-            0.0,
+            -0.70710677,
+            0.70710677,
+            0.0
+          ],
+          "right_rotation": [
+            -0.0,
+            -0.0,
+            -0.0,
             1.0
+          ],
+          "scale": [
+            0.99999994,
+            0.9999999,
+            0.9999999
+          ],
+          "translation": [
+            0.99999994,
+            1.5625,
+            0.99999994
           ]
         }
       }

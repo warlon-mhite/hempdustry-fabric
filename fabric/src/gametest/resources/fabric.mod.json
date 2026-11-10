@@ -12,7 +12,7 @@
 	},
 	"depends": {
 		"fabricloader": ">=0.20.1",
-		"minecraft": "~26.2",
+		"minecraft": "~26.1.2",
 		"hempdustry": "*",
 		"fabric-gametest-api-v1": "*"
 	}

@@ -46,7 +46,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockItemTags;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FeatureTags;
 import net.minecraft.tags.ItemTags;
@@ -417,9 +416,7 @@ public final class SweepGameTest {
             }
         }
         Sweep.atLeast(context, "tags in ModTags", tags, 20);
-        Sweep.report(context, "Every tag the mod names has something in it", findings, Map.of(
-                "#hempdustry:mildew_resistant", "empty on purpose: which named strain resists mildew is folklore, "
-                        + "so no crop of ours claims it; the tag is for a datapack or an addon crop"));
+        Sweep.report(context, "Every tag the mod names has something in it", findings, Map.of());
         context.succeed();
     }
 
@@ -526,10 +523,10 @@ public final class SweepGameTest {
             List<TagKey<Item>> itemTags = new ArrayList<>();
             if (block instanceof StairBlock) {
                 blockTags.add(wooden ? BlockTags.WOODEN_STAIRS : BlockTags.STAIRS);
-                itemTags.add(wooden ? ItemTags.WOODEN_STAIRS : BlockItemTags.STAIRS.item());
+                itemTags.add(wooden ? ItemTags.WOODEN_STAIRS : ItemTags.STAIRS);
             } else if (block instanceof SlabBlock) {
                 blockTags.add(wooden ? BlockTags.WOODEN_SLABS : BlockTags.SLABS);
-                itemTags.add(wooden ? ItemTags.WOODEN_SLABS : BlockItemTags.SLABS.item());
+                itemTags.add(wooden ? ItemTags.WOODEN_SLABS : ItemTags.SLABS);
             } else if (block instanceof WallBlock) {
                 blockTags.add(BlockTags.WALLS);
                 itemTags.add(ItemTags.WALLS);

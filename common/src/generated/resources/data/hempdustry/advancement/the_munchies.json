@@ -13,10 +13,11 @@
             "condition": "minecraft:entity_properties",
             "entity": "this",
             "predicate": {
-              "minecraft:effects": {
+              "effects": {
                 "minecraft:hunger": {}
               },
-              "minecraft:type_specific/player": {
+              "type_specific": {
+                "type": "minecraft:player",
                 "food": {
                   "level": {
                     "max": 6

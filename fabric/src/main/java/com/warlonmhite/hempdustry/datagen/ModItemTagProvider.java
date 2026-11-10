@@ -9,11 +9,8 @@ import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.BlockItemTags;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import java.util.concurrent.CompletableFuture;
@@ -21,11 +18,6 @@ import java.util.concurrent.CompletableFuture;
 public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
     public ModItemTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> completableFuture) {
         super(output, completableFuture);
-    }
-
-    /** {@code tag}'s builder, taking items rather than their keys (see {@link ValueTagAppender}). */
-    private ValueTagAppender<Item> valueLookupBuilder(TagKey<Item> tag) {
-        return new ValueTagAppender<>(builder(tag), BuiltInRegistries.ITEM);
     }
 
     @Override
@@ -313,8 +305,8 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                 .add(ModBlocks.HEMP_PARQUET_STAIRS.asItem())
                 .add(ModBlocks.HEMP_PARQUET_SLAB.asItem());
 
-        valueLookupBuilder(BlockItemTags.STAIRS.item()).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem()).add(ModBlocks.HEMP_BRICKS_STAIRS.asItem());
-        valueLookupBuilder(BlockItemTags.SLABS.item()).add(ModBlocks.HEMP_PARQUET_SLAB.asItem()).add(ModBlocks.HEMP_BRICKS_SLAB.asItem());
+        valueLookupBuilder(ItemTags.STAIRS).add(ModBlocks.HEMP_PARQUET_STAIRS.asItem()).add(ModBlocks.HEMP_BRICKS_STAIRS.asItem());
+        valueLookupBuilder(ItemTags.SLABS).add(ModBlocks.HEMP_PARQUET_SLAB.asItem()).add(ModBlocks.HEMP_BRICKS_SLAB.asItem());
         valueLookupBuilder(ItemTags.WOODEN_SHELVES).add(ModBlocks.HEMP_PLANKS_SHELF.asItem());
         valueLookupBuilder(ItemTags.BEDS).add(ModBlocks.HEMP_BED.asItem());
         // Not decoration: a happy ghast's ropes are drawn only for a harness in this tag.
@@ -350,14 +342,6 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         // granted separately — see ModBlockTagProvider for why #wool_carpets is safe to join.
         valueLookupBuilder(ItemTags.WOOL_CARPETS)
                 .add(ModBlocks.HEMP_CARPET.asItem());
-
-        // A sulfur cube that swallows a hemp bale becomes a footbag (data/hempdustry/
-        // sulfur_cube_archetype/footbag.json). The archetype only says how a cube moves; whether a
-        // cube takes the block at all is #minecraft:sulfur_cube_swallowable, so the tag joins it.
-        valueLookupBuilder(ModTags.Items.FOOTBAG)
-                .add(ModBlocks.HEMP_BALE.asItem());
-        valueLookupBuilder(ItemTags.SULFUR_CUBE_SWALLOWABLE)
-                .addTag(ModTags.Items.FOOTBAG);
         }
     }
 

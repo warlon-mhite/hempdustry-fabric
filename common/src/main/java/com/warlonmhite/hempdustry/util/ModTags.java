@@ -108,14 +108,6 @@ public class ModTags {
          * is the id Farmer's Delight and its kin actually use.
          */
         public static final TagKey<Item> HASH_CUTTERS = createTag("hash_cutters");
-
-        /**
-         * What turns a sulfur cube into a footbag: the {@code items} of the
-         * {@code hempdustry:footbag} archetype, named the way vanilla names its twelve
-         * ({@code #minecraft:sulfur_cube_archetype/<name>}). A cube swallows only what
-         * {@code #minecraft:sulfur_cube_swallowable} lists, so this tag is in that one too.
-         */
-        public static final TagKey<Item> FOOTBAG = createTag("sulfur_cube_archetype/footbag");
         private static TagKey<Item> createTag(String name) {
             return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }
@@ -215,12 +207,6 @@ public class ModTags {
          * joins wherever that tag exists, and a datapack can widen or narrow it here.
          */
         public static final TagKey<Block> BELDIA_SOIL = createTag("beldia_soil");
-        /**
-         * Hemp crops that never catch powdery mildew — see {@code Mildew}. Empty in the mod: real
-         * cultivars do differ (seven of twelve resisted it in one trial), but which named strain
-         * does is folklore, so none of ours claims it. It is here for a datapack or an addon crop.
-         */
-        public static final TagKey<Block> MILDEW_RESISTANT = createTag("mildew_resistant");
         private static TagKey<Block> createTag(String name) {
             return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }

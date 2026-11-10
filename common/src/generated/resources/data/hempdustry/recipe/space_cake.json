@@ -1,5 +1,6 @@
 {
   "type": "hempdustry:infused_shaped",
+  "category": "misc",
   "key": {
     "B": "hempdustry:cannabutter",
     "E": "minecraft:egg",

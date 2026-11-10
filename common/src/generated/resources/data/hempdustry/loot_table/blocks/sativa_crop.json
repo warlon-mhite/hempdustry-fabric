@@ -7,6 +7,7 @@
   ],
   "pools": [
     {
+      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:sativa_crop",
@@ -26,6 +27,7 @@
                 "type": "minecraft:item",
                 "functions": [
                   {
+                    "add": false,
                     "count": 1.0,
                     "function": "minecraft:set_count"
                   },
@@ -82,6 +84,7 @@
                 "type": "minecraft:item",
                 "functions": [
                   {
+                    "add": false,
                     "count": 2.0,
                     "function": "minecraft:set_count"
                   },
@@ -153,6 +156,7 @@
                 "type": "minecraft:item",
                 "functions": [
                   {
+                    "add": false,
                     "count": 3.0,
                     "function": "minecraft:set_count"
                   },
@@ -209,372 +213,7 @@
                 "type": "minecraft:item",
                 "functions": [
                   {
-                    "count": 2.0,
-                    "function": "minecraft:set_count"
-                  },
-                  {
-                    "enchantment": "minecraft:fortune",
-                    "formula": "minecraft:binomial_with_bonus_count",
-                    "function": "minecraft:apply_bonus",
-                    "parameters": {
-                      "extra": 2,
-                      "probability": 0.2
-                    }
-                  }
-                ],
-                "name": "hempdustry:sativa_buds"
-              },
-              "conditions": [
-                {
-                  "condition": "minecraft:all_of",
-                  "terms": [
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "segment": "lower",
-                        "trimmed_early": "false",
-                        "trimmed_late": "false"
-                      }
-                    },
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "mildew": "mildewed",
-                        "segment": "lower"
-                      }
-                    }
-                  ]
-                }
-              ],
-              "each_item_chances": [
-                0.25,
-                0.2,
-                0.15,
-                0.1
-              ],
-              "enchantment": "minecraft:fortune",
-              "into": "hempdustry:schwag"
-            },
-            {
-              "type": "hempdustry:spoiling",
-              "child": {
-                "type": "minecraft:item",
-                "functions": [
-                  {
-                    "count": 3.0,
-                    "function": "minecraft:set_count"
-                  },
-                  {
-                    "enchantment": "minecraft:fortune",
-                    "formula": "minecraft:binomial_with_bonus_count",
-                    "function": "minecraft:apply_bonus",
-                    "parameters": {
-                      "extra": 2,
-                      "probability": 0.2
-                    }
-                  }
-                ],
-                "name": "hempdustry:sativa_buds"
-              },
-              "conditions": [
-                {
-                  "condition": "minecraft:all_of",
-                  "terms": [
-                    {
-                      "condition": "minecraft:any_of",
-                      "terms": [
-                        {
-                          "block": "hempdustry:sativa_crop",
-                          "condition": "minecraft:block_state_property",
-                          "properties": {
-                            "age": "7",
-                            "segment": "lower",
-                            "trimmed_early": "true",
-                            "trimmed_late": "false"
-                          }
-                        },
-                        {
-                          "block": "hempdustry:sativa_crop",
-                          "condition": "minecraft:block_state_property",
-                          "properties": {
-                            "age": "7",
-                            "segment": "lower",
-                            "trimmed_early": "false",
-                            "trimmed_late": "true"
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "mildew": "mildewed",
-                        "segment": "lower"
-                      }
-                    }
-                  ]
-                }
-              ],
-              "each_item_chances": [
-                0.25,
-                0.2,
-                0.15,
-                0.1
-              ],
-              "enchantment": "minecraft:fortune",
-              "into": "hempdustry:schwag"
-            },
-            {
-              "type": "hempdustry:spoiling",
-              "child": {
-                "type": "minecraft:item",
-                "functions": [
-                  {
-                    "count": 4.0,
-                    "function": "minecraft:set_count"
-                  },
-                  {
-                    "enchantment": "minecraft:fortune",
-                    "formula": "minecraft:binomial_with_bonus_count",
-                    "function": "minecraft:apply_bonus",
-                    "parameters": {
-                      "extra": 2,
-                      "probability": 0.2
-                    }
-                  }
-                ],
-                "name": "hempdustry:sativa_buds"
-              },
-              "conditions": [
-                {
-                  "condition": "minecraft:all_of",
-                  "terms": [
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "segment": "lower",
-                        "trimmed_early": "true",
-                        "trimmed_late": "true"
-                      }
-                    },
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "mildew": "mildewed",
-                        "segment": "lower"
-                      }
-                    }
-                  ]
-                }
-              ],
-              "each_item_chances": [
-                0.25,
-                0.2,
-                0.15,
-                0.1
-              ],
-              "enchantment": "minecraft:fortune",
-              "into": "hempdustry:schwag"
-            },
-            {
-              "type": "hempdustry:spoiling",
-              "child": {
-                "type": "minecraft:item",
-                "functions": [
-                  {
-                    "count": 2.0,
-                    "function": "minecraft:set_count"
-                  },
-                  {
-                    "enchantment": "minecraft:fortune",
-                    "formula": "minecraft:binomial_with_bonus_count",
-                    "function": "minecraft:apply_bonus",
-                    "parameters": {
-                      "extra": 2,
-                      "probability": 0.2
-                    }
-                  }
-                ],
-                "name": "hempdustry:sativa_buds"
-              },
-              "conditions": [
-                {
-                  "condition": "minecraft:all_of",
-                  "terms": [
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "segment": "lower",
-                        "trimmed_early": "false",
-                        "trimmed_late": "false"
-                      }
-                    },
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "mildew": "sulfured",
-                        "segment": "lower"
-                      }
-                    }
-                  ]
-                }
-              ],
-              "each_item_chances": [
-                0.1,
-                0.08,
-                0.06,
-                0.04
-              ],
-              "enchantment": "minecraft:fortune",
-              "into": "hempdustry:schwag"
-            },
-            {
-              "type": "hempdustry:spoiling",
-              "child": {
-                "type": "minecraft:item",
-                "functions": [
-                  {
-                    "count": 3.0,
-                    "function": "minecraft:set_count"
-                  },
-                  {
-                    "enchantment": "minecraft:fortune",
-                    "formula": "minecraft:binomial_with_bonus_count",
-                    "function": "minecraft:apply_bonus",
-                    "parameters": {
-                      "extra": 2,
-                      "probability": 0.2
-                    }
-                  }
-                ],
-                "name": "hempdustry:sativa_buds"
-              },
-              "conditions": [
-                {
-                  "condition": "minecraft:all_of",
-                  "terms": [
-                    {
-                      "condition": "minecraft:any_of",
-                      "terms": [
-                        {
-                          "block": "hempdustry:sativa_crop",
-                          "condition": "minecraft:block_state_property",
-                          "properties": {
-                            "age": "7",
-                            "segment": "lower",
-                            "trimmed_early": "true",
-                            "trimmed_late": "false"
-                          }
-                        },
-                        {
-                          "block": "hempdustry:sativa_crop",
-                          "condition": "minecraft:block_state_property",
-                          "properties": {
-                            "age": "7",
-                            "segment": "lower",
-                            "trimmed_early": "false",
-                            "trimmed_late": "true"
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "mildew": "sulfured",
-                        "segment": "lower"
-                      }
-                    }
-                  ]
-                }
-              ],
-              "each_item_chances": [
-                0.1,
-                0.08,
-                0.06,
-                0.04
-              ],
-              "enchantment": "minecraft:fortune",
-              "into": "hempdustry:schwag"
-            },
-            {
-              "type": "hempdustry:spoiling",
-              "child": {
-                "type": "minecraft:item",
-                "functions": [
-                  {
-                    "count": 4.0,
-                    "function": "minecraft:set_count"
-                  },
-                  {
-                    "enchantment": "minecraft:fortune",
-                    "formula": "minecraft:binomial_with_bonus_count",
-                    "function": "minecraft:apply_bonus",
-                    "parameters": {
-                      "extra": 2,
-                      "probability": 0.2
-                    }
-                  }
-                ],
-                "name": "hempdustry:sativa_buds"
-              },
-              "conditions": [
-                {
-                  "condition": "minecraft:all_of",
-                  "terms": [
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "segment": "lower",
-                        "trimmed_early": "true",
-                        "trimmed_late": "true"
-                      }
-                    },
-                    {
-                      "block": "hempdustry:sativa_crop",
-                      "condition": "minecraft:block_state_property",
-                      "properties": {
-                        "age": "7",
-                        "mildew": "sulfured",
-                        "segment": "lower"
-                      }
-                    }
-                  ]
-                }
-              ],
-              "each_item_chances": [
-                0.1,
-                0.08,
-                0.06,
-                0.04
-              ],
-              "enchantment": "minecraft:fortune",
-              "into": "hempdustry:schwag"
-            },
-            {
-              "type": "hempdustry:spoiling",
-              "child": {
-                "type": "minecraft:item",
-                "functions": [
-                  {
+                    "add": false,
                     "count": 2.0,
                     "function": "minecraft:set_count"
                   },
@@ -615,6 +254,7 @@
                 "type": "minecraft:item",
                 "functions": [
                   {
+                    "add": false,
                     "count": 3.0,
                     "function": "minecraft:set_count"
                   },
@@ -670,6 +310,7 @@
                 "type": "minecraft:item",
                 "functions": [
                   {
+                    "add": false,
                     "count": 4.0,
                     "function": "minecraft:set_count"
                   },
@@ -714,6 +355,7 @@
       "rolls": 1.0
     },
     {
+      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:sativa_crop",
@@ -745,6 +387,7 @@
               ],
               "functions": [
                 {
+                  "add": false,
                   "count": 3.0,
                   "function": "minecraft:set_count"
                 },
@@ -804,6 +447,7 @@
               ],
               "functions": [
                 {
+                  "add": false,
                   "count": 2.0,
                   "function": "minecraft:set_count"
                 },
@@ -863,6 +507,7 @@
               ],
               "functions": [
                 {
+                  "add": false,
                   "count": 1.0,
                   "function": "minecraft:set_count"
                 },
@@ -895,6 +540,7 @@
               ],
               "functions": [
                 {
+                  "add": false,
                   "count": 0.0,
                   "function": "minecraft:set_count"
                 },
@@ -916,6 +562,7 @@
       "rolls": 1.0
     },
     {
+      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:sativa_crop",
@@ -945,6 +592,7 @@
               ],
               "functions": [
                 {
+                  "add": false,
                   "count": 2.0,
                   "function": "minecraft:set_count"
                 }
@@ -966,6 +614,7 @@
               ],
               "functions": [
                 {
+                  "add": false,
                   "count": 1.0,
                   "function": "minecraft:set_count"
                 }
@@ -991,6 +640,7 @@
               ],
               "functions": [
                 {
+                  "add": false,
                   "count": 1.0,
                   "function": "minecraft:set_count"
                 }
@@ -1003,6 +653,7 @@
       "rolls": 1.0
     },
     {
+      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:sativa_crop",
@@ -1045,6 +696,7 @@
       "rolls": 1.0
     },
     {
+      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:sativa_crop",
@@ -1061,6 +713,7 @@
           "type": "minecraft:item",
           "functions": [
             {
+              "add": false,
               "count": 2.0,
               "function": "minecraft:set_count"
             }
@@ -1071,6 +724,7 @@
       "rolls": 1.0
     },
     {
+      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:sativa_crop",
@@ -1086,6 +740,7 @@
           "type": "minecraft:item",
           "functions": [
             {
+              "add": false,
               "count": 3.0,
               "function": "minecraft:set_count"
             },
@@ -1105,6 +760,7 @@
       "rolls": 1.0
     },
     {
+      "bonus_rolls": 0.0,
       "conditions": [
         {
           "block": "hempdustry:sativa_crop",
@@ -1137,6 +793,7 @@
               ],
               "functions": [
                 {
+                  "add": false,
                   "count": 3.0,
                   "function": "minecraft:set_count"
                 },
@@ -1156,6 +813,7 @@
               "type": "minecraft:item",
               "functions": [
                 {
+                  "add": false,
                   "count": 4.0,
                   "function": "minecraft:set_count"
                 },

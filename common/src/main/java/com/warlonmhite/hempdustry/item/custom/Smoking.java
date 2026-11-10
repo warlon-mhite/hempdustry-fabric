@@ -323,7 +323,6 @@ public final class Smoking {
         for (MobEffectInstance effect : EffectPolicy.filter(full ? greenOut.full() : greenOut.spins())) {
             player.addEffect(effect);
         }
-        JellyLegs.soften(player);
     }
 
     /**

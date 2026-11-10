@@ -8,8 +8,8 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.math.Transformation;
 import com.warlonmhite.hempdustry.item.custom.DeviceType;
+import com.mojang.math.Transformation;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
@@ -33,6 +33,8 @@ import net.minecraft.client.renderer.item.SelectItemModel;
 import net.minecraft.client.renderer.item.properties.numeric.UseDuration;
 import net.minecraft.client.renderer.item.properties.select.DisplayContext;
 import net.minecraft.client.renderer.item.properties.select.TrimMaterialProperty;
+import net.minecraft.client.renderer.blockentity.BedRenderer;
+import net.minecraft.client.renderer.special.BedSpecialRenderer;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -80,14 +82,6 @@ public class ModModelProvider extends FabricModelProvider {
     public void generateBlockStateModels(BlockModelGenerators blockStateModelGenerator) {
         BlockModelGenerators.BlockFamilyProvider hempBricksPool = blockStateModelGenerator.family(ModBlocks.HEMP_BRICKS_BLOCK);
         BlockModelGenerators.BlockFamilyProvider hempPlanksPool = blockStateModelGenerator.family(ModBlocks.HEMP_PLANKS);
-        // The signs, as vanilla makes its own since 26.2: block models on the sign templates, every
-        // rotation and the wall form, from block/hemp_planks_sign and block/hemp_planks_hanging_sign
-        // (the old entity sheets cut the way vanilla cut its woods'), and the flat items. The hanging
-        // sign is the custom kind, its particle the planks: hemp has no stripped log to take it from.
-        hempPlanksPool.generateFor(new BlockFamily.Builder(ModBlocks.HEMP_PLANKS)
-                .sign(ModBlocks.HEMP_PLANKS_SIGN, ModBlocks.HEMP_PLANKS_WALL_SIGN)
-                .customHangingSign(ModBlocks.HEMP_PLANKS_HANGING_SIGN, ModBlocks.HEMP_PLANKS_WALL_HANGING_SIGN)
-                .getFamily());
         blockStateModelGenerator.createTrivialCube(ModBlocks.HEMPCRETE_BLOCK);
         blockStateModelGenerator.createTrivialCube(ModBlocks.HEMPCRETE_POWDER_BLOCK);
         // Vanilla's own wool+carpet helper — the carpet model reuses the wool texture, same as
@@ -274,6 +268,8 @@ public class ModModelProvider extends FabricModelProvider {
                 itemModelGenerator.modelOutput);
         itemModelGenerator.itemModelOutput.accept(ModItems.MOON_ROCK, strainTinted(moonRock));
 
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_PLANKS_SIGN, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(ModItems.HEMP_PLANKS_HANGING_SIGN, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.HEMP_HARNESS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.HEMP_BOAT, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(ModItems.HEMP_CHEST_BOAT, ModelTemplates.FLAT_ITEM);
@@ -459,33 +455,24 @@ public class ModModelProvider extends FabricModelProvider {
      * to the generator's model collector.
      */
     /**
-     * Vanilla's {@code createBed}, which only takes a {@code DyeColor}: since 26.2 a bed is a block
-     * model, a head and a foot made from the bed templates and seven face textures of its own
-     * ({@code block/hemp_bed_<part>_<face>}, cut from the old entity texture exactly as vanilla cut
-     * its beds'), turned to each facing; the headboard end and the underside are vanilla's shared
-     * {@code bed_head_north} and {@code bed_down}. The item is the two halves laid end to end.
+     * Vanilla's {@code createBed}, which only takes a {@code DyeColor}. The block points at
+     * vanilla's own particle-only {@code block/bed} model, as all sixteen beds do (the renderer draws
+     * the bed); the item is vanilla's two {@code minecraft:bed} special models, head and foot laid end
+     * to end with vanilla's transforms, given the hemp texture by id, with hemp wool for its particle
+     * the way each vanilla bed item uses its wool.
      */
     private static void registerHempBed(BlockModelGenerators generator) {
-        Block bed = ModBlocks.HEMP_BED;
-        Identifier head = ModelTemplates.BED_HEAD.createWithSuffix(bed, "_" + BedPart.HEAD,
-                TextureMapping.bed(bed, BedPart.HEAD), generator.modelOutput);
-        Identifier foot = ModelTemplates.BED_FOOT.createWithSuffix(bed, "_" + BedPart.FOOT,
-                TextureMapping.bed(bed, BedPart.FOOT), generator.modelOutput);
-        MultiVariant headModel = BlockModelGenerators.plainVariant(head);
-        MultiVariant footModel = BlockModelGenerators.plainVariant(foot);
-        generator.blockStateOutput.accept(MultiVariantGenerator.dispatch(bed).with(
-                PropertyDispatch.initial(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.BED_PART)
-                        .select(Direction.NORTH, BedPart.HEAD, headModel)
-                        .select(Direction.SOUTH, BedPart.HEAD, headModel.with(BlockModelGenerators.Y_ROT_180))
-                        .select(Direction.EAST, BedPart.HEAD, headModel.with(BlockModelGenerators.Y_ROT_90))
-                        .select(Direction.WEST, BedPart.HEAD, headModel.with(BlockModelGenerators.Y_ROT_270))
-                        .select(Direction.NORTH, BedPart.FOOT, footModel)
-                        .select(Direction.SOUTH, BedPart.FOOT, footModel.with(BlockModelGenerators.Y_ROT_180))
-                        .select(Direction.EAST, BedPart.FOOT, footModel.with(BlockModelGenerators.Y_ROT_90))
-                        .select(Direction.WEST, BedPart.FOOT, footModel.with(BlockModelGenerators.Y_ROT_270))));
-        Transformation footTransformation = new Transformation(new Vector3f(0.0F, 0.0F, 1.0F), null, null, null);
-        generator.itemModelOutput.accept(bed.asItem(), ItemModelUtils.composite(
-                ItemModelUtils.plainModel(head), ItemModelUtils.plainModel(foot, footTransformation)));
+        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(ModBlocks.HEMP_BED,
+                BlockModelGenerators.plainVariant(ModelLocationUtils.decorateBlockModelLocation("bed"))));
+        Item bed = ModBlocks.HEMP_BED.asItem();
+        Identifier model = ModelTemplates.BED_INVENTORY.create(ModelLocationUtils.getModelLocation(bed),
+                TextureMapping.particle(ModBlocks.HEMP_WOOL), generator.modelOutput);
+        Identifier texture = Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "hemp");
+        Transformation head = BedRenderer.modelTransform(Direction.SOUTH);
+        Transformation foot = head.compose(new Transformation(new Vector3f(0.0F, 0.0F, -1.0F), null, null, null));
+        generator.itemModelOutput.accept(bed, ItemModelUtils.composite(
+                ItemModelUtils.specialModel(model, head, new BedSpecialRenderer.Unbaked(texture, BedPart.HEAD)),
+                ItemModelUtils.specialModel(model, foot, new BedSpecialRenderer.Unbaked(texture, BedPart.FOOT))));
     }
 
     private static void registerSpaceCake(BlockModelGenerators generator) {

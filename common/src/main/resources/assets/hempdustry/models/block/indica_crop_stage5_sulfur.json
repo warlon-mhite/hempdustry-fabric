@@ -1,6 +1,0 @@
-{
-  "parent": "hempdustry:block/crop_overlay",
-  "textures": {
-    "overlay": "hempdustry:block/indica_crop_stage5_sulfur"
-  }
-}

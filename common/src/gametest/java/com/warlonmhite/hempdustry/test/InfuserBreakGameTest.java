@@ -9,7 +9,6 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -60,7 +59,7 @@ public final class InfuserBreakGameTest {
 
     private static int count(GameTestHelper context, Item item) {
         int total = 0;
-        for (ItemEntity entity : context.getEntities(EntityTypes.ITEM)) {
+        for (ItemEntity entity : context.getEntities(EntityType.ITEM)) {
             if (entity.getItem().is(item)) {
                 total += entity.getItem().getCount();
             }

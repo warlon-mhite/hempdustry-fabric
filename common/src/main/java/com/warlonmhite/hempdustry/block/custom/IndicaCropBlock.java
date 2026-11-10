@@ -76,14 +76,13 @@ public class IndicaCropBlock extends CropBlock {
     }
 
     /**
-     * A half above the LOWER, carrying a copy of the plant's records — its light and its mildew —
-     * from {@code lower}. The records are canonical on the LOWER, but whatever draws a block reads
-     * only that block — a colour provider, and a blockstate model can do nothing else — so without
-     * the copy a stressed plant would be drawn stressed at the foot and healthy at the top.
+     * A half above the LOWER, carrying a copy of the plant's light record. The record is canonical
+     * on the LOWER, but whatever draws a block reads only that block — a colour provider, and a
+     * blockstate model can do nothing else — so without the copy a stressed plant would be drawn
+     * stressed at the foot and healthy at the top.
      */
-    private BlockState stateFor(int age, DoubleBlockHalf half, BlockState lower) {
-        return this.stateFor(age, half).setValue(GrowLight.PROPERTY, lower.getValue(GrowLight.PROPERTY))
-                .setValue(Mildew.PROPERTY, lower.getValue(Mildew.PROPERTY));
+    private BlockState stateFor(int age, DoubleBlockHalf half, GrowLight light) {
+        return this.stateFor(age, half).setValue(GrowLight.PROPERTY, light);
     }
 
     /** Farmland, or one of the mod's beds — a Grow Pot or a Hydro Tray. */
@@ -221,10 +220,9 @@ public class IndicaCropBlock extends CropBlock {
         // maxAgeFor probe on every tick of every mature plant; the writes did nothing (an identical
         // state early-outs in LevelChunk#setBlockState) but each still paid a chunk lookup.
         // isShapeSettled answers the same question in one block read.
-        if (grown != age || !this.isShapeSettled(world, pos, age, state)) {
+        if (grown != age || !this.isShapeSettled(world, pos, age, state.getValue(GrowLight.PROPERTY))) {
             this.setAge(world, pos, grown, 0.0F, random);
         }
-        Mildew.randomTick(world, pos, random);
     }
 
     /**
@@ -245,11 +243,11 @@ public class IndicaCropBlock extends CropBlock {
      * </em> "setAge would be a no-op", and two separately-worded versions of that would drift.
      * (The lower half needs no check — setAge writes it back through
      * {@link Defoliation#carryOver}, which at an unchanged age reproduces the state that is already
-     * there.) {@code lower} is the lower half, whose records the upper half copies.
+     * there.) {@code light} is the lower half's record, which the upper half copies.
      */
-    private boolean isShapeSettled(LevelReader world, BlockPos pos, int age, BlockState lower) {
+    private boolean isShapeSettled(LevelReader world, BlockPos pos, int age, GrowLight light) {
         BlockState above = world.getBlockState(pos.above());
-        if (above == this.stateFor(age, DoubleBlockHalf.UPPER, lower)) {
+        if (above == this.stateFor(age, DoubleBlockHalf.UPPER, light)) {
             return true;
         }
         // An upper half at a stale age, or with a stale copy of the record, needs syncing; a gap
@@ -331,9 +329,7 @@ public class IndicaCropBlock extends CropBlock {
         BlockState lower = Defoliation.carryOver(current, this.stateFor(newAge, DoubleBlockHalf.LOWER));
         if (newAge > currentAge && current.is(this)) {
             lower = lower.setValue(GrowLight.PROPERTY, PlantStress.afterStep(world, pos,
-                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 2, extraStress, random))
-                    .setValue(Mildew.PROPERTY, Mildew.afterStep(world, pos, current,
-                            current.getValue(Mildew.PROPERTY), random));
+                    current.getValue(GrowLight.PROPERTY), currentAge, newAge, 2, extraStress, random));
             if (newAge == this.getMaxAge()) {
                 BlockPos floorPos = pos.below();
                 BlockState floor = world.getBlockState(floorPos);
@@ -347,10 +343,11 @@ public class IndicaCropBlock extends CropBlock {
         BlockPos upPos = pos.above();
         BlockState above = world.getBlockState(upPos);
         boolean upperPresent = above.is(this) && above.getValue(HALF) == DoubleBlockHalf.UPPER;
+        GrowLight light = lower.getValue(GrowLight.PROPERTY);
         if (upperPresent) {
-            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, lower), Block.UPDATE_CLIENTS);
+            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, light), Block.UPDATE_CLIENTS);
         } else if (newAge >= DOUBLE_BLOCK_AGE && above.isAir()) {
-            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, lower), Block.UPDATE_CLIENTS);
+            world.setBlock(upPos, this.stateFor(newAge, DoubleBlockHalf.UPPER, light), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -402,7 +399,6 @@ public class IndicaCropBlock extends CropBlock {
         if (state.getValue(AGE) >= this.getMaxAge()) {
             RipeAroma.randomDisplayTick(world, pos, random);
         }
-        Mildew.animateTick(state, world, pos, random);
     }
 
     // ----- harvesting -----
@@ -449,6 +445,6 @@ public class IndicaCropBlock extends CropBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(AGE, HALF, Defoliation.TRIMMED_EARLY, Defoliation.TRIMMED_LATE, Defoliation.RUBBED,
-                GrowLight.PROPERTY, Mildew.PROPERTY);
+                GrowLight.PROPERTY);
     }
 }
