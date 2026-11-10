@@ -9,7 +9,46 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.1.0.
+The first patch of 2.1: hemp plants that hold up under other mods' harvesters, fertilisers and soils,
+farmer villagers who grow hemp, and the first hooks for the mods of a pack. Every file for another mod
+loads only when that mod is there, so a game with Hempdustry alone sees the fixes, the villagers and
+nothing else.
+
+### Added
+
+- **Farmer villagers grow hemp.** A farmer holding indica or sativa seed plants it on the village farmland
+  and reaps the ripe plant whole, the way it farms wheat. The light and stress rules apply as in any field.
+  Beldía stays wild: it stands only on sand.
+- **Hemp in other mods**, each loaded only with its mod:
+  - **Farmer's Delight** (Refabricated): the cutting board strips a stem into 4 fibre and a retted one into
+    6, with a chance of a stick; hemp fibre makes its rope.
+  - **Silent Gear** (NeoForge): hemp fibre is a cord and binding material.
+- **Common tags other mods read**: every hemp seed in `c:seeds`, hemp fibre in `c:fiber_hemp` and
+  `c:fiber`, hemp flour in `c:flour`, hemp milk in `c:milk` and toasted hemp seeds in `c:nuts`. Nothing
+  activated joins a food tag, so no cannabutter is ever spent as plain butter.
+
+### Changed
+
+- Canvas, the hemp outfit, flip-flops and paper take any fibre in `c:fiber_hemp`. The Grow Pot also takes
+  Farming for Blockheads' fertilisers.
+
+### Fixed
+
+- **A world made on Minecraft 1.20.1 opens whole.** Pipe loads and charges, cannabutter's strength, an
+  edible's potency, the stacks in the machines and in a hemp chest boat and a placed bong's device all came
+  through the world upgrade empty.
+- **A vaporizer bowl finished on a full inventory drops its scorched hemp** at your feet, instead of
+  handing it to nobody.
+- **A tall hemp plant stays whole whatever farms it**:
+  - A harvester that takes any ripe crop cut a growing plant down to its root, because every block above
+    the root claimed to be ripe. Each block of a plant now tells its own age; bees behave as before.
+  - Replanting harvesters, instant fertilisers, growth soils and other mods' bees left a ripe top over a
+    seedling, or a root in the middle of a plant, and wiped the trims and the light record. Such a write
+    is now put right: a replanting clears the old plant, a ripening grows the whole plant with its record.
+  - A soil that harvests and replants the moment a crop ripens left the old top standing on the new
+    seedling.
+- On NeoForge hemp now grows through the loader's crop-growth events, as vanilla crops do there, so a
+  season or growth mod can hold it back. A plant held back by the block above it is not reported as grown.
 
 ## [2.1.0] — 2026-10-27
 
