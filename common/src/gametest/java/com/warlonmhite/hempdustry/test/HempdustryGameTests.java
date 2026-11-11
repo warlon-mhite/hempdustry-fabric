@@ -206,6 +206,12 @@ public final class HempdustryGameTests {
         register("our_own_step_is_not_taken_for_a_raw_one", RawWritesGameTest::ourOwnStepIsNotTakenForARawOne);
         register("a_plant_taken_as_it_ripens_leaves_only_the_replanting",
                 RawWritesGameTest::aPlantTakenAsItRipensLeavesOnlyTheReplanting);
+        register("a_top_a_farmer_reaps_brings_the_plant_down", TallPlantBreakGameTest::aTopAFarmerReapsBringsThePlantDown);
+        register("a_top_a_harvester_cuts_brings_the_plant_down", TallPlantBreakGameTest::aTopAHarvesterCutsBringsThePlantDown);
+        register("a_top_an_explosion_reaches_takes_the_root_as_the_explosion",
+                TallPlantBreakGameTest::aTopAnExplosionReachesTakesTheRootAsTheExplosion);
+        register("a_player_breaking_any_block_harvests_the_plant_once",
+                TallPlantBreakGameTest::aPlayerBreakingAnyBlockHarvestsThePlantOnce);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */
