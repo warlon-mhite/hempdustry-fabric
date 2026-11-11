@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -11,9 +12,11 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
@@ -25,6 +28,8 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+import java.util.function.BiConsumer;
 
 /**
  * The Lemon Haze crop: a <em>three</em>-tall plant, built on the same pattern as the two-tall
@@ -156,6 +161,42 @@ public class SativaCropBlock extends CropBlock {
                     && this.getAge(below) >= THREE_TALL_AGE;
             case LOWER -> super.canSurvive(state, world, pos);
         };
+    }
+
+    /**
+     * A block that carries a segment goes when that segment is taken by anything but the plant's own rules
+     * ({@link TallHemp#lostItsTop}), as on {@link IndicaCropBlock#updateShape}: the MIDDLE when its UPPER goes,
+     * the root once it is two tall. A MIDDLE gone that way takes the root in turn, so a top cut from a
+     * three-tall plant brings the whole plant down, and its harvest falls once, from the root.
+     */
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader world, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighborPos, BlockState neighbor, RandomSource random) {
+        BlockState shaped = super.updateShape(state, world, ticks, pos, direction, neighborPos, neighbor, random);
+        if (direction == Direction.UP && shaped == state
+                && TallHemp.lostItsTop(this, world, pos, this.carriesASegment(state))) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        return shaped;
+    }
+
+    private boolean carriesASegment(BlockState state) {
+        return switch (state.getValue(SEGMENT)) {
+            case LOWER -> this.getAge(state) >= TWO_TALL_AGE;
+            case MIDDLE -> true;
+            case UPPER -> false;
+        };
+    }
+
+    /** As on {@link IndicaCropBlock#onExplosionHit}: an explosion that reaches a segment takes the root with it. */
+    @Override
+    protected void onExplosionHit(BlockState state, ServerLevel world, BlockPos pos, Explosion explosion,
+                                  BiConsumer<ItemStack, BlockPos> drops) {
+        if (!isLower(state) && this.canSurvive(state, world, pos)) {
+            BlockPos rootPos = this.findLowerPos(world, pos, state);
+            world.getBlockState(rootPos).onExplosionHit(world, rootPos, explosion, drops);
+        }
+        super.onExplosionHit(state, world, pos, explosion, drops);
     }
 
     // ----- growth -----
@@ -348,8 +389,8 @@ public class SativaCropBlock extends CropBlock {
             BlockPos segmentPos = pos.above(offset);
             BlockState segment = world.getBlockState(segmentPos);
             if (segment.is(this) && !isLower(segment)) {
-                world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
-                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+                TallHemp.ownWrite(() -> world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS));
             }
         }
     }
@@ -497,36 +538,45 @@ public class SativaCropBlock extends CropBlock {
     // ----- harvesting -----
     // Breaking any segment takes the whole plant and yields it exactly once: the loot table only
     // drops for the LOWER segment, so we drop the LOWER's loot by hand when the player broke one
-    // of the others, and clear the rest of the stack top-down with drops suppressed.
+    // of the others, and clear the rest of the stack top-down with drops suppressed, as the plant's
+    // own write, so that a root losing its segments here is not taken for a plant whose top something
+    // else took (updateShape).
     @Override
     public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (!world.isClientSide()) {
-            BlockPos lowerPos = this.findLowerPos(world, pos, state);
-            BlockState lower = world.getBlockState(lowerPos);
-            if (lower.is(this) && isLower(lower)) {
-                // The trim flags and the canonical age both live on the LOWER, so the harvest
-                // criterion is fed from there whichever segment the player actually broke.
-                if (this.isMaxAge(lower)) {
-                    HarvestHempCriterion.trigger(player, (ServerLevel) world, lowerPos, lower);
-                }
-                for (int offset = 2; offset >= 1; offset--) {
-                    BlockPos segmentPos = lowerPos.above(offset);
-                    BlockState segment = world.getBlockState(segmentPos);
-                    if (!segmentPos.equals(pos) && segment.is(this) && !isLower(segment)) {
-                        world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
-                                Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                    }
-                }
-                if (!lowerPos.equals(pos)) {
-                    if (!player.isCreative()) {
-                        dropResources(lower, world, lowerPos, null, player, player.getMainHandItem());
-                    }
-                    world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(),
+            TallHemp.ownWrite(() -> {
+                this.takeTheRest(world, pos, state, player);
+                return true;
+            });
+        }
+        return super.playerWillDestroy(world, pos, state, player);
+    }
+
+    private void takeTheRest(Level world, BlockPos pos, BlockState state, Player player) {
+        BlockPos lowerPos = this.findLowerPos(world, pos, state);
+        BlockState lower = world.getBlockState(lowerPos);
+        if (lower.is(this) && isLower(lower)) {
+            // The trim flags and the canonical age both live on the LOWER, so the harvest
+            // criterion is fed from there whichever segment the player actually broke.
+            if (this.isMaxAge(lower)) {
+                HarvestHempCriterion.trigger(player, (ServerLevel) world, lowerPos, lower);
+            }
+            for (int offset = 2; offset >= 1; offset--) {
+                BlockPos segmentPos = lowerPos.above(offset);
+                BlockState segment = world.getBlockState(segmentPos);
+                if (!segmentPos.equals(pos) && segment.is(this) && !isLower(segment)) {
+                    world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
                             Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
                 }
             }
+            if (!lowerPos.equals(pos)) {
+                if (!player.isCreative()) {
+                    dropResources(lower, world, lowerPos, null, player, player.getMainHandItem());
+                }
+                world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
         }
-        return super.playerWillDestroy(world, pos, state, player);
     }
 
     /**
