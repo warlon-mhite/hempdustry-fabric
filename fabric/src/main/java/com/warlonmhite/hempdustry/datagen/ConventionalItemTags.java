@@ -43,6 +43,8 @@ final class ConventionalItemTags {
     static final TagKey<Item> FORGE_ARMORS = forge("armors");
     static final TagKey<Item> FORGE_SHEARS = forge("shears");
     static final TagKey<Item> FORGE_FERTILIZERS = forge("fertilizers");
+    static final TagKey<Item> FORGE_SEEDS = forge("seeds");
+    static final TagKey<Item> FORGE_FIBER_HEMP = forge("fiber_hemp");
 
     private ConventionalItemTags() {
     }

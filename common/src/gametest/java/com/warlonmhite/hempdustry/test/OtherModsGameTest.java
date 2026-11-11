@@ -6,12 +6,18 @@ import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TallHemp;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
+import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
@@ -21,6 +27,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -183,4 +190,42 @@ public final class OtherModsGameTest {
             context.succeed();
         });
     }
+    /**
+     * Our seeds and fibre carry the common tags other mods' machines and pack scripts read on 1.20.1, in both
+     * namespaces a pack there may use: every hemp seed in {@code forge:seeds} and {@code c:seeds} (the seed-oil
+     * presses compact any seed in {@code #forge:seeds}), hemp fibre in {@code forge:fiber_hemp} and
+     * {@code c:fiber_hemp} (Immersive Engineering's name for it). And none of ours in Immersive Engineering's
+     * {@code seeds/hemp} (its own industrial hemp seed, which a pack or a unifier asking for it means) or
+     * {@code fabric_hemp} (its fabric takes eight fibre and a stick; our canvas takes four and turns back into
+     * them, so in that tag it would halve the cost of everything made from the fabric).
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void ourSeedsAndFibreCarryTheCommonTags(GameTestHelper context) {
+        Map<String, String> findings = new TreeMap<>();
+        List<Item> seeds = new ArrayList<>();
+        BuiltInRegistries.ITEM.getTagOrEmpty(ModTags.Items.HEMP_SEEDS).forEach(holder -> seeds.add(holder.value()));
+        Sweep.atLeast(context, "hemp seeds of ours", seeds.size(), 3);
+        for (String ns : List.of("forge", "c")) {
+            for (Item seed : seeds) {
+                expectIn(findings, seed, tag(ns, "seeds"), true);
+                expectIn(findings, seed, tag(ns, "seeds/hemp"), false);
+            }
+            expectIn(findings, ModItems.HEMP_FIBER, tag(ns, "fiber_hemp"), true);
+            expectIn(findings, ModItems.HEMP_CANVAS, tag(ns, "fabric_hemp"), false);
+        }
+        Sweep.report(context, "our seeds and fibre carry the common tags, and only those", findings, Map.of());
+        context.succeed();
+    }
+
+    private static TagKey<Item> tag(String namespace, String path) {
+        return TagKey.create(Registries.ITEM, new ResourceLocation(namespace, path));
+    }
+
+    private static void expectIn(Map<String, String> findings, Item item, TagKey<Item> tag, boolean wanted) {
+        if (item.builtInRegistryHolder().is(tag) != wanted) {
+            findings.put(BuiltInRegistries.ITEM.getKey(item) + " in #" + tag.location(),
+                    wanted ? "missing from the tag" : "in the tag, and should not be");
+        }
+    }
+
 }

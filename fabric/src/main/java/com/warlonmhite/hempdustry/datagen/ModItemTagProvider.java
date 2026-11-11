@@ -255,6 +255,14 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // Immersive Engineering's industrial hemp fibre is ours by another name: its hemp fabric,
         // string (three to one; ours stays one to one) and wire coils take either.
         getOrCreateTagBuilder(ModTags.Conventional.FIBER_HEMP).add(ModItems.HEMP_FIBER);
+        // The same two in Forge's names, which a 1.20.1 pack reads most: the seed-oil presses compact any
+        // #forge:seeds, unifiers and pack scripts go by tag, and Immersive Engineering's fabric, string and
+        // wire coils take #forge:fiber_hemp. Not forge:seeds/hemp, for the reason above. Not forge:fabric_hemp
+        // either: Immersive Engineering weaves its fabric from eight fibre and a stick, our canvas takes four
+        // and turns back into them, so in that tag it would halve the cost of everything made from the fabric.
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_SEEDS)
+                .addOptionalTag(ModTags.Items.HEMP_SEEDS);
+        getOrCreateTagBuilder(ConventionalItemTags.FORGE_FIBER_HEMP).add(ModItems.HEMP_FIBER);
         // Pam's HarvestCraft files plant fibres by crop (cotton, flax, jute, kenaf, sisal, yucca) and
         // spins any two into a string. Hemp is the oldest of them.
         getOrCreateTagBuilder(ModTags.Conventional.HEMP_FIBERS).add(ModItems.HEMP_FIBER);
