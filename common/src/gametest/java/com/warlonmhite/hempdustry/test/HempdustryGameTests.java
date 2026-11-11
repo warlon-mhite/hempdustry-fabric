@@ -86,6 +86,7 @@ public final class HempdustryGameTests {
             SiftingBoxGameTest.class,
             SweepGameTest.class,
             TagBackedBehaviourGameTest.class,
+            TallPlantBreakGameTest.class,
             TallPlantLootGameTest.class,
             VaporizerGameTest.class,
             ViewerGameTest.class);

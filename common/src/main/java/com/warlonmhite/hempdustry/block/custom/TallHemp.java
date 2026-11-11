@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -60,6 +63,32 @@ public final class TallHemp {
      * keeps everything else, so it has nothing to repair.
      */
     static boolean isRawWrite(CropBlock crop, BlockState state, BlockState old) {
-        return OWN_WRITES.get()[0] == 0 && old.is(crop) && state == crop.getStateForAge(crop.getAge(state));
+        return !inOwnWrite() && old.is(crop) && state == crop.getStateForAge(crop.getAge(state));
+    }
+
+    /** Whether one of the plant's own writes ({@link #ownWrite}) is running on this thread. */
+    static boolean inOwnWrite() {
+        return OWN_WRITES.get()[0] > 0;
+    }
+
+    /**
+     * Whether the block at {@code pos}, a root or a segment between the root and the top, has lost the segment
+     * its plant stands on it: it is old enough to carry one, the block above is no longer a segment of this crop,
+     * and the change was not one of the plant's own. Something other than a player took that segment (a farmer,
+     * a harvester, a piston, water, an explosion that missed the root, a command), and a plant with its top gone
+     * is a plant broken: the crop's shape update then turns this block to air, which the game breaks with its
+     * drops, so the harvest falls once, from the root, as when a player breaks any block of the plant. A player's
+     * break never gets here, because {@code playerWillDestroy} takes the rest of the plant first, as its own write.
+     *
+     * <p>The block above is read from the level, not taken from the update: an update raised inside another one
+     * waits in the game's queue with the state it was raised with, and by the time it runs the plant may have
+     * grown its top back.
+     */
+    static boolean lostItsTop(Block crop, LevelReader world, BlockPos pos, boolean carriesOne) {
+        if (!carriesOne || inOwnWrite()) {
+            return false;
+        }
+        BlockState above = world.getBlockState(pos.above());
+        return !above.is(crop) || isRoot(above);
     }
 }

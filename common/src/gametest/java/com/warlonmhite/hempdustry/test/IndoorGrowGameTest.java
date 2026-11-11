@@ -72,7 +72,9 @@ public final class IndoorGrowGameTest {
         ServerLevel tickWorld = context.getLevel();
         BlockPos ripe = context.absolutePos(CROP);
         context.setBlock(LIGHT, Blocks.AIR);
-        context.setBlock(CROP.above(), Blocks.AIR);
+        // Taken without a word to the root, as an old world or a raw write leaves a plant: a top taken with
+        // updates takes the ripe root down with it.
+        tickWorld.setBlock(ripe.above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
         tickWorld.getBlockState(ripe).randomTick(tickWorld, ripe, tickWorld.getRandom());
         context.assertTrue(context.getBlockState(CROP.above()).is(ModBlocks.INDICA_CROP),
                 "the random tick did not re-sprout the missing top half, so this probe proves nothing");
@@ -626,12 +628,13 @@ public final class IndoorGrowGameTest {
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
         AABB area = Line.box(pos.offset(-3, -2, -3), pos.offset(3, 3, 3));
-        world.getEntitiesOfClass(ItemEntity.class, area, e -> true).forEach(Entity::discard);
         context.setBlock(SOIL, Blocks.FARMLAND);
         context.setBlock(CROP.above(), Blocks.AIR);
         context.setBlock(CROP, Defoliation.unworked(ModBlocks.INDICA_CROP.defaultBlockState())
                 .setValue(IndicaCropBlock.AGE, Defoliation.EARLY_MIN_AGE)
                 .setValue(GrowLight.PROPERTY, light));
+        // After the column is reset: taking the top off a ripe plant left here harvests it.
+        world.getEntitiesOfClass(ItemEntity.class, area, e -> true).forEach(Entity::discard);
         ItemStack shears = new ItemStack(Items.SHEARS);
         player.setItemInHand(InteractionHand.MAIN_HAND, shears);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
