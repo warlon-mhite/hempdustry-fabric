@@ -1,0 +1,29 @@
+{
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "create"
+      ]
+    }
+  ],
+  "type": "create:cutting",
+  "ingredients": [
+    {
+      "item": "hempdustry:hemp_stem"
+    }
+  ],
+  "processingTime": 50,
+  "results": [
+    {
+      "item": "hempdustry:hemp_fiber",
+      "count": 4
+    }
+  ]
+}

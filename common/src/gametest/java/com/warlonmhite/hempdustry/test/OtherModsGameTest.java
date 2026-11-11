@@ -1,6 +1,11 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
+import com.warlonmhite.hempdustry.compat.ReplacedRecipes;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
@@ -16,11 +21,14 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.profiling.InactiveProfiler;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
@@ -30,10 +38,14 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * What other mods read off our plants, held to what they expect of any crop.
@@ -249,6 +261,184 @@ public final class OtherModsGameTest {
         }
         Sweep.report(context, "our seeds and fibre carry the common tags, and only those", findings, Map.of());
         context.succeed();
+    }
+
+    /**
+     * How Create 6 finds a log at runtime: an id ending in {@code _log}, {@code _wood}, {@code _stem},
+     * {@code _hyphae} or {@code _block}, not stripped. Beside a {@code <name>_planks} of the same mod it makes
+     * itself a saw recipe turning one into six planks, at
+     * {@code create:cutting/runtime_generated/compat/create/tag_runtime_generated/compat/<mod>/<name>_to_<name>_planks},
+     * in a pack of its own that a new world stacks above every mod's data.
+     */
+    private static final Pattern CREATE_LOG = Pattern.compile(
+            "^(?!stripped_)([a-z_]+)(_log|_wood|_stem|_hyphae|(?<!bioshroom)_block)(([a-z_]+)(?<!_stripped))?$");
+
+    /**
+     * Create's saw would turn a hemp stem into six planks: a plank costs twelve stems our way, and a stem is
+     * fibre, not wood. A file of ours at Create's id loses to Create's pack, so every item of ours that Create
+     * takes for a log beside our planks has Create's runtime id in {@link ReplacedRecipes#REPLACED}, and the
+     * recipe of ours it names is a saw recipe that strips the stalk into fibre and never makes planks.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void createsSawLeavesOurStemsAsFibre(GameTestHelper context) {
+        Map<String, String> findings = new TreeMap<>();
+        Map<String, Path> files = Sweep.modFiles();
+        int seen = 0;
+        for (Item item : BuiltInRegistries.ITEM) {
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+            Matcher log = CREATE_LOG.matcher(id.getPath());
+            if (!Sweep.ours(id) || !log.matches()) {
+                continue;
+            }
+            String planks = log.group(1) + "_planks";
+            if (!BuiltInRegistries.ITEM.containsKey(new ResourceLocation(id.getNamespace(), planks))) {
+                continue;
+            }
+            seen++;
+            ResourceLocation creates = new ResourceLocation("create",
+                    "cutting/runtime_generated/compat/create/tag_runtime_generated/compat/"
+                            + id.getNamespace() + "/" + log.group(1) + "_to_" + planks);
+            ResourceLocation ours = ReplacedRecipes.REPLACED.get(creates);
+            if (ours == null) {
+                findings.put(id.toString(), "Create saws it into planks at " + creates + ", which nothing drops");
+                continue;
+            }
+            String path = "data/" + ours.getNamespace() + "/recipes/" + ours.getPath() + ".json";
+            Path file = files.get(path);
+            if (!Sweep.ours(ours) || file == null) {
+                findings.put(id.toString(), creates + " is dropped for " + ours + ", which we do not ship at " + path);
+                continue;
+            }
+            JsonObject recipe = Sweep.json(file).getAsJsonObject();
+            String results = String.valueOf(recipe.get("results"));
+            String ingredients = String.valueOf(recipe.get("ingredients"));
+            if (!"create:cutting".equals(recipe.has("type") ? recipe.get("type").getAsString() : null)) {
+                findings.put(path, "not a create:cutting recipe, so the saw does nothing with it: " + recipe.get("type"));
+            } else if (!ingredients.contains("\"" + id + "\"")) {
+                findings.put(path, "does not take " + id + ": " + ingredients);
+            } else if (results.contains("_planks\"")
+                    || !results.contains("\"" + BuiltInRegistries.ITEM.getKey(ModItems.HEMP_FIBER) + "\"")) {
+                findings.put(path, "does not strip the stalk into fibre: " + results);
+            }
+        }
+        Sweep.atLeast(context, "items of ours Create takes for a log beside our planks", seen, 1);
+        Sweep.report(context, "Create's saw strips our stems into fibre, never planks", findings, Map.of());
+        context.succeed();
+    }
+
+    /**
+     * The recipe manager itself drops another mod's runtime recipe that one of ours replaces, before any
+     * recipe is read, and only that one: fed a stand-in at Create's id beside ours and an unrelated recipe,
+     * it loads ours and the unrelated one, and not Create's. Without ours among the files, Create's stays.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void theRecipeManagerDropsWhatOursReplace(GameTestHelper context) {
+        Map.Entry<ResourceLocation, ResourceLocation> replaced = ReplacedRecipes.REPLACED.entrySet().iterator().next();
+        ResourceLocation theirs = replaced.getKey();
+        ResourceLocation ours = replaced.getValue();
+        ResourceLocation unrelated = new ResourceLocation("create", "cutting/stand_in_unrelated");
+        String stem = BuiltInRegistries.ITEM.getKey(ModItems.HEMP_STEM).toString();
+        JsonElement planks = standIn(stem, BuiltInRegistries.ITEM.getKey(ModBlocks.HEMP_PLANKS.asItem()).toString(), 6);
+        JsonElement fibre = standIn(stem, BuiltInRegistries.ITEM.getKey(ModItems.HEMP_FIBER).toString(), 4);
+
+        Map<ResourceLocation, JsonElement> both = new HashMap<>();
+        both.put(theirs, planks);
+        both.put(ours, fibre);
+        both.put(unrelated, standIn("minecraft:oak_log", "minecraft:oak_planks", 6));
+        RecipeProbe loaded = RecipeProbe.load(both);
+        context.assertFalse(loaded.byKey(theirs).isPresent(),
+                theirs + " loaded beside " + ours + ", which replaces it: the saw would still make planks");
+        context.assertTrue(loaded.byKey(ours).isPresent(), ours + " did not load");
+        context.assertTrue(loaded.byKey(unrelated).isPresent(), "an unrelated recipe was dropped too");
+
+        Map<ResourceLocation, JsonElement> alone = new HashMap<>();
+        alone.put(theirs, planks);
+        context.assertTrue(RecipeProbe.load(alone).byKey(theirs).isPresent(),
+                theirs + " was dropped with nothing of ours to replace it");
+        context.succeed();
+    }
+
+    /** A shapeless crafting recipe standing in for another mod's: one item in, a count of another out. */
+    private static JsonElement standIn(String in, String out, int count) {
+        return JsonParser.parseString("{\"type\":\"minecraft:crafting_shapeless\",\"ingredients\":[{\"item\":\""
+                + in + "\"}],\"result\":{\"item\":\"" + out + "\",\"count\":" + count + "}}");
+    }
+
+    /** A recipe manager of its own, loaded from the given files the way a server start or a reload loads one. */
+    private static final class RecipeProbe extends RecipeManager {
+        static RecipeProbe load(Map<ResourceLocation, JsonElement> files) {
+            RecipeProbe probe = new RecipeProbe();
+            probe.apply(files, ResourceManager.Empty.INSTANCE, InactiveProfiler.INSTANCE);
+            return probe;
+        }
+    }
+
+    /**
+     * Every recipe we ship for another mod's machine (or that makes another mod's item) names that mod in each
+     * loader's conditions -- Forge's {@code conditions} and Fabric's {@code fabric:load_conditions} -- so without
+     * it the file is never parsed (its recipe type would not exist, and the log gate would fail on the error),
+     * and a loader never loads it on the other's key alone.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void everyRecipeForAnotherModWaitsForIt(GameTestHelper context) {
+        Map<String, String> findings = new TreeMap<>();
+        int seen = 0;
+        for (Map.Entry<String, Path> file : Sweep.modFiles().entrySet()) {
+            String path = file.getKey();
+            if (!path.startsWith("data/") || !path.contains("/recipes/") || !path.endsWith(".json")) {
+                continue;
+            }
+            JsonObject recipe = Sweep.json(file.getValue()).getAsJsonObject();
+            String type = recipe.has("type") ? recipe.get("type").getAsString() : "";
+            String mod = type.contains(":") ? type.substring(0, type.indexOf(':')) : "minecraft";
+            if (mod.equals("minecraft") && recipe.has("result") && recipe.get("result").isJsonObject()
+                    && recipe.getAsJsonObject("result").has("item")) {
+                String result = recipe.getAsJsonObject("result").get("item").getAsString();
+                mod = result.contains(":") ? result.substring(0, result.indexOf(':')) : "minecraft";
+            }
+            if (mod.equals("minecraft") || mod.equals(Hempdustry.MOD_ID)) {
+                continue;
+            }
+            seen++;
+            if (!waitsOnForge(recipe.get("conditions"), mod)) {
+                findings.put(path + " (Forge)", "conditions do not wait for " + mod + ": " + recipe.get("conditions"));
+            }
+            if (!waitsOnFabric(recipe.get("fabric:load_conditions"), mod)) {
+                findings.put(path + " (Fabric)", "fabric:load_conditions do not wait for " + mod + ": "
+                        + recipe.get("fabric:load_conditions"));
+            }
+        }
+        Sweep.atLeast(context, "recipes for other mods' machines", seen, 1);
+        Sweep.report(context, "every recipe for another mod's machine loads only with that mod", findings, Map.of());
+        context.succeed();
+    }
+
+    private static boolean waitsOnForge(JsonElement conditions, String mod) {
+        if (conditions == null || !conditions.isJsonArray()) {
+            return false;
+        }
+        for (JsonElement condition : conditions.getAsJsonArray()) {
+            JsonObject c = condition.getAsJsonObject();
+            if (c.has("type") && c.get("type").getAsString().equals("forge:mod_loaded")
+                    && c.has("modid") && c.get("modid").getAsString().equals(mod)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean waitsOnFabric(JsonElement conditions, String mod) {
+        if (conditions == null || !conditions.isJsonArray()) {
+            return false;
+        }
+        for (JsonElement condition : conditions.getAsJsonArray()) {
+            JsonObject c = condition.getAsJsonObject();
+            if (c.has("condition") && c.get("condition").getAsString().equals("fabric:all_mods_loaded")
+                    && c.has("values") && c.getAsJsonArray("values").toString().contains("\"" + mod + "\"")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static TagKey<Item> tag(String namespace, String path) {

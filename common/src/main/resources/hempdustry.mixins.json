@@ -15,7 +15,8 @@
 		"Schema1460Mixin",
 		"LlamaAccessor",
 		"LlamaMixin",
-		"LootDataManagerMixin"
+		"LootDataManagerMixin",
+		"RecipeManagerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

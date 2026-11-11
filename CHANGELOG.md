@@ -29,6 +29,8 @@ alone sees the fixes, the villagers and nothing else.
 - **A standing bong is drawn.** A bong set down showed its outline and no bong, every glass colour alike.
 - **A vaporizer bowl finished on a full inventory drops its scorched hemp** at your feet, instead of
   handing it to nobody.
+- **Create's saw strips a hemp stem into its 4 fibre**, as by hand, instead of sawing it into 6 hemp
+  planks (a plank costs twelve stems the mod's way).
 - **A tall hemp plant stays whole whatever farms it**:
   - A harvester that takes any ripe crop cut a growing plant down to its root, because every block above
     the root claimed to be ripe. Each block of a plant now tells its own age; bees behave as before.
