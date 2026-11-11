@@ -65,6 +65,10 @@ mod is there, so a game with Hempdustry alone sees the fixes, the villagers and 
     is now put right: a replanting clears the old plant, a ripening grows the whole plant with its record.
   - A soil that harvests and replants the moment a crop ripens (Just Dire Things' goo soil) left the old
     top standing on the new seedling.
+  - A farmer, or a harvester sweeping at the height of the tops (Create's), could take a ripe plant's top
+    and leave its root standing alone, ripe, and Create then set an unripe top back on it. Whatever takes
+    a block above the root now brings the whole plant down, and its harvest drops once, as when a player
+    breaks it: farmers, harvesters, pistons, water and explosions alike.
 - On NeoForge hemp now grows through the loader's crop-growth events, as vanilla crops do there, so a hemp
   field feeds an Agronomic Sourcelink (Ars Nouveau) and a season or growth mod can hold it back. A plant
   held back by the block above it earns nothing.

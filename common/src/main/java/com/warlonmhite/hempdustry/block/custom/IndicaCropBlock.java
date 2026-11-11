@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -11,8 +12,10 @@ import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -26,6 +29,8 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+import java.util.function.BiConsumer;
 
 /**
  * A two-tall crop. Redesigned around the vanilla
@@ -121,6 +126,38 @@ public class IndicaCropBlock extends CropBlock {
                     && this.getAge(below) >= DOUBLE_BLOCK_AGE;
         }
         return super.canSurvive(state, world, pos);
+    }
+
+    /**
+     * A root old enough to carry its upper half goes when the upper half is taken by anything but the plant's own
+     * rules ({@link TallHemp#lostItsTop}): a farmer that reaps the top, a harvester that sweeps at the top's
+     * height, a piston, water. The game breaks it with its drops, so the plant's harvest falls once, as when a
+     * player breaks either half; and an upper half written back over the root afterwards (Create's harvester
+     * replants what it cut where it can survive) finds nothing to stand on.
+     */
+    @Override
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighbor, LevelAccessor world,
+                                     BlockPos pos, BlockPos neighborPos) {
+        BlockState shaped = super.updateShape(state, direction, neighbor, world, pos, neighborPos);
+        if (direction == Direction.UP && shaped == state
+                && TallHemp.lostItsTop(this, world, pos, isLower(state) && this.getAge(state) >= DOUBLE_BLOCK_AGE)) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        return shaped;
+    }
+
+    /**
+     * An explosion that reaches the upper half takes the root with it, as that explosion: the harvest goes through
+     * the explosion's own drops, with its decay, rather than whole through the root's shape update.
+     */
+    @Override
+    protected void onExplosionHit(BlockState state, Level world, BlockPos pos, Explosion explosion,
+                                  BiConsumer<ItemStack, BlockPos> drops) {
+        if (!isLower(state) && this.canSurvive(state, world, pos)) {
+            BlockPos rootPos = pos.below();
+            world.getBlockState(rootPos).onExplosionHit(world, rootPos, explosion, drops);
+        }
+        super.onExplosionHit(state, world, pos, explosion, drops);
     }
 
     // ----- growth -----
@@ -322,7 +359,8 @@ public class IndicaCropBlock extends CropBlock {
         BlockPos upPos = pos.above();
         BlockState above = world.getBlockState(upPos);
         if (above.is(this) && !isLower(above)) {
-            world.setBlock(upPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            TallHemp.ownWrite(() -> world.setBlock(upPos, Blocks.AIR.defaultBlockState(),
+                    Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS));
         }
     }
 
@@ -468,37 +506,46 @@ public class IndicaCropBlock extends CropBlock {
     // ----- harvesting -----
     // Breaking either half removes both and yields the plant exactly once: the loot
     // table only drops for the lower half, so we drop the lower's loot (when an upper
-    // half is broken directly) and remove the partner without letting it drop.
+    // half is broken directly) and remove the partner without letting it drop. The
+    // partner goes as the plant's own write, so that a ripe root losing its upper half
+    // here is not taken for a plant whose top something else took (updateShape).
     @Override
     public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (!world.isClientSide) {
-            // The trim flags and the canonical age both live on the LOWER half, so the harvest
-            // criterion is fed from there whichever half the player actually broke.
-            BlockPos canonicalPos = state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;
-            BlockState canonical = world.getBlockState(canonicalPos);
-            if (canonical.is(this) && canonical.getValue(HALF) == DoubleBlockHalf.LOWER
-                    && this.isMaxAge(canonical)) {
-                HarvestHempCriterion.trigger(player, (ServerLevel) world, canonicalPos, canonical);
-            }
-
-            if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
-                BlockPos lowerPos = pos.below();
-                BlockState lower = world.getBlockState(lowerPos);
-                if (lower.is(this) && lower.getValue(HALF) == DoubleBlockHalf.LOWER) {
-                    if (!player.isCreative()) {
-                        dropResources(lower, world, lowerPos, null, player, player.getMainHandItem());
-                    }
-                    world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                }
-            } else {
-                BlockPos upperPos = pos.above();
-                BlockState upper = world.getBlockState(upperPos);
-                if (upper.is(this) && upper.getValue(HALF) == DoubleBlockHalf.UPPER) {
-                    world.setBlock(upperPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                }
-            }
+            TallHemp.ownWrite(() -> {
+                this.takePartner(world, pos, state, player);
+                return true;
+            });
         }
         return super.playerWillDestroy(world, pos, state, player);
+    }
+
+    private void takePartner(Level world, BlockPos pos, BlockState state, Player player) {
+        // The trim flags and the canonical age both live on the LOWER half, so the harvest
+        // criterion is fed from there whichever half the player actually broke.
+        BlockPos canonicalPos = state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;
+        BlockState canonical = world.getBlockState(canonicalPos);
+        if (canonical.is(this) && canonical.getValue(HALF) == DoubleBlockHalf.LOWER
+                && this.isMaxAge(canonical)) {
+            HarvestHempCriterion.trigger(player, (ServerLevel) world, canonicalPos, canonical);
+        }
+
+        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+            BlockPos lowerPos = pos.below();
+            BlockState lower = world.getBlockState(lowerPos);
+            if (lower.is(this) && lower.getValue(HALF) == DoubleBlockHalf.LOWER) {
+                if (!player.isCreative()) {
+                    dropResources(lower, world, lowerPos, null, player, player.getMainHandItem());
+                }
+                world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
+        } else {
+            BlockPos upperPos = pos.above();
+            BlockState upper = world.getBlockState(upperPos);
+            if (upper.is(this) && upper.getValue(HALF) == DoubleBlockHalf.UPPER) {
+                world.setBlock(upperPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
+        }
     }
 
     @Override
