@@ -9,8 +9,9 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-2.1.0 for Minecraft 26.1.2: everything in [2.1.0+26.2], except what is built on things only
-Minecraft 26.2 has. A world from 2.1.0 on Minecraft 1.21.11 opens on it and keeps everything in it.
+2.1 for Minecraft 26.1.2: everything in [2.1.0+26.2] and the 2.1.1 patch below, except what is built on
+things only Minecraft 26.2 has. A world from 2.1.0 on Minecraft 1.21.11 opens on it and keeps everything in
+it.
 
 ### Not on Minecraft 26.1.2
 
@@ -18,6 +19,57 @@ Minecraft 26.2 has. A world from 2.1.0 on Minecraft 1.21.11 opens on it and keep
   legs** need the friction attribute sulfur cubes move by. All three came with Minecraft 26.2, so the
   26.1.2 build has none of them. The 4:20 marker, *The Munchies*, hemp on other mods' farmland and the
   baby-sized outfit are all here.
+
+### Added since 2.1.0+26.2
+
+The first patch of 2.1 comes with it: hemp plants that hold up under other mods' harvesters, fertilisers
+and soils, farmer villagers who grow hemp, and the first hooks for the mods of a pack. Every file for
+another mod loads only when that mod is there, so a game with Hempdustry alone sees the fixes, the villagers
+and nothing else.
+
+- **Farmer villagers grow hemp.** A farmer holding indica or sativa seed plants it on the village farmland
+  and reaps the ripe plant whole, the way it farms wheat. The light and stress rules apply as in any field.
+  Beldía stays wild: it stands only on sand.
+- **Hemp in other mods**, each loaded only with its mod:
+  - **Farmer's Delight** (Refabricated): the cutting board strips a stem into 4 fibre and a retted one into
+    6, with a chance of a stick; hemp fibre makes its rope.
+  - **Silent Gear** (NeoForge): hemp fibre is a cord and binding material.
+  - **Bibliocraft**'s cookie jar holds the space cookie.
+- **Common tags other mods read**: every hemp seed in `c:seeds`, hemp fibre in `c:fiber_hemp` and
+  `c:fiber`, hemp flour in `c:flour`, hemp milk in `c:milk` and toasted hemp seeds in `c:nuts`. Nothing
+  activated joins a food tag, so no cannabutter is ever spent as plain butter.
+- **KubeJS and KubeGroovy can rewrite the mod's own recipes.** A pack's `replaceInput` and `replaceOutput`
+  now reach the Decarboxylator, the Infuser, the Hemp Press and the infused and bucket-carrying grid
+  recipes.
+
+### Changed since 2.1.0+26.2
+
+- Canvas, the hemp outfit, flip-flops and paper take any fibre in `c:fiber_hemp`. The Grow Pot also takes
+  Farming for Blockheads' fertilisers.
+- Forbidden Arcanus' magical farmland no longer doubles hemp seeds, as it already spares vanilla's; the buds
+  still double.
+
+### Fixed since 2.1.0+26.2
+
+- **A world made on Minecraft 1.20.1 opens whole.** Pipe loads and charges, cannabutter's strength, an
+  edible's potency, the stacks in the machines and in a hemp chest boat and a placed bong's device all came
+  through the world upgrade empty.
+- **A vaporizer bowl finished on a full inventory drops its scorched hemp** at your feet, instead of
+  handing it to nobody.
+- **A tall hemp plant stays whole whatever farms it**:
+  - A harvester that takes any ripe crop cut a growing plant down to its root, because every block above
+    the root claimed to be ripe. Each block of a plant now tells its own age; bees behave as before.
+  - Replanting harvesters, instant fertilisers, growth soils and other mods' bees left a ripe top over a
+    seedling, or a root in the middle of a plant, and wiped the trims and the light record. Such a write
+    is now put right: a replanting clears the old plant, a ripening grows the whole plant with its record.
+  - A soil that harvests and replants the moment a crop ripens left the old top standing on the new
+    seedling.
+  - A farmer, or a harvester sweeping at the height of the tops, could take a ripe plant's top and leave
+    its root standing alone, ripe, and a harvester could then set an unripe top back on it. Whatever takes
+    a block above the root now brings the whole plant down, and its harvest drops once, as when a player
+    breaks it: farmers, harvesters, pistons, water and explosions alike.
+- On NeoForge hemp now grows through the loader's crop-growth events, as vanilla crops do there, so a
+  season or growth mod can hold it back. A plant held back by the block above it is not reported as grown.
 
 ## [2.1.0+26.2] — 2026-11-02
 
