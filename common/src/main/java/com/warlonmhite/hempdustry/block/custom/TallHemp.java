@@ -60,10 +60,23 @@ public final class TallHemp {
      *
      * <p>Only that exact state counts. Every other write of ours either sets something (a trim, a rub, the
      * stressed record) or runs inside {@link #ownWrite}; and a mod that writes {@code state.setValue(AGE, n)}
-     * keeps everything else, so it has nothing to repair.
+     * keeps everything else, which on the root is all a growth step keeps. Above the root it is
+     * {@link #isAgeWrittenAboveTheRoot}.
      */
     static boolean isRawWrite(CropBlock crop, BlockState state, BlockState old) {
         return !inOwnWrite() && old.is(crop) && state == crop.getStateForAge(crop.getAge(state));
+    }
+
+    /**
+     * Whether {@code state}, just written over {@code old}, is another mod's change of age on a block above the
+     * root that keeps everything else ({@code state.setValue(AGE, n)}): a right-click harvest that replants the
+     * block clicked, for one. A plant's age is its root's and so is its loot, so such a write harvested nothing
+     * and grew nothing, and the block goes back as it was. Our own steps set a segment's age only inside
+     * {@link #ownWrite}.
+     */
+    static boolean isAgeWrittenAboveTheRoot(CropBlock crop, BlockState state, BlockState old) {
+        return !inOwnWrite() && old.is(crop) && state.is(crop) && !isRoot(old)
+                && crop.getAge(state) != crop.getAge(old);
     }
 
     /** Whether one of the plant's own writes ({@link #ownWrite}) is running on this thread. */
