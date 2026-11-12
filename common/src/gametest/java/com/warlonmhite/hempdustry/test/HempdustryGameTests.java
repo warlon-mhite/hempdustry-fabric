@@ -187,6 +187,7 @@ public final class HempdustryGameTests {
         register("a_mixed_batch_spills_each_chemotype_as_it_went_in", InfuserBreakGameTest::aMixedBatchSpillsEachChemotypeAsItWentIn);
         register("the_machines_contents_are_upgraded", DataFixerGameTest::theMachinesContentsAreUpgraded);
         register("an_old_hemp_bed_loses_its_block_entity", DataFixerGameTest::anOldHempBedLosesItsBlockEntity);
+        register("a_stash_jars_buds_are_upgraded", DataFixerGameTest::aStashJarsBudsAreUpgraded);
         register("every_value_of_ours_comes_back_from_1_20_1", DataFixerGameTest::everyValueOfOursComesBackFrom1201);
         register("the_machines_contents_come_back_from_1_20_1", DataFixerGameTest::theMachinesContentsComeBackFrom1201);
         register("hemp_fiber_repairs_the_outfit", TagBackedBehaviourGameTest::hempFiberRepairsTheOutfit);

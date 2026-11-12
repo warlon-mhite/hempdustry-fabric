@@ -4,6 +4,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import com.warlonmhite.hempdustry.block.entity.custom.BongBlockEntity;
+import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.component.StashContents;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -199,6 +201,66 @@ public final class DataFixerGameTest {
                 "the hemp bed kept its block entity through the fixer, which 26.2 no longer has a type for: " + left);
         context.assertValueEqual(List.of("minecraft:chest"), left, "the block entities left after the fixer");
         context.succeed();
+    }
+
+    /** A bud named in an anvil, as 1.21.1 saves it: the name as its JSON string. */
+    private static String oldNamedBud() {
+        return "{id:\"hempdustry:indica_buds\",count:3,"
+                + "components:{\"minecraft:custom_name\":'\"" + NAME + "\"'}}";
+    }
+
+    /**
+     * The buds in a Stash Jar are upgraded with the world, carried or placed. A carried jar keeps them in its
+     * {@code hempdustry:stash_contents} component, which the fixer reaches only once the component is in its list of
+     * types ({@code ItemComponentsSchemaMixin}); a placed jar keeps the same entries under its block entity's
+     * {@code contents} ({@code Schema1460Mixin}). Each is run from 1.21.1's data version beside a vanilla holder of the
+     * same named bud — a bundle, a chest — which shows the fix ran at all: a name the fixer never reached keeps
+     * 1.21.1's JSON string and reads back with its quotes.
+     */
+    public static void aStashJarsBudsAreUpgraded(GameTestHelper context) {
+        DynamicOps<Tag> ops = context.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+        int current = SharedConstants.getCurrentVersion().dataVersion().version();
+
+        CompoundTag bundle = (CompoundTag) context.getLevel().getServer().getFixerUpper().update(References.ITEM_STACK,
+                new Dynamic<>(NbtOps.INSTANCE, read("{id:\"minecraft:bundle\",count:1,components:{"
+                        + "\"minecraft:bundle_contents\":[" + oldNamedBud() + "]}}")),
+                MINECRAFT_1_21_1, current).getValue();
+        context.assertValueEqual(NAME, text(context, bundle.getCompoundOrEmpty("components")
+                        .getListOrEmpty("minecraft:bundle_contents").getCompoundOrEmpty(0)),
+                "the control bundle's bud name after the fixer, so it never reached the item stack: " + bundle);
+
+        CompoundTag carried = (CompoundTag) context.getLevel().getServer().getFixerUpper().update(References.ITEM_STACK,
+                new Dynamic<>(NbtOps.INSTANCE, read("{id:\"hempdustry:stash_jar\",count:1,components:{"
+                        + "\"hempdustry:stash_contents\":[{item:" + oldNamedBud() + ",count:3}]}}")),
+                MINECRAFT_1_21_1, current).getValue();
+        context.assertValueEqual(NAME, text(context, carried.getCompoundOrEmpty("components")
+                        .getListOrEmpty("hempdustry:stash_contents").getCompoundOrEmpty(0).getCompoundOrEmpty("item")),
+                "the name of a bud in a carried jar after the fixer: " + carried);
+        ItemStack jar = ItemStack.OPTIONAL_CODEC.parse(ops, carried).getOrThrow();
+        context.assertValueEqual(3, jar.getOrDefault(ModComponents.STASH_CONTENTS, StashContents.EMPTY).count(),
+                "the buds a carried jar holds after the fixer");
+
+        String chunk = "{DataVersion:3955,xPos:0,zPos:0,yPos:-4,Status:\"minecraft:full\",sections:[],block_entities:["
+                + "{id:\"minecraft:chest\",x:0,y:-60,z:0,Items:[{Slot:0b," + oldNamedBud().substring(1) + "]},"
+                + "{id:\"hempdustry:stash_jar\",x:1,y:-60,z:0,contents:[{item:" + oldNamedBud() + ",count:3}]}]}";
+        ListTag blockEntities = DataFixTypes.CHUNK.updateToCurrentVersion(context.getLevel().getServer().getFixerUpper(),
+                read(chunk), MINECRAFT_1_21_1).getListOrEmpty("block_entities");
+        context.assertValueEqual(NAME, text(context, blockEntities.getCompoundOrEmpty(0).getListOrEmpty("Items")
+                        .getCompoundOrEmpty(0)),
+                "the control chest's bud name after the fixer, so the chunk never went through: " + blockEntities);
+        context.assertValueEqual(NAME, text(context, blockEntities.getCompoundOrEmpty(1).getListOrEmpty("contents")
+                        .getCompoundOrEmpty(0).getCompoundOrEmpty("item")),
+                "the name of a bud in a placed jar after the fixer: " + blockEntities.getCompoundOrEmpty(1));
+        context.succeed();
+    }
+
+    /** A stack's anvil name as this version reads it back, or null when it has none it can read. */
+    private static String text(GameTestHelper context, CompoundTag stack) {
+        Tag name = stack.getCompoundOrEmpty("components").get("minecraft:custom_name");
+        if (name == null) return null;
+        return ComponentSerialization.CODEC
+                .parse(context.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE), name)
+                .result().map(Component::getString).orElse(null);
     }
 
     /** 1.20.1's data version: what a world from the 1.20.1 build was saved as. */
