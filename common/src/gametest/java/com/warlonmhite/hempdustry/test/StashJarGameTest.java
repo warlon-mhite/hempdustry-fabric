@@ -50,6 +50,8 @@ import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayList;
@@ -185,6 +187,43 @@ public final class StashJarGameTest {
         });
     }
 
+
+    /**
+     * A jar set down in water keeps the water, as a lantern does: the jar is waterlogged, stays so when its fill
+     * level changes, and leaves the water behind when it is broken, dropping itself whole. Set down in air it is dry.
+     */
+    public static void aJarSetInWaterKeepsIt(GameTestHelper context) {
+        ServerLevel level = context.getLevel();
+        ServerPlayer player = Players.survival(context);
+        BlockPos wetFloor = new BlockPos(1, 1, 1);
+        BlockPos dryFloor = new BlockPos(4, 1, 1);
+        context.setBlock(wetFloor, Blocks.STONE);
+        context.setBlock(dryFloor, Blocks.STONE);
+        context.setBlock(wetFloor.above(), Blocks.WATER);
+        Players.click(context, player, wetFloor, new ItemStack(ModBlocks.STASH_JAR));
+        Players.click(context, player, dryFloor, new ItemStack(ModBlocks.STASH_JAR));
+        BlockPos wet = wetFloor.above();
+        BlockPos dry = dryFloor.above();
+
+        BlockState wetState = level.getBlockState(context.absolutePos(wet));
+        context.assertTrue(wetState.is(ModBlocks.STASH_JAR), "no jar was placed in the water: " + wetState);
+        context.assertTrue(wetState.getValue(BlockStateProperties.WATERLOGGED), "a jar placed in water is not waterlogged");
+        context.assertTrue(wetState.getFluidState().is(Fluids.WATER), "a waterlogged jar holds no water");
+        BlockState dryState = level.getBlockState(context.absolutePos(dry));
+        context.assertTrue(dryState.is(ModBlocks.STASH_JAR) && !dryState.getValue(BlockStateProperties.WATERLOGGED),
+                "a jar placed in air is not a dry jar: " + dryState);
+
+        Players.click(context, player, wet, new ItemStack(ModItems.INDICA_BUDS, 40));
+        BlockState filled = level.getBlockState(context.absolutePos(wet));
+        context.assertTrue(filled.getValue(StashFill.PROPERTY) != StashFill.EMPTY, "the buds did not go into the wet jar");
+        context.assertTrue(filled.getValue(BlockStateProperties.WATERLOGGED), "the jar lost its water when its fill level changed");
+
+        Players.breakAs(context, player, wet);
+        context.assertTrue(level.getBlockState(context.absolutePos(wet)).is(Blocks.WATER),
+                "breaking a waterlogged jar did not leave its water: " + level.getBlockState(context.absolutePos(wet)));
+        expectJar(context, wet, ModBlocks.STASH_JAR, stash(ModItems.INDICA_BUDS, 40), "broken in water");
+        context.succeed();
+    }
     /** A comparator reads 0 from an empty jar, at least 1 with one item, 15 when full: the shulker box's reading. */
     public static void theComparatorReadsHowFullTheJarIs(GameTestHelper context) {
         ServerLevel level = context.getLevel();

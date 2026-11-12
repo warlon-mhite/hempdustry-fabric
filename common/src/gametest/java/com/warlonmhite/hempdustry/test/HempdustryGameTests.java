@@ -277,6 +277,7 @@ public final class HempdustryGameTests {
         register("a_jar_takes_only_buds_and_schwag", StashJarGameTest::aJarTakesOnlyBudsAndSchwag);
         register("the_upgrade_keeps_the_stash", StashJarGameTest::theUpgradeKeepsTheStash);
         register("a_jar_always_drops_itself_whole", StashJarGameTest::aJarAlwaysDropsItselfWhole);
+        register("a_jar_set_in_water_keeps_it", StashJarGameTest::aJarSetInWaterKeepsIt);
         register("the_comparator_reads_how_full_the_jar_is", StashJarGameTest::theComparatorReadsHowFullTheJarIs);
         register("hoppers_fill_and_empty_a_jar", StashJarGameTest::hoppersFillAndEmptyAJar);
         register("the_fill_level_follows_the_stash", StashJarGameTest::theFillLevelFollowsTheStash);

@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -18,13 +19,18 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -41,8 +47,10 @@ import org.jetbrains.annotations.Nullable;
  * the last stack put in; anything else in hand is that item's own use.
  *
  * <p>One block per tier, the capacity its own, so the item a jar drops is the jar it was.
+ *
+ * <p>Set down in water it keeps the water, as a lantern does, and leaves it behind when broken.
  */
-public class StashJarBlock extends BaseEntityBlock {
+public class StashJarBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
     // The glass body and the lid, as models/block/stash_jar_*.json draw them.
     private static final VoxelShape SHAPE = Shapes.or(Block.column(8.0, 0.0, 10.0), Block.column(6.0, 10.0, 12.0));
 
@@ -51,7 +59,7 @@ public class StashJarBlock extends BaseEntityBlock {
     public StashJarBlock(Properties settings, int capacity) {
         super(settings);
         this.capacity = capacity;
-        registerDefaultState(defaultBlockState().setValue(StashFill.PROPERTY, StashFill.EMPTY));
+        registerDefaultState(defaultBlockState().setValue(StashFill.PROPERTY, StashFill.EMPTY).setValue(BlockStateProperties.WATERLOGGED, false));
     }
 
     /** Items this jar holds, every item one, whatever its stack size. */
@@ -61,7 +69,7 @@ public class StashJarBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(StashFill.PROPERTY);
+        builder.add(StashFill.PROPERTY, BlockStateProperties.WATERLOGGED);
     }
 
     @Override
@@ -82,8 +90,22 @@ public class StashJarBlock extends BaseEntityBlock {
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
         StashContents contents = context.getItemInHand().getOrDefault(ModComponents.STASH_CONTENTS, StashContents.EMPTY);
-        BlockState state = defaultBlockState().setValue(StashFill.PROPERTY, StashFill.of(contents.count(), capacity));
+        BlockState state = defaultBlockState().setValue(StashFill.PROPERTY, StashFill.of(contents.count(), capacity))
+                .setValue(BlockStateProperties.WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).is(Fluids.WATER));
         return canStandOn(context.getLevel(), context.getClickedPos().below()) ? state : null;
+    }
+
+    // Waterlogging, as vanilla's lantern does it.
+    @Override
+    protected FluidState getFluidState(BlockState state) {
+        return state.getValue(BlockStateProperties.WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+        if (state.getValue(BlockStateProperties.WATERLOGGED)) ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+        return super.updateShape(state, level, ticks, pos, direction, neighbourPos, neighbourState, random);
     }
 
     /** Whether a jar may be placed on the block at {@code below}: a lantern's floor or a rail's. */
