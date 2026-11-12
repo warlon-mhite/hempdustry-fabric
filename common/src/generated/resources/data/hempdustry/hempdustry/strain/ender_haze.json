@@ -28,6 +28,12 @@
     "high": 20,
     "low": 28
   },
+  "quality": {
+    "average": 45,
+    "elite": 10,
+    "good": 30,
+    "poor": 15
+  },
   "seeds": "hempdustry:ender_haze_seeds",
   "terpene": "hempdustry:terpinolene",
   "translation_key": "hempdustry.strain.ender_haze"

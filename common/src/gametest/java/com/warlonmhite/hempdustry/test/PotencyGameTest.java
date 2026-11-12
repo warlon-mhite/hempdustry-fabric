@@ -14,6 +14,7 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Potency;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
@@ -234,9 +235,10 @@ public final class PotencyGameTest {
                             "a " + band + " plant dropped " + banded + " where the same seed drops " + plain);
                     PotencyBand expected = got.is(ModItems.INDICA_BUDS) ? (band == PotencyBand.MID ? null : band)
                             : got.is(ModItems.HEMP_LEAF) && band.marksLeaf() ? PotencyBand.HIGH : null;
-                    // Mid writes nothing: a stack with no band of its own is the plain one 2.1 made.
+                    // Mid writes nothing: a stack with no band of its own is the plain one 2.1 made, once its
+                    // harvest's tier is taken off it (TierGameTest holds the tier).
                     context.assertTrue(PotencyBand.of(got) == (expected == null ? PotencyBand.MID : expected)
-                                    && (expected != null || got.getComponentsPatch().isEmpty()),
+                                    && (expected != null || BudTier.stamp(got.copy(), BudTier.DANK).getComponentsPatch().isEmpty()),
                             "the band on " + got + " from a " + band + " plant: expected " + expected);
                 }
             }

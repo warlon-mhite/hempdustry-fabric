@@ -21,6 +21,11 @@
     "low": 50,
     "mid": 40
   },
+  "quality": {
+    "elite": 2,
+    "good": 18,
+    "poor": 30
+  },
   "seeds": "hempdustry:ruderalis_seeds",
   "terpene": "hempdustry:pinene",
   "translation_key": "hempdustry.strain.ruderalis"

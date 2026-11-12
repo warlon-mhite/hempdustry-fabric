@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:a_plant_rolls_its_gene_and_knows_its_ceiling",
+  "structure": "hempdustry-gametest:empty",
+  "max_ticks": 200,
+  "setup_ticks": 0,
+  "required": true
+}

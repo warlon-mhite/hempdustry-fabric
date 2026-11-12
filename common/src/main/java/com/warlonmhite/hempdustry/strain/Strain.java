@@ -171,12 +171,26 @@ import net.minecraft.world.level.block.Blocks;
  *                        file names none; read only for the buds of a plant
  * @param jarColour       the colour of its buds' pistils in a Stash Jar, RGB, when it is not the strain's own
  *                        {@code color}: a strain whose colour would vanish on a green bud can name another
+ * @param quality         a plant strain's quality sheet (see {@link GrowQuality}): the base luck of its harvests and
+ *                        the odds of each quality gene a plant rolls. {@link GrowQuality#DEFAULT} when the file
+ *                        names none; read only for the buds of a plant
  */
 public record Strain(String translationKey, int color, int modelIndex,
                      Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                      float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
                      float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
-                     Optional<Integer> smokeColor, Potency potency, Optional<Integer> jarColour) {
+                     Optional<Integer> smokeColor, Potency potency, Optional<Integer> jarColour,
+                     GrowQuality quality) {
+
+    /** A strain with the default quality sheet: the shape every strain had before {@code quality}. */
+    public Strain(String translationKey, int color, int modelIndex,
+                  Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
+                  float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
+                  float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
+                  Optional<Integer> smokeColor, Potency potency, Optional<Integer> jarColour) {
+        this(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem, smokeEffects,
+                coughFactor, chemotype, terpene, smokeColor, potency, jarColour, GrowQuality.DEFAULT);
+    }
 
     /** A strain with no jar colour of its own: the shape every strain had before {@code jar_colour}. */
     public Strain(String translationKey, int color, int modelIndex,
@@ -258,25 +272,31 @@ public record Strain(String translationKey, int color, int modelIndex,
     /** This strain with {@code terpene} as its signature. */
     public Strain withTerpene(ResourceKey<Terpene> terpene) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor, potency, jarColour);
+                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor, potency, jarColour, quality);
     }
 
     /** This strain smoking {@code rgb} rather than its terpene's colour. */
     public Strain withSmokeColor(int rgb) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb), potency, jarColour);
+                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb), potency, jarColour, quality);
     }
 
     /** This strain with {@code potency} as its sheet. */
     public Strain withPotency(Potency potency) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour);
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour, quality);
     }
 
     /** This strain's pistils in a Stash Jar tinted {@code rgb} rather than its own colour. */
     public Strain withJarColour(int rgb) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, Optional.of(rgb));
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, Optional.of(rgb), quality);
+    }
+
+    /** This strain with {@code quality} as its sheet. */
+    public Strain withQuality(GrowQuality quality) {
+        return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour, quality);
     }
 
     /** The colour of its buds' pistils in a Stash Jar, RGB: its {@code jar_colour}, else its own {@link #color}. */
@@ -318,7 +338,10 @@ public record Strain(String translationKey, int color, int modelIndex,
             ResourceKey.codec(Terpene.REGISTRY_KEY).optionalFieldOf("terpene").forGetter(Strain::terpene),
             Codec.INT.optionalFieldOf("smoke_color").forGetter(Strain::smokeColor),
             Potency.CODEC.optionalFieldOf("potency", Potency.DEFAULT).forGetter(Strain::potency),
-            Codec.INT.optionalFieldOf("jar_colour").forGetter(Strain::jarColour)
+            Codec.INT.optionalFieldOf("jar_colour").forGetter(Strain::jarColour),
+            // The sixteenth field, the most one RecordCodecBuilder group takes: a field added after this one
+            // goes inside an object of its own.
+            GrowQuality.CODEC.optionalFieldOf("quality", GrowQuality.DEFAULT).forGetter(Strain::quality)
     ).apply(instance, Strain::new));
 
     /**

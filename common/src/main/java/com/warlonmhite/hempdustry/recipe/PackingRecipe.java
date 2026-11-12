@@ -8,9 +8,11 @@ import com.warlonmhite.hempdustry.item.custom.MoonRockItem;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.item.custom.SmokingDeviceItem;
 import com.warlonmhite.hempdustry.platform.Services;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Strain;
+import java.util.Optional;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -127,6 +129,7 @@ public class PackingRecipe extends CustomRecipe {
         Holder<Strain> strain = null;
         Chemotype stamp = null;
         int potency = 0;
+        BudTier tier = null;
         int dose = 0;
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
@@ -163,6 +166,8 @@ public class PackingRecipe extends CustomRecipe {
                 // A plant's buds carry their plant's band, and buds of different bands load together:
                 // the load keeps the sum of their offsets, which is what their THC averages to.
                 potency += Stamping.budOffset(stack, registries);
+                // The weakest piece sets the load's tier: a bowl of Epic buds and one Mids bud smokes as Mids.
+                tier = tier == null ? BudTier.of(stack) : BudTier.weaker(tier, BudTier.of(stack));
                 strain = budStrain;
                 // One item from each slot, never the stack's count: crafting takes one per slot,
                 // and counting the stack packed three buds' worth out of one. And one item is not
@@ -180,7 +185,7 @@ public class PackingRecipe extends CustomRecipe {
             }
             contents = preloaded;
         } else if (strain != null && dose >= 1) {
-            contents = SmokeContents.of(strain, dose, stamp, potency);
+            contents = SmokeContents.of(strain, dose, stamp, potency).withTiers(Optional.of(tier), Optional.of(tier));
         } else {
             return null;
         }

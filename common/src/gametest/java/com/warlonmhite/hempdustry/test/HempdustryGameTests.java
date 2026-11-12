@@ -284,6 +284,15 @@ public final class HempdustryGameTests {
         register("a_placed_jar_takes_clicks_not_menus", StashJarGameTest::aPlacedJarTakesClicksNotMenus);
         register("a_jar_stands_where_it_was_put", StashJarGameTest::aJarStandsWhereItWasPut);
         register("a_jar_travels_light", StashJarGameTest::aJarTravelsLight);
+        register("the_tier_table_is_vanillas_luck_grammar", TierGameTest::theTierTableIsVanillasLuckGrammar);
+        register("a_plant_rolls_its_gene_and_knows_its_ceiling", TierGameTest::aPlantRollsItsGeneAndKnowsItsCeiling);
+        register("grow_luck_adds_up", TierGameTest::growLuckAddsUp);
+        register("the_open_sky_is_read_like_the_light", TierGameTest::theOpenSkyIsReadLikeTheLight);
+        register("one_tier_roll_per_harvest", TierGameTest::oneTierRollPerHarvest);
+        register("a_tier_buys_smoothness_and_length", TierGameTest::aTierBuysSmoothnessAndLength);
+        register("the_tier_is_on_the_bud_and_not_in_butter", TierGameTest::theTierIsOnTheBudAndNotInButter);
+        register("kief_and_hash_carry_their_batches_tier", TierGameTest::kiefAndHashCarryTheirBatchesTier);
+        register("a_box_from_a_2_1_world_sifts_as_it_did_there", TierGameTest::aBoxFromA21WorldSiftsAsItDidThere);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

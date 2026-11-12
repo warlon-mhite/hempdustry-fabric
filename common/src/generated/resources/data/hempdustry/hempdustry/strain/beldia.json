@@ -24,6 +24,11 @@
     "high": 20,
     "low": 30
   },
+  "quality": {
+    "base_luck": -1,
+    "good": 20,
+    "poor": 25
+  },
   "seeds": "hempdustry:beldia_seeds",
   "terpene": "hempdustry:myrcene",
   "translation_key": "hempdustry.strain.beldia"

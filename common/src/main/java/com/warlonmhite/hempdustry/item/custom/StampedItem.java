@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import java.util.function.Consumer;
@@ -32,6 +33,21 @@ public class StampedItem extends Item {
         if (PotencyBand.of(stack) != PotencyBand.MID) {
             tooltip.accept(PotencyBand.of(stack).tooltipLine());
         }
+        if (this instanceof Resin) {
+            tooltip.accept(BudTier.of(stack).tooltipLine());
+        }
         super.appendHoverText(stack, context, display, tooltip, flag);
+    }
+
+    /**
+     * Kief, bubble hash, filtered kief and what the Hemp Press makes of them (hashish, filtered hashish,
+     * rosin): resin that carries the tier of the batch it was sifted in ({@link BudTier}), Dank on its
+     * prototype so an explicit Dank stacks with a plain piece. Charas is rubbed off a living plant, before
+     * any harvest has a tier, and is plain stamped matter.
+     */
+    public static class Resin extends StampedItem {
+        public Resin(Properties settings) {
+            super(settings.component(ModComponents.BUD_TIER, BudTier.DANK));
+        }
     }
 }

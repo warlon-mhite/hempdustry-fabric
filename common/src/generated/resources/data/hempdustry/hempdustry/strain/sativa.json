@@ -17,6 +17,10 @@
   ],
   "flower": "hempdustry:sativa_flower",
   "model_index": 2,
+  "quality": {
+    "good": 20,
+    "poor": 25
+  },
   "seeds": "hempdustry:sativa_seeds",
   "terpene": "hempdustry:limonene",
   "translation_key": "hempdustry.strain.sativa"

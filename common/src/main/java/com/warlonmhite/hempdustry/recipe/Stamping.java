@@ -3,6 +3,8 @@ package com.warlonmhite.hempdustry.recipe;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.ChemotypeBlocks;
 import com.warlonmhite.hempdustry.block.custom.HempLeavesBlock;
+import com.warlonmhite.hempdustry.block.custom.TierBlocks;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.StrainPlantItem;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
@@ -41,6 +43,14 @@ import net.minecraft.world.item.crafting.CraftingInput;
  * different bands keeps the sum of their offsets, which is what their THC averages to. Leaves carry a
  * high mark, and a block holds one: a grid of marked and plain leaves matches nothing, and the result
  * takes the mark they share — the block of nine marked leaves, the nine leaves out of it.
+ *
+ * <h2>Tiers: one to a block, the weakest to a smoke, each entry its own</h2>
+ *
+ * Buds carry their harvest's tier and the sifted hash family its batch's ({@link BudTier}). Nine pieces
+ * of hash make a bar of one tier, so a grid of hash of two tiers with no bud in it matches nothing. A
+ * spliff or a moon rock keeps two tiers apart: its plant entry takes the weakest of its buds, its hash
+ * entry the weakest of its hash, and each tier moves only its own entry's effects. Charas carries none
+ * and counts as Dank.
  */
 public final class Stamping {
     private Stamping() {
@@ -142,9 +152,87 @@ public final class Stamping {
         return PotencyBand.of(bud).offset() * units;
     }
 
-    /** Whether the stamped matter in {@code input} is all of one chemotype, and its leaves of one mark. */
+    /** Whether the stamped matter in {@code input} is all of one chemotype, its leaves of one mark, and its hash of one tier. */
     public static boolean agrees(CraftingInput input) {
-        return shared(input) != null && sharedMark(input) != null;
+        return shared(input) != null && sharedMark(input) != null && (hasBud(input) || resinTiers(input) != null);
+    }
+
+    /** The tier a piece of tiered hash, or the item of a bar of it, brings; empty for anything else. */
+    public static Optional<BudTier> resinTierOf(ItemStack stack) {
+        if (stack.getItem() instanceof StampedItem.Resin) {
+            return Optional.of(BudTier.of(stack));
+        }
+        if (TierBlocks.holdsTier(stack)) {
+            return Optional.of(TierBlocks.ofBlockItem(stack));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * The one tier the hash in {@code input} shares: empty when there is none, and {@code null} when two
+     * disagree — a bar holds one tier.
+     */
+    public static Optional<BudTier> resinTiers(CraftingInput input) {
+        BudTier found = null;
+        for (int slot = 0; slot < input.size(); slot++) {
+            Optional<BudTier> tier = resinTierOf(input.getItem(slot));
+            if (tier.isEmpty()) {
+                continue;
+            }
+            if (found != null && found != tier.get()) {
+                return null;
+            }
+            found = tier.get();
+        }
+        return Optional.ofNullable(found);
+    }
+
+    /** The weakest tier among the hash in {@code input}, empty when there is none. */
+    public static Optional<BudTier> weakestResinTier(CraftingInput input) {
+        BudTier weakest = null;
+        for (int slot = 0; slot < input.size(); slot++) {
+            Optional<BudTier> tier = resinTierOf(input.getItem(slot));
+            if (tier.isPresent()) {
+                weakest = weakest == null ? tier.get() : BudTier.weaker(weakest, tier.get());
+            }
+        }
+        return Optional.ofNullable(weakest);
+    }
+
+    /** The weakest tier among the buds in {@code input}, empty when there are none. */
+    public static Optional<BudTier> weakestBudTier(CraftingInput input) {
+        BudTier weakest = null;
+        for (int slot = 0; slot < input.size(); slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack.getItem() instanceof StrainPlantItem.Buds) {
+                BudTier tier = BudTier.of(stack);
+                weakest = weakest == null ? tier : BudTier.weaker(weakest, tier);
+            }
+        }
+        return Optional.ofNullable(weakest);
+    }
+
+    private static boolean hasBud(CraftingInput input) {
+        for (int slot = 0; slot < input.size(); slot++) {
+            if (input.getItem(slot).getItem() instanceof StrainPlantItem.Buds) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Writes {@code tier} on {@code result} if it carries one: a piece of tiered hash, or the item of a
+     * bar (its block state). Anything else is returned as it was.
+     */
+    public static ItemStack applyTier(ItemStack result, BudTier tier) {
+        if (result.getItem() instanceof StampedItem.Resin) {
+            return BudTier.stamp(result, tier);
+        }
+        if (TierBlocks.holdsTier(result)) {
+            return TierBlocks.stampBlockItem(result, tier);
+        }
+        return result;
     }
 
     /**
@@ -164,10 +252,19 @@ public final class Stamping {
                 HempLeavesBlock.markBlockItem(result, mark.get());
             }
         }
+        Optional<BudTier> resinTier = weakestResinTier(input);
+        if (resinTier.isPresent()) {
+            result = applyTier(result, resinTier.get());
+        }
         Optional<Integer> potency = budPotency(input);
         SmokeContents contents = result.get(ModComponents.SMOKE_CONTENTS);
         if (potency.isPresent() && potency.get() != 0 && contents != null && !contents.isEmpty()) {
-            result.set(ModComponents.SMOKE_CONTENTS, contents.withPotency(potency.get()));
+            contents = contents.withPotency(potency.get());
+            result.set(ModComponents.SMOKE_CONTENTS, contents);
+        }
+        Optional<BudTier> budTier = weakestBudTier(input);
+        if (contents != null && !contents.isEmpty() && (budTier.isPresent() || resinTier.isPresent())) {
+            result.set(ModComponents.SMOKE_CONTENTS, contents.withTiers(budTier, resinTier));
         }
         return result;
     }
@@ -190,7 +287,7 @@ public final class Stamping {
             for (SmokeContents.Entry entry : contents.entries()) {
                 stamped.add(entry.strain().value().wildFlower().isPresent()
                         ? entry
-                        : new SmokeContents.Entry(entry.strain(), entry.count(), chemotype));
+                        : entry.withStamp(chemotype));
             }
             result.set(ModComponents.SMOKE_CONTENTS, new SmokeContents(stamped));
         }

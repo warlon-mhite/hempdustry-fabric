@@ -157,14 +157,18 @@ public class HempPressBlockEntity extends NamedMachineBlockEntity
             return ItemStack.EMPTY;
         }
         SingleRecipeInput input = new SingleRecipeInput(stack);
-        // Pressed resin keeps its chemotype: CBD kief presses into CBD hashish.
+        // Pressed resin keeps its chemotype and its tier: CBD kief presses into CBD hashish, Top Shelf kief
+        // into Top Shelf hashish.
         Chemotype chemotype = Chemotype.ofMatter(stack, world.registryAccess());
         // Cannabinoid-free resin is no resin: the press takes none (a retted stem never reads so).
         if (chemotype == Chemotype.CANNABINOID_FREE) {
             return ItemStack.EMPTY;
         }
         return Services.RECIPES.firstMatch(world, ModRecipes.PRESSING_TYPE, input)
-                .map(entry -> Stamping.apply(entry.value().assemble(input), chemotype))
+                .map(entry -> {
+                    ItemStack pressed = Stamping.apply(entry.value().assemble(input), chemotype);
+                    return Stamping.resinTierOf(stack).map(tier -> Stamping.applyTier(pressed, tier)).orElse(pressed);
+                })
                 .orElse(ItemStack.EMPTY);
     }
 

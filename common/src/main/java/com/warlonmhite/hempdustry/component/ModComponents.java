@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import java.util.function.UnaryOperator;
@@ -111,6 +112,15 @@ public class ModComponents {
      */
     public static final DataComponentType<PotencyBand> POTENCY_BAND = register("potency_band",
             builder -> builder.persistent(PotencyBand.CODEC).networkSynchronized(PotencyBand.PACKET_CODEC));
+
+    /**
+     * The tier of the harvest a bud came from, or of the batch a piece of kief or hash was sifted in. Absent
+     * is Dank, every bud and piece of hash 2.1 made; Dank is never written, so a new Dank bud stacks with an
+     * old one. Buds and the tiered hash family carry Dank on their prototype (see {@link #putDefaulted});
+     * {@code minecraft:rarity} goes with it. See {@link BudTier}.
+     */
+    public static final DataComponentType<BudTier> BUD_TIER = register("bud_tier",
+            builder -> builder.persistent(BudTier.CODEC).networkSynchronized(BudTier.PACKET_CODEC));
 
     /** What a Stash Jar holds, on the item and in the placed block's entity. See {@link StashContents}. */
     public static final DataComponentType<StashContents> STASH_CONTENTS = register("stash_contents",

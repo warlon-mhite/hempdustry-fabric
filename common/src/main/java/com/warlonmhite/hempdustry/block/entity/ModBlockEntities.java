@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.SiftingBoxBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.StashJarBlockEntity;
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.Registry;
@@ -61,6 +62,12 @@ public class ModBlockEntities {
                     Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "stash_jar"),
                     Services.REGISTRATION.blockEntityType(StashJarBlockEntity::new,
                             ModBlocks.STASH_JAR, ModBlocks.GILDED_STASH_JAR, ModBlocks.DIAMOND_STASH_JAR));
+
+    // A Sifting Box's batch: what its levels are made of (see SiftingBoxBlockEntity).
+    public static final BlockEntityType<SiftingBoxBlockEntity> SIFTING_BOX =
+            Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
+                    Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "sifting_box"),
+                    Services.REGISTRATION.blockEntityType(SiftingBoxBlockEntity::new, ModBlocks.SIFTING_BOX));
 
     public static void registerBlockEntities() {
         Hempdustry.LOGGER.info("Registering Block Entities for " + Hempdustry.MOD_ID);

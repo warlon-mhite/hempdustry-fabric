@@ -11,11 +11,13 @@ import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.SiftingBoxBlockEntity;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.item.custom.EdibleEffects;
 import com.warlonmhite.hempdustry.item.custom.Quality;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -168,7 +170,9 @@ public final class ChemotypeGameTest {
                         "a Beldía bud dropped with a stamp: a bud is its strain");
             }
             for (ItemStack stack : drops(world, origin, ripe(ModBlocks.INDICA_CROP), seed)) {
-                context.assertTrue(stack.getComponentsPatch().isEmpty(),
+                // A harvest with no plant record rolls no tier and gives Mids: the tier is the one thing a
+                // bud may carry beyond 2.1's, and taken off, the bud is 2.1's again.
+                context.assertTrue(BudTier.stamp(stack.copy(), BudTier.DANK).getComponentsPatch().isEmpty(),
                         "a ripe Purple Kush dropped stamped " + stack + ", which no longer stacks with 2.1's");
             }
             BlockState hemp = ModBlocks.INDUSTRIAL_HEMP_CROP.defaultBlockState()
@@ -242,9 +246,9 @@ public final class ChemotypeGameTest {
                 EdibleEffects.bundle(EdibleBundle.BUILT_IN, 3, Quality.CLEAN, 0).size(), "a THC edible's bundle");
 
         // Three levels of CBD plant, then four Purple Kush buds to fill it: about half each, balanced.
-        context.setBlock(BOX, ModBlocks.SIFTING_BOX.defaultBlockState().setValue(SiftingBoxBlock.LEVEL, 3)
-                .setValue(SiftingBoxBlock.THC_SHARE, 0).setValue(ChemotypeBlocks.CHEMOTYPE, Chemotype.CBD_DOMINANT));
+        context.setBlock(BOX, ModBlocks.SIFTING_BOX.defaultBlockState().setValue(SiftingBoxBlock.LEVEL, 3));
         BlockPos box = context.absolutePos(BOX);
+        SiftingBoxBlockEntity.of(world, box).add(Chemotype.CBD_DOMINANT, BudTier.DANK, 3);
         Player player = context.makeMockPlayer(GameType.SURVIVAL);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(box), Direction.UP, box, false);
         ItemStack buds = new ItemStack(ModItems.INDICA_BUDS, 4);
@@ -252,8 +256,8 @@ public final class ChemotypeGameTest {
             world.getBlockState(box).useItemOn(buds, world, player, InteractionHand.MAIN_HAND, hit);
         }
         context.assertTrue(buds.isEmpty(), "the screen refused Purple Kush on a CBD batch: " + buds);
-        context.assertTrue(ChemotypeBlocks.of(world.getBlockState(box)) == Chemotype.BALANCED,
-                "half CBD and half THC sifted " + ChemotypeBlocks.of(world.getBlockState(box)) + ", not balanced");
+        context.assertTrue(SiftingBoxBlock.chemotypeOf(world, box, world.getBlockState(box)) == Chemotype.BALANCED,
+                "half CBD and half THC sifted " + SiftingBoxBlock.chemotypeOf(world, box, world.getBlockState(box)) + ", not balanced");
         context.runAtTickTime(40, () -> {
             context.assertValueEqual(world.getBlockState(box).getValue(SiftingBoxBlock.LEVEL), SiftingBoxBlock.READY_LEVEL,
                     "the full screen did not settle");

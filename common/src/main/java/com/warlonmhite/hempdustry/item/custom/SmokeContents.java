@@ -6,7 +6,9 @@ import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.config.EffectPolicy;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Potency;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -144,7 +146,7 @@ public record SmokeContents(List<Entry> entries) {
      * already in a chest. {@link Strain#ENTRY_CODEC} refuses inline entries, which is what stops a
      * stack from carrying a stale copy of a definition.
      */
-    public record Entry(Holder<Strain> strain, int count, Chemotype stamp, int potency) {
+    public record Entry(Holder<Strain> strain, int count, Chemotype stamp, int potency, BudTier tier) {
         /**
          * {@code chemotype} is optional and left out when THC-dominant, and {@code potency} when 0, so
          * every entry 2.1 wrote reads as what it was, and a THC-dominant load of mid buds written now is
@@ -153,12 +155,16 @@ public record SmokeContents(List<Entry> entries) {
          * <p>{@code potency} is the sum of the band offsets ({@link PotencyBand#offset}) of a plant's buds
          * in the entry: a high bud and a mid one are +1, two low ones -2. Buds of different bands load
          * together, and the sum is exactly what their THC averages to, so nothing is lost by mixing.
+         *
+         * <p>{@code tier} is the entry's own {@link BudTier}, left out when Dank: a plant's buds the weakest
+         * of them, a piece of sifted hash its batch's. It moves only this entry's effects.
          */
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Strain.ENTRY_CODEC.fieldOf("strain").forGetter(Entry::strain),
                 Codec.INT.fieldOf("count").forGetter(Entry::count),
                 Chemotype.CODEC.optionalFieldOf("chemotype", Chemotype.THC_DOMINANT).forGetter(Entry::stamp),
-                Codec.INT.optionalFieldOf("potency", 0).forGetter(Entry::potency)
+                Codec.INT.optionalFieldOf("potency", 0).forGetter(Entry::potency),
+                BudTier.CODEC.optionalFieldOf("tier", BudTier.DANK).forGetter(Entry::tier)
         ).apply(instance, Entry::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, Entry> PACKET_CODEC = StreamCodec.composite(
@@ -166,6 +172,7 @@ public record SmokeContents(List<Entry> entries) {
                 ByteBufCodecs.VAR_INT, Entry::count,
                 Chemotype.PACKET_CODEC, Entry::stamp,
                 ByteBufCodecs.VAR_INT, Entry::potency,
+                BudTier.PACKET_CODEC, Entry::tier,
                 Entry::new);
 
         /** An entry with no stamp: a plant's buds, or anything 2.1 packed. */
@@ -178,12 +185,36 @@ public record SmokeContents(List<Entry> entries) {
             this(strain, count, stamp, 0);
         }
 
+        /** An entry of Dank matter: the shape every entry had before tiers. */
+        public Entry(Holder<Strain> strain, int count, Chemotype stamp, int potency) {
+            this(strain, count, stamp, potency, BudTier.DANK);
+        }
+
+        /** This entry at {@code tier}. */
+        public Entry withTier(BudTier tier) {
+            return new Entry(strain, count, stamp, potency, tier);
+        }
+
+        /**
+         * Whether this entry smokes outside the tiers: schwag, spoiled bud, which is the bottom of the
+         * ladder rather than a rung of it, and smokes exactly as it did in 2.1 — no tier scales its effects
+         * or the hit's odds.
+         */
+        public boolean untiered() {
+            return strain.is(ModStrains.SCHWAG);
+        }
+
+        /** This entry stamped {@code chemotype}, keeping everything else. */
+        public Entry withStamp(Chemotype chemotype) {
+            return new Entry(strain, count, chemotype, potency, tier);
+        }
+
         /**
          * This entry with its plant's buds' band offsets summing to {@code potency}; anything that is
          * not a plant's buds has none.
          */
         public Entry withPotency(int potency) {
-            return strain.value().wildFlower().isPresent() ? new Entry(strain, count, stamp, potency) : this;
+            return strain.value().wildFlower().isPresent() ? new Entry(strain, count, stamp, potency, tier) : this;
         }
 
         /**
@@ -310,6 +341,30 @@ public record SmokeContents(List<Entry> entries) {
     /** A single-strain load whose buds, if a plant's, are all of {@code band}. */
     public static SmokeContents of(Holder<Strain> strain, int count, Chemotype stamp, PotencyBand band) {
         return of(strain, count, stamp, count * band.offset());
+    }
+
+    /**
+     * This load with its plant entries at {@code budTier} and its other entries at {@code resinTier},
+     * each where given. A spliff or a moon rock keeps the two apart: the weakest of its buds, the weakest
+     * of its hash.
+     */
+    public SmokeContents withTiers(Optional<BudTier> budTier, Optional<BudTier> resinTier) {
+        List<Entry> tiered = new ArrayList<>(entries.size());
+        for (Entry entry : entries) {
+            Optional<BudTier> tier = entry.strain().value().wildFlower().isPresent() ? budTier : resinTier;
+            tiered.add(tier.map(entry::withTier).orElse(entry));
+        }
+        return new SmokeContents(tiered);
+    }
+
+    /**
+     * The tier of the primary entry ({@link #primaryStrain}), which sets the odds a hit rolls once for the
+     * whole load — its cough, its Nausea and its green-out — as it sets their strain factors. Empty when the
+     * load is empty or its primary entry smokes outside the tiers (schwag): the odds are then 2.1's.
+     */
+    public Optional<BudTier> primaryTier() {
+        Entry best = primaryEntry();
+        return best == null || best.untiered() ? Optional.empty() : Optional.of(best.tier());
     }
 
     /** This load with its plant's buds' band offsets summing to {@code potency}. */
@@ -517,7 +572,12 @@ public record SmokeContents(List<Entry> entries) {
      * two-and-one mix, each strain at its own count, has nothing past the cap.
      *
      * <p><b>CBD-labelled effects</b> run at level I for {@link #cbdTicks} of the entry's CBD, whatever
-     * the device.
+     * the device and the tier.
+     *
+     * <p><b>Each entry's tier scales the device's duration for that entry alone</b>
+     * ({@link BudTier#durationFactor}): Mids three quarters, Dank as 2.1, Top Shelf a quarter more, Epic
+     * half again, applied before the rules above, so the band's stretch and its cap work on the tiered
+     * duration.
      *
      * <p><b>A bud loaded with a concentrate goes one level past the cap</b> (see {@link #buffBonus}):
      * its scaling buffs rise by one and may reach {@code maxBuffLevel + 1}. Every other entry, the
@@ -531,9 +591,12 @@ public record SmokeContents(List<Entry> entries) {
             int bonus = entry.strain().value().wildFlower().isPresent() ? load : 0;
             int cap = EffectPolicy.maxBuffLevel(bonus);
             int past = Math.max(0, entry.count() - cap);
+            // The entry's tier scales the device's duration for its own effects; times the band's stretch,
+            // an extra-high Epic bud lasts three times the device. A CBD effect keeps its own clock.
+            int lasting = entry.untiered() ? durationTicks : entry.tier().scaleDuration(durationTicks);
             Strain.Burn burn = new Strain.Burn(entry.count(), entry.thcDose(), entry.chemotype(),
-                    thcTicks(durationTicks, entry.thcUnits(), entry.thcDose(), cap),
-                    durationTicks + durationTicks * past / 2,
+                    thcTicks(lasting, entry.thcUnits(), entry.thcDose(), cap),
+                    lasting + lasting * past / 2,
                     cbdTicks(entry.cbdUnits()));
             for (MobEffectInstance effect : entry.strain().value().effects(burn, onExhale, bonus, random)) {
                 out.add(new MobEffectInstance(effect.getEffect(), effect.getDuration(),

@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.block.custom.ChemotypeBlocks;
 import com.warlonmhite.hempdustry.block.custom.HempLeavesBlock;
+import com.warlonmhite.hempdustry.block.custom.TierBlocks;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import java.util.function.Consumer;
 import net.minecraft.network.chat.Component;
@@ -27,6 +28,9 @@ public class StampedBlockItem extends BlockItem {
         tooltip.accept(ChemotypeBlocks.ofBlockItem(stack).tooltipLine());
         if (HempLeavesBlock.markOfBlockItem(stack).marksLeaf()) {
             tooltip.accept(PotencyBand.HIGH.tooltipLine());
+        }
+        if (TierBlocks.holdsTier(stack)) {
+            tooltip.accept(TierBlocks.ofBlockItem(stack).tooltipLine());
         }
         super.appendHoverText(stack, context, display, tooltip, flag);
     }

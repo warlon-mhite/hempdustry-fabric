@@ -8,6 +8,7 @@ import com.warlonmhite.hempdustry.config.EffectPolicy;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.sound.ModSounds;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.Collections;
 import java.util.HashSet;
@@ -184,7 +185,7 @@ public final class Smoking {
 
         // Every chance and every effect below goes through EffectPolicy, which is where the
         // server's config knobs are applied — once, rather than at each site that hands one out.
-        int greenOutOdds = EffectPolicy.greenOutChanceOneIn(smoothed(greenOutChanceOneIn, contents));
+        int greenOutOdds = EffectPolicy.greenOutChanceOneIn(greenOutOneIn(greenOutChanceOneIn, contents));
         boolean greenedOut = greenOutOdds > 0
                 && ThreadLocalRandom.current().nextInt(greenOutOdds) == 0;
 
@@ -216,7 +217,7 @@ public final class Smoking {
             SmokeScheduler.schedule(player, tinted(world, exhaleParticle, contents), EXHALE_DELAY_TICKS + soundDelayTicks);
         }
 
-        int coughOdds = easedByOutfit(player, harshened(coughChanceOneIn, contents));
+        int coughOdds = easedByOutfit(player, coughOneIn(coughChanceOneIn, contents));
         if (coughOdds > 0 && ThreadLocalRandom.current().nextInt(coughOdds) == 0) {
             world.playSound(null, player.getX(), player.getY(), player.getZ(),
                     ModSounds.COUGHING, SoundSource.PLAYERS, 1f, 1f);
@@ -224,7 +225,7 @@ public final class Smoking {
 
         // Nausea is its own roll and stays per-device, dose-independent — it is the "harsh smoke"
         // cost, not the "too much" cost. A green-out already brings its own, longer nausea.
-        int nauseaOdds = easedByOutfit(player, EffectPolicy.nauseaChanceOneIn(nauseaChanceOneIn));
+        int nauseaOdds = easedByOutfit(player, nauseaOneIn(EffectPolicy.nauseaChanceOneIn(nauseaChanceOneIn), contents));
         if (!greenedOut && nauseaOdds > 0 && ThreadLocalRandom.current().nextInt(nauseaOdds) == 0) {
             apply(player, new MobEffectInstance(MobEffects.NAUSEA, NAUSEA_DURATION_TICKS, 0));
         }
@@ -234,6 +235,33 @@ public final class Smoking {
         // why contents is handed over as its own argument.
         Services.ADDON_EVENTS.afterSmoke(player, contents, stack);
         return greenedOut && contents.thcDose() >= GreenOut.of(world.registryAccess()).fullFromDose();
+    }
+
+    /**
+     * The load's green-out odds before the server's config: the device's 1-in-N widened by the primary
+     * material's {@code green_out_factor} ({@link #smoothed}), then by its tier: Mids as 2.1, Dank three
+     * quarters of the chance, Top Shelf half, Epic a quarter. A good bud is smoother; it never stops a
+     * green-out, which is the price of a big hit. A schwag load keeps 2.1's odds.
+     */
+    public static int greenOutOneIn(int greenOutChanceOneIn, SmokeContents contents) {
+        return BudTier.scaleOneIn(smoothed(greenOutChanceOneIn, contents), contents.primaryTier().map(BudTier::greenOutFactor).orElse(1.0F));
+    }
+
+    /**
+     * The load's cough odds before the outfit: the device's 1-in-N narrowed or widened by the primary
+     * material's {@code cough_factor} ({@link #harshened}), then by its tier: Mids half as many coughs
+     * again, Dank as 2.1, Top Shelf half, Epic none.
+     */
+    public static int coughOneIn(int coughChanceOneIn, SmokeContents contents) {
+        return BudTier.scaleOneIn(harshened(coughChanceOneIn, contents), contents.primaryTier().map(BudTier::coughFactor).orElse(1.0F));
+    }
+
+    /**
+     * The load's Nausea odds before the outfit: the device's 1-in-N (after the server's config), widened by
+     * the primary material's tier: Mids as 2.1, Dank three quarters of the chance, Top Shelf half, Epic none.
+     */
+    public static int nauseaOneIn(int nauseaChanceOneIn, SmokeContents contents) {
+        return BudTier.scaleOneIn(nauseaChanceOneIn, contents.primaryTier().map(BudTier::nauseaFactor).orElse(1.0F));
     }
 
     /**

@@ -4,7 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.block.custom.ChemotypeBlocks;
+import com.warlonmhite.hempdustry.block.custom.SiftingBoxBlock;
+import com.warlonmhite.hempdustry.block.custom.TierBlocks;
+import com.warlonmhite.hempdustry.block.entity.custom.SiftingBoxBlockEntity;
 import com.warlonmhite.hempdustry.recipe.Stamping;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.Optional;
@@ -25,7 +29,9 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
  *
  * <ol>
  *   <li>{@code "from_block": true} — the broken block's own {@code chemotype} state, for the blocks
- *       that store nine stamped items (the leaf block, the hash bars, the charas ball);</li>
+ *       that store nine stamped items (the leaf block, the hash bars, the charas ball), and its {@code tier}
+ *       with it where it holds one (the hash bars); a ready Sifting Box's batch is read off its {@code matter}
+ *       and its {@code tier_sum};</li>
  *   <li>{@code "strain": "<id>"} — the named strain's chemotype as the world loaded it, so a datapack
  *       that makes Purple Kush CBD-dominant gets CBD leaves without touching a loot table. The strain
  *       is named by key and looked up when the loot rolls: a strain this world does not define stamps
@@ -72,8 +78,18 @@ public final class SetChemotypeFunction extends LootItemConditionalFunction {
     protected ItemStack run(ItemStack stack, LootContext context) {
         if (fromBlock) {
             BlockState state = context.getOptional(LootContextParams.BLOCK_STATE);
+            if (state != null && state.getBlock() instanceof SiftingBoxBlock) {
+                // A ready box's batch: its chemotype and its tier are read off what it is made of, its
+                // record; without one (a 2.1 box) it is what 2.1 sifted, THC-dominant and Dank.
+                int level = state.getValue(SiftingBoxBlock.LEVEL);
+                return context.getOptional(LootContextParams.BLOCK_ENTITY) instanceof SiftingBoxBlockEntity box
+                        ? Stamping.applyTier(Stamping.apply(stack, box.chemotype(level)), box.tier(level))
+                        : Stamping.applyTier(Stamping.apply(stack, Chemotype.THC_DOMINANT), BudTier.DANK);
+            }
             if (state != null && state.hasProperty(ChemotypeBlocks.CHEMOTYPE)) {
-                return Stamping.apply(stack, state.getValue(ChemotypeBlocks.CHEMOTYPE));
+                // A block that holds a tier (a hash bar, a Sifting Box's batch) hands it back too.
+                ItemStack stamped = Stamping.apply(stack, state.getValue(ChemotypeBlocks.CHEMOTYPE));
+                return state.hasProperty(TierBlocks.TIER) ? Stamping.applyTier(stamped, TierBlocks.of(state)) : stamped;
             }
         }
         if (strain.isPresent()) {

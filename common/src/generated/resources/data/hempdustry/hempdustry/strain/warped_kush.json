@@ -23,6 +23,11 @@
     "extra_high": 5,
     "low": 20
   },
+  "quality": {
+    "base_luck": 2,
+    "elite": 10,
+    "poor": 15
+  },
   "seeds": "hempdustry:warped_kush_seeds",
   "terpene": "hempdustry:eucalyptol",
   "translation_key": "hempdustry.strain.warped_kush"

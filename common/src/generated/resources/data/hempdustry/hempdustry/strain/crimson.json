@@ -19,6 +19,11 @@
     "extra_high": 5,
     "low": 20
   },
+  "quality": {
+    "base_luck": 2,
+    "elite": 10,
+    "poor": 15
+  },
   "seeds": "hempdustry:crimson_seeds",
   "terpene": "hempdustry:caryophyllene",
   "translation_key": "hempdustry.strain.crimson"

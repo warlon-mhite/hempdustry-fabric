@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -88,6 +89,8 @@ public final class PlantStress {
     public static GrowLight afterStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge,
                                       int height, float extra, RandomSource random, boolean stressable,
                                       boolean touchy) {
+        // The open-sky record rides the same step as the light record, on every growth route.
+        PlantRecordBlockEntity.recordSky(world, lower, fromAge, height);
         GrowLight next = touchy ? touchyStep(world, lower, record, fromAge, toAge, height)
                 : record.afterStep(fromAge, GrowLight.over(world, lower, height));
         if (!stressable) {

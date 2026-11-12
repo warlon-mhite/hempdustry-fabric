@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.item.custom;
 
 import com.warlonmhite.hempdustry.component.ModComponents;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -18,7 +19,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 
 /**
  * The tooltip a strain's buds and seeds share, the way a seed bank prints it on the packet: the
- * strain's chemotype in a word, grey, then — on a bud — its potency band, then its terpene's name in
+ * strain's chemotype in a word, grey, then — on a bud — its potency band and its harvest's tier, then its terpene's name in
  * the terpene's colour. A cannabinoid-free bud has no band line: "Cannabinoid-free · Low potency"
  * contradicts itself, so its band is kept on the bud and never shown. Read off the
  * registries the world loaded, so a datapack that makes a strain CBD-dominant, or gives it another
@@ -52,6 +53,15 @@ public final class StrainPlantItem {
      */
     public static void appendProfile(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip,
                                      Optional<Chemotype> fallback, Optional<PotencyBand> band) {
+        appendProfile(stack, context, tooltip, fallback, band, Optional.empty());
+    }
+
+    /**
+     * As above, with {@code tier}'s line after the band's, before the terpene: a bud names its harvest's
+     * tier always, Dank included, grey; the colour is the name's.
+     */
+    public static void appendProfile(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip,
+                                     Optional<Chemotype> fallback, Optional<PotencyBand> band, Optional<BudTier> tier) {
         Optional<Strain> strain = strainOf(stack.getItem(), context);
         Optional<Chemotype> chemotype = strain.map(Strain::chemotype).or(() -> fallback);
         chemotype.ifPresent(value -> tooltip.accept(value.tooltipLine()));
@@ -60,6 +70,7 @@ public final class StrainPlantItem {
         if (chemotype.filter(value -> value == Chemotype.CANNABINOID_FREE).isEmpty()) {
             band.ifPresent(value -> tooltip.accept(value.tooltipLine()));
         }
+        tier.ifPresent(value -> tooltip.accept(value.tooltipLine()));
         HolderLookup.Provider registries = context.registries();
         Optional<Terpene> terpene = strain.flatMap(value -> value.loadedTerpene(registries));
         if (terpene.isEmpty() && registries != null && stack.getItem() instanceof BlockItem plants) {
@@ -72,15 +83,17 @@ public final class StrainPlantItem {
     /** A strain's buds. */
     public static class Buds extends Item {
         public Buds(Properties settings) {
-            // Mid on the prototype, so an explicit mid stacks with a plain bud; never a chemotype.
-            super(settings.component(ModComponents.POTENCY_BAND, PotencyBand.MID));
+            // Mid and Dank on the prototype, so an explicit mid or Dank stacks with a plain bud; never a chemotype.
+            super(settings.component(ModComponents.POTENCY_BAND, PotencyBand.MID)
+                    .component(ModComponents.BUD_TIER, BudTier.DANK));
         }
 
         @Override
         public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
                                     Consumer<Component> tooltip, TooltipFlag flag) {
             // Mid included: an unmarked bud is mid, and saying so tells it apart from a high one.
-            appendProfile(stack, context, tooltip, Optional.empty(), Optional.of(PotencyBand.of(stack)));
+            appendProfile(stack, context, tooltip, Optional.empty(), Optional.of(PotencyBand.of(stack)),
+                    Optional.of(BudTier.of(stack)));
             super.appendHoverText(stack, context, display, tooltip, flag);
         }
     }

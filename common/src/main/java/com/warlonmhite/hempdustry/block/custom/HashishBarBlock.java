@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.item.ModItems;
+import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
@@ -129,12 +130,13 @@ public class HashishBarBlock extends Block {
         // (left out of the default state, a boolean comes back true): writing it means the next
         // person does not have to go and check.
         registerDefaultState(defaultBlockState().setValue(CUTS, 0).setValue(FACING, Direction.NORTH)
-                .setValue(ChemotypeBlocks.CHEMOTYPE, Chemotype.THC_DOMINANT));
+                .setValue(ChemotypeBlocks.CHEMOTYPE, Chemotype.THC_DOMINANT).setValue(TierBlocks.TIER, BudTier.DANK));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(CUTS, FACING, ChemotypeBlocks.CHEMOTYPE);
+        // The tier of its nine pieces, as the chemotype: a bar is pressed from one batch.
+        builder.add(CUTS, FACING, ChemotypeBlocks.CHEMOTYPE, TierBlocks.TIER);
     }
 
     /**
@@ -155,13 +157,13 @@ public class HashishBarBlock extends Block {
      * with the same convention, so this is one expression and no new state.
      */
     /**
-     * A creative pick-block hands back a bar of the chemotype this one is. A cut bar picks as a whole
+     * A creative pick-block hands back a bar of the chemotype and tier this one is. A cut bar picks as a whole
      * one, as vanilla's cake does.
      */
     @Override
     protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
-        return ChemotypeBlocks.stampBlockItem(super.getCloneItemStack(level, pos, state, includeData),
-                ChemotypeBlocks.of(state));
+        return TierBlocks.stampBlockItem(ChemotypeBlocks.stampBlockItem(super.getCloneItemStack(level, pos, state, includeData),
+                ChemotypeBlocks.of(state)), TierBlocks.of(state));
     }
 
     @Override
@@ -233,7 +235,8 @@ public class HashishBarBlock extends Block {
         int cuts = state.getValue(CUTS);
         if (world instanceof ServerLevel serverWorld) {
             popResourceFromFace(serverWorld, pos, Direction.UP,
-                    Chemotype.stamp(new ItemStack(piece(), YIELD[cuts]), ChemotypeBlocks.of(state)));
+                    BudTier.stamp(Chemotype.stamp(new ItemStack(piece(), YIELD[cuts]), ChemotypeBlocks.of(state)),
+                            TierBlocks.of(state)));
             // The blade is the whole cost of a cut: nothing else is spent, and the bar itself is
             // what shrinks. Same slot dance as Defoliation.tryCut.
             stack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);

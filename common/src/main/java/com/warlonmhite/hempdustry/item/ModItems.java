@@ -143,7 +143,7 @@ public class ModItems {
      * loose powder falls straight through a bowl's screen, which is exactly why the trade presses it.
      * Press it into {@link #HASHISH}, or stick it to a bud as a moon rock's coat.
      */
-    public static final Item KIEF = registerItem("kief", StampedItem::new);
+    public static final Item KIEF = registerItem("kief", StampedItem.Resin::new);
     /**
      * Kief put over the screen a second time at a finer mesh — the trade's <i>3× filtré</i>, at two
      * passes rather than three. <b>The dry road to a blonde product</b>, and the expensive one: each
@@ -153,13 +153,13 @@ public class ModItems {
      * <b>the two buy the same thing</b> — smoothness — and pressing is pressing. Where they differ is
      * the price: see {@code SiftingBoxBlock.KIEF_CHANCE}.
      */
-    public static final Item FILTERED_KIEF = registerItem("filtered_kief", StampedItem::new);
+    public static final Item FILTERED_KIEF = registerItem("filtered_kief", StampedItem.Resin::new);
     /**
      * The same trichome heads, washed out in ice water instead of screened out dry: cleaner, with
      * almost no leaf in it. Presses into {@link #FILTERED_HASHISH}, which is where the smoothness
      * shows up. Not smokeable, for the same reason kief is not.
      */
-    public static final Item BUBBLE_HASH = registerItem("bubble_hash", StampedItem::new);
+    public static final Item BUBBLE_HASH = registerItem("bubble_hash", StampedItem.Resin::new);
     /**
      * Hashish — {@link #KIEF} pressed in the Hemp Press, one for one: resin separated from the
      * plant and squeezed together.
@@ -176,7 +176,7 @@ public class ModItems {
      * oven takes plant matter and the bowl takes resin, so hash is a smoking material only, and the
      * flame is its heat.
      */
-    public static final Item HASHISH = registerItem("hashish", StampedItem::new);
+    public static final Item HASHISH = registerItem("hashish", StampedItem.Resin::new);
 
     /**
      * Charas — soft black resin rubbed off a <b>living</b> plant, and the only hash you can have
@@ -230,12 +230,12 @@ public class ModItems {
      * whole 1×–3× range. A third pass would be a second near-identical blonde for no mechanic, and
      * the re-sift's three to one already says what a pass costs.
      */
-    public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", StampedItem::new);
+    public static final Item FILTERED_HASHISH = registerItem("filtered_hashish", StampedItem.Resin::new);
     /**
      * Pressed out of filtered hashish in the Hemp Press. A strain entry with no flower, like the
      * rest of the hash family — but the only one whose {@code dose_per_item} is not 1.
      */
-    public static final Item ROSIN = registerItem("rosin", StampedItem::new);
+    public static final Item ROSIN = registerItem("rosin", StampedItem.Resin::new);
     /**
      * A bud dipped in rosin and rolled in a hash coat — hashish, charas or filtered hashish. One
      * item for every strain and every coat: the strain rides in

@@ -27,6 +27,12 @@
     "extra_high": 5,
     "low": 20
   },
+  "quality": {
+    "average": 48,
+    "elite": 6,
+    "good": 28,
+    "poor": 18
+  },
   "seeds": "hempdustry:white_widow_seeds",
   "terpene": "hempdustry:nerolidol",
   "translation_key": "hempdustry.strain.white_widow"

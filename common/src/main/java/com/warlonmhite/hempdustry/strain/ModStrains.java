@@ -235,7 +235,8 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.SPEED, 0, true),
                         new SmokeEffect(MobEffects.HASTE, 0, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true),
-                        new SmokeEffect(MobEffects.WEAKNESS, 0, true))).withTerpene(Terpene.LIMONENE));
+                        new SmokeEffect(MobEffects.WEAKNESS, 0, true))).withTerpene(Terpene.LIMONENE)
+                .withQuality(new GrowQuality(0, 25, 50, 20, 5)));
 
         // Beldía -- the Rif's traditional landrace ("of the country" in Darija), grown for the sieve
         // rather than the bowl: its buds count double at the Sifting Box, and its flower smokes harsh.
@@ -262,7 +263,9 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.BLINDNESS, 0, false, 0.25F, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
                 0.5F, Chemotype.BALANCED).withTerpene(Terpene.MYRCENE)
-                .withPotency(Potency.odds(30, 50, 20, 0)));
+                .withPotency(Potency.odds(30, 50, 20, 0))
+                // Base luck -1: a hardy landrace grown for its kief, not its flower.
+                .withQuality(new GrowQuality(-1, 25, 50, 20, 5)));
         // Warped Kush -- the Nether's plant, after Blueberry and Blue Dream, and a strain that
         // literally gets you high.
         //
@@ -287,7 +290,9 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.JUMP_BOOST, 0, true),
                         new SmokeEffect(MobEffects.DARKNESS, 0, false),
                         new SmokeEffect(MobEffects.HUNGER, 0, true))).withTerpene(Terpene.EUCALYPTOL)
-                .withPotency(Potency.odds(20, 50, 25, 5)));
+                .withPotency(Potency.odds(20, 50, 25, 5))
+                // Base luck +2 stands in for the light record and the Hydro Tray it can never take.
+                .withQuality(new GrowQuality(2, 15, 50, 25, 10)));
 
         // Ruderalis -- the feral ancestor, and the lucky one.
         //
@@ -314,7 +319,9 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.LUCK, 0, false),
                         new SmokeEffect(MobEffects.HUNGER, 0, EffectLabel.THC, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
                 0.5F, Chemotype.BALANCED).withTerpene(Terpene.PINENE)
-                .withPotency(Potency.odds(50, 40, 10, 0)));
+                .withPotency(Potency.odds(50, 40, 10, 0))
+                // Reliable, not good: it takes no care luck, so it is never Epic in plain survival.
+                .withQuality(new GrowQuality(0, 30, 50, 18, 2)));
 
         // Crimson Weed -- the crimson forest's plant, Warped Kush's opposite number.
         //
@@ -337,7 +344,9 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.STRENGTH, 0, true),
                         new SmokeEffect(MobEffects.GLOWING, 0, false),
                         new SmokeEffect(MobEffects.HUNGER, 0, true))).withTerpene(Terpene.CARYOPHYLLENE)
-                .withPotency(Potency.odds(20, 50, 25, 5)));
+                .withPotency(Potency.odds(20, 50, 25, 5))
+                // As Warped Kush: +2 for the light record and the tray it can never take.
+                .withQuality(new GrowQuality(2, 15, 50, 25, 10)));
 
         // Ender Haze -- the End's plant, and the second Haze: Speed is the family's, as Hunger is
         // everyone's.
@@ -367,7 +376,8 @@ public class ModStrains {
                                 1.0F, SmokeEffect.NO_CAP),
                         new SmokeEffect(MobEffects.HUNGER, 0, true)),
                 1.0F, Chemotype.BALANCED).withTerpene(Terpene.TERPINOLENE)
-                .withPotency(Potency.odds(28, 50, 20, 2)));
+                .withPotency(Potency.odds(28, 50, 20, 2))
+                .withQuality(new GrowQuality(0, 15, 45, 30, 10)));
 
         // Cherry Wine -- the CBD plant, a real high-CBD cultivar bred from hemp for its flower, and the
         // first strain whose smoke carries CBD-labelled effects only.
@@ -416,7 +426,8 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.WEAVING, 0, EffectLabel.STRAIN, 1.0F, false, 1.0F, SmokeEffect.NO_CAP),
                         new SmokeEffect(MobEffects.UNLUCK, 0, EffectLabel.STRAIN, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
                 1.0F, Chemotype.THC_DOMINANT).withTerpene(Terpene.NEROLIDOL)
-                .withPotency(Potency.odds(20, 50, 25, 5)));
+                .withPotency(Potency.odds(20, 50, 25, 5))
+                .withQuality(new GrowQuality(0, 18, 48, 28, 6)));
 
         // Dud Weed -- the cannabinoid-free plant. Real cannabinoid-free lines were bred out of fibre
         // hemp (de Meijer et al. 2009), and the trait is recessive, so it turns up in a hemp field
@@ -436,7 +447,8 @@ public class ModStrains {
                 Optional.of(ModBlocks.DUD_WEED_CROP), 0.0F, 1,
                 List.of(),
                 1.0F, Chemotype.CANNABINOID_FREE).withTerpene(Terpene.HUMULENE)
-                .withPotency(Potency.odds(60, 40, 0, 0)));
+                .withPotency(Potency.odds(60, 40, 0, 0))
+                .withQuality(new GrowQuality(0, 30, 50, 18, 2)));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity
