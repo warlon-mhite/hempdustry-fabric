@@ -357,7 +357,8 @@ public class SativaCropBlock extends CropBlock {
     /**
      * Puts right a raw write from another mod, as {@link IndicaCropBlock#onPlace} does, for a plant of three
      * blocks: a root state written onto the MIDDLE or the UPPER goes back to that segment, and so does an age
-     * alone written there ({@link TallHemp#isAgeWrittenAboveTheRoot}), a replanting takes
+     * alone written there ({@link TallHemp#isAgeWrittenAboveTheRoot}), an age alone set back on the root keeps
+     * only the flags it could have earned ({@link TallHemp#isSetBackByAge}), a replanting takes
      * both segments away (top first, so neither is left standing on nothing), and growth is one step of the
      * plant's own.
      */
@@ -373,6 +374,12 @@ public class SativaCropBlock extends CropBlock {
             return;
         }
         if (!raw) {
+            if (TallHemp.isSetBackByAge(this, state, old)) {
+                BlockState earned = Defoliation.onlyEarned(state, this.getAge(state));
+                if (earned != state) {
+                    TallHemp.ownWrite(() -> world.setBlock(pos, earned, Block.UPDATE_CLIENTS));
+                }
+            }
             return;
         }
         int age = this.getAge(state);

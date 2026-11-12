@@ -212,6 +212,7 @@ public final class HempdustryGameTests {
         register("a_raw_replant_starts_a_new_plant", RawWritesGameTest::aRawReplantStartsANewPlant);
         register("a_raw_write_above_the_root_leaves_the_plant_whole", RawWritesGameTest::aRawWriteAboveTheRootLeavesThePlantWhole);
         register("a_replanting_age_written_above_the_root_leaves_the_plant_whole", RawWritesGameTest::aReplantingAgeWrittenAboveTheRootLeavesThePlantWhole);
+        register("a_replanting_age_written_on_the_root_starts_a_new_plant", RawWritesGameTest::aReplantingAgeWrittenOnTheRootStartsANewPlant);
         register("our_own_step_is_not_taken_for_a_raw_one", RawWritesGameTest::ourOwnStepIsNotTakenForARawOne);
         register("a_plant_taken_as_it_ripens_leaves_only_the_replanting",
                 RawWritesGameTest::aPlantTakenAsItRipensLeavesOnlyTheReplanting);
