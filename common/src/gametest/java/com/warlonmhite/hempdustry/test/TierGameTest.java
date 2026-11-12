@@ -299,41 +299,45 @@ public final class TierGameTest {
         world.setBlock(pos.below(), Blocks.FARMLAND.defaultBlockState().setValue(net.minecraft.world.level.block.FarmlandBlock.MOISTURE, 7),
                 Block.UPDATE_CLIENTS);
         world.setBlock(pos, ripe(ModBlocks.INDICA_CROP, 0), Block.UPDATE_CLIENTS);
-        // Light is updated off the tick that changed it: every check waits two ticks for the light engine.
-        context.runAfterDelay(2, () -> {
-            context.assertTrue(world.canSeeSky(top), "the opened column reads no sky at the plant's top");
-            step(world, pos, 0);
-            context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.TRUE, "a seedling's first step under open sky");
-            world.setBlock(top.above(), Blocks.GLASS.defaultBlockState(), Block.UPDATE_ALL);
-            context.runAfterDelay(2, () -> {
-                step(world, pos, 1);
-                context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.TRUE, "a step under a glass roof");
-                world.setBlock(top.above(), Blocks.OAK_LEAVES.defaultBlockState(), Block.UPDATE_ALL);
-                context.runAfterDelay(2, () -> {
-                    context.assertTrue(!world.canSeeSky(top), "leaves over the plant let the full sky through");
+        // Light is updated off the tick that changed it, and a busy batch of tests (or a slow machine) holds the
+        // light engine back: every check waits for the sky it needs rather than for a fixed number of ticks.
+        context.startSequence()
+                .thenWaitUntil(() -> context.assertTrue(world.canSeeSky(top), "the opened column reads no sky at the plant's top"))
+                .thenExecute(() -> {
+                    step(world, pos, 0);
+                    context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.TRUE, "a seedling's first step under open sky");
+                    world.setBlock(top.above(), Blocks.GLASS.defaultBlockState(), Block.UPDATE_ALL);
+                })
+                .thenWaitUntil(() -> context.assertTrue(world.canSeeSky(top), "a glass roof stopped the sky"))
+                .thenExecute(() -> {
+                    step(world, pos, 1);
+                    context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.TRUE, "a step under a glass roof");
+                    world.setBlock(top.above(), Blocks.OAK_LEAVES.defaultBlockState(), Block.UPDATE_ALL);
+                })
+                .thenWaitUntil(() -> context.assertTrue(!world.canSeeSky(top), "leaves over the plant let the full sky through"))
+                .thenExecute(() -> {
                     GrowLight light = step(world, pos, 4);
                     context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.FALSE, "a step under leaves");
                     context.assertTrue(light != GrowLight.STRESSED, "losing the sun stressed a flowering plant");
                     world.setBlock(top.above(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
-                    context.runAfterDelay(2, () -> {
-                        step(world, pos, 5);
-                        context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.FALSE,
-                                "the sun back after a step in the shade: the weaker of before and now");
-                        // A first step reads the sky now, whatever came before.
-                        step(world, pos, 0);
-                        context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.TRUE, "a first step under the sun");
-                        // A Warped Kush keeps no light record: a bee's step under the same sky leaves it none.
-                        world.setBlock(pos.below(), Blocks.SOUL_SAND.defaultBlockState(), Block.UPDATE_CLIENTS);
-                        BlockState young = ripe(ModBlocks.WARPED_KUSH_CROP, 1);
-                        world.setBlock(pos, young, Block.UPDATE_CLIENTS);
-                        PlantStress.beeStep(world, pos, young, ripe(ModBlocks.WARPED_KUSH_CROP, 2), world.getRandom());
-                        context.assertTrue(record(world, pos).skyRecord().isEmpty(),
-                                "a Warped Kush, which keeps no light record, took the sky");
-                        context.succeed();
-                    });
-                });
-            });
-        });
+                })
+                .thenWaitUntil(() -> context.assertTrue(world.canSeeSky(top), "the sky did not come back when the leaves went"))
+                .thenExecute(() -> {
+                    step(world, pos, 5);
+                    context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.FALSE,
+                            "the sun back after a step in the shade: the weaker of before and now");
+                    // A first step reads the sky now, whatever came before.
+                    step(world, pos, 0);
+                    context.assertValueEqual(record(world, pos).skyRecord().orElse(null), Boolean.TRUE, "a first step under the sun");
+                    // A Warped Kush keeps no light record: a bee's step under the same sky leaves it none.
+                    world.setBlock(pos.below(), Blocks.SOUL_SAND.defaultBlockState(), Block.UPDATE_CLIENTS);
+                    BlockState young = ripe(ModBlocks.WARPED_KUSH_CROP, 1);
+                    world.setBlock(pos, young, Block.UPDATE_CLIENTS);
+                    PlantStress.beeStep(world, pos, young, ripe(ModBlocks.WARPED_KUSH_CROP, 2), world.getRandom());
+                    context.assertTrue(record(world, pos).skyRecord().isEmpty(),
+                            "a Warped Kush, which keeps no light record, took the sky");
+                })
+                .thenSucceed();
     }
 
     /** One growth step of the Purple Kush at {@code pos} from {@code fromAge}, as every growth route takes it. */
