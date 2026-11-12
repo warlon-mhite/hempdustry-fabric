@@ -42,6 +42,9 @@ alone sees the fixes, the villagers and nothing else.
   - A right-click harvest that replants the block clicked paid nothing on a block above the root and left
     a seedling in the middle of a ripe plant. That block now stays as it was: a plant's harvest is its
     root's.
+  - The same harvest on the root replanted a seedling that kept the old plant's trims and rub, so every
+    new plant had the trims' extra bud without a cut, or could not be rubbed. A replanted plant now starts
+    unworked, as one planted by hand.
   - A farmer, or a harvester sweeping at the height of the tops, could take a ripe plant's top and leave
     its root standing alone, ripe, and a harvester could then set an unripe top back on it. Whatever takes
     a block above the root now brings the whole plant down, and its harvest drops once, as when a player

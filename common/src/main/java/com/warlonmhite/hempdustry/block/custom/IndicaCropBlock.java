@@ -311,7 +311,9 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
      *       right-click harvest does to the block clicked: it paid nothing, and a seedling top would sit in a
      *       ripe plant until the root next grew.</li>
      *   <li><b>A younger age on the root</b> is a replanting. The written state is already a new plant's;
-     *       what is left of the old one above it goes, its harvest having been taken from the root.</li>
+     *       what is left of the old one above it goes, its harvest having been taken from the root. A mod that
+     *       sets the age alone back ({@link TallHemp#isSetBackByAge}), as a right-click harvest replants, keeps
+     *       only the trims and the rub the new age could have earned: a seedling keeps none.</li>
      *   <li><b>An older age</b> is growth, taken as one step of the plant's own: the trims, the rub and the
      *       light record carry over, the light and the ground are read, a pot is eaten from on ripening, the
      *       plant stops short of a block in its way, and the top grows at once.</li>
@@ -331,6 +333,12 @@ public class IndicaCropBlock extends CropBlock implements ItemUse {
             return;
         }
         if (!raw) {
+            if (TallHemp.isSetBackByAge(this, state, old)) {
+                BlockState earned = Defoliation.onlyEarned(state, this.getAge(state));
+                if (earned != state) {
+                    TallHemp.ownWrite(() -> world.setBlock(pos, earned, Block.UPDATE_CLIENTS));
+                }
+            }
             return;
         }
         int age = this.getAge(state);
