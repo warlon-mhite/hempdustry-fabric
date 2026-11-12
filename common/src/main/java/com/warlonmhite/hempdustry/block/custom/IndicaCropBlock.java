@@ -320,7 +320,10 @@ public class IndicaCropBlock extends CropBlock {
      *
      * <ul>
      *   <li><b>Onto a block above the root</b>, the harvester took a ripe top for a crop of its own. The top
-     *       goes back as it was: the plant's loot is on the root, and a root up there would break off.</li>
+     *       goes back as it was: the plant's loot is on the root, and a root up there would break off. So does
+     *       a top whose age alone another mod set back ({@link TallHemp#isAgeWrittenAboveTheRoot}), as a
+     *       right-click harvest does to the block clicked: it paid nothing, and a seedling top would sit in a
+     *       ripe plant until the root next grew.</li>
      *   <li><b>A younger age on the root</b> is a replanting. The written state is already a new plant's;
      *       what is left of the old one above it goes, its harvest having been taken from the root.</li>
      *   <li><b>An older age</b> is growth, taken as one step of the plant's own: the trims, the rub and the
@@ -333,11 +336,15 @@ public class IndicaCropBlock extends CropBlock {
     @Override
     protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean moved) {
         super.onPlace(state, world, pos, old, moved);
-        if (world.isClientSide() || !TallHemp.isRawWrite(this, state, old)) {
+        if (world.isClientSide()) {
             return;
         }
-        if (!isLower(old)) {
+        boolean raw = TallHemp.isRawWrite(this, state, old);
+        if (raw && !isLower(old) || TallHemp.isAgeWrittenAboveTheRoot(this, state, old)) {
             TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            return;
+        }
+        if (!raw) {
             return;
         }
         int age = this.getAge(state);
