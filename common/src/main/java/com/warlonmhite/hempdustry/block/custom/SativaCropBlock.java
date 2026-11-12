@@ -356,18 +356,23 @@ public class SativaCropBlock extends CropBlock {
 
     /**
      * Puts right a raw write from another mod, as {@link IndicaCropBlock#onPlace} does, for a plant of three
-     * blocks: a root state written onto the MIDDLE or the UPPER goes back to that segment, a replanting takes
+     * blocks: a root state written onto the MIDDLE or the UPPER goes back to that segment, and so does an age
+     * alone written there ({@link TallHemp#isAgeWrittenAboveTheRoot}), a replanting takes
      * both segments away (top first, so neither is left standing on nothing), and growth is one step of the
      * plant's own.
      */
     @Override
     protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean moved) {
         super.onPlace(state, world, pos, old, moved);
-        if (world.isClientSide() || !TallHemp.isRawWrite(this, state, old)) {
+        if (world.isClientSide()) {
             return;
         }
-        if (!isLower(old)) {
+        boolean raw = TallHemp.isRawWrite(this, state, old);
+        if (raw && !isLower(old) || TallHemp.isAgeWrittenAboveTheRoot(this, state, old)) {
             TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            return;
+        }
+        if (!raw) {
             return;
         }
         int age = this.getAge(state);

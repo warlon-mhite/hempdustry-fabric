@@ -151,6 +151,27 @@ public final class RawWritesGameTest {
     }
 
     /**
+     * A right-click harvest that replants a ripe crop by setting its age back on the block clicked, keeping
+     * every other property. On a block above the root that pays nothing, since the plant's loot is the root's,
+     * and must not leave a seedling segment inside a ripe plant.
+     */
+    public static void aReplantingAgeWrittenAboveTheRootLeavesThePlantWhole(GameTestHelper context) {
+        for (Block crop : CROPS) {
+            BlockState ripe = root(crop, IndicaCropBlock.MAX_AGE, GrowLight.GROW_LAMP, true, true, false);
+            int height = wholePlant(crop, ripe).size();
+            for (int up = 1; up < height; up++) {
+                ground(context, wetFarmland());
+                place(context, crop, ripe);
+                BlockPos at = context.absolutePos(CROP.above(up));
+                ServerLevel world = context.getLevel();
+                world.setBlockAndUpdate(at, world.getBlockState(at).setValue(BlockStateProperties.AGE_7, 0));
+                expect(context, crop, ripe, "set back to age 0 " + up + " block(s) above its root");
+            }
+        }
+        context.succeed();
+    }
+
+    /**
      * Our own step writes a state that can look exactly like a raw write (an untrimmed plant with a natural
      * record), and must still count once: a potted plant that ripens under bone meal eats one charge, not two.
      */
