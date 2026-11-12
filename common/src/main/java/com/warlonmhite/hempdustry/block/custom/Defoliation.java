@@ -177,6 +177,19 @@ public final class Defoliation {
     }
 
     /**
+     * {@code state} without the flags its age could not have earned: a trim before its window opens, or a rub
+     * before the plant is ripe. Only another mod's replanting leaves such a flag, by setting the age alone back
+     * and keeping the rest (a right-click harvest does). On the new plant it would move the harvest with no cut
+     * made, and take off it a leaf that was never handed over; a kept rub would also refuse the new plant's.
+     * A flag the age could have earned stays, as {@code /setblock} writes it.
+     */
+    public static BlockState onlyEarned(BlockState state, int age) {
+        return state.setValue(TRIMMED_EARLY, state.getValue(TRIMMED_EARLY) && age >= EARLY_MIN_AGE)
+                .setValue(TRIMMED_LATE, state.getValue(TRIMMED_LATE) && age >= LATE_MIN_AGE)
+                .setValue(RUBBED, state.getValue(RUBBED) && age >= RUB_MIN_AGE);
+    }
+
+    /**
      * Copies the trim flags from {@code from} onto {@code to}, when both states actually carry
      * them. States that don't (vanilla wheat, or one of our own upper segments) come back untouched,
      * which is what makes this safe to call from the bee mixin on any crop in the game.
