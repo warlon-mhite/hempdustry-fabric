@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,8 +17,10 @@ import java.util.List;
 /**
  * A placed Stash Jar to Fabric's transfer API, and so to a hopper (Fabric API moves a hopper's items
  * through this when the block is no container) and to every pipe. In: only what
- * {@code #hempdustry:stash_jar_storable} takes, as many as the jar has room for. Out: newest first, the
- * order an empty hand takes them, so the views list the entries in that order.
+ * {@code #hempdustry:stash_jar_storable} takes, as many as the jar has room for, blended into its
+ * strain. Out: newest strain first and its best buds first, the order an empty hand takes them, so the
+ * views list the stacks each strain would give back in that order, then one blank view for the room
+ * left: the views' capacities add up to the jar's, never more.
  *
  * <p>The jar's contents are one immutable value, so the snapshot is that value and a rollback puts it
  * back; the world hears of a change once the outermost transaction commits.
@@ -51,8 +52,12 @@ final class FabricStashJarStorage extends SnapshotParticipant<StashContents> imp
     @Override
     public Iterator<StorageView<ItemVariant>> iterator() {
         List<StorageView<ItemVariant>> views = new ArrayList<>();
-        for (ItemStackTemplate entry : jar.contents().items()) {
-            views.add(new Entry(ItemVariant.of(entry.create()), entry.count()));
+        for (ItemStack part : jar.contents().parts()) {
+            views.add(new Entry(ItemVariant.of(part), part.getCount(), part.getCount()));
+        }
+        int room = jar.capacity() - jar.contents().count();
+        if (room > 0) {
+            views.add(new Entry(ItemVariant.blank(), 0, room));
         }
         return views.iterator();
     }
@@ -72,19 +77,22 @@ final class FabricStashJarStorage extends SnapshotParticipant<StashContents> imp
         jar.contentsChanged();
     }
 
-    /** One entry as it stood when the views were listed; taking from it takes that kind, newest first. */
+    /** One stack as it stood when the views were listed, or the room left; taking from it takes that kind. */
     private final class Entry implements StorageView<ItemVariant> {
         private final ItemVariant resource;
         private final long amount;
+        private final long capacity;
 
-        private Entry(ItemVariant resource, long amount) {
+        private Entry(ItemVariant resource, long amount, long capacity) {
             this.resource = resource;
             this.amount = amount;
+            this.capacity = capacity;
         }
 
         @Override
         public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
-            return resource.equals(this.resource) ? FabricStashJarStorage.this.extract(resource, maxAmount, transaction) : 0;
+            return !resource.isBlank() && resource.equals(this.resource)
+                    ? FabricStashJarStorage.this.extract(resource, maxAmount, transaction) : 0;
         }
 
         @Override
@@ -104,7 +112,7 @@ final class FabricStashJarStorage extends SnapshotParticipant<StashContents> imp
 
         @Override
         public long getCapacity() {
-            return resource.getItem().getDefaultMaxStackSize();
+            return capacity;
         }
     }
 }

@@ -25,8 +25,8 @@ import java.util.Map;
  * brown through and through, pistils and all; an item a pack put in the tag that grew on no strain is a
  * bud with the plain orange pistils most bud art has.
  *
- * <p>Every bud of one strain counts together, whatever its band, tier or resin, since those are what the
- * jar exists to put back in one slot. The pieces go by the largest remainder: each strain first gets the
+ * <p>Every bud of one strain counts together, whatever its band, tier or resin, as the jar blends them;
+ * schwag counts together whatever its chemotype. The pieces go by the largest remainder: each strain first gets the
  * whole pieces its share buys, and the pieces left over go to the largest fractions, so 60 % and 40 % of
  * five pieces are three and two. Largest share first, so the same mix always lays out the same way.
  */
@@ -74,9 +74,9 @@ public final class StashPieces {
             return Colours.NONE;
         }
         Map<String, Group> groups = new LinkedHashMap<>();
-        for (ItemStackTemplate item : contents.items()) {
-            Group group = groupOf(item, registries);
-            groups.merge(group.key, group.withCount(item.count()), Group::plus);
+        for (StashContents.Entry entry : contents.entries()) {
+            Group group = groupOf(entry.item(), registries);
+            groups.merge(group.key, group.withCount(entry.count()), Group::plus);
         }
         List<Group> sorted = new ArrayList<>(groups.values());
         sorted.sort(Comparator.comparingInt(Group::count).reversed().thenComparing(Group::key));

@@ -3,7 +3,6 @@ package com.warlonmhite.hempdustry.neoforge;
 import com.warlonmhite.hempdustry.block.entity.custom.StashJarBlockEntity;
 import com.warlonmhite.hempdustry.component.StashContents;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -15,48 +14,57 @@ import java.util.List;
 /**
  * A placed Stash Jar to NeoForge's transfer API, and so to a hopper (NeoForge moves a hopper's items
  * through the capability when the block is no container) and to every pipe. In: only what
- * {@code #hempdustry:stash_jar_storable} takes, as many as the jar has room for. Out: newest first, the
- * order an empty hand takes them.
+ * {@code #hempdustry:stash_jar_storable} takes, as many as the jar has room for, blended into its
+ * strain. Out: newest strain first and its best buds first, the order an empty hand takes them.
  *
- * <p>The handler's indices are the jar's entries, newest first, plus one empty index past them for a
- * new kind. An insert lands wherever the jar puts it, whatever index it names: the jar keeps its own
- * order, and the API allows a handler to accept into another index than the one asked. The snapshot is
+ * <p>The handler's indices are the stacks each strain would give back, newest strain first, plus one
+ * empty index past them holding the room left: each stack's index holds just what it has, so the
+ * capacities add up to the jar's and never more. An insert lands wherever the jar puts it, whatever
+ * index it names: the jar keeps its own order, and the API allows a handler to accept into another
+ * index than the one asked. The snapshot is
  * the contents, one immutable value; the world hears of a change once the root transaction commits.
  */
 final class NeoForgeStashJarHandler extends SnapshotJournal<StashContents> implements ResourceHandler<ItemResource> {
     private final StashJarBlockEntity jar;
+    // The parts of the contents value last asked about. A pipe or a storage bus asks index by index,
+    // and the value never changes, only gets replaced, so one layout serves the whole scan.
+    private StashContents laidOut;
+    private List<ItemStack> parts = List.of();
 
     NeoForgeStashJarHandler(StashJarBlockEntity jar) {
         this.jar = jar;
     }
 
-    private List<ItemStackTemplate> entries() {
-        return jar.contents().items();
+    private List<ItemStack> parts() {
+        StashContents contents = jar.contents();
+        if (contents != laidOut) {
+            parts = contents.parts();
+            laidOut = contents;
+        }
+        return parts;
     }
 
     @Override
     public int size() {
-        return entries().size() + 1;
+        return parts().size() + 1;
     }
 
     @Override
     public ItemResource getResource(int index) {
-        List<ItemStackTemplate> entries = entries();
-        return index >= 0 && index < entries.size() ? ItemResource.of(entries.get(index)) : ItemResource.EMPTY;
+        List<ItemStack> parts = parts();
+        return index >= 0 && index < parts.size() ? ItemResource.of(parts.get(index)) : ItemResource.EMPTY;
     }
 
     @Override
     public long getAmountAsLong(int index) {
-        List<ItemStackTemplate> entries = entries();
-        return index >= 0 && index < entries.size() ? entries.get(index).count() : 0;
+        List<ItemStack> parts = parts();
+        return index >= 0 && index < parts.size() ? parts.get(index).getCount() : 0;
     }
 
     @Override
     public long getCapacityAsLong(int index, ItemResource resource) {
-        int room = Math.max(0, jar.capacity() - jar.contents().count());
-        long amount = getAmountAsLong(index);
-        int stack = resource.isEmpty() ? 64 : resource.getMaxStackSize();
-        return Math.min(stack, amount + room);
+        // A stack's index holds what it has; the last, empty one holds the room left.
+        return index == parts().size() ? Math.max(0, jar.capacity() - jar.contents().count()) : getAmountAsLong(index);
     }
 
     @Override

@@ -563,10 +563,11 @@ public final class TierGameTest {
         context.assertTrue(scorched.is(ModItems.SCORCHED_HEMP) && scorched.getComponentsPatch().isEmpty(),
                 "an Epic bud charred into " + scorched + ", not the scorched hemp an untiered one gives");
         // A jar of mixed tiers: one strain's buds, whatever their tier, are one share of the stash.
-        StashContents stash = new StashContents(List.of(
-                net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(bud(ModItems.INDICA_BUDS, BudTier.EPIC).copyWithCount(10)),
-                net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(bud(ModItems.INDICA_BUDS, BudTier.MIDS).copyWithCount(10)),
-                net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(new ItemStack(ModItems.INDICA_BUDS, 10))));
+        StashContents.Mutable mixed = StashContents.EMPTY.mutable();
+        mixed.insert(bud(ModItems.INDICA_BUDS, BudTier.EPIC).copyWithCount(10), 64);
+        mixed.insert(bud(ModItems.INDICA_BUDS, BudTier.MIDS).copyWithCount(10), 64);
+        mixed.insert(new ItemStack(ModItems.INDICA_BUDS, 10), 64);
+        StashContents stash = mixed.toImmutable();
         StashPieces.Colours pieces = StashPieces.colours(stash, 64, world.registryAccess());
         int colour = pieces.pistils()[0];
         for (int i = 0; i < pieces.pistils().length; i++) {

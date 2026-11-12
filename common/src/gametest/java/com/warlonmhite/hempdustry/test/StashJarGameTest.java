@@ -1,5 +1,11 @@
 package com.warlonmhite.hempdustry.test;
 
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import io.netty.handler.codec.DecoderException;
+import io.netty.buffer.Unpooled;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import com.warlonmhite.hempdustry.block.ModBlocks;
@@ -14,6 +20,8 @@ import com.warlonmhite.hempdustry.item.custom.StashJarItem;
 import com.warlonmhite.hempdustry.platform.ItemTransfer;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.recipe.StashJarUpgradeRecipe;
+import com.warlonmhite.hempdustry.strain.BudTier;
+import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -59,7 +67,7 @@ public final class StashJarGameTest {
     private static final Map<Block, Integer> CAPACITY = Map.of(
             ModBlocks.STASH_JAR, 64, ModBlocks.GILDED_STASH_JAR, 128, ModBlocks.DIAMOND_STASH_JAR, 256);
 
-    /** Each jar holds its capacity in items whatever their kinds, does not stack, and gives the last stack in back first. */
+    /** Each jar holds its capacity in items whatever their kinds, one entry per kind, does not stack, and gives the last kind in back first. */
     public static void aJarHoldsItsCapacityLastInFirstOut(GameTestHelper context) {
         for (Map.Entry<Block, Integer> jar : CAPACITY.entrySet()) {
             Item item = jar.getKey().asItem();
@@ -76,9 +84,9 @@ public final class StashJarGameTest {
                     item + " took " + in + " items, not its " + jar.getValue());
             context.assertTrue(stash.insert(new ItemStack(ModItems.INDICA_BUDS), jar.getValue()) == 0,
                     "a full " + item + " took one more bud");
-            for (var entry : stash.toImmutable().items()) {
-                context.assertTrue(entry.count() <= 64, item + " kept an entry of " + entry.count());
-            }
+            long kinds = stash.toImmutable().entries().stream().map(entry -> entry.item().typeHolder().value()).distinct().count();
+            context.assertTrue(stash.toImmutable().size() == kinds, item + " kept " + stash.toImmutable().size()
+                    + " entries for " + kinds + " kinds");
         }
         StashContents.Mutable order = StashContents.EMPTY.mutable();
         order.insert(new ItemStack(ModItems.INDICA_BUDS, 5), 64);
@@ -228,7 +236,7 @@ public final class StashJarGameTest {
 
         context.runAfterDelay(40, () -> {
             StashContents in = ((StashJarBlockEntity) level.getBlockEntity(context.absolutePos(filled))).contents();
-            context.assertTrue(in.count() == 2 && in.items().getFirst().typeHolder().value() == ModItems.INDICA_BUDS,
+            context.assertTrue(in.count() == 2 && in.entries().getFirst().item().typeHolder().value() == ModItems.INDICA_BUDS,
                     "a hopper above filled the jar with " + in);
             context.assertTrue(above.getItem(0).is(Items.STICK), "a hopper above put its stick in the jar");
             HopperBlockEntity below = (HopperBlockEntity) level.getBlockEntity(context.absolutePos(emptied.below()));
@@ -441,7 +449,171 @@ public final class StashJarGameTest {
         StashContents.Mutable back = StashContents.EMPTY.mutable();
         back.putBack(new ItemStack(Items.STICK, 3));
         context.assertTrue(back.count() == 3, "a stack put back was filtered by the tag");
+
+        // From the wire, as a creative client can write it: an entry of no buds, or fewer, is refused
+        // as a save refuses it; one of two comes through.
+        ItemStackTemplate bud = new ItemStackTemplate(ModItems.INDICA_BUDS.builtInRegistryHolder(), 1, DataComponentPatch.EMPTY);
+        for (int count : new int[]{0, -3, 2}) {
+            RegistryFriendlyByteBuf wire = new RegistryFriendlyByteBuf(Unpooled.buffer(), level.registryAccess());
+            ItemStackTemplate.STREAM_CODEC.encode(wire, bud);
+            ByteBufCodecs.VAR_INT.encode(wire, count);
+            ByteBufCodecs.VAR_INT.encode(wire, count);
+            ByteBufCodecs.VAR_INT.encode(wire, 0);
+            StashContents.Entry read = null;
+            try {
+                read = StashContents.Entry.STREAM_CODEC.decode(wire);
+            } catch (DecoderException refused) {
+                // what an empty entry must meet
+            }
+            context.assertTrue(count < 1 ? read == null : read != null && read.count() == count,
+                    "an entry of " + count + " buds from the wire read " + read);
+        }
         context.succeed();
+    }
+
+    /**
+     * The jar blends each strain (round 21): tier and band are levelled exactly, nothing made or lost,
+     * never past the inputs, order-free, no gain from taking out and putting back, best out first, and
+     * the tooltip names what comes out; a chemotype never blends, nor a stack carrying anything else.
+     */
+    public static void aJarBlendsEachStrainHonestly(GameTestHelper context) {
+        // The spec's table.
+        expectLevelled(context, List.of(bud(32, BudTier.DANK, PotencyBand.MID), bud(32, BudTier.TOP_SHELF, PotencyBand.MID)),
+                List.of(bud(32, BudTier.TOP_SHELF, PotencyBand.MID), bud(32, BudTier.DANK, PotencyBand.MID)));
+        expectLevelled(context, List.of(bud(10, BudTier.MIDS, PotencyBand.MID), bud(1, BudTier.EPIC, PotencyBand.MID)),
+                List.of(bud(3, BudTier.DANK, PotencyBand.MID), bud(8, BudTier.MIDS, PotencyBand.MID)));
+        expectLevelled(context, List.of(bud(32, BudTier.MIDS, PotencyBand.MID), bud(32, BudTier.EPIC, PotencyBand.MID)),
+                List.of(bud(32, BudTier.TOP_SHELF, PotencyBand.MID), bud(32, BudTier.DANK, PotencyBand.MID)));
+        expectLevelled(context, List.of(bud(20, BudTier.DANK, PotencyBand.LOW), bud(20, BudTier.DANK, PotencyBand.HIGH)),
+                List.of(bud(40, BudTier.DANK, PotencyBand.MID)));
+        // Both axes at once, the best tier paired with the best band: three stacks at most.
+        expectLevelled(context, List.of(bud(3, BudTier.EPIC, PotencyBand.EXTRA_HIGH), bud(7, BudTier.MIDS, PotencyBand.LOW)),
+                List.of(bud(9, BudTier.DANK, PotencyBand.MID), bud(1, BudTier.MIDS, PotencyBand.LOW)));
+        expectLevelled(context, List.of(bud(1, BudTier.EPIC, PotencyBand.EXTRA_HIGH), bud(1, BudTier.TOP_SHELF, PotencyBand.MID),
+                        bud(2, BudTier.MIDS, PotencyBand.MID)),
+                List.of(bud(1, BudTier.TOP_SHELF, PotencyBand.HIGH), bud(1, BudTier.DANK, PotencyBand.HIGH), bud(2, BudTier.DANK, PotencyBand.MID)));
+        // A bud made before tiers and bands reads Dank and Mid.
+        expectLevelled(context, List.of(new ItemStack(ModItems.INDICA_BUDS, 10), bud(10, BudTier.EPIC, PotencyBand.MID)),
+                List.of(bud(20, BudTier.TOP_SHELF, PotencyBand.MID)));
+
+        // Order-free, and never past the inputs.
+        List<ItemStack> mix = List.of(bud(5, BudTier.EPIC, PotencyBand.HIGH), bud(9, BudTier.MIDS, PotencyBand.LOW),
+                bud(4, BudTier.TOP_SHELF, PotencyBand.EXTRA_HIGH), bud(13, BudTier.DANK, PotencyBand.MID), new ItemStack(ModItems.INDICA_BUDS, 6));
+        StashContents forward = blend(mix);
+        List<ItemStack> backward = new ArrayList<>(mix);
+        java.util.Collections.reverse(backward);
+        List<ItemStack> shuffled = new ArrayList<>(mix);
+        java.util.Collections.shuffle(shuffled, new java.util.Random(4242));
+        context.assertTrue(forward.equals(blend(backward)) && forward.equals(blend(shuffled)),
+                "one strain's buds blend to " + forward + " in one order and " + blend(backward) + " in another");
+        for (ItemStack part : forward.parts()) {
+            context.assertTrue(BudTier.of(part).rank() <= BudTier.EPIC.rank() && BudTier.of(part).rank() >= BudTier.MIDS.rank()
+                            && PotencyBand.of(part).offset() <= PotencyBand.EXTRA_HIGH.offset(),
+                    "a blend gave " + part + ", past what went in");
+        }
+        // Nothing made or lost: the tier steps and band steps out are the ones in (the oven bakes by band).
+        context.assertTrue(rankSum(forward.parts()) == rankSum(mix) && offsetSum(forward.parts()) == offsetSum(mix),
+                "the blend's steps out " + rankSum(forward.parts()) + "/" + offsetSum(forward.parts())
+                        + " are not the steps in " + rankSum(mix) + "/" + offsetSum(mix));
+
+        // Best out first, by hand and by pipe alike, and taking out then putting back changes nothing.
+        StashContents.Mutable byHand = forward.mutable();
+        ItemStack first = byHand.removeOne();
+        context.assertTrue(ItemStack.isSameItemSameComponents(first, forward.parts().getFirst())
+                        && first.getCount() == forward.parts().getFirst().getCount(),
+                "an empty hand took " + first + ", not the best stack " + forward.parts().getFirst());
+        List<ItemStack> byPipe = forward.mutable().extract(stack -> true, first.getCount());
+        context.assertTrue(byPipe.size() == 1 && ItemStack.matches(byPipe.getFirst(), first),
+                "a pipe took " + byPipe + " where a hand took " + first);
+        StashContents.Mutable loop = forward.mutable();
+        List<ItemStack> out = new ArrayList<>();
+        for (ItemStack next = loop.removeOne(); !next.isEmpty(); next = loop.removeOne()) {
+            out.add(next);
+        }
+        for (ItemStack back : out) {
+            loop.insert(back, Integer.MAX_VALUE);
+        }
+        context.assertTrue(loop.toImmutable().equals(forward), "taking a blend out and putting it back made " + loop.toImmutable()
+                + " of " + forward);
+
+        // A chemotype never blends: schwag is one entry per chemotype; strains never blend with each other.
+        StashContents.Mutable schwag = StashContents.EMPTY.mutable();
+        schwag.insert(new ItemStack(ModItems.SCHWAG, 5), 256);
+        schwag.insert(Chemotype.stamp(new ItemStack(ModItems.SCHWAG, 5), Chemotype.CBD_DOMINANT), 256);
+        schwag.insert(new ItemStack(ModItems.SATIVA_BUDS, 5), 256);
+        schwag.insert(new ItemStack(ModItems.INDICA_BUDS, 5), 256);
+        context.assertTrue(schwag.toImmutable().size() == 4, "THC and CBD schwag and two strains made "
+                + schwag.toImmutable().size() + " entries, not four");
+        // Anything else on a stack keeps it exact.
+        ItemStack named = bud(4, BudTier.EPIC, PotencyBand.MID);
+        named.set(DataComponents.CUSTOM_NAME, Component.literal("Grandma's"));
+        StashContents.Mutable exact = StashContents.EMPTY.mutable();
+        exact.insert(named.copy(), 64);
+        exact.insert(bud(4, BudTier.MIDS, PotencyBand.MID), 64);
+        exact.insert(named.copy(), 64);
+        ItemStack namedMids = bud(4, BudTier.MIDS, PotencyBand.MID);
+        namedMids.set(DataComponents.CUSTOM_NAME, Component.literal("Grandma's"));
+        exact.insert(namedMids.copy(), 64);
+        StashContents kept = exact.toImmutable();
+        ItemStack namedOut = kept.entries().get(1).parts().getFirst();
+        ItemStack namedMidsOut = kept.entries().getFirst().parts().getFirst();
+        context.assertTrue(kept.size() == 3 && namedOut.getCount() == 8 && ItemStack.isSameItemSameComponents(namedOut, named)
+                        && ItemStack.matches(namedMidsOut, namedMids),
+                "named Epic and Mids stacks blended into " + kept);
+
+        // The tooltip line names exactly what comes out: Purple Kush ×11: 3 Dank, 8 Mids.
+        StashContents.Entry eleven = blend(List.of(bud(10, BudTier.MIDS, PotencyBand.MID), bud(1, BudTier.EPIC, PotencyBand.MID))).entries().getFirst();
+        Component line = StashJarItem.entryLine(eleven);
+        Object[] args = ((net.minecraft.network.chat.contents.TranslatableContents) line.getContents()).getArgs();
+        List<String> parts = ((Component) args[2]).getSiblings().stream()
+                .filter(part -> part.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents)
+                .map(part -> {
+                    Object[] a = ((net.minecraft.network.chat.contents.TranslatableContents) part.getContents()).getArgs();
+                    return a[0] + " " + ((net.minecraft.network.chat.contents.TranslatableContents) ((Component) a[1]).getContents()).getKey();
+                }).toList();
+        context.assertTrue(args[1].equals(11) && parts.equals(List.of("3 hempdustry.tier.dank", "8 hempdustry.tier.mids")),
+                "the tooltip says ×" + args[1] + " " + parts + " for 3 Dank and 8 Mids");
+        // Schwag names no chemotype, only its count.
+        StashContents.Entry cbd = schwag.toImmutable().entries().get(2);
+        Component schwagLine = StashJarItem.entryLine(cbd);
+        context.assertTrue(((net.minecraft.network.chat.contents.TranslatableContents) schwagLine.getContents()).getKey()
+                        .equals("item.hempdustry.stash_jar.entry_plain"),
+                "a CBD schwag entry's tooltip line is " + schwagLine + ", not its name and count alone");
+        context.succeed();
+    }
+
+    private static ItemStack bud(int count, BudTier tier, PotencyBand band) {
+        return PotencyBand.stamp(BudTier.stamp(new ItemStack(ModItems.INDICA_BUDS, count), tier), band);
+    }
+
+    private static StashContents blend(List<ItemStack> stacks) {
+        StashContents.Mutable stash = StashContents.EMPTY.mutable();
+        for (ItemStack stack : stacks) {
+            stash.insert(stack.copy(), Integer.MAX_VALUE);
+        }
+        return stash.toImmutable();
+    }
+
+    private static void expectLevelled(GameTestHelper context, List<ItemStack> in, List<ItemStack> expected) {
+        StashContents stash = blend(in);
+        List<ItemStack> parts = stash.parts();
+        boolean same = stash.size() == 1 && parts.size() == expected.size();
+        for (int i = 0; same && i < parts.size(); i++) {
+            same = ItemStack.matches(parts.get(i), expected.get(i));
+        }
+        context.assertTrue(same, describe(in) + " blended to " + describe(parts) + ", not " + describe(expected));
+    }
+
+    private static int rankSum(List<ItemStack> stacks) {
+        return stacks.stream().mapToInt(stack -> stack.getCount() * BudTier.of(stack).rank()).sum();
+    }
+
+    private static int offsetSum(List<ItemStack> stacks) {
+        return stacks.stream().mapToInt(stack -> stack.getCount() * PotencyBand.of(stack).offset()).sum();
+    }
+
+    private static String describe(List<ItemStack> stacks) {
+        return stacks.stream().map(stack -> stack.getCount() + " " + BudTier.of(stack) + "/" + PotencyBand.of(stack)).toList().toString();
     }
 
     private static StashContents stash(Object... kindsAndCounts) {

@@ -392,5 +392,9 @@
   "block.hempdustry.gilded_stash_jar": "Gilded Stash Jar",
   "block.hempdustry.diamond_stash_jar": "Diamond Stash Jar",
   "item.hempdustry.stash_jar.empty.description": "Can hold buds and schwag, mixed",
+  "item.hempdustry.stash_jar.entry": "%s ×%s: %s",
+  "item.hempdustry.stash_jar.entry_plain": "%s ×%s",
+  "item.hempdustry.stash_jar.part": "%s %s",
+  "item.hempdustry.stash_jar.part_band": "%s %s (%s)",
   "tag.item.hempdustry.stash_jar_storable": "Storable in a Stash Jar"
 }

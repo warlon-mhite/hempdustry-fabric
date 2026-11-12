@@ -84,7 +84,7 @@ public class StashJarBlockEntity extends BlockEntity {
         return moved;
     }
 
-    /** Takes out the last stack put in, or empty if the jar is. */
+    /** Takes out the best stack of the strain put in last, up to a stack, or empty if the jar is. */
     public ItemStack removeLast() {
         StashContents.Mutable working = contents.mutable();
         ItemStack out = working.removeOne();
@@ -126,12 +126,12 @@ public class StashJarBlockEntity extends BlockEntity {
 
     /**
      * A pipe's extract, inside its transaction: up to {@code max} items {@code matches} accepts, newest
-     * first. {@code beforeChange} runs only when something moves, so a pipe asking every tick for what
+     * entry first and each entry's best buds first. {@code beforeChange} runs only when something moves, so a pipe asking every tick for what
      * the jar does not hold takes no snapshot and wakes no one.
      */
     public int extractInTransaction(Predicate<ItemStack> matches, int max, Runnable beforeChange) {
         StashContents.Mutable working = contents.mutable();
-        int taken = working.extract(matches, max);
+        int taken = working.extract(matches, max).stream().mapToInt(ItemStack::getCount).sum();
         if (taken > 0) {
             beforeChange.run();
             contents = working.toImmutable();

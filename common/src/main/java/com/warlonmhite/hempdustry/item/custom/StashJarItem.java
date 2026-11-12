@@ -3,6 +3,10 @@ package com.warlonmhite.hempdustry.item.custom;
 import com.warlonmhite.hempdustry.block.custom.stash.StashJarBlock;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.component.StashContents;
+import com.warlonmhite.hempdustry.strain.BudTier;
+import com.warlonmhite.hempdustry.strain.PotencyBand;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
@@ -19,12 +23,14 @@ import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
- * A Stash Jar in the inventory: a bundle for buds. Click a bud onto it to put it in, right-click it
- * onto an empty slot to take the last stack out, scroll over it to choose which; the tooltip lists what
- * is inside and the bar shows how full it is, against this jar's own capacity. Placed, it is a
+ * A Stash Jar in the inventory: a bundle for buds that blends each strain (see {@link StashContents}).
+ * Click a bud onto it to put it in, right-click it onto an empty slot to take the best stack of the last
+ * strain out, scroll over it to choose which strain; the tooltip lists what each strain would give back
+ * and the bar shows how full it is, against this jar's own capacity. Placed, it is a
  * {@link StashJarBlock}.
  *
  * <p>Vanilla's {@code BundleItem} reads its own component, so its behaviour is written out here
@@ -179,7 +185,7 @@ public class StashJarItem extends BlockItem {
         StashContents contents = entity.getItem().get(ModComponents.STASH_CONTENTS);
         if (contents != null) {
             entity.getItem().remove(ModComponents.STASH_CONTENTS);
-            ItemUtils.onContainerDestroyed(entity, contents.items().stream().map(item -> item.create()));
+            ItemUtils.onContainerDestroyed(entity, contents.spill().stream());
         }
     }
 
@@ -199,6 +205,34 @@ public class StashJarItem extends BlockItem {
         if (player.containerMenu != null) {
             player.containerMenu.slotsChanged(player.getInventory());
         }
+    }
+
+    /**
+     * One entry as the tooltip lists it, what will come out and nothing else: "Purple Kush ×11: 3 Dank,
+     * 8 Mids", each stack's band where it is not Mid; an item that carries no tier just its count
+     * ("Schwag ×40"). Never a chemotype: the tooltip names what comes out, not what it does.
+     */
+    public static Component entryLine(StashContents.Entry entry) {
+        List<ItemStack> parts = entry.parts();
+        ItemStack first = parts.getFirst();
+        MutableComponent what = Component.empty();
+        if (first.getPrototype().has(ModComponents.BUD_TIER)) {
+            for (int i = 0; i < parts.size(); i++) {
+                ItemStack part = parts.get(i);
+                if (i > 0) {
+                    what.append(", ");
+                }
+                PotencyBand band = PotencyBand.of(part);
+                Component tier = Component.translatable(BudTier.of(part).getTranslationKey());
+                what.append(band == PotencyBand.MID
+                        ? Component.translatable("item.hempdustry.stash_jar.part", part.getCount(), tier)
+                        : Component.translatable("item.hempdustry.stash_jar.part_band", part.getCount(), tier,
+                                Component.translatable(band.getTranslationKey())));
+            }
+        } else {
+            return Component.translatable("item.hempdustry.stash_jar.entry_plain", first.getHoverName(), entry.count());
+        }
+        return Component.translatable("item.hempdustry.stash_jar.entry", first.getHoverName(), entry.count(), what);
     }
 
     /** What the tooltip draws: the contents and the jar's capacity, for the bar. */

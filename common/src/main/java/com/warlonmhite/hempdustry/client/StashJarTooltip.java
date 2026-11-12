@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.client;
 
 import com.warlonmhite.hempdustry.component.StashContents;
 import com.warlonmhite.hempdustry.item.custom.StashJarItem;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -12,7 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -20,8 +20,10 @@ import java.util.List;
 /**
  * A Stash Jar's contents in its tooltip, drawn as vanilla draws a bundle's
  * ({@code ClientBundleTooltip}): the same grid of the last stacks put in, the same "+n" for the rest,
- * the selected stack's name above, the same bar and sprites. The one change is what the bar measures:
- * items against this jar's capacity, where a bundle's measures weight against one stack.
+ * the selected stack's name above, the same bar and sprites. What changes: the bar measures items
+ * against this jar's capacity, where a bundle's measures weight against one stack; each slot is one
+ * strain, its best buds drawn with the whole count; and under the bar one line per strain shown says
+ * exactly what it will give back ({@link StashJarItem#entryLine}).
  */
 public final class StashJarTooltip implements ClientTooltipComponent {
     private static final Identifier PROGRESSBAR_BORDER = Identifier.withDefaultNamespace("container/bundle/bundle_progressbar_border");
@@ -35,27 +37,36 @@ public final class StashJarTooltip implements ClientTooltipComponent {
     private static final int PROGRESSBAR_HEIGHT = 13;
     private static final int PROGRESSBAR_FILL_MAX = 94;
     private static final int MARGIN_Y = 4;
+    private static final int LINE_HEIGHT = 10;
     private static final Component FULL = Component.translatable("item.minecraft.bundle.full");
     private static final Component EMPTY = Component.translatable("item.minecraft.bundle.empty");
     private static final Component EMPTY_DESCRIPTION = Component.translatable("item.hempdustry.stash_jar.empty.description");
 
     private final StashContents contents;
     private final int capacity;
+    private final List<Component> lines;
 
     public StashJarTooltip(StashJarItem.StashTooltip tooltip) {
         this.contents = tooltip.contents();
         this.capacity = tooltip.capacity();
+        this.lines = contents.entries().subList(0, contents.shown()).stream()
+                .map(entry -> (Component) StashJarItem.entryLine(entry).copy().withStyle(ChatFormatting.GRAY))
+                .toList();
     }
 
     @Override
     public int getHeight(Font font) {
         return contents.isEmpty() ? emptyDescriptionHeight(font) + PROGRESSBAR_HEIGHT + 2 * MARGIN_Y
-                : gridHeight() + PROGRESSBAR_HEIGHT + 2 * MARGIN_Y;
+                : gridHeight() + PROGRESSBAR_HEIGHT + 2 * MARGIN_Y + lines.size() * LINE_HEIGHT;
     }
 
     @Override
     public int getWidth(Font font) {
-        return GRID_WIDTH;
+        int width = GRID_WIDTH;
+        for (Component line : lines) {
+            width = Math.max(width, font.width(line));
+        }
+        return width;
     }
 
     @Override
@@ -84,7 +95,7 @@ public final class StashJarTooltip implements ClientTooltipComponent {
             return;
         }
         boolean overflowing = contents.size() > 12;
-        List<ItemStackTemplate> shown = contents.items().subList(0, Math.min(contents.size(), contents.shown()));
+        List<StashContents.Entry> shown = contents.entries().subList(0, Math.min(contents.size(), contents.shown()));
         int xStart = left + GRID_WIDTH;
         int yStart = y + gridRows() * SLOT_SIZE;
         int slot = 1;
@@ -93,7 +104,7 @@ public final class StashJarTooltip implements ClientTooltipComponent {
                 int drawX = xStart - column * SLOT_SIZE;
                 int drawY = yStart - row * SLOT_SIZE;
                 if (overflowing && column * row == 1) {
-                    int hidden = contents.items().stream().skip(shown.size()).mapToInt(ItemStackTemplate::count).sum();
+                    int hidden = contents.entries().stream().skip(shown.size()).mapToInt(StashContents.Entry::count).sum();
                     graphics.centeredText(font, "+" + hidden, drawX + 12, drawY + 10, -1);
                 } else if (shown.size() >= slot) {
                     slot(slot, drawX, drawY, shown, font, graphics);
@@ -103,15 +114,22 @@ public final class StashJarTooltip implements ClientTooltipComponent {
         }
         selectedName(font, graphics, x, y, w);
         progressBar(left, y + gridHeight() + MARGIN_Y, font, graphics);
+        int lineY = y + gridHeight() + PROGRESSBAR_HEIGHT + 2 * MARGIN_Y;
+        for (Component line : lines) {
+            graphics.text(font, line, x, lineY, -1);
+            lineY += LINE_HEIGHT;
+        }
     }
 
-    private void slot(int slot, int drawX, int drawY, List<ItemStackTemplate> shown, Font font, GuiGraphicsExtractor graphics) {
+    private void slot(int slot, int drawX, int drawY, List<StashContents.Entry> shown, Font font, GuiGraphicsExtractor graphics) {
         int index = shown.size() - slot;
         boolean highlighted = index == contents.selected();
-        ItemStack item = shown.get(index).create();
+        StashContents.Entry entry = shown.get(index);
+        ItemStack item = entry.icon();
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, highlighted ? SLOT_HIGHLIGHT_BACK : SLOT_BACKGROUND,
                 drawX, drawY, SLOT_SIZE, SLOT_SIZE);
         graphics.item(item, drawX + 4, drawY + 4, slot);
+        // The icon carries the whole strain's count, which may pass a stack.
         graphics.itemDecorations(font, item, drawX + 4, drawY + 4);
         if (highlighted) {
             graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_HIGHLIGHT_FRONT, drawX, drawY, SLOT_SIZE, SLOT_SIZE);
@@ -119,11 +137,11 @@ public final class StashJarTooltip implements ClientTooltipComponent {
     }
 
     private void selectedName(Font font, GuiGraphicsExtractor graphics, int x, int y, int w) {
-        ItemStackTemplate selected = contents.selectedItem();
+        StashContents.Entry selected = contents.selectedEntry();
         if (selected == null) {
             return;
         }
-        ItemStack stack = selected.create();
+        ItemStack stack = selected.icon();
         Component name = stack.getStyledHoverName();
         int textWidth = font.width(name.getVisualOrderText());
         int centre = x + w / 2 - 12;
