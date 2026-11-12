@@ -65,6 +65,9 @@ mod is there, so a game with Hempdustry alone sees the fixes, the villagers and 
     is now put right: a replanting clears the old plant, a ripening grows the whole plant with its record.
   - A soil that harvests and replants the moment a crop ripens (Just Dire Things' goo soil) left the old
     top standing on the new seedling.
+  - A right-click harvest that replants the block clicked paid nothing on a block above the root and left
+    a seedling in the middle of a ripe plant. That block now stays as it was: a plant's harvest is its
+    root's.
   - A farmer, or a harvester sweeping at the height of the tops (Create's), could take a ripe plant's top
     and leave its root standing alone, ripe, and Create then set an unripe top back on it. Whatever takes
     a block above the root now brings the whole plant down, and its harvest drops once, as when a player
