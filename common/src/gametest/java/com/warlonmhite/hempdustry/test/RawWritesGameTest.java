@@ -11,7 +11,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -186,6 +189,77 @@ public final class RawWritesGameTest {
             }
         }
         context.succeed();
+    }
+
+    /**
+     * An instant fertiliser clicked on a block above the root: Mystical Agriculture's writes
+     * {@code getStateForAge(max)} on the block clicked, and another mod may set the age alone there. Either way the
+     * plant ripens from its root, as one step of its own: whole, with its trims and its light record.
+     */
+    public static void aRaisedAgeWrittenAboveTheRootGrowsThePlantFromItsRoot(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        for (Block crop : CROPS) {
+            for (int age : tallAges(crop)) {
+                BlockState start = root(crop, age, GrowLight.STRESSED, true, false, false);
+                int height = wholePlant(crop, start).size();
+                for (int up = 1; up < height; up++) {
+                    for (boolean raw : new boolean[]{true, false}) {
+                        ground(context, wetFarmland());
+                        place(context, crop, start);
+                        if (raw) {
+                            raw(context, crop, CROP.above(up), IndicaCropBlock.MAX_AGE);
+                        } else {
+                            BlockPos at = context.absolutePos(CROP.above(up));
+                            world.setBlockAndUpdate(at, world.getBlockState(at)
+                                    .setValue(BlockStateProperties.AGE_7, IndicaCropBlock.MAX_AGE));
+                        }
+                        expect(context, crop, root(crop, IndicaCropBlock.MAX_AGE, GrowLight.STRESSED, true, false, false),
+                                (raw ? "ripened raw " : "set to ripe ") + up + " block(s) above the root of a trimmed,"
+                                        + " stressed age " + age);
+                    }
+                }
+            }
+        }
+        context.succeed();
+    }
+
+    /**
+     * Bone meal clicked on any block of a growing plant, as a player clicks it: one item spent per click, and the
+     * plant grows one stage from its root, whole, or not at all when the crop's own roll fails (one in three).
+     */
+    public static void boneMealOnAnyBlockGrowsThePlantFromItsRoot(GameTestHelper context) {
+        ServerPlayer player = Players.survival(context);
+        for (Block crop : CROPS) {
+            for (int age : tallAges(crop)) {
+                BlockState start = root(crop, age, GrowLight.NATURAL, false, false, false);
+                int height = wholePlant(crop, start).size();
+                for (int up = 1; up < height; up++) {
+                    ground(context, wetFarmland());
+                    place(context, crop, start);
+                    ItemStack meal = new ItemStack(Items.BONE_MEAL, 16);
+                    int clicks = 0;
+                    String where = name(crop) + " at age " + age + " clicked " + up + " block(s) above its root";
+                    while (context.getBlockState(CROP).getValue(BlockStateProperties.AGE_7) == age && clicks < 12) {
+                        Players.clickLikeAClient(context, player, CROP.above(up), meal);
+                        clicks++;
+                        context.assertTrue(meal.getCount() == 16 - clicks, where + ": " + (16 - meal.getCount())
+                                + " bone meal spent in " + clicks + " click(s)");
+                        expect(context, crop, context.getBlockState(CROP), "with bone meal, " + where);
+                    }
+                    int grown = context.getBlockState(CROP).getValue(BlockStateProperties.AGE_7);
+                    context.assertTrue(grown == age + 1, where + ": the plant is at age " + grown + " after "
+                            + clicks + " click(s), not one stage up");
+                }
+            }
+        }
+        context.succeed();
+    }
+
+    /** The ages a crop is two tall and, for the sativa, three tall at: every shape a block above the root has. */
+    private static int[] tallAges(Block crop) {
+        return crop instanceof SativaCropBlock
+                ? new int[]{SativaCropBlock.TWO_TALL_AGE, SativaCropBlock.THREE_TALL_AGE}
+                : new int[]{IndicaCropBlock.DOUBLE_BLOCK_AGE};
     }
 
     /**

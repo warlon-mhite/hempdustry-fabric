@@ -81,6 +81,63 @@ public final class OtherModsGameTest {
         context.succeed();
     }
 
+    /**
+     * A farm's harvester built on Productive Lib calls a {@code CropBlock} ripe when it refuses bone meal, and cuts
+     * it; any harvester asking the same question would. So every block of a growing plant answers bone meal as its
+     * root does, as vanilla's pitcher crop answers from its lower half, and no block of a ripe plant takes it. The
+     * plant is grown by bone meal on its root, stage by stage, and every block it stands on is asked at each stage.
+     */
+    public static void everyBlockOfAPlantAnswersBoneMealAsItsRoot(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        Map<String, String> findings = new TreeMap<>();
+        int crops = 0;
+        int seen = 0;
+        for (Block block : BuiltInRegistries.BLOCK) {
+            BlockState plain = block.defaultBlockState();
+            if (!(block instanceof CropBlock crop) || !Sweep.ours(BuiltInRegistries.BLOCK.getKey(block))
+                    || !(plain.hasProperty(SativaCropBlock.SEGMENT)
+                    || plain.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF))) {
+                continue;
+            }
+            crops++;
+            for (int up = 3; up >= 0; up--) {
+                context.setBlock(CROP.above(up), Blocks.AIR);
+            }
+            // A pot of ours: every tall crop stands in one, Beldía's water rule included.
+            context.setBlock(SOIL, ModBlocks.GROW_POT);
+            context.setBlock(CROP.east(), Blocks.GLOWSTONE);
+            context.setBlock(CROP, plain);
+            for (int age = 0; ; age++) {
+                BlockState root = context.getBlockState(CROP);
+                if (!root.is(block) || root.getValue(BlockStateProperties.AGE_7) != age) {
+                    findings.put(BuiltInRegistries.BLOCK.getKey(block) + " at age " + age,
+                            "bone meal on the root left " + root);
+                    break;
+                }
+                for (int up = 0; up < 3; up++) {
+                    BlockState state = context.getBlockState(CROP.above(up));
+                    if (!state.is(block)) {
+                        break;
+                    }
+                    boolean takes = crop.isValidBonemealTarget(world, context.absolutePos(CROP.above(up)), state);
+                    if (takes != age < crop.getMaxAge()) {
+                        findings.put(state.toString(), "block " + up + " of the plant "
+                                + (takes ? "takes" : "refuses") + " bone meal at age " + age);
+                    }
+                    seen++;
+                }
+                if (age >= crop.getMaxAge()) {
+                    break;
+                }
+                crop.performBonemeal(world, HIT, context.absolutePos(CROP), root);
+            }
+        }
+        Sweep.atLeast(context, "tall crops", crops, 3);
+        Sweep.atLeast(context, "blocks of growing and ripe plants", seen, 30);
+        Sweep.report(context, "every block of a plant answers bone meal as its root", findings, Map.of());
+        context.succeed();
+    }
+
     public static void onlyTheRootIsTheRoot(GameTestHelper context) {
         for (Block block : List.of(ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP)) {
             for (BlockState state : block.getStateDefinition().getPossibleStates()) {
