@@ -9,7 +9,36 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.1.0+26.2.
+The first patch of 2.1 on Minecraft 26.2: hemp plants that hold up under other mods' harvesters,
+fertilisers and soils, and two fixes.
+
+### Fixed
+
+- **A world made on Minecraft 1.20.1 opens whole.** Pipe loads and charges, cannabutter's strength, an
+  edible's potency, the stacks in the machines and in a hemp chest boat and a placed bong's device all came
+  through the world upgrade empty.
+- **A vaporizer bowl finished on a full inventory drops its scorched hemp** at your feet, instead of
+  handing it to nobody.
+- **A tall hemp plant stays whole whatever farms it**:
+  - A harvester that takes any ripe crop cut a growing plant down to its root, because every block above
+    the root claimed to be ripe. Each block of a plant now tells its own age; bees behave as before.
+  - Replanting harvesters, instant fertilisers, growth soils and other mods' bees left a ripe top over a
+    seedling, or a root in the middle of a plant, and wiped the trims, the light record and the mildew. Such a write
+    is now put right: a replanting clears the old plant, a ripening grows the whole plant with its record.
+  - A soil that harvests and replants the moment a crop ripens left the old top standing on the new
+    seedling.
+  - A right-click harvest that replants the block clicked paid nothing on a block above the root and left
+    a seedling in the middle of a ripe plant. That block now stays as it was: a plant's harvest is its
+    root's.
+  - The same harvest on the root replanted a seedling that kept the old plant's trims and rub, so every
+    new plant had the trims' extra bud without a cut, or could not be rubbed. A replanted plant now starts
+    unworked, as one planted by hand.
+  - A farmer, or a harvester sweeping at the height of the tops, could take a ripe plant's top and leave
+    its root standing alone, ripe, and a harvester could then set an unripe top back on it. Whatever takes
+    a block above the root now brings the whole plant down, and its harvest drops once, as when a player
+    breaks it: farmers, harvesters, pistons, water and explosions alike.
+- On NeoForge hemp now grows through the loader's crop-growth events, as vanilla crops do there, so a
+  season or growth mod can hold it back. A plant held back by the block above it is not reported as grown.
 
 ## [2.1.0+26.2] — 2026-11-02
 
