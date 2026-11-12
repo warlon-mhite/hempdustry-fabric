@@ -183,15 +183,20 @@ public final class IndoorGrowGameTest {
         context.setBlock(lamp.above(), Blocks.STONE);
         context.setBlock(lamp, ModBlocks.GROW_LAMP);
         context.setBlock(lamp.east(), Blocks.REDSTONE_BLOCK);
-        context.runAfterDelay(10, () -> {
-            context.assertTrue(context.getBlockState(lamp).getValue(BlockStateProperties.LIT), "a Grow Lamp beside a redstone block is not lit");
-            int light = context.getLevel().getBrightness(LightLayer.BLOCK, context.absolutePos(lamp.below()));
-            context.assertTrue(light >= 14, "a lit Grow Lamp lights the block under it to " + light + ", not 14");
-            // It hangs: take the ceiling away and it comes down, as a hanging lantern does.
-            context.setBlock(lamp.above(), Blocks.AIR);
-            context.assertTrue(context.getBlockState(lamp).isAir(), "a Grow Lamp stayed up after its ceiling was removed");
-            context.succeed();
-        });
+        // The light engine works through its queue between ticks, and a busy batch of tests fills it:
+        // wait for the light rather than for a fixed number of ticks.
+        context.startSequence()
+                .thenWaitUntil(() -> {
+                    context.assertTrue(context.getBlockState(lamp).getValue(BlockStateProperties.LIT), "a Grow Lamp beside a redstone block is not lit");
+                    int light = context.getLevel().getBrightness(LightLayer.BLOCK, context.absolutePos(lamp.below()));
+                    context.assertTrue(light >= 14, "a lit Grow Lamp lights the block under it to " + light + ", not 14");
+                })
+                .thenExecute(() -> {
+                    // It hangs: take the ceiling away and it comes down, as a hanging lantern does.
+                    context.setBlock(lamp.above(), Blocks.AIR);
+                    context.assertTrue(context.getBlockState(lamp).isAir(), "a Grow Lamp stayed up after its ceiling was removed");
+                })
+                .thenSucceed();
     }
 
     // ----- what counts as a light -----
