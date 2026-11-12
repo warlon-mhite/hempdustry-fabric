@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.fabric.client;
 
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.platform.client.ClientRegistration;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -80,6 +83,12 @@ public final class FabricClientRegistration implements ClientRegistration {
     @Override
     public void itemTintSource(Identifier id, MapCodec<? extends ItemTintSource> codec) {
         ItemTintSources.ID_MAPPER.put(id, codec);
+    }
+
+    @Override
+    public <T extends TooltipComponent> void tooltipComponent(Class<T> type,
+                                                              Function<? super T, ? extends ClientTooltipComponent> factory) {
+        ClientTooltipComponentCallback.EVENT.register(data -> type.isInstance(data) ? factory.apply(type.cast(data)) : null);
     }
 
     @Override

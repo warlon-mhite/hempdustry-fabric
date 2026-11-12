@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.neoforge;
 
+import com.warlonmhite.hempdustry.block.entity.custom.StashJarBlockEntity;
+
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.neoforge.data.NeoForgeData;
 import com.warlonmhite.hempdustry.platform.Services;
@@ -53,7 +55,8 @@ public final class HempdustryNeoForge {
      * Every block entity of the mod that holds items answers a pipe, a hopper or a storage network the
      * way a vanilla container does, sided where it says so. Fabric's transfer API wraps every container
      * on its own; NeoForge's only vanilla's, so the mod's are listed here, by registry rather than by
-     * name, so a new machine is covered the day it registers.
+     * name, so a new machine is covered the day it registers. The Stash Jar is no container (its entries
+     * are a list that grows and shrinks) and answers through a handler of its own.
      */
     private static void exposeContainers(RegisterCapabilitiesEvent event) {
         for (BlockEntityType<?> type : BuiltInRegistries.BLOCK_ENTITY_TYPE) {
@@ -65,7 +68,8 @@ public final class HempdustryNeoForge {
 
     private static <T extends BlockEntity> void expose(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
         event.registerBlockEntity(Capabilities.Item.BLOCK, type, (blockEntity, side) ->
-                blockEntity instanceof WorldlyContainer sided ? new WorldlyContainerWrapper(sided, side)
+                blockEntity instanceof StashJarBlockEntity jar ? new NeoForgeStashJarHandler(jar)
+                        : blockEntity instanceof WorldlyContainer sided ? new WorldlyContainerWrapper(sided, side)
                         : blockEntity instanceof Container container ? VanillaContainerWrapper.of(container)
                         : null);
     }

@@ -1,0 +1,250 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "hempdustry:block/stash_jar_glass",
+    "glass": "hempdustry:block/stash_jar_glass",
+    "lid": "hempdustry:block/hemp_planks",
+    "stash": "hempdustry:block/stash_jar_stash",
+    "pistils": "hempdustry:block/stash_jar_pistils",
+    "rim": "minecraft:block/gold_block"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        10,
+        12
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            6,
+            12,
+            16
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            4,
+            6,
+            12,
+            16
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            4,
+            6,
+            12,
+            16
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            4,
+            6,
+            12,
+            16
+          ],
+          "texture": "#glass"
+        },
+        "up": {
+          "uv": [
+            4,
+            6,
+            12,
+            14
+          ],
+          "texture": "#glass"
+        },
+        "down": {
+          "uv": [
+            4,
+            6,
+            12,
+            14
+          ],
+          "texture": "#glass",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        10,
+        5
+      ],
+      "to": [
+        11,
+        11,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            5,
+            11,
+            6
+          ],
+          "texture": "#glass"
+        },
+        "south": {
+          "uv": [
+            5,
+            5,
+            11,
+            6
+          ],
+          "texture": "#glass"
+        },
+        "east": {
+          "uv": [
+            5,
+            5,
+            11,
+            6
+          ],
+          "texture": "#glass"
+        },
+        "west": {
+          "uv": [
+            5,
+            5,
+            11,
+            6
+          ],
+          "texture": "#glass"
+        }
+      }
+    },
+    {
+      "from": [
+        4.5,
+        11,
+        4.5
+      ],
+      "to": [
+        11.5,
+        12.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.5,
+            3.5,
+            11.5,
+            5
+          ],
+          "texture": "#lid"
+        },
+        "south": {
+          "uv": [
+            4.5,
+            3.5,
+            11.5,
+            5
+          ],
+          "texture": "#lid"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            3.5,
+            11.5,
+            5
+          ],
+          "texture": "#lid"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            3.5,
+            11.5,
+            5
+          ],
+          "texture": "#lid"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ],
+          "texture": "#lid"
+        },
+        "down": {
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ],
+          "texture": "#lid"
+        }
+      }
+    },
+    {
+      "from": [
+        3.7,
+        8.2,
+        3.7
+      ],
+      "to": [
+        12.3,
+        9.4,
+        12.3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.7,
+            6.6,
+            12.3,
+            7.8
+          ],
+          "texture": "#rim"
+        },
+        "south": {
+          "uv": [
+            3.7,
+            6.6,
+            12.3,
+            7.8
+          ],
+          "texture": "#rim"
+        },
+        "east": {
+          "uv": [
+            3.7,
+            6.6,
+            12.3,
+            7.8
+          ],
+          "texture": "#rim"
+        },
+        "west": {
+          "uv": [
+            3.7,
+            6.6,
+            12.3,
+            7.8
+          ],
+          "texture": "#rim"
+        }
+      }
+    }
+  ]
+}

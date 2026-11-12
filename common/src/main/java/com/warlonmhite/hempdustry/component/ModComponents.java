@@ -112,6 +112,10 @@ public class ModComponents {
     public static final DataComponentType<PotencyBand> POTENCY_BAND = register("potency_band",
             builder -> builder.persistent(PotencyBand.CODEC).networkSynchronized(PotencyBand.PACKET_CODEC));
 
+    /** What a Stash Jar holds, on the item and in the placed block's entity. See {@link StashContents}. */
+    public static final DataComponentType<StashContents> STASH_CONTENTS = register("stash_contents",
+            builder -> builder.persistent(StashContents.CODEC).networkSynchronized(StashContents.STREAM_CODEC));
+
     /**
      * Puts {@code value} on {@code stack} so that a default never costs a slot.
      *

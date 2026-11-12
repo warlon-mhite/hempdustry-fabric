@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.platform.client;
 
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.color.item.ItemTintSource;
@@ -57,6 +59,9 @@ public interface ClientRegistration {
 
     /** An item tint source of our own, named in client item definitions by {@code id}. */
     void itemTintSource(Identifier id, MapCodec<? extends ItemTintSource> codec);
+
+    /** How a tooltip component of ours draws: {@code factory} for every {@code type} an item hands the tooltip. */
+    <T extends TooltipComponent> void tooltipComponent(Class<T> type, Function<? super T, ? extends ClientTooltipComponent> factory);
 
     /** Each time the player joins a world or a server. */
     void onJoinWorld(Runnable listener);

@@ -272,6 +272,18 @@ public final class HempdustryGameTests {
         register("every_bud_scorches_by_its_own_recipe", StampedMatterGameTest::everyBudScorchesByItsOwnRecipe);
         register("the_space_cake_carries_both_tiers", StampedMatterGameTest::theSpaceCakeCarriesBothTiers);
         register("the_ovens_comparator_reads_a_2_1_oven", StampedMatterGameTest::theOvensComparatorReadsA21Oven);
+        register("a_jar_holds_its_capacity_last_in_first_out", StashJarGameTest::aJarHoldsItsCapacityLastInFirstOut);
+        register("a_jar_takes_only_buds_and_schwag", StashJarGameTest::aJarTakesOnlyBudsAndSchwag);
+        register("the_upgrade_keeps_the_stash", StashJarGameTest::theUpgradeKeepsTheStash);
+        register("a_jar_always_drops_itself_whole", StashJarGameTest::aJarAlwaysDropsItselfWhole);
+        register("the_comparator_reads_how_full_the_jar_is", StashJarGameTest::theComparatorReadsHowFullTheJarIs);
+        register("hoppers_fill_and_empty_a_jar", StashJarGameTest::hoppersFillAndEmptyAJar);
+        register("the_fill_level_follows_the_stash", StashJarGameTest::theFillLevelFollowsTheStash);
+        register("the_pieces_share_the_strains", StashJarGameTest::thePiecesShareTheStrains);
+        register("a_strains_jar_colour_is_optional", StashJarGameTest::aStrainsJarColourIsOptional);
+        register("a_placed_jar_takes_clicks_not_menus", StashJarGameTest::aPlacedJarTakesClicksNotMenus);
+        register("a_jar_stands_where_it_was_put", StashJarGameTest::aJarStandsWhereItWasPut);
+        register("a_jar_travels_light", StashJarGameTest::aJarTravelsLight);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

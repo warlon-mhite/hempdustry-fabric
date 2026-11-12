@@ -20,6 +20,12 @@ public class ModRecipes {
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "packing"),
             new RecipeSerializer<>(PackingRecipe.MAP_CODEC, PackingRecipe.STREAM_CODEC));
 
+    /** A Stash Jar one size up with its contents kept (see {@link StashJarUpgradeRecipe}). */
+    public static final RecipeSerializer<StashJarUpgradeRecipe> STASH_JAR_UPGRADE = Registry.register(
+            BuiltInRegistries.RECIPE_SERIALIZER,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "stash_jar_upgrade"),
+            new RecipeSerializer<>(StashJarUpgradeRecipe.MAP_CODEC, StashJarUpgradeRecipe.STREAM_CODEC));
+
     /**
      * Shapeless, but the ingredients' containers travel into the result rather than being handed
      * back. Bhang needs it: a milk bucket's remainder plus a bucket returned on drinking is one

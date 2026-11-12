@@ -383,5 +383,10 @@
   "advancements.hempdustry.see_you_ice_o_later.title": "See You Ice-O-Later",
   "advancements.hempdustry.see_you_ice_o_later.description": "Fill a Sifting Box with water, jacket it in ice and wash the trichomes out into Bubble Hash",
   "advancements.hempdustry.around_the_world_in_80_grams.title": "Around the World in 80 Grams",
-  "advancements.hempdustry.around_the_world_in_80_grams.description": "Obtain Charas, Hashish, Filtered Hashish, Bubble Hash and Rosin"
+  "advancements.hempdustry.around_the_world_in_80_grams.description": "Obtain Charas, Hashish, Filtered Hashish, Bubble Hash and Rosin",
+  "block.hempdustry.stash_jar": "Stash Jar",
+  "block.hempdustry.gilded_stash_jar": "Gilded Stash Jar",
+  "block.hempdustry.diamond_stash_jar": "Diamond Stash Jar",
+  "item.hempdustry.stash_jar.empty.description": "Can hold buds and schwag, mixed",
+  "tag.item.hempdustry.stash_jar_storable": "Storable in a Stash Jar"
 }

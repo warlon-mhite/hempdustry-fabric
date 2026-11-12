@@ -84,5 +84,9 @@ public class Schema1460Mixin {
         schema.registerSimple(blockEntities, "hempdustry:hemp_bed");
         // A plant's record holds no item, but a block entity the fixer does not know is one it skips.
         schema.registerSimple(blockEntities, "hempdustry:plant_record");
+        // A placed Stash Jar keeps its stash as a list of stacks under contents, typed so the item
+        // fixes reach every bud inside it on a Minecraft update.
+        schema.register(blockEntities, "hempdustry:stash_jar",
+                name -> DSL.optionalFields("contents", DSL.list(References.ITEM_STACK.in(schema))));
     }
 }

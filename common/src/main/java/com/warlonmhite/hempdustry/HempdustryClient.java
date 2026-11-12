@@ -1,5 +1,12 @@
 package com.warlonmhite.hempdustry;
 
+import java.util.ArrayList;
+import com.warlonmhite.hempdustry.block.custom.stash.StashPieces;
+import com.warlonmhite.hempdustry.item.custom.StashJarItem;
+import com.warlonmhite.hempdustry.client.item.StashPieceTintSource;
+import com.warlonmhite.hempdustry.client.item.StashFillProperty;
+import com.warlonmhite.hempdustry.client.StashJarTooltip;
+import com.warlonmhite.hempdustry.block.entity.custom.StashJarBlockEntity;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.client.render.FlipFlopsModel;
@@ -76,6 +83,7 @@ public class HempdustryClient {
 
         registerItemModelHooks(client);
         registerBlockColors(client);
+        registerStashJarTints(client);
 
         // A bong's bubbling is played here, per client, so it can stop when the drawer lets go.
         SmokingDeviceItem.drawSound = drawer -> Minecraft.getInstance().getSoundManager()
@@ -180,6 +188,41 @@ public class HempdustryClient {
     private static final int PLACED_LOAD = 0xFF6F8F3A;
 
     /**
+     * A placed Stash Jar's stash pieces: tint indices 0 to 4 are the five pieces' bodies (bud green, or
+     * schwag's brown), 5 to 9 their pistils, in the colour of the strain each piece is a share of. Read from the jar's block entity when the chunk section is built (the section's
+     * copy of it, so a section compiled off the main thread reads a settled value); the jar rebuilds
+     * its section whenever its contents change, so nothing is drawn per frame. Only the block entity
+     * is asked, and only through {@code instanceof}: a break particle, coloured after the block went,
+     * finds none there and takes the default bud green.
+     */
+    private static void registerStashJarTints(ClientRegistration client) {
+        List<BlockTintSource> pieces = new ArrayList<>();
+        for (int tint = 0; tint < 10; tint++) {
+            int index = tint % 5;
+            boolean pistils = tint >= 5;
+            int fallback = pistils ? StashPieces.PLAIN_PISTILS : StashPieces.BUD_GREEN;
+            pieces.add(new BlockTintSource() {
+                @Override
+                public int color(BlockState state) {
+                    return ARGB.opaque(fallback);
+                }
+
+                @Override
+                public int colorInWorld(BlockState state, BlockAndTintGetter view, BlockPos pos) {
+                    if (view.getBlockEntity(pos) instanceof StashJarBlockEntity jar) {
+                        StashPieces.Colours colours = jar.pieceColours();
+                        if (index < colours.count()) {
+                            return ARGB.opaque(pistils ? colours.pistils()[index] : colours.bodies()[index]);
+                        }
+                    }
+                    return color(state);
+                }
+            });
+        }
+        client.blockTint(pieces, ModBlocks.STASH_JAR, ModBlocks.GILDED_STASH_JAR, ModBlocks.DIAMOND_STASH_JAR);
+    }
+
+    /**
      * {@code grassColor} blended towards white by {@code 1 - client.biomeTintStrength}.
      *
      * <p>Strength {@code 0} therefore returns pure white — a multiply by 1.0, so the config's "off"
@@ -207,5 +250,8 @@ public class HempdustryClient {
     private static void registerItemModelHooks(ClientRegistration client) {
         client.rangeSelectProperty(ModItemProperties.STRAIN, StrainModelIndexProperty.CODEC);
         client.itemTintSource(ModItemProperties.STRAIN_TINT, StrainTintSource.CODEC);
+        client.rangeSelectProperty(ModItemProperties.STASH_FILL, StashFillProperty.CODEC);
+        client.itemTintSource(ModItemProperties.STASH_PIECE, StashPieceTintSource.CODEC);
+        client.tooltipComponent(StashJarItem.StashTooltip.class, StashJarTooltip::new);
     }
 }

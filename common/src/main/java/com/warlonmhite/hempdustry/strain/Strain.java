@@ -169,12 +169,24 @@ import net.minecraft.world.level.block.Blocks;
  * @param potency         a plant strain's potency sheet (see {@link Potency}): a mid bud's worth at the
  *                        oven and the odds of each band a plant rolls. {@link Potency#DEFAULT} when the
  *                        file names none; read only for the buds of a plant
+ * @param jarColour       the colour of its buds' pistils in a Stash Jar, RGB, when it is not the strain's own
+ *                        {@code color}: a strain whose colour would vanish on a green bud can name another
  */
 public record Strain(String translationKey, int color, int modelIndex,
                      Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                      float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
                      float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
-                     Optional<Integer> smokeColor, Potency potency) {
+                     Optional<Integer> smokeColor, Potency potency, Optional<Integer> jarColour) {
+
+    /** A strain with no jar colour of its own: the shape every strain had before {@code jar_colour}. */
+    public Strain(String translationKey, int color, int modelIndex,
+                  Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
+                  float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
+                  float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
+                  Optional<Integer> smokeColor, Potency potency) {
+        this(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem, smokeEffects,
+                coughFactor, chemotype, terpene, smokeColor, potency, Optional.empty());
+    }
 
     /** A strain with the default potency sheet. */
     public Strain(String translationKey, int color, int modelIndex,
@@ -246,19 +258,30 @@ public record Strain(String translationKey, int color, int modelIndex,
     /** This strain with {@code terpene} as its signature. */
     public Strain withTerpene(ResourceKey<Terpene> terpene) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor, potency);
+                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor, potency, jarColour);
     }
 
     /** This strain smoking {@code rgb} rather than its terpene's colour. */
     public Strain withSmokeColor(int rgb) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb), potency);
+                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb), potency, jarColour);
     }
 
     /** This strain with {@code potency} as its sheet. */
     public Strain withPotency(Potency potency) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency);
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour);
+    }
+
+    /** This strain's pistils in a Stash Jar tinted {@code rgb} rather than its own colour. */
+    public Strain withJarColour(int rgb) {
+        return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, Optional.of(rgb));
+    }
+
+    /** The colour of its buds' pistils in a Stash Jar, RGB: its {@code jar_colour}, else its own {@link #color}. */
+    public int jarColourOrDefault() {
+        return jarColour.orElse(color);
     }
 
     /** The terpene the world loaded under this strain's {@link #terpene} key, if both exist. */
@@ -294,7 +317,8 @@ public record Strain(String translationKey, int color, int modelIndex,
             // loads, and smokes plain.
             ResourceKey.codec(Terpene.REGISTRY_KEY).optionalFieldOf("terpene").forGetter(Strain::terpene),
             Codec.INT.optionalFieldOf("smoke_color").forGetter(Strain::smokeColor),
-            Potency.CODEC.optionalFieldOf("potency", Potency.DEFAULT).forGetter(Strain::potency)
+            Potency.CODEC.optionalFieldOf("potency", Potency.DEFAULT).forGetter(Strain::potency),
+            Codec.INT.optionalFieldOf("jar_colour").forGetter(Strain::jarColour)
     ).apply(instance, Strain::new));
 
     /**

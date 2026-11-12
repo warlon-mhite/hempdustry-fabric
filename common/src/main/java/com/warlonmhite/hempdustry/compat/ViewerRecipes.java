@@ -1,5 +1,7 @@
 package com.warlonmhite.hempdustry.compat;
 
+import com.warlonmhite.hempdustry.recipe.StashJarUpgradeRecipe;
+import com.warlonmhite.hempdustry.component.StashContents;
 import com.warlonmhite.hempdustry.item.custom.StampedItem;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.Chemotype;
@@ -470,6 +472,46 @@ public final class ViewerRecipes {
 
     /** One packing permutation, shaped for whatever a viewer calls a shapeless crafting recipe. */
     public record Packing(Identifier id, List<List<ItemStack>> inputs, ItemStack output) {
+    }
+
+    /**
+     * The Stash Jar's two upgrades as plain 3 × 3 grids, for each viewer's crafting page: the jar in the
+     * middle, the ring around it. The recipe is special ({@code hempdustry:stash_jar_upgrade}), so the
+     * recipe book cannot show it, and these rows are the only place a player finds it.
+     *
+     * <p>The jar in the middle carries a small stash, and so does the result, the same one: hovering
+     * either shows it, which is how the page says the contents come along. The rows are real, the
+     * result is what crafting that grid gives.
+     */
+    public static List<Upgrade> stashJarUpgrades(HolderLookup.Provider registries) {
+        StashContents.Mutable sample = StashContents.EMPTY.mutable();
+        sample.insert(new ItemStack(ModItems.INDICA_BUDS, 32), Integer.MAX_VALUE);
+        sample.insert(new ItemStack(ModItems.SATIVA_BUDS, 16), Integer.MAX_VALUE);
+        StashContents stash = sample.toImmutable();
+        List<Upgrade> out = new ArrayList<>();
+        for (StashJarUpgradeRecipe.Step step : StashJarUpgradeRecipe.steps()) {
+            List<ItemStack> ring = registries.lookupOrThrow(Registries.ITEM).get(step.ring())
+                    .map(set -> set.stream().map(holder -> new ItemStack(holder.value())).toList())
+                    .orElse(List.of());
+            if (ring.isEmpty()) {
+                continue; // a pack emptied the tag: nothing can make this step
+            }
+            ItemStack jar = new ItemStack(step.from());
+            jar.set(ModComponents.STASH_CONTENTS, stash);
+            ItemStack result = new ItemStack(step.to());
+            result.set(ModComponents.STASH_CONTENTS, stash);
+            List<List<ItemStack>> grid = new ArrayList<>();
+            for (int slot = 0; slot < 9; slot++) {
+                grid.add(slot == 4 ? List.of(jar) : ring);
+            }
+            out.add(new Upgrade(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID,
+                    "/stash_jar_upgrade/" + BuiltInRegistries.ITEM.getKey(step.to()).getPath()), grid, result));
+        }
+        return out;
+    }
+
+    /** One Stash Jar upgrade, shaped for whatever a viewer calls a shaped 3 × 3 crafting recipe. */
+    public record Upgrade(Identifier id, List<List<ItemStack>> inputs, ItemStack output) {
     }
 
     /**

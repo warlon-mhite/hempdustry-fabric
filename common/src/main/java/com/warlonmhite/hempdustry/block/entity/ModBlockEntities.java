@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.block.entity.custom.DecarboxylatorBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.InfuserBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
+import com.warlonmhite.hempdustry.block.entity.custom.StashJarBlockEntity;
 import com.warlonmhite.hempdustry.platform.Services;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -53,6 +54,13 @@ public class ModBlockEntities {
                             ModBlocks.WARPED_KUSH_CROP, ModBlocks.RUDERALIS_CROP, ModBlocks.CRIMSON_CROP,
                             ModBlocks.ENDER_HAZE_CROP, ModBlocks.CHERRY_WINE_CROP,
                             ModBlocks.WHITE_WIDOW_CROP, ModBlocks.DUD_WEED_CROP));
+
+    // A placed Stash Jar's contents, one type for the three jars.
+    public static final BlockEntityType<StashJarBlockEntity> STASH_JAR =
+            Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE,
+                    Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "stash_jar"),
+                    Services.REGISTRATION.blockEntityType(StashJarBlockEntity::new,
+                            ModBlocks.STASH_JAR, ModBlocks.GILDED_STASH_JAR, ModBlocks.DIAMOND_STASH_JAR));
 
     public static void registerBlockEntities() {
         Hempdustry.LOGGER.info("Registering Block Entities for " + Hempdustry.MOD_ID);

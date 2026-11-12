@@ -259,6 +259,16 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                 flower.add(strain.buds());
             }
         }
+        // What a Stash Jar takes: every bud that grew on a plant, and schwag. Off the strain registry like
+        // the screen's, so a new strain's buds go in the day it exists.
+        var storable = valueLookupBuilder(ModTags.Items.STASH_JAR_STORABLE);
+        for (ResourceKey<Strain> key : ModStrains.BUILT_IN) {
+            Strain strain = strains.getOrThrow(key).value();
+            if (strain.wildFlower().isPresent()) {
+                storable.add(strain.buds());
+            }
+        }
+        storable.add(ModItems.SCHWAG);
         valueLookupBuilder(ModTags.Items.SIFTABLE_RESINOUS)
                 .add(ModItems.BELDIA_BUDS);
         valueLookupBuilder(ModTags.Items.SIFTABLE_TRIM)

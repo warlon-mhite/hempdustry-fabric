@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.neoforge.client;
 
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import com.mojang.serialization.MapCodec;
 import com.warlonmhite.hempdustry.HempdustryClient;
 import com.warlonmhite.hempdustry.neoforge.Pending;
@@ -54,6 +57,7 @@ public final class NeoForgeClientRegistration implements ClientRegistration {
     private final Pending<RegisterColorHandlersEvent.BlockTintSources> blockTints = new Pending<>("block tints");
     private final Pending<RegisterRangeSelectItemModelPropertyEvent> itemProperties = new Pending<>("item model properties");
     private final Pending<RegisterColorHandlersEvent.ItemTintSources> tintSources = new Pending<>("item tint sources");
+    private final Pending<RegisterClientTooltipComponentFactoriesEvent> tooltips = new Pending<>("tooltip components");
     private boolean registered;
 
     /** Listens for every event the client's registrations go to; called by the client's entry point. */
@@ -66,6 +70,7 @@ public final class NeoForgeClientRegistration implements ClientRegistration {
         modBus.addListener(RegisterColorHandlersEvent.BlockTintSources.class, event -> init().blockTints.handOver(event));
         modBus.addListener(RegisterRangeSelectItemModelPropertyEvent.class, event -> init().itemProperties.handOver(event));
         modBus.addListener(RegisterColorHandlersEvent.ItemTintSources.class, event -> init().tintSources.handOver(event));
+        modBus.addListener(RegisterClientTooltipComponentFactoriesEvent.class, event -> init().tooltips.handOver(event));
     }
 
     private synchronized NeoForgeClientRegistration init() {
@@ -117,6 +122,12 @@ public final class NeoForgeClientRegistration implements ClientRegistration {
     @Override
     public void itemTintSource(Identifier id, MapCodec<? extends ItemTintSource> codec) {
         tintSources.add(event -> event.register(id, codec));
+    }
+
+    @Override
+    public <T extends TooltipComponent> void tooltipComponent(Class<T> type,
+                                                              Function<? super T, ? extends ClientTooltipComponent> factory) {
+        tooltips.add(event -> event.register(type, factory));
     }
 
     @Override

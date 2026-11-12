@@ -23,6 +23,7 @@ import com.warlonmhite.hempdustry.recipe.StampedShapedRecipe;
 import com.warlonmhite.hempdustry.recipe.StampedShapelessRecipe;
 import com.warlonmhite.hempdustry.recipe.StampedSmeltingRecipe;
 import com.warlonmhite.hempdustry.recipe.PackingRecipe;
+import com.warlonmhite.hempdustry.recipe.StashJarUpgradeRecipe;
 import com.warlonmhite.hempdustry.recipe.PressingRecipe;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
@@ -986,6 +987,21 @@ public class ModRecipeProvider extends FabricRecipeProvider {
         // Pack an empty device with a strain's buds in the crafting grid. Special recipe so the
         // device's durability + enchantments carry over onto the packed result (see PackingRecipe).
         SpecialRecipeBuilder.special(PackingRecipe::new).save(output, id("packing"));
+
+        // The Stash Jar: a glass bottle's shape with a hemp planks slab for a lid. The slab is named by
+        // id, so no other mod's jar (glass under its own slab) can share the grid. Its cost sits beside
+        // a vanilla bundle's: three glass and a slab.
+        shaped(RecipeCategory.DECORATIONS, ModBlocks.STASH_JAR)
+                .pattern(" S ")
+                .pattern("G G")
+                .pattern(" G ")
+                .define('S', ModBlocks.HEMP_PLANKS_SLAB)
+                .define('G', TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "glass_blocks/colorless")))
+                .unlockedBy(getHasName(ModBlocks.HEMP_PLANKS_SLAB), has(ModBlocks.HEMP_PLANKS_SLAB))
+                .save(output, id("stash_jar"));
+        // One size up with its stash kept: a ring of eight gold ingots, then of diamonds around the
+        // Gilded jar. Special, because the result carries the jar's contents (StashJarUpgradeRecipe).
+        SpecialRecipeBuilder.special(StashJarUpgradeRecipe::new).save(output, id("stash_jar_upgrade"));
 
         // ---------------------------------------------------------------------
         // Hemp fiber armor set

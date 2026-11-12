@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.test;
 
+import com.warlonmhite.hempdustry.recipe.StashJarUpgradeRecipe;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -867,6 +868,11 @@ public final class SweepGameTest {
             } else if (recipe instanceof PackingRecipe) {
                 // A special recipe lists no ingredients; the rows the recipe viewers draw are every load it packs.
                 for (ViewerRecipes.Packing row : ViewerRecipes.packing(world.registryAccess())) {
+                    grids(entry, 3, 3, new ArrayList<>(row.inputs()), everyChoice, samples, findings);
+                }
+            } else if (recipe instanceof StashJarUpgradeRecipe) {
+                // Special too: the viewers' rows are each step, a jar in a ring of eight.
+                for (ViewerRecipes.Upgrade row : ViewerRecipes.stashJarUpgrades(world.registryAccess())) {
                     grids(entry, 3, 3, new ArrayList<>(row.inputs()), everyChoice, samples, findings);
                 }
             } else if (recipe instanceof SingleItemRecipe || recipe instanceof DecarboxylatingRecipe

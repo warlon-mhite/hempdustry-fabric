@@ -32,6 +32,8 @@ Two things this scan structurally cannot see, so a clean run does not rule them 
   - `hempdustry:packing` is a SpecialCraftingRecipe with no ingredient list in its JSON,
     so it is invisible here. A future shapeless recipe taking a device plus buds would
     collide with packing and this would still print zero.
+  - `hempdustry:stash_jar_upgrade` is special too: a Stash Jar in the middle of a ring of eight. A
+    shaped recipe of a pack's with the same ring around one of our jars would not be seen.
   - A tag that *overlaps* another tag or a plain item, since tags are atoms (above).
 """
 
@@ -67,6 +69,9 @@ NON_CRAFTING_TYPES = {
     # all, so there is nothing here to compare. Its matcher requires a hempdustry device plus
     # hempdustry buds, which nothing else in the game can produce. See the module docstring.
     "hempdustry:packing",
+    # The same for the Stash Jar's upgrade: a jar of ours in the middle of a full grid, so nothing
+    # outside the mod can match it either.
+    "hempdustry:stash_jar_upgrade",
 }
 
 

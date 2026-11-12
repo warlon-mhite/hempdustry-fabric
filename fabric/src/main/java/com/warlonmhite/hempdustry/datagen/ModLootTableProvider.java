@@ -245,6 +245,15 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
                     .add(LootItem.lootTableItem(bong.asItem())
                             .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY))))));
         }
+        // A Stash Jar drops itself with everything inside, whatever broke it, an explosion and a piston
+        // included: the shulker box's table, with no explosion condition, so a stash is never lost.
+        // Every component the block entity holds comes back, the contents and an anvil name.
+        for (Block jar : new Block[] {ModBlocks.STASH_JAR, ModBlocks.GILDED_STASH_JAR, ModBlocks.DIAMOND_STASH_JAR}) {
+            add(jar, LootTable.lootTable().withPool(LootPool.lootPool()
+                    .setRolls(ContextIntProviders.exactly(1))
+                    .add(LootItem.lootTableItem(jar.asItem())
+                            .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)))));
+        }
         add(ModBlocks.CHARAS_BALL, createSingleItemTable(ModBlocks.CHARAS_BALL).apply(SetChemotypeFunction.fromBlock()));
         add(ModBlocks.HASHISH_BAR, hashishBarDrops(ModBlocks.HASHISH_BAR, ModItems.HASHISH)
                 .apply(SetChemotypeFunction.fromBlock()));

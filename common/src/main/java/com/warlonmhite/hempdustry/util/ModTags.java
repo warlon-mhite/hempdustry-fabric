@@ -141,6 +141,12 @@ public class ModTags {
          * {@code #minecraft:sulfur_cube_swallowable} lists, so this tag is in that one too.
          */
         public static final TagKey<Item> FOOTBAG = createTag("sulfur_cube_archetype/footbag");
+
+        /**
+         * What a Stash Jar takes: every bud and schwag. The jar's only filter, on every way in (a click,
+         * a hopper, a pipe); a datapack strain or a pack adds its own buds here.
+         */
+        public static final TagKey<Item> STASH_JAR_STORABLE = createTag("stash_jar_storable");
         private static TagKey<Item> createTag(String name) {
             return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, name));
         }

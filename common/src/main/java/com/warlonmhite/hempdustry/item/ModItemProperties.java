@@ -44,6 +44,12 @@ public final class ModItemProperties {
     /** {@code hempdustry:strain} as a tint source. Same path, a different registry. */
     public static final Identifier STRAIN_TINT = Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "strain");
 
+    /** {@code hempdustry:stash_fill} — a Stash Jar's fill level, 0 to 3 (see {@code StashFillProperty}). */
+    public static final Identifier STASH_FILL = Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "stash_fill");
+
+    /** {@code hempdustry:stash_piece} — one stash piece's colour, a tint source (see {@code StashPieceTintSource}). */
+    public static final Identifier STASH_PIECE = Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "stash_piece");
+
     /**
      * The tint index carrying the strain's colour, and therefore <b>which texture layer gets tinted</b>.
      *

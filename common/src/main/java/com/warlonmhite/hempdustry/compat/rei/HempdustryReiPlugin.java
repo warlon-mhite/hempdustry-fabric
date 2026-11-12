@@ -1,5 +1,6 @@
 package com.warlonmhite.hempdustry.compat.rei;
 
+import me.shedaniel.rei.plugin.common.displays.crafting.DefaultCustomShapedDisplay;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
@@ -122,6 +123,13 @@ public class HempdustryReiPlugin implements REIClientPlugin {
                     packing.inputs().stream().map(EntryIngredients::ofItemStacks).toList(),
                     List.of(EntryIngredients.of(packing.output())),
                     Optional.empty()));
+        }
+        // The Stash Jar's upgrades into the same category, as shaped 3 x 3 rows (ViewerRecipes#stashJarUpgrades).
+        for (ViewerRecipes.Upgrade upgrade : ViewerRecipes.stashJarUpgrades(client.level.registryAccess())) {
+            registry.add(new DefaultCustomShapedDisplay(
+                    upgrade.inputs().stream().map(EntryIngredients::ofItemStacks).toList(),
+                    List.of(EntryIngredients.of(upgrade.output())),
+                    Optional.empty(), 3, 3));
         }
     }
 }

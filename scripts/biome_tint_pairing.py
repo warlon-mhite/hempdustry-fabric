@@ -28,6 +28,14 @@ ASSETS = LAYOUT.assets
 # The vanilla parents that put "tintindex": 0 on a plant's faces.
 TINTED_PARENTS = {"minecraft:block/tinted_cross", "minecraft:block/tinted_flower_pot_cross"}
 
+# Blocks, not plants, whose tinted faces come and go with their state on purpose: an id and why.
+# An entry that stops being partly tinted is stale and fails, so the list cannot hide a plant.
+PARTLY_TINTED_ON_PURPOSE = {
+    "stash_jar": "an empty Stash Jar shows no stash pieces, its only tinted faces",
+    "gilded_stash_jar": "an empty Stash Jar shows no stash pieces, its only tinted faces",
+    "diamond_stash_jar": "an empty Stash Jar shows no stash pieces, its only tinted faces",
+}
+
 
 def registered_blocks():
     """Block ids passed to every client.blockColor(...) or client.blockTint(...) call in HempdustryClient.
@@ -113,7 +121,11 @@ def main():
                if any(is_tinted(model) for model in models)} - tinted
 
     problems = []
-    for block in sorted(registered - tinted - partial):
+    for block in sorted(set(PARTLY_TINTED_ON_PURPOSE) - partial):
+        problems.append(f"{block}: listed as partly tinted on purpose, but it is not any more -- "
+                        f"take it off PARTLY_TINTED_ON_PURPOSE")
+    partial -= set(PARTLY_TINTED_ON_PURPOSE)
+    for block in sorted(registered - tinted - partial - set(PARTLY_TINTED_ON_PURPOSE)):
         problems.append(f"{block}: has a colour provider, but no model of it is tinted "
                         f"(parent minecraft:block/tinted_cross?)")
     for block in sorted(tinted - registered):

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "fill=empty": {
+      "model": "hempdustry:block/stash_jar_empty"
+    },
+    "fill=low": {
+      "model": "hempdustry:block/stash_jar_low"
+    },
+    "fill=mid": {
+      "model": "hempdustry:block/stash_jar_mid"
+    },
+    "fill=full": {
+      "model": "hempdustry:block/stash_jar_full"
+    }
+  }
+}

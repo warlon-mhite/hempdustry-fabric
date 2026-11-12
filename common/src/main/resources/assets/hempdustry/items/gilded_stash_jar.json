@@ -1,0 +1,154 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "hempdustry:stash_fill",
+    "entries": [
+      {
+        "threshold": 1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "hempdustry:item/gilded_stash_jar_low",
+          "tints": [
+            {
+              "type": "minecraft:constant",
+              "value": -1
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 0
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 0,
+              "part": "pistils"
+            },
+            {
+              "type": "minecraft:constant",
+              "value": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "hempdustry:item/gilded_stash_jar_mid",
+          "tints": [
+            {
+              "type": "minecraft:constant",
+              "value": -1
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 0
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 0,
+              "part": "pistils"
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 1
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 1,
+              "part": "pistils"
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 2
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 2,
+              "part": "pistils"
+            },
+            {
+              "type": "minecraft:constant",
+              "value": -1
+            }
+          ]
+        }
+      },
+      {
+        "threshold": 3,
+        "model": {
+          "type": "minecraft:model",
+          "model": "hempdustry:item/gilded_stash_jar_full",
+          "tints": [
+            {
+              "type": "minecraft:constant",
+              "value": -1
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 0
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 0,
+              "part": "pistils"
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 1
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 1,
+              "part": "pistils"
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 2
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 2,
+              "part": "pistils"
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 3
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 3,
+              "part": "pistils"
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 4
+            },
+            {
+              "type": "hempdustry:stash_piece",
+              "piece": 4,
+              "part": "pistils"
+            },
+            {
+              "type": "minecraft:constant",
+              "value": -1
+            }
+          ]
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "hempdustry:item/gilded_stash_jar_empty",
+      "tints": [
+        {
+          "type": "minecraft:constant",
+          "value": -1
+        },
+        {
+          "type": "minecraft:constant",
+          "value": -1
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,8 @@
 package com.warlonmhite.hempdustry.block;
 
+import com.warlonmhite.hempdustry.block.custom.stash.StashJarBlock;
+import com.warlonmhite.hempdustry.item.custom.StashJarItem;
+
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.custom.BeldiaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.BongBlock;
@@ -603,6 +606,27 @@ public class ModBlocks {
             BlockBehaviour.Properties.ofFullCopy(Blocks.CAKE),
             EdibleBlockItem::new,
             new Item.Properties().stacksTo(1));
+
+    /**
+     * The Stash Jars: a bundle for buds that stands as a block, three sizes of one jar. 64, 128 and 256
+     * items, the upgrades a ring of gold and then of diamonds around the jar ({@code StashJarUpgradeRecipe}).
+     * Glass: its sound, and as quick to break, but it drops itself with its contents whatever breaks it,
+     * the shulker box's rule rather than glass's; a piston pops it, as it pops a shulker box.
+     */
+    public static final Block STASH_JAR = registerStashJar("stash_jar", 64);
+    public static final Block GILDED_STASH_JAR = registerStashJar("gilded_stash_jar", 128);
+    public static final Block DIAMOND_STASH_JAR = registerStashJar("diamond_stash_jar", 256);
+
+    private static Block registerStashJar(String name, int capacity) {
+        return registerBlockWithItem(name, settings -> new StashJarBlock(settings, capacity),
+                BlockBehaviour.Properties.of()
+                        .strength(0.3F)
+                        .sound(SoundType.GLASS)
+                        .noOcclusion()
+                        .pushReaction(PushReaction.POPPED),
+                StashJarItem::new,
+                new Item.Properties().stacksTo(1));
+    }
 
     /**
      * Vanilla's creative-tab colour order. {@code CreativeModeTabs} spells it out once per colour family

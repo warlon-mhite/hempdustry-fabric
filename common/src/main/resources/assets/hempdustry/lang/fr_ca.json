@@ -383,5 +383,10 @@
   "advancements.hempdustry.see_you_ice_o_later.title": "Mise au Frais",
   "advancements.hempdustry.see_you_ice_o_later.description": "Remplis d'eau un Bac de Tamisage, entoure-le de glace et lave les trichomes en Bubble Hash",
   "advancements.hempdustry.around_the_world_in_80_grams.title": "Le Tour du Monde en 80 Grammes",
-  "advancements.hempdustry.around_the_world_in_80_grams.description": "Obtiens du Charas, du Hasch, du Hasch Filtré, du Bubble Hash et de la Rosin"
+  "advancements.hempdustry.around_the_world_in_80_grams.description": "Obtiens du Charas, du Hasch, du Hasch Filtré, du Bubble Hash et de la Rosin",
+  "block.hempdustry.stash_jar": "Bocal à beuh",
+  "block.hempdustry.gilded_stash_jar": "Bocal à beuh doré",
+  "block.hempdustry.diamond_stash_jar": "Bocal à beuh en diamant",
+  "item.hempdustry.stash_jar.empty.description": "Peut contenir des fleurs et de la Mauvaise Herbe, mélangées",
+  "tag.item.hempdustry.stash_jar_storable": "Rangeable dans un Bocal à beuh"
 }

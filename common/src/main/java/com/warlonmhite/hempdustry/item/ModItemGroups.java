@@ -207,6 +207,10 @@ public class ModItemGroups {
                         // sixteen dyed ones. A packed coloured bong differs from a packed clear one
                         // by glass alone, so listing its loads would be the matrix all over again.
                         ModItems.COLORED_BONGS.forEach(entries::accept);
+                        // Where the buds go between the harvest and the bowl: the three jars, empty, smallest first.
+                        entries.accept(ModBlocks.STASH_JAR);
+                        entries.accept(ModBlocks.GILDED_STASH_JAR);
+                        entries.accept(ModBlocks.DIAMOND_STASH_JAR);
 
                         // --- Armour, head to foot --------------------------------------
                         entries.accept(ModItems.HEMP_BEANIE);

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "modifier": {
+            "type": "minecraft:copy_components",
+            "source": "block_entity"
+          },
+          "name": "hempdustry:gilded_stash_jar"
+        }
+      ],
+      "rolls": 1
+    }
+  ]
+}

@@ -1,5 +1,9 @@
 package com.warlonmhite.hempdustry.compat.jei;
 
+import java.util.Optional;
+import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.compat.ViewerRecipes;
@@ -138,6 +142,8 @@ public class HempdustryJeiPlugin implements IModPlugin {
         // JEI's built-in "move ingredients into the grid" work on it without a transfer handler of
         // our own. See ViewerRecipes#packing.
         registration.addRecipes(RecipeTypes.CRAFTING, packingAsCrafting(client.level.registryAccess()));
+        // The Stash Jar's upgrades the same way, as shaped 3 x 3 rows. See ViewerRecipes#stashJarUpgrades.
+        registration.addRecipes(RecipeTypes.CRAFTING, upgradesAsCrafting(client.level.registryAccess()));
     }
 
     /**
@@ -170,6 +176,35 @@ public class HempdustryJeiPlugin implements IModPlugin {
                     new ShapelessRecipe(new Recipe.CommonInfo(true),
                             new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
                             ItemStackTemplate.fromNonEmptyStack(packing.output()), ingredients) {
+                        @Override
+                        public List<RecipeDisplay> display() {
+                            return List.of(display);
+                        }
+                    }));
+        }
+        return out;
+    }
+
+    /**
+     * Each Stash Jar upgrade as a plain shaped recipe, display-only like the packing rows: the real
+     * {@code hempdustry:stash_jar_upgrade} special recipe is what crafts. The display carries the
+     * stacks, so the jar in the middle and the result both show the stash that comes along.
+     */
+    private static List<RecipeHolder<CraftingRecipe>> upgradesAsCrafting(HolderLookup.Provider registries) {
+        List<RecipeHolder<CraftingRecipe>> out = new ArrayList<>();
+        for (ViewerRecipes.Upgrade upgrade : ViewerRecipes.stashJarUpgrades(registries)) {
+            List<Optional<Ingredient>> ingredients = upgrade.inputs().stream()
+                    .map(stacks -> Optional.of(Ingredient.of(stacks.stream().map(ItemStack::getItem))))
+                    .toList();
+            List<SlotDisplay> slots = upgrade.inputs().stream().map(HempdustryJeiPlugin::display).toList();
+            RecipeDisplay display = new ShapedCraftingRecipeDisplay(3, 3, slots,
+                    new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(upgrade.output())),
+                    new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE));
+            out.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, upgrade.id()),
+                    new ShapedRecipe(new Recipe.CommonInfo(true),
+                            new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+                            new ShapedRecipePattern(3, 3, ingredients, Optional.empty()),
+                            ItemStackTemplate.fromNonEmptyStack(upgrade.output())) {
                         @Override
                         public List<RecipeDisplay> display() {
                             return List.of(display);
