@@ -60,8 +60,8 @@ public final class TallHemp {
      *
      * <p>Only that exact state counts. Every other write of ours either sets something (a trim, a rub, the
      * stressed record) or runs inside {@link #ownWrite}; and a mod that writes {@code state.setValue(AGE, n)}
-     * keeps everything else, which on the root is all a growth step keeps. Above the root it is
-     * {@link #isAgeWrittenAboveTheRoot}.
+     * keeps everything else, which on the root is all a growth step keeps. A younger age written so on the root
+     * is {@link #isSetBackByAge}; above the root it is {@link #isAgeWrittenAboveTheRoot}.
      */
     static boolean isRawWrite(CropBlock crop, BlockState state, BlockState old) {
         return !inOwnWrite() && old.is(crop) && state == crop.getStateForAge(crop.getAge(state));
@@ -77,6 +77,17 @@ public final class TallHemp {
     static boolean isAgeWrittenAboveTheRoot(CropBlock crop, BlockState state, BlockState old) {
         return !inOwnWrite() && old.is(crop) && state.is(crop) && !isRoot(old)
                 && crop.getAge(state) != crop.getAge(old);
+    }
+
+    /**
+     * Whether {@code state}, just written over {@code old}, sets the root back to a younger age from outside the
+     * plant's own steps, keeping everything else: a right-click harvest that replants, or {@code /setblock}.
+     * The crop then keeps only the flags the new age could have earned ({@link Defoliation#onlyEarned}). Our
+     * own steps lower no age outside {@link #ownWrite}.
+     */
+    static boolean isSetBackByAge(CropBlock crop, BlockState state, BlockState old) {
+        return !inOwnWrite() && old.is(crop) && state.is(crop) && isRoot(old) && isRoot(state)
+                && crop.getAge(state) < crop.getAge(old);
     }
 
     /** Whether one of the plant's own writes ({@link #ownWrite}) is running on this thread. */

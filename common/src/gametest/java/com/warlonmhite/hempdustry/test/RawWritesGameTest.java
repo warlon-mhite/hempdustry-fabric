@@ -156,6 +156,25 @@ public final class RawWritesGameTest {
     }
 
     /**
+     * The same click on the root: the harvest is taken and the age set back, every other property kept. What
+     * stands is a new plant, and none of the old one's trims or rub, which a seedling could not have earned,
+     * may move its harvest.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void aReplantingAgeWrittenOnTheRootStartsANewPlant(GameTestHelper context) {
+        for (Block crop : CROPS) {
+            ground(context, wetFarmland());
+            place(context, crop, root(crop, IndicaCropBlock.MAX_AGE, GrowLight.GROW_LAMP, true, true, true));
+            BlockPos at = context.absolutePos(CROP);
+            ServerLevel world = context.getLevel();
+            world.setBlockAndUpdate(at, world.getBlockState(at).setValue(BlockStateProperties.AGE_7, 0));
+            expect(context, crop, root(crop, 0, GrowLight.GROW_LAMP, false, false, false),
+                    "set back to age 0 on its root from a worked, ripe plant");
+        }
+        context.succeed();
+    }
+
+    /**
      * A right-click harvest that replants a ripe crop by setting its age back on the block clicked, keeping
      * every other property. On a block above the root that pays nothing, since the plant's loot is the root's,
      * and must not leave a seedling segment inside a ripe plant.
