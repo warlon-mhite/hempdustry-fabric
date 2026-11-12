@@ -7,6 +7,8 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.function.BooleanSupplier;
 
 /** What every tall hemp plant shares, whichever crop it is. */
@@ -36,6 +38,42 @@ public final class TallHemp {
             return state.getValue(IndicaCropBlock.HALF) == DoubleBlockHalf.LOWER;
         }
         return true;
+    }
+
+    /**
+     * Where the root of the plant that the block of {@code crop} at {@code pos} belongs to stands, walking down
+     * through the segments that stand on it, or {@code null} when that block is not part of a whole plant (a
+     * segment with no root under it, about to break off). Vanilla's pitcher crop finds its lower half the same
+     * way for bone meal ({@code PitcherCropBlock#getLowerHalf}).
+     */
+    static @Nullable BlockPos rootOf(Block crop, LevelReader world, BlockPos pos, BlockState state) {
+        BlockPos at = pos;
+        BlockState here = state;
+        for (int step = 0; step < 3; step++) {
+            if (!here.is(crop)) {
+                return null;
+            }
+            if (isRoot(here)) {
+                return at;
+            }
+            if (!here.canSurvive(world, at)) {
+                return null;
+            }
+            at = at.below();
+            here = world.getBlockState(at);
+        }
+        return null;
+    }
+
+    /**
+     * Whether {@code state}, just written over {@code old} on a block above the root from outside the plant's own
+     * rules, raises its age: an instant fertiliser clicked on a top writes {@code getStateForAge(max)} there, as
+     * Mystical Agriculture's does, or sets the age alone. A plant's age is its root's, so the crop puts the block
+     * back and grows the plant from its root to that age instead, as one step of its own.
+     */
+    static boolean isRaisedAboveTheRoot(CropBlock crop, BlockState state, BlockState old) {
+        return !inOwnWrite() && old.is(crop) && state.is(crop) && !isRoot(old)
+                && crop.getAge(state) > crop.getAge(old);
     }
 
     /**

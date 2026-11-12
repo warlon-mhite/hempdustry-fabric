@@ -85,10 +85,11 @@ public class BeldiaCropBlock extends IndicaCropBlock {
         return isWatered(ctx.getLevel(), ctx.getClickedPos().below()) ? super.getStateForPlacement(ctx) : null;
     }
 
-    /** Bone meal is growth too, and a dry plant does not grow. */
+    /** Bone meal is growth too, and a dry plant does not grow: the ground under its root decides, whichever half is fed. */
     @Override
     public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, boolean isClient) {
-        return super.isValidBonemealTarget(world, pos, state, isClient) && isWatered(world, pos.below());
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        return rootPos != null && super.isValidBonemealTarget(world, pos, state, isClient) && isWatered(world, rootPos.below());
     }
 
     /**
