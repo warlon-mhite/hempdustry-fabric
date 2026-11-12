@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "hempdustry-gametest:bone_meal_on_any_block_grows_the_plant_from_its_root",
+  "structure": "hempdustry-gametest:empty",
+  "max_ticks": 200,
+  "setup_ticks": 0,
+  "required": true
+}

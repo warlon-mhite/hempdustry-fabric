@@ -163,7 +163,7 @@ public class IndicaCropBlock extends CropBlock {
     }
 
     // ----- growth -----
-    // Only the lower half is fertile and random-ticks; it drives the whole plant.
+    // Only the lower half random-ticks; it drives the whole plant, and bone meal on either half feeds it.
     @Override
     protected boolean isRandomlyTicking(BlockState state) {
         // Deliberately not gated on `age < maxAge`: the tick is also what repairs a plant whose
@@ -174,7 +174,11 @@ public class IndicaCropBlock extends CropBlock {
     }
 
     /**
-     * Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
+     * Either half answers for the plant, from its root, as vanilla's pitcher crop does: other mods' harvesters
+     * read "refuses bone meal" as "ripe" on any block they reach (a farm controller cutting at the height of
+     * the tops), so an upper half that refused it was cut off a growing plant.
+     *
+     * <p>Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
      * allows. Without the {@link #maxAgeFor} half of this test, bonemeal would happily push a plant
      * that is boxed in all the way to maturity as a lone stalk: {@code growCrops} writes the
      * lower half's age whether or not the upper half can be placed, and unlike the random tick it
@@ -182,7 +186,8 @@ public class IndicaCropBlock extends CropBlock {
      */
     @Override
     public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
-        return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        return rootPos != null && this.getAge(world.getBlockState(rootPos)) < this.maxAgeFor(world, rootPos);
     }
 
     /**
@@ -294,9 +299,9 @@ public class IndicaCropBlock extends CropBlock {
         return !upperPresent && !(age >= DOUBLE_BLOCK_AGE && above.isAir());
     }
 
-    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block. Only the LOWER is
-    // fertilizable, so this only ever runs on the LOWER. grow() is overridden as well so the roll
-    // uses the random it is handed, which is also what lets a test decide the roll.
+    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block, which may be either
+    // half; both grow the plant from its root. performBonemeal is overridden as well so the step uses the
+    // random it is handed, which is also what lets a test decide the roll.
     @Override
     public void growCrops(Level world, BlockPos pos, BlockState state) {
         this.boneMeal(world, pos, state, world.getRandom());
@@ -307,13 +312,15 @@ public class IndicaCropBlock extends CropBlock {
         this.boneMeal(world, pos, state, random);
     }
 
-    /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
+    /** One bone meal step, from the root — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
     private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
-        if (!isLower(state)) {
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        if (rootPos == null) {
             return;
         }
-        this.setAge(world, pos, world.getBlockState(pos), this.getAge(state) + this.getBonemealAgeIncrease(world),
-                PlantStress.ofBoneMeal(world, pos, state), random);
+        BlockState root = world.getBlockState(rootPos);
+        this.setAge(world, rootPos, root, this.getAge(root) + this.getBonemealAgeIncrease(world),
+                PlantStress.ofBoneMeal(world, rootPos, root), random);
     }
 
     /**
@@ -326,7 +333,9 @@ public class IndicaCropBlock extends CropBlock {
      *       goes back as it was: the plant's loot is on the root, and a root up there would break off. So does
      *       a top whose age alone another mod set back ({@link TallHemp#isAgeWrittenAboveTheRoot}), as a
      *       right-click harvest does to the block clicked: it paid nothing, and a seedling top would sit in a
-     *       ripe plant until the root next grew.</li>
+     *       ripe plant until the root next grew. A write there that <b>raises</b> the age
+     *       ({@link TallHemp#isRaisedAboveTheRoot}), an instant fertiliser clicked on the top, puts the top
+     *       back too, and then grows the plant from its root to that age, as below.</li>
      *   <li><b>A younger age on the root</b> is a replanting. The written state is already a new plant's;
      *       what is left of the old one above it goes, its harvest having been taken from the root. A mod that
      *       sets the age alone back ({@link TallHemp#isSetBackByAge}), as a right-click harvest replants, keeps
@@ -346,7 +355,13 @@ public class IndicaCropBlock extends CropBlock {
         }
         boolean raw = TallHemp.isRawWrite(this, state, old);
         if (raw && !isLower(old) || TallHemp.isAgeWrittenAboveTheRoot(this, state, old)) {
+            boolean raised = TallHemp.isRaisedAboveTheRoot(this, state, old);
             TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            BlockPos rootPos = raised ? TallHemp.rootOf(this, world, pos, old) : null;
+            if (rootPos != null) {
+                BlockState root = world.getBlockState(rootPos);
+                this.setAge(world, rootPos, root, this.getAge(state), 0.0F, world.getRandom());
+            }
             return;
         }
         if (!raw) {

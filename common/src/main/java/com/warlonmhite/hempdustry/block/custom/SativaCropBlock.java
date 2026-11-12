@@ -38,8 +38,8 @@ import java.util.function.BiConsumer;
  * vanilla's LOWER/UPPER {@code DoubleBlockHalf}, which can't describe three blocks.
  *
  * <p>As with indica the canonical {@code age 0..7} lives on the LOWER segment and the segments
- * above mirror it; only the LOWER random-ticks, is fertilizable, and drops loot. The plant gets
- * taller as it matures, which is the whole point of the strain — sativa needs headroom:
+ * above mirror it; only the LOWER random-ticks and drops loot, and bone meal on any segment feeds it.
+ * The plant gets taller as it matures, which is the whole point of the strain — sativa needs headroom:
  *
  * <table>
  *   <tr><th>age</th><th>shape</th></tr>
@@ -201,7 +201,7 @@ public class SativaCropBlock extends CropBlock {
     }
 
     // ----- growth -----
-    // Only the LOWER segment is fertile and random-ticks; it drives the whole plant.
+    // Only the LOWER segment random-ticks; it drives the whole plant, and bone meal on any segment feeds it.
     @Override
     protected boolean isRandomlyTicking(BlockState state) {
         // Deliberately *not* gated on `age < maxAge` the way vanilla's crops are. A plant that hit
@@ -213,7 +213,10 @@ public class SativaCropBlock extends CropBlock {
     }
 
     /**
-     * Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
+     * Every segment answers for the plant, from its root, as on {@link IndicaCropBlock#isValidBonemealTarget}:
+     * other mods' harvesters read "refuses bone meal" as "ripe" on any block they reach.
+     *
+     * <p>Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
      * allows. Without the {@link #maxAgeFor} half of this test, bonemeal would push a plant that is
      * boxed in all the way to maturity at whatever stunted height it happens to have:
      * {@code growCrops} writes the LOWER's age whether or not the segments above can be placed,
@@ -221,7 +224,8 @@ public class SativaCropBlock extends CropBlock {
      */
     @Override
     public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
-        return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        return rootPos != null && this.getAge(world.getBlockState(rootPos)) < this.maxAgeFor(world, rootPos);
     }
 
     /**
@@ -332,9 +336,9 @@ public class SativaCropBlock extends CropBlock {
         return mid == this.stateFor(age, TriplePlantSegment.UPPER, lower);
     }
 
-    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block. Only the LOWER
-    // segment is fertilizable, so this only ever runs on the LOWER segment. grow() is overridden as
-    // well so the roll uses the random it is handed, which is also what lets a test decide the roll.
+    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block, which may be any
+    // segment; both grow the plant from its LOWER. performBonemeal is overridden as well so the step uses
+    // the random it is handed, which is also what lets a test decide the roll.
     @Override
     public void growCrops(Level world, BlockPos pos, BlockState state) {
         this.boneMeal(world, pos, state, world.getRandom());
@@ -345,19 +349,22 @@ public class SativaCropBlock extends CropBlock {
         this.boneMeal(world, pos, state, random);
     }
 
-    /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
+    /** One bone meal step, from the root — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
     private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
-        if (!isLower(state)) {
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        if (rootPos == null) {
             return;
         }
-        this.setAge(world, pos, world.getBlockState(pos), this.getAge(state) + this.getBonemealAgeIncrease(world),
-                PlantStress.ofBoneMeal(world, pos, state), random);
+        BlockState root = world.getBlockState(rootPos);
+        this.setAge(world, rootPos, root, this.getAge(root) + this.getBonemealAgeIncrease(world),
+                PlantStress.ofBoneMeal(world, rootPos, root), random);
     }
 
     /**
      * Puts right a raw write from another mod, as {@link IndicaCropBlock#onPlace} does, for a plant of three
      * blocks: a root state written onto the MIDDLE or the UPPER goes back to that segment, and so does an age
-     * alone written there ({@link TallHemp#isAgeWrittenAboveTheRoot}), an age alone set back on the root keeps
+     * alone written there ({@link TallHemp#isAgeWrittenAboveTheRoot}), then grows the plant from its root when
+     * the write raised the age ({@link TallHemp#isRaisedAboveTheRoot}); an age alone set back on the root keeps
      * only the flags it could have earned ({@link TallHemp#isSetBackByAge}), a replanting takes
      * both segments away (top first, so neither is left standing on nothing), and growth is one step of the
      * plant's own.
@@ -370,7 +377,13 @@ public class SativaCropBlock extends CropBlock {
         }
         boolean raw = TallHemp.isRawWrite(this, state, old);
         if (raw && !isLower(old) || TallHemp.isAgeWrittenAboveTheRoot(this, state, old)) {
+            boolean raised = TallHemp.isRaisedAboveTheRoot(this, state, old);
             TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            BlockPos rootPos = raised ? TallHemp.rootOf(this, world, pos, old) : null;
+            if (rootPos != null) {
+                BlockState root = world.getBlockState(rootPos);
+                this.setAge(world, rootPos, root, this.getAge(state), 0.0F, world.getRandom());
+            }
             return;
         }
         if (!raw) {
