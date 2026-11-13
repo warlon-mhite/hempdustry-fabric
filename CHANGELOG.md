@@ -15,9 +15,9 @@ alone sees the fixes, the villagers and nothing else.
 
 ### Added
 
-- **Farmer villagers grow hemp.** A farmer holding indica or sativa seed plants it on the village farmland
-  and reaps the ripe plant whole, the way it farms wheat. The light and stress rules apply as in any field.
-  Beldía stays wild: it stands only on sand.
+- **Farmer villagers grow hemp.** A farmer picks indica and sativa seed up, plants it on the village
+  farmland and reaps the ripe plant whole, the way it farms wheat, on both loaders. The light and stress
+  rules apply as in any field. Beldía stays wild: it stands only on sand.
 - **Common tags other mods read**, in Forge's names and the newer `c:` ones: every hemp seed in
   `forge:seeds` and `c:seeds`, so other mods' presses make seed oil from it; hemp fibre in
   `forge:fiber_hemp` and `c:fiber_hemp`, so Immersive Engineering's hemp fabric, string and wire coils take

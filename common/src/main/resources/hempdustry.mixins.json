@@ -16,7 +16,8 @@
 		"LlamaAccessor",
 		"LlamaMixin",
 		"LootDataManagerMixin",
-		"RecipeManagerMixin"
+		"RecipeManagerMixin",
+		"VillagerSeedPickupMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
