@@ -12,7 +12,7 @@ actually been for over the last five thousand years.
 [![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
 [![Art & music](https://img.shields.io/badge/Art%20%26%20music-CC%20BY--NC--SA%204.0-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-**Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-fabric/releases)
+**Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-java/releases)
 
 **Needs:** [Forge](https://files.minecraftforge.net/) 36.2.39 or newer and nothing else; the download is
 `hempdustry-forge-…+1.16.5.jar`. JEI is optional, and with it the mod adds pages for its machines, for
