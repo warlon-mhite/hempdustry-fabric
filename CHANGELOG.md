@@ -9,6 +9,10 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
+Nothing yet — everything below shipped in 2.1.1+26.2.
+
+## [2.1.1+26.2] — 2026-11-13
+
 The first patch of 2.1 on Minecraft 26.2: hemp plants that hold up under other mods' harvesters,
 fertilisers and soils, farmer villagers who grow hemp, and two fixes.
 
@@ -861,7 +865,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.0%2B26.2...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.1%2B26.2...HEAD
+[2.1.1+26.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.1
 [2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
 [2.1.0]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
 [2.0.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.3
