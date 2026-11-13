@@ -892,10 +892,10 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B26.2...HEAD
-[2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
-[2.1.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
-[2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.3
-[2.0.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.2
-[2.0.1-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.1-beta
-[2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/beta
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.0%2B26.2...HEAD
+[2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
+[2.1.0]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
+[2.0.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.3
+[2.0.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.2
+[2.0.1-beta]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.1-beta
+[2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/beta
