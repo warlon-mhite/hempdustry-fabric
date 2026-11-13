@@ -152,7 +152,7 @@ publishing {
 			pom {
 				name = "Hempdustry"
 				description = "Minecraft for stoners and hemprepreneurs."
-				url = "https://github.com/warlon-mhite/hempdustry-fabric"
+				url = "https://github.com/warlon-mhite/hempdustry-java"
 				licenses {
 					license {
 						// Code and data only, as on Fabric.
