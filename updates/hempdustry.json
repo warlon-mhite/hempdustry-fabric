@@ -19,7 +19,7 @@
     "This file is hand-maintained, which is its one cost: bump it as part of cutting a release, or",
     "the checker is confidently wrong, which is worse than silent. It is a step in release.md."
   ],
-  "homepage": "https://github.com/warlon-mhite/hempdustry-fabric/releases",
+  "homepage": "https://github.com/warlon-mhite/hempdustry-java/releases",
   "promos": {
     "1.16.5-latest": "2.1.0+1.16.5",
     "1.16.5-recommended": "2.1.0+1.16.5",

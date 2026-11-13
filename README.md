@@ -109,7 +109,7 @@ at one it does not find.
 
 ```bash
 git clone -b 26.3-2.1 https://github.com/warlon-mhite/hempdustry-java.git
-cd hempdustry-fabric
+cd hempdustry-java
 ./gradlew build                  # both loaders' jars, in each module's build/libs/
 ./gradlew :fabric:runClient      # dev client, Fabric (JEI on the runtime; -Pviewer=rei or -Pviewer=none)
 ./gradlew :neoforge:runClient    # dev client, NeoForge
