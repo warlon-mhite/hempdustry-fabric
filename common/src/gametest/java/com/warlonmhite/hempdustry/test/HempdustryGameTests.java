@@ -84,6 +84,7 @@ public final class HempdustryGameTests {
         register("retired_slots_hand_back_their_items", InfuserPourGameTest::retiredSlotsHandBackTheirItems);
         register("every_coloured_bong_is_a_bong", GlassBongGameTest::everyColouredBongIsABong);
         register("every_packing_row_is_a_real_craft", ViewerGameTest::everyPackingRowIsARealCraft);
+        register("every_viewer_note_fits_its_page", ViewerGameTest::everyViewerNoteFitsItsPage);
         register("the_shipped_balance_is_the_built_in_one", BalanceGameTest::theShippedBalanceIsTheBuiltInOne);
         register("bong_stands_and_comes_back_whole", BongPlacementGameTest::bongStandsAndComesBackWhole);
         register("bong_is_drawn_not_clicked", BongRipGameTest::bongIsDrawnNotClicked);
@@ -301,6 +302,13 @@ public final class HempdustryGameTests {
         register("the_resistance_spread_is_the_agreed_table", ResistanceGameTest::theResistanceSpreadIsTheAgreedTable);
         register("every_strain_carries_its_resistance_profile", ResistanceGameTest::everyStrainCarriesItsResistanceProfile);
         register("a_plant_rolls_its_resistances_at_planting", ResistanceGameTest::aPlantRollsItsResistancesAtPlanting);
+        register("the_resin_steps_are_the_agreed_table", ResinGameTest::theResinStepsAreTheAgreedTable);
+        register("every_strain_carries_its_resin_sheet", ResinGameTest::everyStrainCarriesItsResinSheet);
+        register("a_plant_rolls_its_resin_at_planting", ResinGameTest::aPlantRollsItsResinAtPlanting);
+        register("a_harvest_hands_its_resin_to_the_buds", ResinGameTest::aHarvestHandsItsResinToTheBuds);
+        register("a_buds_resin_moves_the_sieve", ResinGameTest::aBudsResinMovesTheSieve);
+        register("a_plants_resin_moves_the_rub", ResinGameTest::aPlantsResinMovesTheRub);
+        register("a_jar_blends_resin", ResinGameTest::aJarBlendsResin);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

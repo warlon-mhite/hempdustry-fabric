@@ -5,6 +5,7 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.component.StashContents;
 import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
+import com.warlonmhite.hempdustry.strain.ResinStep;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.core.component.DataComponents;
@@ -209,8 +210,9 @@ public class StashJarItem extends BlockItem {
 
     /**
      * One entry as the tooltip lists it, what will come out and nothing else: "Purple Kush ×11: 3 Dank,
-     * 8 Mids", each stack's band where it is not Mid; an item that carries no tier just its count
-     * ("Schwag ×40"). Never a chemotype: the tooltip names what comes out, not what it does.
+     * 8 Mids", each stack's band where it is not Mid and its resin where it is not average; an item that
+     * carries no tier just its count ("Schwag ×40"). Never a chemotype: the tooltip names what comes out, not
+     * what it does.
      */
     public static Component entryLine(StashContents.Entry entry) {
         List<ItemStack> parts = entry.parts();
@@ -223,11 +225,23 @@ public class StashJarItem extends BlockItem {
                     what.append(", ");
                 }
                 PotencyBand band = PotencyBand.of(part);
+                ResinStep resin = ResinStep.of(part);
                 Component tier = Component.translatable(BudTier.of(part).getTranslationKey());
-                what.append(band == PotencyBand.MID
+                // What sets this stack apart besides its tier, in the order of a bud's own lines: the band where
+                // it is not Mid, the resin where it is not average.
+                MutableComponent marks = Component.empty();
+                if (band != PotencyBand.MID) {
+                    marks.append(Component.translatable(band.getTranslationKey()));
+                }
+                if (resin != ResinStep.AVERAGE) {
+                    if (band != PotencyBand.MID) {
+                        marks.append(", ");
+                    }
+                    marks.append(Component.translatable(resin.getTranslationKey()));
+                }
+                what.append(band == PotencyBand.MID && resin == ResinStep.AVERAGE
                         ? Component.translatable("item.hempdustry.stash_jar.part", part.getCount(), tier)
-                        : Component.translatable("item.hempdustry.stash_jar.part_band", part.getCount(), tier,
-                                Component.translatable(band.getTranslationKey())));
+                        : Component.translatable("item.hempdustry.stash_jar.part_band", part.getCount(), tier, marks));
             }
         } else {
             return Component.translatable("item.hempdustry.stash_jar.entry_plain", first.getHoverName(), entry.count());

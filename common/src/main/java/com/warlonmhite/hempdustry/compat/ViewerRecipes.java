@@ -86,6 +86,19 @@ public final class ViewerRecipes {
     public static final Identifier WORLD = Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "world");
 
     /**
+     * How many lines of notes a page of each category has room for. Both viewers ask a category for its height
+     * once and use it for every page, so the room is fixed per category, and a note past it is drawn over the
+     * next page: every entry's notes must fit (held by a game test over every category's rows).
+     */
+    private static final Map<Identifier, Integer> NOTE_LINES = Map.of(
+            DECARBOXYLATING, 1, INFUSING, 4, CAULDRON, 1, PRESSING, 2, SIFTING, 2, ICE_O_LATOR, 3, WORLD, 3);
+
+    /** The lines of notes a page of {@code category} has room for. */
+    public static int noteLines(Identifier category) {
+        return NOTE_LINES.getOrDefault(category, 1);
+    }
+
+    /**
      * One row in a viewer: what goes in, what comes out, and the lines of text that carry whatever
      * the slots cannot say.
      *
@@ -203,8 +216,13 @@ public final class ViewerRecipes {
         return new Entry(Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "sifting/" + name),
                 List.of(ofTag(world, input)),
                 new ItemStack(output, SiftingBoxBlock.YIELD),
-                List.of(Component.translatable("hempdustry.category.sifting.info",
-                        Math.round(SiftingBoxBlock.FULL_LEVEL / chance))),
+                // Buds sieve by their plant's resin, so their rows say so; leaves and kief carry none.
+                input == ModTags.Items.SIFTABLE_TRIM || input == ModTags.Items.SIFTABLE_KIEF
+                        ? List.of(Component.translatable("hempdustry.category.sifting.info",
+                                Math.round(SiftingBoxBlock.FULL_LEVEL / chance)))
+                        : List.of(Component.translatable("hempdustry.category.sifting.info",
+                                        Math.round(SiftingBoxBlock.FULL_LEVEL / chance)),
+                                Component.translatable("hempdustry.category.sifting.resin")),
                 true);
     }
 
@@ -237,7 +255,8 @@ public final class ViewerRecipes {
                 new ItemStack(ModItems.BUBBLE_HASH, SiftingBoxBlock.YIELD),
                 List.of(Component.translatable("hempdustry.category.ice_o_lator.jacket")
                                 .withStyle(ChatFormatting.DARK_GRAY),
-                        Component.translatable("hempdustry.category.ice_o_lator.info", budCount, leaves)),
+                        Component.translatable("hempdustry.category.ice_o_lator.info", budCount, leaves),
+                        Component.translatable("hempdustry.category.sifting.resin")),
                 true);
     }
 
@@ -307,7 +326,8 @@ public final class ViewerRecipes {
             out.add(inWorld("rubbing", List.of(plant, shears), new ItemStack(ModItems.CHARAS),
                     Component.translatable("hempdustry.category.world.rubbing", Defoliation.CHARAS_CHANCE_ONE_IN),
                     Component.translatable("hempdustry.category.world.rubbing.lamps",
-                            Defoliation.CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS)));
+                            Defoliation.CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS),
+                    Component.translatable("hempdustry.category.world.rubbing.resin")));
             out.add(inWorld("schwag", List.of(plant), new ItemStack(ModItems.SCHWAG),
                     Component.translatable("hempdustry.category.world.schwag"),
                     Component.translatable("hempdustry.category.world.schwag.fortune")));

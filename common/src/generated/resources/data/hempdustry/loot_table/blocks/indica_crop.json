@@ -13,6 +13,9 @@
     },
     {
       "type": "hempdustry:set_tier"
+    },
+    {
+      "type": "hempdustry:set_resin"
     }
   ],
   "pools": [

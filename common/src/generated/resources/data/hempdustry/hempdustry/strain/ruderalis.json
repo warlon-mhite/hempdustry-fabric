@@ -22,6 +22,12 @@
       "good": 18,
       "poor": 30
     },
+    "resin": {
+      "average": 25,
+      "low": 50,
+      "texture": "dry",
+      "very_low": 25
+    },
     "resistances": {
       "dry_ground": "resistant",
       "light": "very_resistant",

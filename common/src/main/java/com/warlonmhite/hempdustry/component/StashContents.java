@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.block.custom.stash.StashPieces;
 import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
+import com.warlonmhite.hempdustry.strain.ResinStep;
 import com.warlonmhite.hempdustry.util.ModTags;
 import io.netty.handler.codec.DecoderException;
 import net.minecraft.core.HolderLookup;
@@ -21,6 +22,7 @@ import net.minecraft.world.item.ItemStackTemplate;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -31,9 +33,10 @@ import java.util.function.Predicate;
  *
  * <h2>The jar blends</h2>
  *
- * Every bud of one strain is one {@link Entry}, whatever tier and potency band it came in: the entry keeps
- * how many buds there are and the exact sums of their tiers (Mids 0 to Epic 3) and bands (Low −1 to
- * Extra-High +2), and lays them out as evenly as whole steps allow ({@link Entry#parts}). So nothing is
+ * Every bud of one strain is one {@link Entry}, whatever tier, potency band and resin it came in: the entry
+ * keeps how many buds there are and the exact sums of their tiers (Mids 0 to Epic 3), bands (Low −1 to
+ * Extra-High +2) and resin steps (very low −2 to very rich +2), and lays them out as evenly as whole steps
+ * allow ({@link Entry#parts}). So nothing is
  * made or lost (the steps out add up to the steps in, and the oven bakes the same decarboxylated hemp from
  * them), nothing comes out past the best or the worst that went in, the order things went in does not
  * matter, and taking buds out and putting them back changes nothing. Strains never blend with each other
@@ -193,30 +196,36 @@ public final class StashContents {
 
     /**
      * One kind in a jar: {@code item} (count one) with every component that does not blend, and how many,
-     * with the exact sums of their tier ranks and band offsets.
+     * with the exact sums of their tier ranks, band offsets and resin offsets.
      *
      * <p>An entry <em>blends</em> when its item carries nothing but a chemotype: every bud and schwag a
      * plant gave. Its buds come out spread as evenly as whole steps allow: with {@code q = ⌊T / n⌋} and
      * {@code r = T − q·n}, {@code r} buds at tier {@code q + 1} and the rest at {@code q}, the same for
-     * bands, the best tier paired with the best band, so an entry holds at most two neighbouring tiers and
-     * two neighbouring bands, three different stacks at most. Taking any of those stacks out leaves the
-     * rest laid out the same way, with nothing to work out again. Any other entry is an exact stack: its
-     * item keeps its tier, band and everything else, and its sums only follow from them.
+     * bands and for resin, the best tier paired with the best band and the best resin, so an entry holds at
+     * most two neighbouring values of each, four different stacks at most. Taking any of those stacks out
+     * leaves the rest laid out the same way, with nothing to work out again. Any other entry is an exact
+     * stack: its item keeps its tier, band, resin and everything else, and its sums only follow from them.
      */
-    public record Entry(ItemStackTemplate item, int count, int tierSum, int bandSum) {
-        /** An absent sum reads Dank and Mid; an exact entry's sums are its item's own; a sum past the four tiers or bands is held to them. */
+    public record Entry(ItemStackTemplate item, int count, int tierSum, int bandSum, int resinSum) {
+        /**
+         * An absent sum reads Dank, Mid and the resin a bud with none written sieves as ({@link ResinStep#legacy});
+         * an exact entry's sums are its item's own; a sum past the steps is held to them.
+         */
         public static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ItemStackTemplate.CODEC.fieldOf("item").forGetter(Entry::item),
                 ExtraCodecs.POSITIVE_INT.fieldOf("count").forGetter(Entry::count),
                 Codec.INT.optionalFieldOf("tier_sum").forGetter(entry -> entry.blends() ? Optional.of(entry.tierSum) : Optional.empty()),
-                Codec.INT.optionalFieldOf("band_sum").forGetter(entry -> entry.blends() ? Optional.of(entry.bandSum) : Optional.empty())
-        ).apply(instance, (item, count, tier, band) -> of(item.withCount(1), count,
-                tier.orElse(count * BudTier.DANK.rank()), band.orElse(PotencyBand.MID.offset()))));
+                Codec.INT.optionalFieldOf("band_sum").forGetter(entry -> entry.blends() ? Optional.of(entry.bandSum) : Optional.empty()),
+                Codec.INT.optionalFieldOf("resin_sum").forGetter(entry -> entry.blends() ? Optional.of(entry.resinSum) : Optional.empty())
+        ).apply(instance, (item, count, tier, band, resin) -> of(item.withCount(1), count,
+                tier.orElse(count * BudTier.DANK.rank()), band.orElse(PotencyBand.MID.offset()),
+                resin.orElseGet(() -> count * ResinStep.legacy(item.withCount(1).create()).offset()))));
         public static final StreamCodec<RegistryFriendlyByteBuf, Entry> STREAM_CODEC = StreamCodec.composite(
                 ItemStackTemplate.STREAM_CODEC, Entry::item,
                 ByteBufCodecs.VAR_INT, Entry::count,
                 ByteBufCodecs.VAR_INT, Entry::tierSum,
                 ByteBufCodecs.VAR_INT, Entry::bandSum,
+                ByteBufCodecs.VAR_INT, Entry::resinSum,
                 Entry::fromWire);
 
         /**
@@ -224,26 +233,28 @@ public final class StashContents {
          * a creative client chooses the components of the stacks it sends, and an entry of no buds lays
          * out nothing to divide (a pipe reading its parts would stop the server).
          */
-        private static Entry fromWire(ItemStackTemplate item, int count, int tierSum, int bandSum) {
+        private static Entry fromWire(ItemStackTemplate item, int count, int tierSum, int bandSum, int resinSum) {
             if (count < 1) {
                 throw new DecoderException("A Stash Jar entry holds at least one item, not " + count);
             }
-            return of(item, count, tierSum, bandSum);
+            return of(item, count, tierSum, bandSum, resinSum);
         }
 
         /**
          * An entry with these values; an exact one takes its sums from its item, whatever was passed, and a
-         * blending one's sums are held between all Mids, Low and all Epic, Extra-High.
+         * blending one's sums are held between all Mids, Low, very low and all Epic, Extra-High, very rich.
          */
-        public static Entry of(ItemStackTemplate item, int count, int tierSum, int bandSum) {
+        public static Entry of(ItemStackTemplate item, int count, int tierSum, int bandSum, int resinSum) {
             ItemStackTemplate one = item.withCount(1);
             if (!blends(one)) {
                 ItemStack stack = one.create();
-                return new Entry(one, count, count * BudTier.of(stack).rank(), count * PotencyBand.of(stack).offset());
+                return new Entry(one, count, count * BudTier.of(stack).rank(), count * PotencyBand.of(stack).offset(),
+                        count * ResinStep.of(stack).offset());
             }
             return new Entry(one, count,
                     Mth.clamp(tierSum, count * BudTier.MIDS.rank(), count * BudTier.EPIC.rank()),
-                    Mth.clamp(bandSum, count * PotencyBand.LOW.offset(), count * PotencyBand.EXTRA_HIGH.offset()));
+                    Mth.clamp(bandSum, count * PotencyBand.LOW.offset(), count * PotencyBand.EXTRA_HIGH.offset()),
+                    Mth.clamp(resinSum, count * ResinStep.VERY_LOW.offset(), count * ResinStep.VERY_RICH.offset()));
         }
 
         /** Whether an entry of {@code item} blends: it carries no component but a chemotype. */
@@ -257,8 +268,8 @@ public final class StashContents {
         }
 
         /**
-         * The stacks this entry gives back, best first: the top tier with the top band. At most three for
-         * a blending entry, one for an exact one; each stack may pass its item's stack size.
+         * The stacks this entry gives back, best first: the top tier with the top band and the top resin. At
+         * most four for a blending entry, one for an exact one; each stack may pass its item's stack size.
          */
         public List<ItemStack> parts() {
             if (!blends()) {
@@ -268,19 +279,23 @@ public final class StashContents {
             int tierUp = tierSum - tier * count;
             int band = Math.floorDiv(bandSum, count);
             int bandUp = bandSum - band * count;
-            int first = Math.min(tierUp, bandUp);
-            int second = Math.max(tierUp, bandUp);
-            List<ItemStack> parts = new ArrayList<>(3);
-            addPart(parts, first, tier + 1, band + 1);
-            addPart(parts, second - first, tierUp > bandUp ? tier + 1 : tier, bandUp > tierUp ? band + 1 : band);
-            addPart(parts, count - second, tier, band);
-            return parts;
-        }
-
-        private void addPart(List<ItemStack> parts, int n, int tierRank, int bandOffset) {
-            if (n > 0) {
-                parts.add(stamped(item, n, BudTier.ofRank(tierRank), bandOf(bandOffset)));
+            int resin = Math.floorDiv(resinSum, count);
+            int resinUp = resinSum - resin * count;
+            // The first tierUp buds take the tier above, the first bandUp the band above, the first resinUp the
+            // resin above: cut the run of buds at each of those, and every piece between two cuts is one stack.
+            int[] cuts = {0, tierUp, bandUp, resinUp, count};
+            Arrays.sort(cuts);
+            List<ItemStack> parts = new ArrayList<>(4);
+            for (int i = 0; i + 1 < cuts.length; i++) {
+                int from = cuts[i];
+                int n = cuts[i + 1] - from;
+                if (n > 0) {
+                    parts.add(stamped(item, n, BudTier.ofRank(from < tierUp ? tier + 1 : tier),
+                            bandOf(from < bandUp ? band + 1 : band),
+                            ResinStep.ofOffset(from < resinUp ? resin + 1 : resin)));
+                }
             }
+            return parts;
         }
 
         /** The first stack out, as a grid shows it: the best buds, counted as the whole entry. */
@@ -290,7 +305,8 @@ public final class StashContents {
 
         /** This entry with {@code stack} added; {@code stack} must be of its kind ({@link #keyOf}). */
         private Entry plus(ItemStack stack, int n) {
-            return new Entry(item, count + n, tierSum + n * BudTier.of(stack).rank(), bandSum + n * PotencyBand.of(stack).offset());
+            return new Entry(item, count + n, tierSum + n * BudTier.of(stack).rank(), bandSum + n * PotencyBand.of(stack).offset(),
+                    resinSum + n * ResinStep.of(stack).offset());
         }
 
         /** This entry without {@code n} of {@code part}, one of its own parts; null once nothing is left. */
@@ -298,30 +314,33 @@ public final class StashContents {
             if (n >= count) {
                 return null;
             }
-            return new Entry(item, count - n, tierSum - n * BudTier.of(part).rank(), bandSum - n * PotencyBand.of(part).offset());
+            return new Entry(item, count - n, tierSum - n * BudTier.of(part).rank(), bandSum - n * PotencyBand.of(part).offset(),
+                    resinSum - n * ResinStep.of(part).offset());
         }
     }
 
     /**
      * The entry key {@code stack} files under: its item with its blending components set aside, when the
-     * stack is exactly what that key would give back at its tier and band; otherwise the stack itself,
+     * stack is exactly what that key would give back at its tier, band and resin; otherwise the stack itself,
      * kept exact.
      */
     static ItemStackTemplate keyOf(ItemStack stack) {
         DataComponentPatch rest = stack.getComponentsPatch().forget(type -> type == ModComponents.BUD_TIER
-                || type == ModComponents.POTENCY_BAND || type == DataComponents.RARITY);
+                || type == ModComponents.POTENCY_BAND || type == ModComponents.RESIN_STEP || type == DataComponents.RARITY);
         ItemStackTemplate key = new ItemStackTemplate(stack.typeHolder(), 1, rest);
         if (Entry.blends(key)
-                && ItemStack.isSameItemSameComponents(stamped(key, 1, BudTier.of(stack), PotencyBand.of(stack)), stack)) {
+                && ItemStack.isSameItemSameComponents(stamped(key, 1, BudTier.of(stack), PotencyBand.of(stack),
+                        ResinStep.of(stack)), stack)) {
             return key;
         }
         return ItemStackTemplate.fromNonEmptyStack(stack, 1);
     }
 
-    private static ItemStack stamped(ItemStackTemplate key, int n, BudTier tier, PotencyBand band) {
+    private static ItemStack stamped(ItemStackTemplate key, int n, BudTier tier, PotencyBand band, ResinStep resin) {
         ItemStack stack = key.create().copyWithCount(n);
         BudTier.stamp(stack, tier);
         PotencyBand.stamp(stack, band);
+        ResinStep.stamp(stack, resin);
         return stack;
     }
 
@@ -388,7 +407,7 @@ public final class StashContents {
                 }
             }
             if (entry == null) {
-                entry = Entry.of(key, 0, 0, 0).plus(stack, moving);
+                entry = Entry.of(key, 0, 0, 0, 0).plus(stack, moving);
             }
             entries.addFirst(entry);
             stack.shrink(moving);

@@ -44,6 +44,10 @@ public class ModLootEntryTypes {
     public static final MapCodec<SetTierFunction> SET_TIER = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE,
             Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "set_tier"), SetTierFunction.CODEC);
 
+    /** {@code hempdustry:set_resin}: a harvested bud takes its plant's resin step. */
+    public static final MapCodec<SetResinFunction> SET_RESIN = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE,
+            Identifier.fromNamespaceAndPath(Hempdustry.MOD_ID, "set_resin"), SetResinFunction.CODEC);
+
     public static void registerLootEntryTypes() {
         Hempdustry.LOGGER.info("Registering Loot Entry Types for " + Hempdustry.MOD_ID);
     }

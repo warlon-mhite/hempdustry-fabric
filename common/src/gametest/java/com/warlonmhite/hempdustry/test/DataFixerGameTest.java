@@ -334,7 +334,8 @@ public final class DataFixerGameTest {
                 "hempdustry:cbd_potency", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one",
                 "hempdustry:potency_band", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one",
                 "hempdustry:stash_contents", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one",
-                "hempdustry:bud_tier", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one"));
+                "hempdustry:bud_tier", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one",
+                "hempdustry:resin_step", "added in 2.2, after the 1.20.1 build: no 1.20.1 stack carries one"));
         context.succeed();
     }
 

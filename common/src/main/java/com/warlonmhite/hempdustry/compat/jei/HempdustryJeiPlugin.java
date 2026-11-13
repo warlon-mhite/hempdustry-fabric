@@ -102,20 +102,21 @@ public class HempdustryJeiPlugin implements IModPlugin {
         // The note-line counts are fixed per category rather than measured, because JEI asks for a
         // category's height once and uses it for every page in it.
         decarboxylating = new EntryJeiCategory(gui, ViewerRecipes.DECARBOXYLATING,
-                new ItemStack(ModBlocks.DECARBOXYLATOR), 1);
+                new ItemStack(ModBlocks.DECARBOXYLATOR), ViewerRecipes.noteLines(ViewerRecipes.DECARBOXYLATING));
         infusing = new EntryJeiCategory(gui, ViewerRecipes.INFUSING,
-                new ItemStack(ModBlocks.INFUSER), 4);
+                new ItemStack(ModBlocks.INFUSER), ViewerRecipes.noteLines(ViewerRecipes.INFUSING));
         cauldron = new EntryJeiCategory(gui, ViewerRecipes.CAULDRON,
-                new ItemStack(Blocks.WATER_CAULDRON), 1);
+                new ItemStack(Blocks.WATER_CAULDRON), ViewerRecipes.noteLines(ViewerRecipes.CAULDRON));
         pressing = new EntryJeiCategory(gui, ViewerRecipes.PRESSING,
-                new ItemStack(ModBlocks.HEMP_PRESS), 2);
+                new ItemStack(ModBlocks.HEMP_PRESS), ViewerRecipes.noteLines(ViewerRecipes.PRESSING));
         // Both of the Sifting Box's modes, catalysed by the same block. Two categories rather than
         // one because the water changes what comes out, and one page could not say that.
         sifting = new EntryJeiCategory(gui, ViewerRecipes.SIFTING,
-                new ItemStack(ModBlocks.SIFTING_BOX), 1);
+                new ItemStack(ModBlocks.SIFTING_BOX), ViewerRecipes.noteLines(ViewerRecipes.SIFTING));
         iceOLator = new EntryJeiCategory(gui, ViewerRecipes.ICE_O_LATOR,
-                new ItemStack(ModBlocks.SIFTING_BOX), 2);
-        world = new EntryJeiCategory(gui, ViewerRecipes.WORLD, new ItemStack(Items.SHEARS), 2);
+                new ItemStack(ModBlocks.SIFTING_BOX), ViewerRecipes.noteLines(ViewerRecipes.ICE_O_LATOR));
+        world = new EntryJeiCategory(gui, ViewerRecipes.WORLD, new ItemStack(Items.SHEARS),
+                ViewerRecipes.noteLines(ViewerRecipes.WORLD));
         registration.addRecipeCategories(decarboxylating, infusing, cauldron, pressing, sifting, iceOLator, world);
     }
 

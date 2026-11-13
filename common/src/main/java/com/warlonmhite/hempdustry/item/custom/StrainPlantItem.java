@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
+import com.warlonmhite.hempdustry.strain.ResinStep;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.strain.Terpene;
 import java.util.Optional;
@@ -62,13 +63,24 @@ public final class StrainPlantItem {
      */
     public static void appendProfile(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip,
                                      Optional<Chemotype> fallback, Optional<PotencyBand> band, Optional<BudTier> tier) {
+        appendProfile(stack, context, tooltip, fallback, band, Optional.empty(), tier);
+    }
+
+    /**
+     * As above, with {@code resin}'s line between the band's and the tier's: a bud names its plant's resin step,
+     * grey, unless it is average.
+     */
+    public static void appendProfile(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip,
+                                     Optional<Chemotype> fallback, Optional<PotencyBand> band, Optional<ResinStep> resin,
+                                     Optional<BudTier> tier) {
         Optional<Strain> strain = strainOf(stack.getItem(), context);
         Optional<Chemotype> chemotype = strain.map(Strain::chemotype).or(() -> fallback);
         chemotype.ifPresent(value -> tooltip.accept(value.tooltipLine()));
-        // Only the plant with nothing in it at all loses the line: a CBG-dominant bud's band is how much
-        // CBG it carries, so that one keeps it.
+        // Only the plant with nothing in it at all loses the lines: a CBG-dominant bud's band is how much
+        // CBG it carries, so that one keeps it. A cannabinoid-free bud has no resin worth the sieve either.
         if (chemotype.filter(value -> value == Chemotype.CANNABINOID_FREE).isEmpty()) {
             band.ifPresent(value -> tooltip.accept(value.tooltipLine()));
+            resin.flatMap(ResinStep::tooltipLine).ifPresent(tooltip);
         }
         tier.ifPresent(value -> tooltip.accept(value.tooltipLine()));
         HolderLookup.Provider registries = context.registries();
@@ -93,7 +105,7 @@ public final class StrainPlantItem {
                                     Consumer<Component> tooltip, TooltipFlag flag) {
             // Mid included: an unmarked bud is mid, and saying so tells it apart from a high one.
             appendProfile(stack, context, tooltip, Optional.empty(), Optional.of(PotencyBand.of(stack)),
-                    Optional.of(BudTier.of(stack)));
+                    Optional.of(ResinStep.of(stack)), Optional.of(BudTier.of(stack)));
             super.appendHoverText(stack, context, display, tooltip, flag);
         }
     }

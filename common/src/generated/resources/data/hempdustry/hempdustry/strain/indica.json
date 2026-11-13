@@ -15,6 +15,12 @@
   "flower": "hempdustry:indica_flower",
   "model_index": 1,
   "plant": {
+    "resin": {
+      "average": 25,
+      "low": 5,
+      "rich": 50,
+      "very_rich": 20
+    },
     "resistances": {
       "dry_ground": "neutral",
       "light": "neutral",

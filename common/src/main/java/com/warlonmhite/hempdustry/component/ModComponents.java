@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
+import com.warlonmhite.hempdustry.strain.ResinStep;
 import java.util.function.UnaryOperator;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -121,6 +122,15 @@ public class ModComponents {
      */
     public static final DataComponentType<BudTier> BUD_TIER = register("bud_tier",
             builder -> builder.persistent(BudTier.CODEC).networkSynchronized(BudTier.PACKET_CODEC));
+
+    /**
+     * The resin step of the plant a bud came from: how much more (or less) kief it sifts into. Absent is the step a
+     * bud sieved as before resin, average, or very rich for a bud in {@code #hempdustry:siftable/resinous}; that
+     * step is never written, so a new bud of it stacks with an old one. Nothing after the sieve carries it, and no
+     * prototype does. See {@link ResinStep}.
+     */
+    public static final DataComponentType<ResinStep> RESIN_STEP = register("resin_step",
+            builder -> builder.persistent(ResinStep.CODEC).networkSynchronized(ResinStep.PACKET_CODEC));
 
     /** What a Stash Jar holds, on the item and in the placed block's entity. See {@link StashContents}. */
     public static final DataComponentType<StashContents> STASH_CONTENTS = register("stash_contents",

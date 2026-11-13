@@ -173,7 +173,7 @@ import net.minecraft.world.level.block.Blocks;
  * @param jarColour       the colour of its buds' pistils in a Stash Jar, RGB, when it is not the strain's own
  *                        {@code color}: a strain whose colour would vanish on a green bud can name another
  * @param plant           what a plant of the strain rolls at planting beyond its band (see {@link Plant}): its
- *                        quality sheet and its resistance sheet, written in the file's {@code plant} object.
+ *                        quality sheet, its resistance sheet and its resin, written in the file's {@code plant} object.
  *                        {@link Plant#DEFAULT} when the file names none; read only for a plant
  */
 public record Strain(String translationKey, int color, int modelIndex,
@@ -195,19 +195,21 @@ public record Strain(String translationKey, int color, int modelIndex,
 
     /**
      * What a plant of a strain rolls at planting beyond its potency band, kept in the strain file's {@code plant}
-     * object: {@code "plant": {"quality": {...}, "resistances": {...}}}. Both keys are optional.
+     * object: {@code "plant": {"quality": {...}, "resistances": {...}, "resin": {...}}}. Every key is optional.
      *
      * @param quality     the base luck of its harvests and the odds of each quality gene (see {@link GrowQuality})
      * @param resistances the odds of each resistance step, per phenomenon (see {@link Resistances})
+     * @param resin       the odds of each resin step and the resin's texture (see {@link ResinSheet})
      */
-    public record Plant(GrowQuality quality, Resistances resistances) {
+    public record Plant(GrowQuality quality, Resistances resistances, ResinSheet resin) {
 
-        /** The default quality sheet and neutral on every phenomenon: a strain that names no {@code plant}. */
-        public static final Plant DEFAULT = new Plant(GrowQuality.DEFAULT, Resistances.DEFAULT);
+        /** The default quality sheet, neutral on every phenomenon and always average resin: a strain that names no {@code plant}. */
+        public static final Plant DEFAULT = new Plant(GrowQuality.DEFAULT, Resistances.DEFAULT, ResinSheet.DEFAULT);
 
         public static final Codec<Plant> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 GrowQuality.CODEC.optionalFieldOf("quality", GrowQuality.DEFAULT).forGetter(Plant::quality),
-                Resistances.CODEC.optionalFieldOf("resistances", Resistances.DEFAULT).forGetter(Plant::resistances)
+                Resistances.CODEC.optionalFieldOf("resistances", Resistances.DEFAULT).forGetter(Plant::resistances),
+                ResinSheet.CODEC.optionalFieldOf("resin", ResinSheet.DEFAULT).forGetter(Plant::resin)
         ).apply(instance, Plant::new));
 
         /** The {@code plant} object as a strain file carries it. */
@@ -222,6 +224,11 @@ public record Strain(String translationKey, int color, int modelIndex,
     /** A plant strain's resistance sheet: the odds of each resistance step a plant rolls, per phenomenon. */
     public Resistances resistances() {
         return plant.resistances();
+    }
+
+    /** A plant strain's resin: the odds of each resin step a plant rolls, and the texture that decides where a rich one pays. */
+    public ResinSheet resin() {
+        return plant.resin();
     }
 
     /** A strain with no jar colour of its own: the shape every strain had before {@code jar_colour}. */
@@ -329,14 +336,21 @@ public record Strain(String translationKey, int color, int modelIndex,
     public Strain withQuality(GrowQuality quality) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
                 smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour,
-                new Plant(quality, plant.resistances()));
+                new Plant(quality, plant.resistances(), plant.resin()));
     }
 
     /** This strain with {@code resistances} as its resistance sheet. */
     public Strain withResistances(Resistances resistances) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
                 smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour,
-                new Plant(plant.quality(), resistances));
+                new Plant(plant.quality(), resistances, plant.resin()));
+    }
+
+    /** This strain with {@code resin} as its resin sheet. */
+    public Strain withResin(ResinSheet resin) {
+        return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour,
+                new Plant(plant.quality(), plant.resistances(), resin));
     }
 
     /** The colour of its buds' pistils in a Stash Jar, RGB: its {@code jar_colour}, else its own {@link #color}. */

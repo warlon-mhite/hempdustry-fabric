@@ -56,13 +56,13 @@ public class HempdustryReiPlugin implements REIClientPlugin {
     public void registerCategories(CategoryRegistry registry) {
         // The note-line counts are fixed per category rather than measured, because REI asks for a
         // category's height once and uses it for every page in it.
-        add(registry, DECARBOXYLATING, ModBlocks.DECARBOXYLATOR, 1);
-        add(registry, INFUSING, ModBlocks.INFUSER, 4);
-        add(registry, CAULDRON, Blocks.WATER_CAULDRON, 1);
-        add(registry, PRESSING, ModBlocks.HEMP_PRESS, 2);
-        add(registry, SIFTING, ModBlocks.SIFTING_BOX, 1);
-        add(registry, ICE_O_LATOR, ModBlocks.SIFTING_BOX, 2);
-        add(registry, WORLD, Items.SHEARS, 2);
+        add(registry, DECARBOXYLATING, ModBlocks.DECARBOXYLATOR, ViewerRecipes.noteLines(ViewerRecipes.DECARBOXYLATING));
+        add(registry, INFUSING, ModBlocks.INFUSER, ViewerRecipes.noteLines(ViewerRecipes.INFUSING));
+        add(registry, CAULDRON, Blocks.WATER_CAULDRON, ViewerRecipes.noteLines(ViewerRecipes.CAULDRON));
+        add(registry, PRESSING, ModBlocks.HEMP_PRESS, ViewerRecipes.noteLines(ViewerRecipes.PRESSING));
+        add(registry, SIFTING, ModBlocks.SIFTING_BOX, ViewerRecipes.noteLines(ViewerRecipes.SIFTING));
+        add(registry, ICE_O_LATOR, ModBlocks.SIFTING_BOX, ViewerRecipes.noteLines(ViewerRecipes.ICE_O_LATOR));
+        add(registry, WORLD, Items.SHEARS, ViewerRecipes.noteLines(ViewerRecipes.WORLD));
 
         // The block you stand in front of to do the thing. REI draws these beside the category and
         // lets a player click one to get here from the item.

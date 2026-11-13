@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.datagen;
 
 import com.warlonmhite.hempdustry.loot.SetChemotypeFunction;
 import com.warlonmhite.hempdustry.loot.SetPotencyFunction;
+import com.warlonmhite.hempdustry.loot.SetResinFunction;
 import com.warlonmhite.hempdustry.loot.SetTierFunction;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.ModStrains;
@@ -269,27 +270,33 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
 
         add(ModBlocks.INDICA_CROP, indicaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.INDICA))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
         add(ModBlocks.BELDIA_CROP, beldiaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.BELDIA))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
         add(ModBlocks.INDICA_FLOWER, indicaFlowerDrops());
         add(ModBlocks.CHERRY_WINE_FLOWER, wildFlowerDrops(ModBlocks.CHERRY_WINE_FLOWER, ModItems.CHERRY_WINE_SEEDS));
         add(ModBlocks.CHERRY_WINE_CROP, cherryWineCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.CHERRY_WINE))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
         // Open or closed, the same drop: the flower's hours are its look, never its loot.
         add(ModBlocks.WHITE_WIDOW_FLOWER, wildFlowerDrops(ModBlocks.WHITE_WIDOW_FLOWER, ModItems.WHITE_WIDOW_SEEDS));
         add(ModBlocks.WHITE_WIDOW_CROP, whiteWidowCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.WHITE_WIDOW))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
         add(ModBlocks.DUD_WEED_CROP, dudWeedCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.DUD_WEED))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
 
         add(ModBlocks.SATIVA_CROP, sativaCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.SATIVA))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
         add(ModBlocks.SATIVA_FLOWER, sativaFlowerDrops());
         // The pot and the plant back, as every vanilla potted plant gives. Copying a potted allium's
         // settings does not bring its table along -- a block reads the table under its own id -- so
@@ -306,19 +313,23 @@ public class ModLootTableProvider extends FabricBlockLootSubProvider {
 
         add(ModBlocks.WARPED_KUSH_CROP, warpedKushCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.WARPED_KUSH))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
 
         add(ModBlocks.RUDERALIS_CROP, ruderalisCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.RUDERALIS))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
 
         add(ModBlocks.CRIMSON_CROP, crimsonCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.CRIMSON))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
 
         add(ModBlocks.ENDER_HAZE_CROP, enderHazeCropDrops().apply(SetChemotypeFunction.ofStrain(ModStrains.ENDER_HAZE))
                 .apply(SetPotencyFunction.setPotency())
-                .apply(SetTierFunction.setTier()));
+                .apply(SetTierFunction.setTier())
+                .apply(SetResinFunction.setResin()));
     }
 
     /**

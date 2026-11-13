@@ -30,6 +30,13 @@
       "good": 30,
       "poor": 15
     },
+    "resin": {
+      "average": 50,
+      "low": 25,
+      "rich": 15,
+      "very_low": 5,
+      "very_rich": 5
+    },
     "resistances": {
       "dry_ground": "neutral",
       "light": "resistant",

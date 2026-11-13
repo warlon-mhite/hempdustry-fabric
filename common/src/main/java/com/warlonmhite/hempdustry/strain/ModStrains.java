@@ -229,7 +229,8 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.RESISTANCE, 0, true),
                         new SmokeEffect(MobEffects.HUNGER, 0, true),
                         new SmokeEffect(MobEffects.MINING_FATIGUE, 0, true))).withTerpene(Terpene.LINALOOL)
-                .withResistances(Resistances.of(Resistance.NEUTRAL, Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.WEAK)));
+                .withResistances(Resistances.of(Resistance.NEUTRAL, Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.WEAK))
+                .withResin(new ResinSheet(0, 5, 25, 50, 20, ResinTexture.EVEN)));
 
         // Lemon Haze — the head high, and a deliberate mirror of Purple Kush: where indica buffs
         // defence and taxes mining, sativa buffs movement and mining and taxes melee damage. Hunger
@@ -244,10 +245,12 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.HUNGER, 0, true),
                         new SmokeEffect(MobEffects.WEAKNESS, 0, true))).withTerpene(Terpene.LIMONENE)
                 .withQuality(new GrowQuality(0, 25, 50, 20, 5))
-                .withResistances(Resistances.of(Resistance.RESISTANT, Resistance.WEAK, Resistance.NEUTRAL, Resistance.RESISTANT)));
+                .withResistances(Resistances.of(Resistance.RESISTANT, Resistance.WEAK, Resistance.NEUTRAL, Resistance.RESISTANT))
+                .withResin(new ResinSheet(10, 40, 40, 10, 0, ResinTexture.EVEN)));
 
         // Beldía -- the Rif's traditional landrace ("of the country" in Darija), grown for the sieve
-        // rather than the bowl: its buds count double at the Sifting Box, and its flower smokes harsh.
+        // rather than the bowl: its plants are nearly all very rich in dry resin, so its buds count about
+        // double at the Sifting Box, and its flower smokes harsh.
         //
         // "MIRAGE". INVISIBILITY is the signature, flat because a level buys nothing. BLINDNESS is the
         // tax -- streaming eyes from leafy, unfiltered smoke -- and it lands with the exhale, for a
@@ -274,14 +277,15 @@ public class ModStrains {
                 .withPotency(Potency.odds(30, 50, 20, 0))
                 // Base luck -1: a hardy landrace grown for its kief, not its flower.
                 .withQuality(new GrowQuality(-1, 25, 50, 20, 5))
-                .withResistances(Resistances.of(Resistance.VERY_RESISTANT, Resistance.WEAK, Resistance.NEUTRAL, Resistance.RESISTANT)));
+                .withResistances(Resistances.of(Resistance.VERY_RESISTANT, Resistance.WEAK, Resistance.NEUTRAL, Resistance.RESISTANT))
+                .withResin(new ResinSheet(0, 0, 0, 20, 80, ResinTexture.DRY)));
         // Warped Kush -- the Nether's plant, after Blueberry and Blue Dream, and a strain that
         // literally gets you high.
         //
         // FIRE RESISTANCE is the signature, flat because vanilla gives its level II nothing more. The
         // grounding is the plant's own: cannabinoids are first of all a protective system against
         // radiation and heat for the flower's tissue, and a plant that grew up beside lava would carry
-        // a lot of it -- which is also why it rubs charas at 1-in-2. Weighed against vanilla, it is
+        // a lot of it -- which is also why it is rich in sticky resin and rubs charas at nearly 1-in-2. Weighed against vanilla, it is
         // weaker per unit than brewing (one magma cream is three eight-minute potions; a bong bud is
         // about 200 s). What it sells is convenience -- buds stack to 64, potions to one -- and it
         // skips no gate, because it has to be grown from the Nether.
@@ -302,7 +306,8 @@ public class ModStrains {
                 .withPotency(Potency.odds(20, 50, 25, 5))
                 // Base luck +2 stands in for the light record and the Hydro Tray it can never take.
                 .withQuality(new GrowQuality(2, 15, 50, 25, 10))
-                .withResistances(Resistances.of(Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.VERY_RESISTANT, Resistance.NEUTRAL)));
+                .withResistances(Resistances.of(Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.VERY_RESISTANT, Resistance.NEUTRAL))
+                .withResin(new ResinSheet(0, 0, 10, 30, 60, ResinTexture.STICKY)));
 
         // Ruderalis -- the feral ancestor, and the lucky one.
         //
@@ -332,7 +337,8 @@ public class ModStrains {
                 .withPotency(Potency.odds(50, 40, 10, 0))
                 // Reliable, not good: it takes no care luck, so it is never Epic in plain survival.
                 .withQuality(new GrowQuality(0, 30, 50, 18, 2))
-                .withResistances(Resistances.of(Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.VERY_RESISTANT, Resistance.NEUTRAL)));
+                .withResistances(Resistances.of(Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.VERY_RESISTANT, Resistance.NEUTRAL))
+                .withResin(new ResinSheet(25, 50, 25, 0, 0, ResinTexture.DRY)));
 
         // Crimson Weed -- the crimson forest's plant, Warped Kush's opposite number.
         //
@@ -358,7 +364,8 @@ public class ModStrains {
                 .withPotency(Potency.odds(20, 50, 25, 5))
                 // As Warped Kush: +2 for the light record and the tray it can never take.
                 .withQuality(new GrowQuality(2, 15, 50, 25, 10))
-                .withResistances(Resistances.of(Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.VERY_RESISTANT, Resistance.WEAK)));
+                .withResistances(Resistances.of(Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.VERY_RESISTANT, Resistance.WEAK))
+                .withResin(new ResinSheet(0, 0, 20, 50, 30, ResinTexture.STICKY)));
 
         // Ender Haze -- the End's plant, and the second Haze: Speed is the family's, as Hunger is
         // everyone's.
@@ -390,7 +397,8 @@ public class ModStrains {
                 1.0F, Chemotype.BALANCED).withTerpene(Terpene.TERPINOLENE)
                 .withPotency(Potency.odds(28, 50, 20, 2))
                 .withQuality(new GrowQuality(0, 15, 45, 30, 10))
-                .withResistances(Resistances.of(Resistance.NEUTRAL, Resistance.WEAK, Resistance.RESISTANT, Resistance.RESISTANT)));
+                .withResistances(Resistances.of(Resistance.NEUTRAL, Resistance.WEAK, Resistance.RESISTANT, Resistance.RESISTANT))
+                .withResin(new ResinSheet(5, 25, 50, 15, 5, ResinTexture.EVEN)));
 
         // Cherry Wine -- the CBD plant, a real high-CBD cultivar bred from hemp for its flower, and the
         // first strain whose smoke carries CBD-labelled effects only.
@@ -415,7 +423,8 @@ public class ModStrains {
                         new SmokeEffect(MobEffects.SLOWNESS, 0, EffectLabel.CBD, 1.0F, false, 1.0F, SmokeEffect.NO_CAP)),
                 1.0F, Chemotype.CBD_DOMINANT).withTerpene(Terpene.GERANIOL)
                 .withPotency(Potency.odds(40, 50, 10, 0))
-                .withResistances(Resistances.of(Resistance.NEUTRAL, Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.WEAK)));
+                .withResistances(Resistances.of(Resistance.NEUTRAL, Resistance.RESISTANT, Resistance.NEUTRAL, Resistance.WEAK))
+                .withResin(new ResinSheet(0, 10, 30, 45, 15, ResinTexture.EVEN)));
 
         // White Widow -- the pale garden's plant, and the resin strain: the real cultivar is named
         // for the white frost of trichomes on its buds, and the pale garden is vanilla's resin garden.
@@ -442,7 +451,8 @@ public class ModStrains {
                 1.0F, Chemotype.THC_DOMINANT).withTerpene(Terpene.NEROLIDOL)
                 .withPotency(Potency.odds(20, 50, 25, 5))
                 .withQuality(new GrowQuality(0, 18, 48, 28, 6))
-                .withResistances(Resistances.of(Resistance.NEUTRAL, Resistance.NEUTRAL, Resistance.VERY_WEAK, Resistance.NEUTRAL)));
+                .withResistances(Resistances.of(Resistance.NEUTRAL, Resistance.NEUTRAL, Resistance.VERY_WEAK, Resistance.NEUTRAL))
+                .withResin(new ResinSheet(0, 0, 15, 50, 35, ResinTexture.STICKY)));
 
         // Dud Weed -- the cannabinoid-free plant. Real cannabinoid-free lines were bred out of fibre
         // hemp (de Meijer et al. 2009), and the trait is recessive, so it turns up in a hemp field
@@ -464,7 +474,8 @@ public class ModStrains {
                 1.0F, Chemotype.CANNABINOID_FREE).withTerpene(Terpene.HUMULENE)
                 .withPotency(Potency.odds(60, 40, 0, 0))
                 .withQuality(new GrowQuality(0, 30, 50, 18, 2))
-                .withResistances(Resistances.of(Resistance.VERY_RESISTANT, Resistance.VERY_RESISTANT, Resistance.RESISTANT, Resistance.VERY_RESISTANT)));
+                .withResistances(Resistances.of(Resistance.VERY_RESISTANT, Resistance.VERY_RESISTANT, Resistance.RESISTANT, Resistance.VERY_RESISTANT))
+                .withResin(new ResinSheet(80, 12, 8, 0, 0, ResinTexture.EVEN)));
 
         // Hashish -- strainless by construction. Sifting keeps the trichome heads and throws the
         // plant away, and a trichome head is a trichome head whichever plant grew it. Its identity

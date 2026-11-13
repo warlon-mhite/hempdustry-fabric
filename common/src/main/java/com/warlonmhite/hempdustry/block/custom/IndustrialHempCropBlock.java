@@ -2,6 +2,8 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.platform.Services;
+import com.warlonmhite.hempdustry.strain.ResinSheet;
+import com.warlonmhite.hempdustry.strain.ResinTexture;
 import com.warlonmhite.hempdustry.strain.Resistance;
 import com.warlonmhite.hempdustry.strain.Resistances;
 import net.minecraft.core.BlockPos;
@@ -46,6 +48,13 @@ public class IndustrialHempCropBlock extends SativaCropBlock {
      */
     public static final Resistances RESISTANCES = Resistances.of(Resistance.RESISTANT, Resistance.RESISTANT,
             Resistance.RESISTANT, Resistance.NEUTRAL);
+
+    /**
+     * Fibre hemp's resin: the fewest trichomes of any plant, nearly every plant very low (fewer still than Dud Weed,
+     * which it throws as a sport). It grows no bud and is never rubbed, so nothing reads the step it rolls; like its
+     * resistances, it is what it passes on.
+     */
+    public static final ResinSheet RESIN = new ResinSheet(92, 5, 3, 0, 0, ResinTexture.EVEN);
 
     private static final float GROWTH_RESISTANCE = 25.0F;
 

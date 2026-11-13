@@ -8,7 +8,9 @@ import com.warlonmhite.hempdustry.recipe.PackingRecipe;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -68,6 +70,37 @@ public final class ViewerGameTest {
         context.assertFalse(rows.getFirst().output().getOrDefault(ModComponents.SMOKE_CONTENTS, SmokeContents.EMPTY)
                         .entries().getFirst().strain().value().wildFlower().isEmpty(),
                 "the packing rows open on a strain that never grew on a plant");
+        context.succeed();
+    }
+
+    /**
+     * Every viewer page's notes fit the room its category has for them. Both viewers size a category once, for
+     * every page in it, so a note past the room is drawn over the next page: the resin line on the sifting,
+     * wash and rubbing pages did that until their room was counted here.
+     */
+    public static void everyViewerNoteFitsItsPage(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        Map<Identifier, List<ViewerRecipes.Entry>> pages = Map.of(
+                ViewerRecipes.DECARBOXYLATING, ViewerRecipes.decarboxylating(world),
+                ViewerRecipes.INFUSING, ViewerRecipes.infusing(world),
+                ViewerRecipes.PRESSING, ViewerRecipes.pressing(world),
+                ViewerRecipes.CAULDRON, ViewerRecipes.cauldron(),
+                ViewerRecipes.SIFTING, ViewerRecipes.sifting(world),
+                ViewerRecipes.ICE_O_LATOR, ViewerRecipes.iceOLator(world),
+                ViewerRecipes.WORLD, ViewerRecipes.world(world));
+        List<String> over = new ArrayList<>();
+        int seen = 0;
+        for (Map.Entry<Identifier, List<ViewerRecipes.Entry>> page : pages.entrySet()) {
+            int room = ViewerRecipes.noteLines(page.getKey());
+            for (ViewerRecipes.Entry entry : page.getValue()) {
+                seen++;
+                if (entry.notes().size() > room) {
+                    over.add(entry.id() + ": " + entry.notes().size() + " lines, room for " + room);
+                }
+            }
+        }
+        context.assertTrue(seen >= 20, "only " + seen + " viewer rows to measure");
+        context.assertTrue(over.isEmpty(), "viewer notes past their page's room: " + over);
         context.succeed();
     }
 }

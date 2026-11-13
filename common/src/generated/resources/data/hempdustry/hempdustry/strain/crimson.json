@@ -21,6 +21,12 @@
       "elite": 10,
       "poor": 15
     },
+    "resin": {
+      "average": 20,
+      "rich": 50,
+      "texture": "sticky",
+      "very_rich": 30
+    },
     "resistances": {
       "dry_ground": "resistant",
       "light": "very_resistant",

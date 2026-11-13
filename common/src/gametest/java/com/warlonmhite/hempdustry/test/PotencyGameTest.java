@@ -18,6 +18,7 @@ import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.ModStrains;
 import com.warlonmhite.hempdustry.strain.Potency;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
+import com.warlonmhite.hempdustry.strain.ResinStep;
 import com.warlonmhite.hempdustry.strain.Strain;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -223,6 +224,9 @@ public final class PotencyGameTest {
         BlockState ripe = ripe(ModBlocks.INDICA_CROP, IndicaCropBlock.MAX_AGE);
         world.setBlock(pos, ripe, Block.UPDATE_CLIENTS);
         PlantRecordBlockEntity record = record(context, pos);
+        // An average plant writes no resin on its buds, so a mid bud here is the plain one 2.1 made (ResinGameTest
+        // holds the resin).
+        record.setResin(ResinStep.AVERAGE);
 
         Random seeds = new Random(20261109L);
         for (int roll = 0; roll < 20; roll++) {

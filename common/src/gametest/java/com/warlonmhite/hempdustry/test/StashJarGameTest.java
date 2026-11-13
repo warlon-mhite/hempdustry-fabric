@@ -498,6 +498,7 @@ public final class StashJarGameTest {
             ByteBufCodecs.VAR_INT.encode(wire, count);
             ByteBufCodecs.VAR_INT.encode(wire, count);
             ByteBufCodecs.VAR_INT.encode(wire, 0);
+            ByteBufCodecs.VAR_INT.encode(wire, 0);
             StashContents.Entry read = null;
             try {
                 read = StashContents.Entry.STREAM_CODEC.decode(wire);

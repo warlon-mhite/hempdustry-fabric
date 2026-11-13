@@ -8,6 +8,9 @@ import com.warlonmhite.hempdustry.strain.GrowQuality;
 import com.warlonmhite.hempdustry.strain.Potency;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.QualityGene;
+import com.warlonmhite.hempdustry.strain.ResinSheet;
+import com.warlonmhite.hempdustry.strain.ResinStep;
+import com.warlonmhite.hempdustry.strain.ResinTexture;
 import com.warlonmhite.hempdustry.strain.ResistanceGenes;
 import com.warlonmhite.hempdustry.strain.Resistances;
 import com.warlonmhite.hempdustry.strain.Strain;
@@ -27,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * What one plant carries from planting to harvest beyond its block state: its potency band, its quality
- * gene, its four resistances and whether it has grown under open sky. Sits on the plant's root only (the
+ * gene, its four resistances, its resin and whether it has grown under open sky. Sits on the plant's root only (the
  * block that carries its age), on every crop that grows buds and on Industrial Hemp.
  *
  * <h2>Why a block entity, and not more state</h2>
@@ -46,10 +49,10 @@ import org.jetbrains.annotations.Nullable;
  * in place, by a harvester that replants, is a new plant: its crop {@link #replant replants} the record,
  * which rolls again.
  *
- * <p>Industrial Hemp grows no bud: its record rolls its resistances, from its own sheet
- * ({@link IndustrialHempCropBlock#RESISTANCES}, since it is no strain), and no band and no gene; its band
- * reads mid. Nothing in its life reads the resistances yet (it is never stressed and never catches mildew);
- * they are what it will pass on.
+ * <p>Industrial Hemp grows no bud: its record rolls its resistances and its resin, from its own sheets
+ * ({@link IndustrialHempCropBlock#RESISTANCES}, {@link IndustrialHempCropBlock#RESIN}, since it is no strain),
+ * and no band and no gene; its band reads mid. Nothing in its life reads them yet (it is never stressed, never
+ * catches mildew and is never rubbed); they are what it will pass on.
  *
  * <h2>Resistances</h2>
  *
@@ -60,6 +63,12 @@ import org.jetbrains.annotations.Nullable;
  * <p>The draw is on a random of its own: never the loot table's, so a harvest rolls exactly the
  * numbers it always did (a loot entry taking a variable number of draws shifts every pool after it),
  * and never the world's, since a record can join a chunk on a world-generation thread.
+ *
+ * <h2>Resin</h2>
+ *
+ * One step ({@link ResinStep}), rolled like the others from the strain's odds ({@link ResinSheet}). The harvest
+ * hands it to the buds ({@code hempdustry:set_resin}) and the rub reads it off the living plant
+ * ({@link #resinAt}). A plant with no record rubs and gives buds as before resin.
  *
  * <h2>Open sky</h2>
  *
@@ -82,11 +91,13 @@ public class PlantRecordBlockEntity extends BlockEntity {
     private static final String QUALITY_KEY = "quality";
     private static final String OPEN_SKY_KEY = "open_sky";
     private static final String RESISTANCES_KEY = "resistances";
+    private static final String RESIN_KEY = "resin";
 
     private @Nullable PotencyBand band;
     private @Nullable QualityGene gene;
     private @Nullable Boolean openSky;
     private @Nullable ResistanceGenes resistances;
+    private @Nullable ResinStep resin;
     private WeakReference<Object> harvest = new WeakReference<>(null);
     private @Nullable BudTier harvestTier;
 
@@ -131,7 +142,7 @@ public class PlantRecordBlockEntity extends BlockEntity {
             return;
         }
         boolean buds = growsBuds(getBlockState());
-        if (buds && (band == null || gene == null) || resistances == null) {
+        if (buds && (band == null || gene == null) || resistances == null || resin == null) {
             if (buds && band == null) {
                 band = potencyOf(level, getBlockState()).roll(RandomSource.create());
             }
@@ -140,6 +151,9 @@ public class PlantRecordBlockEntity extends BlockEntity {
             }
             if (resistances == null) {
                 resistances = resistancesOf(level, getBlockState()).roll(RandomSource.create());
+            }
+            if (resin == null) {
+                resin = resinOf(level, getBlockState()).roll(RandomSource.create());
             }
             setChanged();
         }
@@ -151,6 +165,7 @@ public class PlantRecordBlockEntity extends BlockEntity {
         band = buds ? potencyOf(level, getBlockState()).roll(RandomSource.create()) : null;
         gene = buds ? qualityOf(level, getBlockState()).roll(RandomSource.create()) : null;
         resistances = resistancesOf(level, getBlockState()).roll(RandomSource.create());
+        resin = resinOf(level, getBlockState()).roll(RandomSource.create());
         openSky = null;
         harvestTier = null;
         harvest = new WeakReference<>(null);
@@ -197,6 +212,26 @@ public class PlantRecordBlockEntity extends BlockEntity {
     /** Sets the resistances outright: what a test or a command does. */
     public void setResistances(@Nullable ResistanceGenes resistances) {
         this.resistances = resistances;
+        setChanged();
+    }
+
+    /** The resin step, if this plant has rolled it yet. */
+    public Optional<ResinStep> rolledResin() {
+        return Optional.ofNullable(resin);
+    }
+
+    /** This plant's resin step, rolled now from its strain's odds if it has none yet. */
+    public ResinStep resin() {
+        if (resin == null) {
+            resin = resinOf(level, getBlockState()).roll(RandomSource.create());
+            setChanged();
+        }
+        return resin;
+    }
+
+    /** Sets the resin step outright: what a test or a command does. */
+    public void setResin(@Nullable ResinStep resin) {
+        this.resin = resin;
         setChanged();
     }
 
@@ -280,6 +315,38 @@ public class PlantRecordBlockEntity extends BlockEntity {
                 .orElse(Resistances.DEFAULT);
     }
 
+    /**
+     * The resin sheet of the plant {@code state} is: Industrial Hemp's own, else its strain's, always average with
+     * none.
+     */
+    public static ResinSheet resinOf(@Nullable Level level, BlockState state) {
+        if (state.getBlock() instanceof IndustrialHempCropBlock) {
+            return IndustrialHempCropBlock.RESIN;
+        }
+        if (level == null) {
+            return ResinSheet.DEFAULT;
+        }
+        return Strain.ofPlant(state.getBlock(), level.registryAccess())
+                .map(Holder::value)
+                .map(Strain::resin)
+                .orElse(ResinSheet.DEFAULT);
+    }
+
+    /** The resin texture of the plant {@code state} is, even with none to ask. */
+    public static ResinTexture textureOf(@Nullable Level level, BlockState state) {
+        return resinOf(level, state).texture();
+    }
+
+    /**
+     * The resin step of the plant whose root is at {@code rootPos}; empty where there is no record to ask, or on a
+     * client, where none is rolled.
+     */
+    public static Optional<ResinStep> resinAt(Level level, BlockPos rootPos) {
+        return !level.isClientSide() && level.getBlockEntity(rootPos) instanceof PlantRecordBlockEntity record
+                ? Optional.of(record.resin())
+                : Optional.empty();
+    }
+
     /** Whether the plant {@code state} is grows buds, and so rolls a band and a gene: all but Industrial Hemp. */
     private static boolean growsBuds(BlockState state) {
         return !(state.getBlock() instanceof IndustrialHempCropBlock);
@@ -327,6 +394,7 @@ public class PlantRecordBlockEntity extends BlockEntity {
         gene = view.read(QUALITY_KEY, QualityGene.CODEC).orElse(null);
         openSky = view.read(OPEN_SKY_KEY, Codec.BOOL).orElse(null);
         resistances = view.read(RESISTANCES_KEY, ResistanceGenes.CODEC).orElse(null);
+        resin = view.read(RESIN_KEY, ResinStep.CODEC).orElse(null);
     }
 
     @Override
@@ -343,6 +411,9 @@ public class PlantRecordBlockEntity extends BlockEntity {
         }
         if (resistances != null) {
             view.store(RESISTANCES_KEY, ResistanceGenes.CODEC, resistances);
+        }
+        if (resin != null) {
+            view.store(RESIN_KEY, ResinStep.CODEC, resin);
         }
     }
 }

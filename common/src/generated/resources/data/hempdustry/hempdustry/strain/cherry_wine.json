@@ -18,6 +18,12 @@
   "green_out_factor": 0.0,
   "model_index": 12,
   "plant": {
+    "resin": {
+      "average": 30,
+      "low": 10,
+      "rich": 45,
+      "very_rich": 15
+    },
     "resistances": {
       "dry_ground": "neutral",
       "light": "neutral",

@@ -4,9 +4,14 @@ import com.warlonmhite.hempdustry.block.entity.custom.SiftingBoxBlockEntity;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.Chemotype;
+import com.warlonmhite.hempdustry.strain.ResinStep;
+import com.warlonmhite.hempdustry.strain.ResinTexture;
+import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -184,8 +189,10 @@ public class SiftingBoxBlock extends Block implements EntityBlock {
     public static final float FLOWER_CHANCE = 1.0F;
 
     /**
-     * What one <b>resinous</b> bud moves the screen: <b>two levels</b>, so 4 buds a batch against 7.
-     * Beldía, the Rif landrace grown for the sieve, is the one in {@code #hempdustry:siftable/resinous}.
+     * What one <b>resinous</b> bud with no resin step written on it moves the screen: <b>two levels</b>, so 4
+     * buds a batch against 7. Beldía, the Rif landrace grown for the sieve, is the one in
+     * {@code #hempdustry:siftable/resinous}. A bud that carries its plant's step sieves by the step instead
+     * ({@link #sieveChance}); two levels is a very rich dry plant's, the step a Beldía bud with none reads as.
      *
      * <p>The kief is the same kief — a hash is named by its process, never its strain. The plant just
      * gets there on fewer buds, and the jacket's rate multiplies this exactly as it does a bud, so
@@ -311,7 +318,7 @@ public class SiftingBoxBlock extends Block implements EntityBlock {
         // Cannabinoid-free matter carries no resin worth the screen: the box takes nothing from it,
         // silently, as it takes nothing from a stick.
         Content content = chemotype == Chemotype.CANNABINOID_FREE ? null : contentOf(stack);
-        float chance = sieveChance(stack) * rate(world, pos, state);
+        float chance = sieveChance(stack, world.registryAccess()) * rate(world, pos, state);
         // THC, balanced and CBD matter mix by dosage; CBG-dominant matter has no share to mix by, so it
         // sifts only with its own kind.
         Chemotype batchChemotype = chemotypeOf(world, pos, state);
@@ -490,12 +497,23 @@ public class SiftingBoxBlock extends Block implements EntityBlock {
      * third strain's buds are siftable the day the strain exists and a datapack can widen either
      * side without touching code.
      *
+     * <p><b>A bud's resin moves its rate</b>: a bud that carries its plant's step ({@link ResinStep}) moves the
+     * screen {@link #FLOWER_CHANCE} times the step's sieve factor for its strain's texture, ×0.5 for a very low
+     * plant up to ×2 for a very rich dry one. A bud with no step written on it sieves as every bud did before
+     * resin: by the two tags. Leaves and kief carry no step.
+     *
      * <p>There is no third rate for resin any more. <b>The box does not re-sift resin</b>: the ice
      * wash replaced that pass, and it is the honest version of it — what a further sieve buys is
      * cleanliness, which is exactly what the wash buys. Kief is another matter: a dry box re-sifts
      * it into filtered kief at {@link #KIEF_CHANCE}.
      */
-    private static float sieveChance(ItemStack stack) {
+    public static float sieveChance(ItemStack stack, HolderLookup.Provider registries) {
+        if (stack.is(ModTags.Items.SIFTABLE_RESINOUS) || stack.is(ModTags.Items.SIFTABLE_FLOWER)) {
+            ResinStep step = ResinStep.written(stack).orElse(null);
+            if (step != null) {
+                return FLOWER_CHANCE * step.sieveFactor(textureOf(stack, registries));
+            }
+        }
         if (stack.is(ModTags.Items.SIFTABLE_RESINOUS)) {
             return RESINOUS_CHANCE;
         }
@@ -506,6 +524,14 @@ public class SiftingBoxBlock extends Block implements EntityBlock {
             return TRIM_CHANCE;
         }
         return stack.is(ModTags.Items.SIFTABLE_KIEF) ? KIEF_CHANCE : 0.0F;
+    }
+
+    /** The resin texture of the strain whose buds {@code stack} is, even for anything else. */
+    private static ResinTexture textureOf(ItemStack stack, HolderLookup.Provider registries) {
+        return Strain.fromBuds(registries, stack.getItem())
+                .map(Holder::value)
+                .map(strain -> strain.resin().texture())
+                .orElse(ResinTexture.EVEN);
     }
 
     /**

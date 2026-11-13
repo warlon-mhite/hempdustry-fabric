@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
+import com.warlonmhite.hempdustry.strain.ResinStep;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  *   <tr><td>0–2</td><td>too young — a seedling with no canopy to take</td><td>—</td></tr>
  *   <tr><td>3</td><td>late vegetative trim — the last age the plant is one block tall</td><td>{@link #TRIMMED_EARLY}</td></tr>
  *   <tr><td>4–5</td><td>early flowering trim — after the stretch into two blocks</td><td>{@link #TRIMMED_LATE}</td></tr>
- *   <tr><td>6–7</td><td><b>ripe — rub it for resin.</b> One sugar leaf, always, and a 1-in-{@value #CHARAS_CHANCE_ONE_IN} pinch of charas, once per plant</td><td>{@link #RUBBED}</td></tr>
+ *   <tr><td>6–7</td><td><b>ripe — rub it for resin.</b> One sugar leaf, always, and a pinch of charas at the plant's resin's odds (1 in {@value #CHARAS_CHANCE_ONE_IN} for an average plant), once per plant</td><td>{@link #RUBBED}</td></tr>
  * </table>
  *
  * <p><b>Every window takes exactly one leaf, and every one of those leaves comes off the harvest.</b>
@@ -159,12 +160,31 @@ public final class Defoliation {
      */
     public static final int CHARAS_CHANCE_ONE_IN_WARPED = 2;
 
-    /** The rub's odds on this plant, as 1-in-N: a Nether plant's, else the sun's or the lamps'. */
+    /**
+     * The rub's odds on a plant with no record to read (one from before records, or no resin step), as 1-in-N: a
+     * Nether plant's, else the sun's or the lamps'. A plant with a record rubs by its resin ({@link #charasChance}).
+     */
     public static int charasOneIn(BlockState lowerState) {
         if (lowerState.getBlock() instanceof WarpedKushCropBlock || lowerState.getBlock() instanceof CrimsonWeedCropBlock) {
             return CHARAS_CHANCE_ONE_IN_WARPED;
         }
         return lowerState.getValue(GrowLight.PROPERTY).artificial() ? CHARAS_CHANCE_ONE_IN_UNDER_LIGHTS : CHARAS_CHANCE_ONE_IN;
+    }
+
+    /**
+     * The chance that rubbing the plant whose root is {@code lowerState} at {@code lowerPos} pays a charas. A plant
+     * that keeps a record rubs by its resin step and its strain's texture ({@link ResinStep#rubChance}): 1 in 8 for
+     * a very low plant to 1 in 2 for a very rich sticky one, halved for a plant that grew under any light but the
+     * sun or was stressed, as before. One with no record rubs at {@link #charasOneIn}.
+     */
+    public static float charasChance(Level world, BlockPos lowerPos, BlockState lowerState) {
+        ResinStep step = PlantRecordBlockEntity.resinAt(world, lowerPos).orElse(null);
+        if (step == null) {
+            return 1.0F / charasOneIn(lowerState);
+        }
+        float chance = step.rubChance(PlantRecordBlockEntity.textureOf(world, lowerState));
+        boolean lamps = lowerState.hasProperty(GrowLight.PROPERTY) && lowerState.getValue(GrowLight.PROPERTY).artificial();
+        return lamps ? chance / 2.0F : chance;
     }
 
     private Defoliation() {
@@ -323,7 +343,8 @@ public final class Defoliation {
                 // vanilla's composter does before it. Honey is the mod's resin sound -- a hashish
                 // bar is cut to it too -- so "that noise means resin" is one thing to learn.
                 // A plant with no cannabinoids has no resin to rub off: the roll is still taken, and never pays.
-                boolean gotCharas = world.getRandom().nextInt(charasOneIn(lowerState)) == 0
+                // The plant's resin sets the odds (charasChance); one draw, whatever they are.
+                boolean gotCharas = world.getRandom().nextFloat() < charasChance(world, lowerPos, lowerState)
                         && chemotype != Chemotype.CANNABINOID_FREE;
                 if (gotCharas) {
                     Block.popResource(world, lowerPos, Chemotype.stamp(new ItemStack(ModItems.CHARAS), chemotype));
