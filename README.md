@@ -2,26 +2,26 @@
 
 *Minecraft for stoners and hemprepreneurs.*
 
-A hemp and cannabis mod for **Minecraft 1.21.1** on **Fabric** and **NeoForge**. Grow it, harvest it, smoke it, cook with
+A hemp and cannabis mod for **Minecraft 1.20.1** on **Fabric** and **Forge**. Grow it, harvest it, smoke it, cook with
 it or use it as a building material, because that is most of what hemp has
 actually been for over the last five thousand years.
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen)](https://www.minecraft.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1-brightgreen)](https://www.minecraft.net/)
 [![Fabric](https://img.shields.io/badge/Loader-Fabric-lightgrey)](https://fabricmc.net/)
-[![NeoForge](https://img.shields.io/badge/Loader-NeoForge-lightgrey)](https://neoforged.net/)
-[![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/)
+[![Forge](https://img.shields.io/badge/Loader-Forge-lightgrey)](https://files.minecraftforge.net/)
+[![Java](https://img.shields.io/badge/Java-17-orange)](https://adoptium.net/)
 [![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
 [![Art & music](https://img.shields.io/badge/Art%20%26%20music-CC%20BY--NC--SA%204.0-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 **Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-java/releases)
 
 **Needs:** on Fabric, [Fabric Loader](https://fabricmc.net/use/) and [Fabric API](https://modrinth.com/mod/fabric-api);
-on NeoForge, [NeoForge](https://neoforged.net/) and nothing else. Each loader has its own download,
-named for it (`hempdustry-fabric-…`, `hempdustry-neoforge-…`). JEI, EMI or REI is optional, and with any of them the mod adds pages for its machines, for packing a
+on Forge, [Forge](https://files.minecraftforge.net/) 47.4.0 or newer and nothing else. Each loader has its own download,
+named for it (`hempdustry-fabric-…`, `hempdustry-forge-…`). JEI, EMI or REI is optional (REI on Forge wants Architectury and Cloth Config beside it), and with any of them the mod adds pages for its machines, for packing a
 pipe or bong, and for the cauldron steps.
 
 > **Status: version 2.1.0, stable**
-> This is a rewrite, for Fabric and NeoForge on 1.21.1, of an older Forge 1.16 mod (GanjaCraft) built with
+> This is a rewrite, for Fabric and Forge on 1.20.1, of an older Forge 1.16 mod (GanjaCraft) built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.
 >
@@ -154,17 +154,17 @@ with what 2.1 adds).
 Requires **JDK 21**.
 
 ```bash
-./gradlew build                        # both jars: fabric/build/libs/ and neoforge/build/libs/
+./gradlew build                        # both jars: fabric/build/libs/ and forge/build/libs/
 ./gradlew :fabric:runClient            # a dev client with the mod loaded, on Fabric
-./gradlew :neoforge:runClient          # ... or on NeoForge
+./gradlew :forge:runClient             # ... or on Forge
 ./gradlew :fabric:runDatagen           # regenerate models, recipes, loot tables, tags, advancements
-./gradlew :neoforge:runData            # regenerate the few files only NeoForge reads
+./gradlew :forge:runData               # regenerate the few files only Forge reads
 ./gradlew :fabric:runGametest          # boot a headless server and run the game tests, on Fabric
-./gradlew :neoforge:runGameTestServer  # ... and on NeoForge
+./gradlew :forge:runGameTestServer     # ... and on Forge
 ```
 
 The mod is a `common` project, plain Minecraft with no mod loader, and one project per loader that
-builds that loader's jar from it: `fabric` and `neoforge` each hold their loader's entry points and
+builds that loader's jar from it: `fabric` and `forge` each hold their loader's entry points and
 its side of the `platform` interfaces. Code that works the same on every loader belongs in `common`;
 the build refuses an import from a loader there.
 
@@ -174,14 +174,14 @@ holds both jars. They run real server code against the real registry, and each r
 if any of them fails.
 
 Most of the mod's data is generated rather than hand-written; if you change a recipe, a loot table,
-a tag or an advancement, run `:fabric:runDatagen` and commit what it produces. Compost chances, fuel
-times and the features added to biomes are data on NeoForge, written by `:neoforge:runData` from the
-same calls Fabric takes in code; run it too when you change one of those.
+a tag or an advancement, run `:fabric:runDatagen` and commit what it produces. The features added to
+biomes are data on Forge, written by `:forge:runData` from the same calls Fabric takes in code; run it
+too when you change one of those.
 
 ## Contributing
 
 Issues and pull requests are welcome. If you are reporting a bug, the Minecraft version, the loader
-and its version (Fabric Loader or NeoForge) and anything else in your mods folder are the three things
+and its version (Fabric Loader or Forge) and anything else in your mods folder are the three things
 that will help most.
 
 ## Credits

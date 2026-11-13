@@ -9,11 +9,26 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-The first patch of 2.1: hemp plants that hold up under other mods' harvesters, fertilisers and soils,
-farmer villagers who grow hemp, and the common tags the mods of a 1.20.1 pack read. A game with Hempdustry
-alone sees the fixes, the villagers and nothing else.
+2.1 for Minecraft 1.20.1, on Fabric and Forge: everything 2.1.0 has on Minecraft 1.21.1, and the 2.1.1
+patch below. It is the first Hempdustry build for 1.20.1.
 
-### Added
+### Added — on Minecraft 1.20.1
+
+- **Hempdustry on Minecraft 1.20.1, for Fabric and Forge.** Two downloads: `hempdustry-fabric-…+1.20.1.jar`
+  for Fabric Loader 0.15.11 or newer with Fabric API 0.92.2 or newer, and `hempdustry-forge-…+1.20.1.jar` for
+  Forge 47.4.0 or newer, both on Java 17. JEI, REI and EMI show its pages on both loaders (REI on Forge wants
+  Architectury and Cloth Config beside it). The content is the same as on 1.21.1, and so are the ids, the
+  config file and its keys.
+- **A 1.20.1 world moves up whole.** Opened with 2.1.1 on Minecraft 1.21.1 or newer, on any loader, a world
+  from this build keeps every hemp item's strain, charges and name and every placed bong. Use 2.1.1 or
+  newer there: 2.1.0 lost those values on the move.
+
+### Added — the 2.1.1 patch
+
+The first patch of 2.1 comes with it: hemp plants that hold up under other mods' harvesters, fertilisers
+and soils, farmer villagers who grow hemp, and the common tags the mods of a 1.20.1 pack read. A game with
+Hempdustry alone sees the fixes, the villagers and nothing else.
+
 
 - **Farmer villagers grow hemp.** A farmer picks indica and sativa seed up, plants it on the village
   farmland and reaps the ripe plant whole, the way it farms wheat, on both loaders. The light and stress
