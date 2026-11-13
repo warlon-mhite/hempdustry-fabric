@@ -76,7 +76,7 @@ public final class UpdateChecker {
     private static final String MODRINTH_PROJECT = "hempdustry";
     private static final String MODRINTH_PROJECT_URL = "https://modrinth.com/mod/" + MODRINTH_PROJECT;
     /** Where a manifest with no usable {@code homepage} sends a player. See the class javadoc. */
-    private static final String RELEASES_URL = "https://github.com/warlon-mhite/hempdustry-fabric/releases";
+    private static final String RELEASES_URL = "https://github.com/warlon-mhite/hempdustry-java/releases";
 
     /**
      * The mod's own update manifest — the primary source. Pinned to {@code master} on purpose: there
@@ -85,7 +85,7 @@ public final class UpdateChecker {
      * bump when a release goes out.
      */
     private static final String MANIFEST_URL =
-            "https://raw.githubusercontent.com/warlon-mhite/hempdustry-fabric/master/updates/hempdustry.json";
+            "https://raw.githubusercontent.com/warlon-mhite/hempdustry-java/master/updates/hempdustry.json";
 
     /**
      * Filtered to the game this client is actually running, <b>read from the game rather than
@@ -318,7 +318,7 @@ public final class UpdateChecker {
                     .build();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .header("User-Agent", "warlon-mhite/hempdustry-fabric/" + currentVersion() + " (update checker)")
+                    .header("User-Agent", "warlon-mhite/hempdustry-java/" + currentVersion() + " (update checker)")
                     .timeout(TIMEOUT)
                     .GET()
                     .build();
