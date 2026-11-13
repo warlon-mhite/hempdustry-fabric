@@ -188,6 +188,7 @@ public final class FrozenSurfaceGameTest {
             JsonObject old = Sweep.json(file.getValue()).getAsJsonObject();
 
             for (Map.Entry<String, JsonElement> data : old.getAsJsonObject("data").entrySet()) {
+                if (readOnlyBesideAnotherMod(data.getKey(), data.getValue())) continue;
                 files++;
                 String problem = decodeProblem(world, json, data.getKey(), data.getValue());
                 if (problem != null) {
@@ -508,4 +509,19 @@ public final class FrozenSurfaceGameTest {
             throw new IllegalStateException(e);
         }
     }
+
+    /**
+     * Whether a released data file is read only beside another mod: it carries a loader's load
+     * conditions (a recipe for that mod's machine), or it lies in a folder only that mod reads (a Silent
+     * Gear material, a KubeJS or KubeGroovy recipe schema). Either way it is written in that mod's
+     * format, and a game without that mod neither reads nor can decode it, so this test leaves it alone.
+     */
+    private static boolean readOnlyBesideAnotherMod(String path, JsonElement file) {
+        String inside = path.substring(path.indexOf('/', "data/".length()) + 1);
+        if (OTHER_MODS_FOLDERS.stream().anyMatch(inside::startsWith)) return true;
+        return file.isJsonObject() && LOAD_CONDITIONS.stream().anyMatch(file.getAsJsonObject()::has);
+    }
+
+    private static final List<String> LOAD_CONDITIONS = List.of("fabric:load_conditions", "neoforge:conditions", "forge:conditions");
+    private static final List<String> OTHER_MODS_FOLDERS = List.of("silentgear_materials/", "kubejs/", "kubegroovy/");
 }
