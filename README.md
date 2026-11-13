@@ -13,7 +13,7 @@ actually been for over the last five thousand years.
 [![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
 [![Art & music](https://img.shields.io/badge/Art%20%26%20music-CC%20BY--NC--SA%204.0-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-**Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-fabric/releases)
+**Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-java/releases)
 
 **Needs:** on Fabric, [Fabric Loader](https://fabricmc.net/use/) and [Fabric API](https://modrinth.com/mod/fabric-api);
 on NeoForge, [NeoForge](https://neoforged.net/) and nothing else. Each loader has its own download,
@@ -22,7 +22,7 @@ or bong, and for the cauldron steps. On a dedicated server, JEI shows Hempdustry
 only if JEI is installed on the server too: since Minecraft 1.21.2 a server no longer sends players
 its recipes. The machine and packing pages show either way.
 
-> **Status: version 2.1.0, stable**
+> **Status: version 2.1.1, stable**
 > This is a rewrite, for Fabric and NeoForge on 26.3, of an older Forge 1.16 mod (GanjaCraft) built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.

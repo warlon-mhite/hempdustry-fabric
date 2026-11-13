@@ -13,9 +13,11 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.Blocks;
@@ -32,6 +34,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.BiConsumer;
 
 /**
  * A two-tall crop. Redesigned around the vanilla
@@ -113,12 +117,12 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     }
 
     /** The way the plant grows from its root: up from a floor, or down from a ceiling. */
-    private Direction growth() {
+    Direction growth() {
         return this.hangs() ? Direction.DOWN : Direction.UP;
     }
 
     /** Whether this state is the plant's root, where the age and the trim flags live. */
-    private boolean isRoot(BlockState state) {
+    boolean isRoot(BlockState state) {
         return state.getValue(HALF) == this.rootHalf();
     }
 
@@ -168,16 +172,19 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     }
 
     // ----- support / placement -----
-    // The tip only survives right beside a root of this block, on the side away from the anchor. The
-    // root uses the standard crop rule (enough light + the right ground), which also prevents seeds
-    // from being placed onto an existing plant. VegetationBlock's updateShape (inherited) breaks either
-    // half as soon as canSurvive fails, so removing the root cascades to the tip -- and removing the
-    // anchor cascades to both, the root first.
+    // The tip only survives right beside a root of this block old enough to have grown one, on the side
+    // away from the anchor. The root uses the standard crop rule (enough light + the right ground), which
+    // also prevents seeds from being placed onto an existing plant. VegetationBlock's updateShape
+    // (inherited) breaks either half as soon as canSurvive fails, so removing the root cascades to the
+    // tip -- and removing the anchor cascades to both, the root first. The age matters when another mod
+    // harvests and replants the root inside a block update (Just Dire Things' goo soil): the update that
+    // breaks the old tip is queued until the outer one ends, and by then a seedling stands under it. Only
+    // its age tells that this tip is not its own.
     @Override
     protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         if (!this.isRoot(state)) {
             BlockState root = world.getBlockState(this.rootOf(pos, state));
-            return root.is(this) && this.isRoot(root);
+            return root.is(this) && this.isRoot(root) && this.getAge(root) >= DOUBLE_BLOCK_AGE;
         }
         if (!this.needsLight() || this.hangs()) {
             // CropBlock's rule is light 8 and the soil below; a plant that needs no light keeps the
@@ -187,6 +194,38 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
                     && this.mayPlaceOn(world.getBlockState(anchor), world, anchor);
         }
         return super.canSurvive(state, world, pos);
+    }
+
+    /**
+     * A root old enough to carry its tip goes when the tip is taken by anything but the plant's own rules
+     * ({@link TallHemp#lostItsTop}): a farmer that reaps the top, a harvester that sweeps at the top's height,
+     * a piston, water. The game breaks it with its drops, so the plant's harvest falls once, as when a player
+     * breaks either half; and a tip written back beside the root afterwards (Create's harvester replants what
+     * it cut where it can survive) finds nothing to hold on to.
+     */
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader world, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighborPos, BlockState neighbor, RandomSource random) {
+        BlockState shaped = super.updateShape(state, world, ticks, pos, direction, neighborPos, neighbor, random);
+        if (direction == this.growth() && shaped == state
+                && TallHemp.lostItsTop(this, world, pos, this.isRoot(state) && this.getAge(state) >= DOUBLE_BLOCK_AGE)) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        return shaped;
+    }
+
+    /**
+     * An explosion that reaches the tip takes the root with it, as that explosion: the harvest goes through the
+     * explosion's own drops, with its decay, rather than whole through the root's shape update.
+     */
+    @Override
+    protected void onExplosionHit(BlockState state, ServerLevel world, BlockPos pos, Explosion explosion,
+                                  BiConsumer<ItemStack, BlockPos> drops) {
+        if (!this.isRoot(state) && this.canSurvive(state, world, pos)) {
+            BlockPos rootPos = this.rootOf(pos, state);
+            world.getBlockState(rootPos).onExplosionHit(world, rootPos, explosion, drops);
+        }
+        super.onExplosionHit(state, world, pos, explosion, drops);
     }
 
     /** Whether the plant needs light to survive and grow. Warped Kush, like nether wart, does not. */
@@ -222,7 +261,7 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     }
 
     // ----- growth -----
-    // Only the lower half is fertile and random-ticks; it drives the whole plant.
+    // Only the root random-ticks; it drives the whole plant, and bone meal on either half feeds it.
     @Override
     protected boolean isRandomlyTicking(BlockState state) {
         // Deliberately not gated on `age < maxAge`: the tick is also what repairs a plant whose
@@ -233,7 +272,11 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     }
 
     /**
-     * Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
+     * Either half answers for the plant, from its root, as vanilla's pitcher crop does: other mods' harvesters
+     * read "refuses bone meal" as "ripe" on any block they reach (a farm controller cutting at the height of
+     * the tops), so a tip that refused it was cut off a growing plant.
+     *
+     * <p>Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
      * allows. Without the {@link #maxAgeFor} half of this test, bonemeal would happily push a plant
      * that is boxed in all the way to maturity as a lone stalk: {@code growCrops} writes the
      * lower half's age whether or not the upper half can be placed, and unlike the random tick it
@@ -241,7 +284,8 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
      */
     @Override
     public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
-        return this.isRoot(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        return rootPos != null && this.getAge(world.getBlockState(rootPos)) < this.maxAgeFor(world, rootPos);
     }
 
     /**
@@ -265,28 +309,10 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         return state.isAir() || (state.is(this) && !this.isRoot(state));
     }
 
-    /**
-     * The plant's age as seen from this block. The canonical age lives on the lower half; the
-     * upper half reports {@link #getMaxAge()} — "nothing left to grow here", which is true, since
-     * the lower half drives the plant.
-     *
-     * <p>This is what makes the plant safe around <b>bees</b>. {@code Bee.BeeGrowCropGoal}
-     * does {@code if (!isMaxAge(state)) setBlockAndUpdate(pos, getStateForAge(getAge(state) + 1))} directly on
-     * any {@code CropBlock} in {@code #minecraft:bee_growables}, and {@link CropBlock#getStateForAge}
-     * rebuilds the state from {@code defaultBlockState()} — resetting {@link #HALF} to LOWER. A bee
-     * over a two-tall plant would turn its upper half into a lower half in mid-air, fail
-     * {@code canSurvive} and behead the plant. {@code CropBlock#isMaxAge} is {@code final}, but it
-     * is defined as {@code getAge(state) >= getMaxAge()}, so overriding {@code getAge} is how the
-     * upper half is made to report itself mature and get skipped.
-     *
-     * <p>Safe because nothing reads the upper half's age: the outline shape, growth, fertilization
-     * and harvesting all run on the lower half or go through {@link #HALF}, and the loot table and
-     * blockstate read the {@link #AGE} property directly rather than this.
-     */
-    @Override
-    public int getAge(BlockState state) {
-        return this.isRoot(state) ? super.getAge(state) : this.getMaxAge();
-    }
+    // No getAge override: the tip reports its own age, which setAge keeps level with the root's.
+    // Harvesters in other mods (Industrial Foregoing's, Create's) take any CropBlock whose isMaxAge
+    // holds, so a tip that claimed to be ripe was cut off a growing plant. Bees, which would otherwise
+    // rebuild a tip as a root, are kept to the root by BeeGrowCropsGoalMixin instead.
 
     @Override
     protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
@@ -307,8 +333,9 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
             } else {
                 moisture = this.fieldMoisture(world, pos);
             }
-            if (moisture > 0.0F && HempGrowth.rolls(random, this.growthResistance(world, pos), moisture,
-                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {
+            boolean rolled = moisture > 0.0F && HempGrowth.rolls(random, this.growthResistance(world, pos), moisture,
+                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age));
+            if (Services.PLATFORM.canCropGrow(world, pos, state, rolled)) {
                 grown++;
             }
         }
@@ -324,7 +351,16 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         // state early-outs in LevelChunk#setBlockState) but each still paid a chunk lookup.
         // isShapeSettled answers the same question in one block read.
         if (grown != age || !this.isShapeSettled(world, pos, age, state)) {
-            this.setAge(world, pos, grown, StressCause.NONE, random);
+            this.setAge(world, pos, world.getBlockState(pos), grown, StressCause.NONE, random);
+        }
+        // Told from the age written, not the roll: a plant held back by its headroom rolls as often as
+        // any other while writeAge keeps it where it is, and a listener paid per growth (Ars Nouveau's
+        // Agronomic Sourcelink) would be paid for a roofed seedling for ever. The root is read back
+        // because a harvesting soil may take the plant inside the write; a new seedling there differs
+        // from the old age too, which is the truth: it grew, and was taken.
+        BlockState after = world.getBlockState(pos);
+        if (after.is(this) && this.isRoot(after) && this.getAge(after) != age) {
+            Services.PLATFORM.cropGrew(world, pos, state);
         }
         Mildew.randomTick(world, pos, random);
     }
@@ -352,9 +388,9 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         return !upperPresent && !(age >= DOUBLE_BLOCK_AGE && above.isAir());
     }
 
-    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block. Only the LOWER is
-    // fertilizable, so this only ever runs on the LOWER. grow() is overridden as well so the roll
-    // uses the random it is handed, which is also what lets a test decide the roll.
+    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block, which may be either
+    // half; both grow the plant from its root. performBonemeal is overridden as well so the step uses the
+    // random it is handed, which is also what lets a test decide the roll.
     @Override
     public void growCrops(Level world, BlockPos pos, BlockState state) {
         this.boneMeal(world, pos, state, world.getRandom());
@@ -365,13 +401,15 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         this.boneMeal(world, pos, state, random);
     }
 
-    /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
+    /** One bone meal step, from the root — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
     private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
-        if (!this.isRoot(state)) {
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        if (rootPos == null) {
             return;
         }
-        this.setAge(world, pos, this.getAge(state) + this.getBonemealAgeIncrease(world),
-                PlantStress.ofBoneMeal(world, pos, state), random);
+        BlockState root = world.getBlockState(rootPos);
+        this.setAge(world, rootPos, root, this.getAge(root) + this.getBonemealAgeIncrease(world),
+                PlantStress.ofBoneMeal(world, rootPos, root), random);
     }
 
     /**
@@ -411,9 +449,20 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
      *
      * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
      * player later builds over keeps its age and its harvest instead of silently reverting.
+     *
+     * <p>{@code current} is the plant the step starts from: the block at {@code pos}, except when
+     * {@link #onPlace} replays a raw write, where it is the state that write replaced.
      */
-    private void setAge(Level world, BlockPos pos, int newAge, StressCause extraStress, RandomSource random) {
-        BlockState current = world.getBlockState(pos);
+    private void setAge(Level world, BlockPos pos, BlockState current, int newAge, StressCause extraStress,
+                        RandomSource random) {
+        TallHemp.ownWrite(() -> {
+            this.writeAge(world, pos, current, newAge, extraStress, random);
+            return true;
+        });
+    }
+
+    private void writeAge(Level world, BlockPos pos, BlockState current, int newAge, StressCause extraStress,
+                          RandomSource random) {
         int currentAge = current.is(this) && this.isRoot(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
         newAge = Math.min(newAge, Math.max(currentAge, this.maxAgeFor(world, pos)));
@@ -439,6 +488,15 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
             }
         }
         world.setBlock(pos, lower, Block.UPDATE_CLIENTS);
+        if (world.getBlockState(pos) != lower) {
+            // Something answered that write by taking the plant: a soil that harvests what ripens on it
+            // (Just Dire Things' goo soil) hears the shape update and replants before this returns. The
+            // tip is no longer this plant's to grow; written now, it would stand ripe on a seedling.
+            // Nor will the old one fall by itself: the update that would break it was raised inside this
+            // write's own, so the game queues it, and by the time it runs a new root stands beside it again.
+            this.removeTip(world, pos);
+            return;
+        }
 
         BlockPos upPos = pos.relative(this.growth());
         BlockState above = world.getBlockState(upPos);
@@ -488,10 +546,7 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
      * A ripe plant lets off a wisp now and then from its top; see {@link RipeAroma}. Either half
      * can be sampled, and the helper keeps only the one with open air above it.
      *
-     * <p>Reads {@link #AGE} directly, <b>not</b> {@link #getAge}: the upper half's {@code getAge}
-     * always reports maturity (the bee guard above), so asking it would have every two-tall plant
-     * smelling ripe from age 4. The upper half's {@code AGE} mirrors the lower's, so either half
-     * answers truthfully here.
+     * <p>The tip's {@link #AGE} mirrors the root's, so either half answers truthfully here.
      */
     @Override
     public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
@@ -504,39 +559,48 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     // ----- harvesting -----
     // Breaking either half removes both and yields the plant exactly once: the loot
     // table only drops for the lower half, so we drop the lower's loot (when an upper
-    // half is broken directly) and remove the partner without letting it drop.
+    // half is broken directly) and remove the partner without letting it drop. The
+    // partner goes as the plant's own write, so that a ripe root losing its tip
+    // here is not taken for a plant whose top something else took (updateShape).
     @Override
     public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (!world.isClientSide()) {
-            // The trim flags and the canonical age both live on the LOWER half, so the harvest
-            // criterion is fed from there whichever half the player actually broke.
-            BlockPos canonicalPos = this.rootOf(pos, state);
-            BlockState canonical = world.getBlockState(canonicalPos);
-            if (canonical.is(this) && this.isRoot(canonical)
-                    && this.isMaxAge(canonical)) {
-                HarvestHempCriterion.trigger(player, (ServerLevel) world, canonicalPos, canonical);
-            }
-
-            if (!this.isRoot(state)) {
-                BlockPos lowerPos = canonicalPos;
-                BlockState lower = canonical;
-                if (lower.is(this) && this.isRoot(lower)) {
-                    if (!player.isCreative()) {
-                        // With the root's record: the buds take the plant's band from it.
-                        dropResources(lower, world, lowerPos, world.getBlockEntity(lowerPos), player,
-                                player.getMainHandItem());
-                    }
-                    world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                }
-            } else {
-                BlockPos upperPos = pos.relative(this.growth());
-                BlockState upper = world.getBlockState(upperPos);
-                if (upper.is(this) && upper.getValue(HALF) == this.tipHalf()) {
-                    world.setBlock(upperPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                }
-            }
+            TallHemp.ownWrite(() -> {
+                this.takePartner(world, pos, state, player);
+                return true;
+            });
         }
         return super.playerWillDestroy(world, pos, state, player);
+    }
+
+    private void takePartner(Level world, BlockPos pos, BlockState state, Player player) {
+        // The trim flags and the canonical age both live on the root, so the harvest
+        // criterion is fed from there whichever half the player actually broke.
+        BlockPos canonicalPos = this.rootOf(pos, state);
+        BlockState canonical = world.getBlockState(canonicalPos);
+        if (canonical.is(this) && this.isRoot(canonical)
+                && this.isMaxAge(canonical)) {
+            HarvestHempCriterion.trigger(player, (ServerLevel) world, canonicalPos, canonical);
+        }
+
+        if (!this.isRoot(state)) {
+            BlockPos lowerPos = canonicalPos;
+            BlockState lower = canonical;
+            if (lower.is(this) && this.isRoot(lower)) {
+                if (!player.isCreative()) {
+                    // With the root's record: the buds take the plant's band from it.
+                    dropResources(lower, world, lowerPos, world.getBlockEntity(lowerPos), player,
+                            player.getMainHandItem());
+                }
+                world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
+        } else {
+            BlockPos upperPos = pos.relative(this.growth());
+            BlockState upper = world.getBlockState(upperPos);
+            if (upper.is(this) && upper.getValue(HALF) == this.tipHalf()) {
+                world.setBlock(upperPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
+        }
     }
 
 
@@ -558,14 +622,83 @@ public class IndicaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
 
     /**
      * A root set back to age 0 in place — by a harvester that replants, through vanilla's
-     * {@code getStateForAge} — is a new plant, and rolls again.
+     * {@code getStateForAge}, or a click harvest that sets the age alone — is a new plant, and its record
+     * rolls again. Then the write is put right if it came from another mod ({@link TallHemp#isRawWrite}): a
+     * harvester that replants, an instant fertiliser, a growth soil or a bee that writes
+     * {@code getStateForAge}. Every such write lands here, on both loaders, whoever made it, so no mod
+     * needs a fix of its own.
+     *
+     * <ul>
+     *   <li><b>Onto the tip</b>, the harvester took a ripe top for a crop of its own. The tip goes back as
+     *       it was: the plant's loot is on the root, and a root there would break off. So does a tip whose
+     *       age alone another mod set back ({@link TallHemp#isAgeWrittenAboveTheRoot}), as a right-click
+     *       harvest does to the block clicked: it paid nothing, and a seedling tip would sit in a ripe plant
+     *       until the root next grew. A write there that <b>raises</b> the age
+     *       ({@link TallHemp#isRaisedAboveTheRoot}), an instant fertiliser clicked on the tip, puts the tip
+     *       back too, and then grows the plant from its root to that age, as below.</li>
+     *   <li><b>A younger age on the root</b> is a replanting. The written state is already a new plant's;
+     *       what is left of the old one beside it goes, its harvest having been taken from the root. A mod
+     *       that sets the age alone back ({@link TallHemp#isSetBackByAge}), as a right-click harvest
+     *       replants, keeps only the trims and the rub the new age could have earned: a seedling keeps
+     *       none.</li>
+     *   <li><b>An older age</b> is growth, taken as one step of the plant's own: the trims, the rub and the
+     *       light record carry over, the light and the ground are read, a pot is eaten from on ripening, the
+     *       plant stops short of a block in its way, and the tip grows at once.</li>
+     *   <li><b>The same age</b> is left as written. No harvester, fertiliser or soil writes a plant's own age
+     *       back onto it; {@code /setblock} does, and means a fresh plant by it.</li>
+     * </ul>
      */
     @Override
-    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        super.onPlace(state, world, pos, oldState, movedByPiston);
-        if (oldState.is(this) && this.isRoot(oldState) && this.isRoot(state)
-                && oldState.getValue(AGE) > 0 && state.getValue(AGE) == 0) {
+    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean moved) {
+        super.onPlace(state, world, pos, old, moved);
+        if (world.isClientSide()) {
+            return;
+        }
+        if (old.is(this) && this.isRoot(old) && this.isRoot(state)
+                && old.getValue(AGE) > 0 && state.getValue(AGE) == 0) {
             PlantRecordBlockEntity.replantAt(world, pos);
+        }
+        boolean raw = TallHemp.isRawWrite(this, state, old);
+        if (raw && !this.isRoot(old) || TallHemp.isAgeWrittenAboveTheRoot(this, state, old)) {
+            boolean raised = TallHemp.isRaisedAboveTheRoot(this, state, old);
+            TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            BlockPos rootPos = raised ? TallHemp.rootOf(this, world, pos, old) : null;
+            if (rootPos != null) {
+                BlockState root = world.getBlockState(rootPos);
+                this.setAge(world, rootPos, root, this.getAge(state), StressCause.NONE, world.getRandom());
+            }
+            return;
+        }
+        if (!raw) {
+            if (TallHemp.isSetBackByAge(this, state, old)) {
+                BlockState earned = Defoliation.onlyEarned(state, this.getAge(state));
+                if (earned != state) {
+                    TallHemp.ownWrite(() -> world.setBlock(pos, earned, Block.UPDATE_CLIENTS));
+                }
+            }
+            return;
+        }
+        int age = this.getAge(state);
+        if (age == this.getAge(old)) {
+            return; // a plant set afresh where it stood, as /setblock does: nothing grew, nothing to keep
+        }
+        boolean replanted = age < this.getAge(old);
+        if (replanted) {
+            this.removeTip(world, pos);
+        }
+        this.setAge(world, pos, replanted ? state : old, age, StressCause.NONE, world.getRandom());
+    }
+
+    /**
+     * Takes away the tip growing from the root at {@code pos}, without drops: its plant's harvest is the
+     * root's, and whoever replaced the root has had it.
+     */
+    private void removeTip(Level world, BlockPos pos) {
+        BlockPos tipPos = pos.relative(this.growth());
+        BlockState tip = world.getBlockState(tipPos);
+        if (tip.is(this) && !this.isRoot(tip)) {
+            TallHemp.ownWrite(() -> world.setBlock(tipPos, Blocks.AIR.defaultBlockState(),
+                    Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS));
         }
     }
 

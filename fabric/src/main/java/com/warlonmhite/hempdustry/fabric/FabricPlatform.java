@@ -8,6 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Enderman;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -40,6 +41,15 @@ public final class FabricPlatform implements Platform {
     @Override
     public boolean disguisedFrom(Player player, Enderman enderman) {
         return !LivingEntity.PLAYER_NOT_WEARING_DISGUISE_ITEM.test(player);
+    }
+
+    @Override
+    public boolean canCropGrow(Level level, BlockPos pos, BlockState state, boolean roll) {
+        return roll;
+    }
+
+    @Override
+    public void cropGrew(Level level, BlockPos pos, BlockState before) {
     }
 
     /** Never made: a crop only for the right to call vanilla's protected growth odds. */

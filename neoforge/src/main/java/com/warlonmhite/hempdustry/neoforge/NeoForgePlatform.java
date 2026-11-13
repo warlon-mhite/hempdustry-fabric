@@ -7,11 +7,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Enderman;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.common.CommonHooks;
 
 import java.nio.file.Path;
 
@@ -43,6 +44,16 @@ public final class NeoForgePlatform implements Platform {
     public boolean disguisedFrom(Player player, Enderman enderman) {
         return !LivingEntity.PLAYER_NOT_WEARING_DISGUISE_ITEM_FOR_TARGET.test(player, enderman)
                 || CommonHooks.shouldSuppressEnderManAnger(enderman, player);
+    }
+
+    @Override
+    public boolean canCropGrow(Level level, BlockPos pos, BlockState state, boolean roll) {
+        return CommonHooks.canCropGrow(level, pos, state, roll);
+    }
+
+    @Override
+    public void cropGrew(Level level, BlockPos pos, BlockState before) {
+        CommonHooks.fireCropGrowPost(level, pos, before);
     }
 
     /** Never made: a crop only for the right to call the protected growth odds, NeoForge's form of them. */

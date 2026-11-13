@@ -13,12 +13,14 @@ import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.block.CropGrowEvent;
 
 import java.nio.file.Path;
 import java.util.List;
 
 public final class NeoForgeTestPlatform implements TestPlatform {
     private AddonProbe probe;
+    private CropGrowthProbe growth;
 
     @Override
     public String loaderName() {
@@ -69,6 +71,22 @@ public final class NeoForgeTestPlatform implements TestPlatform {
             probe = p;
         }
         return probe;
+    }
+
+    @Override
+    public synchronized CropGrowthProbe cropGrowthProbe() {
+        if (growth == null) {
+            CropGrowthProbe p = new CropGrowthProbe();
+            NeoForge.EVENT_BUS.addListener(CropGrowEvent.Pre.class, event -> {
+                p.heard("PRE", event.getPos());
+                if (p.refusing(event.getPos())) {
+                    event.setResult(CropGrowEvent.Pre.Result.DO_NOT_GROW);
+                }
+            });
+            NeoForge.EVENT_BUS.addListener(CropGrowEvent.Post.class, event -> p.heard("POST", event.getPos()));
+            growth = p;
+        }
+        return growth;
     }
 
     private static List<Path> roots(String modId) {

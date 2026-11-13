@@ -9,7 +9,63 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
-Nothing yet — everything below shipped in 2.1.0+26.3.
+Nothing yet — everything below shipped in 2.1.1+26.3.
+
+## [2.1.1+26.3] — 2026-11-13
+
+The first patch of 2.1: hemp plants that hold up under other mods' harvesters, fertilisers and soils,
+farmer villagers who grow hemp, and the first hooks for the mods of a pack. Every file for another mod
+loads only when that mod is there, so a game with Hempdustry alone sees the fixes, the villagers and
+nothing else.
+
+### Added
+
+- **Farmer villagers grow hemp.** A farmer holding indica or sativa seed plants it on the village farmland
+  and reaps the ripe plant whole, the way it farms wheat. The light and stress rules apply as in any field.
+  Beldía stays wild: it stands only on sand.
+- **Hemp in other mods**, each loaded only with its mod:
+  - **Farmer's Delight** (Refabricated): the cutting board strips a stem into 4 fibre and a retted one into
+    6, with a chance of a stick; hemp fibre makes its rope.
+- **Common tags other mods read**: every hemp seed in `c:seeds`, hemp fibre in `c:fiber_hemp` and
+  `c:fiber`, hemp flour in `c:flour`, hemp milk in `c:milk` and toasted hemp seeds in `c:nuts`. Nothing
+  activated joins a food tag, so no cannabutter is ever spent as plain butter.
+
+### Changed
+
+- Canvas, the hemp outfit, flip-flops and paper take any fibre in `c:fiber_hemp`. The Grow Pot also takes
+  Farming for Blockheads' fertilisers.
+
+### Fixed
+
+- **A world made on Minecraft 1.20.1 opens whole.** Pipe loads and charges, cannabutter's strength, an
+  edible's potency, the stacks in the machines and in a hemp chest boat and a placed bong's device all came
+  through the world upgrade empty.
+- **A vaporizer bowl finished on a full inventory drops its scorched hemp** at your feet, instead of
+  handing it to nobody.
+- **A tall hemp plant stays whole whatever farms it**:
+  - A harvester that takes any ripe crop cut a growing plant down to its root, because every block above
+    the root claimed to be ripe. Each block of a plant now tells its own age; bees behave as before.
+  - Replanting harvesters, instant fertilisers, growth soils and other mods' bees left a ripe top over a
+    seedling, or a root in the middle of a plant, and wiped the trims, the light record and the mildew. Such a write
+    is now put right: a replanting clears the old plant, a ripening grows the whole plant with its record.
+  - A soil that harvests and replants the moment a crop ripens left the old top standing on the new
+    seedling.
+  - A right-click harvest that replants the block clicked paid nothing on a block above the root and left
+    a seedling in the middle of a ripe plant. That block now stays as it was: a plant's harvest is its
+    root's.
+  - The same harvest on the root replanted a seedling that kept the old plant's trims and rub, so every
+    new plant had the trims' extra bud without a cut, or could not be rubbed. A replanted plant now starts
+    unworked, as one planted by hand.
+  - A farm that asks a crop whether it still takes bone meal, and harvests it if not, cut a growing plant
+    down to one seed from any block above its root, because only the root took bone meal. Every block of a
+    plant now answers for the whole plant, as a pitcher plant does: bone meal and fertilisers work on any
+    block of it and grow it from the root.
+  - A farmer, or a harvester sweeping at the height of the tops, could take a ripe plant's top and leave
+    its root standing alone, ripe, and a harvester could then set an unripe top back on it. Whatever takes
+    a block above the root now brings the whole plant down, and its harvest drops once, as when a player
+    breaks it: farmers, harvesters, pistons, water and explosions alike.
+- On NeoForge hemp now grows through the loader's crop-growth events, as vanilla crops do there, so a
+  season or growth mod can hold it back. A plant held back by the block above it is not reported as grown.
 
 ## [2.1.0+26.3] — 2026-11-04
 
@@ -840,11 +896,12 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-fabric/compare/v2.1.0%2B26.3...HEAD
-[2.1.0+26.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
-[2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
-[2.1.0]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.1.0
-[2.0.3]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.3
-[2.0.2]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.2
-[2.0.1-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/v2.0.1-beta
-[2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-fabric/releases/tag/beta
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.1%2B26.3...HEAD
+[2.1.1+26.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.1
+[2.1.0+26.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
+[2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
+[2.1.0]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
+[2.0.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.3
+[2.0.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.2
+[2.0.1-beta]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.1-beta
+[2.0.0-beta]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/beta

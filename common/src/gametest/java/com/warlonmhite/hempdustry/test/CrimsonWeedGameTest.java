@@ -146,12 +146,16 @@ public final class CrimsonWeedGameTest {
         context.assertTrue(Defoliation.charasOneIn(ModBlocks.INDICA_CROP.defaultBlockState()) == Defoliation.CHARAS_CHANCE_ONE_IN,
                 "Purple Kush lost its own charas odds");
 
-        // The tip is expendable: knocked off by anything but a player, the root keeps its age, and
-        // the next tick hangs a new tip.
+        // A tip taken by anything but a player brings the plant down, as any tall plant's top does: the
+        // root goes with its drops, so the harvest falls once, from the root.
+        AABB around = new AABB(root).inflate(3);
+        world.getEntitiesOfClass(ItemEntity.class, around).forEach(ItemEntity::discard);
         world.destroyBlock(context.absolutePos(TIP), false);
-        context.assertTrue(world.getBlockState(root) == ripe, "losing its tip cost the root " + world.getBlockState(root));
-        world.getBlockState(root).randomTick(world, root, world.getRandom());
-        context.assertTrue(context.getBlockState(TIP).is(weed), "a ripe root did not hang a new tip");
+        context.assertTrue(world.getBlockState(root).isAir(), "losing its tip left the root " + world.getBlockState(root));
+        int seeds = world.getEntitiesOfClass(ItemEntity.class, around).stream()
+                .filter(drop -> drop.getItem().is(ModItems.CRIMSON_SEEDS)).mapToInt(drop -> drop.getItem().getCount()).sum();
+        context.assertTrue(seeds >= 1, "a ripe Crimson Weed that lost its tip dropped no seeds from its root");
+        world.getEntitiesOfClass(ItemEntity.class, around).forEach(ItemEntity::discard);
 
         // No room below, no tip: over lava, over a block, the root stops one stage short of needing one.
         for (Block under : new Block[]{Blocks.LAVA, Blocks.NETHERRACK}) {

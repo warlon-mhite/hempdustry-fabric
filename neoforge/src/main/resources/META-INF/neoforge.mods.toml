@@ -1,13 +1,13 @@
 modLoader="javafml"
 loaderVersion="[4,)"
 license="AGPL-3.0-only AND CC-BY-NC-SA-4.0"
-issueTrackerURL="https://github.com/warlon-mhite/hempdustry-fabric/issues"
+issueTrackerURL="https://github.com/warlon-mhite/hempdustry-java/issues"
 
 [[mods]]
 modId="hempdustry"
 version="${version}"
 displayName="${name}"
-displayURL="https://github.com/warlon-mhite/hempdustry-fabric"
+displayURL="https://github.com/warlon-mhite/hempdustry-java"
 iconFile="assets/hempdustry/icon.png"
 authors="Warlon Mhite"
 credits="Nefuß (music)"

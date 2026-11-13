@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.monster.Enderman;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.nio.file.Path;
@@ -36,4 +37,19 @@ public interface Platform {
      * cancel. Asked of a player who breaks Ender Haze, which provokes only the endermen this is false for.
      */
     boolean disguisedFrom(Player player, Enderman enderman);
+
+    /**
+     * Whether a crop's random-tick growth step happens, {@code roll} being our own odds' answer. NeoForge
+     * puts the question to its {@code CropGrowEvent.Pre} listeners first, as vanilla crops do there, so a
+     * season or growth-control mod can hold a hemp plant back or push it on; Fabric has no such event and
+     * answers {@code roll}.
+     */
+    boolean canCropGrow(Level level, BlockPos pos, BlockState state, boolean roll);
+
+    /**
+     * Tells the loader's listeners that the crop at {@code pos}, {@code before} the step, has just grown
+     * one age (NeoForge's {@code CropGrowEvent.Post}: Ars Nouveau's Agronomic Sourcelink earns its Source
+     * from it). Nothing on Fabric.
+     */
+    void cropGrew(Level level, BlockPos pos, BlockState before);
 }

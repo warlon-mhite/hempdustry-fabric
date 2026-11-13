@@ -178,7 +178,7 @@ tasks.named('processResources', ProcessResources) {
 // Modrinth page is public (it is still in review, so this resolves nowhere yet):
 //
 //   repositories { maven { url = "https://api.modrinth.com/maven" } }
-//   dependencies { implementation "maven.modrinth:hempdustry:2.1.0+26.3" }
+//   dependencies { implementation "maven.modrinth:hempdustry:2.1.1+26.3" }
 //
 // Until then: build this repository with `./gradlew publishToMavenLocal`, add mavenLocal() to the
 // addon's repositories and depend on com.warlonmhite.hempdustry:hempdustry-fabric:<version>
@@ -217,7 +217,7 @@ publishing {
 		if (githubUser && githubKey) {
 			maven {
 				name = "GitHubPackages"
-				url = "https://maven.pkg.github.com/warlon-mhite/hempdustry-fabric"
+				url = "https://maven.pkg.github.com/warlon-mhite/hempdustry-java"
 				credentials {
 					username = githubUser
 					password = githubKey

@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowMedium;
 import com.warlonmhite.hempdustry.block.custom.PlantStress;
+import com.warlonmhite.hempdustry.block.custom.TallHemp;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CropBlock;
@@ -23,9 +24,11 @@ import org.spongepowered.asm.mixin.injection.At;
  * <p>Two things there are hostile to a crop that keeps state of its own. The write is <b>direct</b>,
  * so it never runs the crop's own growth path, and {@code CropBlock#withAge} is
  * {@code defaultBlockState().setValue(AGE, n)} — it rebuilds the state from scratch and drops every other
- * property back to its default. Our crops already dodge the half of this that would behead a tall
- * plant, by overriding {@code getAge} so only the LOWER segment is ever a bee's target (see
- * {@code IndicaCropBlock#getAge}). But the LOWER is exactly where
+ * property back to its default. On a tall plant's upper blocks that rebuild would turn a segment into a
+ * LOWER in mid-air and behead the plant, so {@link #hempdustry$onlyTheRoot} makes every segment above
+ * the root look ripe to the bee — and only to the bee: other mods' harvesters ask the same
+ * {@code isMaxAge} and must get the truth, or they cut the top off a growing plant. But the LOWER is
+ * exactly where
  * {@link Defoliation#TRIMMED_EARLY}/{@link Defoliation#TRIMMED_LATE} live, so a bee flying over a
  * plant the player had just sheared would silently reset it to untrimmed — no message, no particle,
  * nothing to tell them the trip was wasted.
@@ -69,7 +72,9 @@ public class BeeGrowCropsGoalMixin {
         BlockState current = world.getBlockState(pos);
         BlockState next = PlantStress.beeStep(world, pos, current, Defoliation.carryOver(current, newState),
                 world.getRandom());
-        boolean set = original.call(world, pos, next);
+        // Already a step by the plant's rules, so the crop's raw-write repair must not take it for a raw one
+        // and run the step again (a second roll, a second meal from the pot).
+        boolean set = TallHemp.ownWrite(() -> original.call(world, pos, next));
         if (set && next.getBlock() instanceof CropBlock crop && current.is(crop)
                 && crop.isMaxAge(next) && !crop.isMaxAge(current)) {
             BlockPos floorPos = pos.below();
@@ -79,5 +84,21 @@ public class BeeGrowCropsGoalMixin {
             }
         }
         return set;
+    }
+
+    /**
+     * The bee's "is there anything left to grow here?". A segment above a hemp plant's root answers yes,
+     * it is ripe, so the bee leaves it alone exactly as it always did, and moves on to the block below.
+     * Only the bee is told this: the segment itself reports its real age to everyone else.
+     */
+    @WrapOperation(
+            method = "tick",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/block/CropBlock;isMaxAge(Lnet/minecraft/world/level/block/state/BlockState;)Z"
+            )
+    )
+    private boolean hempdustry$onlyTheRoot(CropBlock crop, BlockState state, Operation<Boolean> original) {
+        return !TallHemp.isRoot(state) || original.call(crop, state);
     }
 }

@@ -309,6 +309,35 @@ public final class HempdustryGameTests {
         register("a_buds_resin_moves_the_sieve", ResinGameTest::aBudsResinMovesTheSieve);
         register("a_plants_resin_moves_the_rub", ResinGameTest::aPlantsResinMovesTheRub);
         register("a_jar_blends_resin", ResinGameTest::aJarBlendsResin);
+        register("every_block_of_a_plant_tells_its_true_age", OtherModsGameTest::everyBlockOfAPlantTellsItsTrueAge);
+        register("every_block_of_a_plant_answers_bone_meal_as_its_root",
+                OtherModsGameTest::everyBlockOfAPlantAnswersBoneMealAsItsRoot);
+        register("only_the_root_is_the_root", OtherModsGameTest::onlyTheRootIsTheRoot);
+        register("growing_asks_the_loader_and_tells_it", OtherModsGameTest::growingAsksTheLoaderAndTellsIt);
+        register("a_plant_with_no_room_to_grow_tells_nobody_it_grew",
+                OtherModsGameTest::aPlantWithNoRoomToGrowTellsNobodyItGrew);
+        register("every_recipe_for_another_mod_waits_for_it", OtherModsGameTest::everyRecipeForAnotherModWaitsForIt);
+        register("every_seed_a_villager_plants_stands_on_farmland",
+                OtherModsGameTest::everySeedAVillagerPlantsStandsOnFarmland);
+        register("a_raw_growth_step_keeps_what_the_plant_went_through", RawWritesGameTest::aRawGrowthStepKeepsWhatThePlantWentThrough);
+        register("a_raw_ripening_grows_the_whole_plant_and_eats_from_its_pot", RawWritesGameTest::aRawRipeningGrowsTheWholePlantAndEatsFromItsPot);
+        register("a_raw_replant_starts_a_new_plant", RawWritesGameTest::aRawReplantStartsANewPlant);
+        register("a_raw_write_above_the_root_leaves_the_plant_whole", RawWritesGameTest::aRawWriteAboveTheRootLeavesThePlantWhole);
+        register("a_replanting_age_written_above_the_root_leaves_the_plant_whole", RawWritesGameTest::aReplantingAgeWrittenAboveTheRootLeavesThePlantWhole);
+        register("a_replanting_age_written_on_the_root_starts_a_new_plant", RawWritesGameTest::aReplantingAgeWrittenOnTheRootStartsANewPlant);
+        register("a_raised_age_written_above_the_root_grows_the_plant_from_its_root",
+                RawWritesGameTest::aRaisedAgeWrittenAboveTheRootGrowsThePlantFromItsRoot);
+        register("bone_meal_on_any_block_grows_the_plant_from_its_root",
+                RawWritesGameTest::boneMealOnAnyBlockGrowsThePlantFromItsRoot);
+        register("our_own_step_is_not_taken_for_a_raw_one", RawWritesGameTest::ourOwnStepIsNotTakenForARawOne);
+        register("a_plant_taken_as_it_ripens_leaves_only_the_replanting",
+                RawWritesGameTest::aPlantTakenAsItRipensLeavesOnlyTheReplanting);
+        register("a_top_a_farmer_reaps_brings_the_plant_down", TallPlantBreakGameTest::aTopAFarmerReapsBringsThePlantDown);
+        register("a_top_a_harvester_cuts_brings_the_plant_down", TallPlantBreakGameTest::aTopAHarvesterCutsBringsThePlantDown);
+        register("a_top_an_explosion_reaches_takes_the_root_as_the_explosion",
+                TallPlantBreakGameTest::aTopAnExplosionReachesTakesTheRootAsTheExplosion);
+        register("a_player_breaking_any_block_harvests_the_plant_once",
+                TallPlantBreakGameTest::aPlayerBreakingAnyBlockHarvestsThePlantOnce);
     }
 
     /** Registers {@code test} as {@code name}, which must have a {@code test_instance} JSON of its own. */

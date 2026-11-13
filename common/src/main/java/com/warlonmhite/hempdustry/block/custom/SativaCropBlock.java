@@ -4,6 +4,7 @@ import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.advancement.HarvestHempCriterion;
 import com.warlonmhite.hempdustry.item.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -11,9 +12,11 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.Blocks;
@@ -31,14 +34,16 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.function.BiConsumer;
+
 /**
  * The Lemon Haze crop: a <em>three</em>-tall plant, built on the same pattern as the two-tall
  * {@link IndicaCropBlock} but with a {@link #SEGMENT} property (LOWER/MIDDLE/UPPER) in place of
  * vanilla's LOWER/UPPER {@code DoubleBlockHalf}, which can't describe three blocks.
  *
  * <p>As with indica the canonical {@code age 0..7} lives on the LOWER segment and the segments
- * above mirror it; only the LOWER random-ticks, is fertilizable, and drops loot. The plant gets
- * taller as it matures, which is the whole point of the strain — sativa needs headroom:
+ * above mirror it; only the LOWER random-ticks and drops loot, and bone meal on any segment feeds it.
+ * The plant gets taller as it matures, which is the whole point of the strain — sativa needs headroom:
  *
  * <table>
  *   <tr><th>age</th><th>shape</th></tr>
@@ -145,17 +150,62 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     @Override
     protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         BlockState below = world.getBlockState(pos.below());
+        // A segment also asks the LOWER's age: another mod that harvests and replants the root inside a
+        // block update (Just Dire Things' goo soil) leaves the old segments standing, because the update
+        // that would break them is queued until the outer one ends, and by then a seedling stands under
+        // them. Only its age tells that they are not its own.
         return switch (state.getValue(SEGMENT)) {
             // The UPPER sits on the LOWER while the plant is two tall, and on the MIDDLE once
             // it is three tall, so it accepts either.
-            case UPPER -> below.is(this) && below.getValue(SEGMENT) != TriplePlantSegment.UPPER;
-            case MIDDLE -> below.is(this) && below.getValue(SEGMENT) == TriplePlantSegment.LOWER;
+            case UPPER -> below.is(this) && switch (below.getValue(SEGMENT)) {
+                case MIDDLE -> true;
+                case LOWER -> this.getAge(below) >= TWO_TALL_AGE;
+                case UPPER -> false;
+            };
+            case MIDDLE -> below.is(this) && below.getValue(SEGMENT) == TriplePlantSegment.LOWER
+                    && this.getAge(below) >= THREE_TALL_AGE;
             case LOWER -> super.canSurvive(state, world, pos);
         };
     }
 
+    /**
+     * A block that carries a segment goes when that segment is taken by anything but the plant's own rules
+     * ({@link TallHemp#lostItsTop}), as on {@link IndicaCropBlock#updateShape}: the MIDDLE when its UPPER goes,
+     * the root once it is two tall. A MIDDLE gone that way takes the root in turn, so a top cut from a
+     * three-tall plant brings the whole plant down, and its harvest falls once, from the root.
+     */
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader world, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighborPos, BlockState neighbor, RandomSource random) {
+        BlockState shaped = super.updateShape(state, world, ticks, pos, direction, neighborPos, neighbor, random);
+        if (direction == Direction.UP && shaped == state
+                && TallHemp.lostItsTop(this, world, pos, this.carriesASegment(state))) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        return shaped;
+    }
+
+    private boolean carriesASegment(BlockState state) {
+        return switch (state.getValue(SEGMENT)) {
+            case LOWER -> this.getAge(state) >= TWO_TALL_AGE;
+            case MIDDLE -> true;
+            case UPPER -> false;
+        };
+    }
+
+    /** As on {@link IndicaCropBlock#onExplosionHit}: an explosion that reaches a segment takes the root with it. */
+    @Override
+    protected void onExplosionHit(BlockState state, ServerLevel world, BlockPos pos, Explosion explosion,
+                                  BiConsumer<ItemStack, BlockPos> drops) {
+        if (!isLower(state) && this.canSurvive(state, world, pos)) {
+            BlockPos rootPos = this.findLowerPos(world, pos, state);
+            world.getBlockState(rootPos).onExplosionHit(world, rootPos, explosion, drops);
+        }
+        super.onExplosionHit(state, world, pos, explosion, drops);
+    }
+
     // ----- growth -----
-    // Only the LOWER segment is fertile and random-ticks; it drives the whole plant.
+    // Only the LOWER segment random-ticks; it drives the whole plant, and bone meal on any segment feeds it.
     @Override
     protected boolean isRandomlyTicking(BlockState state) {
         // Deliberately *not* gated on `age < maxAge` the way vanilla's crops are. A plant that hit
@@ -167,7 +217,10 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     }
 
     /**
-     * Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
+     * Every segment answers for the plant, from its root, as on {@link IndicaCropBlock#isValidBonemealTarget}:
+     * other mods' harvesters read "refuses bone meal" as "ripe" on any block they reach.
+     *
+     * <p>Bonemeal is refused — and so not consumed — once the plant has grown as far as its headroom
      * allows. Without the {@link #maxAgeFor} half of this test, bonemeal would push a plant that is
      * boxed in all the way to maturity at whatever stunted height it happens to have:
      * {@code growCrops} writes the LOWER's age whether or not the segments above can be placed,
@@ -175,7 +228,8 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
      */
     @Override
     public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
-        return isLower(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        return rootPos != null && this.getAge(world.getBlockState(rootPos)) < this.maxAgeFor(world, rootPos);
     }
 
     /**
@@ -198,33 +252,11 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         return this.getMaxAge();
     }
 
-    /**
-     * The plant's age as seen from this block. The canonical age lives on the LOWER segment, and
-     * every segment above it reports {@link #getMaxAge()} — "nothing left to grow here", which is
-     * the truth, since the LOWER drives the whole plant.
-     *
-     * <p>That is not cosmetic, it is what makes the plant safe around <b>bees</b>.
-     * {@code Bee.BeeGrowCropGoal} looks 1–2 blocks below itself and, on anything in
-     * {@code #minecraft:bee_growables} that is a {@code CropBlock}, does
-     * {@code if (!isMaxAge(state)) setBlockAndUpdate(pos, getStateForAge(getAge(state) + 1))}. That write is
-     * direct — it never goes through {@code growCrops} — and {@link CropBlock#getStateForAge} rebuilds
-     * the state from {@code defaultBlockState()}, which resets {@link #SEGMENT} to LOWER. A bee
-     * hovering over a tall plant would turn its MIDDLE or UPPER into a LOWER in mid-air, fail
-     * {@code canSurvive}, and decapitate the plant.
-     *
-     * <p>The guard has to be {@code isMaxAge}, and {@code CropBlock#isMaxAge} is {@code final} —
-     * but it is defined as {@code getAge(state) >= getMaxAge()}, so overriding {@code getAge} is
-     * how a segment is made to report itself mature. Bees then skip everything but the LOWER,
-     * where {@code getStateForAge} happens to produce exactly the right state.
-     *
-     * <p>Safe because nothing reads the age of a non-LOWER segment: the outline shape, growth,
-     * fertilization and harvesting all either run on the LOWER only or go through {@link #SEGMENT},
-     * and the loot table and blockstate read the {@link #AGE} property directly rather than this.
-     */
-    @Override
-    public int getAge(BlockState state) {
-        return isLower(state) ? super.getAge(state) : this.getMaxAge();
-    }
+    // No getAge override: every segment reports its own age, which setAge keeps level with the LOWER's.
+    // Harvesters in other mods (Industrial Foregoing's, Create's) take any CropBlock whose isMaxAge
+    // holds, so a MIDDLE or UPPER that claimed to be ripe was cut off a growing plant. Bees, which
+    // would otherwise rebuild a segment as a LOWER in mid-air, are kept to the LOWER by
+    // BeeGrowCropsGoalMixin instead.
 
     @Override
     protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
@@ -245,8 +277,9 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
             } else {
                 moisture = this.fieldMoisture(world, pos);
             }
-            if (HempGrowth.rolls(random, this.growthResistance(), moisture,
-                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age))) {
+            boolean rolled = HempGrowth.rolls(random, this.growthResistance(), moisture,
+                    bed * state.getValue(GrowLight.PROPERTY).speedAt(age));
+            if (Services.PLATFORM.canCropGrow(world, pos, state, rolled)) {
                 grown++;
             }
         }
@@ -262,7 +295,16 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         // but each still paid a chunk lookup. isShapeSettled answers the same question in one or
         // two block reads.
         if (grown != age || !this.isShapeSettled(world, pos, age, state)) {
-            this.setAge(world, pos, grown, StressCause.NONE, random);
+            this.setAge(world, pos, world.getBlockState(pos), grown, StressCause.NONE, random);
+        }
+        // Told from the age written, not the roll: a plant held back by its headroom rolls as often as
+        // any other while writeAge keeps it where it is, and a listener paid per growth (Ars Nouveau's
+        // Agronomic Sourcelink) would be paid for a roofed seedling for ever. The root is read back
+        // because a harvesting soil may take the plant inside the write; a new seedling there differs
+        // from the old age too, which is the truth: it grew, and was taken.
+        BlockState after = world.getBlockState(pos);
+        if (after.is(this) && isLower(after) && this.getAge(after) != age) {
+            Services.PLATFORM.cropGrew(world, pos, state);
         }
         Mildew.randomTick(world, pos, random);
     }
@@ -321,9 +363,9 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         return mid == this.stateFor(age, TriplePlantSegment.UPPER, lower);
     }
 
-    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block. Only the LOWER
-    // segment is fertilizable, so this only ever runs on the LOWER segment. grow() is overridden as
-    // well so the roll uses the random it is handed, which is also what lets a test decide the roll.
+    // Bonemeal path: CropBlock.performBonemeal() calls growCrops() on the targeted block, which may be any
+    // segment; both grow the plant from its LOWER. performBonemeal is overridden as well so the step uses
+    // the random it is handed, which is also what lets a test decide the roll.
     @Override
     public void growCrops(Level world, BlockPos pos, BlockState state) {
         this.boneMeal(world, pos, state, world.getRandom());
@@ -334,13 +376,81 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
         this.boneMeal(world, pos, state, random);
     }
 
-    /** One bone meal step — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
+    /** One bone meal step, from the root — and, on a flowering plant in a fed bed, a chance of overfeeding it. */
     private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
-        if (!isLower(state)) {
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        if (rootPos == null) {
             return;
         }
-        this.setAge(world, pos, this.getAge(state) + this.getBonemealAgeIncrease(world),
-                PlantStress.ofBoneMeal(world, pos, state), random);
+        BlockState root = world.getBlockState(rootPos);
+        this.setAge(world, rootPos, root, this.getAge(root) + this.getBonemealAgeIncrease(world),
+                PlantStress.ofBoneMeal(world, rootPos, root), random);
+    }
+
+    /**
+     * Puts right a raw write from another mod, as {@link IndicaCropBlock#onPlace} does, for a plant of three
+     * blocks: a root state written onto the MIDDLE or the UPPER goes back to that segment, and so does an age
+     * alone written there ({@link TallHemp#isAgeWrittenAboveTheRoot}), then grows the plant from its root when
+     * the write raised the age ({@link TallHemp#isRaisedAboveTheRoot}); an age alone set back on the root keeps
+     * only the flags it could have earned ({@link TallHemp#isSetBackByAge}), a replanting takes
+     * both segments away (top first, so neither is left standing on nothing), and growth is one step of the
+     * plant's own. A root set back to age 0 in place, by any of these, is a new plant, and its record rolls
+     * again.
+     */
+    @Override
+    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean moved) {
+        super.onPlace(state, world, pos, old, moved);
+        if (world.isClientSide()) {
+            return;
+        }
+        if (old.is(this) && isLower(old) && isLower(state)
+                && old.getValue(AGE) > 0 && state.getValue(AGE) == 0) {
+            PlantRecordBlockEntity.replantAt(world, pos);
+        }
+        boolean raw = TallHemp.isRawWrite(this, state, old);
+        if (raw && !isLower(old) || TallHemp.isAgeWrittenAboveTheRoot(this, state, old)) {
+            boolean raised = TallHemp.isRaisedAboveTheRoot(this, state, old);
+            TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            BlockPos rootPos = raised ? TallHemp.rootOf(this, world, pos, old) : null;
+            if (rootPos != null) {
+                BlockState root = world.getBlockState(rootPos);
+                this.setAge(world, rootPos, root, this.getAge(state), StressCause.NONE, world.getRandom());
+            }
+            return;
+        }
+        if (!raw) {
+            if (TallHemp.isSetBackByAge(this, state, old)) {
+                BlockState earned = Defoliation.onlyEarned(state, this.getAge(state));
+                if (earned != state) {
+                    TallHemp.ownWrite(() -> world.setBlock(pos, earned, Block.UPDATE_CLIENTS));
+                }
+            }
+            return;
+        }
+        int age = this.getAge(state);
+        if (age == this.getAge(old)) {
+            return; // a plant set afresh where it stood, as /setblock does: nothing grew, nothing to keep
+        }
+        boolean replanted = age < this.getAge(old);
+        if (replanted) {
+            this.removeSegmentsAbove(world, pos);
+        }
+        this.setAge(world, pos, replanted ? state : old, age, StressCause.NONE, world.getRandom());
+    }
+
+    /**
+     * Takes away the segments standing on {@code pos}, top down and without drops: their plant's harvest is the
+     * root's, and whoever replaced the root has had it.
+     */
+    private void removeSegmentsAbove(Level world, BlockPos pos) {
+        for (int offset = 2; offset >= 1; offset--) {
+            BlockPos segmentPos = pos.above(offset);
+            BlockState segment = world.getBlockState(segmentPos);
+            if (segment.is(this) && !isLower(segment)) {
+                TallHemp.ownWrite(() -> world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS));
+            }
+        }
     }
 
     /** A flat one stage per successful bonemeal, for the same reasons as {@link IndicaCropBlock}. */
@@ -369,9 +479,20 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
      *
      * <p>The clamp deliberately never lowers an age the plant already has: a finished plant that a
      * player later builds over keeps its age and its harvest instead of silently reverting.
+     *
+     * <p>{@code current} is the plant the step starts from: the block at {@code pos}, except when
+     * {@link #onPlace} replays a raw write, where it is the state that write replaced.
      */
-    private void setAge(Level world, BlockPos pos, int newAge, StressCause extraStress, RandomSource random) {
-        BlockState current = world.getBlockState(pos);
+    private void setAge(Level world, BlockPos pos, BlockState current, int newAge, StressCause extraStress,
+                        RandomSource random) {
+        TallHemp.ownWrite(() -> {
+            this.writeAge(world, pos, current, newAge, extraStress, random);
+            return true;
+        });
+    }
+
+    private void writeAge(Level world, BlockPos pos, BlockState current, int newAge, StressCause extraStress,
+                          RandomSource random) {
         int currentAge = current.is(this) && isLower(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
         newAge = Math.min(newAge, Math.max(currentAge, this.maxAgeFor(world, pos)));
@@ -394,6 +515,15 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
             }
         }
         world.setBlock(pos, lower, Block.UPDATE_CLIENTS);
+        if (world.getBlockState(pos) != lower) {
+            // Something answered that write by taking the plant: a soil that harvests what ripens on it
+            // (Just Dire Things' goo soil) hears the shape update and replants before this returns. The
+            // segments are no longer this plant's to grow; written now, they would stand ripe on a seedling.
+            // Nor will the old ones fall by themselves: the update that would break them was raised inside this
+            // write's own, so the game queues it, and by the time it runs a new root stands under them again.
+            this.removeSegmentsAbove(world, pos);
+            return;
+        }
 
         BlockPos midPos = pos.above();
         BlockPos topPos = pos.above(2);
@@ -455,10 +585,7 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
      * A ripe plant lets off a wisp now and then from its top; see {@link RipeAroma}. Any segment
      * can be sampled, and the helper keeps only the one with open air above it.
      *
-     * <p>Reads {@link #AGE} directly, <b>not</b> {@link #getAge}: every segment above the LOWER
-     * reports maturity through {@code getAge} (the bee guard above), so asking it would have every
-     * tall plant smelling ripe from age 4. Their {@code AGE} mirrors the LOWER's, so any segment
-     * answers truthfully here.
+     * <p>Every segment's {@link #AGE} mirrors the LOWER's, so any segment answers truthfully here.
      */
     @Override
     public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
@@ -471,38 +598,47 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     // ----- harvesting -----
     // Breaking any segment takes the whole plant and yields it exactly once: the loot table only
     // drops for the LOWER segment, so we drop the LOWER's loot by hand when the player broke one
-    // of the others, and clear the rest of the stack top-down with drops suppressed.
+    // of the others, and clear the rest of the stack top-down with drops suppressed, as the plant's
+    // own write, so that a root losing its segments here is not taken for a plant whose top something
+    // else took (updateShape).
     @Override
     public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (!world.isClientSide()) {
-            BlockPos lowerPos = this.findLowerPos(world, pos, state);
-            BlockState lower = world.getBlockState(lowerPos);
-            if (lower.is(this) && isLower(lower)) {
-                // The trim flags and the canonical age both live on the LOWER, so the harvest
-                // criterion is fed from there whichever segment the player actually broke.
-                if (this.isMaxAge(lower)) {
-                    HarvestHempCriterion.trigger(player, (ServerLevel) world, lowerPos, lower);
-                }
-                for (int offset = 2; offset >= 1; offset--) {
-                    BlockPos segmentPos = lowerPos.above(offset);
-                    BlockState segment = world.getBlockState(segmentPos);
-                    if (!segmentPos.equals(pos) && segment.is(this) && !isLower(segment)) {
-                        world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
-                                Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                    }
-                }
-                if (!lowerPos.equals(pos)) {
-                    if (!player.isCreative()) {
-                        // With the root's record: the buds take the plant's band from it.
-                        dropResources(lower, world, lowerPos, world.getBlockEntity(lowerPos), player,
-                                player.getMainHandItem());
-                    }
-                    world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(),
+            TallHemp.ownWrite(() -> {
+                this.takeTheRest(world, pos, state, player);
+                return true;
+            });
+        }
+        return super.playerWillDestroy(world, pos, state, player);
+    }
+
+    private void takeTheRest(Level world, BlockPos pos, BlockState state, Player player) {
+        BlockPos lowerPos = this.findLowerPos(world, pos, state);
+        BlockState lower = world.getBlockState(lowerPos);
+        if (lower.is(this) && isLower(lower)) {
+            // The trim flags and the canonical age both live on the LOWER, so the harvest
+            // criterion is fed from there whichever segment the player actually broke.
+            if (this.isMaxAge(lower)) {
+                HarvestHempCriterion.trigger(player, (ServerLevel) world, lowerPos, lower);
+            }
+            for (int offset = 2; offset >= 1; offset--) {
+                BlockPos segmentPos = lowerPos.above(offset);
+                BlockState segment = world.getBlockState(segmentPos);
+                if (!segmentPos.equals(pos) && segment.is(this) && !isLower(segment)) {
+                    world.setBlock(segmentPos, Blocks.AIR.defaultBlockState(),
                             Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
                 }
             }
+            if (!lowerPos.equals(pos)) {
+                if (!player.isCreative()) {
+                    // With the root's record: the buds take the plant's band from it.
+                    dropResources(lower, world, lowerPos, world.getBlockEntity(lowerPos), player,
+                            player.getMainHandItem());
+                }
+                world.setBlock(lowerPos, Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
         }
-        return super.playerWillDestroy(world, pos, state, player);
     }
 
     /**
@@ -542,19 +678,6 @@ public class SativaCropBlock extends CropBlock implements Mildew.Host, EntityBlo
     /** Whether this crop keeps a record of its own rolls: every crop that grows buds. */
     protected boolean keepsRecord() {
         return true;
-    }
-
-    /**
-     * A root set back to age 0 in place — by a harvester that replants, through vanilla's
-     * {@code getStateForAge} — is a new plant, and rolls again.
-     */
-    @Override
-    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        super.onPlace(state, world, pos, oldState, movedByPiston);
-        if (oldState.is(this) && isLower(oldState) && isLower(state)
-                && oldState.getValue(AGE) > 0 && state.getValue(AGE) == 0) {
-            PlantRecordBlockEntity.replantAt(world, pos);
-        }
     }
 
     @Override

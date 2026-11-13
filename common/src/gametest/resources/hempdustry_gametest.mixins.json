@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "com.warlonmhite.hempdustry.test.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"FarmBlockHarvestMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

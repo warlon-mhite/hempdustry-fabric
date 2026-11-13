@@ -124,6 +124,12 @@ public final class LangGameTest {
                 langKeys.addAll(keys);
                 // English is the fallback every other locale shows a missing string in.
                 if (name.endsWith("/en_us.json")) english.addAll(keys);
+            } else if (name.startsWith("data/hempdustry/silentgear_materials/") && name.endsWith(".json")) {
+                // Silent Gear names a material of ours by the key its file gives it.
+                JsonObject display = Sweep.json(file).getAsJsonObject().getAsJsonObject("display");
+                if (display != null && display.has("name") && display.getAsJsonObject("name").has("translate")) {
+                    read.add(display.getAsJsonObject("name").get("translate").getAsString());
+                }
             } else if (name.equals("assets/hempdustry/sounds.json")) {
                 // The client reads a subtitle only for a sound event the server registered.
                 Sweep.json(file).getAsJsonObject().entrySet().forEach(e -> {
