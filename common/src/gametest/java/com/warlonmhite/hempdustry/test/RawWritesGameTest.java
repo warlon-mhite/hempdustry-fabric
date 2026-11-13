@@ -5,6 +5,7 @@ import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
+import com.warlonmhite.hempdustry.block.custom.Mildew;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
 import net.minecraft.core.BlockPos;
@@ -355,6 +356,11 @@ public final class RawWritesGameTest {
         for (int up = 0; up < COLUMN; up++) {
             BlockState want = up < blocks.size() ? blocks.get(up) : Blocks.AIR.defaultBlockState();
             BlockState got = context.getBlockState(CROP.above(up));
+            // A growth step of the plant's own may catch powdery mildew under the test's barrier roof, as any
+            // roofed plant may; that roll is the mildew tests' to hold, not this one's.
+            if (got.hasProperty(Mildew.PROPERTY) && want.hasProperty(Mildew.PROPERTY)) {
+                got = got.setValue(Mildew.PROPERTY, want.getValue(Mildew.PROPERTY));
+            }
             context.assertTrue(got == want, name(crop) + " " + what + ": block " + up + " above the soil is " + got
                     + ", expected " + want);
         }
