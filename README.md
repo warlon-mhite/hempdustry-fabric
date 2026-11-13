@@ -20,7 +20,7 @@ on Forge, [Forge](https://files.minecraftforge.net/) 47.4.0 or newer and nothing
 named for it (`hempdustry-fabric-…`, `hempdustry-forge-…`). JEI, EMI or REI is optional (REI on Forge wants Architectury and Cloth Config beside it), and with any of them the mod adds pages for its machines, for packing a
 pipe or bong, and for the cauldron steps.
 
-> **Status: version 2.1.0, stable**
+> **Status: version 2.1.1, stable**
 > This is a rewrite, for Fabric and Forge on 1.20.1, of an older Forge 1.16 mod (GanjaCraft) built with
 > MCreator. "Hempdustry 2" is the marker of that rewrite, not a claim that everything from the
 > original is back. Some features have been reimagined and the mod is a bit different from the original.

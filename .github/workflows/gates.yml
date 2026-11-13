@@ -24,8 +24,8 @@ jobs:
       # The releases whose API this build must keep (scripts/api_additive.py), one per loader, since a
       # Fabric jar and a Forge jar cannot be compared with each other, nor a jar of another Minecraft.
       # Empty until this line's first release on Minecraft 1.20.1; move both on at each release.
-      API_BASELINE: ''
-      NEOFORGE_API_BASELINE: ''
+      API_BASELINE: v2.1.1
+      NEOFORGE_API_BASELINE: v2.1.1
     steps:
       - uses: actions/checkout@v4
 

@@ -9,6 +9,10 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
+Nothing yet — everything below shipped in 2.1.1+1.20.1.
+
+## [2.1.1+1.20.1] — 2026-11-13
+
 2.1 for Minecraft 1.20.1, on Fabric and Forge: everything 2.1.0 has on Minecraft 1.21.1, and the 2.1.1
 patch below. It is the first Hempdustry build for 1.20.1.
 
@@ -802,7 +806,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.0%2B1.21.1...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.1%2B1.20.1...HEAD
+[2.1.1+1.20.1]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.1
 [2.1.0]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
 [2.0.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.3
 [2.0.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.2
