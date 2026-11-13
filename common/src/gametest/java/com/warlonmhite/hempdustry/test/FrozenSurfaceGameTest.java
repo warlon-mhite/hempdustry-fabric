@@ -175,6 +175,7 @@ public final class FrozenSurfaceGameTest {
             if (sameGame) sameGameReleases++;
             for (Map.Entry<String, JsonElement> data : sameGame ? old.getAsJsonObject("data").entrySet()
                     : Set.<Map.Entry<String, JsonElement>>of()) {
+                if (loadsOnlyWhereItsConditionsHold(data.getValue())) continue;
                 files++;
                 Codec<?> codec = codecFor(data.getKey());
                 if (codec == null) {
@@ -468,4 +469,15 @@ public final class FrozenSurfaceGameTest {
             throw new IllegalStateException(e);
         }
     }
+
+    /**
+     * Whether a released data file carries a loader's load conditions. Such a file loads only where they
+     * hold, which for ours means beside another mod: a recipe for that mod's machine, written in its
+     * format. A game without that mod neither reads nor can decode it, so this test leaves it alone.
+     */
+    private static boolean loadsOnlyWhereItsConditionsHold(JsonElement file) {
+        return file.isJsonObject() && LOAD_CONDITIONS.stream().anyMatch(file.getAsJsonObject()::has);
+    }
+
+    private static final List<String> LOAD_CONDITIONS = List.of("fabric:load_conditions", "neoforge:conditions", "forge:conditions");
 }
