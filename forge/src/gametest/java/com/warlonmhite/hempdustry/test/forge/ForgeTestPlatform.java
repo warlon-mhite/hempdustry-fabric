@@ -13,7 +13,9 @@ import com.warlonmhite.hempdustry.api.AfterInfuseEvent;
 import com.warlonmhite.hempdustry.api.AfterSmokeEvent;
 import com.warlonmhite.hempdustry.api.AllowSmokeEvent;
 import com.warlonmhite.hempdustry.test.TestPlatform;
+import com.google.gson.JsonElement;
 import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
@@ -21,6 +23,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootDataType;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -47,6 +51,11 @@ public final class ForgeTestPlatform implements TestPlatform {
     @Override
     public List<Path> testModRoots() {
         return roots(ForgeGameTests.MOD_ID);
+    }
+
+    @Override
+    public LootTable lootTable(ResourceLocation id, JsonElement file) {
+        return ForgeHooks.loadLootTable(LootDataType.TABLE.parser(), id, file, false);
     }
 
     @Override

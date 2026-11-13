@@ -1,11 +1,14 @@
 package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.platform.Services;
+import com.google.gson.JsonElement;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -39,6 +42,12 @@ public interface TestPlatform {
      * table in code on Fabric, a data map on NeoForge -- or {@code -1} when it does not compost.
      */
     float compostChance(ItemLike item);
+
+    /**
+     * The loot table a file holds, read the way this loader's own loading reads it: Forge names each
+     * pool inside a context it opens around the read, and a pool read outside one throws.
+     */
+    LootTable lootTable(ResourceLocation id, JsonElement file);
 
     /**
      * How many ticks {@code stack} burns in a furnace, as the loader's furnace reads it -- Fabric's fuel

@@ -379,8 +379,8 @@ public final class FrozenSurfaceGameTest {
                 return null;
             }
             if (inside.startsWith("loot_tables/")) {
-                // Through the table's own reader: Forge adds an argument to LootDataType#deserialize.
-                return LootDataType.TABLE.parser().fromJson(file, LootTable.class) != null ? null : "no longer decodes";
+                // Through the loader's reader: Forge reads a table's pools inside a context of its own.
+                return TestPlatform.INSTANCE.lootTable(id(namespace, inside, "loot_tables/"), file) != null ? null : "no longer decodes";
             }
         } catch (RuntimeException e) {
             return "no longer decodes: " + e.getMessage();

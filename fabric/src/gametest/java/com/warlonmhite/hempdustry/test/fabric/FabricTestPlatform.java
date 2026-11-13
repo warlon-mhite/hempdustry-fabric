@@ -8,11 +8,15 @@ import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.FuelRegistry;
 import net.fabricmc.loader.api.FabricLoader;
+import com.google.gson.JsonElement;
 import net.minecraft.resources.RegistryDataLoader;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ComposterBlock;
+import net.minecraft.world.level.storage.loot.LootDataType;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -38,6 +42,11 @@ public final class FabricTestPlatform implements TestPlatform {
     @Override
     public List<Path> testModRoots() {
         return roots(HempdustryGameTests.NAMESPACE);
+    }
+
+    @Override
+    public LootTable lootTable(ResourceLocation id, JsonElement file) {
+        return LootDataType.TABLE.parser().fromJson(file, LootTable.class);
     }
 
     @Override
