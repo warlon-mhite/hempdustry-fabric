@@ -9,6 +9,10 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
+Nothing yet — everything below shipped in 2.1.1+26.1.2.
+
+## [2.1.1+26.1.2] — 2026-11-13
+
 2.1 for Minecraft 26.1.2: everything in [2.1.0+26.2] and the 2.1.1 patch below, except what is built on
 things only Minecraft 26.2 has. A world from 2.1.0 on Minecraft 1.21.11 opens on it and keeps everything in
 it.
@@ -892,7 +896,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.0%2B26.2...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.1%2B26.1.2...HEAD
+[2.1.1+26.1.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.1
 [2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
 [2.1.0]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
 [2.0.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.0.3
