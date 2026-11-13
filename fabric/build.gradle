@@ -215,7 +215,7 @@ publishing {
 		if (githubUser && githubKey) {
 			maven {
 				name = "GitHubPackages"
-				url = "https://maven.pkg.github.com/warlon-mhite/hempdustry-fabric"
+				url = "https://maven.pkg.github.com/warlon-mhite/hempdustry-java"
 				credentials {
 					username = githubUser
 					password = githubKey
