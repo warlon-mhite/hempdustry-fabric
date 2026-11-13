@@ -11,9 +11,9 @@
 		"Nefu\u00df (music)"
 	],
 	"contact": {
-		"homepage": "https://github.com/warlon-mhite/hempdustry-fabric",
-		"sources": "https://github.com/warlon-mhite/hempdustry-fabric",
-		"issues": "https://github.com/warlon-mhite/hempdustry-fabric/issues"
+		"homepage": "https://github.com/warlon-mhite/hempdustry-java",
+		"sources": "https://github.com/warlon-mhite/hempdustry-java",
+		"issues": "https://github.com/warlon-mhite/hempdustry-java/issues"
 	},
 	"license": [
 		"AGPL-3.0-only",
