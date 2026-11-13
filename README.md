@@ -13,7 +13,7 @@ actually been for over the last five thousand years.
 [![Code](https://img.shields.io/badge/Code-AGPL--3.0-blue)](LICENSE)
 [![Art & music](https://img.shields.io/badge/Art%20%26%20music-CC%20BY--NC--SA%204.0-blue)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-**Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-fabric/releases)
+**Download:** [GitHub releases](https://github.com/warlon-mhite/hempdustry-java/releases)
 
 **Needs:** on Fabric, [Fabric Loader](https://fabricmc.net/use/) and [Fabric API](https://modrinth.com/mod/fabric-api);
 on NeoForge, [NeoForge](https://neoforged.net/) and nothing else. Each loader has its own download,
