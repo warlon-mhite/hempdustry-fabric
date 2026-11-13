@@ -7,6 +7,7 @@ import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.platform.Services;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
@@ -17,9 +18,11 @@ import net.minecraft.world.entity.monster.Enderman;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.Blocks;
@@ -36,6 +39,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+import java.util.function.BiConsumer;
 
 /**
  * Ender Haze, the End's cannabis, and the tallest plant in the mod: <b>five blocks</b> once grown.
@@ -72,8 +77,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  *       carved pumpkin, or Averted Gaze, which is what this plant smokes as.</li>
  * </ul>
  *
- * <p>Only the root random-ticks, is fertilizable and drops loot; breaking any segment takes the
- * whole plant and pays it once. The wild plant is this block, generated ripe on the outer islands.
+ * <p>Only the root random-ticks and drops loot, and bone meal on any segment feeds it; breaking any
+ * segment takes the whole plant and pays it once, and so does anything else that takes a segment. The
+ * wild plant is this block, generated ripe on the outer islands.
  */
 public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
     /** How tall the plant stands grown. */
@@ -136,7 +142,7 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
         return state.getValue(SEGMENT) == heightFor(state.getValue(AGE)) - 1;
     }
 
-    private static boolean isRoot(BlockState state) {
+    static boolean isRoot(BlockState state) {
         return state.getValue(SEGMENT) == 0;
     }
 
@@ -174,7 +180,11 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
     // ----- support / placement -----
     // Each segment above the root survives only on the one below it, so removing any segment leaves
     // the ones above it unsupported, and VegetationBlock's updateShape turns them to air one after
-    // another. The root uses the ordinary crop rule: light, and the right ground below.
+    // another. The root uses the ordinary crop rule: light, and the right ground below. A segment also
+    // asks the root's age, as the other tall plants' do: another mod that harvests and replants the root
+    // inside a block update leaves the old segments standing, because the update that would break them
+    // is queued until the outer one ends, and by then a seedling stands under them. Only its age tells
+    // that they are not its own.
     @Override
     protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
         int segment = state.getValue(SEGMENT);
@@ -182,7 +192,39 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
             return super.canSurvive(state, world, pos);
         }
         BlockState below = world.getBlockState(pos.below());
-        return below.is(this) && below.getValue(SEGMENT) == segment - 1;
+        if (!below.is(this) || below.getValue(SEGMENT) != segment - 1) {
+            return false;
+        }
+        BlockState root = world.getBlockState(pos.below(segment));
+        return root.is(this) && isRoot(root) && heightFor(root.getValue(AGE)) > segment;
+    }
+
+    /**
+     * A block that carries a segment goes when that segment is taken by anything but the plant's own rules
+     * ({@link TallHemp#lostItsTop}), as on the other tall plants: each segment gone that way takes the one
+     * under it in turn, so a top cut from anywhere on the plant brings the whole plant down, and its harvest
+     * falls once, from the root.
+     */
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader world, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighborPos, BlockState neighbor, RandomSource random) {
+        BlockState shaped = super.updateShape(state, world, ticks, pos, direction, neighborPos, neighbor, random);
+        if (direction == Direction.UP && shaped == state && TallHemp.lostItsTop(this, world, pos,
+                state.getValue(SEGMENT) < heightFor(state.getValue(AGE)) - 1)) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        return shaped;
+    }
+
+    /** An explosion that reaches a segment takes the root with it, as that explosion, as on the other tall plants. */
+    @Override
+    protected void onExplosionHit(BlockState state, ServerLevel world, BlockPos pos, Explosion explosion,
+                                  BiConsumer<ItemStack, BlockPos> drops) {
+        if (!isRoot(state) && this.canSurvive(state, world, pos)) {
+            BlockPos rootPos = rootOf(pos, state);
+            world.getBlockState(rootPos).onExplosionHit(world, rootPos, explosion, drops);
+        }
+        super.onExplosionHit(state, world, pos, explosion, drops);
     }
 
     // ----- growth -----
@@ -197,10 +239,15 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
         return isRoot(state);
     }
 
-    /** Refused, and so not consumed, once the plant has grown as far as its headroom allows. */
+    /**
+     * Every segment answers for the plant, from its root, as on the other tall plants: other mods' harvesters
+     * read "refuses bone meal" as "ripe" on any block they reach. Refused, and so not consumed, once the plant
+     * has grown as far as its headroom allows.
+     */
     @Override
     public boolean isValidBonemealTarget(LevelReader world, BlockPos pos, BlockState state, BonemealSource source) {
-        return isRoot(state) && this.getAge(state) < this.maxAgeFor(world, pos);
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        return rootPos != null && this.getAge(world.getBlockState(rootPos)) < this.maxAgeFor(world, rootPos);
     }
 
     /**
@@ -217,16 +264,10 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
         return this.getMaxAge();
     }
 
-    /**
-     * The plant's age as seen from this block: the root's own, and {@link #getMaxAge()} — "nothing
-     * left to grow here" — from every segment above it. That is what keeps a bee from writing a
-     * root's state into the middle of the plant (it skips anything {@code isMaxAge}), and nothing
-     * reads a segment's age through this: the models and the loot table read {@link #AGE} directly.
-     */
-    @Override
-    public int getAge(BlockState state) {
-        return isRoot(state) ? super.getAge(state) : this.getMaxAge();
-    }
+    // No getAge override: every segment reports its own age, which setAge keeps level with the root's.
+    // Other mods' harvesters take any CropBlock whose isMaxAge holds, so a segment that claimed to be
+    // ripe was cut off a growing plant. A bee, which would write a root's state into the middle of the
+    // plant, is kept to the root by BeeGrowCropsGoalMixin, as on the other tall plants.
 
     @Override
     protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
@@ -247,12 +288,19 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
             }
             // No GrowLight#speedAt here: the Grow Lamp's head start for a young plant is every other
             // strain's, and not this one's.
-            if (HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture, bed)) {
+            boolean rolled = HempGrowth.rolls(random, GROWTH_RESISTANCE, moisture, bed);
+            if (Services.PLATFORM.canCropGrow(world, pos, state, rolled)) {
                 grown++;
             }
         }
         if (grown != age || !this.isShapeSettled(world, pos, age, state.getValue(GrowLight.PROPERTY))) {
-            this.setAge(world, pos, grown, StressCause.NONE, random);
+            this.setAge(world, pos, world.getBlockState(pos), grown, StressCause.NONE, random);
+        }
+        // Told from the age written, not the roll, as on the other tall plants: a plant held back by its
+        // headroom rolls while writeAge keeps it where it is.
+        BlockState after = world.getBlockState(pos);
+        if (after.is(this) && isRoot(after) && this.getAge(after) != age) {
+            Services.PLATFORM.cropGrew(world, pos, state);
         }
     }
 
@@ -286,13 +334,15 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
         this.boneMeal(world, pos, state, random);
     }
 
-    /** One bone meal step — and, on a flowering plant in a fed tray, a chance of overfeeding it. */
+    /** One bone meal step, from the root — and, on a flowering plant in a fed tray, a chance of overfeeding it. */
     private void boneMeal(Level world, BlockPos pos, BlockState state, RandomSource random) {
-        if (!isRoot(state)) {
+        BlockPos rootPos = TallHemp.rootOf(this, world, pos, state);
+        if (rootPos == null) {
             return;
         }
-        this.setAge(world, pos, this.getAge(state) + this.getBonemealAgeIncrease(world),
-                PlantStress.ofBoneMeal(world, pos, state), random);
+        BlockState root = world.getBlockState(rootPos);
+        this.setAge(world, rootPos, root, this.getAge(root) + this.getBonemealAgeIncrease(world),
+                PlantStress.ofBoneMeal(world, rootPos, root), random);
     }
 
     /** A flat stage per successful bonemeal, as on the other hemp crops. */
@@ -310,9 +360,20 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
      * Sets the root to {@code newAge} and writes the segments above it, bottom up, as far as the age
      * calls for and there is room. {@code newAge} is held to {@link #maxAgeFor}, but never below an
      * age the plant already has: a ripe plant a player later builds over keeps its harvest.
+     *
+     * <p>{@code current} is the plant the step starts from: the block at {@code pos}, except when
+     * {@link #onPlace} replays a raw write, where it is the state that write replaced.
      */
-    private void setAge(Level world, BlockPos pos, int newAge, StressCause extraStress, RandomSource random) {
-        BlockState current = world.getBlockState(pos);
+    private void setAge(Level world, BlockPos pos, BlockState current, int newAge, StressCause extraStress,
+                        RandomSource random) {
+        TallHemp.ownWrite(() -> {
+            this.writeAge(world, pos, current, newAge, extraStress, random);
+            return true;
+        });
+    }
+
+    private void writeAge(Level world, BlockPos pos, BlockState current, int newAge, StressCause extraStress,
+                          RandomSource random) {
         int currentAge = current.is(this) && isRoot(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());
         newAge = Math.min(newAge, Math.max(currentAge, this.maxAgeFor(world, pos)));
@@ -330,6 +391,13 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
             }
         }
         world.setBlock(pos, root, Block.UPDATE_CLIENTS);
+        if (world.getBlockState(pos) != root) {
+            // Something answered that write by taking the plant (a soil that harvests what ripens on it):
+            // the segments are no longer this plant's to grow, and the old ones would not fall by themselves
+            // before a new root stood under them again, as on the other tall plants.
+            this.removeSegmentsAbove(world, pos);
+            return;
+        }
 
         // Bottom up: each segment needs the one under it in place, or its canSurvive fails and the
         // neighbour update takes it straight back out.
@@ -378,7 +446,7 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
 
     // ----- the smell of a ripe plant -----
 
-    /** Reads {@link #AGE} directly: every segment above the root reports maturity through {@link #getAge}. */
+    /** Every segment's {@link #AGE} mirrors the root's, so any of them answers truthfully here. */
     @Override
     public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource random) {
         if (state.getValue(AGE) >= this.getMaxAge()) {
@@ -389,37 +457,45 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
     // ----- harvesting -----
     // Breaking any segment takes the whole plant and pays it once: only the root has loot, so the
     // root's is dropped by hand when the player broke another segment, and the rest is cleared from
-    // the top down with drops suppressed.
+    // the top down with drops suppressed, as the plant's own write, so that a root losing its segments here
+    // is not taken for a plant whose top something else took (updateShape).
     @Override
     public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
         if (!world.isClientSide()) {
-            BlockPos rootPos = rootOf(pos, state);
-            BlockState root = world.getBlockState(rootPos);
-            if (root.is(this) && isRoot(root)) {
-                if (this.isMaxAge(root)) {
-                    HarvestHempCriterion.trigger(player, (ServerLevel) world, rootPos, root);
-                }
-                for (int segment = HEIGHT - 1; segment >= 1; segment--) {
-                    BlockPos at = rootPos.above(segment);
-                    BlockState found = world.getBlockState(at);
-                    if (!at.equals(pos) && found.is(this) && !isRoot(found)) {
-                        world.setBlock(at, Blocks.AIR.defaultBlockState(),
-                                Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                    }
-                }
-                if (!rootPos.equals(pos)) {
-                    if (!player.isCreative()) {
-                        // With the root's record: the buds take the plant's band from it.
-                        dropResources(root, world, rootPos, world.getBlockEntity(rootPos), player,
-                                player.getMainHandItem());
-                    }
-                    world.setBlock(rootPos, Blocks.AIR.defaultBlockState(),
-                            Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                }
-            }
+            TallHemp.ownWrite(() -> {
+                this.takeTheRest(world, pos, state, player);
+                return true;
+            });
             provoke((ServerLevel) world, pos, player);
         }
         return super.playerWillDestroy(world, pos, state, player);
+    }
+
+    private void takeTheRest(Level world, BlockPos pos, BlockState state, Player player) {
+        BlockPos rootPos = rootOf(pos, state);
+        BlockState root = world.getBlockState(rootPos);
+        if (root.is(this) && isRoot(root)) {
+            if (this.isMaxAge(root)) {
+                HarvestHempCriterion.trigger(player, (ServerLevel) world, rootPos, root);
+            }
+            for (int segment = HEIGHT - 1; segment >= 1; segment--) {
+                BlockPos at = rootPos.above(segment);
+                BlockState found = world.getBlockState(at);
+                if (!at.equals(pos) && found.is(this) && !isRoot(found)) {
+                    world.setBlock(at, Blocks.AIR.defaultBlockState(),
+                            Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+                }
+            }
+            if (!rootPos.equals(pos)) {
+                if (!player.isCreative()) {
+                    // With the root's record: the buds take the plant's band from it.
+                    dropResources(root, world, rootPos, world.getBlockEntity(rootPos), player,
+                            player.getMainHandItem());
+                }
+                world.setBlock(rootPos, Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            }
+        }
     }
 
     /**
@@ -466,15 +542,67 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
     }
 
     /**
-     * A root set back to age 0 in place — by a harvester that replants, through vanilla's
-     * {@code getStateForAge} — is a new plant, and rolls again.
+     * Puts right a raw write from another mod, as {@link IndicaCropBlock#onPlace} does, for a plant of five
+     * blocks: a root state written onto a segment goes back to that segment, and so does an age alone written
+     * there ({@link TallHemp#isAgeWrittenAboveTheRoot}), then grows the plant from its root when the write
+     * raised the age ({@link TallHemp#isRaisedAboveTheRoot}); an age alone set back on the root keeps only the
+     * flags it could have earned ({@link TallHemp#isSetBackByAge}), a replanting takes every segment away (top
+     * first, so none is left standing on nothing), and growth is one step of the plant's own. A root set back
+     * to age 0 in place, by any of these, is a new plant, and its record rolls again.
      */
     @Override
-    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        super.onPlace(state, world, pos, oldState, movedByPiston);
-        if (oldState.is(this) && isRoot(oldState) && isRoot(state)
-                && oldState.getValue(AGE) > 0 && state.getValue(AGE) == 0) {
+    protected void onPlace(BlockState state, Level world, BlockPos pos, BlockState old, boolean moved) {
+        super.onPlace(state, world, pos, old, moved);
+        if (world.isClientSide()) {
+            return;
+        }
+        if (old.is(this) && isRoot(old) && isRoot(state)
+                && old.getValue(AGE) > 0 && state.getValue(AGE) == 0) {
             PlantRecordBlockEntity.replantAt(world, pos);
+        }
+        boolean raw = TallHemp.isRawWrite(this, state, old);
+        if (raw && !isRoot(old) || TallHemp.isAgeWrittenAboveTheRoot(this, state, old)) {
+            boolean raised = TallHemp.isRaisedAboveTheRoot(this, state, old);
+            TallHemp.ownWrite(() -> world.setBlock(pos, old, Block.UPDATE_CLIENTS));
+            BlockPos rootPos = raised ? TallHemp.rootOf(this, world, pos, old) : null;
+            if (rootPos != null) {
+                BlockState root = world.getBlockState(rootPos);
+                this.setAge(world, rootPos, root, this.getAge(state), StressCause.NONE, world.getRandom());
+            }
+            return;
+        }
+        if (!raw) {
+            if (TallHemp.isSetBackByAge(this, state, old)) {
+                BlockState earned = Defoliation.onlyEarned(state, this.getAge(state));
+                if (earned != state) {
+                    TallHemp.ownWrite(() -> world.setBlock(pos, earned, Block.UPDATE_CLIENTS));
+                }
+            }
+            return;
+        }
+        int age = this.getAge(state);
+        if (age == this.getAge(old)) {
+            return; // a plant set afresh where it stood, as /setblock does: nothing grew, nothing to keep
+        }
+        boolean replanted = age < this.getAge(old);
+        if (replanted) {
+            this.removeSegmentsAbove(world, pos);
+        }
+        this.setAge(world, pos, replanted ? state : old, age, StressCause.NONE, world.getRandom());
+    }
+
+    /**
+     * Takes away the segments standing on {@code pos}, top down and without drops: their plant's harvest is the
+     * root's, and whoever replaced the root has had it.
+     */
+    private void removeSegmentsAbove(Level world, BlockPos pos) {
+        for (int segment = HEIGHT - 1; segment >= 1; segment--) {
+            BlockPos at = pos.above(segment);
+            BlockState found = world.getBlockState(at);
+            if (found.is(this) && !isRoot(found)) {
+                TallHemp.ownWrite(() -> world.setBlock(at, Blocks.AIR.defaultBlockState(),
+                        Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS));
+            }
         }
     }
 

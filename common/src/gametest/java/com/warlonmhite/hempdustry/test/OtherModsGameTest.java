@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.warlonmhite.hempdustry.Hempdustry;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TallHemp;
@@ -157,12 +158,21 @@ public final class OtherModsGameTest {
     }
 
     public static void onlyTheRootIsTheRoot(GameTestHelper context) {
-        for (Block block : List.of(ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP)) {
+        // The root is the block on the ground the plant grows from: the LOWER of a standing plant, the UPPER of
+        // Crimson Weed, which hangs, and the first of Ender Haze's five.
+        for (Block block : List.of(ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
+                ModBlocks.CRIMSON_CROP, ModBlocks.ENDER_HAZE_CROP)) {
             for (BlockState state : block.getStateDefinition().getPossibleStates()) {
-                boolean lower = state.hasProperty(SativaCropBlock.SEGMENT)
-                        ? state.getValue(SativaCropBlock.SEGMENT) == TriplePlantSegment.LOWER
-                        : state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
-                context.assertTrue(TallHemp.isRoot(state) == lower, "TallHemp.isRoot is " + TallHemp.isRoot(state)
+                boolean root;
+                if (state.hasProperty(SativaCropBlock.SEGMENT)) {
+                    root = state.getValue(SativaCropBlock.SEGMENT) == TriplePlantSegment.LOWER;
+                } else if (state.hasProperty(EnderHazeCropBlock.SEGMENT)) {
+                    root = state.getValue(EnderHazeCropBlock.SEGMENT) == 0;
+                } else {
+                    root = state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                            == (block == ModBlocks.CRIMSON_CROP ? DoubleBlockHalf.UPPER : DoubleBlockHalf.LOWER);
+                }
+                context.assertTrue(TallHemp.isRoot(state) == root, "TallHemp.isRoot is " + TallHemp.isRoot(state)
                         + " for " + state);
             }
         }

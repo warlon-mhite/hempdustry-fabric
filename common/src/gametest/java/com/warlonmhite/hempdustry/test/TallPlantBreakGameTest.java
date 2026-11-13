@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.SativaCropBlock;
 import com.warlonmhite.hempdustry.block.custom.TriplePlantSegment;
@@ -46,15 +47,16 @@ import java.util.Map;
 public final class TallPlantBreakGameTest {
     private static final BlockPos SOIL = new BlockPos(1, 1, 1);
     private static final BlockPos CROP = SOIL.above();
-    /** The tallest plant is three blocks; one more is checked to be empty. */
-    private static final int COLUMN = 4;
+    /** The tallest plant is five blocks; one more is checked to be empty. */
+    private static final int COLUMN = 6;
     private static final int REPEATS = 4;
     private static final int FEWEST_SEEDS = 3;
     private static final int MOST_SEEDS = 6;
 
     private static final Map<Block, Item> SEEDS = Map.of(
             ModBlocks.INDICA_CROP, ModItems.INDICA_SEEDS,
-            ModBlocks.SATIVA_CROP, ModItems.SATIVA_SEEDS);
+            ModBlocks.SATIVA_CROP, ModItems.SATIVA_SEEDS,
+            ModBlocks.ENDER_HAZE_CROP, ModItems.ENDER_HAZE_SEEDS);
 
     /** A farmer reaps the block above its feet with {@code destroyBlock}, the top of a plant as soon as the root. */
     public static void aTopAFarmerReapsBringsThePlantDown(GameTestHelper context) {
@@ -116,7 +118,7 @@ public final class TallPlantBreakGameTest {
             int height = wholePlant(crop).size();
             for (int up = 0; up < height; up++) {
                 for (int repeat = 0; repeat < REPEATS; repeat++) {
-                    ground(context);
+                    ground(context, crop);
                     place(context, crop);
                     Players.breakAs(context, player, CROP.above(up));
                     expectHarvestedOnce(context, crop, "broken by a player at block " + up, List.of());
@@ -138,7 +140,7 @@ public final class TallPlantBreakGameTest {
             int height = wholePlant(crop).size();
             for (int up = 1; up < height; up++) {
                 for (int repeat = 0; repeat < REPEATS; repeat++) {
-                    ground(context);
+                    ground(context, crop);
                     place(context, crop);
                     List<ItemStack> kept = hand.take(context.getLevel(), context.absolutePos(CROP.above(up)));
                     expectHarvestedOnce(context, crop, how + " at block " + up, kept);
@@ -152,15 +154,16 @@ public final class TallPlantBreakGameTest {
     }
 
     /**
-     * Empties the column top-down and the ground of items, then lays wet farmland. Glowstone beside the root keeps
+     * Empties the column top-down and the ground of items, then lays the crop's ground: wet farmland, or end stone. Glowstone beside the root keeps
      * it lit whatever the hour, since a root updated by a neighbour breaks in the dark.
      */
-    private static void ground(GameTestHelper context) {
+    private static void ground(GameTestHelper context, Block crop) {
         for (int up = COLUMN - 1; up >= 0; up--) {
             context.setBlock(CROP.above(up), Blocks.AIR);
         }
         context.getEntities(EntityTypes.ITEM).forEach(ItemEntity::discard);
-        context.setBlock(SOIL, Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE));
+        context.setBlock(SOIL, crop instanceof EnderHazeCropBlock ? Blocks.END_STONE.defaultBlockState()
+                : Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE));
         context.setBlock(CROP.east(), Blocks.GLOWSTONE);
     }
 
@@ -169,7 +172,11 @@ public final class TallPlantBreakGameTest {
         BlockState ripe = Defoliation.unworked(crop.defaultBlockState())
                 .setValue(BlockStateProperties.AGE_7, IndicaCropBlock.MAX_AGE);
         List<BlockState> blocks = new ArrayList<>(List.of(ripe));
-        if (crop instanceof SativaCropBlock) {
+        if (crop instanceof EnderHazeCropBlock) {
+            for (int up = 1; up < EnderHazeCropBlock.HEIGHT; up++) {
+                blocks.add(ripe.setValue(EnderHazeCropBlock.SEGMENT, up));
+            }
+        } else if (crop instanceof SativaCropBlock) {
             blocks.add(ripe.setValue(SativaCropBlock.SEGMENT, TriplePlantSegment.MIDDLE));
             blocks.add(ripe.setValue(SativaCropBlock.SEGMENT, TriplePlantSegment.UPPER));
         } else {

@@ -146,6 +146,16 @@ public final class CrimsonWeedGameTest {
         context.assertTrue(Defoliation.charasOneIn(ModBlocks.INDICA_CROP.defaultBlockState()) == Defoliation.CHARAS_CHANCE_ONE_IN,
                 "Purple Kush lost its own charas odds");
 
+        // Another mod's harvester under the plant reaches the tip first: a replant written there raw, or its age
+        // alone set back, leaves the plant whole, as on a standing plant's top.
+        BlockPos tipPos = context.absolutePos(TIP);
+        for (BlockState written : new BlockState[]{weed.getStateForAge(0), tip.setValue(IndicaCropBlock.AGE, 0)}) {
+            world.setBlockAndUpdate(tipPos, written);
+            context.assertTrue(world.getBlockState(root) == ripe && world.getBlockState(tipPos) == tip,
+                    "writing " + written + " on the tip left the root " + world.getBlockState(root) + " and the tip "
+                            + world.getBlockState(tipPos));
+        }
+
         // A tip taken by anything but a player brings the plant down, as any tall plant's top does: the
         // root goes with its drops, so the harvest falls once, from the root.
         AABB around = new AABB(root).inflate(3);

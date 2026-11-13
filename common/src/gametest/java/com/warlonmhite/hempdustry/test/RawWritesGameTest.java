@@ -2,6 +2,7 @@ package com.warlonmhite.hempdustry.test;
 
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
+import com.warlonmhite.hempdustry.block.custom.EnderHazeCropBlock;
 import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.IndicaCropBlock;
@@ -42,10 +43,14 @@ import java.util.List;
 public final class RawWritesGameTest {
     private static final BlockPos SOIL = new BlockPos(1, 1, 1);
     private static final BlockPos CROP = SOIL.above();
-    /** The tallest plant is three blocks; one more is checked to be empty. */
-    private static final int COLUMN = 4;
+    /** The tallest plant is five blocks; one more is checked to be empty. */
+    private static final int COLUMN = 6;
 
+    /** The field crops, which stand in farmland and in a Grow Pot. */
     private static final List<Block> CROPS = List.of(ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP);
+    /** Every shape of tall plant, each on the ground it grows in: the field crops and five-tall Ender Haze. */
+    private static final List<Block> TALL = List.of(ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP,
+            ModBlocks.ENDER_HAZE_CROP);
 
     /** A random whose every roll misses, so no step of ours can stress the plant by chance. */
     private static final RandomSource MISS = new SingleThreadedRandomSource(0L) {
@@ -57,8 +62,8 @@ public final class RawWritesGameTest {
 
     /** A growth soil or a bee from another mod: one stage up, raw, on a plant that has been worked. */
     public static void aRawGrowthStepKeepsWhatThePlantWentThrough(GameTestHelper context) {
-        for (Block crop : CROPS) {
-            ground(context, wetFarmland());
+        for (Block crop : TALL) {
+            ground(context, field(crop));
             place(context, crop, root(crop, 3, GrowLight.STRESSED, true, false, false));
             raw(context, crop, CROP, 4);
             expect(context, crop, root(crop, 4, GrowLight.STRESSED, true, false, false),
@@ -129,8 +134,8 @@ public final class RawWritesGameTest {
 
     /** A harvester that replants: the root goes back to a seedling, so the rest of the plant has to go with it. */
     public static void aRawReplantStartsANewPlant(GameTestHelper context) {
-        for (Block crop : CROPS) {
-            ground(context, wetFarmland());
+        for (Block crop : TALL) {
+            ground(context, field(crop));
             place(context, crop, root(crop, IndicaCropBlock.MAX_AGE, GrowLight.GROW_LAMP, true, true, true));
             raw(context, crop, CROP, 0);
             // A new plant: none of the old one's trims, rub or light, and nothing standing above it.
@@ -141,11 +146,11 @@ public final class RawWritesGameTest {
 
     /** A harvester or a scythe that takes a ripe top for a crop of its own and replants it. */
     public static void aRawWriteAboveTheRootLeavesThePlantWhole(GameTestHelper context) {
-        for (Block crop : CROPS) {
+        for (Block crop : TALL) {
             BlockState ripe = root(crop, IndicaCropBlock.MAX_AGE, GrowLight.GROW_LAMP, true, true, false);
             int height = wholePlant(crop, ripe).size();
             for (int up = 1; up < height; up++) {
-                ground(context, wetFarmland());
+                ground(context, field(crop));
                 place(context, crop, ripe);
                 raw(context, crop, CROP.above(up), 0);
                 expect(context, crop, ripe, "replanted raw " + up + " block(s) above its root");
@@ -160,8 +165,8 @@ public final class RawWritesGameTest {
      * may move its harvest.
      */
     public static void aReplantingAgeWrittenOnTheRootStartsANewPlant(GameTestHelper context) {
-        for (Block crop : CROPS) {
-            ground(context, wetFarmland());
+        for (Block crop : TALL) {
+            ground(context, field(crop));
             place(context, crop, root(crop, IndicaCropBlock.MAX_AGE, GrowLight.GROW_LAMP, true, true, true));
             BlockPos at = context.absolutePos(CROP);
             ServerLevel world = context.getLevel();
@@ -178,11 +183,11 @@ public final class RawWritesGameTest {
      * and must not leave a seedling segment inside a ripe plant.
      */
     public static void aReplantingAgeWrittenAboveTheRootLeavesThePlantWhole(GameTestHelper context) {
-        for (Block crop : CROPS) {
+        for (Block crop : TALL) {
             BlockState ripe = root(crop, IndicaCropBlock.MAX_AGE, GrowLight.GROW_LAMP, true, true, false);
             int height = wholePlant(crop, ripe).size();
             for (int up = 1; up < height; up++) {
-                ground(context, wetFarmland());
+                ground(context, field(crop));
                 place(context, crop, ripe);
                 BlockPos at = context.absolutePos(CROP.above(up));
                 ServerLevel world = context.getLevel();
@@ -200,13 +205,13 @@ public final class RawWritesGameTest {
      */
     public static void aRaisedAgeWrittenAboveTheRootGrowsThePlantFromItsRoot(GameTestHelper context) {
         ServerLevel world = context.getLevel();
-        for (Block crop : CROPS) {
+        for (Block crop : TALL) {
             for (int age : tallAges(crop)) {
                 BlockState start = root(crop, age, GrowLight.STRESSED, true, false, false);
                 int height = wholePlant(crop, start).size();
                 for (int up = 1; up < height; up++) {
                     for (boolean raw : new boolean[]{true, false}) {
-                        ground(context, wetFarmland());
+                        ground(context, field(crop));
                         place(context, crop, start);
                         if (raw) {
                             raw(context, crop, CROP.above(up), IndicaCropBlock.MAX_AGE);
@@ -231,12 +236,12 @@ public final class RawWritesGameTest {
      */
     public static void boneMealOnAnyBlockGrowsThePlantFromItsRoot(GameTestHelper context) {
         ServerPlayer player = Players.survival(context);
-        for (Block crop : CROPS) {
+        for (Block crop : TALL) {
             for (int age : tallAges(crop)) {
                 BlockState start = root(crop, age, GrowLight.NATURAL, false, false, false);
                 int height = wholePlant(crop, start).size();
                 for (int up = 1; up < height; up++) {
-                    ground(context, wetFarmland());
+                    ground(context, field(crop));
                     place(context, crop, start);
                     ItemStack meal = new ItemStack(Items.BONE_MEAL, 16);
                     int clicks = 0;
@@ -259,6 +264,17 @@ public final class RawWritesGameTest {
 
     /** The ages a crop is two tall and, for the sativa, three tall at: every shape a block above the root has. */
     private static int[] tallAges(Block crop) {
+        if (crop instanceof EnderHazeCropBlock) {
+            int[] ages = new int[EnderHazeCropBlock.HEIGHT - 1];
+            for (int height = 2; height <= EnderHazeCropBlock.HEIGHT; height++) {
+                int age = 0;
+                while (EnderHazeCropBlock.heightFor(age) < height) {
+                    age++;
+                }
+                ages[height - 2] = age;
+            }
+            return ages;
+        }
         return crop instanceof SativaCropBlock
                 ? new int[]{SativaCropBlock.TWO_TALL_AGE, SativaCropBlock.THREE_TALL_AGE}
                 : new int[]{IndicaCropBlock.DOUBLE_BLOCK_AGE};
@@ -295,6 +311,11 @@ public final class RawWritesGameTest {
         return BuiltInRegistries.BLOCK.getKey(crop).getPath();
     }
 
+    /** The ground {@code crop} grows in, outside a bed of ours: end stone for Ender Haze, wet farmland for the rest. */
+    private static BlockState field(Block crop) {
+        return crop instanceof EnderHazeCropBlock ? Blocks.END_STONE.defaultBlockState() : wetFarmland();
+    }
+
     private static BlockState wetFarmland() {
         return Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE);
     }
@@ -327,7 +348,11 @@ public final class RawWritesGameTest {
         BlockState segment = crop.defaultBlockState().setValue(BlockStateProperties.AGE_7, age)
                 .setValue(GrowLight.PROPERTY, root.getValue(GrowLight.PROPERTY));
         List<BlockState> blocks = new ArrayList<>(List.of(root));
-        if (crop instanceof SativaCropBlock) {
+        if (crop instanceof EnderHazeCropBlock) {
+            for (int up = 1; up < EnderHazeCropBlock.heightFor(age); up++) {
+                blocks.add(segment.setValue(EnderHazeCropBlock.SEGMENT, up));
+            }
+        } else if (crop instanceof SativaCropBlock) {
             if (age >= SativaCropBlock.THREE_TALL_AGE) {
                 blocks.add(segment.setValue(SativaCropBlock.SEGMENT, TriplePlantSegment.MIDDLE));
             }

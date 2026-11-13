@@ -38,6 +38,9 @@ public final class TallHemp {
         if (state.getBlock() instanceof IndicaCropBlock indica) {
             return indica.isRoot(state);
         }
+        if (state.getBlock() instanceof EnderHazeCropBlock) {
+            return EnderHazeCropBlock.isRoot(state);
+        }
         return true;
     }
 
@@ -56,7 +59,7 @@ public final class TallHemp {
         Direction towardsRoot = growth(crop).getOpposite();
         BlockPos at = pos;
         BlockState here = state;
-        for (int step = 0; step < 3; step++) {
+        for (int step = 0; step < EnderHazeCropBlock.HEIGHT; step++) {
             if (!here.is(crop)) {
                 return null;
             }
