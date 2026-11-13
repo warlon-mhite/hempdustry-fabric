@@ -10,7 +10,13 @@ beta be told when the release lands.
 ## [Unreleased]
 
 The first patch of 2.1 on Minecraft 26.2: hemp plants that hold up under other mods' harvesters,
-fertilisers and soils, and two fixes.
+fertilisers and soils, farmer villagers who grow hemp, and two fixes.
+
+### Added
+
+- **Farmer villagers grow hemp.** A farmer picks indica and sativa seed up, plants it on the village
+  farmland and reaps the ripe plant whole, the way it farms wheat. The light and stress rules apply as in
+  any field. Beldía stays wild: it stands only on sand.
 
 ### Fixed
 

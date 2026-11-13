@@ -274,6 +274,14 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         valueLookupBuilder(ConventionalItemTags.CONCRETE_POWDERS)
                 .add(ModBlocks.HEMPCRETE_POWDER_BLOCK.asItem());
 
+        // Farmer villagers plant what is in this vanilla tag and reap it ripe with destroyBlock, which takes a
+        // tall plant whole; a village with a hemp seed grows a hemp field, as villages grew it for rope and
+        // cloth. Not Beldía: it stands only on sand, and a villager plants on farmland. The tag is also inside
+        // #minecraft:villager_picks_up, so a villager picks the seed up off the ground too.
+        valueLookupBuilder(ItemTags.VILLAGER_PLANTABLE_SEEDS)
+                .add(ModItems.INDICA_SEEDS)
+                .add(ModItems.SATIVA_SEEDS);
+
         valueLookupBuilder(ItemTags.PLANKS).add(ModBlocks.HEMP_PLANKS.asItem());
         valueLookupBuilder(ItemTags.WOODEN_SLABS).add(ModBlocks.HEMP_PLANKS_SLAB.asItem());
         // The rest of the plank set's wooden tags, as the block side has them. Vanilla makes every one
