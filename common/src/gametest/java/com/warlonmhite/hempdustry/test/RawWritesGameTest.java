@@ -124,8 +124,9 @@ public final class RawWritesGameTest {
             place(context, crop, root(crop, 1, GrowLight.NATURAL, false, false, false));
             context.setBlock(CROP.above(), Blocks.STONE);
             raw(context, crop, CROP, IndicaCropBlock.MAX_AGE);
-            BlockState boxed = context.getBlockState(CROP);
-            context.assertTrue(boxed == root(crop, 3, GrowLight.NATURAL, false, false, false),
+            BlockState stalk = root(crop, 3, GrowLight.NATURAL, false, false, false);
+            BlockState boxed = withMildewOf(context.getBlockState(CROP), stalk);
+            context.assertTrue(boxed == stalk,
                     name + " ripened raw under a block of stone came out " + boxed + ", not an age-3 stalk");
             context.assertTrue(context.getBlockState(CROP.above()).is(Blocks.STONE), name + " grew through stone");
         }
@@ -381,14 +382,19 @@ public final class RawWritesGameTest {
         List<BlockState> blocks = wholePlant(crop, root);
         for (int up = 0; up < COLUMN; up++) {
             BlockState want = up < blocks.size() ? blocks.get(up) : Blocks.AIR.defaultBlockState();
-            BlockState got = context.getBlockState(CROP.above(up));
-            // A growth step of the plant's own may catch powdery mildew under the test's barrier roof, as any
-            // roofed plant may; that roll is the mildew tests' to hold, not this one's.
-            if (got.hasProperty(Mildew.PROPERTY) && want.hasProperty(Mildew.PROPERTY)) {
-                got = got.setValue(Mildew.PROPERTY, want.getValue(Mildew.PROPERTY));
-            }
+            BlockState got = withMildewOf(context.getBlockState(CROP.above(up)), want);
             context.assertTrue(got == want, name(crop) + " " + what + ": block " + up + " above the soil is " + got
                     + ", expected " + want);
         }
+    }
+
+    /**
+     * {@code got} with {@code want}'s mildew value. A growth step of the plant's own may catch powdery mildew under
+     * the test's barrier roof, as any roofed plant may; that roll is the mildew tests' to hold, not these.
+     */
+    private static BlockState withMildewOf(BlockState got, BlockState want) {
+        return got.hasProperty(Mildew.PROPERTY) && want.hasProperty(Mildew.PROPERTY)
+                ? got.setValue(Mildew.PROPERTY, want.getValue(Mildew.PROPERTY))
+                : got;
     }
 }
