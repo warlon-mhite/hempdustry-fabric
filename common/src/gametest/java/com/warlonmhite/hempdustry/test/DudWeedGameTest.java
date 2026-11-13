@@ -186,8 +186,14 @@ public final class DudWeedGameTest {
         context.assertValueEqual(SmokeContents.of(dud, 3).thcDose(), 0, "a bong of Dud Weed's THC dose");
 
         ServerPlayer smoker = Players.survival(context);
-        smoke(smoker, world, dud);
-        context.assertTrue(smoker.getActiveEffects().isEmpty(), "a Dud Weed hit gave " + smoker.getActiveEffects());
+        // The harsh smoke's Nausea is every smoke's, Dud Weed's too: the device rolls it on each hit, whatever the
+        // dose (Nausea I for seven seconds). Nothing else may come of a hit, and that roll is not this test's to pin.
+        for (int hit = 0; hit < 20; hit++) {
+            smoke(smoker, world, dud);
+        }
+        context.assertTrue(smoker.getActiveEffects().stream().allMatch(effect -> effect.is(MobEffects.NAUSEA)
+                        && effect.getAmplifier() == 0 && effect.getDuration() <= 140),
+                "twenty Dud Weed hits gave " + smoker.getActiveEffects() + ", more than the harsh smoke's Nausea");
 
         ItemStack bud = new ItemStack(ModItems.DUD_WEED_BUDS);
         context.assertTrue(Chemotype.ofMatter(bud, world.registryAccess()) == Chemotype.CANNABINOID_FREE,
