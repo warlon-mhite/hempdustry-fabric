@@ -16,15 +16,23 @@
   "flower": "hempdustry:ruderalis_crop",
   "green_out_factor": 2.0,
   "model_index": 9,
+  "plant": {
+    "quality": {
+      "elite": 2,
+      "good": 18,
+      "poor": 30
+    },
+    "resistances": {
+      "dry_ground": "resistant",
+      "light": "very_resistant",
+      "mildew": "neutral",
+      "overwatering": "neutral"
+    }
+  },
   "potency": {
     "high": 10,
     "low": 50,
     "mid": 40
-  },
-  "quality": {
-    "elite": 2,
-    "good": 18,
-    "poor": 30
   },
   "seeds": "hempdustry:ruderalis_seeds",
   "terpene": "hempdustry:pinene",

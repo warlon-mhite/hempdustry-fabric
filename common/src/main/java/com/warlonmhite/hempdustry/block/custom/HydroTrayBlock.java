@@ -126,11 +126,11 @@ public class HydroTrayBlock extends Block implements GrowMedium {
      * which is the classic way a deep-water-culture grow fails. A running pump over water is safe.
      */
     @Override
-    public float stress(BlockState state) {
+    public StressCause stress(BlockState state) {
         if (state.getValue(LEVEL) == 0) {
-            return PlantStress.DRY_BED;
+            return StressCause.dryGround(PlantStress.DRY_BED);
         }
-        return state.getValue(POWERED) ? 0.0F : PlantStress.STAGNANT;
+        return state.getValue(POWERED) ? StressCause.NONE : StressCause.overwatering(PlantStress.STAGNANT);
     }
 
     /**

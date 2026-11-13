@@ -143,6 +143,7 @@ public final class IndoorGrowGameTest {
         BlockPos hazePos = context.absolutePos(haze);
         context.setBlock(haze.below(), moistFarmland());
         context.setBlock(haze, ModBlocks.SATIVA_CROP.defaultBlockState());
+        Genes.neutral(context, haze);
         context.setBlock(haze.above(4), Blocks.REDSTONE_BLOCK);
         context.setBlock(haze.above(3), litGrowLamp());
         grow(context, haze, GrowLight.FLOWERING_AGE);
@@ -562,6 +563,7 @@ public final class IndoorGrowGameTest {
         context.setBlock(SOIL, moistFarmland());
         context.setBlock(CROP.above(), Blocks.AIR);
         context.setBlock(CROP, ModBlocks.INDICA_CROP.defaultBlockState());
+        Genes.neutral(context, CROP);
         context.setBlock(LIGHT, light);
         context.setBlock(LIGHT.above(), Blocks.REDSTONE_BLOCK);
     }

@@ -334,9 +334,7 @@ public final class SweepGameTest {
             take(world, pos);
         }
         Sweep.atLeast(context, "blocks with a block entity", checked, 5);
-        Sweep.report(context, "Every block entity of ours survives a save and a load", findings, Map.of(
-                "hempdustry:industrial_hemp_crop", "Lemon Haze's crop class, which keeps a plant record on every crop "
-                        + "that grows buds; fibre hemp grows none and keeps no record"));
+        Sweep.report(context, "Every block entity of ours survives a save and a load", findings, Map.of());
         context.succeed();
     }
 

@@ -6,6 +6,10 @@ import com.warlonmhite.hempdustry.block.custom.GrowLight;
 import com.warlonmhite.hempdustry.block.custom.GrowPotBlock;
 import com.warlonmhite.hempdustry.block.custom.HydroTrayBlock;
 import com.warlonmhite.hempdustry.block.custom.PlantStress;
+import com.warlonmhite.hempdustry.block.custom.StressCause;
+import com.warlonmhite.hempdustry.strain.Resistance;
+import com.warlonmhite.hempdustry.strain.ResistanceGenes;
+import com.warlonmhite.hempdustry.strain.StressPhenomenon;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -69,17 +73,17 @@ public final class PlantStressGameTest {
         BlockState dryField = Blocks.FARMLAND.defaultBlockState();
         BlockState pot = ModBlocks.GROW_POT.defaultBlockState();
         BlockState tray = ModBlocks.HYDRO_TRAY.defaultBlockState();
-        odds(context, dryField, PlantStress.DRY_FIELD, "bone-dry farmland");
-        odds(context, moist(), 0.0F, "moist farmland");
-        odds(context, dryField.setValue(FarmlandBlock.MOISTURE, 1), 0.0F, "farmland drying out but not yet dry");
-        odds(context, Blocks.SAND.defaultBlockState(), 0.0F, "sand");
-        odds(context, pot, PlantStress.DRY_BED, "a dry Grow Pot");
-        odds(context, pot.setValue(GrowPotBlock.WATERED, true), 0.0F, "a watered Grow Pot");
-        odds(context, tray.setValue(HydroTrayBlock.POWERED, true), PlantStress.DRY_BED, "a dry tray, pump running");
-        odds(context, tray.setValue(HydroTrayBlock.LEVEL, 3), PlantStress.STAGNANT, "a watered tray with its pump off");
-        odds(context, tray.setValue(HydroTrayBlock.LEVEL, 3).setValue(HydroTrayBlock.FED, true), PlantStress.STAGNANT,
+        odds(context, dryField, StressCause.dryGround(PlantStress.DRY_FIELD), "bone-dry farmland");
+        odds(context, moist(), StressCause.NONE, "moist farmland");
+        odds(context, dryField.setValue(FarmlandBlock.MOISTURE, 1), StressCause.NONE, "farmland drying out but not yet dry");
+        odds(context, Blocks.SAND.defaultBlockState(), StressCause.NONE, "sand");
+        odds(context, pot, StressCause.dryGround(PlantStress.DRY_BED), "a dry Grow Pot");
+        odds(context, pot.setValue(GrowPotBlock.WATERED, true), StressCause.NONE, "a watered Grow Pot");
+        odds(context, tray.setValue(HydroTrayBlock.POWERED, true), StressCause.dryGround(PlantStress.DRY_BED), "a dry tray, pump running");
+        odds(context, tray.setValue(HydroTrayBlock.LEVEL, 3), StressCause.overwatering(PlantStress.STAGNANT), "a watered tray with its pump off");
+        odds(context, tray.setValue(HydroTrayBlock.LEVEL, 3).setValue(HydroTrayBlock.FED, true), StressCause.overwatering(PlantStress.STAGNANT),
                 "a fed tray with its pump off");
-        odds(context, tray.setValue(HydroTrayBlock.LEVEL, 3).setValue(HydroTrayBlock.POWERED, true), 0.0F,
+        odds(context, tray.setValue(HydroTrayBlock.LEVEL, 3).setValue(HydroTrayBlock.POWERED, true), StressCause.NONE,
                 "a watered tray with its pump running");
 
         // A field plant can be stressed now — but only flowering, only bone dry, and only on a hit.
@@ -141,6 +145,95 @@ public final class PlantStressGameTest {
         // Beldía is a strain like any other in a bed.
         expect(context, step(context, ModBlocks.BELDIA_CROP, pot, 4, GrowLight.NATURAL, HIT), GrowLight.STRESSED,
                 "a flowering Beldía in a dry pot");
+        context.succeed();
+    }
+
+    /**
+     * A plant's resistances scale every cause by its own phenomenon: a dry bed by its dry-ground step, a dead
+     * pump, overfeeding and a bottle by its overwatering step, and with two causes the worse after each is scaled.
+     * A lost light stresses a weak plant a stage early and a resistant one only now and then.
+     */
+    public static void aPlantsResistanceScalesItsStress(GameTestHelper context) {
+        Block indica = ModBlocks.INDICA_CROP;
+        BlockState pot = ModBlocks.GROW_POT.defaultBlockState();
+        ResistanceGenes neutral = ResistanceGenes.NEUTRAL;
+
+        // A dry pot, 1 in 3 at neutral: very weak 2 in 3, very resistant 1 in 12.
+        ResistanceGenes dryWeak = neutral.with(StressPhenomenon.DRY_GROUND, Resistance.VERY_WEAK);
+        ResistanceGenes dryHardy = neutral.with(StressPhenomenon.DRY_GROUND, Resistance.VERY_RESISTANT);
+        expect(context, step(context, indica, pot, 4, GrowLight.NATURAL, decided(0.6F), dryWeak), GrowLight.STRESSED,
+                "a plant very weak to dry ground in a dry pot, at 0.6");
+        expect(context, step(context, indica, pot, 4, GrowLight.NATURAL, decided(0.6F), neutral), GrowLight.NATURAL,
+                "a neutral plant in a dry pot, at 0.6");
+        expect(context, step(context, indica, pot, 4, GrowLight.NATURAL, decided(0.08F), dryHardy), GrowLight.STRESSED,
+                "a plant very resistant to dry ground in a dry pot, at 0.08");
+        expect(context, step(context, indica, pot, 4, GrowLight.NATURAL, decided(0.09F), dryHardy), GrowLight.NATURAL,
+                "a plant very resistant to dry ground in a dry pot, at 0.09");
+        // A dry pot is dry ground, not wet roots.
+        expect(context, step(context, indica, pot, 4, GrowLight.NATURAL, decided(0.6F),
+                        neutral.with(StressPhenomenon.OVERWATERING, Resistance.VERY_WEAK)), GrowLight.NATURAL,
+                "a plant very weak to wet roots in a dry pot, at 0.6");
+        // Still water with the pump off, 1 in 6: wet roots, so its overwatering step, not its dry-ground one.
+        BlockState stagnant = ModBlocks.HYDRO_TRAY.defaultBlockState().setValue(HydroTrayBlock.LEVEL, 3);
+        expect(context, step(context, indica, stagnant, 4, GrowLight.NATURAL, decided(0.3F),
+                        neutral.with(StressPhenomenon.OVERWATERING, Resistance.VERY_WEAK)), GrowLight.STRESSED,
+                "a plant very weak to wet roots over still water, at 0.3");
+        expect(context, step(context, indica, stagnant, 4, GrowLight.NATURAL, decided(0.3F), dryWeak), GrowLight.NATURAL,
+                "a plant very weak to dry ground over still water, at 0.3");
+        // Two causes, each scaled by its own step: a dry fed pot and bone meal, dry 1 in 3 and overfed 1 in 9.
+        // Very resistant to dry ground (1 in 12) and very weak to overfeeding (2 in 9): the worse is 2 in 9.
+        BlockState dryFed = pot.setValue(GrowPotBlock.FERTILITY, 3);
+        expect(context, step(context, indica, dryFed, 4, GrowLight.NATURAL, decided(0.2F),
+                        dryHardy.with(StressPhenomenon.OVERWATERING, Resistance.VERY_WEAK)), GrowLight.STRESSED,
+                "bone meal on a plant hardy to dry ground but very weak to overfeeding, in a dry fed pot, at 0.2");
+        expect(context, step(context, indica, dryFed, 4, GrowLight.NATURAL, decided(0.2F),
+                        dryHardy.with(StressPhenomenon.OVERWATERING, Resistance.VERY_RESISTANT)), GrowLight.NATURAL,
+                "bone meal on a plant very resistant to both, in a dry fed pot, at 0.2");
+
+        // A bottle into a wet pot, 1 in 4: very resistant 1 in 16, very weak 1 in 2; a roll of 0.3 stresses only the weak.
+        ServerLevel world = context.getLevel();
+        BlockPos soil = context.absolutePos(SOIL);
+        BlockState wet = pot.setValue(GrowPotBlock.WATERED, true);
+        for (Resistance step : new Resistance[]{Resistance.VERY_RESISTANT, Resistance.NEUTRAL, Resistance.VERY_WEAK}) {
+            plant(context, indica, wet, 4, GrowLight.NATURAL);
+            Genes.set(context, CROP, neutral.with(StressPhenomenon.OVERWATERING, step));
+            GrowPotBlock.water(world, soil, world.getBlockState(soil), decided(0.3F));
+            GrowLight expected = step == Resistance.VERY_WEAK ? GrowLight.STRESSED : GrowLight.NATURAL;
+            expect(context, context.getBlockState(CROP).getValue(GrowLight.PROPERTY), expected,
+                    "a bottle into a wet pot on a plant " + step + " to wet roots, at 0.3");
+        }
+        plant(context, indica, wet, 4, GrowLight.NATURAL);
+        Genes.set(context, CROP, neutral.with(StressPhenomenon.OVERWATERING, Resistance.VERY_RESISTANT));
+        GrowPotBlock.water(world, soil, world.getBlockState(soil), decided(0.06F));
+        expect(context, context.getBlockState(CROP).getValue(GrowLight.PROPERTY), GrowLight.STRESSED, "a bottle into a wet pot on a very resistant plant, at 0.06");
+
+        // A lost light: no lamp hangs over these plants, so a record of one is a lamp taken away.
+        BlockState moist = moist();
+        for (Resistance step : Resistance.values()) {
+            GrowLight young = step(context, indica, moist, 2, GrowLight.GROW_LAMP, MISS,
+                    neutral.with(StressPhenomenon.LIGHT, step));
+            GrowLight expected = step.compareTo(Resistance.NEUTRAL) < 0 ? GrowLight.STRESSED : GrowLight.NATURAL;
+            expect(context, young, expected, "a plant " + step + " to light losing its lamp stepping from age 2 to 3");
+        }
+        float[][] ignores = {{0.49F, 0.51F}, {0.74F, 0.76F}};
+        Resistance[] hardy = {Resistance.RESISTANT, Resistance.VERY_RESISTANT};
+        for (int i = 0; i < 2; i++) {
+            ResistanceGenes genes = neutral.with(StressPhenomenon.LIGHT, hardy[i]);
+            expect(context, step(context, indica, moist, 4, GrowLight.GROW_LAMP, decided(ignores[i][0]), genes),
+                    GrowLight.NATURAL, "a plant " + hardy[i] + " to light losing its lamp while flowering, at " + ignores[i][0]);
+            expect(context, step(context, indica, moist, 4, GrowLight.GROW_LAMP, decided(ignores[i][1]), genes),
+                    GrowLight.STRESSED, "a plant " + hardy[i] + " to light losing its lamp while flowering, at " + ignores[i][1]);
+        }
+        expect(context, step(context, indica, moist, 4, GrowLight.GROW_LAMP, HIT, neutral), GrowLight.STRESSED,
+                "a neutral plant losing its lamp while flowering, on any roll");
+        // A bee's step reads the same genes.
+        plant(context, indica, moist, 4, GrowLight.GROW_LAMP);
+        Genes.set(context, CROP, neutral.with(StressPhenomenon.LIGHT, Resistance.VERY_RESISTANT));
+        BlockPos crop = context.absolutePos(CROP);
+        BlockState current = world.getBlockState(crop);
+        BlockState bee = PlantStress.beeStep(world, crop, current, ((CropBlock) indica).getStateForAge(5), decided(0.7F));
+        expect(context, bee.getValue(GrowLight.PROPERTY), GrowLight.NATURAL,
+                "a bee's step on a plant very resistant to light, losing its lamp, at 0.7");
         context.succeed();
     }
 
@@ -332,9 +425,9 @@ public final class PlantStressGameTest {
         return PotionContents.createItemStack(Items.POTION, Potions.WATER);
     }
 
-    private static void odds(GameTestHelper context, BlockState floor, float expected, String what) {
-        float actual = PlantStress.ofGround(floor);
-        context.assertTrue(actual == expected, what + " stresses at " + actual + " a step, expected " + expected);
+    private static void odds(GameTestHelper context, BlockState floor, StressCause expected, String what) {
+        StressCause actual = PlantStress.ofGround(floor);
+        context.assertTrue(actual.equals(expected), what + " stresses with " + actual + " a step, expected " + expected);
     }
 
     private static void expect(GameTestHelper context, GrowLight actual, GrowLight expected, String what) {
@@ -355,16 +448,24 @@ public final class PlantStressGameTest {
         context.setBlock(SOIL, soil);
         context.setBlock(CROP, Defoliation.unworked(crop.defaultBlockState())
                 .setValue(BlockStateProperties.AGE_7, age).setValue(GrowLight.PROPERTY, record));
+        Genes.neutral(context, CROP);
         // A random tick reconciles the missing segments; MISS keeps it from growing the plant too.
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
         world.getBlockState(pos).randomTick(world, pos, MISS);
     }
 
-    /** One bone meal step on a fresh plant, with its roll decided, and the record it leaves. */
+    /** One bone meal step on a fresh neutral plant, with its roll decided, and the record it leaves. */
     private static GrowLight step(GameTestHelper context, Block crop, BlockState soil, int age, GrowLight record,
                                   RandomSource roll) {
+        return step(context, crop, soil, age, record, roll, ResistanceGenes.NEUTRAL);
+    }
+
+    /** One bone meal step on a fresh plant with {@code genes}, with its roll decided, and the record it leaves. */
+    private static GrowLight step(GameTestHelper context, Block crop, BlockState soil, int age, GrowLight record,
+                                  RandomSource roll, ResistanceGenes genes) {
         plant(context, crop, soil, age, record);
+        Genes.set(context, CROP, genes);
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
         ((CropBlock) crop).performBonemeal(world, roll, pos, world.getBlockState(pos), BonemealSource.INTERACTION);

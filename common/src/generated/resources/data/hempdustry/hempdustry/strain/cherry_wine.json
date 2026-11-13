@@ -17,6 +17,14 @@
   "flower": "hempdustry:cherry_wine_flower",
   "green_out_factor": 0.0,
   "model_index": 12,
+  "plant": {
+    "resistances": {
+      "dry_ground": "neutral",
+      "light": "neutral",
+      "mildew": "weak",
+      "overwatering": "resistant"
+    }
+  },
   "potency": {
     "high": 10,
     "low": 40

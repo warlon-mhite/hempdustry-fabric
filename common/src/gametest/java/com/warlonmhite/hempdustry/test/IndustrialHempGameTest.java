@@ -245,6 +245,7 @@ public final class IndustrialHempGameTest {
         context.setBlock(SOIL, soil);
         context.setBlock(CROP, block.defaultBlockState().setValue(SativaCropBlock.AGE, GrowLight.FLOWERING_AGE)
                 .setValue(GrowLight.PROPERTY, record));
+        Genes.neutral(context, CROP);
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
         ((CropBlock) block).performBonemeal(world, HIT, pos, world.getBlockState(pos), net.minecraft.world.level.block.BonemealSource.INTERACTION);

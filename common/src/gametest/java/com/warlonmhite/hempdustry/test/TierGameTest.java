@@ -17,6 +17,7 @@ import com.warlonmhite.hempdustry.block.entity.custom.HempPressBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
 import com.warlonmhite.hempdustry.block.entity.custom.SiftingBoxBlockEntity;
 import com.warlonmhite.hempdustry.block.custom.stash.StashPieces;
+import com.warlonmhite.hempdustry.block.custom.StressCause;
 import com.warlonmhite.hempdustry.component.ModComponents;
 import com.warlonmhite.hempdustry.component.StashContents;
 import com.warlonmhite.hempdustry.item.ModItems;
@@ -342,7 +343,7 @@ public final class TierGameTest {
 
     /** One growth step of the Purple Kush at {@code pos} from {@code fromAge}, as every growth route takes it. */
     private static GrowLight step(ServerLevel world, BlockPos pos, int fromAge) {
-        return PlantStress.afterStep(world, pos, GrowLight.NATURAL, fromAge, fromAge + 1, 2, 0.0F,
+        return PlantStress.afterStep(world, pos, GrowLight.NATURAL, fromAge, fromAge + 1, 2, StressCause.NONE,
                 RandomSource.create(1L), true, false);
     }
 

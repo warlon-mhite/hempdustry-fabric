@@ -14,6 +14,14 @@
   ],
   "flower": "hempdustry:indica_flower",
   "model_index": 1,
+  "plant": {
+    "resistances": {
+      "dry_ground": "neutral",
+      "light": "neutral",
+      "mildew": "weak",
+      "overwatering": "resistant"
+    }
+  },
   "seeds": "hempdustry:indica_seeds",
   "terpene": "hempdustry:linalool",
   "translation_key": "hempdustry.strain.indica"

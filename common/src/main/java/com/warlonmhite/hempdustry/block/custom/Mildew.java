@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.block.custom;
 
+import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
 import com.warlonmhite.hempdustry.config.HempdustryConfig;
+import com.warlonmhite.hempdustry.strain.Resistance;
 import com.warlonmhite.hempdustry.util.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li><b>It starts</b> only on a plant under a roof — anything above it that stops movement, glass
  *       included, leaves not — at {@link #ONSET} per growth step. A field never catches it.</li>
+ *   <li><b>A plant's mildew resistance</b>, rolled at planting, scales its onset and the spread to it:
+ *       very weak ×2 to very resistant ×¼ ({@link Resistance#factor}). A plant with no record is neutral.</li>
  *   <li><b>It spreads</b> one plant at a time: each random tick, a mildewed plant tries one of its
  *       eight neighbours at {@link #SPREAD}. A one-block gap stops it, which is what spacing does
  *       in a real grow room. It never kills a plant.</li>
@@ -131,21 +135,37 @@ public enum Mildew implements StringRepresentable {
         if (current == MILDEWED || !canCatch(world, lower, plant)) {
             return current;
         }
-        return random.nextFloat() < ONSET && !gassed(world, lower) ? MILDEWED : current;
+        return random.nextFloat() < onsetFor(world, lower) && !gassed(world, lower) ? MILDEWED : current;
     }
 
-    /** A mildewed plant's reach: one of its eight neighbours, at {@link #SPREAD}. */
+    /**
+     * A mildewed plant's reach: one of its eight neighbours, at {@link #SPREAD} scaled by the neighbour's own
+     * mildew resistance.
+     */
     private static void spread(Level world, BlockPos lower, RandomSource random) {
         int pick = random.nextInt(8);
         BlockPos target = lower.offset(NEIGHBOURS[pick][0], 0, NEIGHBOURS[pick][1]);
         BlockState plant = world.getBlockState(target);
         if (!plant.hasProperty(PROPERTY) || plant.getValue(PROPERTY) == MILDEWED
                 || world.getBlockState(target.below()).is(plant.getBlock())
-                || random.nextFloat() >= SPREAD
+                || random.nextFloat() >= mildewStep(world, target).apply(SPREAD)
                 || !canCatch(world, target, plant) || gassed(world, target)) {
             return;
         }
         write(world, target, MILDEWED);
+    }
+
+    /** The odds one growth step of the plant at {@code lower} brings mildew: {@link #ONSET}, scaled by its resistance. */
+    private static float onsetFor(Level world, BlockPos lower) {
+        return mildewStep(world, lower).apply(ONSET);
+    }
+
+    /**
+     * The mildew resistance of the plant whose root is at {@code lower}, rolled at planting: very weak doubles
+     * both the onset and the spread to it, very resistant quarters them. A plant with no record is neutral.
+     */
+    private static Resistance mildewStep(Level world, BlockPos lower) {
+        return PlantRecordBlockEntity.resistancesAt(world, lower).mildew();
     }
 
     private static final int[][] NEIGHBOURS = {

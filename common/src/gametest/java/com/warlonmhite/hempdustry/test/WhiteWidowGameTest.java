@@ -14,6 +14,9 @@ import com.warlonmhite.hempdustry.item.custom.DeviceType;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.strain.Chemotype;
 import com.warlonmhite.hempdustry.strain.ModStrains;
+import com.warlonmhite.hempdustry.strain.Resistance;
+import com.warlonmhite.hempdustry.strain.ResistanceGenes;
+import com.warlonmhite.hempdustry.strain.StressPhenomenon;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.warlonmhite.hempdustry.strain.Terpene;
 import com.warlonmhite.hempdustry.util.ModTags;
@@ -555,6 +558,9 @@ public final class WhiteWidowGameTest {
         context.setBlock(SOIL, Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE));
         context.setBlock(CROP, Defoliation.unworked(crop.defaultBlockState())
                 .setValue(BlockStateProperties.AGE_7, age).setValue(GrowLight.PROPERTY, record));
+        // The plant rolled at planting; it gets its strain's most likely genes, so a test reads the strain, not the roll.
+        Genes.set(context, CROP, crop == ModBlocks.WHITE_WIDOW_CROP
+                ? ResistanceGenes.NEUTRAL.with(StressPhenomenon.LIGHT, Resistance.VERY_WEAK) : ResistanceGenes.NEUTRAL);
         ServerLevel world = context.getLevel();
         BlockPos pos = context.absolutePos(CROP);
         world.getBlockState(pos).randomTick(world, pos, MISS);

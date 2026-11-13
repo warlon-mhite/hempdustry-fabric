@@ -109,6 +109,8 @@ public final class PotencyGameTest {
         roots.put(ModBlocks.SATIVA_CROP, state -> state.getValue(SativaCropBlock.SEGMENT) == TriplePlantSegment.LOWER);
         roots.put(ModBlocks.ENDER_HAZE_CROP, state -> state.getValue(EnderHazeCropBlock.SEGMENT) == 0);
         roots.put(ModBlocks.RUDERALIS_CROP, state -> true);
+        // Fibre hemp grows no bud, but keeps a record of what it will pass on: its resistances.
+        roots.put(ModBlocks.INDUSTRIAL_HEMP_CROP, state -> state.getValue(SativaCropBlock.SEGMENT) == TriplePlantSegment.LOWER);
 
         // Every plant strain's crop is among them: a strain added later is held to the same rule.
         Map<String, String> findings = new TreeMap<>();
@@ -138,18 +140,19 @@ public final class PotencyGameTest {
                 findings.put(id, "the record's type does not take this crop");
             }
         }
-        Sweep.report(context, "Every crop that grows buds keeps a record on its root", findings, Map.of());
-        context.assertTrue(!(ModBlocks.INDUSTRIAL_HEMP_CROP instanceof EntityBlock provider)
-                        || provider.newBlockEntity(BlockPos.ZERO, ModBlocks.INDUSTRIAL_HEMP_CROP.defaultBlockState()) == null,
-                "Industrial Hemp keeps a record, and grows no bud to give it to");
+        Sweep.report(context, "Every crop that grows buds, and Industrial Hemp, keeps a record on its root", findings, Map.of());
 
         // Planted, every crop's root has rolled its band already; a record that joins a world without one
         // (a plant sown before records existed, a generated one going live) rolls as it joins.
         BlockPos pos = context.absolutePos(ROOT);
         for (Map.Entry<Block, Predicate<BlockState>> crop : roots.entrySet()) {
             world.setBlock(pos, crop.getKey().defaultBlockState(), Block.UPDATE_CLIENTS);
-            context.assertTrue(record(context, pos).rolledBand().isPresent(),
-                    BuiltInRegistries.BLOCK.getKey(crop.getKey()) + " was planted with no band rolled");
+            boolean buds = crop.getKey() != ModBlocks.INDUSTRIAL_HEMP_CROP;
+            context.assertTrue(record(context, pos).rolledBand().isPresent() == buds,
+                    BuiltInRegistries.BLOCK.getKey(crop.getKey()) + (buds ? " was planted with no band rolled"
+                            : " rolled a band, and grows no bud to give it to"));
+            context.assertTrue(record(context, pos).rolledResistances().isPresent(),
+                    BuiltInRegistries.BLOCK.getKey(crop.getKey()) + " was planted with no resistances rolled");
         }
         PlantRecordBlockEntity joining = (PlantRecordBlockEntity) ((EntityBlock) ModBlocks.INDICA_CROP)
                 .newBlockEntity(pos, ModBlocks.INDICA_CROP.defaultBlockState());

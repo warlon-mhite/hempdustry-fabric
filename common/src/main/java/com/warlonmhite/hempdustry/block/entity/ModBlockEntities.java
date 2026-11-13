@@ -54,7 +54,7 @@ public class ModBlockEntities {
                             ModBlocks.INDICA_CROP, ModBlocks.SATIVA_CROP, ModBlocks.BELDIA_CROP,
                             ModBlocks.WARPED_KUSH_CROP, ModBlocks.RUDERALIS_CROP, ModBlocks.CRIMSON_CROP,
                             ModBlocks.ENDER_HAZE_CROP, ModBlocks.CHERRY_WINE_CROP,
-                            ModBlocks.WHITE_WIDOW_CROP, ModBlocks.DUD_WEED_CROP));
+                            ModBlocks.WHITE_WIDOW_CROP, ModBlocks.DUD_WEED_CROP, ModBlocks.INDUSTRIAL_HEMP_CROP));
 
     // A placed Stash Jar's contents, one type for the three jars.
     public static final BlockEntityType<StashJarBlockEntity> STASH_JAR =

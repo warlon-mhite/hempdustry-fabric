@@ -23,16 +23,24 @@
   ],
   "flower": "hempdustry:ender_haze_crop",
   "model_index": 11,
+  "plant": {
+    "quality": {
+      "average": 45,
+      "elite": 10,
+      "good": 30,
+      "poor": 15
+    },
+    "resistances": {
+      "dry_ground": "neutral",
+      "light": "resistant",
+      "mildew": "resistant",
+      "overwatering": "weak"
+    }
+  },
   "potency": {
     "extra_high": 2,
     "high": 20,
     "low": 28
-  },
-  "quality": {
-    "average": 45,
-    "elite": 10,
-    "good": 30,
-    "poor": 15
   },
   "seeds": "hempdustry:ender_haze_seeds",
   "terpene": "hempdustry:terpinolene",

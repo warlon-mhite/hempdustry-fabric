@@ -1,6 +1,8 @@
 package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.block.entity.custom.PlantRecordBlockEntity;
+import com.warlonmhite.hempdustry.strain.Resistance;
+import com.warlonmhite.hempdustry.strain.ResistanceGenes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -25,17 +27,27 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  * pays for its extra buds, and a field only feels it when it is left bone dry.
  *
  * <table>
- *   <tr><th>cause</th><th>where</th><th>odds</th></tr>
- *   <tr><td>bone meal on a flowering plant in a fed bed</td><td>pot, tray</td><td>{@link #OVERFED} per bone meal</td></tr>
- *   <tr><td>a bottle poured into a wet pot</td><td>pot</td><td>{@link #OVERWATERED} per bottle</td></tr>
- *   <tr><td>a growth step in a dry bed</td><td>pot, tray</td><td>{@link #DRY_BED} per step</td></tr>
- *   <tr><td>a growth step in a tray with water and the pump off</td><td>tray</td><td>{@link #STAGNANT} per step</td></tr>
- *   <tr><td>a growth step on farmland at moisture 0</td><td>field</td><td>{@link #DRY_FIELD} per step</td></tr>
+ *   <tr><th>cause</th><th>where</th><th>odds</th><th>phenomenon</th></tr>
+ *   <tr><td>bone meal on a flowering plant in a fed bed</td><td>pot, tray</td><td>{@link #OVERFED} per bone meal</td><td>overwatering</td></tr>
+ *   <tr><td>a bottle poured into a wet pot</td><td>pot</td><td>{@link #OVERWATERED} per bottle</td><td>overwatering</td></tr>
+ *   <tr><td>a growth step in a dry bed</td><td>pot, tray</td><td>{@link #DRY_BED} per step</td><td>dry ground</td></tr>
+ *   <tr><td>a growth step in a tray with water and the pump off</td><td>tray</td><td>{@link #STAGNANT} per step</td><td>overwatering</td></tr>
+ *   <tr><td>a growth step on farmland at moisture 0</td><td>field</td><td>{@link #DRY_FIELD} per step</td><td>dry ground</td></tr>
  * </table>
  *
+ * <p>The odds are a neutral plant's. Each plant rolls its own resistance to each phenomenon at planting
+ * ({@link ResistanceGenes}, kept on its record), and its step multiplies every cause of that phenomenon
+ * ({@link Resistance#factor}): a very weak plant in a dry bed stresses 2 times in 3, a very resistant one 1 time
+ * in 12. A plant with no record is neutral.
+ *
  * <p>Only a flowering plant is at risk, as with the light: a young one shrugs it off. When two causes
- * meet on one step the plant rolls <b>once</b>, at the worse odds. Stress is kept for good, exactly
- * as the light's is — a plant that has gone hermaphrodite does not go back.
+ * meet on one step the plant rolls <b>once</b>, at the worse odds, each cause scaled by its own
+ * phenomenon's step. Stress is kept for good, exactly as the light's is — a plant that has gone
+ * hermaphrodite does not go back.
+ *
+ * <p>A lost light is certain, so the plant's light step reads differently: a resistant plant ignores the
+ * loss 1 time in 2 and a very resistant one 3 times in 4, falling back to the sun's record as a young plant
+ * does; a weak or very weak one is stressed by it a stage early, from {@link Resistance#WEAK_LIGHT_LOSS_AGE}.
  */
 public final class PlantStress {
     /**
@@ -49,58 +61,72 @@ public final class PlantStress {
     public static final float STAGNANT = 1.0F / 6;
     public static final float DRY_FIELD = 1.0F / 20;
     /**
-     * The age from which a lost light, or a light leaking into the night, stresses a plant touchy about
-     * its light: a stage before {@link GrowLight#FLOWERING_AGE}, as a weak plant would be.
+     * The age from which a light leaking into the night stresses a plant touchy about its light: a stage
+     * before {@link GrowLight#FLOWERING_AGE}, the age a lost light stresses a weak plant from.
      */
-    public static final int TOUCHY_AGE = 3;
+    public static final int TOUCHY_AGE = Resistance.WEAK_LIGHT_LOSS_AGE;
 
     private PlantStress() {
     }
 
     /**
-     * The odds that one growth step stresses a flowering plant standing on {@code floor}. A bed of ours
-     * answers for itself; farmland only once it is bone dry, which vanilla's {@code FarmlandBlock} only
-     * lets happen after about seven random ticks with no water in reach and no rain.
+     * What one growth step may stress a flowering plant standing on {@code floor} with, at a neutral plant's
+     * odds. A bed of ours answers for itself; farmland only once it is bone dry, which vanilla's
+     * {@code FarmlandBlock} only lets happen after about seven random ticks with no water in reach and no rain.
      */
-    public static float ofGround(BlockState floor) {
+    public static StressCause ofGround(BlockState floor) {
         if (floor.getBlock() instanceof GrowMedium medium) {
             return medium.stress(floor);
         }
-        return floor.is(Blocks.FARMLAND) && floor.getValue(FarmlandBlock.MOISTURE) == 0 ? DRY_FIELD : 0.0F;
+        return floor.is(Blocks.FARMLAND) && floor.getValue(FarmlandBlock.MOISTURE) == 0
+                ? StressCause.dryGround(DRY_FIELD) : StressCause.NONE;
     }
 
     /**
      * The record a plant carries after a growth step from {@code fromAge} to {@code toAge}: first the
      * light's verdict, then one roll at the worst odds among the ground and {@code extra} (the
-     * overfeeding a bone meal step brings with it). {@code height} is how tall the plant stands grown,
+     * overfeeding a bone meal step brings with it), each scaled by the plant's resistance to its own
+     * phenomenon. {@code height} is how tall the plant stands grown,
      * which is where its light is read. A plant that is not {@code stressable} is never stressed:
      * losing its light only lowers its record to the sun's, as it does for a young plant, and nothing
      * is rolled.
      */
     public static GrowLight afterStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge,
-                                      int height, float extra, RandomSource random, boolean stressable) {
+                                      int height, StressCause extra, RandomSource random, boolean stressable) {
         return afterStep(world, lower, record, fromAge, toAge, height, extra, random, stressable, false);
     }
 
     /**
-     * As above; a {@code touchy} plant reads its light by {@link #touchyStep}: stressed a stage early
-     * by a lost light, and by a light that leaks into its night.
+     * As above; a {@code touchy} plant reads its light by {@link #touchyStep}: stressed by a light that
+     * leaks into its night as well.
      */
     public static GrowLight afterStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge,
-                                      int height, float extra, RandomSource random, boolean stressable,
+                                      int height, StressCause extra, RandomSource random, boolean stressable,
                                       boolean touchy) {
         // The open-sky record rides the same step as the light record, on every growth route.
         PlantRecordBlockEntity.recordSky(world, lower, fromAge, height);
-        GrowLight next = touchy ? touchyStep(world, lower, record, fromAge, toAge, height)
-                : record.afterStep(fromAge, GrowLight.over(world, lower, height));
+        ResistanceGenes genes = PlantRecordBlockEntity.resistancesAt(world, lower);
+        GrowLight next = touchy ? touchyStep(world, lower, record, fromAge, toAge, height, genes.light(), random)
+                : lightStep(record, fromAge, GrowLight.over(world, lower, height), genes.light(), random);
         if (!stressable) {
             return next == GrowLight.STRESSED ? GrowLight.NATURAL : next;
         }
         if (next == GrowLight.STRESSED || toAge < GrowLight.FLOWERING_AGE) {
             return next;
         }
-        float chance = Math.max(ofGround(world.getBlockState(lower.below())), extra);
+        float chance = Math.max(ofGround(world.getBlockState(lower.below())).chanceFor(genes), extra.chanceFor(genes));
         return chance > 0.0F && random.nextFloat() < chance ? GrowLight.STRESSED : next;
+    }
+
+    /**
+     * The light record after one step with {@code now} overhead, for a plant whose light step is {@code light}:
+     * the record's own ladder, a loss stressing from the step's {@link Resistance#lightLossAge}, and a resistant
+     * plant ignoring the loss now and then, which leaves it the sun's record as a young plant's loss does.
+     */
+    static GrowLight lightStep(GrowLight record, int fromAge, GrowLight now, Resistance light, RandomSource random) {
+        GrowLight next = record.afterStep(fromAge, now, light.lightLossAge());
+        return next == GrowLight.STRESSED && record != GrowLight.STRESSED && light.ignoresLostLight(random)
+                ? GrowLight.NATURAL : next;
     }
 
     /**
@@ -114,23 +140,27 @@ public final class PlantStress {
      *       it reads night, in any weather. Around each switch lies a twilight in which neither a leak nor
      *       a loss counts, as long as the detector takes to notice and the lamp to go out.</li>
      *   <li><b>A leak</b>, at night and from {@link #TOUCHY_AGE}, is a lit light over the plant (anything
-     *       the record counts) or a light-15 block touching it ({@link #leaks}). It stresses the plant.</li>
+     *       the record counts) or a light-15 block touching it ({@link #leaks}). It stresses the plant,
+     *       whatever its light step: every plant of a leaking strain leaks.</li>
      *   <li><b>Darkness at night never counts as a lost light.</b> A dark night keeps the record as it
      *       was; a dark lamp still hanging there counts as the lamp it is, which is also what the plant's
      *       first step reads if it falls at night.</li>
-     *   <li><b>By day</b>, the record's own ladder, but a lost light stresses from {@link #TOUCHY_AGE}.</li>
+     *   <li><b>By day</b>, the record's own ladder, read with the plant's light step as any plant's
+     *       ({@link #lightStep}): a weak or very weak plant is stressed by a lost light from
+     *       {@link #TOUCHY_AGE}.</li>
      * </ul>
      */
-    static GrowLight touchyStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge, int height) {
+    static GrowLight touchyStep(Level world, BlockPos lower, GrowLight record, int fromAge, int toAge, int height,
+                                Resistance light, RandomSource random) {
         Hours hours = hours(world, lower);
         if (hours == Hours.DAY) {
-            return record.afterStep(fromAge, GrowLight.over(world, lower, height), TOUCHY_AGE);
+            return lightStep(record, fromAge, GrowLight.over(world, lower, height), light, random);
         }
         if (hours == Hours.NIGHT && toAge >= TOUCHY_AGE && leaks(world, lower, height)) {
             return GrowLight.STRESSED;
         }
         GrowLight fixture = GrowLight.fixtureOver(world, lower, height);
-        return fixture == GrowLight.NATURAL ? record : record.afterStep(fromAge, fixture, TOUCHY_AGE);
+        return fixture == GrowLight.NATURAL ? record : record.afterStep(fromAge, fixture, light.lightLossAge());
     }
 
     /** Day, night, or the twilight around the switch between them, as a plant touchy about its light keeps them. */
@@ -203,25 +233,26 @@ public final class PlantStress {
         return false;
     }
 
-    /** The odds a bone meal step on the plant at {@code lower} overfeeds it: flowering already, in a fed bed. */
-    public static float ofBoneMeal(Level world, BlockPos lower, BlockState plant) {
+    /** What a bone meal step on the plant at {@code lower} may overfeed it with: flowering already, in a fed bed. */
+    public static StressCause ofBoneMeal(Level world, BlockPos lower, BlockState plant) {
         BlockState floor = world.getBlockState(lower.below());
         return isFlowering(plant) && floor.getBlock() instanceof GrowMedium medium && medium.fed(floor)
-                ? OVERFED : 0.0F;
+                ? StressCause.overwatering(OVERFED) : StressCause.NONE;
     }
 
     /**
-     * Rolls {@code chance} against the plant whose LOWER is at {@code lower}, outside any growth step,
+     * Rolls {@code cause} against the plant whose LOWER is at {@code lower}, outside any growth step, at the
+     * odds its resistance to the cause's phenomenon gives,
      * and on a hit writes the record up every segment at once, so the plant shows it straight away.
      * A ripe plant is past it: stress is a growth failure, a ripe plant grows no more, and a real
      * plant cut at maturity has no weeks left to go seedy. Vanilla never costs a finished crop its
      * yield either.
      */
-    public static void roll(Level world, BlockPos lower, float chance, RandomSource random) {
+    public static void roll(Level world, BlockPos lower, StressCause cause, RandomSource random) {
         BlockState plant = world.getBlockState(lower);
         if (!isFlowering(plant) || plant.getValue(GrowLight.PROPERTY) == GrowLight.STRESSED
                 || plant.getBlock() instanceof CropBlock crop && crop.isMaxAge(plant)
-                || random.nextFloat() >= chance) {
+                || random.nextFloat() >= cause.chanceFor(PlantRecordBlockEntity.resistancesAt(world, lower))) {
             return;
         }
         Block block = plant.getBlock();
@@ -248,7 +279,7 @@ public final class PlantStress {
         boolean stressable = !(crop instanceof SativaCropBlock sativa) || sativa.canBeStressed();
         boolean touchy = crop instanceof IndicaCropBlock indica && indica.leaksAtNight();
         return next.setValue(GrowLight.PROPERTY, afterStep(world, pos, current.getValue(GrowLight.PROPERTY),
-                crop.getAge(current), crop.getAge(next), height, 0.0F, random, stressable, touchy));
+                crop.getAge(current), crop.getAge(next), height, StressCause.NONE, random, stressable, touchy));
     }
 
     /** A hemp plant at or past {@link GrowLight#FLOWERING_AGE}, with a record to lose. */

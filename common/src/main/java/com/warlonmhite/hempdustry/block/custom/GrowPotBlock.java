@@ -115,8 +115,8 @@ public class GrowPotBlock extends Block implements GrowMedium {
     }
 
     @Override
-    public float stress(BlockState state) {
-        return state.getValue(WATERED) ? 0.0F : PlantStress.DRY_BED;
+    public StressCause stress(BlockState state) {
+        return state.getValue(WATERED) ? StressCause.NONE : StressCause.dryGround(PlantStress.DRY_BED);
     }
 
     // ----- water -----
@@ -134,7 +134,7 @@ public class GrowPotBlock extends Block implements GrowMedium {
      */
     public static void water(Level world, BlockPos pos, BlockState state, RandomSource random) {
         if (state.getValue(WATERED)) {
-            PlantStress.roll(world, pos.above(), PlantStress.OVERWATERED, random);
+            PlantStress.roll(world, pos.above(), StressCause.overwatering(PlantStress.OVERWATERED), random);
         } else {
             world.setBlock(pos, state.setValue(WATERED, true), Block.UPDATE_CLIENTS);
         }

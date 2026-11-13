@@ -19,14 +19,22 @@
   ],
   "flower": "hempdustry:warped_kush_crop",
   "model_index": 8,
+  "plant": {
+    "quality": {
+      "base_luck": 2,
+      "elite": 10,
+      "poor": 15
+    },
+    "resistances": {
+      "dry_ground": "resistant",
+      "light": "very_resistant",
+      "mildew": "neutral",
+      "overwatering": "neutral"
+    }
+  },
   "potency": {
     "extra_high": 5,
     "low": 20
-  },
-  "quality": {
-    "base_luck": 2,
-    "elite": 10,
-    "poor": 15
   },
   "seeds": "hempdustry:warped_kush_seeds",
   "terpene": "hempdustry:eucalyptol",

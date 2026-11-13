@@ -5,15 +5,23 @@
   "flower": "hempdustry:dud_weed_crop",
   "green_out_factor": 0.0,
   "model_index": 14,
+  "plant": {
+    "quality": {
+      "elite": 2,
+      "good": 18,
+      "poor": 30
+    },
+    "resistances": {
+      "dry_ground": "very_resistant",
+      "light": "resistant",
+      "mildew": "very_resistant",
+      "overwatering": "very_resistant"
+    }
+  },
   "potency": {
     "high": 0,
     "low": 60,
     "mid": 40
-  },
-  "quality": {
-    "elite": 2,
-    "good": 18,
-    "poor": 30
   },
   "seeds": "hempdustry:dud_weed_seeds",
   "terpene": "hempdustry:humulene",

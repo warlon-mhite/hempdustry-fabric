@@ -46,8 +46,11 @@ public interface GrowMedium extends BonemealableBlock {
     /** Whether there is food in this bed already — bone meal on a flowering plant here overfeeds it. */
     boolean fed(BlockState state);
 
-    /** The odds one growth step in this bed stresses a flowering plant; see {@link PlantStress}. */
-    float stress(BlockState state);
+    /**
+     * What one growth step in this bed may stress a flowering plant with, and at what odds against a neutral
+     * plant: a dry bed is dry ground, stale water is overwatering. See {@link PlantStress}.
+     */
+    StressCause stress(BlockState state);
 
     /**
      * Feeds a bed from the player's hand with <b>anything in {@code #c:fertilizers}</b> — bone meal

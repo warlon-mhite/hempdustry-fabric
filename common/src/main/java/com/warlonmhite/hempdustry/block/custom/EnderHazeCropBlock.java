@@ -252,7 +252,7 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
             }
         }
         if (grown != age || !this.isShapeSettled(world, pos, age, state.getValue(GrowLight.PROPERTY))) {
-            this.setAge(world, pos, grown, 0.0F, random);
+            this.setAge(world, pos, grown, StressCause.NONE, random);
         }
     }
 
@@ -311,7 +311,7 @@ public class EnderHazeCropBlock extends CropBlock implements EntityBlock {
      * calls for and there is room. {@code newAge} is held to {@link #maxAgeFor}, but never below an
      * age the plant already has: a ripe plant a player later builds over keeps its harvest.
      */
-    private void setAge(Level world, BlockPos pos, int newAge, float extraStress, RandomSource random) {
+    private void setAge(Level world, BlockPos pos, int newAge, StressCause extraStress, RandomSource random) {
         BlockState current = world.getBlockState(pos);
         int currentAge = current.is(this) && isRoot(current) ? this.getAge(current) : 0;
         newAge = Math.min(newAge, this.getMaxAge());

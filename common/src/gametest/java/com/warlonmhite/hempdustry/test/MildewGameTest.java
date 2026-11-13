@@ -3,6 +3,9 @@ package com.warlonmhite.hempdustry.test;
 import com.warlonmhite.hempdustry.block.ModBlocks;
 import com.warlonmhite.hempdustry.block.custom.Defoliation;
 import com.warlonmhite.hempdustry.block.custom.Mildew;
+import com.warlonmhite.hempdustry.strain.Resistance;
+import com.warlonmhite.hempdustry.strain.ResistanceGenes;
+import com.warlonmhite.hempdustry.strain.StressPhenomenon;
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.util.ModTags;
 import java.util.List;
@@ -140,6 +143,52 @@ public final class MildewGameTest {
     }
 
     /**
+     * A plant's mildew resistance scales its onset (1 in 150 at neutral: very weak 1 in 75, very resistant 1 in
+     * 600) and the spread to it (1 in 2 at neutral: very weak certain, very resistant 1 in 8).
+     */
+    public static void mildewResistanceScalesOnsetAndSpread(GameTestHelper context) {
+        ServerLevel world = context.getLevel();
+        Block indica = ModBlocks.INDICA_CROP;
+        float[][] onsets = {{0.013F, 0.014F}, {0.0066F, 0.0067F}, {0.0016F, 0.0017F}};
+        Resistance[] steps = {Resistance.VERY_WEAK, Resistance.NEUTRAL, Resistance.VERY_RESISTANT};
+        for (int i = 0; i < steps.length; i++) {
+            ResistanceGenes genes = ResistanceGenes.NEUTRAL.with(StressPhenomenon.MILDEW, steps[i]);
+            expect(context, onset(context, indica, genes, onsets[i][0]), Mildew.MILDEWED,
+                    "a plant " + steps[i] + " to mildew under a roof, at " + onsets[i][0]);
+            expect(context, onset(context, indica, genes, onsets[i][1]), Mildew.CLEAN,
+                    "a plant " + steps[i] + " to mildew under a roof, at " + onsets[i][1]);
+        }
+
+        BlockPos sick = new BlockPos(2, 2, 2);
+        BlockPos east = sick.east();
+        roof(context);
+        float[][] spreads = {{0.999F, 0.999F}, {0.49F, 0.51F}, {0.12F, 0.13F}};
+        for (int i = 0; i < steps.length; i++) {
+            for (int hit = 0; hit < 2; hit++) {
+                sow(context, east, indica, 4, Mildew.CLEAN);
+                Genes.set(context, east, ResistanceGenes.NEUTRAL.with(StressPhenomenon.MILDEW, steps[i]));
+                sow(context, sick, indica, 4, Mildew.MILDEWED);
+                Mildew.randomTick(world, context.absolutePos(sick), decided(spreads[i][hit], EAST));
+                Mildew expected = hit == 0 || steps[i] == Resistance.VERY_WEAK ? Mildew.MILDEWED : Mildew.CLEAN;
+                expect(context, context.getBlockState(east).getValue(Mildew.PROPERTY), expected,
+                        "a neighbour " + steps[i] + " to mildew, at " + spreads[i][hit]);
+            }
+        }
+        context.succeed();
+    }
+
+    /** One bone meal step under a glass roof on a fresh plant at age 4 with {@code genes}, at {@code roll}. */
+    private static Mildew onset(GameTestHelper context, Block crop, ResistanceGenes genes, float roll) {
+        context.setBlock(ROOF, Blocks.GLASS);
+        plant(context, crop, 4, Mildew.CLEAN);
+        Genes.set(context, CROP, genes);
+        ServerLevel world = context.getLevel();
+        BlockPos pos = context.absolutePos(CROP);
+        ((CropBlock) crop).performBonemeal(world, decided(roll, 0), pos, world.getBlockState(pos), BonemealSource.INTERACTION);
+        return context.getBlockState(CROP).getValue(Mildew.PROPERTY);
+    }
+
+    /**
      * Vanilla's sulfur gas: a potent sulfur block under a water source gives off gas at the surface,
      * and every plant within three blocks of it with nothing solid between is in it.
      */
@@ -272,6 +321,7 @@ public final class MildewGameTest {
         }
         context.setBlock(pos.below(), Blocks.FARMLAND.defaultBlockState().setValue(FarmlandBlock.MOISTURE, FarmlandBlock.MAX_MOISTURE));
         context.setBlock(pos, Defoliation.unworked(crop.defaultBlockState()).setValue(BlockStateProperties.AGE_7, age));
+        Genes.neutral(context, pos);
         // A random tick reconciles the segments, and MISS keeps it from growing. Sown clean, so that
         // tick cannot spread anything; whatever the gas did on it, the mildew is written after.
         ServerLevel world = context.getLevel();

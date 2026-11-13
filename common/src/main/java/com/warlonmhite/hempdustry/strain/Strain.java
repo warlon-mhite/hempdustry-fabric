@@ -1,6 +1,7 @@
 package com.warlonmhite.hempdustry.strain;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.warlonmhite.hempdustry.item.custom.SmokeContents;
 import com.warlonmhite.hempdustry.Hempdustry;
@@ -171,25 +172,56 @@ import net.minecraft.world.level.block.Blocks;
  *                        file names none; read only for the buds of a plant
  * @param jarColour       the colour of its buds' pistils in a Stash Jar, RGB, when it is not the strain's own
  *                        {@code color}: a strain whose colour would vanish on a green bud can name another
- * @param quality         a plant strain's quality sheet (see {@link GrowQuality}): the base luck of its harvests and
- *                        the odds of each quality gene a plant rolls. {@link GrowQuality#DEFAULT} when the file
- *                        names none; read only for the buds of a plant
+ * @param plant           what a plant of the strain rolls at planting beyond its band (see {@link Plant}): its
+ *                        quality sheet and its resistance sheet, written in the file's {@code plant} object.
+ *                        {@link Plant#DEFAULT} when the file names none; read only for a plant
  */
 public record Strain(String translationKey, int color, int modelIndex,
                      Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                      float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
                      float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
                      Optional<Integer> smokeColor, Potency potency, Optional<Integer> jarColour,
-                     GrowQuality quality) {
+                     Plant plant) {
 
-    /** A strain with the default quality sheet: the shape every strain had before {@code quality}. */
+    /** A strain with the default plant sheets: the shape every strain had before {@code plant}. */
     public Strain(String translationKey, int color, int modelIndex,
                   Optional<Item> seedItem, Item buds, Optional<Block> wildFlower,
                   float greenOutFactor, int dosePerItem, List<SmokeEffect> smokeEffects,
                   float coughFactor, Chemotype chemotype, Optional<ResourceKey<Terpene>> terpene,
                   Optional<Integer> smokeColor, Potency potency, Optional<Integer> jarColour) {
         this(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem, smokeEffects,
-                coughFactor, chemotype, terpene, smokeColor, potency, jarColour, GrowQuality.DEFAULT);
+                coughFactor, chemotype, terpene, smokeColor, potency, jarColour, Plant.DEFAULT);
+    }
+
+    /**
+     * What a plant of a strain rolls at planting beyond its potency band, kept in the strain file's {@code plant}
+     * object: {@code "plant": {"quality": {...}, "resistances": {...}}}. Both keys are optional.
+     *
+     * @param quality     the base luck of its harvests and the odds of each quality gene (see {@link GrowQuality})
+     * @param resistances the odds of each resistance step, per phenomenon (see {@link Resistances})
+     */
+    public record Plant(GrowQuality quality, Resistances resistances) {
+
+        /** The default quality sheet and neutral on every phenomenon: a strain that names no {@code plant}. */
+        public static final Plant DEFAULT = new Plant(GrowQuality.DEFAULT, Resistances.DEFAULT);
+
+        public static final Codec<Plant> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                GrowQuality.CODEC.optionalFieldOf("quality", GrowQuality.DEFAULT).forGetter(Plant::quality),
+                Resistances.CODEC.optionalFieldOf("resistances", Resistances.DEFAULT).forGetter(Plant::resistances)
+        ).apply(instance, Plant::new));
+
+        /** The {@code plant} object as a strain file carries it. */
+        static final MapCodec<Plant> FIELD = CODEC.optionalFieldOf("plant", DEFAULT);
+    }
+
+    /** A plant strain's quality sheet: the base luck of its harvests and the odds of each quality gene a plant rolls. */
+    public GrowQuality quality() {
+        return plant.quality();
+    }
+
+    /** A plant strain's resistance sheet: the odds of each resistance step a plant rolls, per phenomenon. */
+    public Resistances resistances() {
+        return plant.resistances();
     }
 
     /** A strain with no jar colour of its own: the shape every strain had before {@code jar_colour}. */
@@ -272,31 +304,39 @@ public record Strain(String translationKey, int color, int modelIndex,
     /** This strain with {@code terpene} as its signature. */
     public Strain withTerpene(ResourceKey<Terpene> terpene) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor, potency, jarColour, quality);
+                smokeEffects, coughFactor, chemotype, Optional.of(terpene), smokeColor, potency, jarColour, plant);
     }
 
     /** This strain smoking {@code rgb} rather than its terpene's colour. */
     public Strain withSmokeColor(int rgb) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb), potency, jarColour, quality);
+                smokeEffects, coughFactor, chemotype, terpene, Optional.of(rgb), potency, jarColour, plant);
     }
 
     /** This strain with {@code potency} as its sheet. */
     public Strain withPotency(Potency potency) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour, quality);
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour, plant);
     }
 
     /** This strain's pistils in a Stash Jar tinted {@code rgb} rather than its own colour. */
     public Strain withJarColour(int rgb) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, Optional.of(rgb), quality);
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, Optional.of(rgb), plant);
     }
 
-    /** This strain with {@code quality} as its sheet. */
+    /** This strain with {@code quality} as its quality sheet. */
     public Strain withQuality(GrowQuality quality) {
         return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
-                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour, quality);
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour,
+                new Plant(quality, plant.resistances()));
+    }
+
+    /** This strain with {@code resistances} as its resistance sheet. */
+    public Strain withResistances(Resistances resistances) {
+        return new Strain(translationKey, color, modelIndex, seedItem, buds, wildFlower, greenOutFactor, dosePerItem,
+                smokeEffects, coughFactor, chemotype, terpene, smokeColor, potency, jarColour,
+                new Plant(plant.quality(), resistances));
     }
 
     /** The colour of its buds' pistils in a Stash Jar, RGB: its {@code jar_colour}, else its own {@link #color}. */
@@ -339,9 +379,9 @@ public record Strain(String translationKey, int color, int modelIndex,
             Codec.INT.optionalFieldOf("smoke_color").forGetter(Strain::smokeColor),
             Potency.CODEC.optionalFieldOf("potency", Potency.DEFAULT).forGetter(Strain::potency),
             Codec.INT.optionalFieldOf("jar_colour").forGetter(Strain::jarColour),
-            // The sixteenth field, the most one RecordCodecBuilder group takes: a field added after this one
-            // goes inside an object of its own.
-            GrowQuality.CODEC.optionalFieldOf("quality", GrowQuality.DEFAULT).forGetter(Strain::quality)
+            // The sixteenth field, the most one RecordCodecBuilder group takes. What a plant rolls at planting
+            // lives in the file's own "plant" object, and a field added later goes inside one of the objects.
+            Plant.FIELD.forGetter(Strain::plant)
     ).apply(instance, Strain::new));
 
     /**

@@ -1,12 +1,15 @@
 package com.warlonmhite.hempdustry.block.entity.custom;
 
 import com.warlonmhite.hempdustry.block.custom.GrowLuck;
+import com.warlonmhite.hempdustry.block.custom.IndustrialHempCropBlock;
 import com.warlonmhite.hempdustry.block.entity.ModBlockEntities;
 import com.warlonmhite.hempdustry.strain.BudTier;
 import com.warlonmhite.hempdustry.strain.GrowQuality;
 import com.warlonmhite.hempdustry.strain.Potency;
 import com.warlonmhite.hempdustry.strain.PotencyBand;
 import com.warlonmhite.hempdustry.strain.QualityGene;
+import com.warlonmhite.hempdustry.strain.ResistanceGenes;
+import com.warlonmhite.hempdustry.strain.Resistances;
 import com.warlonmhite.hempdustry.strain.Strain;
 import com.mojang.serialization.Codec;
 import java.lang.ref.WeakReference;
@@ -24,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * What one plant carries from planting to harvest beyond its block state: its potency band, its quality
- * gene and whether it has grown under open sky. Sits on the plant's root only (the block that carries
- * its age), and on the crops that grow buds.
+ * gene, its four resistances and whether it has grown under open sky. Sits on the plant's root only (the
+ * block that carries its age), on every crop that grows buds and on Industrial Hemp.
  *
  * <h2>Why a block entity, and not more state</h2>
  *
@@ -42,6 +45,17 @@ import org.jetbrains.annotations.Nullable;
  * without, from a plant sown before records existed, rolls what it lacks then. A plant set back to age 0
  * in place, by a harvester that replants, is a new plant: its crop {@link #replant replants} the record,
  * which rolls again.
+ *
+ * <p>Industrial Hemp grows no bud: its record rolls its resistances, from its own sheet
+ * ({@link IndustrialHempCropBlock#RESISTANCES}, since it is no strain), and no band and no gene; its band
+ * reads mid. Nothing in its life reads the resistances yet (it is never stressed and never catches mildew);
+ * they are what it will pass on.
+ *
+ * <h2>Resistances</h2>
+ *
+ * Four steps, one per phenomenon ({@link ResistanceGenes}), each rolled on its own from the strain's odds
+ * ({@link Resistances}) and hidden. Every cause of stress and of mildew asks them ({@link #resistancesAt});
+ * a plant with no record is neutral on all four.
  *
  * <p>The draw is on a random of its own: never the loot table's, so a harvest rolls exactly the
  * numbers it always did (a loot entry taking a variable number of draws shifts every pool after it),
@@ -67,10 +81,12 @@ public class PlantRecordBlockEntity extends BlockEntity {
     private static final String POTENCY_KEY = "potency";
     private static final String QUALITY_KEY = "quality";
     private static final String OPEN_SKY_KEY = "open_sky";
+    private static final String RESISTANCES_KEY = "resistances";
 
     private @Nullable PotencyBand band;
     private @Nullable QualityGene gene;
     private @Nullable Boolean openSky;
+    private @Nullable ResistanceGenes resistances;
     private WeakReference<Object> harvest = new WeakReference<>(null);
     private @Nullable BudTier harvestTier;
 
@@ -88,6 +104,9 @@ public class PlantRecordBlockEntity extends BlockEntity {
      * record that never joined a world). A plant no strain names is mid.
      */
     public PotencyBand band() {
+        if (!growsBuds(getBlockState())) {
+            return PotencyBand.MID;
+        }
         if (band == null) {
             band = potencyOf(level, getBlockState()).roll(RandomSource.create());
             setChanged();
@@ -108,12 +127,19 @@ public class PlantRecordBlockEntity extends BlockEntity {
     @Override
     public void setLevel(Level level) {
         super.setLevel(level);
-        if (!level.isClientSide() && (band == null || gene == null)) {
-            if (band == null) {
+        if (level.isClientSide()) {
+            return;
+        }
+        boolean buds = growsBuds(getBlockState());
+        if (buds && (band == null || gene == null) || resistances == null) {
+            if (buds && band == null) {
                 band = potencyOf(level, getBlockState()).roll(RandomSource.create());
             }
-            if (gene == null) {
+            if (buds && gene == null) {
                 gene = qualityOf(level, getBlockState()).roll(RandomSource.create());
+            }
+            if (resistances == null) {
+                resistances = resistancesOf(level, getBlockState()).roll(RandomSource.create());
             }
             setChanged();
         }
@@ -121,8 +147,10 @@ public class PlantRecordBlockEntity extends BlockEntity {
 
     /** The plant at this root is a new plant: everything is rolled again. */
     public void replant() {
-        band = potencyOf(level, getBlockState()).roll(RandomSource.create());
-        gene = qualityOf(level, getBlockState()).roll(RandomSource.create());
+        boolean buds = growsBuds(getBlockState());
+        band = buds ? potencyOf(level, getBlockState()).roll(RandomSource.create()) : null;
+        gene = buds ? qualityOf(level, getBlockState()).roll(RandomSource.create()) : null;
+        resistances = resistancesOf(level, getBlockState()).roll(RandomSource.create());
         openSky = null;
         harvestTier = null;
         harvest = new WeakReference<>(null);
@@ -134,8 +162,11 @@ public class PlantRecordBlockEntity extends BlockEntity {
         return Optional.ofNullable(gene);
     }
 
-    /** This plant's quality gene, rolled now from its strain's odds if it has none yet. */
+    /** This plant's quality gene, rolled now from its strain's odds if it has none yet; average on Industrial Hemp. */
     public QualityGene gene() {
+        if (!growsBuds(getBlockState())) {
+            return QualityGene.AVERAGE;
+        }
         if (gene == null) {
             gene = qualityOf(level, getBlockState()).roll(RandomSource.create());
             setChanged();
@@ -146,6 +177,26 @@ public class PlantRecordBlockEntity extends BlockEntity {
     /** Sets the gene outright: what a test or a command does. */
     public void setGene(@Nullable QualityGene gene) {
         this.gene = gene;
+        setChanged();
+    }
+
+    /** The resistances, if this plant has rolled them yet. */
+    public Optional<ResistanceGenes> rolledResistances() {
+        return Optional.ofNullable(resistances);
+    }
+
+    /** This plant's four resistances, rolled now from its strain's odds if it has none yet. */
+    public ResistanceGenes resistances() {
+        if (resistances == null) {
+            resistances = resistancesOf(level, getBlockState()).roll(RandomSource.create());
+            setChanged();
+        }
+        return resistances;
+    }
+
+    /** Sets the resistances outright: what a test or a command does. */
+    public void setResistances(@Nullable ResistanceGenes resistances) {
+        this.resistances = resistances;
         setChanged();
     }
 
@@ -212,6 +263,38 @@ public class PlantRecordBlockEntity extends BlockEntity {
                 .orElse(GrowQuality.DEFAULT);
     }
 
+    /**
+     * The resistance sheet of the plant {@code state} is: Industrial Hemp's own, else its strain's, neutral with
+     * none (a plant no strain names stresses as every plant did before resistances).
+     */
+    public static Resistances resistancesOf(@Nullable Level level, BlockState state) {
+        if (state.getBlock() instanceof IndustrialHempCropBlock) {
+            return IndustrialHempCropBlock.RESISTANCES;
+        }
+        if (level == null) {
+            return Resistances.DEFAULT;
+        }
+        return Strain.ofPlant(state.getBlock(), level.registryAccess())
+                .map(Holder::value)
+                .map(Strain::resistances)
+                .orElse(Resistances.DEFAULT);
+    }
+
+    /** Whether the plant {@code state} is grows buds, and so rolls a band and a gene: all but Industrial Hemp. */
+    private static boolean growsBuds(BlockState state) {
+        return !(state.getBlock() instanceof IndustrialHempCropBlock);
+    }
+
+    /**
+     * The resistances of the plant whose root is at {@code rootPos}; neutral on all four where there is no
+     * record to ask, or on a client, where none is rolled.
+     */
+    public static ResistanceGenes resistancesAt(Level level, BlockPos rootPos) {
+        return !level.isClientSide() && level.getBlockEntity(rootPos) instanceof PlantRecordBlockEntity record
+                ? record.resistances()
+                : ResistanceGenes.NEUTRAL;
+    }
+
     /** The potency sheet of the strain {@code state}'s block is a plant of, the default with none. */
     public static Potency potencyOf(@Nullable Level level, BlockState state) {
         if (level == null) {
@@ -243,6 +326,7 @@ public class PlantRecordBlockEntity extends BlockEntity {
         band = view.read(POTENCY_KEY, PotencyBand.CODEC).orElse(null);
         gene = view.read(QUALITY_KEY, QualityGene.CODEC).orElse(null);
         openSky = view.read(OPEN_SKY_KEY, Codec.BOOL).orElse(null);
+        resistances = view.read(RESISTANCES_KEY, ResistanceGenes.CODEC).orElse(null);
     }
 
     @Override
@@ -256,6 +340,9 @@ public class PlantRecordBlockEntity extends BlockEntity {
         }
         if (openSky != null) {
             view.store(OPEN_SKY_KEY, Codec.BOOL, openSky);
+        }
+        if (resistances != null) {
+            view.store(RESISTANCES_KEY, ResistanceGenes.CODEC, resistances);
         }
     }
 }

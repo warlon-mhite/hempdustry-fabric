@@ -2,6 +2,8 @@ package com.warlonmhite.hempdustry.block.custom;
 
 import com.warlonmhite.hempdustry.item.ModItems;
 import com.warlonmhite.hempdustry.platform.Services;
+import com.warlonmhite.hempdustry.strain.Resistance;
+import com.warlonmhite.hempdustry.strain.Resistances;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -36,11 +38,14 @@ import net.minecraft.world.level.block.state.BlockState;
  * <p>Not a {@code Strain}: a strain is something you smoke, and it must name buds.
  */
 public class IndustrialHempCropBlock extends SativaCropBlock {
-    /** Fibre hemp grows no bud and its leaves are never strong: nothing of its own to roll. */
-    @Override
-    protected boolean keepsRecord() {
-        return false;
-    }
+    /**
+     * Fibre hemp's resistances, most likely resistant to dry ground, wet roots and a lost light, and neutral to
+     * mildew: bred for vigour. It is no strain, so its sheet lives here. A plant rolls them at planting and keeps
+     * them on its record, which rolls no band and no gene (it grows no bud); nothing in its own life reads them,
+     * since it is never stressed and never catches mildew. They are what it passes on.
+     */
+    public static final Resistances RESISTANCES = Resistances.of(Resistance.RESISTANT, Resistance.RESISTANT,
+            Resistance.RESISTANT, Resistance.NEUTRAL);
 
     private static final float GROWTH_RESISTANCE = 25.0F;
 

@@ -23,15 +23,23 @@
   ],
   "flower": "hempdustry:white_widow_flower",
   "model_index": 13,
+  "plant": {
+    "quality": {
+      "average": 48,
+      "elite": 6,
+      "good": 28,
+      "poor": 18
+    },
+    "resistances": {
+      "dry_ground": "neutral",
+      "light": "very_weak",
+      "mildew": "neutral",
+      "overwatering": "neutral"
+    }
+  },
   "potency": {
     "extra_high": 5,
     "low": 20
-  },
-  "quality": {
-    "average": 48,
-    "elite": 6,
-    "good": 28,
-    "poor": 18
   },
   "seeds": "hempdustry:white_widow_seeds",
   "terpene": "hempdustry:nerolidol",

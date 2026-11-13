@@ -20,14 +20,22 @@
   ],
   "flower": "hempdustry:beldia_crop",
   "model_index": 7,
+  "plant": {
+    "quality": {
+      "base_luck": -1,
+      "good": 20,
+      "poor": 25
+    },
+    "resistances": {
+      "dry_ground": "very_resistant",
+      "light": "neutral",
+      "mildew": "resistant",
+      "overwatering": "weak"
+    }
+  },
   "potency": {
     "high": 20,
     "low": 30
-  },
-  "quality": {
-    "base_luck": -1,
-    "good": 20,
-    "poor": 25
   },
   "seeds": "hempdustry:beldia_seeds",
   "terpene": "hempdustry:myrcene",
