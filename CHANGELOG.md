@@ -9,6 +9,10 @@ beta be told when the release lands.
 
 ## [Unreleased]
 
+Nothing yet — everything below shipped in 2.1.1+26.3.
+
+## [2.1.1+26.3] — 2026-11-13
+
 The first patch of 2.1: hemp plants that hold up under other mods' harvesters, fertilisers and soils,
 farmer villagers who grow hemp, and the first hooks for the mods of a pack. Every file for another mod
 loads only when that mod is there, so a game with Hempdustry alone sees the fixes, the villagers and
@@ -892,7 +896,8 @@ major version and it will say so here.
   dependencies { modImplementation "maven.modrinth:hempdustry:2.0.0-beta+1.21.1" }
   ```
 
-[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.0%2B26.3...HEAD
+[Unreleased]: https://github.com/warlon-mhite/hempdustry-java/compare/v2.1.1%2B26.3...HEAD
+[2.1.1+26.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.1
 [2.1.0+26.3]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
 [2.1.0+26.2]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
 [2.1.0]: https://github.com/warlon-mhite/hempdustry-java/releases/tag/v2.1.0
