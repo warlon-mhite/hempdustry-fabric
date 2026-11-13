@@ -20,6 +20,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Llama;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -304,5 +306,40 @@ public final class TagBackedBehaviourGameTest {
             }
         }
         context.succeed();
+    }
+
+    /**
+     * A farmer picks indica and sativa seed up off the ground, as it does wheat seeds, so it can plant hemp again
+     * after reaping it: the farmer plants only seed of {@code #minecraft:villager_plantable_seeds} it holds. Vanilla
+     * 1.21.1 asks a fixed list instead of the tag, so the pickup is ours on Fabric and NeoForge's own patch on
+     * NeoForge; the test holds both to the same answer. The negative half keeps it a farmer's habit: a librarian,
+     * whose work is not farmland, leaves hemp seed where it lies, as it does wheat seeds.
+     */
+    @GameTest(template = HempdustryGameTests.EMPTY, timeoutTicks = 200)
+    public void aFarmerPicksHempSeedUp(GameTestHelper context) {
+        BlockPos at = new BlockPos(3, 1, 3);
+        Villager librarian = context.spawn(EntityType.VILLAGER, at);
+        librarian.setVillagerData(librarian.getVillagerData().setProfession(VillagerProfession.LIBRARIAN).setLevel(2));
+        for (Item seed : List.of(ModItems.INDICA_SEEDS, ModItems.SATIVA_SEEDS)) {
+            if (librarian.wantsToPickUp(new ItemStack(seed))) {
+                context.fail("a librarian wants " + BuiltInRegistries.ITEM.getKey(seed) + ", a farmer's seed");
+                return;
+            }
+        }
+        librarian.discard();
+
+        // Level 2, so the farmer keeps its trade without a composter (vanilla resets a level-1 villager with none).
+        Villager farmer = context.spawn(EntityType.VILLAGER, at);
+        farmer.setVillagerData(farmer.getVillagerData().setProfession(VillagerProfession.FARMER).setLevel(2));
+        context.spawnItem(ModItems.INDICA_SEEDS, at);
+        context.spawnItem(ModItems.SATIVA_SEEDS, at);
+        context.succeedWhen(() -> {
+            for (Item seed : List.of(ModItems.INDICA_SEEDS, ModItems.SATIVA_SEEDS)) {
+                if (farmer.getInventory().countItem(seed) != 1) {
+                    context.fail("the farmer never took " + BuiltInRegistries.ITEM.getKey(seed)
+                            + " off the ground (holds " + farmer.getInventory().getItems() + ")");
+                }
+            }
+        });
     }
 }

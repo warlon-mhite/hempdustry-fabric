@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "com.warlonmhite.hempdustry.fabric.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"VillagerSeedPickupMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

@@ -15,9 +15,9 @@ mod is there, so a game with Hempdustry alone sees the fixes, the villagers and 
 
 ### Added
 
-- **Farmer villagers grow hemp.** A farmer holding indica or sativa seed plants it on the village farmland
-  and reaps the ripe plant whole, the way it farms wheat. The light and stress rules apply as in any field.
-  Beldía stays wild: it stands only on sand.
+- **Farmer villagers grow hemp.** A farmer picks indica and sativa seed up, plants it on the village
+  farmland and reaps the ripe plant whole, the way it farms wheat, on both loaders. The light and stress
+  rules apply as in any field. Beldía stays wild: it stands only on sand.
 - **Hemp in other mods' machines**, each loaded only with its mod:
   - **Create**: the mixer makes hempcrete as it is really made, 2 stems, 1 limestone and 250 mB of water
     for 2 hempcrete; the fan rets stems and washes decarboxylated hemp; crushing a retted stalk gives its

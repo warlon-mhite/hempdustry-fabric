@@ -44,6 +44,7 @@
 	"accessWidener": "hempdustry.accesswidener",
 	"mixins": [
 		"hempdustry.mixins.json",
+		"hempdustry.fabric.mixins.json",
 		{
 			"config": "hempdustry.client.mixins.json",
 			"environment": "client"
