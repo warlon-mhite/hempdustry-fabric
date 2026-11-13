@@ -183,6 +183,8 @@ public final class VaporizerGameTest {
         }
         inventory.offhand.set(0, new ItemStack(Items.COBBLESTONE, 64));
         inventory.items.set(inventory.selected, packed(ModItems.VAPORIZER, strain(world), DeviceType.VAPORIZER));
+        // A test that ran here in an earlier batch can leave its drops on the floor; only this bowl's may count.
+        Line.entities(context, EntityType.ITEM).forEach(ItemEntity::discard);
         for (int i = 0; i < DeviceType.VAPORIZER.builtInBowl().hits(); i++) {
             hit(player, world, InteractionHand.MAIN_HAND);
         }
